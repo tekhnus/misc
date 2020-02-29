@@ -1,2 +1,0 @@
-# misc
-Some personal stuff
