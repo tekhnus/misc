@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<planet name="sun" color="#FFFF00" radius="7e8" mass="2e30">
+    <planet name="mercury" color="#707070" radius="2430e3" mass="3.3e23" orbit="65e9" speed="40e3"></planet>
+    <planet name="venus" color="#FF9470" radius="6050e3" mass="4.9e24" orbit="108e9" speed="35e3"></planet>
+    <planet name="earth" color="#3366FF" radius="6371e3" mass="5.97e24" orbit="150e9" speed="30e3">
+        <planet name="moon" color="#808080" radius="1738e3" mass="7.35e22" orbit="384467e3" speed="1.022e3"></planet>
+    </planet>
+    <planet name="mars" color="#F53D00" radius="3500e3" mass="6.44e23" orbit="228e9" speed="24e3"></planet>
+    <rings orbit="500e9" speed="16.4e3" number="40"></rings>
+    <planet name="jupiter" color="#FFCC33" radius="71300e3" mass="1.9e27" orbit="778e9" speed="13e3"></planet>
+    <planet name="saturn" color="#FFDB70" radius="60130e3" mass="5.68e26" orbit="1428e9" speed="9.6e3">
+        <rings orbit="120000e3" speed="17e3" number="20" minscale="200"></rings>
+    </planet>
+    <planet name="uranus" color="#003DF5" radius="26500e3" mass="8.7e25" orbit="2871e9" speed="6.8e3"></planet>
+    <planet name="neptune" color="#7094FF" radius="24700e3" mass="1.03e26" orbit="4504e9" speed="5.5e3"></planet>
+</planet>
