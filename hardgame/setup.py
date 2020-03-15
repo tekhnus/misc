@@ -9,4 +9,5 @@ setuptools.setup(
         hardgame=hardgame:main
     """,
     packages=setuptools.find_packages(),
+    install_requires=["pyglet == 1.5.0"],
 )
