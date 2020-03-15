@@ -1,0 +1,56 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 4109b868e8d844644bc63e054ae5edf63c828a5514d852c0c747e338f9977429
+
+name:           filesearch
+version:        0.1.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      Matching
+  other-modules:
+      Paths_filesearch
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , directory ==1.3.4.0
+    , filepath ==1.4.2.1
+    , time ==1.9.3
+  default-language: Haskell2010
+
+executable filesearch
+  main-is: Main.hs
+  other-modules:
+      Paths_filesearch
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , directory ==1.3.4.0
+    , filepath ==1.4.2.1
+    , filesearch
+    , time ==1.9.3
+  default-language: Haskell2010
+
+test-suite filesearch-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_filesearch
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , directory ==1.3.4.0
+    , filepath ==1.4.2.1
+    , filesearch
+    , time ==1.9.3
+  default-language: Haskell2010
