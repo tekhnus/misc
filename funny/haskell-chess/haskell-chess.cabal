@@ -1,0 +1,58 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 3ea2f5ba9c611018b5eb81e09ffc394f473312e7d892d9b831a0b08f8604907b
+
+name:           haskell-chess
+version:        0.1.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      Board
+      Direction
+      GenericBoard
+      Lib
+      NewBoard
+      Rules
+  other-modules:
+      Paths_haskell_chess
+  hs-source-dirs:
+      src
+  build-depends:
+      base >=4.7 && <5
+    , cond ==0.4.1.1
+    , monad-loops ==0.4.3
+  default-language: Haskell2010
+
+executable haskell-chess
+  main-is: Main.hs
+  other-modules:
+      Paths_haskell_chess
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , cond ==0.4.1.1
+    , haskell-chess
+    , monad-loops ==0.4.3
+  default-language: Haskell2010
+
+test-suite haskell-chess-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Paths_haskell_chess
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , cond ==0.4.1.1
+    , haskell-chess
+    , monad-loops ==0.4.3
+  default-language: Haskell2010
