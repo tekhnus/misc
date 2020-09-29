@@ -1,6 +1,6 @@
-*This project was created during May-June 2014.
+*This project was created during May-June 2014.*
 
-In order to launch the synth, first start a JACK server,
+*In order to launch the synth, first start a JACK server,
 and then set up a MIDI source (a virtual midi keyboard, for example).*
 
 Organetto is a progressive additive synthesizer.
