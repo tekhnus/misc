@@ -19,7 +19,6 @@ module Board
   , KingRookState(..)
   ) where
 
-import Control.Conditional
 import Data.Char
 import Data.List
 import Data.Function
@@ -92,18 +91,15 @@ isKing _                   = False
 
 moveFigure :: Position -> Position -> Board -> Maybe Board
 moveFigure fromPosition toPosition b@(Board board) =
-  (isKing destination) |>
-  (Board
+  Just (Board
      (board & (putFigure fromPosition Empty) & (putFigure toPosition figure))
      )
   where
     figure = figureAt b fromPosition
-    destination = figureAt b toPosition
 
 replaceFigure :: Position -> (Square -> Square) -> Board -> Maybe Board
 replaceFigure atPosition updateFigure b@(Board board) =
-  isKing figure /=
-  isKing figure' |> (Board (board & (putFigure atPosition figure')))
+  Just (Board (board & (putFigure atPosition figure')))
   where
     figure = figureAt b atPosition
     figure' = updateFigure figure
