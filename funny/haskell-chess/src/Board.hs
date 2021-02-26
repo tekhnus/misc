@@ -16,6 +16,7 @@ module Board
   , moveIn
   -- for debug
   , isKing
+  , KingRookState(..)
   ) where
 
 import Control.Conditional
@@ -41,13 +42,18 @@ data PawnState
   | Moved
   deriving (Show) -- for debug
 
+data KingRookState
+  = Castleable
+  | NonCastleable
+  deriving (Show)
+
 data Piece
   = Pawn PawnState
-  | Rook Bool
+  | Rook KingRookState
   | Knight
   | Bishop
   | Queen
-  | King Bool
+  | King KingRookState
   deriving (Show) -- for debug
 
 data Square

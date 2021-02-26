@@ -18,13 +18,13 @@ newBoard =
     ]
   where
     initialRank =
-      [ (Rook True)
+      [ (Rook Castleable)
       , Knight
       , Bishop
       , Queen
-      , (King True)
+      , (King Castleable)
       , Bishop
       , Knight
-      , (Rook True)
+      , (Rook Castleable)
       ]
     rankOf = replicate 8

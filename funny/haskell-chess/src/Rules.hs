@@ -42,8 +42,8 @@ positionsAtDirection position dist direction =
 update :: Square -> Square
 update (Figure color (Pawn Stable))    = Figure color (Pawn JustMoved)
 update (Figure color (Pawn JustMoved)) = Figure color (Pawn Moved)
-update (Figure color (Rook True))      = Figure color (Rook False)
-update (Figure color (King True))      = Figure color (King False)
+update (Figure color (Rook Castleable))      = Figure color (Rook NonCastleable)
+update (Figure color (King Castleable))      = Figure color (King NonCastleable)
 update figure                          = figure
 
 moveFigure' :: Position -> Position -> Board -> Maybe Board
@@ -129,7 +129,7 @@ freshKing :: State -> Maybe Int
 freshKing (State color board) =
   listToMaybe
     [ position
-    | (Figure fcolor (King True), position) <- (homeRow color board)
+    | (Figure fcolor (King Castleable), position) <- (homeRow color board)
     , fcolor == color
     ]
 
