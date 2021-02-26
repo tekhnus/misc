@@ -20,7 +20,9 @@ module Board
 
 import Control.Conditional
 import Data.Char
+import Data.List
 import Data.Function
+import Data.Maybe
 import Direction
 import GenericBoard
 
@@ -68,42 +70,41 @@ instance Show Square where
 
 data Board =
   Board (GenericBoard Square)
-        (Color -> Position)
 
 instance Show Board where
-  show (Board b _) = show b
+  show (Board b) = show b
 
-aBoard :: [[Square]] -> (Color -> Position) -> Board
-aBoard squares k = (Board (aGenericBoard squares) k)
+aBoard :: [[Square]] -> Board
+aBoard squares = (Board (aGenericBoard squares))
 
 figureAt :: Board -> Position -> Square
-figureAt (Board board _) pos = figureAt' board pos
+figureAt (Board board) pos = figureAt' board pos
 
 isKing :: Square -> Bool
 isKing (Figure _ (King _)) = True
 isKing _                   = False
 
 moveFigure :: Position -> Position -> Board -> Maybe Board
-moveFigure fromPosition toPosition b@(Board board k) =
+moveFigure fromPosition toPosition b@(Board board) =
   (isKing destination) |>
   (Board
      (board & (putFigure fromPosition Empty) & (putFigure toPosition figure))
-     newKing)
+     )
   where
     figure = figureAt b fromPosition
     destination = figureAt b toPosition
-    newKing = permute . k
-    permute pos
-      | pos == fromPosition = toPosition
-      | otherwise = pos
 
 replaceFigure :: Position -> (Square -> Square) -> Board -> Maybe Board
-replaceFigure atPosition updateFigure b@(Board board k) =
+replaceFigure atPosition updateFigure b@(Board board) =
   isKing figure /=
-  isKing figure' |> (Board (board & (putFigure atPosition figure')) k)
+  isKing figure' |> (Board (board & (putFigure atPosition figure')))
   where
     figure = figureAt b atPosition
     figure' = updateFigure figure
 
 theKing :: Color -> Board -> Position
-theKing c (Board _ k) = k c
+theKing c b = fromJust (find isTheKing allPositions)
+  where
+    isTheKing pos = isTheKing' (figureAt b pos)
+    isTheKing' (Figure col (King _)) = col == c
+    isTheKing' _ = False

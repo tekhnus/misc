@@ -16,7 +16,6 @@ newBoard =
     , rankOf (Figure White (Pawn Stable))
     , map (Figure White) initialRank
     ]
-    k
   where
     initialRank =
       [ (Rook True)
@@ -29,5 +28,3 @@ newBoard =
       , (Rook True)
       ]
     rankOf = replicate 8
-    k Black = (0, 0)
-    k White = (0, 0)
