@@ -55,21 +55,23 @@ data State =
   State Color
         Board
 
-type Move = (Position, Position)
+type MoveFigure = (Position, Position)
 
 data Castling =
   KingsideCastling
   deriving (Eq, Read)
 
+type Move = Either MoveFigure Castling
+
 instance Show State where
   show (State _ board) = show board
 
-makeMove :: Move -> State -> Maybe State
+makeMove :: MoveFigure -> State -> Maybe State
 makeMove (fromPosition, toPosition) (State color board) = do
   board' <- (board & (moveFigure' fromPosition toPosition))
   return (State (opposite color) board')
 
-movesAtDirection :: State -> Position -> Int -> Direction -> [(Move, State)]
+movesAtDirection :: State -> Position -> Int -> Direction -> [(MoveFigure, State)]
 movesAtDirection state@(State _ board) position dist direction =
   untilStop positions
   where
@@ -83,7 +85,7 @@ movesAtDirection state@(State _ board) position dist direction =
             Nothing     -> untilStop ps
         _ -> []
 
-takesAtDirection :: State -> Position -> Int -> Direction -> [(Move, State)]
+takesAtDirection :: State -> Position -> Int -> Direction -> [(MoveFigure, State)]
 takesAtDirection state@(State color board) position dist direction =
   untilStop positions
   where
@@ -106,7 +108,7 @@ touch (State color board) position =
       | color' == color -> Just piece
     _ -> Nothing
 
-possibleMoves :: State -> Position -> [(Move, State)]
+possibleMoves :: State -> Position -> [(MoveFigure, State)]
 possibleMoves state@(State color _) position =
   case (touch state position) of
     Just piece ->
@@ -119,7 +121,7 @@ possibleMoves state@(State color _) position =
           (concatMap takesAtDirection' takeDirections')
     Nothing -> []
 
-moves :: State -> [(Move, State)]
+moves :: State -> [(MoveFigure, State)]
 moves state = concatMap (possibleMoves state) allPositions
 
 homeRow :: Color -> Board -> [(Square, Int)]
@@ -197,17 +199,13 @@ castlings state = do
   state' <- maybeToList (makeCastling castling state)
   return (castling, state')
 
-data Turn
-  = Move Move
-  | Castle Castling
-  deriving (Read)
 
-make :: Turn -> State -> Maybe State
+make :: Move -> State -> Maybe State
 make turn state@(State color _) = do
   state'@(State _ board') <-
     case turn of
-      Move move       -> lookup move (moves state)
-      Castle castling -> lookup castling (castlings state)
+      Left move       -> lookup move (moves state)
+      Right castling -> lookup castling (castlings state)
   (kingAttacked color board') |> state'
 
 newGame :: State
