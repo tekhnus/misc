@@ -124,31 +124,14 @@ basicMovesFromPosition state@(State color _) position =
 basicMoves :: State -> [(BasicMove, State)]
 basicMoves state = concatMap (basicMovesFromPosition state) allPositions
 
-homeRow :: Color -> Board -> [(Square, Int)]
-homeRow _ _ = []
+castlingKingPath :: Castling -> [Int]
+castlingKingPath KingsideCastling = [4, 5, 6]
 
-freshKing :: State -> Maybe Int
-freshKing (State color board) =
-  listToMaybe
-    [ position
-    | (Figure fcolor (King Castleable), position) <- (homeRow color board)
-    , fcolor == color
-    ]
-
-castlingKingDst :: Castling -> Int
-castlingKingDst KingsideCastling = 5
-
-castlingRookDst :: Castling -> Int
-castlingRookDst KingsideCastling = 4
+castlingRookPath :: Castling -> [Int]
+castlingRookPath KingsideCastling = [7, 5]
 
 atHomeRow :: Color -> Int -> Position
 atHomeRow _ _ = (0, 0)
-
-straightPath :: Int -> Int -> [Int]
-straightPath _ _ = []
-
-freshRook :: Castling -> State -> Maybe Int
-freshRook _ _ = Nothing
 
 empty :: Position -> Board -> Bool
 empty position board =
@@ -176,21 +159,27 @@ kingAttacked :: Color -> Board -> Bool
 kingAttacked color board = kingAttackedOn color (theKing color board) board
 
 makeCastling :: Castling -> State -> Maybe State
-makeCastling castling state@(State color board) = do
-  king <- freshKing state
-  rook <- freshRook castling state
-  let pos = atHomeRow color
-      attacked' ps = kingAttackedOn color (pos ps) board
-      empty' ps = empty (pos ps) board
-      king' = castlingKingDst castling
-      rook' = castlingRookDst castling
-      kingPath = straightPath king king'
-      rookPath = straightPath rook rook'
-  board'' <- moveFigure' (pos king) (pos king') board
-  board' <- moveFigure' (pos rook) (pos rook') board''
-  guard (all (not . attacked') (king : kingPath))
-  guard (all (empty' <||> (== rook)) (king' : kingPath))
-  guard (all (empty' <||> (== king)) (rook' : rookPath))
+makeCastling castling (State color board) = do
+  let localToGlobal = atHomeRow color
+      attacked' ps = kingAttackedOn color (localToGlobal ps) board
+      empty' = (`empty` board) . localToGlobal
+      kingPath = castlingKingPath castling
+      rookPath = castlingRookPath castling
+      king = head kingPath
+      rook = head rookPath
+      king' = last kingPath
+      rook' = last rookPath
+  guard (case figureAt board (localToGlobal king) of
+    Figure col (King Castleable) | col == color -> True
+    _ -> False)
+  guard (case figureAt board (localToGlobal rook) of
+    Figure col (Rook Castleable) | col == color -> True
+    _ -> False)
+  guard (all (not . attacked') (kingPath))
+  guard (all (empty' <||> (== rook)) (tail kingPath))
+  guard (all (empty' <||> (== king)) (tail rookPath))
+  board'' <- moveFigure' (localToGlobal king) (localToGlobal king') board
+  board' <- moveFigure' (localToGlobal rook) (localToGlobal rook') board''
   return (State (opposite color) board')
 
 castlings :: State -> [(Castling, State)]
