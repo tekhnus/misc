@@ -4,8 +4,8 @@ import Rules
 playerTurn :: State -> IO State
 playerTurn state = do
   print state
-  turn <- readLn
-  case make turn state of
+  move <- readLn
+  case makeMove move state of
     Just state' -> return state'
     Nothing -> do
       print "Wrong move, try again"

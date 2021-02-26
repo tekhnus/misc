@@ -1,9 +1,9 @@
 module Rules
   ( State(..)
-  , make
+  , makeMove
   , newGame
   -- for debug
-  , moves, possibleMoves, touch, moveDirections, movesAtDirection, positionsAtDirection, distance, makeMove, moveFigure'
+  , basicMoves, basicMovesFromPosition, touch, moveDirections, movesAtDirection, positionsAtDirection, distance, makeBasicMove, moveFigure'
   ) where
 
 import Board
@@ -55,23 +55,23 @@ data State =
   State Color
         Board
 
-type MoveFigure = (Position, Position)
+type BasicMove = (Position, Position)
 
 data Castling =
   KingsideCastling
   deriving (Eq, Read)
 
-type Move = Either MoveFigure Castling
+type Move = Either BasicMove Castling
 
 instance Show State where
   show (State _ board) = show board
 
-makeMove :: MoveFigure -> State -> Maybe State
-makeMove (fromPosition, toPosition) (State color board) = do
+makeBasicMove :: BasicMove -> State -> Maybe State
+makeBasicMove (fromPosition, toPosition) (State color board) = do
   board' <- (board & (moveFigure' fromPosition toPosition))
   return (State (opposite color) board')
 
-movesAtDirection :: State -> Position -> Int -> Direction -> [(MoveFigure, State)]
+movesAtDirection :: State -> Position -> Int -> Direction -> [(BasicMove, State)]
 movesAtDirection state@(State _ board) position dist direction =
   untilStop positions
   where
@@ -80,12 +80,12 @@ movesAtDirection state@(State _ board) position dist direction =
     untilStop (p:ps) =
       case (figureAt board p) of
         Empty ->
-          case makeMove (position, p) state of
+          case makeBasicMove (position, p) state of
             Just state' -> ((position, p), state') : (untilStop ps)
             Nothing     -> untilStop ps
         _ -> []
 
-takesAtDirection :: State -> Position -> Int -> Direction -> [(MoveFigure, State)]
+takesAtDirection :: State -> Position -> Int -> Direction -> [(BasicMove, State)]
 takesAtDirection state@(State color board) position dist direction =
   untilStop positions
   where
@@ -96,7 +96,7 @@ takesAtDirection state@(State color board) position dist direction =
         Empty -> untilStop ps
         (Figure fcolor _) ->
           if fcolor /= color
-            then case makeMove (position, p) state of
+            then case makeBasicMove (position, p) state of
                    Just state' -> [((position, p), state')]
                    Nothing     -> []
             else []
@@ -108,8 +108,8 @@ touch (State color board) position =
       | color' == color -> Just piece
     _ -> Nothing
 
-possibleMoves :: State -> Position -> [(MoveFigure, State)]
-possibleMoves state@(State color _) position =
+basicMovesFromPosition :: State -> Position -> [(BasicMove, State)]
+basicMovesFromPosition state@(State color _) position =
   case (touch state position) of
     Just piece ->
       let moveDirections' = moveDirections color piece
@@ -121,8 +121,8 @@ possibleMoves state@(State color _) position =
           (concatMap takesAtDirection' takeDirections')
     Nothing -> []
 
-moves :: State -> [(MoveFigure, State)]
-moves state = concatMap (possibleMoves state) allPositions
+basicMoves :: State -> [(BasicMove, State)]
+basicMoves state = concatMap (basicMovesFromPosition state) allPositions
 
 homeRow :: Color -> Board -> [(Square, Int)]
 homeRow _ _ = []
@@ -160,7 +160,7 @@ attacked :: Color -> Position -> Board -> Bool
 attacked color position board = any attack mvs
   where
     state = State (opposite color) board
-    mvs = moves state
+    mvs = basicMoves state
     attack ((_, x'), _) = x' == position
 
 kingAttackedOn :: Color -> Position -> Board -> Bool
@@ -200,11 +200,11 @@ castlings state = do
   return (castling, state')
 
 
-make :: Move -> State -> Maybe State
-make turn state@(State color _) = do
+makeMove :: Move -> State -> Maybe State
+makeMove turn state@(State color _) = do
   state'@(State _ board') <-
     case turn of
-      Left move       -> lookup move (moves state)
+      Left move       -> lookup move (basicMoves state)
       Right castling -> lookup castling (castlings state)
   (kingAttacked color board') |> state'
 
