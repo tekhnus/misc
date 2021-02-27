@@ -60,7 +60,7 @@ data State =
 type BasicMove = (Position, Position)
 
 data Castling =
-  KingsideCastling
+  KingsideCastling | QueensideCastling
   deriving (Eq, Read)
 
 type Move = Either BasicMove Castling
@@ -128,9 +128,11 @@ basicMoves state = concatMap (basicMovesFromPosition state) allPositions
 
 castlingKingPath :: Castling -> [Int]
 castlingKingPath KingsideCastling = [4, 5, 6]
+castlingKingPath QueensideCastling = [4, 3, 2]
 
 castlingRookPath :: Castling -> [Int]
-castlingRookPath KingsideCastling = [7, 5]
+castlingRookPath KingsideCastling = [7, 6, 5]
+castlingRookPath QueensideCastling = [0, 1, 2, 3]
 
 localToGlobal :: Color -> Int -> Position
 localToGlobal White n = (0, n)
