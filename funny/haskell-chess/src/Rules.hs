@@ -78,13 +78,25 @@ basicMovesFromPosition state@(State color board) position =
             s' <- makeBasicMove m state 
             return (m, s')
           simpleMoves dist directions st po = (concatMap (availablePositionsAtDirection st po dist) directions)
+          isTake po' = case (figureAt board po') of
+            Empty -> False
+            _ -> True
+          isNotTake = not . isTake
+          pawnMovingDirections = case color of
+            White -> [B]
+            Black -> [W]
+          pawnTakingDirections = case color of
+            White -> [BK, BQ]
+            Black -> [WK, WQ]
+          compose2 = fmap . fmap -- compose a one-arg function with a two-arg function
+          liftedConcat f g x y = (f x y) ++ (g x y)
           positionFunction = case piece of
             Rook _ -> simpleMoves 8 [B, W, K, Q]
             Bishop -> simpleMoves 8 [BK, BQ, WK, WQ]
             Queen -> simpleMoves 8 [B, W, K, Q, BK, BQ, WK, WQ]
             King _ -> simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
             Knight -> (\_ _ -> [])
-            Pawn _ -> (\_ _ -> [])
+            Pawn _ -> liftedConcat ((filter isNotTake) `compose2` (simpleMoves 2 pawnMovingDirections)) ((filter isTake) `compose2` (simpleMoves 1 pawnTakingDirections))
           positions = positionFunction state position
        in catMaybes (map moveStatePair positions)
     _ -> []
