@@ -6,7 +6,6 @@ main = do
     let (State _ newBoard) = newGame
     print (basicMoves newGame)
     print (basicMovesFromPosition newGame (6, 0))
-    print (movesAtDirection newGame (6, 0) 1 B)
     print (makeBasicMove ((6, 0), (5, 0)) newGame)
     print (moveFigure' (6, 0) (5, 0) newBoard)
     print (moveFigure (6, 0) (5, 0) newBoard)

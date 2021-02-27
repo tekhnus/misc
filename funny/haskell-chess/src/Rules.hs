@@ -5,7 +5,7 @@ module Rules
   , makeMove
   , newGame
   -- for debug
-  , basicMoves, basicMovesFromPosition, touch, moveDirections, movesAtDirection, positionsAtDirection, distance, makeBasicMove, moveFigure'
+  , basicMoves, basicMovesFromPosition, touch, moveDirections, positionsAtDirection, distance, makeBasicMove, moveFigure'
   ) where
 
 import Board
@@ -22,11 +22,6 @@ moveDirections _ Knight       = []
 moveDirections _ Bishop       = [BK, BQ, WK, WQ]
 moveDirections _ Queen        = [B, W, K, Q, BK, BQ, WK, WQ]
 moveDirections _ (King _)     = [B, W, K, Q, BK, BQ, WK, WQ]
-
-takeDirections :: Color -> Piece -> [Direction]
-takeDirections White (Pawn _) = [BK, BQ]
-takeDirections Black (Pawn _) = [WK, WQ]
-takeDirections color piece    = moveDirections color piece
 
 distance :: Piece -> Int
 distance (Pawn _) = 1
@@ -73,35 +68,20 @@ makeBasicMove (fromPosition, toPosition) (State color board) = do
   board' <- (board & (moveFigure' fromPosition toPosition))
   return (State (opposite color) board')
 
-movesAtDirection :: State -> Position -> Int -> Direction -> [(BasicMove, State)]
-movesAtDirection state@(State _ board) position dist direction =
-  untilStop positions
-  where
-    positions = positionsAtDirection position dist direction
-    untilStop [] = []
-    untilStop (p:ps) =
-      case (figureAt board p) of
-        Empty ->
-          case makeBasicMove (position, p) state of
-            Just state' -> ((position, p), state') : (untilStop ps)
-            Nothing     -> untilStop ps
-        _ -> []
-
-takesAtDirection :: State -> Position -> Int -> Direction -> [(BasicMove, State)]
-takesAtDirection state@(State color board) position dist direction =
-  untilStop positions
-  where
-    positions = positionsAtDirection position dist direction
-    untilStop [] = []
-    untilStop (p:ps) =
-      case (figureAt board p) of
-        Empty -> untilStop ps
-        (Figure fcolor _) ->
-          if fcolor /= color
-            then case makeBasicMove (position, p) state of
-                   Just state' -> [((position, p), state')]
-                   Nothing     -> []
-            else []
+availablePositionsAtDirection :: State -> Position -> Int -> Direction -> [Position]
+availablePositionsAtDirection _ _ 0 _ = []
+availablePositionsAtDirection (State color board) pos dist dir =
+  let
+    posList = positionsAtDirection pos dist dir
+    pairs = zip posList (tail posList)
+    nicePair (p, prevP) =
+      let fig = figureAt board p
+          prevFig = figureAt board prevP
+       in case (fig, prevFig) of
+            (_, Figure _ _) -> False
+            (Figure fcolor _, _) | fcolor == color -> False
+            _ -> True
+   in map fst (takeWhile nicePair pairs)
 
 touch :: State -> Position -> Maybe Piece
 touch (State color board) position =
@@ -115,12 +95,13 @@ basicMovesFromPosition state@(State color _) position =
   case (touch state position) of
     Just piece ->
       let moveDirections' = moveDirections color piece
-          takeDirections' = takeDirections color piece
           distance' = distance piece
-          movesAtDirection' = movesAtDirection state position distance'
-          takesAtDirection' = takesAtDirection state position distance'
-       in (concatMap movesAtDirection' moveDirections') ++
-          (concatMap takesAtDirection' takeDirections')
+          positionsAtDirection' = availablePositionsAtDirection state position distance'
+          moveStatePair pos' = do
+            let m = (position, pos')
+            s' <- makeBasicMove m state 
+            return (m, s')
+       in catMaybes (map moveStatePair (concatMap positionsAtDirection' moveDirections'))
     Nothing -> []
 
 basicMoves :: State -> [(BasicMove, State)]
