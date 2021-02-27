@@ -12,6 +12,3 @@ main = do
     print (isKing (figureAt newBoard (5, 0)))
     print (figureAt newBoard (5, 0))
     print (positionsAtDirection (6, 0) 1 B)
-    print (moveDirections White (Pawn Stable))
-    print (distance (Pawn Stable))
-    print (touch newGame (6, 0))

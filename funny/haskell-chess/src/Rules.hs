@@ -5,7 +5,7 @@ module Rules
   , makeMove
   , newGame
   -- for debug
-  , basicMoves, basicMovesFromPosition, touch, moveDirections, positionsAtDirection, distance, makeBasicMove, moveFigure'
+  , basicMoves, basicMovesFromPosition, positionsAtDirection, makeBasicMove, moveFigure'
   ) where
 
 import Board
@@ -13,20 +13,6 @@ import Control.Conditional
 import Data.Function
 import Data.Maybe
 import NewBoard
-
-moveDirections :: Color -> Piece -> [Direction]
-moveDirections White (Pawn _) = [B]
-moveDirections Black (Pawn _) = [W]
-moveDirections _ (Rook _)     = [B, W, K, Q]
-moveDirections _ Knight       = []
-moveDirections _ Bishop       = [BK, BQ, WK, WQ]
-moveDirections _ Queen        = [B, W, K, Q, BK, BQ, WK, WQ]
-moveDirections _ (King _)     = [B, W, K, Q, BK, BQ, WK, WQ]
-
-distance :: Piece -> Int
-distance (Pawn _) = 1
-distance (King _) = 1
-distance _        = 8
 
 positionsAtDirection :: Position -> Int -> Direction -> [Position]
 positionsAtDirection _ 0 _ = []
@@ -83,26 +69,25 @@ availablePositionsAtDirection (State color board) pos dist dir =
             _ -> True
    in map fst (takeWhile nicePair pairs)
 
-touch :: State -> Position -> Maybe Piece
-touch (State color board) position =
-  case (figureAt board position) of
-    Figure color' piece
-      | color' == color -> Just piece
-    _ -> Nothing
-
 basicMovesFromPosition :: State -> Position -> [(BasicMove, State)]
-basicMovesFromPosition state@(State color _) position =
-  case (touch state position) of
-    Just piece ->
-      let moveDirections' = moveDirections color piece
-          distance' = distance piece
-          positionsAtDirection' = availablePositionsAtDirection state position distance'
-          moveStatePair pos' = do
+basicMovesFromPosition state@(State color board) position =
+  case (figureAt board position) of
+    Figure fcolor piece | fcolor == color ->
+      let moveStatePair pos' = do
             let m = (position, pos')
             s' <- makeBasicMove m state 
             return (m, s')
-       in catMaybes (map moveStatePair (concatMap positionsAtDirection' moveDirections'))
-    Nothing -> []
+          simpleMoves dist directions st po = (concatMap (availablePositionsAtDirection st po dist) directions)
+          positionFunction = case piece of
+            Rook _ -> simpleMoves 8 [B, W, K, Q]
+            Bishop -> simpleMoves 8 [BK, BQ, WK, WQ]
+            Queen -> simpleMoves 8 [B, W, K, Q, BK, BQ, WK, WQ]
+            King _ -> simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
+            Knight -> (\_ _ -> [])
+            Pawn _ -> (\_ _ -> [])
+          positions = positionFunction state position
+       in catMaybes (map moveStatePair positions)
+    _ -> []
 
 basicMoves :: State -> [(BasicMove, State)]
 basicMoves state = concatMap (basicMovesFromPosition state) allPositions
