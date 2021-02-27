@@ -1,3 +1,5 @@
+{-# LANGUAGE LambdaCase #-}
+
 module Rules
   ( State(..)
   , makeMove
@@ -130,14 +132,9 @@ castlingKingPath KingsideCastling = [4, 5, 6]
 castlingRookPath :: Castling -> [Int]
 castlingRookPath KingsideCastling = [7, 5]
 
-atHomeRow :: Color -> Int -> Position
-atHomeRow _ _ = (0, 0)
-
-empty :: Position -> Board -> Bool
-empty position board =
-  case figureAt board position of
-    Empty -> True
-    _     -> False
+localToGlobal :: Color -> Int -> Position
+localToGlobal White n = (0, n)
+localToGlobal Black n = (7, 7 - n)
 
 attacked :: Color -> Position -> Board -> Bool
 attacked color position board = any attack mvs
@@ -160,26 +157,26 @@ kingAttacked color board = kingAttackedOn color (theKing color board) board
 
 makeCastling :: Castling -> State -> Maybe State
 makeCastling castling (State color board) = do
-  let localToGlobal = atHomeRow color
-      attacked' ps = kingAttackedOn color (localToGlobal ps) board
-      empty' = (`empty` board) . localToGlobal
+  let localToGlobal' = localToGlobal color
+      attacked' ps = kingAttackedOn color (localToGlobal' ps) board
+      empty' = (\case Empty -> True; _ -> False) . (figureAt board) . localToGlobal'
       kingPath = castlingKingPath castling
       rookPath = castlingRookPath castling
       king = head kingPath
       rook = head rookPath
       king' = last kingPath
       rook' = last rookPath
-  guard (case figureAt board (localToGlobal king) of
+  guard (case figureAt board (localToGlobal' king) of
     Figure col (King Castleable) | col == color -> True
     _ -> False)
-  guard (case figureAt board (localToGlobal rook) of
+  guard (case figureAt board (localToGlobal' rook) of
     Figure col (Rook Castleable) | col == color -> True
     _ -> False)
   guard (all (not . attacked') (kingPath))
   guard (all (empty' <||> (== rook)) (tail kingPath))
   guard (all (empty' <||> (== king)) (tail rookPath))
-  board'' <- moveFigure' (localToGlobal king) (localToGlobal king') board
-  board' <- moveFigure' (localToGlobal rook) (localToGlobal rook') board''
+  board'' <- moveFigure' (localToGlobal' king) (localToGlobal' king') board
+  board' <- moveFigure' (localToGlobal' rook) (localToGlobal' rook') board''
   return (State (opposite color) board')
 
 castlings :: State -> [(Castling, State)]
