@@ -7,14 +7,14 @@ import Board
 newBoard :: Board
 newBoard =
   aBoard
-    [ map (Figure Black) (initialRank)
-    , rankOf (Figure Black (Pawn Stable))
-    , rankOf Empty
-    , rankOf Empty
-    , rankOf Empty
-    , rankOf Empty
+    [ map (Figure White) (initialRank)
     , rankOf (Figure White (Pawn Stable))
-    , map (Figure White) initialRank
+    , rankOf Empty
+    , rankOf Empty
+    , rankOf Empty
+    , rankOf Empty
+    , rankOf (Figure Black (Pawn Stable))
+    , map (Figure Black) initialRank
     ]
   where
     initialRank =

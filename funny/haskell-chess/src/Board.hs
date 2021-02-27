@@ -14,6 +14,7 @@ module Board
   , theKing
   , Direction(..)
   , moveIn
+  , applyDelta
   -- for debug
   , isKing
   , KingRookState(..)
