@@ -106,8 +106,8 @@ basicMovesFromPosition state@(State color board) position =
        in catMaybes (map moveStatePair positions)
     _ -> []
 
-basicMoves :: State -> [(BasicMove, State)]
-basicMoves state = concatMap (basicMovesFromPosition state) allPositions
+basicMoves' :: State -> [(BasicMove, State)]
+basicMoves' state = concatMap (basicMovesFromPosition state) allPositions
 
 castlingKingPath :: Castling -> [Int]
 castlingKingPath KingsideCastling = [4, 5, 6]
@@ -125,7 +125,7 @@ attacked :: Color -> Position -> Board -> Bool
 attacked color position board = any attack mvs
   where
     state = State (opposite color) board
-    mvs = basicMoves state
+    mvs = basicMoves' state
     attack ((_, x'), _) = x' == position
 
 kingAttackedOn :: Color -> Position -> Board -> Bool
@@ -139,6 +139,10 @@ kingAttackedOn color position board =
 
 kingAttacked :: Color -> Board -> Bool
 kingAttacked color board = kingAttackedOn color (theKing color board) board
+
+basicMoves :: State -> [(BasicMove, State)]
+basicMoves = (filter isValidBasicMove) . basicMoves'
+  where isValidBasicMove (_, (State col b)) = not (kingAttacked (opposite col) b)
 
 makeCastling :: Castling -> State -> Maybe State
 makeCastling castling (State color board) = do
@@ -170,14 +174,13 @@ castlings state = do
   state' <- maybeToList (makeCastling castling state)
   return (castling, state')
 
+moves :: State -> [(Move, State)]
+moves state = (map cbm (basicMoves state)) ++ (map cct (castlings state))
+  where cbm (bm, s) = (Left bm, s)
+        cct (c, s) = (Right c, s)
 
 makeMove :: Move -> State -> Maybe State
-makeMove turn state@(State color _) = do
-  state'@(State _ board') <-
-    case turn of
-      Left move       -> lookup move (basicMoves state)
-      Right castling -> lookup castling (castlings state)
-  (kingAttacked color board') |> state'
+makeMove move state = lookup move (moves state)
 
 newGame :: State
 newGame = State White newBoard
