@@ -39,7 +39,7 @@ opposite Black = White
 data KingRookState
   = Castleable
   | NonCastleable
-  deriving (Show)
+  deriving (Eq, Show, Read)
 
 data Piece
   = Pawn
@@ -48,7 +48,7 @@ data Piece
   | Bishop
   | Queen
   | King KingRookState
-  deriving (Show) -- for debug
+  deriving (Eq, Show, Read) -- for debug
 
 data Square
   = Figure Color
