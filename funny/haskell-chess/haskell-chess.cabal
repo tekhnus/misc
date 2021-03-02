@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.34.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3ea2f5ba9c611018b5eb81e09ffc394f473312e7d892d9b831a0b08f8604907b
+-- hash: 1eaa9e002c2fa442adb3003ea7ade3b5521f2929f80595210e95055a5ee4dd43
 
 name:           haskell-chess
 version:        0.1.0.0
@@ -14,6 +14,7 @@ library
   exposed-modules:
       Board
       Direction
+      FEN
       GenericBoard
       Lib
       NewBoard
@@ -26,6 +27,7 @@ library
       base >=4.7 && <5
     , cond ==0.4.1.1
     , monad-loops ==0.4.3
+    , split ==0.2.3.3
   default-language: Haskell2010
 
 executable haskell-chess
@@ -40,6 +42,7 @@ executable haskell-chess
     , cond ==0.4.1.1
     , haskell-chess
     , monad-loops ==0.4.3
+    , split ==0.2.3.3
   default-language: Haskell2010
 
 test-suite haskell-chess-test
@@ -55,4 +58,5 @@ test-suite haskell-chess-test
     , cond ==0.4.1.1
     , haskell-chess
     , monad-loops ==0.4.3
+    , split ==0.2.3.3
   default-language: Haskell2010

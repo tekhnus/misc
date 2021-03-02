@@ -30,7 +30,7 @@ import GenericBoard
 data Color
   = White
   | Black
-  deriving (Eq)
+  deriving (Eq, Show)
 
 opposite :: Color -> Color
 opposite White = Black
