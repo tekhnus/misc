@@ -13,3 +13,6 @@ main = do
     let (Just position5) = readState "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"
     print position5
     mapM_ (\n -> printf "%d %d\n\n" n (length (perft position5 n))) [1..3]
+    let (Just position2) = readState "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -"
+    print position2
+    mapM_ (\n -> printf "%d %d\n\n" n (length (perft position2 n))) [1..3]

@@ -135,7 +135,7 @@ castlingRookPath QueensideCastling = [0, 1, 2, 3]
 
 localToGlobal :: Color -> Int -> Position
 localToGlobal White n = (0, n)
-localToGlobal Black n = (7, 7 - n)
+localToGlobal Black n = (7, n)
 
 attacked :: Color -> Position -> Board -> Bool
 attacked color position board = any attack mvs
@@ -186,7 +186,7 @@ makeCastling castling (State color board) = do
 
 castlings :: State -> [(Castling, State)]
 castlings state = do
-  castling <- [KingsideCastling]
+  castling <- [KingsideCastling, QueensideCastling]
   state' <- maybeToList (makeCastling castling state)
   return (castling, state')
 
