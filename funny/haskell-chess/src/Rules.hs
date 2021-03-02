@@ -23,8 +23,6 @@ positionsAtDirection position dist direction =
       position' : (positionsAtDirection position' (dist - 1) direction)
 
 update :: Square -> Square
-update (Figure color (Pawn Stable))    = Figure color (Pawn JustMoved)
-update (Figure color (Pawn JustMoved)) = Figure color (Pawn Moved)
 update (Figure color (Rook Castleable))      = Figure color (Rook NonCastleable)
 update (Figure color (King Castleable))      = Figure color (King NonCastleable)
 update figure                          = figure
@@ -95,15 +93,17 @@ basicMovesFromPosition state@(State color board) position =
             Black -> [WK, WQ]
           compose2 = fmap . fmap -- compose a one-arg function with a two-arg function
           liftedConcat f g x y = (f x y) ++ (g x y) -- concat a couple of two-argument list-returning functions
-          pawnDistance Stable = 2
-          pawnDistance _ = 1
+          pawnDist = pawnDistance color position
+          pawnDistance White (1, _) = 2
+          pawnDistance Black (6, _) = 2
+          pawnDistance _ _ = 1
           positionFunction = case piece of
             Rook _ -> simpleMoves 8 [B, W, K, Q]
             Bishop -> simpleMoves 8 [BK, BQ, WK, WQ]
             Queen -> simpleMoves 8 [B, W, K, Q, BK, BQ, WK, WQ]
             King _ -> simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
             Knight -> deltaMoves [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
-            Pawn pawnState -> liftedConcat ((filter isNotTake) `compose2` (simpleMoves (pawnDistance pawnState) pawnMovingDirections)) ((filter isTake) `compose2` (simpleMoves 1 pawnTakingDirections))
+            Pawn -> liftedConcat ((filter isNotTake) `compose2` (simpleMoves pawnDist pawnMovingDirections)) ((filter isTake) `compose2` (simpleMoves 1 pawnTakingDirections))
           positions = positionFunction state position
        in catMaybes (map moveStatePair positions)
     _ -> []

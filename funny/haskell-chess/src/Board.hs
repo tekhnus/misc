@@ -1,7 +1,6 @@
 module Board
   ( Color(..)
   , opposite
-  , PawnState(..)
   , Piece(..)
   , Square(..)
   , Board
@@ -36,19 +35,13 @@ opposite :: Color -> Color
 opposite White = Black
 opposite Black = White
 
-data PawnState
-  = Stable
-  | JustMoved
-  | Moved
-  deriving (Show) -- for debug
-
 data KingRookState
   = Castleable
   | NonCastleable
   deriving (Show)
 
 data Piece
-  = Pawn PawnState
+  = Pawn
   | Rook KingRookState
   | Knight
   | Bishop
@@ -62,7 +55,7 @@ data Square
   | Empty
 
 toChar :: Square -> Char
-toChar (Figure White (Pawn _)) = 'P'
+toChar (Figure White Pawn) = 'P'
 toChar (Figure White (Rook _)) = 'R'
 toChar (Figure White Knight)   = 'N'
 toChar (Figure White Bishop)   = 'B'

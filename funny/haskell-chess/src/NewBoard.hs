@@ -8,12 +8,12 @@ newBoard :: Board
 newBoard =
   aBoard
     [ map (Figure White) (initialRank)
-    , rankOf (Figure White (Pawn Stable))
+    , rankOf (Figure White Pawn)
     , rankOf Empty
     , rankOf Empty
     , rankOf Empty
     , rankOf Empty
-    , rankOf (Figure Black (Pawn Stable))
+    , rankOf (Figure Black Pawn)
     , map (Figure Black) initialRank
     ]
   where

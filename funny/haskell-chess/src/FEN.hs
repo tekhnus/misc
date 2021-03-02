@@ -91,7 +91,7 @@ readFENState = fst . parseFENState
 fenSquaresToBoard :: [[FENSquare]] -> Board
 fenSquaresToBoard rows = aBoard (map fenRowToBoard (reverse rows))
     where fenRowToBoard = concatMap fenSquareToSquares
-          fenSquareToSquares (FENPiece col SPawn) = [Figure col (Pawn Moved)]
+          fenSquareToSquares (FENPiece col SPawn) = [Figure col Pawn]
           fenSquareToSquares (FENPiece col SKnight) = [Figure col Knight]
           fenSquareToSquares (FENPiece col SBishop) = [Figure col Bishop]
           fenSquareToSquares (FENPiece col SRook) = [Figure col (Rook NonCastleable)]
