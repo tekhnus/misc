@@ -5,7 +5,7 @@ module Rules
   , makeMove
   , newGame
   -- for debug
-  , basicMoves, basicMovesFromPosition, positionsAtDirection, makeBasicMove, moveFigure'
+  , basicMoves, basicMovesFromPosition, positionsAtDirection, makeBasicMove, moveFigure', moves
   ) where
 
 import Board

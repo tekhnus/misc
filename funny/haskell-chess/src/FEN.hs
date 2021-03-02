@@ -5,6 +5,7 @@ module FEN
 import Data.Maybe
 import Data.Char
 import Data.List.Split
+import Control.Monad
 -- import Debug.Trace
 import Board
 import Rules
@@ -100,8 +101,26 @@ fenSquaresToBoard rows = aBoard (map fenRowToBoard (reverse rows))
           fenSquareToSquares (FENEmpty n) = replicate n Empty
 
 
-readState :: String -> State
+compose :: Monad m => [a -> m a] -> a -> m a
+compose = foldr (<=<) return
+
+readState :: String -> Maybe State
 readState s = 
-    let (FENState fenBoard color _ _ _ _) = readFENState s
+    let (FENState fenBoard color allowedCastlings _ _ _) = readFENState s
         board = fenSquaresToBoard fenBoard
-     in State color board
+        markCastling (col, side) b =
+            let kingPos White = (0, 4)
+                kingPos Black = (7, 4)
+                rookPos White QCastle = (0, 0)
+                rookPos Black QCastle = (7, 0)
+                rookPos White KCastle = (0, 7)
+                rookPos Black KCastle = (7, 7)
+                kp = kingPos col
+                rp = rookPos col side
+                b' = emplaceFigure kp (Figure col (King Castleable)) b
+                b'' = b' >>= (emplaceFigure rp (Figure col (Rook Castleable)))
+             in b''
+        markingFunctions = map markCastling allowedCastlings
+        markAll = compose markingFunctions
+        board' = markAll board
+     in fmap (State color) board'

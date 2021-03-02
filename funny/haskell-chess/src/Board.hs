@@ -7,6 +7,7 @@ module Board
   , aBoard
   , moveFigure
   , replaceFigure
+  , emplaceFigure
   , Position
   , allPositions
   , figureAt
@@ -56,11 +57,13 @@ data Square
 
 toChar :: Square -> Char
 toChar (Figure White Pawn) = 'P'
-toChar (Figure White (Rook _)) = 'R'
+toChar (Figure White (Rook Castleable)) = 'R'
+toChar (Figure White (Rook NonCastleable)) = 'Я'
 toChar (Figure White Knight)   = 'N'
 toChar (Figure White Bishop)   = 'B'
 toChar (Figure White Queen)    = 'Q'
-toChar (Figure White (King _)) = 'K'
+toChar (Figure White (King Castleable)) = 'K'
+toChar (Figure White (King NonCastleable)) = 'Y'
 toChar (Figure Black piece)    = (toLower . toChar . Figure White) piece
 toChar Empty                   = ' '
 
@@ -97,6 +100,9 @@ replaceFigure atPosition updateFigure b@(Board board) =
   where
     figure = figureAt b atPosition
     figure' = updateFigure figure
+
+emplaceFigure :: Position -> Square -> Board -> Maybe Board
+emplaceFigure pos sq = replaceFigure pos (\_ -> sq)
 
 theKing :: Color -> Board -> Position
 theKing c b = fromJust (find isTheKing allPositions)
