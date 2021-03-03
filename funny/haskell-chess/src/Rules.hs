@@ -10,6 +10,7 @@ module Rules
 
 import Board
 import Control.Conditional
+import Control.Monad ((<=<))
 import Data.Function
 import Data.Maybe
 import NewBoard
@@ -51,11 +52,35 @@ applyPromotion :: Color -> Position -> Maybe Piece -> Board -> Maybe Board
 applyPromotion _ _ Nothing = return
 applyPromotion col pos (Just fig) = emplaceFigure pos (Figure col fig)
 
+compose :: Monad m => [a -> m a] -> a -> m a
+compose = foldr (<=<) return
+
+clearEnPassant :: Board -> Maybe Board
+clearEnPassant b =
+    let cleaners = map makeCleaner allPositions
+        cleanAll = compose cleaners
+        makeCleaner pos = replaceFigure pos cleanEnPassant
+        cleanEnPassant EnPassant = Empty
+        cleanEnPassant x = x
+     in cleanAll b
+
+manageEnPassant :: BasicMove -> Board -> Maybe Board
+manageEnPassant ((fromRow, fromCol), toPosition@(toRow, _), _) b =
+    -- TODO: delete old enpassant
+    let Figure _ piece = figureAt b toPosition
+        diff = abs (fromRow - toRow)
+        putEnPassant pos' b' = emplaceFigure pos' EnPassant b'
+     in case piece of
+        Pawn | diff == 2 -> putEnPassant ((fromRow + toRow) `div` 2, fromCol) b
+        _ -> Just b
+
 makeBasicMove :: BasicMove -> State -> Maybe State
-makeBasicMove (fromPosition, toPosition, promo) (State color board) = do
+makeBasicMove move@(fromPosition, toPosition, promo) (State color board) = do
   board' <- (board & (moveFigure' fromPosition toPosition))
-  board'' <- applyPromotion color toPosition promo board'
-  return (State (opposite color) board'')
+  board'' <- clearEnPassant board'
+  board''' <- manageEnPassant move board''
+  board'''' <- applyPromotion color toPosition promo board'''
+  return (State (opposite color) board'''')
 
 availablePositionsAtDirection :: State -> Position -> Int -> Direction -> [Position]
 availablePositionsAtDirection _ _ 0 _ = []
@@ -64,13 +89,16 @@ availablePositionsAtDirection (State color board) pos dist dir =
     posList = positionsAtDirection pos dist dir
     empty' p =
       case figureAt board p of
+        Figure _ _ -> False
+        EnPassant -> True
         Empty -> True
-        _ -> False
     (empty, rest) = span empty' posList
     possibleTake p =
       case figureAt board p of
         Figure c _ | c /= color -> True
-        _ -> False
+                   | otherwise -> False
+        EnPassant -> undefined
+        Empty -> undefined
    in empty ++ (filter possibleTake (take 1 rest))
 
 promotions :: State -> Position -> [Maybe Piece]
@@ -79,7 +107,9 @@ promotions (State col board) p@(row, _) =
         promRow = case col of White -> 6; Black -> 1
      in case fig of
         (Figure fcol Pawn) | fcol == col && row == promRow -> map Just [Rook NonCastleable, Knight, Bishop, Queen]
-        _ -> [Nothing]
+        (Figure _ _) -> [Nothing]
+        EnPassant -> [Nothing]
+        Empty -> [Nothing]
 
 basicMovesFromPosition :: State -> Position -> [(BasicMove, State)]
 basicMovesFromPosition state@(State color board) position =
@@ -91,13 +121,19 @@ basicMovesFromPosition state@(State color board) position =
             st <- maybeToList (makeBasicMove m state)
             return (m, st)
           simpleMoves dist directions st po = (concatMap (availablePositionsAtDirection st po dist) directions)
-          isTake po' = case (figureAt board po') of
+          isTakePawn po' = case (figureAt board po') of
             Empty -> False
-            _ -> True
-          isNotTake = not . isTake
+            EnPassant -> True
+            Figure _ _ -> True
+          isNonTakePawn po' = case (figureAt board po') of
+            Empty -> True
+            EnPassant -> True
+            Figure _ _ -> False
           isNotMyFigure po' = case (figureAt board po') of
             Figure col' _ | col' == color -> False
-            _ -> True
+                          | otherwise -> True
+            Empty -> True
+            EnPassant -> True
           deltaMoves deltas _ _ = filter isNotMyFigure (catMaybes (map (`applyDelta` position) deltas))
           pawnMovingDirections = case color of
             White -> [B]
@@ -117,10 +153,12 @@ basicMovesFromPosition state@(State color board) position =
             Queen -> simpleMoves 8 [B, W, K, Q, BK, BQ, WK, WQ]
             King _ -> simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
             Knight -> deltaMoves [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
-            Pawn -> liftedConcat ((filter isNotTake) `compose2` (simpleMoves pawnDist pawnMovingDirections)) ((filter isTake) `compose2` (simpleMoves 1 pawnTakingDirections))
+            Pawn -> liftedConcat ((filter isNonTakePawn) `compose2` (simpleMoves pawnDist pawnMovingDirections)) ((filter isTakePawn) `compose2` (simpleMoves 1 pawnTakingDirections))
           positions = positionFunction state position
        in concatMap moveStatePair positions
-    _ -> []
+       | otherwise -> []
+    Empty -> []
+    EnPassant -> []
 
 basicMoves' :: State -> [(BasicMove, State)]
 basicMoves' state = concatMap (basicMovesFromPosition state) allPositions
@@ -164,7 +202,7 @@ makeCastling :: Castling -> State -> Maybe State
 makeCastling castling (State color board) = do
   let localToGlobal' = localToGlobal color
       attacked' ps = kingAttackedOn color (localToGlobal' ps) board
-      empty' = (\case Empty -> True; _ -> False) . (figureAt board) . localToGlobal'
+      empty' = (\case Empty -> True; EnPassant -> True; Figure _ _ -> False) . (figureAt board) . localToGlobal'
       kingPath = castlingKingPath castling
       rookPath = castlingRookPath castling
       king = head kingPath

@@ -54,6 +54,7 @@ data Square
   = Figure Color
            Piece
   | Empty
+  | EnPassant
 
 toChar :: Square -> Char
 toChar (Figure White Pawn) = 'P'
@@ -66,6 +67,7 @@ toChar (Figure White (King Castleable)) = 'K'
 toChar (Figure White (King NonCastleable)) = 'Y'
 toChar (Figure Black piece)    = (toLower . toChar . Figure White) piece
 toChar Empty                   = ' '
+toChar EnPassant               = '!'
 
 instance Show Square where
   show = (\x -> [x]) . toChar
