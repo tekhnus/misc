@@ -96,15 +96,15 @@ moveFigure fromPosition toPosition b@(Board board) =
   where
     figure = figureAt b fromPosition
 
-replaceFigure :: Position -> (Square -> Square) -> Board -> Maybe Board
+replaceFigure :: Position -> (Square -> Square) -> Board -> Board
 replaceFigure atPosition updateFigure b@(Board board) =
-  Just (Board (board & (putFigure atPosition figure')))
+  Board (board & (putFigure atPosition figure'))
   where
     figure = figureAt b atPosition
     figure' = updateFigure figure
 
 emplaceFigure :: Position -> Square -> Board -> Maybe Board
-emplaceFigure pos sq = replaceFigure pos (\_ -> sq)
+emplaceFigure pos sq = Just . replaceFigure pos (\_ -> sq)
 
 theKing :: Color -> Board -> Position
 theKing c b = fromJust (find isTheKing allPositions)

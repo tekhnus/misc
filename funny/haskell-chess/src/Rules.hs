@@ -10,7 +10,6 @@ module Rules
 
 import Board
 import Control.Conditional
-import Control.Monad ((<=<))
 import Data.Function
 import Data.Maybe
 import NewBoard
@@ -31,7 +30,7 @@ update figure                          = figure
 moveFigure' :: Position -> Position -> Board -> Maybe Board
 moveFigure' fromPosition toPosition board = do
   board' <- board & (moveFigure fromPosition toPosition)
-  replaceFigure toPosition update board'
+  return (replaceFigure toPosition update board')
 
 data State =
   State Color
@@ -52,17 +51,12 @@ applyPromotion :: Color -> Position -> Maybe Piece -> Board -> Maybe Board
 applyPromotion _ _ Nothing = return
 applyPromotion col pos (Just fig) = emplaceFigure pos (Figure col fig)
 
-compose :: Monad m => [a -> m a] -> a -> m a
-compose = foldr (<=<) return
-
-clearEnPassant :: Board -> Maybe Board
+clearEnPassant :: Board -> Board
 clearEnPassant b =
-    let cleaners = map makeCleaner allPositions
-        cleanAll = compose cleaners
-        makeCleaner pos = replaceFigure pos cleanEnPassant
-        cleanEnPassant EnPassant = Empty
+    let cleanEnPassant EnPassant = Empty
         cleanEnPassant x = x
-     in cleanAll b
+        cleanPos pos board = replaceFigure pos cleanEnPassant board
+     in foldr cleanPos b allPositions
 
 manageEnPassant :: BasicMove -> Board -> Maybe Board
 manageEnPassant ((fromRow, fromCol), toPosition@(toRow, _), _) b =
@@ -84,7 +78,7 @@ makeBasicMove :: BasicMove -> State -> Maybe State
 makeBasicMove move@(fromPosition, toPosition, promo) (State color board) = do
   board0 <- eatEnPassant move board
   board' <- (board0 & (moveFigure' fromPosition toPosition))
-  board'' <- clearEnPassant board'
+  let board'' = clearEnPassant board'
   board''' <- manageEnPassant move board''
   board'''' <- applyPromotion color toPosition promo board'''
   return (State (opposite color) board'''')
