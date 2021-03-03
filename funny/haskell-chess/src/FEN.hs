@@ -1,3 +1,4 @@
+-- TODO: implement enpassant reading
 module FEN
   ( readState
   ) where

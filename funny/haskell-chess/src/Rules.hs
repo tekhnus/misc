@@ -66,7 +66,6 @@ clearEnPassant b =
 
 manageEnPassant :: BasicMove -> Board -> Maybe Board
 manageEnPassant ((fromRow, fromCol), toPosition@(toRow, _), _) b =
-    -- TODO: delete old enpassant
     let Figure _ piece = figureAt b toPosition
         diff = abs (fromRow - toRow)
         putEnPassant pos' b' = emplaceFigure pos' EnPassant b'
@@ -74,9 +73,17 @@ manageEnPassant ((fromRow, fromCol), toPosition@(toRow, _), _) b =
         Pawn | diff == 2 -> putEnPassant ((fromRow + toRow) `div` 2, fromCol) b
         _ -> Just b
 
+eatEnPassant :: BasicMove -> Board -> Maybe Board
+eatEnPassant (fromPos@(fromRow, _), toPos@(_, toCol), _) board = 
+    case (figureAt board fromPos, figureAt board toPos) of
+        (Figure _ Pawn, EnPassant) -> emplaceFigure eatPos Empty board
+        _ -> Just board
+  where eatPos = (fromRow, toCol)
+
 makeBasicMove :: BasicMove -> State -> Maybe State
 makeBasicMove move@(fromPosition, toPosition, promo) (State color board) = do
-  board' <- (board & (moveFigure' fromPosition toPosition))
+  board0 <- eatEnPassant move board
+  board' <- (board0 & (moveFigure' fromPosition toPosition))
   board'' <- clearEnPassant board'
   board''' <- manageEnPassant move board''
   board'''' <- applyPromotion color toPosition promo board'''
