@@ -191,7 +191,7 @@ kingAttackedOn color position board =
     king = theKing color board
 
 kingAttacked :: Color -> Board -> Bool
-kingAttacked color board = kingAttackedOn color (theKing color board) board
+kingAttacked color board = attacked color (theKing color board) board
 
 basicMoves :: State -> [(BasicMove, State)]
 basicMoves s = ((filter isValidBasicMove) . mapMaybe computeState . basicMoves') s
