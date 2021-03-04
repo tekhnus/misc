@@ -1,4 +1,3 @@
--- TODO: implement enpassant reading
 module FEN
   ( readState
   ) where
@@ -73,8 +72,8 @@ parseEnPassant :: String -> (Maybe Position, String)
 -- parseEnPassant s | trace ("enpassant " ++ s) False = undefined
 parseEnPassant s = (toPosition p, s')
     where (p, s') = parseWord s
-          toPosition "- " = Nothing
-          toPosition [col, row, ' '] = Just ((ord row) - (ord '1'), (ord col) - (ord 'a'))
+          toPosition ('-':_) = Nothing
+          toPosition (col:(row:_)) = Just ((ord row) - (ord '1'), (ord col) - (ord 'a'))
           toPosition _ = undefined
 
 com :: (String -> (a, String)) -> (String -> (b, String)) -> String -> ((a, b), String)
@@ -107,7 +106,7 @@ compose = foldr (<=<) return
 
 readState :: String -> Maybe State
 readState s = 
-    let (FENState fenBoard color allowedCastlings _ _ _) = readFENState s
+    let (FENState fenBoard color allowedCastlings enp _ _) = readFENState s
         board = fenSquaresToBoard fenBoard
         markCastling (col, side) b =
             let kingPos White = (0, 4)
@@ -124,4 +123,7 @@ readState s =
         markingFunctions = map markCastling allowedCastlings
         markAll = compose markingFunctions
         board' = markAll board
-     in fmap (State color) board'
+        board'' = case enp of
+            Just enp' -> board' >>= emplaceFigure enp' EnPassant
+            Nothing -> board'
+     in fmap (State color) board''
