@@ -18,6 +18,7 @@ module Board
   -- for debug
   , isKing
   , KingRookState(..)
+  , replaceAllFigures
   ) where
 
 import Data.Char
@@ -102,6 +103,9 @@ replaceFigure atPosition updateFigure b@(Board board) =
   where
     figure = figureAt b atPosition
     figure' = updateFigure figure
+
+replaceAllFigures :: (Square -> Square) -> Board -> Board
+replaceAllFigures upd (Board gb) = Board (mapSquares upd gb)
 
 emplaceFigure :: Position -> Square -> Board -> Maybe Board
 emplaceFigure pos sq = Just . replaceFigure pos (\_ -> sq)

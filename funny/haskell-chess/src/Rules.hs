@@ -53,10 +53,9 @@ applyPromotion col pos (Just fig) = emplaceFigure pos (Figure col fig)
 
 clearEnPassant :: Board -> Board
 clearEnPassant b =
-    let cleanEnPassant EnPassant = Empty
-        cleanEnPassant x = x
-        cleanPos pos board = replaceFigure pos cleanEnPassant board
-     in foldr cleanPos b allPositions
+    let cleanEnPassant' EnPassant = Empty
+        cleanEnPassant' x = x
+     in replaceAllFigures cleanEnPassant' b
 
 manageEnPassant :: BasicMove -> Board -> Maybe Board
 manageEnPassant ((fromRow, fromCol), toPosition@(toRow, _), _) b =

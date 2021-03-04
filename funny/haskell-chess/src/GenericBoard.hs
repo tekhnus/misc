@@ -5,6 +5,7 @@ module GenericBoard
   , allPositions
   , figureAt'
   , putFigure
+  , mapSquares
   ) where
 
 data GenericBoard a =
@@ -54,3 +55,6 @@ putFigure (0, column) figure board =
   hMerge (west column board) (putFigure (0, 0) figure (east column board))
 putFigure (row, column) figure board =
   vMerge (north row board) (putFigure (0, column) figure (south row board))
+
+mapSquares :: (a -> a) -> GenericBoard a -> GenericBoard a
+mapSquares upd (GenericBoard squares) = GenericBoard (map (map upd) squares)
