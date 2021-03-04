@@ -112,15 +112,14 @@ promotions (State col board) p@(row, _) =
         EnPassant -> [Nothing]
         Empty -> [Nothing]
 
-basicMovesFromPosition :: State -> Position -> [(BasicMove, State)]
+basicMovesFromPosition :: State -> Position -> [BasicMove]
 basicMovesFromPosition state@(State color board) position =
   case (figureAt board position) of
     Figure fcolor piece | fcolor == color ->
       let moveStatePair pos' = do
             promo <- promotions state position
             let m = (position, pos', promo)
-            st <- maybeToList (makeBasicMove m state)
-            return (m, st)
+            return m
           simpleMoves dist directions st po = (concatMap (availablePositionsAtDirection st po dist) directions)
           isTakePawn po' = case (figureAt board po') of
             Empty -> False
@@ -161,7 +160,7 @@ basicMovesFromPosition state@(State color board) position =
     Empty -> []
     EnPassant -> []
 
-basicMoves' :: State -> [(BasicMove, State)]
+basicMoves' :: State -> [BasicMove]
 basicMoves' state = concatMap (basicMovesFromPosition state) allPositions
 
 castlingKingPath :: Castling -> [Int]
@@ -181,7 +180,7 @@ attacked color position board = any attack mvs
   where
     state = State (opposite color) board
     mvs = basicMoves' state
-    attack ((_, x', _), _) = x' == position
+    attack ((_, x', _)) = x' == position
 
 kingAttackedOn :: Color -> Position -> Board -> Bool
 kingAttackedOn color position board =
@@ -196,8 +195,11 @@ kingAttacked :: Color -> Board -> Bool
 kingAttacked color board = kingAttackedOn color (theKing color board) board
 
 basicMoves :: State -> [(BasicMove, State)]
-basicMoves = (filter isValidBasicMove) . basicMoves'
+basicMoves s = ((filter isValidBasicMove) . mapMaybe computeState . basicMoves') s
   where isValidBasicMove (_, (State col b)) = not (kingAttacked (opposite col) b)
+        computeState m = do
+          s' <- makeBasicMove m s
+          return (m, s')
 
 makeCastling :: Castling -> State -> Maybe State
 makeCastling castling (State color board) = do
