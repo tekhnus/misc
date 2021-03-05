@@ -112,17 +112,11 @@ readState s =
         board = fenSquaresToBoard fenBoard
         markCastling (col, side) b =
             let row = case col of White -> 0; Black -> 7
-                kingPos White = (0, 4)
-                kingPos Black = (7, 4)
                 rookCol = case side of
                     QCastle -> 0
                     KCastle -> 7
                     SpecialCastle column -> column
-                rookPos White QCastle = (0, 0)
-                rookPos Black QCastle = (7, 0)
-                rookPos White KCastle = (0, 7)
-                rookPos Black KCastle = (7, 7)
-                kp = kingPos col
+                kp = theKing col board
                 rp = (row, rookCol)
                 b' = emplaceFigure kp (Figure col (King Castleable)) b
                 b'' = b' >>= (emplaceFigure rp (Figure col (Rook Castleable)))
