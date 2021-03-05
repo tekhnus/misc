@@ -162,13 +162,9 @@ basicMovesFromPosition state@(State color board) position =
 basicMoves' :: State -> [BasicMove]
 basicMoves' state = concatMap (basicMovesFromPosition state) allPositions
 
-castlingKingPath :: Castling -> [Int]
-castlingKingPath KingsideCastling = [4, 5, 6]
-castlingKingPath QueensideCastling = [4, 3, 2]
-
-castlingRookPath :: Castling -> [Int]
-castlingRookPath KingsideCastling = [7, 6, 5]
-castlingRookPath QueensideCastling = [0, 1, 2, 3]
+castlingRook :: State -> Castling -> Maybe Int
+castlingRook _ KingsideCastling = Just 7
+castlingRook _ QueensideCastling = Just 0
 
 localToGlobal :: Color -> Int -> Position
 localToGlobal White n = (0, n)
@@ -200,17 +196,23 @@ basicMoves s = ((filter isValidBasicMove) . mapMaybe computeState . basicMoves')
           s' <- makeBasicMove m s
           return (m, s')
 
+numbersBetween :: Int -> Int -> [Int]
+numbersBetween m n
+    | m <= n = [m..n]
+    | otherwise = reverse [n..m]
+
 makeCastling :: Castling -> State -> Maybe State
-makeCastling castling (State color board) = do
+makeCastling castling state@(State color board) = do
   let localToGlobal' = localToGlobal color
       attacked' ps = kingAttackedOn color (localToGlobal' ps) board
       empty' = (\case Empty -> True; EnPassant -> True; Figure _ _ -> False) . (figureAt board) . localToGlobal'
-      kingPath = castlingKingPath castling
-      rookPath = castlingRookPath castling
-      king = head kingPath
-      rook = head rookPath
-      king' = last kingPath
-      rook' = last rookPath
+      (_, king) = theKing color board
+      king' = case castling of KingsideCastling -> 6; QueensideCastling -> 2
+      kingPath = numbersBetween king king'
+  rook <- castlingRook state castling
+  let
+      rook' = case castling of KingsideCastling -> 5; QueensideCastling -> 3
+      rookPath = numbersBetween rook rook'
   guard (case figureAt board (localToGlobal' king) of
     Figure col (King Castleable) | col == color -> True
     _ -> False)
