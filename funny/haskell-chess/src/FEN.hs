@@ -99,7 +99,7 @@ fenSquaresToBoard rows = aBoard (map fenRowToBoard (reverse rows))
           fenSquareToSquares (FENPiece col SBishop) = [Figure col Bishop]
           fenSquareToSquares (FENPiece col SRook) = [Figure col (Rook NonCastleable)]
           fenSquareToSquares (FENPiece col SQueen) = [Figure col Queen]
-          fenSquareToSquares (FENPiece col SKing) = [Figure col (King NonCastleable)]
+          fenSquareToSquares (FENPiece col SKing) = [Figure col (King Castleable)]
           fenSquareToSquares (FENEmpty n) = replicate n Empty
 
 
@@ -118,8 +118,7 @@ readState s =
                     SpecialCastle column -> column
                 kp = theKing col board
                 rp = (row, rookCol)
-                b' = emplaceFigure kp (Figure col (King Castleable)) b
-                b'' = b' >>= (emplaceFigure rp (Figure col (Rook Castleable)))
+                b'' = (emplaceFigure rp (Figure col (Rook Castleable))) b
              in b''
         markingFunctions = map markCastling allowedCastlings
         markAll = compose markingFunctions

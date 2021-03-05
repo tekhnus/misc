@@ -42,6 +42,7 @@ data KingRookState
   | NonCastleable
   deriving (Eq, Show, Read)
 
+-- TODO: The concept of King castleability actually doesn't make sense, get rid of it!
 data Piece
   = Pawn
   | Rook KingRookState
