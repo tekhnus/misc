@@ -14,7 +14,7 @@ data FENPiece = SPawn | SKnight | SBishop | SRook | SQueen | SKing
   deriving (Show)
 data FENSquare = FENPiece Color FENPiece | FENEmpty Int
   deriving (Show)
-data CastlingSide = KCastle | QCastle
+data CastlingSide = KCastle | QCastle | SpecialCastle Int
   deriving (Show)
 data FENState = FENState [[FENSquare]] Color [(Color, CastlingSide)] (Maybe Position) Int Int
   deriving (Show)
@@ -60,13 +60,15 @@ parseColor s = (toColor c, s')
 parseCastling :: String -> ([(Color, CastlingSide)], String)
 parseCastling s = (mapMaybe toCastlingInfo cas, s')
     where (cas, s') = parseWord s
-          toCastlingInfo 'Q' = Just (White, QCastle)
-          toCastlingInfo 'K' = Just (White, KCastle)
-          toCastlingInfo 'q' = Just (Black, QCastle)
-          toCastlingInfo 'k' = Just (Black, KCastle)
           toCastlingInfo '-' = Nothing
           toCastlingInfo ' ' = Nothing
-          toCastlingInfo _ = undefined
+          toCastlingInfo c = Just (castlingColor c, castlingType c)
+          castlingColor c = case isUpper c of True -> White; _ -> Black
+          castlingType c = case toUpper c of
+            'Q' -> QCastle
+            'K' -> KCastle
+            u | u `elem` ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] -> SpecialCastle (ord u - ord 'A')
+            _ -> undefined
 
 parseEnPassant :: String -> (Maybe Position, String)
 -- parseEnPassant s | trace ("enpassant " ++ s) False = undefined
@@ -109,14 +111,19 @@ readState s =
     let (FENState fenBoard color allowedCastlings enp _ _) = readFENState s
         board = fenSquaresToBoard fenBoard
         markCastling (col, side) b =
-            let kingPos White = (0, 4)
+            let row = case col of White -> 0; Black -> 7
+                kingPos White = (0, 4)
                 kingPos Black = (7, 4)
+                rookCol = case side of
+                    QCastle -> 0
+                    KCastle -> 7
+                    SpecialCastle column -> column
                 rookPos White QCastle = (0, 0)
                 rookPos Black QCastle = (7, 0)
                 rookPos White KCastle = (0, 7)
                 rookPos Black KCastle = (7, 7)
                 kp = kingPos col
-                rp = rookPos col side
+                rp = (row, rookCol)
                 b' = emplaceFigure kp (Figure col (King Castleable)) b
                 b'' = b' >>= (emplaceFigure rp (Figure col (Rook Castleable)))
              in b''
