@@ -4,6 +4,7 @@ module Rules
   ( State(..)
   , makeMove
   , newGame
+  , Move
   -- for debug
   , basicMoves, basicMovesFromPosition, positionsAtDirection, makeBasicMove, moveFigure', moves
   ) where
@@ -41,9 +42,15 @@ type BasicMove = (Position, Position, Maybe Piece)
 
 data Castling =
   KingsideCastling | QueensideCastling
-  deriving (Eq, Read)
+  deriving (Eq, Read, Show)
 
-type Move = Either BasicMove Castling
+data Move = BasicMove BasicMove | Castling Castling
+    deriving (Eq)
+
+instance Show Move where
+    show (BasicMove (pos, pos', _)) = (showPos pos) ++ (showPos pos')
+    show (Castling KingsideCastling) = "KS"
+    show (Castling QueensideCastling) = "KS"
 
 instance Show State where
   show (State _ board) = show board
@@ -238,8 +245,8 @@ castlings state = do
 
 moves :: State -> [(Move, State)]
 moves state = (map cbm (basicMoves state)) ++ (map cct (castlings state))
-  where cbm (bm, s) = (Left bm, s)
-        cct (c, s) = (Right c, s)
+  where cbm (bm, s) = (BasicMove bm, s)
+        cct (c, s) = (Castling c, s)
 
 makeMove :: Move -> State -> Maybe State
 makeMove move state = lookup move (moves state)

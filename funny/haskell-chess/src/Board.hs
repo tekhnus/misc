@@ -19,6 +19,7 @@ module Board
   , isKing
   , KingRookState(..)
   , replaceAllFigures
+  , showPos
   ) where
 
 import Data.Char

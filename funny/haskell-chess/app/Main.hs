@@ -1,15 +1,20 @@
 import Control.Monad.Loops
+import Text.Printf
+import System.Environment
 import Rules
+import FEN
 
-playerTurn :: State -> IO State
-playerTurn state = do
-  print state
-  move <- readLn
-  case makeMove move state of
-    Just state' -> return state'
-    Nothing -> do
-      print "Wrong move, try again"
-      playerTurn state
+perft :: State -> Int -> [State]
+perft s 0 = [s]
+perft s n = concatMap followingStates (perft s (n - 1))
+  where followingStates s' = map snd (moves s')
+
+detailedPerft :: State -> Int -> [(Move, Int)]
+detailedPerft s n = map (fmap (\s' -> length (perft s' (n - 1)))) (moves s)
 
 main :: IO ()
-main = iterateM_ playerTurn newGame
+main = do
+    [depthS, fen] <- getArgs
+    let depth = read depthS
+    let Just state = readState fen
+    mapM_ (\(m, n) -> printf "%s: %d\n" (show m) n) (detailedPerft state depth)

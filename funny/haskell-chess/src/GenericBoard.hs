@@ -6,6 +6,7 @@ module GenericBoard
   , figureAt'
   , putFigure
   , mapSquares
+  , showPos
   ) where
 
 data GenericBoard a =
@@ -41,6 +42,9 @@ hMerge (GenericBoard leftRows) (GenericBoard rightRows) =
   GenericBoard (zipWith (++) leftRows rightRows)
 
 type Position = (Int, Int)
+
+showPos :: Position -> String
+showPos (row, col) = [("abcdefgh" !! col), "12345678" !! row]
 
 allPositions :: [Position]
 allPositions = [(x, y) | x <- [0 .. 7], y <- [0 .. 7]]
