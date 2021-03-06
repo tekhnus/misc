@@ -12,6 +12,7 @@ import Board
 import Control.Conditional
 import Data.Function
 import Data.Maybe
+import Data.List
 import NewBoard
 
 positionsAtDirection :: Position -> Int -> Direction -> [Position]
@@ -163,8 +164,14 @@ basicMoves' :: State -> [BasicMove]
 basicMoves' state = concatMap (basicMovesFromPosition state) allPositions
 
 castlingRook :: State -> Castling -> Maybe Int
-castlingRook _ KingsideCastling = Just 7
-castlingRook _ QueensideCastling = Just 0
+castlingRook (State color board) castling =
+    let (_, kingColumn) = theKing color board
+        endColumn = case castling of KingsideCastling -> 7; QueensideCastling -> 0
+        searchedPositions = map (localToGlobal color) (numbersBetween kingColumn endColumn)
+        isNiceRook (Figure _ (Rook Castleable)) = True
+        isNiceRook _ = False
+        rookPos = find (isNiceRook . figureAt board) searchedPositions
+     in fmap snd rookPos
 
 localToGlobal :: Color -> Int -> Position
 localToGlobal White n = (0, n)
