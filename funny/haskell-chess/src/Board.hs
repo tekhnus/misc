@@ -22,12 +22,12 @@ module Board
   , showPos
   ) where
 
-import Data.Char
-import Data.List
-import Data.Function
-import Data.Maybe
-import Direction
-import GenericBoard
+import           Data.Char
+import           Data.Function
+import           Data.List
+import           Data.Maybe
+import           Direction
+import           GenericBoard
 
 data Color
   = White
@@ -63,14 +63,14 @@ toChar :: Square -> Char
 toChar (Figure White Pawn) = 'P'
 toChar (Figure White (Rook Castleable)) = 'R'
 toChar (Figure White (Rook NonCastleable)) = 'Я'
-toChar (Figure White Knight)   = 'N'
-toChar (Figure White Bishop)   = 'B'
-toChar (Figure White Queen)    = 'Q'
+toChar (Figure White Knight) = 'N'
+toChar (Figure White Bishop) = 'B'
+toChar (Figure White Queen) = 'Q'
 toChar (Figure White (King Castleable)) = 'K'
 toChar (Figure White (King NonCastleable)) = 'Y'
-toChar (Figure Black piece)    = (toLower . toChar . Figure White) piece
-toChar Empty                   = ' '
-toChar EnPassant               = '!'
+toChar (Figure Black piece) = (toLower . toChar . Figure White) piece
+toChar Empty = ' '
+toChar EnPassant = '!'
 
 instance Show Square where
   show = (\x -> [x]) . toChar
@@ -93,9 +93,9 @@ isKing _                   = False
 
 moveFigure :: Position -> Position -> Board -> Maybe Board
 moveFigure fromPosition toPosition b@(Board board) =
-  Just (Board
-     (board & (putFigure fromPosition Empty) & (putFigure toPosition figure))
-     )
+  Just
+    (Board
+       (board & (putFigure fromPosition Empty) & (putFigure toPosition figure)))
   where
     figure = figureAt b fromPosition
 
@@ -117,4 +117,4 @@ theKing c b = fromJust (find isTheKing allPositions)
   where
     isTheKing pos = isTheKing' (figureAt b pos)
     isTheKing' (Figure col (King _)) = col == c
-    isTheKing' _ = False
+    isTheKing' _                     = False

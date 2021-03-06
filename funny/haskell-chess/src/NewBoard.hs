@@ -2,7 +2,7 @@ module NewBoard
   ( newBoard
   ) where
 
-import Board
+import           Board
 
 newBoard :: Board
 newBoard =

@@ -4,7 +4,7 @@ module Direction
   , moveIn
   ) where
 
-import GenericBoard
+import           GenericBoard
 
 data Direction
   = B
