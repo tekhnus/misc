@@ -18,7 +18,9 @@ main :: IO ()
 main = hspec $ do
     describe "perft" $ do
         it "handles chess960 position #11 from wiki" $
-             perftLengths "qnr1bkrb/pppp2pp/3np3/5p2/8/P2P2P1/NPP1PP1P/QN1RBKRB w GDg - 3 9" [1..3] `shouldBe` [33, 823, 26895]
+             perftLengths "qnr1bkrb/pppp2pp/3np3/5p2/8/P2P2P1/NPP1PP1P/QN1RBKRB w Gg - 3 9" [1..3] `shouldBe` [33, 823, 26895]
+        it "handles chess960 position #33 from wiki" $
+             perftLengths "bnn1qrkr/pp1ppp1p/2p5/b3Q1p1/8/5P1P/PPPPP1P1/BNNB1RKR w HFhf - 2 9" [1..3] `shouldBe` [44, 920, 35830]
         it "handles the initial position" $
              perftLengths "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" [1..3] `shouldBe` [20, 400, 8902]
         it "handles the position #5 from wiki" $
