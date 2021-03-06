@@ -233,8 +233,10 @@ makeCastling castling state@(State color board) = do
   guard (all (empty' <||> (== rook)) (tail kingPath))
   guard (all (empty' <||> (== king)) (tail rookPath))
   let board''' = clearEnPassant board
-  board'' <- moveFigure' (localToGlobal' king) (localToGlobal' king') board'''
-  board' <- moveFigure' (localToGlobal' rook) (localToGlobal' rook') board''
+  board0 <- emplaceFigure (localToGlobal' king) Empty board'''
+  board1 <- emplaceFigure (localToGlobal' rook) Empty board0
+  board2 <- emplaceFigure (localToGlobal' king') (Figure color (King NonCastleable)) board1
+  board' <- emplaceFigure (localToGlobal' rook') (Figure color (Rook NonCastleable)) board2
   return (State (opposite color) board')
 
 castlings :: State -> [(Castling, State)]
