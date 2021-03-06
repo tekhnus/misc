@@ -163,15 +163,19 @@ basicMovesFromPosition state@(State color board) position =
 basicMoves' :: State -> [BasicMove]
 basicMoves' state = concatMap (basicMovesFromPosition state) allPositions
 
-castlingRook :: State -> Castling -> Maybe Int
-castlingRook (State color board) castling =
-    let (_, kingColumn) = theKing color board
-        endColumn = case castling of KingsideCastling -> 7; QueensideCastling -> 0
-        searchedPositions = map (localToGlobal color) (numbersBetween kingColumn endColumn)
-        isNiceRook (Figure _ (Rook Castleable)) = True
+castlingKingAndRook :: State -> Castling -> Maybe (Int, Int)
+castlingKingAndRook (State color board) castling = do
+    let isNiceKing (Figure fcol (King Castleable)) | fcol == color = True
+        isNiceKing _ = False
+        isNiceRook (Figure fcol (Rook Castleable)) | fcol == color = True
         isNiceRook _ = False
-        rookPos = find (isNiceRook . figureAt board) searchedPositions
-     in fmap snd rookPos
+        homeRow = map (localToGlobal color) [0..7]
+        kingPos = find (isNiceKing . figureAt board) homeRow
+    (_, kingColumn) <- kingPos
+    let endColumn = case castling of KingsideCastling -> 7; QueensideCastling -> 0
+        searchedPositions = map (localToGlobal color) (numbersBetween kingColumn endColumn)
+    (_, rookColumn) <- find (isNiceRook . figureAt board) searchedPositions
+    return (kingColumn, rookColumn)
 
 localToGlobal :: Color -> Int -> Position
 localToGlobal White n = (0, n)
@@ -210,22 +214,14 @@ numbersBetween m n
 
 makeCastling :: Castling -> State -> Maybe State
 makeCastling castling state@(State color board) = do
+  (king, rook) <- castlingKingAndRook state castling
   let localToGlobal' = localToGlobal color
       attacked' ps = kingAttackedOn color (localToGlobal' ps) board
       empty' = (\case Empty -> True; EnPassant -> True; Figure _ _ -> False) . (figureAt board) . localToGlobal'
-      (_, king) = theKing color board
       king' = case castling of KingsideCastling -> 6; QueensideCastling -> 2
       kingPath = numbersBetween king king'
-  rook <- castlingRook state castling
-  let
       rook' = case castling of KingsideCastling -> 5; QueensideCastling -> 3
       rookPath = numbersBetween rook rook'
-  guard (case figureAt board (localToGlobal' king) of
-    Figure col (King Castleable) | col == color -> True
-    _ -> False)
-  guard (case figureAt board (localToGlobal' rook) of
-    Figure col (Rook Castleable) | col == color -> True
-    _ -> False)
   guard (all (not . attacked') (kingPath))
   guard (all (empty' <||> (== rook)) (tail kingPath))
   guard (all (empty' <||> (== king)) (tail rookPath))
