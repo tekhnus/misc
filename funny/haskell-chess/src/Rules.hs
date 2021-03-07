@@ -99,25 +99,27 @@ makeBasicMove move@(fromPosition, toPosition, promo) (State color board) = do
   board'''' <- applyPromotion color toPosition promo board'''
   return (State (opposite color) board'''')
 
+takeWhileNothing :: (a -> Maybe b) -> [a] -> ([a], Maybe (a, b))
+takeWhileNothing _ [] = ([], Nothing)
+takeWhileNothing f (x:xs) =
+  case f x of
+    Just y  -> ([], Just (x, y))
+    Nothing -> (\(p, r) -> (x : p, r)) (takeWhileNothing f xs)
+
 availablePositionsAtDirection ::
      State -> Position -> Int -> Direction -> [Position]
 availablePositionsAtDirection _ _ 0 _ = []
 availablePositionsAtDirection (State color board) pos dist dir =
   let posList = positionsAtDirection pos dist dir
-      empty' p =
-        case figureAt board p of
-          Figure _ _ -> False
-          EnPassant  -> True
-          Empty      -> True
-      (empty, rest) = span empty' posList
-      possibleTake p =
-        case figureAt board p of
-          Figure c _
-            | c /= color -> True
-            | otherwise -> False
-          EnPassant -> undefined
-          Empty -> undefined
-   in empty ++ (filter possibleTake (take 1 rest))
+      colorof (Figure col _) = Just col
+      colorof _              = Nothing
+      (empty, mbtake) = takeWhileNothing (colorof . figureAt board) posList
+      takePositions =
+        case mbtake of
+          Just (takepos, fcolor)
+            | fcolor /= color -> [takepos]
+          _ -> []
+   in empty ++ takePositions
 
 promotions :: State -> Position -> [Maybe Piece]
 promotions (State col board) p@(row, _) =
