@@ -16,5 +16,5 @@ main :: IO ()
 main = do
   [depthS, fen] <- getArgs
   let depth = read depthS
-  Just state <- return (readState fen)
+  Right state <- return (readState fen)
   mapM_ (\(m, n) -> printf "%s: %d\n" (show m) n) (detailedPerft state depth)

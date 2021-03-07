@@ -12,8 +12,8 @@ perftLengths :: String -> [Int] -> [Int]
 perftLengths fen depths =
   let ms = readState fen
    in case ms of
-        Just s  -> map (\n -> (length (perft s n))) depths
-        Nothing -> []
+        Right s -> map (\n -> (length (perft s n))) depths
+        Left _  -> []
 
 main :: IO ()
 main =

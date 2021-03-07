@@ -1,15 +1,43 @@
+{-# LANGUAGE LambdaCase #-}
+
 module FEN
   ( readState
   ) where
 
 import           Control.Monad
 import           Data.Char
+import           Data.Function
 import           Data.List.Split
 import           Data.Maybe
 
 -- import Debug.Trace
 import           Board
 import           Rules
+
+newtype Parse a =
+  Parse (String -> Either String (a, String))
+
+parse :: Parse a -> String -> Either String a
+parse (Parse f) s =
+  case f s of
+    Left err     -> Left err
+    Right (v, _) -> Right v
+
+co :: Parse a -> (a -> Parse b) -> Parse b
+co (Parse f) createG = Parse co'
+  where
+    co' s =
+      case (f s) of
+        Left err      -> Left err
+        Right (v, s') -> ((createG v) & (\(Parse g) -> g)) s'
+
+yield :: a -> Parse a
+yield x = Parse f
+  where
+    f s = Right (x, s)
+
+simp :: (String -> (a, String)) -> Parse a
+simp f = Parse (Right . f)
 
 data FENPiece
   = SPawn
@@ -41,21 +69,21 @@ data FENState =
            Int
   deriving (Show)
 
-parseWord :: String -> (String, String)
-parseWord chars = (w ++ s, r)
+parseWord' :: String -> (String, String)
+parseWord' chars = (w ++ s, r)
   where
     (w, sr) = break (== ' ') chars
     (s, r) = span (== ' ') sr
 
-parseInt :: String -> (Int, String)
-parseInt s = (read n, s')
+parseInt' :: String -> (Int, String)
+parseInt' s = (read n, s')
   where
-    (n, s') = parseWord s
+    (n, s') = parseWord' s
 
-parseSquares :: String -> ([[FENSquare]], String)
-parseSquares s = (parsedBoard, s')
+parseSquares' :: String -> ([[FENSquare]], String)
+parseSquares' s = (parsedBoard, s')
   where
-    (board, s') = parseWord s
+    (board, s') = parseWord' s
     boardWoSpace = init board
     rows = splitOn "/" boardWoSpace
     parseSymbol 'P' = FENPiece White SPawn
@@ -76,18 +104,18 @@ parseSquares s = (parsedBoard, s')
     parseRow r = map parseSymbol r
     parsedBoard = map parseRow rows
 
-parseColor :: String -> (Color, String)
-parseColor s = (toColor c, s')
+parseColor' :: String -> (Color, String)
+parseColor' s = (toColor c, s')
   where
-    (c, s') = parseWord s
+    (c, s') = parseWord' s
     toColor ('b':_) = Black
     toColor ('w':_) = White
     toColor _       = undefined
 
-parseCastling :: String -> ([(Color, CastlingSide)], String)
-parseCastling s = (mapMaybe toCastlingInfo cas, s')
+parseCastling' :: String -> ([(Color, CastlingSide)], String)
+parseCastling' s = (mapMaybe toCastlingInfo cas, s')
   where
-    (cas, s') = parseWord s
+    (cas, s') = parseWord' s
     toCastlingInfo '-' = Nothing
     toCastlingInfo ' ' = Nothing
     toCastlingInfo c   = Just (castlingColor c, castlingType c)
@@ -104,33 +132,41 @@ parseCastling s = (mapMaybe toCastlingInfo cas, s')
             SpecialCastle (ord u - ord 'A')
         _ -> undefined
 
-parseEnPassant :: String -> (Maybe Position, String)
-parseEnPassant s = (toPosition p, s')
+parseEnPassant' :: String -> (Maybe Position, String)
+parseEnPassant' s = (toPosition p, s')
   where
-    (p, s') = parseWord s
+    (p, s') = parseWord' s
     toPosition ('-':_) = Nothing
     toPosition (col:(row:_)) =
       Just ((ord row) - (ord '1'), (ord col) - (ord 'a'))
     toPosition _ = undefined
 
-com :: (s -> (a, s)) -> (s -> (b, s)) -> s -> ((a, b), s)
-com p1 p2 s =
-  let (theA, s') = p1 s
-      (theB, s'') = p2 s'
-   in ((theA, theB), s'')
+parseSquares :: Parse [[FENSquare]]
+parseSquares = simp parseSquares'
 
-parseFENState :: String -> (FENState, String)
+parseColor :: Parse Color
+parseColor = simp parseColor'
+
+parseCastling :: Parse [(Color, CastlingSide)]
+parseCastling = simp parseCastling'
+
+parseEnPassant :: Parse (Maybe Position)
+parseEnPassant = simp parseEnPassant'
+
+parseInt :: Parse Int
+parseInt = simp parseInt'
+
+parseFENState :: Parse FENState
 parseFENState =
-  pack .
-  (parseSquares `com` parseColor `com` parseCastling `com` parseEnPassant `com`
-   parseInt `com`
-   parseInt)
-  where
-    pack ((((((sq, col), cast), enp), halfc), fullc), s) =
-      ((FENState sq col cast enp halfc fullc), s)
+  parseSquares `co` \sq ->
+    parseColor `co` \col ->
+      parseCastling `co` \cast ->
+        parseEnPassant `co` \enp ->
+          parseInt `co` \halfc ->
+            parseInt `co` \fullc -> yield (FENState sq col cast enp halfc fullc)
 
-readFENState :: String -> FENState
-readFENState = fst . parseFENState
+readFENState :: String -> Either String FENState
+readFENState = parse parseFENState
 
 fenSquaresToBoard :: [[FENSquare]] -> Board
 fenSquaresToBoard rows = aBoard (map fenRowToBoard (reverse rows))
@@ -147,28 +183,34 @@ fenSquaresToBoard rows = aBoard (map fenRowToBoard (reverse rows))
 compose :: Monad m => [a -> m a] -> a -> m a
 compose = foldr (<=<) return
 
-readState :: String -> Maybe State
-readState s =
-  let (FENState fenBoard color allowedCastlings enp _ _) = readFENState s
-      board = fenSquaresToBoard fenBoard
-      markCastling (col, side) b =
-        let row =
-              case col of
-                White -> 0
-                Black -> 7
-            rookCol =
-              case side of
-                QCastle              -> 0
-                KCastle              -> 7
-                SpecialCastle column -> column
-            rp = (row, rookCol)
-            b'' = (emplaceFigure rp (Figure col (Rook Castleable))) b
-         in b''
-      markingFunctions = map markCastling allowedCastlings
-      markAll = compose markingFunctions
-      board' = markAll board
-      board'' =
-        case enp of
-          Just enp' -> board' >>= emplaceFigure enp' EnPassant
-          Nothing   -> board'
-   in fmap (State color) board''
+readState :: String -> Either String State
+readState s = readFENState s >>= convertState
+  where
+    convertState (FENState fenBoard color allowedCastlings enp _ _) =
+      let board = fenSquaresToBoard fenBoard
+          markCastling (col, side) b =
+            let row =
+                  case col of
+                    White -> 0
+                    Black -> 7
+                rookCol =
+                  case side of
+                    QCastle              -> 0
+                    KCastle              -> 7
+                    SpecialCastle column -> column
+                rp = (row, rookCol)
+                b'' = (emplaceFigure rp (Figure col (Rook Castleable))) b
+             in b''
+          markingFunctions = map markCastling allowedCastlings
+          markAll = compose markingFunctions
+          board' = markAll board
+          board'' =
+            case enp of
+              Just enp' -> board' >>= emplaceFigure enp' EnPassant
+              Nothing   -> board'
+          board''' =
+            board'' &
+            (\case
+               Nothing -> Left "parse error :("
+               Just bo -> Right bo)
+       in fmap (State color) board'''
