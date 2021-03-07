@@ -26,6 +26,9 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
     dependencies:
     - haskell-chess
 
@@ -37,6 +40,9 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
     dependencies:
     - haskell-chess
     - hspec

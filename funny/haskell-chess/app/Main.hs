@@ -1,4 +1,3 @@
-import           Control.Monad.Loops
 import           FEN
 import           Rules
 import           System.Environment
@@ -17,5 +16,5 @@ main :: IO ()
 main = do
   [depthS, fen] <- getArgs
   let depth = read depthS
-  let Just state = readState fen
+  Just state <- return (readState fen)
   mapM_ (\(m, n) -> printf "%s: %d\n" (show m) n) (detailedPerft state depth)

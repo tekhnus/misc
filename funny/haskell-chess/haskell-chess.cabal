@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c82ae4942f51bb9589ca97cb9ef9482e531742044a22852be037f0a32152a09c
+-- hash: 9042e622fe53addc5e287c5f2a55599dcba60412e5e0a624130c76ac71aea8f3
 
 name:           haskell-chess
 version:        0.1.0.0
@@ -36,7 +36,7 @@ executable haskell-chess
       Paths_haskell_chess
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-record-updates -Wincomplete-uni-patterns
   build-depends:
       base >=4.7 && <5
     , cond ==0.4.1.1
@@ -52,7 +52,7 @@ test-suite haskell-chess-test
       Paths_haskell_chess
   hs-source-dirs:
       test
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wincomplete-record-updates -Wincomplete-uni-patterns
   build-depends:
       base >=4.7 && <5
     , cond ==0.4.1.1

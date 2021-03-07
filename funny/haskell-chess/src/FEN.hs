@@ -105,7 +105,6 @@ parseCastling s = (mapMaybe toCastlingInfo cas, s')
         _ -> undefined
 
 parseEnPassant :: String -> (Maybe Position, String)
--- parseEnPassant s | trace ("enpassant " ++ s) False = undefined
 parseEnPassant s = (toPosition p, s')
   where
     (p, s') = parseWord s
@@ -114,11 +113,7 @@ parseEnPassant s = (toPosition p, s')
       Just ((ord row) - (ord '1'), (ord col) - (ord 'a'))
     toPosition _ = undefined
 
-com ::
-     (String -> (a, String))
-  -> (String -> (b, String))
-  -> String
-  -> ((a, b), String)
+com :: (s -> (a, s)) -> (s -> (b, s)) -> s -> ((a, b), s)
 com p1 p2 s =
   let (theA, s') = p1 s
       (theB, s'') = p2 s'
@@ -166,7 +161,6 @@ readState s =
                 QCastle              -> 0
                 KCastle              -> 7
                 SpecialCastle column -> column
-            kp = theKing col board
             rp = (row, rookCol)
             b'' = (emplaceFigure rp (Figure col (Rook Castleable))) b
          in b''
