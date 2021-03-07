@@ -75,11 +75,10 @@ clearEnPassant b =
 
 manageEnPassant :: BasicMove -> Board -> Maybe Board
 manageEnPassant ((fromRow, fromCol), toPosition@(toRow, _), _) b =
-  let Figure _ piece = figureAt b toPosition
-      diff = abs (fromRow - toRow)
+  let diff = abs (fromRow - toRow)
       putEnPassant pos' b' = emplaceFigure pos' EnPassant b'
-   in case piece of
-        Pawn
+   in case figureAt b toPosition of
+        Figure _ Pawn
           | diff == 2 -> putEnPassant ((fromRow + toRow) `div` 2, fromCol) b
         _ -> Just b
 

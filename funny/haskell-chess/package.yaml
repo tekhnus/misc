@@ -17,6 +17,10 @@ dependencies:
 
 library:
   source-dirs: src
+  ghc-options:
+  - -Wall
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
 
 executables:
   haskell-chess:

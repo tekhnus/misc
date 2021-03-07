@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9042e622fe53addc5e287c5f2a55599dcba60412e5e0a624130c76ac71aea8f3
+-- hash: 196afbb2e6f7d90be6607cf39c74f6c9bd692ec987a0df4db8a966e0cb5592af
 
 name:           haskell-chess
 version:        0.1.0.0
@@ -23,6 +23,7 @@ library
       Paths_haskell_chess
   hs-source-dirs:
       src
+  ghc-options: -Wall -Wincomplete-record-updates -Wincomplete-uni-patterns
   build-depends:
       base >=4.7 && <5
     , cond ==0.4.1.1
