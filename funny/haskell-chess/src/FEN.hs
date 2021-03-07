@@ -6,6 +6,7 @@ module FEN
 
 import           Control.Monad
 import           Data.Char
+import           Data.Either
 import           Data.Function
 import           Data.List.Split
 import           Data.Maybe
@@ -35,6 +36,11 @@ yield :: a -> Parse a
 yield x = Parse f
   where
     f s = Right (x, s)
+
+yerr :: String -> Parse a
+yerr s = Parse f
+  where
+    f _ = Left s
 
 simp :: (String -> (a, String)) -> Parse a
 simp f = Parse (Right . f)
@@ -75,11 +81,6 @@ parseWord' chars = (w ++ s, r)
     (w, sr) = break (== ' ') chars
     (s, r) = span (== ' ') sr
 
-parseInt' :: String -> (Int, String)
-parseInt' s = (read n, s')
-  where
-    (n, s') = parseWord' s
-
 parseSquares' :: String -> ([[FENSquare]], String)
 parseSquares' s = (parsedBoard, s')
   where
@@ -104,57 +105,55 @@ parseSquares' s = (parsedBoard, s')
     parseRow r = map parseSymbol r
     parsedBoard = map parseRow rows
 
-parseColor' :: String -> (Color, String)
-parseColor' s = (toColor c, s')
+parseCastling :: Parse [(Color, CastlingSide)]
+parseCastling = parseWord `co` \word -> (map toCastlingInfo word) & doYield
   where
-    (c, s') = parseWord' s
-    toColor ('b':_) = Black
-    toColor ('w':_) = White
-    toColor _       = undefined
-
-parseCastling' :: String -> ([(Color, CastlingSide)], String)
-parseCastling' s = (mapMaybe toCastlingInfo cas, s')
-  where
-    (cas, s') = parseWord' s
-    toCastlingInfo '-' = Nothing
-    toCastlingInfo ' ' = Nothing
-    toCastlingInfo c   = Just (castlingColor c, castlingType c)
+    doYield couldBeErrors =
+      let errors = lefts couldBeErrors
+          normies = rights couldBeErrors
+       in case errors of
+            []    -> yield (catMaybes normies)
+            err:_ -> yerr err
+    toCastlingInfo '-' = Right Nothing
+    toCastlingInfo ' ' = Right Nothing
+    toCastlingInfo c =
+      castlingType c >>= \ct -> Right (Just (castlingColor c, ct))
     castlingColor c =
       case isUpper c of
         True -> White
         _    -> Black
     castlingType c =
       case toUpper c of
-        'Q' -> QCastle
-        'K' -> KCastle
+        'Q' -> Right QCastle
+        'K' -> Right KCastle
         u
           | u `elem` ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'] ->
-            SpecialCastle (ord u - ord 'A')
-        _ -> undefined
+            Right (SpecialCastle (ord u - ord 'A'))
+        _ -> Left "Bad castling flag"
 
-parseEnPassant' :: String -> (Maybe Position, String)
-parseEnPassant' s = (toPosition p, s')
+parseEnPassant :: Parse (Maybe Position)
+parseEnPassant = parseWord `co` toPosition
   where
-    (p, s') = parseWord' s
-    toPosition ('-':_) = Nothing
+    toPosition ('-':_) = yield Nothing
     toPosition (col:(row:_)) =
-      Just ((ord row) - (ord '1'), (ord col) - (ord 'a'))
-    toPosition _ = undefined
+      yield (Just ((ord row) - (ord '1'), (ord col) - (ord 'a')))
+    toPosition _ = yerr "Bad enpassant info"
 
 parseSquares :: Parse [[FENSquare]]
 parseSquares = simp parseSquares'
 
 parseColor :: Parse Color
-parseColor = simp parseColor'
+parseColor = parseWord `co` toColor
+  where
+    toColor ('b':_) = yield Black
+    toColor ('w':_) = yield White
+    toColor _       = yerr "Bad color"
 
-parseCastling :: Parse [(Color, CastlingSide)]
-parseCastling = simp parseCastling'
-
-parseEnPassant :: Parse (Maybe Position)
-parseEnPassant = simp parseEnPassant'
+parseWord :: Parse String
+parseWord = simp parseWord'
 
 parseInt :: Parse Int
-parseInt = simp parseInt'
+parseInt = parseWord `co` \word -> yield (read word)
 
 parseFENState :: Parse FENState
 parseFENState =
