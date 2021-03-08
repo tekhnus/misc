@@ -4,6 +4,7 @@ module FEN
   ( readState
   ) where
 
+import           Control.Arrow
 import           Control.Monad
 import           Data.Char
 import           Data.Either
@@ -81,29 +82,39 @@ parseWord' chars = (w ++ s, r)
     (w, sr) = break (== ' ') chars
     (s, r) = span (== ' ') sr
 
-parseSquares' :: String -> ([[FENSquare]], String)
-parseSquares' s = (parsedBoard, s')
+mapEither :: (b -> Either a c) -> [Either a b] -> Either a [c]
+mapEither f xs =
+  let f' = (>>= f)
+      ys = map f' xs
+   in case (lefts ys) of
+        []     -> Right (rights ys)
+        badY:_ -> Left badY
+
+yieldIfGood :: Either String a -> Parse a
+yieldIfGood (Right x)  = yield x
+yieldIfGood (Left err) = yerr err
+
+parseSquares :: Parse [[FENSquare]]
+parseSquares =
+  parseWord `co`
+  (init >>> splitOn "/" >>> map return >>> mapEither parseRow >>> yieldIfGood)
   where
-    (board, s') = parseWord' s
-    boardWoSpace = init board
-    rows = splitOn "/" boardWoSpace
-    parseSymbol 'P' = FENPiece White SPawn
-    parseSymbol 'N' = FENPiece White SKnight
-    parseSymbol 'B' = FENPiece White SBishop
-    parseSymbol 'R' = FENPiece White SRook
-    parseSymbol 'Q' = FENPiece White SQueen
-    parseSymbol 'K' = FENPiece White SKing
-    parseSymbol 'p' = FENPiece Black SPawn
-    parseSymbol 'n' = FENPiece Black SKnight
-    parseSymbol 'b' = FENPiece Black SBishop
-    parseSymbol 'r' = FENPiece Black SRook
-    parseSymbol 'q' = FENPiece Black SQueen
-    parseSymbol 'k' = FENPiece Black SKing
+    parseSymbol 'P' = Right (FENPiece White SPawn)
+    parseSymbol 'N' = Right (FENPiece White SKnight)
+    parseSymbol 'B' = Right (FENPiece White SBishop)
+    parseSymbol 'R' = Right (FENPiece White SRook)
+    parseSymbol 'Q' = Right (FENPiece White SQueen)
+    parseSymbol 'K' = Right (FENPiece White SKing)
+    parseSymbol 'p' = Right (FENPiece Black SPawn)
+    parseSymbol 'n' = Right (FENPiece Black SKnight)
+    parseSymbol 'b' = Right (FENPiece Black SBishop)
+    parseSymbol 'r' = Right (FENPiece Black SRook)
+    parseSymbol 'q' = Right (FENPiece Black SQueen)
+    parseSymbol 'k' = Right (FENPiece Black SKing)
     parseSymbol n
-      | ('1' <= n) && (n <= '8') = FENEmpty ((ord n) - (ord '1') + 1)
-    parseSymbol _ = undefined
-    parseRow r = map parseSymbol r
-    parsedBoard = map parseRow rows
+      | ('1' <= n) && (n <= '8') = Right (FENEmpty ((ord n) - (ord '1') + 1))
+    parseSymbol _ = Left "Bad square"
+    parseRow = map return >>> mapEither parseSymbol
 
 parseCastling :: Parse [(Color, CastlingSide)]
 parseCastling = parseWord `co` \word -> (map toCastlingInfo word) & doYield
@@ -138,9 +149,6 @@ parseEnPassant = parseWord `co` toPosition
     toPosition (col:(row:_)) =
       yield (Just ((ord row) - (ord '1'), (ord col) - (ord 'a')))
     toPosition _ = yerr "Bad enpassant info"
-
-parseSquares :: Parse [[FENSquare]]
-parseSquares = simp parseSquares'
 
 parseColor :: Parse Color
 parseColor = parseWord `co` toColor
