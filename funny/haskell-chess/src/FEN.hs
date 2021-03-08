@@ -16,10 +16,13 @@ import           Data.Maybe
 import           Board
 import           Rules
 
-newtype Parse a =
-  Parse (String -> Either String (a, String))
+newtype Remaining =
+  Remaining String
 
-parse :: Parse a -> String -> Either String a
+newtype Parse a =
+  Parse (Remaining -> Either String (a, Remaining))
+
+parse :: Parse a -> Remaining -> Either String a
 parse (Parse f) s =
   case f s of
     Left err     -> Left err
@@ -42,9 +45,6 @@ yerr :: String -> Parse a
 yerr s = Parse f
   where
     f _ = Left s
-
-simp :: (String -> (a, String)) -> Parse a
-simp f = Parse (Right . f)
 
 data FENPiece
   = SPawn
@@ -76,11 +76,24 @@ data FENState =
            Int
   deriving (Show)
 
-parseWord' :: String -> (String, String)
-parseWord' chars = (w ++ s, r)
-  where
-    (w, sr) = break (== ' ') chars
-    (s, r) = span (== ' ') sr
+getState :: Parse Remaining
+getState = Parse (\s -> Right (s, s))
+
+putState :: Remaining -> Parse ()
+putState s = Parse (\_ -> Right ((), s))
+
+remainingFromString :: String -> Remaining
+remainingFromString = Remaining
+
+remainingAsString :: Remaining -> String
+remainingAsString (Remaining s) = s
+
+parseWord :: Parse String
+parseWord =
+  getState `co` \r ->
+    let (w, r') = break (== ' ') (remainingAsString r)
+        (s, r'') = span (== ' ') r'
+     in putState (remainingFromString r'') `co` \_ -> yield (w ++ s)
 
 mapEither :: (b -> Either a c) -> [Either a b] -> Either a [c]
 mapEither f xs =
@@ -157,9 +170,6 @@ parseColor = parseWord `co` toColor
     toColor ('w':_) = yield White
     toColor _       = yerr "Bad color"
 
-parseWord :: Parse String
-parseWord = simp parseWord'
-
 parseInt :: Parse Int
 parseInt = parseWord `co` \word -> yield (read word)
 
@@ -173,7 +183,7 @@ parseFENState =
             parseInt `co` \fullc -> yield (FENState sq col cast enp halfc fullc)
 
 readFENState :: String -> Either String FENState
-readFENState = parse parseFENState
+readFENState = parse parseFENState . remainingFromString
 
 fenSquaresToBoard :: [[FENSquare]] -> Board
 fenSquaresToBoard rows = aBoard (map fenRowToBoard (reverse rows))
