@@ -28,23 +28,26 @@ parse (Parse f) s =
     Left err     -> Left err
     Right (v, _) -> Right v
 
-co :: Parse a -> (a -> Parse b) -> Parse b
-co (Parse f) createG = Parse co'
-  where
-    co' s =
-      case (f s) of
-        Left err      -> Left err
-        Right (v, s') -> ((createG v) & (\(Parse g) -> g)) s'
-
-yield :: a -> Parse a
-yield x = Parse f
-  where
-    f s = Right (x, s)
-
 yerr :: String -> Parse a
 yerr s = Parse f
   where
     f _ = Left s
+
+instance Functor Parse where
+  fmap = liftM
+
+instance Applicative Parse where
+  pure = return
+  (<*>) = ap
+
+instance Monad Parse where
+  return x = Parse (\s -> Right (x, s))
+  Parse f >>= createG = Parse co'
+    where
+      co' s =
+        case (f s) of
+          Left err      -> Left err
+          Right (v, s') -> ((createG v) & (\(Parse g) -> g)) s'
 
 data FENPiece
   = SPawn
@@ -89,11 +92,12 @@ remainingAsString :: Remaining -> String
 remainingAsString (Remaining s) = s
 
 parseWord :: Parse String
-parseWord =
-  getState `co` \r ->
-    let (w, r') = break (== ' ') (remainingAsString r)
-        (s, r'') = span (== ' ') r'
-     in putState (remainingFromString r'') `co` \_ -> yield (w ++ s)
+parseWord = do
+  r <- getState
+  let (w, r') = break (== ' ') (remainingAsString r)
+      (s, r'') = span (== ' ') r'
+  putState (remainingFromString r'')
+  return (w ++ s)
 
 mapEither :: (b -> Either a c) -> [Either a b] -> Either a [c]
 mapEither f xs =
@@ -104,12 +108,12 @@ mapEither f xs =
         badY:_ -> Left badY
 
 yieldIfGood :: Either String a -> Parse a
-yieldIfGood (Right x)  = yield x
+yieldIfGood (Right x)  = return x
 yieldIfGood (Left err) = yerr err
 
 parseSquares :: Parse [[FENSquare]]
 parseSquares =
-  parseWord `co`
+  parseWord >>=
   (init >>> splitOn "/" >>> map return >>> mapEither parseRow >>> yieldIfGood)
   where
     parseSymbol 'P' = Right (FENPiece White SPawn)
@@ -130,13 +134,15 @@ parseSquares =
     parseRow = map return >>> mapEither parseSymbol
 
 parseCastling :: Parse [(Color, CastlingSide)]
-parseCastling = parseWord `co` \word -> (map toCastlingInfo word) & doYield
+parseCastling = do
+  word <- parseWord
+  (map toCastlingInfo word) & doYield
   where
     doYield couldBeErrors =
       let errors = lefts couldBeErrors
           normies = rights couldBeErrors
        in case errors of
-            []    -> yield (catMaybes normies)
+            []    -> return (catMaybes normies)
             err:_ -> yerr err
     toCastlingInfo '-' = Right Nothing
     toCastlingInfo ' ' = Right Nothing
@@ -156,31 +162,32 @@ parseCastling = parseWord `co` \word -> (map toCastlingInfo word) & doYield
         _ -> Left "Bad castling flag"
 
 parseEnPassant :: Parse (Maybe Position)
-parseEnPassant = parseWord `co` toPosition
+parseEnPassant = parseWord >>= toPosition
   where
-    toPosition ('-':_) = yield Nothing
+    toPosition ('-':_) = return Nothing
     toPosition (col:(row:_)) =
-      yield (Just ((ord row) - (ord '1'), (ord col) - (ord 'a')))
+      return (Just ((ord row) - (ord '1'), (ord col) - (ord 'a')))
     toPosition _ = yerr "Bad enpassant info"
 
 parseColor :: Parse Color
-parseColor = parseWord `co` toColor
+parseColor = parseWord >>= toColor
   where
-    toColor ('b':_) = yield Black
-    toColor ('w':_) = yield White
+    toColor ('b':_) = return Black
+    toColor ('w':_) = return White
     toColor _       = yerr "Bad color"
 
 parseInt :: Parse Int
-parseInt = parseWord `co` \word -> yield (read word)
+parseInt = parseWord >>= (read >>> return)
 
 parseFENState :: Parse FENState
-parseFENState =
-  parseSquares `co` \sq ->
-    parseColor `co` \col ->
-      parseCastling `co` \cast ->
-        parseEnPassant `co` \enp ->
-          parseInt `co` \halfc ->
-            parseInt `co` \fullc -> yield (FENState sq col cast enp halfc fullc)
+parseFENState = do
+  sq <- parseSquares
+  col <- parseColor
+  cast <- parseCastling
+  enp <- parseEnPassant
+  halfc <- parseInt
+  fullc <- parseInt
+  return (FENState sq col cast enp halfc fullc)
 
 readFENState :: String -> Either String FENState
 readFENState = parse parseFENState . remainingFromString
