@@ -6,8 +6,8 @@ module FEN
 
 import           Control.Arrow
 import           Control.Monad
+import Data.Functor
 import           Data.Char
-import           Data.Either
 import           Data.Function
 import           Data.List.Split
 import           Data.Maybe
@@ -28,8 +28,8 @@ parse (Parse f) s =
     Left err     -> Left err
     Right (v, _) -> Right v
 
-yerr :: String -> Parse a
-yerr s = Parse f
+throw :: String -> Parse a
+throw s = Parse f
   where
     f _ = Left s
 
@@ -99,22 +99,14 @@ parseWord = do
   putState (remainingFromString r'')
   return (w ++ s)
 
-mapEither :: (b -> Either a c) -> [Either a b] -> Either a [c]
-mapEither f xs =
-  let f' = (>>= f)
-      ys = map f' xs
-   in case (lefts ys) of
-        []     -> Right (rights ys)
-        badY:_ -> Left badY
-
-yieldIfGood :: Either String a -> Parse a
-yieldIfGood (Right x)  = return x
-yieldIfGood (Left err) = yerr err
+returnOrThrow :: Either String a -> Parse a
+returnOrThrow (Right x)  = return x
+returnOrThrow (Left err) = throw err
 
 parseSquares :: Parse [[FENSquare]]
 parseSquares =
   parseWord >>=
-  (init >>> splitOn "/" >>> map return >>> mapEither parseRow >>> yieldIfGood)
+  (init >>> splitOn "/" >>> map (map parseSymbol >>> sequence) >>> sequence >>> returnOrThrow)
   where
     parseSymbol 'P' = Right (FENPiece White SPawn)
     parseSymbol 'N' = Right (FENPiece White SKnight)
@@ -131,23 +123,18 @@ parseSquares =
     parseSymbol n
       | ('1' <= n) && (n <= '8') = Right (FENEmpty ((ord n) - (ord '1') + 1))
     parseSymbol _ = Left "Bad square"
-    parseRow = map return >>> mapEither parseSymbol
 
 parseCastling :: Parse [(Color, CastlingSide)]
 parseCastling = do
   word <- parseWord
-  (map toCastlingInfo word) & doYield
+  let castlings = word & map toCastlingInfo & sequence <&> catMaybes
+  returnOrThrow castlings
   where
-    doYield couldBeErrors =
-      let errors = lefts couldBeErrors
-          normies = rights couldBeErrors
-       in case errors of
-            []    -> return (catMaybes normies)
-            err:_ -> yerr err
     toCastlingInfo '-' = Right Nothing
     toCastlingInfo ' ' = Right Nothing
-    toCastlingInfo c =
-      castlingType c >>= \ct -> Right (Just (castlingColor c, ct))
+    toCastlingInfo c = do
+      ct <- castlingType c
+      return (Just (castlingColor c, ct))
     castlingColor c =
       case isUpper c of
         True -> White
@@ -167,14 +154,14 @@ parseEnPassant = parseWord >>= toPosition
     toPosition ('-':_) = return Nothing
     toPosition (col:(row:_)) =
       return (Just ((ord row) - (ord '1'), (ord col) - (ord 'a')))
-    toPosition _ = yerr "Bad enpassant info"
+    toPosition _ = throw "Bad enpassant info"
 
 parseColor :: Parse Color
 parseColor = parseWord >>= toColor
   where
     toColor ('b':_) = return Black
     toColor ('w':_) = return White
-    toColor _       = yerr "Bad color"
+    toColor _       = throw "Bad color"
 
 parseInt :: Parse Int
 parseInt = parseWord >>= (read >>> return)
