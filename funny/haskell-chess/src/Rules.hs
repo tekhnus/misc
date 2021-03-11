@@ -40,19 +40,6 @@ moveFigure' fromPosition toPosition board = do
   board' <- board & (moveFigure fromPosition toPosition)
   return (replaceFigure toPosition update board')
 
-infixl 4 <<$>>
-
-(<<$>>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
-(<<$>>) = fmap . fmap
-
-liftAA2 ::
-     (Applicative f1, Applicative f2)
-  => (a -> b -> c)
-  -> f1 (f2 a)
-  -> f1 (f2 b)
-  -> f1 (f2 c)
-liftAA2 = liftA2 . liftA2
-
 data State =
   State Color
         Board
@@ -150,10 +137,10 @@ promotions (State col board) p@(row, _) =
         EnPassant -> [Nothing]
         Empty -> [Nothing]
 
-pawnMovingDistance :: Color -> Position -> Int
-pawnMovingDistance White (1, _) = 2
-pawnMovingDistance Black (6, _) = 2
-pawnMovingDistance _ _          = 1
+pawnMovingDistance :: (State, Position) -> Int
+pawnMovingDistance ((State White _), (1, _)) = 2
+pawnMovingDistance ((State Black _), (6, _)) = 2
+pawnMovingDistance _                         = 1
 
 simpleMoves :: Int -> [Direction] -> State -> Position -> [Position]
 simpleMoves dist directions st po =
@@ -170,33 +157,51 @@ deltaMoves :: [(Int, Int)] -> State -> Position -> [Position]
 deltaMoves deltas st po =
   filter (isNotMyFigure st) (catMaybes (map (`applyDelta` po) deltas))
 
-pawnMoves :: State -> Position -> [Position]
-pawnMoves state@(State color board) position =
-  let isTakePawn po' =
-        case (figureAt board po') of
-          Empty      -> False
-          EnPassant  -> True
-          Figure _ _ -> True
-      isNonTakePawn po' =
-        case (figureAt board po') of
-          Empty      -> True
-          EnPassant  -> True
-          Figure _ _ -> False
-      pawnMovingDirections =
-        case color of
-          White -> [B]
-          Black -> [W]
-      pawnTakingDirections =
-        case color of
-          White -> [BK, BQ]
-          Black -> [WK, WQ]
-      pawnMovingDist = pawnMovingDistance color position
-      pawnMoves' =
-        filter isNonTakePawn <<$>>
-        simpleMoves pawnMovingDist pawnMovingDirections
-      pawnTakes = filter isTakePawn <<$>> simpleMoves 1 pawnTakingDirections
-      positionFunction = liftAA2 (++) pawnMoves' pawnTakes
-   in positionFunction state position
+simpleMoves' :: Int -> [Direction] -> (State, Position) -> [Position]
+simpleMoves' a b (c, d) = simpleMoves a b c d
+
+isTakePawn :: (State, b) -> Position -> Bool
+isTakePawn ((State _ bo), _) po' = isTakePawn' (figureAt bo po')
+
+isTakePawn' :: Square -> Bool
+isTakePawn' Empty        = False
+isTakePawn' EnPassant    = True
+isTakePawn' (Figure _ _) = True
+
+isNonTakePawn :: (State, b) -> Position -> Bool
+isNonTakePawn ((State _ bo), _) po' = isNonTakePawn' (figureAt bo po')
+
+isNonTakePawn' :: Square -> Bool
+isNonTakePawn' Empty        = True
+isNonTakePawn' EnPassant    = True
+isNonTakePawn' (Figure _ _) = False
+
+pawnMovingDirections :: (State, b) -> [Direction]
+pawnMovingDirections (State col _, _) =
+  case col of
+    White -> [B]
+    Black -> [W]
+
+pawnTakingDirections :: (State, b) -> [Direction]
+pawnTakingDirections (State col _, _) =
+  case col of
+    White -> [BK, BQ]
+    Black -> [WK, WQ]
+
+pawnMoves :: (State, Position) -> [Position]
+pawnMoves =
+  let mbMoves = do
+        d <- pawnMovingDistance
+        dirs <- pawnMovingDirections
+        simpleMoves' d dirs
+      pawnMvs' = filter <$> isNonTakePawn <*> mbMoves
+      pawnTakes =
+        filter <$> isTakePawn <*> (simpleMoves' 1 =<< pawnTakingDirections)
+      positionFunction = liftA2 (++) pawnMvs' pawnTakes
+   in positionFunction
+
+pawnMoves' :: State -> Position -> [Position]
+pawnMoves' a b = pawnMoves (a, b)
 
 getPositionFunction :: Piece -> State -> Position -> [Position]
 getPositionFunction (Rook _) = simpleMoves 8 [B, W, K, Q]
@@ -206,7 +211,7 @@ getPositionFunction (King _) = simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
 getPositionFunction Knight =
   deltaMoves
     [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
-getPositionFunction Pawn = pawnMoves
+getPositionFunction Pawn = pawnMoves'
 
 basicMovesOfPiece :: Piece -> State -> Position -> [BasicMove]
 basicMovesOfPiece piece state position =
