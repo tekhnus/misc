@@ -15,6 +15,7 @@ module Rules
   ) where
 
 import           Board
+import           Control.Applicative (liftA2)
 import           Control.Conditional
 import           Data.Function
 import           Data.List
@@ -38,6 +39,19 @@ moveFigure' :: Position -> Position -> Board -> Maybe Board
 moveFigure' fromPosition toPosition board = do
   board' <- board & (moveFigure fromPosition toPosition)
   return (replaceFigure toPosition update board')
+
+infixl 4 <<$>>
+
+(<<$>>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
+(<<$>>) = fmap . fmap
+
+liftAA2 ::
+     (Applicative f1, Applicative f2)
+  => (a -> b -> c)
+  -> f1 (f2 a)
+  -> f1 (f2 b)
+  -> f1 (f2 c)
+liftAA2 = liftA2 . liftA2
 
 data State =
   State Color
@@ -136,80 +150,79 @@ promotions (State col board) p@(row, _) =
         EnPassant -> [Nothing]
         Empty -> [Nothing]
 
+pawnMovingDistance :: Color -> Position -> Int
+pawnMovingDistance White (1, _) = 2
+pawnMovingDistance Black (6, _) = 2
+pawnMovingDistance _ _          = 1
+
+simpleMoves :: Int -> [Direction] -> State -> Position -> [Position]
+simpleMoves dist directions st po =
+  availablePositionsAtDirection st po dist =<< directions
+
+isNotMyFigure :: State -> Position -> Bool
+isNotMyFigure (State col bo) po' =
+  case (figureAt bo po') of
+    Figure col' _
+      | col' == col -> False
+    _ -> True
+
+deltaMoves :: [(Int, Int)] -> State -> Position -> [Position]
+deltaMoves deltas st po =
+  filter (isNotMyFigure st) (catMaybes (map (`applyDelta` po) deltas))
+
+pawnMoves :: State -> Position -> [Position]
+pawnMoves state@(State color board) position =
+  let isTakePawn po' =
+        case (figureAt board po') of
+          Empty      -> False
+          EnPassant  -> True
+          Figure _ _ -> True
+      isNonTakePawn po' =
+        case (figureAt board po') of
+          Empty      -> True
+          EnPassant  -> True
+          Figure _ _ -> False
+      pawnMovingDirections =
+        case color of
+          White -> [B]
+          Black -> [W]
+      pawnTakingDirections =
+        case color of
+          White -> [BK, BQ]
+          Black -> [WK, WQ]
+      pawnMovingDist = pawnMovingDistance color position
+      pawnMoves' =
+        filter isNonTakePawn <<$>>
+        simpleMoves pawnMovingDist pawnMovingDirections
+      pawnTakes = filter isTakePawn <<$>> simpleMoves 1 pawnTakingDirections
+      positionFunction = liftAA2 (++) pawnMoves' pawnTakes
+   in positionFunction state position
+
+getPositionFunction :: Piece -> State -> Position -> [Position]
+getPositionFunction (Rook _) = simpleMoves 8 [B, W, K, Q]
+getPositionFunction Bishop = simpleMoves 8 [BK, BQ, WK, WQ]
+getPositionFunction Queen = simpleMoves 8 [B, W, K, Q, BK, BQ, WK, WQ]
+getPositionFunction (King _) = simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
+getPositionFunction Knight =
+  deltaMoves
+    [(2, 1), (1, 2), (-1, 2), (-2, 1), (-2, -1), (-1, -2), (1, -2), (2, -1)]
+getPositionFunction Pawn = pawnMoves
+
+basicMovesOfPiece :: Piece -> State -> Position -> [BasicMove]
+basicMovesOfPiece piece state position =
+  let moveStatePair pos' = do
+        promo <- promotions state position
+        let m = (position, pos', promo)
+        return m
+      positions = getPositionFunction piece state position
+   in moveStatePair =<< positions
+
 basicMovesFromPosition :: State -> Position -> [BasicMove]
 basicMovesFromPosition state@(State color board) position =
   case (figureAt board position) of
     Figure fcolor piece
-      | fcolor == color ->
-        let moveStatePair pos' = do
-              promo <- promotions state position
-              let m = (position, pos', promo)
-              return m
-            simpleMoves dist directions st po =
-              (concatMap (availablePositionsAtDirection st po dist) directions)
-            isTakePawn po' =
-              case (figureAt board po') of
-                Empty      -> False
-                EnPassant  -> True
-                Figure _ _ -> True
-            isNonTakePawn po' =
-              case (figureAt board po') of
-                Empty      -> True
-                EnPassant  -> True
-                Figure _ _ -> False
-            isNotMyFigure po' =
-              case (figureAt board po') of
-                Figure col' _
-                  | col' == color -> False
-                  | otherwise -> True
-                Empty -> True
-                EnPassant -> True
-            deltaMoves deltas _ _ =
-              filter
-                isNotMyFigure
-                (catMaybes (map (`applyDelta` position) deltas))
-            pawnMovingDirections =
-              case color of
-                White -> [B]
-                Black -> [W]
-            pawnTakingDirections =
-              case color of
-                White -> [BK, BQ]
-                Black -> [WK, WQ]
-            compose2 = fmap . fmap -- compose a one-arg function with a two-arg function
-            liftedConcat f g x y = (f x y) ++ (g x y) -- concat a couple of two-argument list-returning functions
-            pawnDist = pawnDistance color position
-            pawnDistance White (1, _) = 2
-            pawnDistance Black (6, _) = 2
-            pawnDistance _ _          = 1
-            positionFunction =
-              case piece of
-                Rook _ -> simpleMoves 8 [B, W, K, Q]
-                Bishop -> simpleMoves 8 [BK, BQ, WK, WQ]
-                Queen -> simpleMoves 8 [B, W, K, Q, BK, BQ, WK, WQ]
-                King _ -> simpleMoves 1 [B, W, K, Q, BK, BQ, WK, WQ]
-                Knight ->
-                  deltaMoves
-                    [ (2, 1)
-                    , (1, 2)
-                    , (-1, 2)
-                    , (-2, 1)
-                    , (-2, -1)
-                    , (-1, -2)
-                    , (1, -2)
-                    , (2, -1)
-                    ]
-                Pawn ->
-                  liftedConcat
-                    ((filter isNonTakePawn) `compose2`
-                     (simpleMoves pawnDist pawnMovingDirections))
-                    ((filter isTakePawn) `compose2`
-                     (simpleMoves 1 pawnTakingDirections))
-            positions = positionFunction state position
-         in concatMap moveStatePair positions
-      | otherwise -> []
-    Empty -> []
-    EnPassant -> []
+      | fcolor == color -> basicMovesOfPiece piece state position
+    _ -> []
 
 basicMoves' :: State -> [BasicMove]
 basicMoves' state = concatMap (basicMovesFromPosition state) allPositions

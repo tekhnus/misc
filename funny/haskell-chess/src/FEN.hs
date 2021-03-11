@@ -6,9 +6,9 @@ module FEN
 
 import           Control.Arrow
 import           Control.Monad
-import Data.Functor
 import           Data.Char
 import           Data.Function
+import           Data.Functor
 import           Data.List.Split
 import           Data.Maybe
 
@@ -106,7 +106,9 @@ returnOrThrow (Left err) = throw err
 parseSquares :: Parse [[FENSquare]]
 parseSquares =
   parseWord >>=
-  (init >>> splitOn "/" >>> map (map parseSymbol >>> sequence) >>> sequence >>> returnOrThrow)
+  (init >>>
+   splitOn "/" >>>
+   map (map parseSymbol >>> sequence) >>> sequence >>> returnOrThrow)
   where
     parseSymbol 'P' = Right (FENPiece White SPawn)
     parseSymbol 'N' = Right (FENPiece White SKnight)
