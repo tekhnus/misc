@@ -289,6 +289,14 @@ numbersBetween m n
   | m <= n = [m .. n]
   | otherwise = reverse [n .. m]
 
+castlingKing' :: Castling -> Int
+castlingKing' KingsideCastling = 6
+castlingKing' QueensideCastling = 2
+
+castlingRook' :: Castling -> Int
+castlingRook' KingsideCastling = 5
+castlingRook' QueensideCastling = 3
+
 makeCastling :: Castling -> State -> Maybe State
 makeCastling castling state@(State color board) = do
   (king, rook) <- castlingKingAndRook state castling
@@ -300,15 +308,9 @@ makeCastling castling state@(State color board) = do
            EnPassant -> True
            Figure _ _ -> False) .
         (figureAt board) . localToGlobal'
-      king' =
-        case castling of
-          KingsideCastling  -> 6
-          QueensideCastling -> 2
+      king' = castlingKing' castling
       kingPath = numbersBetween king king'
-      rook' =
-        case castling of
-          KingsideCastling  -> 5
-          QueensideCastling -> 3
+      rook' = castlingRook' castling
       rookPath = numbersBetween rook rook'
   guard (all (not . attacked') (kingPath))
   guard (all (empty' <||> (== rook)) (tail kingPath))
