@@ -1,6 +1,8 @@
 	;; Export the "loader" symbol
 	;; It will be configured as an entry point in the linker script
 	global loader
+	;; Those are the names of C functions we'll use.
+	extern hexspeak
 
 	;; Define several constants for later use
         MAGIC_NUMBER equ 0x1BADB002
@@ -19,10 +21,11 @@
         dd CHECKSUM
 	;; Next comes the loader code.
 loader:
-	mov eax, 0xCAFEBABE
 	;; We make the esp point to the first
 	;; address after (= below) the segment reserved for the stack.
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
+	;; Now we can call the C code!
+	call hexspeak
 	.loop:
         jmp .loop
 
