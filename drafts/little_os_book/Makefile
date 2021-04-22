@@ -2,7 +2,7 @@ OBJECTS = target/loader.o target/kmain.o
 LD = i386-elf-ld
 CC = i386-elf-gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
-	-nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c
+	-nostartfiles -nodefaultlibs -Wall -Wextra -c
 LDFLAGS = -T src/link.ld -melf_i386
 AS = nasm
 ASFLAGS = -f elf
