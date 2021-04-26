@@ -3,7 +3,9 @@
 	global loader
 	global outb
 	global inb
-	;; Those are the names of C functions we'll use.
+	;; Those are the names of C functions and variables we'll use.
+	extern init_gdt_and_descriptor
+	extern gdt_descriptor
 	extern kmain
 
 	;; Define several constants for later use
@@ -28,6 +30,20 @@ loader:
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	;; TODO: shouldn't we also set ebp here?
 	;; Now we can call the C code!
+
+	call init_gdt_and_descriptor   ; We init the GDT table and its descriptor.
+	lgdt [gdt_descriptor]	       ; And load it.
+	;; TODO: find out, why things doesn't break instantly and we
+	;; have a possibility to update the registers?
+	mov ax, 0x10
+	mov ds, ax ; 0x10 Means the second (e.g. data) entry
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov ss, ax
+	jmp 0x08:justnextline ; 0x08 means the first (e.g. code) entry in the GDT
+justnextline:
+
 	call kmain
 	.loop:
         jmp .loop

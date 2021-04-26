@@ -1,3 +1,5 @@
+#include <stdint.h>
+#include <stdbool.h>
 #include "io.h"
 
 static char *const fb = ((char *const) 0x000B8000);
@@ -7,6 +9,48 @@ const unsigned short DATA_PORT = 0x3D5;
 
 const char CURSOR_POS_HIGH = 14;
 const char CURSOR_POS_LOW = 15;
+
+struct gdt_entry {
+  uint16_t limit_low;
+  uint16_t base_low;
+  uint8_t base_mid;
+  uint8_t access;
+  uint8_t limit_high_and_flags;
+  uint8_t base_high;
+} __attribute__((packed));
+
+struct gdt_entry gdt[3];
+
+struct {
+  uint16_t size;
+  uint32_t offset;
+} __attribute__((packed)) gdt_descriptor;
+
+void gdt_set_access(struct gdt_entry *instance, bool is_executable) {
+  instance->access = 0x92 | (is_executable << 3);
+}
+
+void gdt_set_flags(struct gdt_entry *instance) {
+  instance->limit_high_and_flags = (instance->limit_high_and_flags & 0x0F) | 0xC0;
+}
+
+void gdt_set_limit(struct gdt_entry *instance, uint32_t value) {
+  instance->limit_low = value & 0xFFFF;
+  instance->limit_high_and_flags = (instance->limit_high_and_flags & 0xF0) | ((value & 0xF0000) >> 16);
+}
+
+void init_gdt_and_descriptor() {
+  gdt_set_limit(&gdt[1], 0xFFFFF);
+  gdt_set_flags(&gdt[1]);
+  gdt_set_access(&gdt[1], true);
+
+  gdt_set_limit(&gdt[2], 0xFFFFF);
+  gdt_set_flags(&gdt[2]);
+  gdt_set_access(&gdt[2], false);
+
+  gdt_descriptor.size = sizeof(gdt) - 1;
+  gdt_descriptor.offset = (uintptr_t) &gdt;
+}
 
 void putchar(
 	     unsigned char row, unsigned char col,
