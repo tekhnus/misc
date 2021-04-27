@@ -31,10 +31,13 @@ loader:
 	;; TODO: shouldn't we also set ebp here?
 	;; Now we can call the C code!
 
+	;; Since the loader is booted by GRUB using the Multiboot standard,
+	;; the CPU is already in the protected mode, and the segments
+	;; with full range (0x00000000-0xFFFFFFFF) are used for code and data.
+	;; However, we initialize our own GDT
+	;; just in order to be sure that we control it fully.
 	call init_gdt_and_descriptor   ; We init the GDT table and its descriptor.
 	lgdt [gdt_descriptor]	       ; And load it.
-	;; TODO: find out, why things doesn't break instantly and we
-	;; have a possibility to update the registers?
 	mov ax, 0x10
 	mov ds, ax ; 0x10 Means the second (e.g. data) entry
 	mov es, ax

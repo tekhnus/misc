@@ -1,0 +1,14 @@
+https://www.gnu.org/software/grub/manual/multiboot/html_node/Machine-state.html
+GRUB multiboot reference
+
+https://wiki.osdev.org/Bare_Bones
+OSDev Barebones tutorial
+
+https://github.com/littleosbook/aenix
+Aenix: toy OS accompanying the "Little book about OS developemnt"
+
+http://www.osdever.net/bkerndev/Docs/gdt.htm
+Bran's Kernel Development Tutorial
+
+http://www.independent-software.com/category/osdev.html
+Туториал по написанию загрузчика и ОС
