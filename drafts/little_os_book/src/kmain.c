@@ -87,14 +87,25 @@ void writechar(char c, unsigned char fg, unsigned char bg) {
   move_cursor(row, col + 1);
 }
 
-void write(char *buf, unsigned int len) {
+void writenewlinereturn() {
+  unsigned short cur = find_cursor();
+  unsigned char row = cur / 80;
+  move_cursor(row + 1, 0);
+}
+
+const unsigned char WHITE = 15;
+const unsigned char RED = 4;
+const unsigned char GREEN = 2;
+
+void writeln(char *buf, unsigned int len, unsigned char fg, unsigned char bg) {
   unsigned int cnt;
   for (cnt = 0; cnt < len; ++cnt) {
-    writechar(buf[cnt], 15, 2);
+    writechar(buf[cnt], fg, bg);
   }
+  writenewlinereturn();
 }
 
 void kmain() {
-  write("  Hello, world!  ", 17);
+  writeln("  Hello, world!  ", 17, WHITE, GREEN);
   for (;;);
 }
