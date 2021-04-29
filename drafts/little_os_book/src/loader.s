@@ -1,11 +1,18 @@
 	;; Export the "loader" symbol
 	;; It will be configured as an entry point in the linker script
 	global loader
+	;; Export the ISR symbols; their addresses are needed by the C code
+	;; which sets up the IDT.
+	global isr0
+	;; Export the outb and inb functions; they are used in I/O C code.
 	global outb
 	global inb
 	;; Those are the names of C functions and variables we'll use.
 	extern init_gdt_and_descriptor
 	extern gdt_descriptor
+	extern init_idt_and_descriptor
+	extern idt_descriptor
+	extern interrupt_handler
 	extern kmain
 
 	;; Define several constants for later use
@@ -47,6 +54,10 @@ loader:
 	jmp 0x08:justnextline ; 0x08 means the first (e.g. code) entry in the GDT
 justnextline:
 
+	;; Now we init and load the IDT.
+	call init_idt_and_descriptor
+	lidt [idt_descriptor]
+
 	call kmain
 	.loop:
         jmp .loop
@@ -61,6 +72,21 @@ inb:	      ; unsigned char inb(unsigned short port)
 	in al, dx
 	ret
 
+isr0:
+	push 0			; push an error code stub
+	push 0 ; push the interrupt code
+	jmp isr_common
+isr_common:	
+	pushad			; push the register values
+	call interrupt_handler	; call the C handler
+	popad			; restore the register values
+	add esp, 8		; pop the interrupt code (pushed earlier by us) and error code pushed by CPU (or its stub pushed earlier by us)
+	;; Now the registers are restored back to the state they were when the interrupt fired.
+	;; The stack is restored too (modulo the error code, which was popped from the top
+	;; of the stack, if it was there in the first place).
+	;; We are in a position to call iret.
+	iret
+	
 	section .bss
 	align 4
 kernel_stack:

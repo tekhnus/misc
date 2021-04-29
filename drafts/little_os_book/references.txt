@@ -12,3 +12,6 @@ Bran's Kernel Development Tutorial
 
 http://www.independent-software.com/category/osdev.html
 Туториал по написанию загрузчика и ОС
+
+https://alex.dzyoba.com/blog/os-interrupts/
+Небольшая статья про прерывания в x86
