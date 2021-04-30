@@ -3,7 +3,6 @@
 	global loader
 	;; Export the ISR symbols; their addresses are needed by the C code
 	;; which sets up the IDT.
-	global isr0
 	;; Export the outb and inb functions; they are used in I/O C code.
 	global outb
 	global inb
@@ -58,6 +57,10 @@ justnextline:
 	call init_idt_and_descriptor
 	lidt [idt_descriptor]
 
+	; FIXME added just to test general protection fault
+	; mov ax, 0x33
+	; mov ss, ax
+
 	call kmain
 	.loop:
         jmp .loop
@@ -72,10 +75,47 @@ inb:	      ; unsigned char inb(unsigned short port)
 	in al, dx
 	ret
 
-isr0:
+	%macro isr_wo_error_code 1
+	global isr%1
+isr%1:
 	push 0			; push an error code stub
-	push 0 ; push the interrupt code
+	push %1 ; push the interrupt code
 	jmp isr_common
+	%endmacro
+
+	%macro isr_w_error_code 1
+	global isr%1
+isr%1:
+	; the error code is already pushed by the CPU
+	push %1 ; push the interrupt code
+	jmp isr_common
+	%endmacro
+
+	isr_wo_error_code 0
+	isr_wo_error_code 1
+	isr_wo_error_code 2
+	isr_wo_error_code 3
+	isr_wo_error_code 4
+	isr_wo_error_code 5
+	isr_wo_error_code 6
+	isr_wo_error_code 7
+	isr_w_error_code 8
+	isr_wo_error_code 9
+	isr_w_error_code 10
+	isr_w_error_code 11
+	isr_w_error_code 12
+	isr_w_error_code 13
+	isr_w_error_code 14
+	; 15 reserved
+	isr_wo_error_code 16
+	isr_w_error_code 17
+	isr_wo_error_code 18
+	isr_wo_error_code 19
+	isr_wo_error_code 20
+	; 21-29 reserved
+	isr_w_error_code 30
+	; 31 reserved
+	
 isr_common:	
 	pushad			; push the register values
 	call interrupt_handler	; call the C handler

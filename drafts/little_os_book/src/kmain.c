@@ -80,12 +80,62 @@ void idt_set_offset(struct idt_entry *instance, uint32_t value) {
   instance->offset_high = (value >> 16);
 }
 
+void idt_setup(struct idt_entry *instance, uint32_t offset) {
+  idt_init(instance);
+  idt_set_offset(instance, offset);
+}
+
 /* ISR's are defined in loader.s */
 void isr0();
+void isr1();
+void isr2();
+void isr3();
+void isr4();
+void isr5();
+void isr6();
+void isr7();
+void isr8();
+void isr9();
+void isr10();
+void isr11();
+void isr12();
+void isr13();
+void isr14();
+// 15 reserved
+void isr16();
+void isr17();
+void isr18();
+void isr19();
+void isr20();
+// 21-29 reserved
+void isr30();
+// 31 reserved
 
 void init_idt_and_descriptor() {
-  idt_init(&idt[0]);
-  idt_set_offset(&idt[0], (uint32_t) &isr0);
+  idt_setup(&idt[0], (uint32_t) &isr0);
+  idt_setup(&idt[1], (uint32_t) &isr1);
+  idt_setup(&idt[2], (uint32_t) &isr2);
+  idt_setup(&idt[3], (uint32_t) &isr3);
+  idt_setup(&idt[4], (uint32_t) &isr4);
+  idt_setup(&idt[5], (uint32_t) &isr5);
+  idt_setup(&idt[6], (uint32_t) &isr6);
+  idt_setup(&idt[7], (uint32_t) &isr7);
+  idt_setup(&idt[8], (uint32_t) &isr8);
+  idt_setup(&idt[9], (uint32_t) &isr9);
+  idt_setup(&idt[10], (uint32_t) &isr10);
+  idt_setup(&idt[11], (uint32_t) &isr11);
+  idt_setup(&idt[12], (uint32_t) &isr12);
+  idt_setup(&idt[13], (uint32_t) &isr13);
+  idt_setup(&idt[14], (uint32_t) &isr14);
+  // 15 reserved
+  idt_setup(&idt[16], (uint32_t) &isr16);
+  idt_setup(&idt[17], (uint32_t) &isr17);
+  idt_setup(&idt[18], (uint32_t) &isr18);
+  idt_setup(&idt[19], (uint32_t) &isr19);
+  idt_setup(&idt[20], (uint32_t) &isr20);
+  // 21-29 reserved
+  idt_setup(&idt[30], (uint32_t) &isr30);
+  // 31 reserved
 
   idt_descriptor.size = sizeof(idt);
   idt_descriptor.offset = (uint32_t) &idt;
@@ -214,6 +264,6 @@ void kmain() {
   global_bg = GREEN;
   kprintf("Hello, %s!\n", "world");
   global_bg = BLACK;
-  kprintf("%u\n", 1u / 0u);
+  // kprintf("%u\n", 1u / 0u); // FIXME added to test division by zero interrupt
   for (;;);
 }
