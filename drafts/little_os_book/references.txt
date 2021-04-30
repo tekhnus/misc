@@ -15,3 +15,6 @@ http://www.independent-software.com/category/osdev.html
 
 https://alex.dzyoba.com/blog/os-interrupts/
 Небольшая статья про прерывания в x86
+
+https://wiki.osdev.org/IDT_problems#Problems_with_IDTs
+Советы по отладке прерываний

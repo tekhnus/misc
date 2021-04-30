@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdarg.h>
+#include <stddef.h>
 #include "io.h"
 
 static char *const fb = ((char *const) 0x000B8000);
@@ -130,41 +132,86 @@ void move_cursor(unsigned char row, unsigned char col) {
   outb(DATA_PORT, loc);
 }
 
-void writechar(char c, unsigned char fg, unsigned char bg) {
-  unsigned short cur = find_cursor();
-  unsigned char row = cur / 80;
-  unsigned char col = cur % 80;
-  putchar(row, col, c, fg, bg);
-  move_cursor(row, col + 1);
-}
-
-void writenewlinereturn() {
-  unsigned short cur = find_cursor();
-  unsigned char row = cur / 80;
-  move_cursor(row + 1, 0);
-}
-
 const unsigned char WHITE = 15;
 const unsigned char RED = 4;
 const unsigned char GREEN = 2;
+const unsigned char BLACK = 0;
 
-void writeln(char *buf, unsigned int len, unsigned char fg, unsigned char bg) {
-  unsigned int cnt;
-  for (cnt = 0; cnt < len; ++cnt) {
-    writechar(buf[cnt], fg, bg);
+unsigned char global_fg = WHITE;
+unsigned char global_bg = BLACK;
+
+void writechar(char c) {
+  unsigned short cur = find_cursor();
+  unsigned char row = cur / 80;
+  unsigned char col = cur % 80;
+  if (c == '\n') {
+    move_cursor(row + 1, 0);
+    return;
   }
-  writenewlinereturn();
+  putchar(row, col, c, global_fg, global_bg);
+  move_cursor(row, col + 1);
+}
+
+void writestr(char *buf) {
+  size_t cnt;
+  for (cnt = 0; buf[cnt] != '\0'; ++cnt) {
+    writechar(buf[cnt]);
+  }
+}
+
+void writeunsigned(unsigned int value) {
+  if (value == 0) {
+    writechar('0');
+    return;
+  }
+  while (value > 0) {
+    writechar('0' + value % 10);
+    value /= 10;
+  }
+}
+
+void kprintf(char *fmt, ...) {
+  size_t j;
+  va_list ap;
+  char *s;
+  unsigned int u;
+  va_start(ap, fmt);
+  for (j = 0; fmt[j] != '\0'; ++j) {
+    if (fmt[j] != '%') {
+      writechar(fmt[j]);
+      continue;
+    }
+    ++j;
+    if (fmt[j] == 's') {
+      s = va_arg(ap, char*);
+      writestr(s);
+      continue;
+    }
+    if (fmt[j] == 'u') {
+      u = va_arg(ap, unsigned int);
+      writeunsigned(u);
+      continue;
+    }
+  }
+  
 }
 
 void interrupt_handler(struct registers regs, uint32_t int_code, uint32_t error_code) {
   /* We could add the following arguments: eip, cs, eflags (and maybe esp and ss),
      but currenly I see no use of them */
-  writeln("Exception occured!", 18, WHITE, RED);
+  global_bg = RED;
+  kprintf("Exception occured!\n");
+  kprintf("Interrupt code: %u\n", (unsigned int) int_code);
+  kprintf("Error code: %u\n", (unsigned int) error_code);
+  kprintf("EAX value: %u\n", (unsigned int) regs.eax);
+  global_bg = BLACK;
   for (;;);
 }
 
 void kmain() {
-  writeln("  Hello, world!  ", 17, WHITE, GREEN);
-  uint8_t x = 1 / (1 - 1);
+  global_bg = GREEN;
+  kprintf("Hello, %s!\n", "world");
+  global_bg = BLACK;
+  kprintf("%u\n", 1u / 0u);
   for (;;);
 }
