@@ -160,9 +160,11 @@ void writestr(char *buf) {
 }
 
 void writeunsigned(unsigned int value) {
-  if (value == 0) {
-    writechar('0');
-    return;
+  unsigned int decimalmask;
+  for (decimalmask = 1; decimalmask * 10 < value; decimalmask *= 10);
+  for (; decimalmask > 0; decimalmask /= 10) {
+    writechar('0' + (value / decimalmask));
+    value %= decimalmask;
   }
   while (value > 0) {
     writechar('0' + value % 10);
