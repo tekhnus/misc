@@ -12,6 +12,7 @@
 	extern init_idt_and_descriptor
 	extern idt_descriptor
 	extern interrupt_handler
+	extern initialize_pics
 	extern kmain
 
 	;; Define several constants for later use
@@ -60,6 +61,14 @@ justnextline:
 	; FIXME added just to test general protection fault
 	; mov ax, 0x33
 	; mov ss, ax
+
+	;; The interrupts from PIC's are disabled by GRUB.
+	;; Before we enable them, we are going to reconfigure them,
+	;; because their offsets in IDT overlap with CPU exception IRQ's.
+	call initialize_pics
+
+	;; Now we are going to allow CPU to respond to external interrupts.
+	sti
 
 	call kmain
 	.loop:

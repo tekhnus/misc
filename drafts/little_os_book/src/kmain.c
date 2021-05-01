@@ -260,6 +260,40 @@ void interrupt_handler(struct registers regs, uint32_t int_code, uint32_t error_
   for (;;);
 }
 
+/* There are two Programmable Interrupt Controllers (PICS): master and slave.
+   Each has two I/O ports. */
+const unsigned short MASTER_PIC_PORT_A = 0x20;
+const unsigned short MASTER_PIC_PORT_B = 0x21;
+const unsigned short SLAVE_PIC_PORT_A = 0xA0;
+const unsigned short SLAVE_PIC_PORT_B = 0xA1;
+
+void initialize_pics() {
+  /* PIC initialization is done by sending four commands
+     called Initialization Command Words (ICW) to its ports,
+     after which a single Operation Control Word (OCW) is sent.
+     ICW1 is sent to port A and ICW2, ICW3, ICW4 and OCW1 are sent to port B. */
+
+  /* ICW1 is some technical flags. */
+  outb(MASTER_PIC_PORT_A, 0x11);
+  outb(SLAVE_PIC_PORT_A, 0x11);
+
+  /* ICW2 is offset (in entries, not in bytes!) in IDT. */
+  outb(MASTER_PIC_PORT_B, 0x20); /* As entries 0x00-0x1F are mapped to CPU exceptions, we start from 0x20 */
+  outb(SLAVE_PIC_PORT_B, 0x28); /* Entries 0x20-0x27 are mapped to master PIC above, so we map 0x28-0x2F to slave PIC. */
+
+  /* ICW3. */
+  outb(MASTER_PIC_PORT_B, 0x04); /* This is the mask of the pins which are connected to slave PIC's. We want to have a single slave connected to pin number 2. */
+  outb(SLAVE_PIC_PORT_B, 0x02); /* This is the number of the master's pin to which this slave is connected. */
+
+  /* ICW4 is some more technical flags. */
+  outb(MASTER_PIC_PORT_B, 0x01);
+  outb(SLAVE_PIC_PORT_B, 0x01);
+
+  /* OCW1 commands to enable/disable some IRQ's. The zero mask means enable everything */
+  outb(MASTER_PIC_PORT_B, 0x00);
+  outb(SLAVE_PIC_PORT_B, 0x00);
+}
+
 void kmain() {
   global_bg = GREEN;
   kprintf("Hello, %s!\n", "world");

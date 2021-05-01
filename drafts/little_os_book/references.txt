@@ -18,3 +18,9 @@ https://alex.dzyoba.com/blog/os-interrupts/
 
 https://wiki.osdev.org/IDT_problems#Problems_with_IDTs
 Советы по отладке прерываний
+
+https://os.phil-opp.com
+Туториал по написанию x86_64 ОС на Rust
+
+https://k.lse.epita.fr/internals/8259a_controller.html
+Объяснение процедуры инициализации PIC
