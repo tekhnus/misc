@@ -86,6 +86,8 @@ void idt_setup(struct idt_entry *instance, uint32_t offset) {
 }
 
 /* ISR's are defined in loader.s */
+
+/* ISR's for CPU exceptions. */
 void isr0();
 void isr1();
 void isr2();
@@ -111,7 +113,26 @@ void isr20();
 void isr30();
 // 31 reserved
 
+/* ISR's for IRQ's. */
+void isr32();
+void isr33();
+void isr34();
+void isr35();
+void isr36();
+void isr37();
+void isr38();
+void isr39();
+void isr40();
+void isr41();
+void isr42();
+void isr43();
+void isr44();
+void isr45();
+void isr46();
+void isr47();
+
 void init_idt_and_descriptor() {
+  /* ISR's for CPU exceptions. */
   idt_setup(&idt[0], (uint32_t) &isr0);
   idt_setup(&idt[1], (uint32_t) &isr1);
   idt_setup(&idt[2], (uint32_t) &isr2);
@@ -136,6 +157,24 @@ void init_idt_and_descriptor() {
   // 21-29 reserved
   idt_setup(&idt[30], (uint32_t) &isr30);
   // 31 reserved
+
+  /* ISR's for IRQ's. */
+  idt_setup(&idt[32], (uint32_t) &isr32);
+  idt_setup(&idt[33], (uint32_t) &isr33);
+  idt_setup(&idt[34], (uint32_t) &isr34);
+  idt_setup(&idt[35], (uint32_t) &isr35);
+  idt_setup(&idt[36], (uint32_t) &isr36);
+  idt_setup(&idt[37], (uint32_t) &isr37);
+  idt_setup(&idt[38], (uint32_t) &isr38);
+  idt_setup(&idt[39], (uint32_t) &isr39);
+  idt_setup(&idt[40], (uint32_t) &isr40);
+  idt_setup(&idt[41], (uint32_t) &isr41);
+  idt_setup(&idt[42], (uint32_t) &isr42);
+  idt_setup(&idt[43], (uint32_t) &isr43);
+  idt_setup(&idt[44], (uint32_t) &isr44);
+  idt_setup(&idt[45], (uint32_t) &isr45);
+  idt_setup(&idt[46], (uint32_t) &isr46);
+  idt_setup(&idt[47], (uint32_t) &isr47);
 
   idt_descriptor.size = sizeof(idt);
   idt_descriptor.offset = (uint32_t) &idt;
@@ -248,24 +287,53 @@ void kprintf(char *fmt, ...) {
   
 }
 
-void interrupt_handler(struct registers regs, uint32_t int_code, uint32_t error_code) {
-  /* We could add the following arguments: eip, cs, eflags (and maybe esp and ss),
-     but currenly I see no use of them */
-  global_bg = RED;
-  kprintf("Exception occured!\n");
-  kprintf("Interrupt code: %u\n", (unsigned int) int_code);
-  kprintf("Error code: %u\n", (unsigned int) error_code);
-  kprintf("EAX value: %u\n", (unsigned int) regs.eax);
-  global_bg = BLACK;
-  for (;;);
-}
-
 /* There are two Programmable Interrupt Controllers (PICS): master and slave.
    Each has two I/O ports. */
 const unsigned short MASTER_PIC_PORT_A = 0x20;
 const unsigned short MASTER_PIC_PORT_B = 0x21;
 const unsigned short SLAVE_PIC_PORT_A = 0xA0;
 const unsigned short SLAVE_PIC_PORT_B = 0xA1;
+
+void irq_handler(uint32_t irq_code) {
+  // kprintf("IRQ code: %u\n", (unsigned int) irq_code); // FIXME this is just to debug the IRQ.
+
+  /* We should always acknowledge the interrupt.
+     It is done by sending an OCW2 to the port A of the PIC.
+     0x20 means sending a non-specific End Of Interrupt (EOI) command.
+  */
+  if (irq_code > 7) {
+    /* An acknowledgement is sent to slave PIC if the IRQ was fired by it. */
+    outb(SLAVE_PIC_PORT_A, 0x20);
+  }
+  /* An acknowledgement is always sent to master PIC. */
+  outb(MASTER_PIC_PORT_A, 0x20);
+}
+
+void interrupt_handler(struct registers regs, uint32_t int_code, uint32_t error_code) {
+  /* We could add the following arguments: eip, cs, eflags (and maybe esp and ss),
+     but currenly I see no use of them */
+
+  if (int_code < 32) {
+    global_bg = RED;
+    kprintf("CPU exception occured!\n");
+    kprintf("Interrupt code: %u\n", (unsigned int) int_code);
+    kprintf("Error code: %u\n", (unsigned int) error_code);
+    kprintf("EAX value: %u\n", (unsigned int) regs.eax);
+    global_bg = BLACK;
+    for (;;);
+  }
+  if (int_code < 48) {
+    irq_handler(int_code - 32);
+    return;
+  }
+  global_bg = RED;
+  kprintf("Unexpected interrupt fired!\n");
+  kprintf("Interrupt code: %u\n", (unsigned int) int_code);
+  kprintf("Error code: %u\n", (unsigned int) error_code);
+  global_bg = BLACK;
+  for (;;);
+}
+
 
 void initialize_pics() {
   /* PIC initialization is done by sending four commands

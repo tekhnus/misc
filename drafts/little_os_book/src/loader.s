@@ -100,6 +100,7 @@ isr%1:
 	jmp isr_common
 	%endmacro
 
+	; ISR's for CPU exceptions
 	isr_wo_error_code 0
 	isr_wo_error_code 1
 	isr_wo_error_code 2
@@ -123,7 +124,25 @@ isr%1:
 	isr_wo_error_code 20
 	; 21-29 reserved
 	isr_w_error_code 30
-	; 31 reserved
+	;; 31 reserved
+
+	;; ISR's for IRQ's
+	isr_wo_error_code 32
+	isr_wo_error_code 33
+	isr_wo_error_code 34
+	isr_wo_error_code 35
+	isr_wo_error_code 36
+	isr_wo_error_code 37
+	isr_wo_error_code 38
+	isr_wo_error_code 39
+	isr_wo_error_code 40
+	isr_wo_error_code 41
+	isr_wo_error_code 42
+	isr_wo_error_code 43
+	isr_wo_error_code 44
+	isr_wo_error_code 45
+	isr_wo_error_code 46
+	isr_wo_error_code 47
 	
 isr_common:	
 	pushad			; push the register values
