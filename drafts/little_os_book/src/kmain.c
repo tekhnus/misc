@@ -428,6 +428,8 @@ void initialize_pics() {
   outb(MASTER_PIC_PORT_A, 0x11);
   outb(SLAVE_PIC_PORT_A, 0x11);
 
+  /* Some sources recommend to wait between sending ICW's. */
+
   /* ICW2 is offset (in entries, not in bytes!) in IDT. */
   outb(MASTER_PIC_PORT_B, 0x20); /* As entries 0x00-0x1F are mapped to CPU exceptions, we start from 0x20 */
   outb(SLAVE_PIC_PORT_B, 0x28); /* Entries 0x20-0x27 are mapped to master PIC above, so we map 0x28-0x2F to slave PIC. */
@@ -437,6 +439,7 @@ void initialize_pics() {
   outb(SLAVE_PIC_PORT_B, 0x02); /* This is the number of the master's pin to which this slave is connected. */
 
   /* ICW4 is some more technical flags. */
+  /* Some sources send different ICW4 words. It's somehow related to buffering */
   outb(MASTER_PIC_PORT_B, 0x01);
   outb(SLAVE_PIC_PORT_B, 0x01);
 
