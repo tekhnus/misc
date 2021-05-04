@@ -287,6 +287,86 @@ void kprintf(char *fmt, ...) {
   
 }
 
+static const unsigned short KEYBOARD_DATA_PORT = 0x60;
+
+static const char NON_PRINTABLE = '\0';
+/* Scan code set 1 is used. */
+static const char us_qwerty_printable[256] = {
+  NON_PRINTABLE,
+  NON_PRINTABLE,
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '0',
+  '-',
+  '=',
+  NON_PRINTABLE,
+  NON_PRINTABLE, /* Tab */
+  'q',
+  'w',
+  'e',
+  'r',
+  't',
+  'y',
+  'u',
+  'i',
+  'o',
+  'p',
+  '[',
+  ']',
+  NON_PRINTABLE,
+  NON_PRINTABLE,
+  'a',
+  's',
+  'd',
+  'f',
+  'g',
+  'h',
+  'j',
+  'k',
+  'l',
+  ';',
+  '\'',
+  '`',
+  NON_PRINTABLE,
+  '\\',
+  'z',
+  'x',
+  'c',
+  'v',
+  'b',
+  'n',
+  'm',
+  ',',
+  '.',
+  '/',
+  NON_PRINTABLE,
+  '*',				/* KEYPAD */
+  NON_PRINTABLE,
+  ' ',
+};
+static const unsigned char US_QWERTY_ENTER = 0x1C;
+
+void irq_keyboard_handler() {
+  unsigned char scan_code = inb(KEYBOARD_DATA_PORT);
+  bool released_flg = scan_code & 0x80;
+  unsigned char key_code = scan_code & 0x7F;
+  if (!released_flg) {
+    char c = us_qwerty_printable[key_code];
+    if (c != NON_PRINTABLE) {
+      writechar(c);
+    } else if (key_code == US_QWERTY_ENTER) {
+      writechar('\n');
+    }
+  }
+}
+
 /* There are two Programmable Interrupt Controllers (PICS): master and slave.
    Each has two I/O ports. */
 const unsigned short MASTER_PIC_PORT_A = 0x20;
@@ -297,6 +377,9 @@ const unsigned short SLAVE_PIC_PORT_B = 0xA1;
 void irq_handler(uint32_t irq_code) {
   // kprintf("IRQ code: %u\n", (unsigned int) irq_code); // FIXME this is just to debug the IRQ.
 
+  if (irq_code == 1) {
+    irq_keyboard_handler();
+  }
   /* We should always acknowledge the interrupt.
      It is done by sending an OCW2 to the port A of the PIC.
      0x20 means sending a non-specific End Of Interrupt (EOI) command.
