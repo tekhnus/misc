@@ -298,8 +298,8 @@ static const unsigned short KEYBOARD_DATA_PORT = 0x60;
 
 static const char NON_PRINTABLE = '\0';
 /* Scan code set 1 is used. */
-static const char us_qwerty_printable[256] = {
-  NON_PRINTABLE,
+static const char us_qwerty_printable[128] = {
+  NON_PRINTABLE,		/* Stub value, zero code does not actually exist. */
   NON_PRINTABLE,
   '1',
   '2',
@@ -358,15 +358,85 @@ static const char us_qwerty_printable[256] = {
   NON_PRINTABLE,
   ' ',
 };
+static const char us_qwerty_printable_caps[128] = {
+  NON_PRINTABLE,		/* Stub value, zero code does not actually exist. */
+  NON_PRINTABLE,
+  '!',
+  '@',
+  '#',
+  '$',
+  '%',
+  '^',
+  '&',
+  '*',
+  '(',
+  ')',
+  '_',
+  '+',
+  NON_PRINTABLE,
+  NON_PRINTABLE, /* Tab */
+  'Q',
+  'W',
+  'E',
+  'R',
+  'T',
+  'Y',
+  'U',
+  'I',
+  'O',
+  'P',
+  '{',
+  '}',
+  NON_PRINTABLE,
+  NON_PRINTABLE,
+  'A',
+  'S',
+  'D',
+  'F',
+  'G',
+  'H',
+  'J',
+  'K',
+  'L',
+  ':',
+  '"',
+  '~',
+  NON_PRINTABLE,
+  '|',
+  'Z',
+  'X',
+  'C',
+  'V',
+  'B',
+  'N',
+  'M',
+  '<',
+  '>',
+  '?',
+  NON_PRINTABLE,
+  '*',				/* KEYPAD */
+  NON_PRINTABLE,
+  ' ',
+};
 static const unsigned char US_QWERTY_ENTER = 0x1C;
 static const unsigned char US_QWERTY_BACKSPACE = 0x0E;
+static const unsigned char US_QWERTY_LEFT_SHIFT = 0x2A;
+
+bool is_pressed[128];
 
 void irq_keyboard_handler() {
   unsigned char scan_code = inb(KEYBOARD_DATA_PORT);
   bool released_flg = scan_code & 0x80;
   unsigned char key_code = scan_code & 0x7F;
   if (!released_flg) {
-    char c = us_qwerty_printable[key_code];
+    is_pressed[key_code] = true;
+    bool is_shift_pressed = is_pressed[US_QWERTY_LEFT_SHIFT];
+    char c;
+    if (is_shift_pressed) {
+      c = us_qwerty_printable_caps[key_code];
+    } else {
+      c = us_qwerty_printable[key_code];
+    }
     if (c != NON_PRINTABLE) {
       writechar(c);
     } else if (key_code == US_QWERTY_ENTER) {
@@ -374,6 +444,8 @@ void irq_keyboard_handler() {
     } else if (key_code == US_QWERTY_BACKSPACE) {
       writechar('\b');
     }
+  } else {
+    is_pressed[key_code] = false;
   }
 }
 
