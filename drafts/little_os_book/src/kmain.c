@@ -237,6 +237,13 @@ void writechar(char c) {
     move_cursor(row + 1, 0);
     return;
   }
+  if (c == '\b') {
+    if (col > 0) {
+      putchar(row, col - 1, ' ', WHITE, BLACK);
+      move_cursor(row, col - 1);
+    }
+    return;
+  }
   putchar(row, col, c, global_fg, global_bg);
   move_cursor(row, col + 1);
 }
@@ -352,6 +359,7 @@ static const char us_qwerty_printable[256] = {
   ' ',
 };
 static const unsigned char US_QWERTY_ENTER = 0x1C;
+static const unsigned char US_QWERTY_BACKSPACE = 0x0E;
 
 void irq_keyboard_handler() {
   unsigned char scan_code = inb(KEYBOARD_DATA_PORT);
@@ -363,6 +371,8 @@ void irq_keyboard_handler() {
       writechar(c);
     } else if (key_code == US_QWERTY_ENTER) {
       writechar('\n');
+    } else if (key_code == US_QWERTY_BACKSPACE) {
+      writechar('\b');
     }
   }
 }
