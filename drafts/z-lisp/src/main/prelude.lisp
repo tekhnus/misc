@@ -79,7 +79,7 @@ c
 (defn adder (n) (fn (m) (add n m)))
 ((adder 3) 4)
 
-(def fopen (externcfn "libc-2.33.so" "fopen" ((string string) externcptr)))
+(def fopen (externcfn "libSystem.dylib" "fopen" ((string string) externcptr)))
 (fopen "/etc/hosts" "r")
 
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))

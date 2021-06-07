@@ -14,7 +14,7 @@ target/obj/%.o: src/main/%.c
 	mkdir -p $(dir $@)
 	gcc $(CFLAGS) -c -o $@ $<
 
-run-prelude:
+run-prelude: target/z-lisp
 	target/z-lisp <src/main/prelude.lisp
 
 .PHONY: run-prelude

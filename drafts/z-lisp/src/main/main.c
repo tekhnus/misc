@@ -198,6 +198,13 @@ expr_t *expr_make_externcfn(void *call_ptr, expr_t *signature) {
   return e;
 }
 
+expr_t *expr_make_externcptr(void *ptr) {
+  expr_t *e = malloc(sizeof(expr_t));
+  e->type = EXTERNCPTR;
+  e->extern_c_ptr = ptr;
+  return e;
+}
+
 bool expr_is_nil(expr_t *e) {
   return e == NULL;
 }
@@ -233,6 +240,11 @@ bool expr_is_native_form(expr_t *e)
 bool expr_is_externcfn(expr_t *e) 
 {
   return e != NULL && e->type == EXTERNCFN;
+}
+
+bool expr_is_externcptr(expr_t *e) 
+{
+  return e != NULL && e->type == EXTERNCPTR;
 }
 
 typedef struct expr flat_namespace_t;
@@ -491,7 +503,9 @@ eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
     *tail = expr_make_list(evaled_arg.expr);
     tail = &((*tail)->cdr);
   }
-  return eval_result_make_err("extern function call not implemented");
+  FILE* (*call)(char *, char *) = f->extern_c_ptr;
+  void* res = call(passed_args->car->text, passed_args->cdr->car->text);
+  return eval_result_make_expr(expr_make_externcptr(res));
 }
 
 char *fmt(expr_t *e);
@@ -730,6 +744,9 @@ char *fmt(expr_t *e) {
   }
   else if(expr_is_externcfn(e)) {
     end += sprintf(end, "<externcfn>");
+  }
+  else if(expr_is_externcptr(e)) {
+    end += sprintf(end, "<externcptr %x>", e->extern_c_ptr);
   }
   else {
     sprintf(buf, "[fmt not implemented]");
