@@ -1,0 +1,2 @@
+Perft test cases for classic chess: https://www.chessprogramming.org/Perft
+Perft test cases for Chess960: https://www.chessprogramming.org/Chess960_Perft_Results

@@ -30,3 +30,17 @@ https://wiki.osdev.org/PS/2_Keyboard
 
 http://www.cs.cmu.edu/~410-s07/p4/p4-boot.pdf
 Статья про написание бутлоадера
+
+#programming
+https://intermezzos.github.io/book/first-edition/paging.html
+Туториал по созданию 64-битной ОС
+
+#programming
+https://pdos.csail.mit.edu/6.828/2016/xv6.html
+xv6 -- учебная Unix-like ОС
+
+https://www.cs.bham.ac.uk/~exr/lectures/opsys/10_11/lectures/os-dev.pdf
+Небольшие заметки по написанию операционной системы
+
+http://www.brokenthorn.com/Resources/OSDevIndex.html
+Большая серия туториалов по написанию ОС, начиная от загрузчика
