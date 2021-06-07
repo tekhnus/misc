@@ -67,7 +67,6 @@ struct expr {
 };
 
 
-typedef struct eval_result eval_result_t;
 struct eval_result {
   int8_t type;
   expr_t *expr;
@@ -415,8 +414,6 @@ bool eval_result_is_err(eval_result_t result) {
   return result.type == ERR;
 }
 
-typedef struct eval_result eval_result_t;
-
 eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
   for (expr_t *cur = ns; !expr_is_nil(cur); cur = cur->cdr) {
     expr_t *kv = cur->car;
@@ -432,7 +429,6 @@ eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
 struct context {
   namespace_t *bindings;
 };
-typedef struct context context_t;
 
 context_t context_make(namespace_t *namespace) {
   context_t ctxt = {namespace};
@@ -720,7 +716,7 @@ char *fmt(expr_t *e) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (expr_is_int(e)) {
-    sprintf(buf, "%ld", e->value);
+    sprintf(buf, "%lld", e->value);
   }
   else if(expr_is_list(e)) {
     end += sprintf(end, "(");
@@ -746,7 +742,7 @@ char *fmt(expr_t *e) {
     end += sprintf(end, "<externcfn>");
   }
   else if(expr_is_externcptr(e)) {
-    end += sprintf(end, "<externcptr %x>", e->extern_c_ptr);
+    end += sprintf(end, "<externcptr %p>", e->extern_c_ptr);
   }
   else {
     sprintf(buf, "[fmt not implemented]");
