@@ -1,0 +1,43 @@
+.rhythm {
+    margin: 4% 8%;
+}
+
+.rhythm > h2 {
+    text-align: center;
+    color: #333132;
+}
+
+.section {
+    border-bottom-style: solid;
+    border-width: 1px;
+    border-color: #e0dfdd;
+}
+
+.section:last-of-type {
+    border-bottom-style: none;
+}
+
+.row {
+    margin: 1% 0%;
+}
+
+.voice > .left {
+    color: #665d58;
+    width: 12%;
+    display: inline-block;
+}
+
+.bar {
+    font-family: monospace;
+    font-size: xx-large;
+    color: #333132;
+
+    border-right-style: solid;
+    border-width: 1px;
+    border-color: #e0dfdd;
+}
+
+.voice > .right {
+    color: #665d58;
+    float: right;
+}
