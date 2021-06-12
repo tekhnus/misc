@@ -20,7 +20,7 @@ np.set_printoptions(precision=2, suppress=True)
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, auc
-from sklearn.cross_validation import cross_val_score, StratifiedKFold
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 from tqdm import tqdm
 
@@ -56,13 +56,13 @@ def main():
         if proba > 0.95 and user_a != user_b and (user_a not in seen or user_b not in seen):
             count += 1
 
-            print "\n===", count, proba, "===\n"
-            print link_to(user_a)
+            print("\n===", count, proba, "===\n")
+            print(link_to(user_a))
             """
             print format_sample(samples_a[user_a])
             print
             """
-            print link_to(user_b)
+            print(link_to(user_b))
             """
             print format_sample(samples_b[user_b])
             print
@@ -71,8 +71,8 @@ def main():
             seen.add(user_a)
             seen.add(user_b)
             seen = set()
-    print "flagged:", count, "/", total
-    print "seen:", len(seen)
+    print("flagged:", count, "/", total)
+    print("seen:", len(seen))
 
     tab = tabulate.tabulate([(f.decode("utf-8"), "{:.2f}".format(c)) for f, c in zip(MODEL.features.labels, coef)],
                             tablefmt="latex")

@@ -17,7 +17,7 @@ import numpy as np
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, auc
-from sklearn.cross_validation import cross_val_score, StratifiedKFold
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 from tqdm import tqdm
 

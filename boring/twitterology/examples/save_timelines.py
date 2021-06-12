@@ -37,18 +37,18 @@ def main():
 
     results = pool.imap_unordered(gather_user_timeline, user_ids)
     for index, (is_success, data) in enumerate(results, start=1):
-        print "[", index, "/", len(user_ids), "]"
+        print("[", index, "/", len(user_ids), "]")
 
         if is_success:
             if data:
-                print "dumping:", data[0]["user__id"]
+                print("dumping:", data[0]["user__id"])
 
             for tweet in data:
-                print "{}".format(datetime.now())
+                print("{}".format(datetime.now()))
                 storage.insert(tweet)
-            print "dumped"
+            print("dumped")
         else:
-            print "fail:", data
+            print("fail:", data)
 
 
 if __name__ == "__main__":

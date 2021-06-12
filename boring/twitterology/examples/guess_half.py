@@ -37,15 +37,15 @@ def extract_retweets_single(tweet):
 
 
 def extract_hashtags(tweets):
-    return chain.from_iterable(map(extract_hashtags_single, tweets))
+    return chain.from_iterable(list(map(extract_hashtags_single, tweets)))
 
 
 def extract_mentions(tweets):
-    return chain.from_iterable(map(extract_mentions_single, tweets))
+    return chain.from_iterable(list(map(extract_mentions_single, tweets)))
 
 
 def extract_retweets(tweets):
-    return chain.from_iterable(map(extract_retweets_single, tweets))
+    return chain.from_iterable(list(map(extract_retweets_single, tweets)))
 
 
 def extract_features(tweets, h, m, r):
@@ -61,8 +61,8 @@ def extract_features(tweets, h, m, r):
 
 def main(f, k, h, m, r):
     database, table = argv[1].split(":")
-    print "=== building ==="
-    print f, k, h, m, r
+    print("=== building ===")
+    print(f, k, h, m, r)
 
     storage = tw.sources.sqlite(database, table)
     tweets = storage.find(order_by="user__id_str")
@@ -88,14 +88,14 @@ def main(f, k, h, m, r):
         full_hashes[user_id] = full_hash
         sample_hashes[user_id] = sample_hash
 
-    print "=== validating ==="
+    print("=== validating ===")
 
     total = 0
     sum_nears = 0.0
     successes = 0
     fails = 0
 
-    for user_id, sample_hash in sample_hashes.iteritems():
+    for user_id, sample_hash in sample_hashes.items():
         near_ids = index.get_near_dups(sample_hash)
 
         total += 1
@@ -111,7 +111,7 @@ def main(f, k, h, m, r):
         if nearest == user_id:
             successes += 1
 
-    print successes, "OK,", fails, "FAILS,", total, "TOTAL,", sum_nears / total, "AVG. GUESSES"
+    print(successes, "OK,", fails, "FAILS,", total, "TOTAL,", sum_nears / total, "AVG. GUESSES")
 
 
 if __name__ == "__main__":

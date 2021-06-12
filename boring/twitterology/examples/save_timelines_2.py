@@ -5,7 +5,7 @@ from multiprocessing import Pool
 from time import sleep
 from datetime import datetime
 from random import Random
-from itertools import imap
+
 
 import twitterology as tw
 from tqdm import tqdm
@@ -21,7 +21,7 @@ def gather_user_timeline(user_id, count=100):
         return True, [tw.dump_for_storage(tweet) for tweet in timeline.data]
     except tw.ClientException as ex:
         if 'Invalid API resource.' not in str(ex) and 'unknown error' not in str(ex):
-            print "sleeping:", str(ex)
+            print("sleeping:", str(ex))
             stdout.flush()
             sleep(60 * 7)
     return False, str(ex)
@@ -55,20 +55,20 @@ def main():
     )
     user_ids = user_ids[stopped_at + 1:]
 
-    results = imap(gather_user_timeline, user_ids)
+    results = map(gather_user_timeline, user_ids)
     for index, (is_success, data) in enumerate(results, start=1):
-        print "[", index, "/", len(user_ids), "]"
+        print("[", index, "/", len(user_ids), "]")
 
         if is_success:
             if data:
-                print "dumping:", data[0]["user__id"]
+                print("dumping:", data[0]["user__id"])
 
             for tweet in data:
-                print "{}".format(datetime.now())
+                print("{}".format(datetime.now()))
                 storage.insert(tweet)
-            print "dumped"
+            print("dumped")
         else:
-            print "fail:", data
+            print("fail:", data)
 
 
 if __name__ == "__main__":

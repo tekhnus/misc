@@ -1,5 +1,5 @@
 def _dump_for_storage(dictionary, sep, prefix):
-    for key, value in dictionary.iteritems():
+    for key, value in dictionary.items():
         full_key = prefix + key
         if isinstance(value, dict):
             for item in _dump_for_storage(value, sep, full_key + sep):

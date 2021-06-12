@@ -144,7 +144,7 @@ class AverageInterval(object):
             for tweet in tweets
         )
         if len(timestamps) >= 2:
-            deltas = zip(timestamps[:-1], timestamps[1:])
+            deltas = list(zip(timestamps[:-1], timestamps[1:]))
             average = sum(
                 min((y - x).total_seconds() / 60.0 / 60.0, 24.0 * 14.0)
                 for x, y in deltas

@@ -38,11 +38,11 @@ def user_network_summary(g):
     display(stats)
 
     bins = 20
-    counts, _ = vertex_hist(g, "in", range(bins))
+    counts, _ = vertex_hist(g, "in", list(range(bins)))
 
-    plt.bar(range(1, bins), counts, align="center")
+    plt.bar(list(range(1, bins)), counts, align="center")
 
-    plt.xticks(range(bins))
+    plt.xticks(list(range(bins)))
     plt.xlim([0.5, bins - 1])
     plt.title("Degree distribution")
 

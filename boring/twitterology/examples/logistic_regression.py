@@ -2,7 +2,7 @@
 # coding: utf-8
 # Usage: examples/logistic_regression examples.db:track_hello
 from sys import argv
-from itertools import groupby, islice, izip
+from itertools import groupby, islice
 from operator import itemgetter
 from random import Random
 
@@ -18,7 +18,7 @@ import numpy as np
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, auc
-from sklearn.cross_validation import cross_val_score, StratifiedKFold
+from sklearn.model_selection import cross_val_score, StratifiedKFold
 
 from tqdm import tqdm
 
@@ -27,7 +27,7 @@ def make_samples(samples_a, samples_b, samples_f, ratio):
     samples = []
     pairs = []
 
-    for (user_a, timeline_a), (user_b, timeline_b) in izip(samples_a, samples_b):
+    for (user_a, timeline_a), (user_b, timeline_b) in zip(samples_a, samples_b):
         assert user_a == user_b
         samples.append(MODEL.difference(timeline_a, timeline_b))
         pairs.append([user_a, user_b])
@@ -111,7 +111,7 @@ def plot_features(samples, targets, table):
     for ax in axs:
         ax.axis("off")
 
-    plt.figlegend(lines.values(), lines.keys(), 'lower right', title=u'Класс')
+    plt.figlegend(list(lines.values()), list(lines.keys()), 'lower right', title='Класс')
     plt.savefig("plots/{}/features".format(table))
 
 
