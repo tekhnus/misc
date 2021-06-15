@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <dlfcn.h>
+#include <ffi.h>
 
 #define LIST 1
 #define SYMBOL 2
@@ -488,6 +489,63 @@ eval_result_t apply_form(expr_t *f, expr_t *args, context_t *ctxt) {
   return expansion;
 }
 
+char *fmt(expr_t *e);
+
+bool ffi_type_init(ffi_type **type, expr_t *definition) {
+  //printf("what\n");
+  if (!expr_is_symbol(definition)) {
+    return false;
+  }
+  //printf("cmp\n");
+  if (!strcmp(definition->text, "string")) {
+    //printf("yay\n");
+    *type = &ffi_type_pointer;
+    return true;
+  }
+  if (!strcmp(definition->text, "externcptr")) {
+    *type = &ffi_type_pointer;
+    return true;
+  }
+  return false;
+}
+
+char *externcfn_prep_cif(expr_t *f, ffi_cif *cif) {
+  expr_t *sig = f->extern_c_signature;
+  if (!expr_is_list(sig) || expr_is_nil(sig) || expr_is_nil(sig->cdr) || !expr_is_nil(sig->cdr->cdr)) {
+    return "the signature should be a two-item list";
+  }
+  ffi_type *arg_types[32];
+  int arg_count = 0;
+  expr_t *arg_def;
+  for (arg_def = f->extern_c_signature->car; !expr_is_nil(arg_def); arg_def=arg_def->cdr) {
+    //printf("hi\n");
+    //printf("hello %s\n", fmt(arg_def->car));
+    if(!ffi_type_init(arg_types + arg_count, arg_def->car)) {
+      //printf("bad\n");
+      return "something wrong with the argument type signature";
+    }
+    ++arg_count;
+    //printf("good\n");
+  }
+  ffi_type *ret_type;
+  if(!ffi_type_init(&ret_type, sig->cdr->car)) {
+    return "something wrong with the return type signature";
+  }
+  ffi_status status;
+  if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, ret_type, arg_types)) != FFI_OK) {
+    return "something went wrong during ffi_prep_cif";
+  } 
+	
+  //printf("end\n");
+  return NULL;
+}
+
+char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
+  cargs[0] = &args->car->text;
+  cargs[1] = &args->cdr->car->text;
+  return NULL;
+}
+
 eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
   expr_t *passed_args = NULL;
   expr_t **tail = &passed_args;
@@ -499,12 +557,28 @@ eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
     *tail = expr_make_list(evaled_arg.expr);
     tail = &((*tail)->cdr);
   }
+
+  ffi_cif cif;
+  char *err = NULL;
+  err = externcfn_prep_cif(f, &cif);
+  if (err != NULL) {
+    return eval_result_make_err(err);
+   }
+  void *cargs[32];
+  err = externcfn_load_args(f, passed_args, cargs);
+  if (err != NULL) {
+    return eval_result_make_err(err);
+  }
+  void *res;
+  // FFI
+  ffi_call(&cif, FFI_FN(f->extern_c_ptr), &res, cargs);
+  // NO FFI
   FILE* (*call)(char *, char *) = f->extern_c_ptr;
-  void* res = call(passed_args->car->text, passed_args->cdr->car->text);
+  res = call(passed_args->car->text, passed_args->cdr->car->text);
+  //
   return eval_result_make_expr(expr_make_externcptr(res));
 }
 
-char *fmt(expr_t *e);
 eval_result_t apply(expr_t *f, expr_t *args, context_t *ctxt) {
   if (!expr_is_list(args)) {
     return eval_result_make_err("args should be list");
