@@ -503,6 +503,10 @@ bool ffi_type_init(ffi_type **type, expr_t *definition) {
     *type = &ffi_type_pointer;
     return true;
   }
+  if (!strcmp(definition->text, "sizet")) {
+    *type = &ffi_type_uint64;
+    return true;
+  }
   return false;
 }
 
@@ -532,17 +536,42 @@ char *externcfn_prep_cif(expr_t *f, ffi_cif *cif) {
 }
 
 char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
-  cargs[0] = &args->car->text;
-  cargs[1] = &args->cdr->car->text;
+  int arg_cnt = 0;
+  expr_t *arg = args;
+  for (expr_t *argt = f->extern_c_signature->car; !expr_is_nil(argt); argt = argt->cdr) {
+    if (expr_is_nil(arg)) {
+      return "too few arguments";
+    }
+    if (!strcmp(argt->car->text, "string")) {
+      cargs[arg_cnt] = &arg->car->text;
+    }
+    else if(!strcmp(argt->car->text, "sizet")) {
+      cargs[arg_cnt] = &arg->car->value;
+    }
+    else if(!strcmp(argt->car->text, "externcptr")) {
+      cargs[arg_cnt] = &arg->car->extern_c_ptr;
+    }
+    else {
+      return "cannot load an argument";
+    }
+    arg = arg->cdr;
+    ++arg_cnt;
+  }
+  if (!expr_is_nil(arg)) {
+    return "too much arguments";
+  }
   return NULL;
 }
 
 eval_result_t externcfn_call(expr_t *f, ffi_cif *cif, void **cargs) {
-  void ** res = malloc(16); // TODO: allocate a proper amount of memory
-  ffi_call(cif, FFI_FN(f->extern_c_ptr), &res, cargs);
+  void *res = malloc(16); // TODO: allocate a proper amount of memory
+  ffi_call(cif, FFI_FN(f->extern_c_ptr), res, cargs);
   char *rettype = f->extern_c_signature->cdr->car->text;
   if (!strcmp(rettype, "externcptr")) {
-    return eval_result_make_expr(expr_make_externcptr(res));
+    return eval_result_make_expr(expr_make_externcptr(*(void**)res));
+  }
+  if (!strcmp(rettype, "sizet")) {
+    return eval_result_make_expr(expr_make_int(*(int*)res));
   }
   return eval_result_make_err("unknown return type for extern func");
 }

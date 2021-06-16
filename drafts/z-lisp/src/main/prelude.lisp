@@ -79,8 +79,23 @@ c
 (defn adder (n) (fn (m) (add n m)))
 ((adder 3) 4)
 
-(def fopen (externcfn "libSystem.dylib" "fopen" ((string string) externcptr)))
-(fopen "/etc/hosts" "r")
+(def fopen
+     (externcfn "libSystem.dylib" "fopen"
+		((string string) externcptr)))
+(def malloc
+     (externcfn "libSystem.dylib" "malloc"
+		((sizet) externcptr)))
+(def fread
+     (externcfn "libSystem.dylib" "fread"
+		((externcptr sizet sizet externcptr) sizet)))
+(def printfptr
+     (externcfn "libSystem.dylib" "printf"
+		((string externcptr) sizet)))
+
+(def hostsfile (fopen "/etc/hosts" "r"))
+(def buffer (malloc 2048))
+(fread buffer 1 1024 hostsfile)
+(printfptr "%.2048s" buffer)
 
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))
 '(defn reverse  (()) (list)  ((cons head rest)) (append head (reverse rest)))
