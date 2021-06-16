@@ -492,13 +492,10 @@ eval_result_t apply_form(expr_t *f, expr_t *args, context_t *ctxt) {
 char *fmt(expr_t *e);
 
 bool ffi_type_init(ffi_type **type, expr_t *definition) {
-  //printf("what\n");
   if (!expr_is_symbol(definition)) {
     return false;
   }
-  //printf("cmp\n");
   if (!strcmp(definition->text, "string")) {
-    //printf("yay\n");
     *type = &ffi_type_pointer;
     return true;
   }
@@ -514,18 +511,14 @@ char *externcfn_prep_cif(expr_t *f, ffi_cif *cif) {
   if (!expr_is_list(sig) || expr_is_nil(sig) || expr_is_nil(sig->cdr) || !expr_is_nil(sig->cdr->cdr)) {
     return "the signature should be a two-item list";
   }
-  ffi_type *arg_types[32];
+  ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
   int arg_count = 0;
   expr_t *arg_def;
   for (arg_def = f->extern_c_signature->car; !expr_is_nil(arg_def); arg_def=arg_def->cdr) {
-    //printf("hi\n");
-    //printf("hello %s\n", fmt(arg_def->car));
     if(!ffi_type_init(arg_types + arg_count, arg_def->car)) {
-      //printf("bad\n");
       return "something wrong with the argument type signature";
     }
     ++arg_count;
-    //printf("good\n");
   }
   ffi_type *ret_type;
   if(!ffi_type_init(&ret_type, sig->cdr->car)) {
@@ -535,8 +528,6 @@ char *externcfn_prep_cif(expr_t *f, ffi_cif *cif) {
   if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, ret_type, arg_types)) != FFI_OK) {
     return "something went wrong during ffi_prep_cif";
   } 
-	
-  //printf("end\n");
   return NULL;
 }
 
@@ -570,12 +561,7 @@ eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
     return eval_result_make_err(err);
   }
   void *res;
-  // FFI
   ffi_call(&cif, FFI_FN(f->extern_c_ptr), &res, cargs);
-  // NO FFI
-  FILE* (*call)(char *, char *) = f->extern_c_ptr;
-  res = call(passed_args->car->text, passed_args->cdr->car->text);
-  //
   return eval_result_make_expr(expr_make_externcptr(res));
 }
 
