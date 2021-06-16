@@ -537,6 +537,16 @@ char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
   return NULL;
 }
 
+eval_result_t externcfn_call(expr_t *f, ffi_cif *cif, void **cargs) {
+  void ** res = malloc(16); // TODO: allocate a proper amount of memory
+  ffi_call(cif, FFI_FN(f->extern_c_ptr), &res, cargs);
+  char *rettype = f->extern_c_signature->cdr->car->text;
+  if (!strcmp(rettype, "externcptr")) {
+    return eval_result_make_expr(expr_make_externcptr(res));
+  }
+  return eval_result_make_err("unknown return type for extern func");
+}
+
 eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
   expr_t *passed_args = NULL;
   expr_t **tail = &passed_args;
@@ -560,9 +570,7 @@ eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
   if (err != NULL) {
     return eval_result_make_err(err);
   }
-  void *res;
-  ffi_call(&cif, FFI_FN(f->extern_c_ptr), &res, cargs);
-  return eval_result_make_expr(expr_make_externcptr(res));
+  return externcfn_call(f, &cif, cargs);
 }
 
 eval_result_t apply(expr_t *f, expr_t *args, context_t *ctxt) {
