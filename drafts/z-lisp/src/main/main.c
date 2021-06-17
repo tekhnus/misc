@@ -33,17 +33,25 @@ enum expr_type {
 
 struct expr {
   enum expr_type type;
-  expr_t *car;
-  expr_t *cdr;
-  char *text;
-  int64_t value;
-  eval_result_t (*call)(expr_t *, namespace_t *);
-  expr_t *body;
-  bool pre_eval;
-  bool post_eval;
-  namespace_t *lexical_bindings;
-  void *extern_c_data;
-  expr_t *extern_c_signature;
+  union {
+    struct {
+      expr_t *car;
+      expr_t *cdr;
+    };
+    char *text;
+    int64_t value;
+    eval_result_t (*call)(expr_t *, namespace_t *);
+    struct {
+      expr_t *body;
+      bool pre_eval;
+      bool post_eval;
+      namespace_t *lexical_bindings;
+    };
+    struct {
+      void *extern_c_data;
+      expr_t *extern_c_signature;
+    };
+  };
 };
 
 

@@ -4,7 +4,7 @@ OBJ_FILES := $(patsubst src/main/%.c,target/obj/%.o,$(SRC_FILES))
 TEST_SRC_FILES := $(wildcard src/test/*.c)
 TEST_OBJ_FILES := $(patsubst src/test/%.c,target/test-obj/%.o,$(TEST_SRC_FILES))
 
-CFLAGS=-Isrc/main -std=c99 -Wall -I/usr/local/opt/libffi/include -g
+CFLAGS=-Isrc/main -std=c11 -Wpedantic -Wall -I/usr/local/opt/libffi/include -g
 LDLIBS=-ldl -lffi
 LDFLAGS=-L/usr/local/opt/libffi/lib
 
