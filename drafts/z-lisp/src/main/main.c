@@ -13,16 +13,6 @@ typedef struct expr namespace_t;
 typedef struct read_result read_result_t;
 typedef struct expr flat_namespace_t;
 
-char *readline(char *prompt) {
-  char *buf = malloc(1024 * sizeof(char));
-  printf("%s", prompt);
-  char *res = fgets(buf, 1024, stdin);
-  if (res == NULL) {
-    buf[0] = '\0';
-  }
-  return buf;
-}
-
 enum expr_type {
   LIST,
   SYMBOL,
