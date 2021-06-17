@@ -187,15 +187,15 @@ expr_t *expr_make_form(expr_t *body, namespace_t *lexical_bindings, bool pre_eva
   return e;
 }
 
-expr_t *expr_make_externcdata(void *call_ptr, expr_t *signature) {
+expr_t *expr_make_externcdata(void *data, expr_t *signature) {
   expr_t *e = malloc(sizeof(expr_t));
   e->type = EXTERNCDATA;
   e->extern_c_signature = signature;
-  e->extern_c_data = call_ptr;
+  e->extern_c_data = data;
   return e;
 }
 
-expr_t *expr_make_externcdata_pointer(void *ptr) {
+expr_t *expr_make_externcdata_pointer(void **ptr) {
   return expr_make_externcdata(ptr, expr_make_symbol("pointer"));
 }
 
@@ -544,8 +544,8 @@ char *externcdata_load_args(expr_t *f, expr_t *args, void **cargs) {
       cargs[arg_cnt] = &arg->car->value;
     }
     else if(!strcmp(argt->car->text, "pointer")) {
-      if (!expr_is_externcdata(arg->car)) {
-	// TODO: also check that signature is "pointer"
+      expr_t *sig;
+      if (!expr_is_externcdata(arg->car) || !expr_is_symbol(sig = arg->car->extern_c_signature) || strcmp(sig->text, "pointer")) {
 	return "pointer expected, got something else";
       }
       cargs[arg_cnt] = arg->car->extern_c_data;
@@ -563,14 +563,18 @@ char *externcdata_load_args(expr_t *f, expr_t *args, void **cargs) {
 }
 
 eval_result_t externcdata_call(expr_t *f, ffi_cif *cif, void **cargs) {
-  void *res = malloc(16); // TODO: allocate a proper amount of memory
-  ffi_call(cif, FFI_FN(f->extern_c_data), res, cargs);
+  void (*fn_ptr)(void) = (void (*)(void))(f->extern_c_data);
   char *rettype = f->extern_c_signature->cdr->car->text;
+
   if (!strcmp(rettype, "pointer")) {
+    void **res = malloc(sizeof(void *));
+    ffi_call(cif, fn_ptr, res, cargs);
     return eval_result_make_expr(expr_make_externcdata_pointer(res));
   }
   if (!strcmp(rettype, "sizet")) {
-    return eval_result_make_expr(expr_make_int(*(int*)res));
+    size_t *res = malloc(sizeof(size_t));
+    ffi_call(cif, fn_ptr, res, cargs);
+    return eval_result_make_expr(expr_make_int(*res));
   }
   return eval_result_make_err("unknown return type for extern func");
 }
