@@ -437,12 +437,12 @@ eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
   return eval_result_make_err(msg);
 }
 
-context_t context_make(namespace_t *namespace) {
-  return *expr_make_list(namespace);
+context_t *context_make(namespace_t *namespace) {
+  return namespace;
 }
 
 namespace_t *context_get_bindings(context_t *ctxt) {
-  return ctxt->car;
+  return ctxt;
 }
   
 eval_result_t context_get(context_t *ctxt, expr_t *symbol) {
@@ -484,10 +484,10 @@ eval_result_t apply_form(expr_t *f, expr_t *args, context_t *ctxt) {
        tail = &((*tail)->cdr);
      }
   }
-  context_t form_ctxt = context_make
+  context_t *form_ctxt = context_make
     (namespace_make_child(f->lexical_bindings));
-  context_set(&form_ctxt, args_symbol(), passed_args);
-  eval_result_t expansion = eval(f->body, &form_ctxt);
+  context_set(form_ctxt, args_symbol(), passed_args);
+  eval_result_t expansion = eval(f->body, form_ctxt);
   if (eval_result_is_err(expansion)) {
     return expansion;
   }
@@ -861,27 +861,27 @@ void context_set_native_form(context_t *ctxt, char *name, eval_result_t (*form)(
 }
 
 int main(void) {
-  context_t context = context_make(namespace_make_new());
+  context_t *context = context_make(namespace_make_new());
 
-  context_set_native_form(&context, "add", add);
-  context_set_native_form(&context, "eval", eval_car);
-  context_set_native_form(&context, "cons", cons);
-  context_set_native_form(&context, "car", car);
-  context_set_native_form(&context, "cdr", cdr);
-  context_set_native_form(&context, "builtinmacro", macro);
-  context_set_native_form(&context, "builtinfn", fn);
-  context_set_native_form(&context, "builtinform", form);
-  context_set_native_form(&context, "def", def);
-  context_set_native_form(&context, "if", if_);
-  context_set_native_form(&context, "backquote", backquote);
-  context_set_native_form(&context, "externcfn", externcfn);
+  context_set_native_form(context, "add", add);
+  context_set_native_form(context, "eval", eval_car);
+  context_set_native_form(context, "cons", cons);
+  context_set_native_form(context, "car", car);
+  context_set_native_form(context, "cdr", cdr);
+  context_set_native_form(context, "builtinmacro", macro);
+  context_set_native_form(context, "builtinfn", fn);
+  context_set_native_form(context, "builtinform", form);
+  context_set_native_form(context, "def", def);
+  context_set_native_form(context, "if", if_);
+  context_set_native_form(context, "backquote", backquote);
+  context_set_native_form(context, "externcfn", externcfn);
 		    
   for (; !feof(stdin);) {
     read_result_t rr;
     stream_t strm;
     stream_read(&strm);
     for (; read_result_is_expr(rr = zread(&strm));) {
-      eval_result_t val = eval(rr.expr, &context);
+      eval_result_t val = eval(rr.expr, context);
       if (eval_result_is_err(val)) {
 	printf("%s\n", val.message);
       }
