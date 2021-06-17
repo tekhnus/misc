@@ -30,24 +30,6 @@ char *readline(char *prompt) {
 }
 
 
-typedef struct stream stream_t;
-struct stream {
-  char *buf;
-  size_t end;
-  size_t position;
-};
-
-bool stream_eof(stream_t *s) {
-  return s->position == s->end;
-}
-
-char stream_getc(stream_t *s) {
-  return s->buf[s->position++];
-}
-
-void stream_ungetc(stream_t *s) {
-  --s->position;
-}
 
 struct expr {
   int8_t type;
@@ -292,22 +274,10 @@ bool consume_control_sequence(char c, expr_t **form){
   return false;
 }
 
-void stream_read(stream_t *s) {
-  s->buf = readline("> ");
-  s->end = strlen(s->buf);
-  s->position = 0;
-}
-
-void stream_more(stream_t *s) {
-  s->buf = readline(". ");
-  s->end = strlen(s->buf);
-  s->position = 0;
-}
-
-read_result_t zread(stream_t *strm) {
+read_result_t zread(FILE *strm) {
   char c;
-  for (; !stream_eof(strm) && is_whitespace(c = stream_getc(strm)););
-  if (stream_eof(strm)) {
+  for (; !feof(strm) && is_whitespace(c = getc(strm)););
+  if (feof(strm)) {
     return read_result_make_eof();
   }
   if (c == ')') {
@@ -326,10 +296,7 @@ read_result_t zread(stream_t *strm) {
 	return read_result_make_expr( list);
       }
       if (read_result_is_eof(elem)) {
-	stream_more(strm);
-	if (stream_eof(strm)) {
-	  return read_result_make_err( "expected ')', got EOS");
-	}
+	return read_result_make_err( "expected ')', got EOS");
       } else {
 	break;
       }
@@ -341,9 +308,9 @@ read_result_t zread(stream_t *strm) {
     nm[0] = c;
     int i;
     char x;
-    for (i = 1; !stream_eof(strm) && is_symbol(x = stream_getc(strm)); nm[i++] = x);
-    if (!stream_eof(strm)) {
-      stream_ungetc(strm);
+    for (i = 1; !feof(strm) && is_symbol(x = getc(strm)); nm[i++] = x);
+    if (!feof(strm)) {
+      ungetc(x, strm);
     }
     nm[i] = '\0';
     expr_t *sym = expr_make_symbol(nm);
@@ -353,7 +320,7 @@ read_result_t zread(stream_t *strm) {
     char literal[256];
     char x;
     size_t i;
-    for (i = 0; (x = stream_getc(strm)) != '"'; ++i) {
+    for (i = 0; (x = getc(strm)) != '"'; ++i) {
       literal[i] = x;
     }
     literal[i] = '\0';
@@ -364,18 +331,18 @@ read_result_t zread(stream_t *strm) {
     char h;
     if (c == '-') {
       sign = -1;
-      c = stream_getc(strm);
+      c = getc(strm);
       if (!('0' <= c && c <= '9')) {
 	return read_result_make_err( "expected a number after unary minus");
       }
     }
     int val = c - '0';
-    for (; !stream_eof(strm) && '0' <= (h = stream_getc(strm)) && h <= '9';) {
+    for (; !feof(strm) && '0' <= (h = getc(strm)) && h <= '9';) {
       val *= 10;
       val += h - '0';
     }
-    if (!stream_eof(strm)) {
-      stream_ungetc(strm);
+    if (!feof(strm)) {
+      ungetc(h, strm);
     }
     return read_result_make_expr( expr_make_int(sign * val));
   }
@@ -878,27 +845,23 @@ void namespace_populate_std(namespace_t *ns) {
 int main(void) {
   namespace_t *ns = namespace_make_new();
   namespace_populate_std(ns);
-		    
-  for (; !feof(stdin);) {
-    read_result_t rr;
-    stream_t strm;
-    stream_read(&strm);
-    for (; read_result_is_expr(rr = zread(&strm));) {
-      eval_result_t val = eval(rr.expr, ns);
-      if (eval_result_is_err(val)) {
-	printf("%s\n", val.message);
-      }
-      else {
-	char *s = fmt(val.expr);
-	printf("%s\n", s);
-      }
+
+  read_result_t rr;
+
+  for (; read_result_is_expr(rr = zread(stdin));) {
+    eval_result_t val = eval(rr.expr, ns);
+    if (eval_result_is_err(val)) {
+      printf("%s\n", val.message);
+      exit(EXIT_FAILURE);
     }
-    if(read_result_is_closing(rr)) {
-      printf("unmatched closing bracket\n");
-    }
-    else if (read_result_is_err(rr)) {
-      printf("%s\n", rr.message);
-    }
+  }
+  if(read_result_is_closing(rr)) {
+    printf("unmatched closing bracket\n");
+    exit(EXIT_FAILURE);
+  }
+  else if (read_result_is_err(rr)) {
+    printf("%s\n", rr.message);
+    exit(EXIT_FAILURE);
   }
   return 0;
 }
