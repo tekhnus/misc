@@ -80,25 +80,25 @@ c
 ((adder 3) 4)
 
 (def fopen
-     (externcfn "libSystem.dylib" "fopen"
-		((string string) externcptr)))
+     (externcdata "libSystem.dylib" "fopen"
+		((string string) pointer)))
 (def malloc
-     (externcfn "libSystem.dylib" "malloc"
-		((sizet) externcptr)))
+     (externcdata "libSystem.dylib" "malloc"
+		((sizet) pointer)))
 (def fread
-     (externcfn "libSystem.dylib" "fread"
-		((externcptr sizet sizet externcptr) sizet)))
+     (externcdata "libSystem.dylib" "fread"
+		((pointer sizet sizet pointer) sizet)))
 
 (def printfptr
-     (externcfn "libSystem.dylib" "printf"
-		((string externcptr) sizet)))
+     (externcdata "libSystem.dylib" "printf"
+		((string pointer) sizet)))
 
 (def fprintfstring
-     (externcfn "libSystem.dylib" "fprintf"
-		((externcptr string string) sizet)))
+     (externcdata "libSystem.dylib" "fprintf"
+		((pointer string string) sizet)))
 
 (def stdout
-     (externcfn "libSystem.dylib" "__stdoutp" externcptr))
+     (externcdata "libSystem.dylib" "__stdoutp" pointer))
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))

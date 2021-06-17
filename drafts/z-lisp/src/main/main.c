@@ -13,8 +13,7 @@
 #define NATIVE_FORM 4
 #define FORM 5
 #define BYTESTRING 6
-#define EXTERNCFN 7
-#define EXTERNCPTR 8
+#define EXTERNCDATA 7
 
 typedef struct expr expr_t;
 typedef struct eval_result eval_result_t;
@@ -61,7 +60,7 @@ struct expr {
   bool pre_eval;
   bool post_eval;
   namespace_t *lexical_bindings;
-  void *extern_c_ptr;
+  void *extern_c_data;
   expr_t *extern_c_signature;
 };
 
@@ -188,19 +187,16 @@ expr_t *expr_make_form(expr_t *body, namespace_t *lexical_bindings, bool pre_eva
   return e;
 }
 
-expr_t *expr_make_externcfn(void *call_ptr, expr_t *signature) {
+expr_t *expr_make_externcdata(void *call_ptr, expr_t *signature) {
   expr_t *e = malloc(sizeof(expr_t));
-  e->type = EXTERNCFN;
+  e->type = EXTERNCDATA;
   e->extern_c_signature = signature;
-  e->extern_c_ptr = call_ptr;
+  e->extern_c_data = call_ptr;
   return e;
 }
 
-expr_t *expr_make_externcptr(void *ptr) {
-  expr_t *e = malloc(sizeof(expr_t));
-  e->type = EXTERNCPTR;
-  e->extern_c_ptr = ptr;
-  return e;
+expr_t *expr_make_externcdata_pointer(void *ptr) {
+  return expr_make_externcdata(ptr, expr_make_symbol("pointer"));
 }
 
 bool expr_is_nil(expr_t *e) {
@@ -235,14 +231,9 @@ bool expr_is_native_form(expr_t *e)
 }
 
 
-bool expr_is_externcfn(expr_t *e) 
+bool expr_is_externcdata(expr_t *e) 
 {
-  return e != NULL && e->type == EXTERNCFN;
-}
-
-bool expr_is_externcptr(expr_t *e) 
-{
-  return e != NULL && e->type == EXTERNCPTR;
+  return e != NULL && e->type == EXTERNCDATA;
 }
 
 typedef struct expr flat_namespace_t;
@@ -497,7 +488,7 @@ bool ffi_type_init(ffi_type **type, expr_t *definition) {
     *type = &ffi_type_pointer;
     return true;
   }
-  if (!strcmp(definition->text, "externcptr")) {
+  if (!strcmp(definition->text, "pointer")) {
     *type = &ffi_type_pointer;
     return true;
   }
@@ -508,7 +499,7 @@ bool ffi_type_init(ffi_type **type, expr_t *definition) {
   return false;
 }
 
-char *externcfn_prep_cif(expr_t *f, ffi_cif *cif) {
+char *externcdata_prep_cif(expr_t *f, ffi_cif *cif) {
   expr_t *sig = f->extern_c_signature;
   if (!expr_is_list(sig) || expr_is_nil(sig) || expr_is_nil(sig->cdr) || !expr_is_nil(sig->cdr->cdr)) {
     return "the signature should be a two-item list";
@@ -533,7 +524,7 @@ char *externcfn_prep_cif(expr_t *f, ffi_cif *cif) {
   return NULL;
 }
 
-char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
+char *externcdata_load_args(expr_t *f, expr_t *args, void **cargs) {
   int arg_cnt = 0;
   expr_t *arg = args;
   for (expr_t *argt = f->extern_c_signature->car; !expr_is_nil(argt); argt = argt->cdr) {
@@ -552,16 +543,12 @@ char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
       }
       cargs[arg_cnt] = &arg->car->value;
     }
-    else if(!strcmp(argt->car->text, "externcptr")) {
-      if (expr_is_externcptr(arg->car)) {
-	cargs[arg_cnt] = arg->car->extern_c_ptr;
+    else if(!strcmp(argt->car->text, "pointer")) {
+      if (!expr_is_externcdata(arg->car)) {
+	// TODO: also check that signature is "pointer"
+	return "pointer expected, got something else";
       }
-      else if(expr_is_externcfn(arg->car)) {
-	cargs[arg_cnt] = arg->car->extern_c_ptr;
-      }
-      else {
-	return "externcptr expected, got something else";
-      }
+      cargs[arg_cnt] = arg->car->extern_c_data;
     }
     else {
       return "cannot load an argument";
@@ -575,12 +562,12 @@ char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
   return NULL;
 }
 
-eval_result_t externcfn_call(expr_t *f, ffi_cif *cif, void **cargs) {
+eval_result_t externcdata_call(expr_t *f, ffi_cif *cif, void **cargs) {
   void *res = malloc(16); // TODO: allocate a proper amount of memory
-  ffi_call(cif, FFI_FN(f->extern_c_ptr), res, cargs);
+  ffi_call(cif, FFI_FN(f->extern_c_data), res, cargs);
   char *rettype = f->extern_c_signature->cdr->car->text;
-  if (!strcmp(rettype, "externcptr")) {
-    return eval_result_make_expr(expr_make_externcptr(res));
+  if (!strcmp(rettype, "pointer")) {
+    return eval_result_make_expr(expr_make_externcdata_pointer(res));
   }
   if (!strcmp(rettype, "sizet")) {
     return eval_result_make_expr(expr_make_int(*(int*)res));
@@ -588,7 +575,7 @@ eval_result_t externcfn_call(expr_t *f, ffi_cif *cif, void **cargs) {
   return eval_result_make_err("unknown return type for extern func");
 }
 
-eval_result_t apply_externcfn(expr_t *f, expr_t *args, namespace_t *ctxt) {
+eval_result_t apply_externcdata(expr_t *f, expr_t *args, namespace_t *ctxt) {
   expr_t *passed_args = NULL;
   expr_t **tail = &passed_args;
   for (expr_t *arg = args; !expr_is_nil(arg); arg = arg->cdr) {
@@ -602,16 +589,16 @@ eval_result_t apply_externcfn(expr_t *f, expr_t *args, namespace_t *ctxt) {
 
   ffi_cif cif;
   char *err = NULL;
-  err = externcfn_prep_cif(f, &cif);
+  err = externcdata_prep_cif(f, &cif);
   if (err != NULL) {
     return eval_result_make_err(err);
    }
   void *cargs[32];
-  err = externcfn_load_args(f, passed_args, cargs);
+  err = externcdata_load_args(f, passed_args, cargs);
   if (err != NULL) {
     return eval_result_make_err(err);
   }
-  return externcfn_call(f, &cif, cargs);
+  return externcdata_call(f, &cif, cargs);
 }
 
 eval_result_t apply(expr_t *f, expr_t *args, namespace_t *ctxt) {
@@ -624,8 +611,8 @@ eval_result_t apply(expr_t *f, expr_t *args, namespace_t *ctxt) {
   if (expr_is_form(f)) {
     return apply_form(f, args, ctxt);
   }
-  if (expr_is_externcfn(f)) {
-    return apply_externcfn(f, args, ctxt);
+  if (expr_is_externcdata(f)) {
+    return apply_externcdata(f, args, ctxt);
   }
   return eval_result_make_err("car should be callable");
 }
@@ -780,12 +767,12 @@ eval_result_t if_(expr_t *args, namespace_t *ctxt) {
   return eval(args->cdr->cdr->car, ctxt);
 }
 
-eval_result_t externcfn(expr_t *args, namespace_t *ctxt) {
+eval_result_t externcdata(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) || expr_is_nil(args->cdr->cdr) || !expr_is_nil(args->cdr->cdr->cdr)) {
-    return eval_result_make_err("externcfn expects exactly three arguments");
+    return eval_result_make_err("externcdata expects exactly three arguments");
   }
   if (!expr_is_bytestring(args->car) || !expr_is_bytestring(args->cdr->car)) {
-    return eval_result_make_err("wrong externcfn usage");
+    return eval_result_make_err("wrong externcdata usage");
   }
   void *handle = dlopen(args->car->text, RTLD_LAZY);
   char *err = dlerror();
@@ -797,7 +784,7 @@ eval_result_t externcfn(expr_t *args, namespace_t *ctxt) {
   if (err != NULL) {
     return eval_result_make_err(err);
   }
-  return eval_result_make_expr(expr_make_externcfn(call_ptr, args->cdr->cdr->car));
+  return eval_result_make_expr(expr_make_externcdata(call_ptr, args->cdr->cdr->car));
 }
 
 eval_result_t eval(expr_t *e, namespace_t *ctxt) {
@@ -847,11 +834,8 @@ char *fmt(expr_t *e) {
   else if(expr_is_native_form(e)) {
     end += sprintf(end, "<native form>");
   }
-  else if(expr_is_externcfn(e)) {
-    end += sprintf(end, "<externcfn>");
-  }
-  else if(expr_is_externcptr(e)) {
-    end += sprintf(end, "<externcptr %p>", e->extern_c_ptr);
+  else if(expr_is_externcdata(e)) {
+    end += sprintf(end, "<externcdata %p %s>", e->extern_c_data, fmt(e->extern_c_signature));
   }
   else {
     sprintf(buf, "[fmt not implemented]");
@@ -875,7 +859,7 @@ void namespace_populate_std(namespace_t *ns) {
   namespace_set_native_form(ns, "def", def);
   namespace_set_native_form(ns, "if", if_);
   namespace_set_native_form(ns, "backquote", backquote);
-  namespace_set_native_form(ns, "externcfn", externcfn);
+  namespace_set_native_form(ns, "externcdata", externcdata);
 }
 
 int main(void) {
