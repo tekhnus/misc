@@ -7,14 +7,6 @@
 #include <dlfcn.h>
 #include <ffi.h>
 
-#define LIST 1
-#define SYMBOL 2
-#define INT 3
-#define NATIVE_FORM 4
-#define FORM 5
-#define BYTESTRING 6
-#define EXTERNCDATA 7
-
 typedef struct expr expr_t;
 typedef struct eval_result eval_result_t;
 typedef struct expr namespace_t;
@@ -29,10 +21,18 @@ char *readline(char *prompt) {
   return buf;
 }
 
-
+enum expr_type {
+  LIST,
+  SYMBOL,
+  INT,
+  NATIVE_FORM,
+  FORM,
+  BYTESTRING,
+  EXTERNCDATA,
+};
 
 struct expr {
-  int8_t type;
+  enum expr_type type;
   expr_t *car;
   expr_t *cdr;
   char *text;
@@ -47,21 +47,25 @@ struct expr {
 };
 
 
+enum eval_result_type {
+  EVAL_RESULT_EXPR,
+  EVAL_RESULT_ERR,
+};
 struct eval_result {
-  int8_t type;
+  enum eval_result_type type;
   expr_t *expr;
   char *message;
 };
 
-#define EXPR 1
-#define EOS 2
-#define ERR 3
-#define CLOSING 4
-
 typedef struct read_result read_result_t;
-
+enum read_result_type {
+  EXPR,
+  EOS,
+  ERR,
+  CLOSING,
+};
 struct read_result {
-  int8_t type;
+  enum read_result_type type;
   expr_t *expr;
   char *message;
 };
@@ -365,20 +369,20 @@ read_result_t zread(FILE *strm) {
 }
 
 eval_result_t eval_result_make_err(char *message) {
-  eval_result_t result = {ERR, NULL, message};
+  eval_result_t result = {EVAL_RESULT_ERR, NULL, message};
   return result;
 }
 eval_result_t eval_result_make_expr(expr_t *e) {
-  eval_result_t result = {EXPR, e, NULL};
+  eval_result_t result = {EVAL_RESULT_EXPR, e, NULL};
   return result;
 }
 
 bool eval_result_is_expr(eval_result_t result) {
-  return result.type == EXPR;
+  return result.type == EVAL_RESULT_EXPR;
 }
 
 bool eval_result_is_err(eval_result_t result) {
-  return result.type == ERR;
+  return result.type == EVAL_RESULT_ERR;
 }
 
 eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
@@ -388,7 +392,7 @@ eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
       return eval_result_make_expr(kv->cdr->car);
     }
   }
-  char msg[1024];
+  char *msg = malloc(1024);
   sprintf(msg, "unbound symbol: %s", symbol->text);
   return eval_result_make_err(msg);
 }
