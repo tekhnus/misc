@@ -18,7 +18,7 @@
 
 typedef struct expr expr_t;
 typedef struct eval_result eval_result_t;
-typedef struct expr context_t;
+typedef struct expr namespace_t;
 
 char *readline(char *prompt) {
   char *buf = malloc(1024 * sizeof(char));
@@ -50,15 +50,13 @@ void stream_ungetc(stream_t *s) {
   --s->position;
 }
 
-typedef struct expr namespace_t;
-
 struct expr {
   int8_t type;
   expr_t *car;
   expr_t *cdr;
   char *text;
   int64_t value;
-  eval_result_t (*call)(expr_t *, context_t *);
+  eval_result_t (*call)(expr_t *, namespace_t *);
   expr_t *body;
   bool pre_eval;
   bool post_eval;
@@ -173,7 +171,7 @@ expr_t *expr_make_int(int64_t value) {
   return e;
 }
 
-expr_t *expr_make_native_form(eval_result_t (*call)(expr_t *, context_t *)) {
+expr_t *expr_make_native_form(eval_result_t (*call)(expr_t *, namespace_t *)) {
   expr_t *e = malloc(sizeof(expr_t));
   e->type = NATIVE_FORM;
   e->call = call;
@@ -436,19 +434,11 @@ eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
   sprintf(msg, "unbound symbol: %s", symbol->text);
   return eval_result_make_err(msg);
 }
-
-context_t *context_make(namespace_t *namespace) {
-  return namespace;
-}
-
-namespace_t *context_get_bindings(context_t *ctxt) {
-  return ctxt;
-}
   
-eval_result_t context_get(context_t *ctxt, expr_t *symbol) {
+eval_result_t namespace_get(namespace_t *ctxt, expr_t *symbol) {
   eval_result_t v;
   namespace_t *bindings;
-  for (bindings = context_get_bindings(ctxt); !namespace_is_nil(bindings); bindings = namespace_get_parent(bindings)) {
+  for (bindings = ctxt; !namespace_is_nil(bindings); bindings = namespace_get_parent(bindings)) {
     v = flat_namespace_get(namespace_get_own_bindings(bindings), symbol);
     if(!eval_result_is_err(v)) {
       return v;
@@ -457,18 +447,18 @@ eval_result_t context_get(context_t *ctxt, expr_t *symbol) {
   return v;
 }
 
-void context_set(context_t *ctxt, expr_t *symbol, expr_t *value) {
-  flat_namespace_t *locals = namespace_get_own_bindings(context_get_bindings(ctxt));
-  namespace_set_own_bindings(context_get_bindings(ctxt), flat_namespace_set(locals, symbol, value));
+void namespace_set(namespace_t *ctxt, expr_t *symbol, expr_t *value) {
+  flat_namespace_t *locals = namespace_get_own_bindings(ctxt);
+  namespace_set_own_bindings(ctxt, flat_namespace_set(locals, symbol, value));
 }
 
-eval_result_t eval(expr_t *e, context_t *ctxt);
+eval_result_t eval(expr_t *e, namespace_t *ctxt);
 
 expr_t *args_symbol(void) {
   return expr_make_symbol("args");
 }
 
-eval_result_t apply_form(expr_t *f, expr_t *args, context_t *ctxt) {
+eval_result_t apply_form(expr_t *f, expr_t *args, namespace_t *ctxt) {
   expr_t *passed_args = NULL;
   if (!f->pre_eval) {
     passed_args = args;
@@ -484,9 +474,8 @@ eval_result_t apply_form(expr_t *f, expr_t *args, context_t *ctxt) {
        tail = &((*tail)->cdr);
      }
   }
-  context_t *form_ctxt = context_make
-    (namespace_make_child(f->lexical_bindings));
-  context_set(form_ctxt, args_symbol(), passed_args);
+  namespace_t *form_ctxt = namespace_make_child(f->lexical_bindings);
+  namespace_set(form_ctxt, args_symbol(), passed_args);
   eval_result_t expansion = eval(f->body, form_ctxt);
   if (eval_result_is_err(expansion)) {
     return expansion;
@@ -585,7 +574,7 @@ eval_result_t externcfn_call(expr_t *f, ffi_cif *cif, void **cargs) {
   return eval_result_make_err("unknown return type for extern func");
 }
 
-eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
+eval_result_t apply_externcfn(expr_t *f, expr_t *args, namespace_t *ctxt) {
   expr_t *passed_args = NULL;
   expr_t **tail = &passed_args;
   for (expr_t *arg = args; !expr_is_nil(arg); arg = arg->cdr) {
@@ -611,7 +600,7 @@ eval_result_t apply_externcfn(expr_t *f, expr_t *args, context_t *ctxt) {
   return externcfn_call(f, &cif, cargs);
 }
 
-eval_result_t apply(expr_t *f, expr_t *args, context_t *ctxt) {
+eval_result_t apply(expr_t *f, expr_t *args, namespace_t *ctxt) {
   if (!expr_is_list(args)) {
     return eval_result_make_err("args should be list");
   }
@@ -627,7 +616,7 @@ eval_result_t apply(expr_t *f, expr_t *args, context_t *ctxt) {
   return eval_result_make_err("car should be callable");
 }
 
-eval_result_t add(expr_t *args, context_t *ctxt) {
+eval_result_t add(expr_t *args, namespace_t *ctxt) {
   int64_t res = 0;
   for (expr_t *arg = args; !expr_is_nil(arg); arg = arg->cdr) {
     eval_result_t x = eval(arg->car, ctxt);
@@ -642,7 +631,7 @@ eval_result_t add(expr_t *args, context_t *ctxt) {
   return eval_result_make_expr(expr_make_int(res));
 }
 
-eval_result_t eval_car(expr_t *e, context_t *ctxt) {
+eval_result_t eval_car(expr_t *e, namespace_t *ctxt) {
   if (expr_is_nil(e) || !expr_is_nil(e->cdr)) {
     return eval_result_make_err("eval expects exactly one argument");
   }
@@ -654,7 +643,7 @@ eval_result_t eval_car(expr_t *e, context_t *ctxt) {
   return v;
 }
 
-eval_result_t cons(expr_t *args, context_t *ctxt) {
+eval_result_t cons(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) || !expr_is_nil(args->cdr->cdr)) {
     return eval_result_make_err("cons expects exactly two arguments");
   }
@@ -674,7 +663,7 @@ eval_result_t cons(expr_t *args, context_t *ctxt) {
   return eval_result_make_expr(result);
 }
 
-eval_result_t car(expr_t *args, context_t *ctxt) {
+eval_result_t car(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("car expects exactly one argument");
   }
@@ -689,7 +678,7 @@ eval_result_t car(expr_t *args, context_t *ctxt) {
 }
 
 
-eval_result_t cdr(expr_t *args, context_t *ctxt) {
+eval_result_t cdr(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("cdr expects exactly one argument");
   }
@@ -703,28 +692,28 @@ eval_result_t cdr(expr_t *args, context_t *ctxt) {
   return eval_result_make_expr(er.expr->cdr);
 }
 
-eval_result_t macro(expr_t *args, context_t *ctxt) {
+eval_result_t macro(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("macro expects a single argument");
   }
-  return eval_result_make_expr(expr_make_form(args->car, context_get_bindings(ctxt), false, true));
+  return eval_result_make_expr(expr_make_form(args->car, ctxt, false, true));
 }
 
-eval_result_t fn(expr_t *args, context_t *ctxt) {
+eval_result_t fn(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("fn expects a single argument");
   }
-  return eval_result_make_expr(expr_make_form(args->car, context_get_bindings(ctxt), true, false));
+  return eval_result_make_expr(expr_make_form(args->car, ctxt, true, false));
 }
 
-eval_result_t form(expr_t *args, context_t *ctxt) {
+eval_result_t form(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("form expects a single argument");
   }
-  return eval_result_make_expr(expr_make_form(args->car, context_get_bindings(ctxt), false, false));
+  return eval_result_make_expr(expr_make_form(args->car, ctxt, false, false));
 }
 
-eval_result_t def(expr_t *args, context_t *ctxt) {
+eval_result_t def(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) || !expr_is_nil(args->cdr->cdr)) {
     return eval_result_make_err("def expects exactly two arguments");
   }
@@ -733,12 +722,12 @@ eval_result_t def(expr_t *args, context_t *ctxt) {
   }
   eval_result_t er = eval(args->cdr->car, ctxt);
   if (!eval_result_is_err(er)) {
-    context_set(ctxt, args->car, er.expr);
+    namespace_set(ctxt, args->car, er.expr);
   }
   return er;
 }
 
-eval_result_t backquote(expr_t *args, context_t *ctxt) {
+eval_result_t backquote(expr_t *args, namespace_t *ctxt) {
   if (!expr_is_list(args->car) || expr_is_nil(args->car)) {
     return eval_result_make_expr(args->car);
   }
@@ -763,7 +752,7 @@ eval_result_t backquote(expr_t *args, context_t *ctxt) {
 }
 
 
-eval_result_t if_(expr_t *args, context_t *ctxt) {
+eval_result_t if_(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) || expr_is_nil(args->cdr->cdr) || !expr_is_nil(args->cdr->cdr->cdr)) {
     return eval_result_make_err("if expects exactly three arguments");
   }
@@ -777,7 +766,7 @@ eval_result_t if_(expr_t *args, context_t *ctxt) {
   return eval(args->cdr->cdr->car, ctxt);
 }
 
-eval_result_t externcfn(expr_t *args, context_t *ctxt) {
+eval_result_t externcfn(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) || expr_is_nil(args->cdr->cdr) || !expr_is_nil(args->cdr->cdr->cdr)) {
     return eval_result_make_err("externcfn expects exactly three arguments");
   }
@@ -797,7 +786,7 @@ eval_result_t externcfn(expr_t *args, context_t *ctxt) {
   return eval_result_make_expr(expr_make_externcfn(call_ptr, args->cdr->cdr->car));
 }
 
-eval_result_t eval(expr_t *e, context_t *ctxt) {
+eval_result_t eval(expr_t *e, namespace_t *ctxt) {
   if (expr_is_nil(e)) {
       return eval_result_make_err("cannot eval an empty list");
   }
@@ -810,7 +799,7 @@ eval_result_t eval(expr_t *e, context_t *ctxt) {
     return app;
   }
   if (expr_is_symbol(e)) {
-    return context_get(ctxt, e);
+    return namespace_get(ctxt, e);
   }
   if (expr_is_int(e) || expr_is_bytestring(e)) {
     return eval_result_make_expr(e);
@@ -856,32 +845,32 @@ char *fmt(expr_t *e) {
   return buf;
 }
 
-void context_set_native_form(context_t *ctxt, char *name, eval_result_t (*form)(expr_t *, context_t *)) {
-  context_set(ctxt, expr_make_symbol(name), expr_make_native_form(form));
+void namespace_set_native_form(namespace_t *ctxt, char *name, eval_result_t (*form)(expr_t *, namespace_t *)) {
+  namespace_set(ctxt, expr_make_symbol(name), expr_make_native_form(form));
 }
 
 int main(void) {
-  context_t *context = context_make(namespace_make_new());
+  namespace_t *ns = namespace_make_new();
 
-  context_set_native_form(context, "add", add);
-  context_set_native_form(context, "eval", eval_car);
-  context_set_native_form(context, "cons", cons);
-  context_set_native_form(context, "car", car);
-  context_set_native_form(context, "cdr", cdr);
-  context_set_native_form(context, "builtinmacro", macro);
-  context_set_native_form(context, "builtinfn", fn);
-  context_set_native_form(context, "builtinform", form);
-  context_set_native_form(context, "def", def);
-  context_set_native_form(context, "if", if_);
-  context_set_native_form(context, "backquote", backquote);
-  context_set_native_form(context, "externcfn", externcfn);
+  namespace_set_native_form(ns, "add", add);
+  namespace_set_native_form(ns, "eval", eval_car);
+  namespace_set_native_form(ns, "cons", cons);
+  namespace_set_native_form(ns, "car", car);
+  namespace_set_native_form(ns, "cdr", cdr);
+  namespace_set_native_form(ns, "builtinmacro", macro);
+  namespace_set_native_form(ns, "builtinfn", fn);
+  namespace_set_native_form(ns, "builtinform", form);
+  namespace_set_native_form(ns, "def", def);
+  namespace_set_native_form(ns, "if", if_);
+  namespace_set_native_form(ns, "backquote", backquote);
+  namespace_set_native_form(ns, "externcfn", externcfn);
 		    
   for (; !feof(stdin);) {
     read_result_t rr;
     stream_t strm;
     stream_read(&strm);
     for (; read_result_is_expr(rr = zread(&strm));) {
-      eval_result_t val = eval(rr.expr, context);
+      eval_result_t val = eval(rr.expr, ns);
       if (eval_result_is_err(val)) {
 	printf("%s\n", val.message);
       }
