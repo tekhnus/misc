@@ -541,13 +541,27 @@ char *externcfn_load_args(expr_t *f, expr_t *args, void **cargs) {
       return "too few arguments";
     }
     if (!strcmp(argt->car->text, "string")) {
+      if (!expr_is_bytestring(arg->car)) {
+	return "string expected, got something else";
+      }
       cargs[arg_cnt] = &arg->car->text;
     }
     else if(!strcmp(argt->car->text, "sizet")) {
+      if (!expr_is_int(arg->car)) {
+	return "int expected, got something else";
+      }
       cargs[arg_cnt] = &arg->car->value;
     }
     else if(!strcmp(argt->car->text, "externcptr")) {
-      cargs[arg_cnt] = &arg->car->extern_c_ptr;
+      if (expr_is_externcptr(arg->car)) {
+	cargs[arg_cnt] = arg->car->extern_c_ptr;
+      }
+      else if(expr_is_externcfn(arg->car)) {
+	cargs[arg_cnt] = arg->car->extern_c_ptr;
+      }
+      else {
+	return "externcptr expected, got something else";
+      }
     }
     else {
       return "cannot load an argument";
@@ -566,7 +580,7 @@ eval_result_t externcfn_call(expr_t *f, ffi_cif *cif, void **cargs) {
   ffi_call(cif, FFI_FN(f->extern_c_ptr), res, cargs);
   char *rettype = f->extern_c_signature->cdr->car->text;
   if (!strcmp(rettype, "externcptr")) {
-    return eval_result_make_expr(expr_make_externcptr(*(void**)res));
+    return eval_result_make_expr(expr_make_externcptr(res));
   }
   if (!strcmp(rettype, "sizet")) {
     return eval_result_make_expr(expr_make_int(*(int*)res));
@@ -770,8 +784,8 @@ eval_result_t externcfn(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) || expr_is_nil(args->cdr->cdr) || !expr_is_nil(args->cdr->cdr->cdr)) {
     return eval_result_make_err("externcfn expects exactly three arguments");
   }
-  if (!expr_is_bytestring(args->car) || !expr_is_bytestring(args->cdr->car) || !expr_is_list(args->cdr->cdr->car)) {
-    return eval_result_make_err("wrong externcfn signature");
+  if (!expr_is_bytestring(args->car) || !expr_is_bytestring(args->cdr->car)) {
+    return eval_result_make_err("wrong externcfn usage");
   }
   void *handle = dlopen(args->car->text, RTLD_LAZY);
   char *err = dlerror();
@@ -849,9 +863,7 @@ void namespace_set_native_form(namespace_t *ctxt, char *name, eval_result_t (*fo
   namespace_set(ctxt, expr_make_symbol(name), expr_make_native_form(form));
 }
 
-int main(void) {
-  namespace_t *ns = namespace_make_new();
-
+void namespace_populate_std(namespace_t *ns) {
   namespace_set_native_form(ns, "add", add);
   namespace_set_native_form(ns, "eval", eval_car);
   namespace_set_native_form(ns, "cons", cons);
@@ -864,6 +876,11 @@ int main(void) {
   namespace_set_native_form(ns, "if", if_);
   namespace_set_native_form(ns, "backquote", backquote);
   namespace_set_native_form(ns, "externcfn", externcfn);
+}
+
+int main(void) {
+  namespace_t *ns = namespace_make_new();
+  namespace_populate_std(ns);
 		    
   for (; !feof(stdin);) {
     read_result_t rr;
