@@ -10,6 +10,8 @@
 typedef struct expr expr_t;
 typedef struct eval_result eval_result_t;
 typedef struct expr namespace_t;
+typedef struct read_result read_result_t;
+typedef struct expr flat_namespace_t;
 
 char *readline(char *prompt) {
   char *buf = malloc(1024 * sizeof(char));
@@ -61,11 +63,13 @@ enum eval_result_type {
 };
 struct eval_result {
   enum eval_result_type type;
-  expr_t *expr;
-  char *message;
+  union {
+    expr_t *expr;
+    char *message;
+  };
 };
 
-typedef struct read_result read_result_t;
+
 enum read_result_type {
   EXPR,
   EOS,
@@ -74,8 +78,10 @@ enum read_result_type {
 };
 struct read_result {
   enum read_result_type type;
-  expr_t *expr;
-  char *message;
+  union {
+    expr_t *expr;
+    char *message;
+  };
 };
 
 bool is_whitespace(char symbol) {
@@ -87,12 +93,12 @@ bool is_symbol(char symbol) {
 }
 
 read_result_t read_result_make_eof(void) {
-  read_result_t result = {EOS, NULL, NULL};
+  read_result_t result = {.type = EOS};
   return result;
 }
 
 read_result_t read_result_make_closing(void) {
-  read_result_t result = {CLOSING, NULL, NULL};
+  read_result_t result = {.type = CLOSING};
   return result;
 }
 
@@ -113,12 +119,12 @@ bool read_result_is_closing(read_result_t x) {
 }
 
 read_result_t read_result_make_err(char *message) {
-  read_result_t result = {ERR, NULL, message};
+  read_result_t result = {.type = ERR, .message = message};
   return result;
 }
 
 read_result_t read_result_make_expr(expr_t *e) {
-  read_result_t result = {EXPR, e, NULL};
+  read_result_t result = {.type = EXPR, .expr = e};
   return result;
 }
 
@@ -229,8 +235,6 @@ bool expr_is_externcdata(expr_t *e)
 {
   return e != NULL && e->type == EXTERNCDATA;
 }
-
-typedef struct expr flat_namespace_t;
 
 flat_namespace_t *flat_namespace_make() {
   return NULL;
@@ -377,11 +381,11 @@ read_result_t zread(FILE *strm) {
 }
 
 eval_result_t eval_result_make_err(char *message) {
-  eval_result_t result = {EVAL_RESULT_ERR, NULL, message};
+  eval_result_t result = {.type = EVAL_RESULT_ERR, .message = message};
   return result;
 }
 eval_result_t eval_result_make_expr(expr_t *e) {
-  eval_result_t result = {EVAL_RESULT_EXPR, e, NULL};
+  eval_result_t result = {.type = EVAL_RESULT_EXPR, .expr = e};
   return result;
 }
 
