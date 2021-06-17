@@ -496,6 +496,10 @@ bool ffi_type_init(ffi_type **type, expr_t *definition) {
     *type = &ffi_type_uint64;
     return true;
   }
+  if (!strcmp(definition->text, "int")) {
+    *type = &ffi_type_sint;
+    return true;
+  }
   return false;
 }
 
@@ -567,14 +571,19 @@ eval_result_t externcdata_call(expr_t *f, ffi_cif *cif, void **cargs) {
   char *rettype = f->extern_c_signature->cdr->car->text;
 
   if (!strcmp(rettype, "pointer")) {
-    void **res = malloc(sizeof(void *));
+    void *res = malloc(sizeof(void *));
     ffi_call(cif, fn_ptr, res, cargs);
     return eval_result_make_expr(expr_make_externcdata_pointer(res));
   }
   if (!strcmp(rettype, "sizet")) {
-    size_t *res = malloc(sizeof(size_t));
+    void *res = malloc(sizeof(size_t));
     ffi_call(cif, fn_ptr, res, cargs);
-    return eval_result_make_expr(expr_make_int(*res));
+    return eval_result_make_expr(expr_make_int(*(int64_t *)res));
+  }
+  if (!strcmp(rettype, "int")) {
+    void *res = malloc(sizeof(int));
+    ffi_call(cif, fn_ptr, res, cargs);
+    return eval_result_make_expr(expr_make_int(*(int64_t *)res));
   }
   return eval_result_make_err("unknown return type for extern func");
 }

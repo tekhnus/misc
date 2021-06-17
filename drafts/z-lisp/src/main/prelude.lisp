@@ -87,7 +87,11 @@ c
 		((sizet) pointer)))
 (def fread
      (externcdata "libSystem.dylib" "fread"
-		((pointer sizet sizet pointer) sizet)))
+		  ((pointer sizet sizet pointer) sizet)))
+
+(def feof
+     (externcdata "libSystem.dylib" "feof"
+		((pointer) int)))
 
 (def printfptr
      (externcdata "libSystem.dylib" "printf"
@@ -97,14 +101,23 @@ c
      (externcdata "libSystem.dylib" "fprintf"
 		((pointer string string) sizet)))
 
+
+
+(def stdin
+     (externcdata "libSystem.dylib" "__stdinp" pointer))
+
 (def stdout
      (externcdata "libSystem.dylib" "__stdoutp" pointer))
+
+(def stderr
+     (externcdata "libSystem.dylib" "__stderrp" pointer))
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))
 (fread buffer 1 1024 hostsfile)
 (printfptr "%.2048s" buffer)
 (fprintfstring stdout "%s" "Hello, world!")
+(feof stdin)
 
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))
 '(defn reverse  (()) (list)  ((cons head rest)) (append head (reverse rest)))
