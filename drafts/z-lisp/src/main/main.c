@@ -18,7 +18,7 @@
 
 typedef struct expr expr_t;
 typedef struct eval_result eval_result_t;
-typedef struct context context_t;
+typedef struct expr context_t;
 
 char *readline(char *prompt) {
   char *buf = malloc(1024 * sizeof(char));
@@ -50,7 +50,7 @@ void stream_ungetc(stream_t *s) {
   --s->position;
 }
 
-typedef struct namespace namespace_t;
+typedef struct expr namespace_t;
 
 struct expr {
   int8_t type;
@@ -261,20 +261,30 @@ flat_namespace_t *flat_namespace_set(flat_namespace_t *ns, expr_t *symbol, expr_
   return new_ns;
 }
 
-struct namespace {
-  namespace_t *parent;
-  flat_namespace_t *own_bindings;
-};
-
 namespace_t *namespace_make_child(namespace_t *parent_namespace) {
-  namespace_t *res = malloc(sizeof(namespace_t));
-  res->parent = parent_namespace;
-  res->own_bindings = flat_namespace_make();
+  namespace_t *res = expr_make_list(flat_namespace_make());
+  res->cdr = parent_namespace;
   return res;
 }
 
 namespace_t *namespace_make_new() {
   return namespace_make_child(NULL);
+}
+
+namespace_t *namespace_get_parent(namespace_t *ns) {
+  return ns->cdr;
+}
+
+flat_namespace_t *namespace_get_own_bindings(namespace_t *ns) {
+  return ns->car;
+}
+
+void namespace_set_own_bindings(namespace_t *ns, flat_namespace_t *fns) {
+  ns->car = fns;
+}
+
+bool namespace_is_nil(namespace_t *ns) {
+  return expr_is_nil(ns);
 }
 
 bool consume_control_sequence(char c, expr_t **form){
@@ -427,20 +437,19 @@ eval_result_t flat_namespace_get(flat_namespace_t *ns, expr_t *symbol) {
   return eval_result_make_err(msg);
 }
 
-struct context {
-  namespace_t *bindings;
-};
-
 context_t context_make(namespace_t *namespace) {
-  context_t ctxt = {namespace};
-  return ctxt;
+  return *expr_make_list(namespace);
+}
+
+namespace_t *context_get_bindings(context_t *ctxt) {
+  return ctxt->car;
 }
   
 eval_result_t context_get(context_t *ctxt, expr_t *symbol) {
   eval_result_t v;
   namespace_t *bindings;
-  for (bindings = ctxt->bindings; bindings != NULL; bindings = bindings->parent) {
-    v = flat_namespace_get(bindings->own_bindings, symbol);
+  for (bindings = context_get_bindings(ctxt); !namespace_is_nil(bindings); bindings = namespace_get_parent(bindings)) {
+    v = flat_namespace_get(namespace_get_own_bindings(bindings), symbol);
     if(!eval_result_is_err(v)) {
       return v;
     }
@@ -449,8 +458,8 @@ eval_result_t context_get(context_t *ctxt, expr_t *symbol) {
 }
 
 void context_set(context_t *ctxt, expr_t *symbol, expr_t *value) {
-  flat_namespace_t **locals = &ctxt->bindings->own_bindings;
-  *locals = flat_namespace_set(*locals, symbol, value);
+  flat_namespace_t *locals = namespace_get_own_bindings(context_get_bindings(ctxt));
+  namespace_set_own_bindings(context_get_bindings(ctxt), flat_namespace_set(locals, symbol, value));
 }
 
 eval_result_t eval(expr_t *e, context_t *ctxt);
@@ -698,21 +707,21 @@ eval_result_t macro(expr_t *args, context_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("macro expects a single argument");
   }
-  return eval_result_make_expr(expr_make_form(args->car, ctxt->bindings, false, true));
+  return eval_result_make_expr(expr_make_form(args->car, context_get_bindings(ctxt), false, true));
 }
 
 eval_result_t fn(expr_t *args, context_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("fn expects a single argument");
   }
-  return eval_result_make_expr(expr_make_form(args->car, ctxt->bindings, true, false));
+  return eval_result_make_expr(expr_make_form(args->car, context_get_bindings(ctxt), true, false));
 }
 
 eval_result_t form(expr_t *args, context_t *ctxt) {
   if (expr_is_nil(args) || !expr_is_nil(args->cdr)) {
     return eval_result_make_err("form expects a single argument");
   }
-  return eval_result_make_expr(expr_make_form(args->car, ctxt->bindings, false, false));
+  return eval_result_make_expr(expr_make_form(args->car, context_get_bindings(ctxt), false, false));
 }
 
 eval_result_t def(expr_t *args, context_t *ctxt) {
