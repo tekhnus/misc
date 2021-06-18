@@ -599,6 +599,22 @@ eval_result_t eval_car(expr_t *e, namespace_t *ctxt) {
   return v;
 }
 
+eval_result_t eval_in_ns(expr_t *e, namespace_t *ctxt) {
+  if (expr_is_nil(e) || expr_is_nil(e->cdr) || !expr_is_nil(e->cdr->cdr)) {
+    return eval_result_make_err("evalinns expects exactly two arguments");
+  }
+  eval_result_t ns = eval(e->car, ctxt);
+  if (eval_result_is_err(ns)) {
+    return ns;
+  }
+  eval_result_t v = eval(e->cdr->car, ctxt);
+  if (eval_result_is_err(v)) {
+    return v;
+  }
+  eval_result_t r = eval(v.expr, ns.expr);
+  return r;
+}
+
 eval_result_t cons(expr_t *args, namespace_t *ctxt) {
   if (expr_is_nil(args) || expr_is_nil(args->cdr) ||
       !expr_is_nil(args->cdr->cdr)) {
@@ -831,9 +847,12 @@ void namespace_set_native_form(namespace_t *ctxt, char *name,
   namespace_set(ctxt, expr_make_symbol(name), expr_make_native_form(form));
 }
 
+eval_result_t make_ns(expr_t *args, namespace_t *ctxt);
+
 void namespace_populate_std(namespace_t *ns) {
   namespace_set_native_form(ns, "add", add);
   namespace_set_native_form(ns, "eval", eval_car);
+  namespace_set_native_form(ns, "evalinns", eval_in_ns);
   namespace_set_native_form(ns, "read", read_car);
   namespace_set_native_form(ns, "print", print_all);
   namespace_set_native_form(ns, "cons", cons);
@@ -846,6 +865,16 @@ void namespace_populate_std(namespace_t *ns) {
   namespace_set_native_form(ns, "if", if_);
   namespace_set_native_form(ns, "backquote", backquote);
   namespace_set_native_form(ns, "externcdata", externcdata);
+  namespace_set_native_form(ns, "makens", make_ns);
+}
+
+eval_result_t make_ns(expr_t *args, namespace_t *ctxt) {
+  if (!expr_is_nil(args)) {
+    return eval_result_make_err("makeemptyns takes no arguments");
+  }
+  namespace_t *ns = namespace_make_new();
+  namespace_populate_std(ns);
+  return eval_result_make_expr(ns);
 }
 
 int main(int argc, char **argv) {

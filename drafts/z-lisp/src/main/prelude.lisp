@@ -115,11 +115,20 @@ c
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))
 (fread buffer 1 1024 hostsfile)
-(printfptr "%.2048s" buffer)
-(fprintfstring stdout "%s" "Hello, world!")
-(feof stdin)
+'(printfptr "%.2048s" buffer)
+'(fprintfstring stdout "%s" "Hello, world!")
+'(feof stdin)
 
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))
 '(defn reverse  (()) (list)  ((cons head rest)) (append head (reverse rest)))
 
-(print (eval (read stdin)))
+(defn repl (nsp)
+  (progn
+    (fprintfstring stdout "%s" "> ")
+    (def e (read stdin))
+    (def v (evalinns nsp e))
+    (print v)
+    (repl nsp)))
+
+(def ns (makens))
+(repl ns)
