@@ -16,7 +16,7 @@ target/obj/%.o: src/main/%.c
 	gcc $(CFLAGS) -c -o $@ $<
 
 run-prelude: target/z-lisp
-	target/z-lisp <src/main/prelude.lisp
+	target/z-lisp src/main/prelude.lisp
 
 clean:
 	rm -rf target/

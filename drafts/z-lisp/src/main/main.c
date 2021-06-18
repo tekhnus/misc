@@ -792,6 +792,40 @@ char *fmt(expr_t *e) {
   return buf;
 }
 
+eval_result_t read_car(expr_t *e, namespace_t *ctxt) {
+  if (expr_is_nil(e) || !expr_is_nil(e->cdr)) {
+    return eval_result_make_err("read expects exactly one argument");
+  }
+  eval_result_t v = eval(e->car, ctxt);
+  if (eval_result_is_err(v)) {
+    return v;
+  }
+  expr_t *sptr = v.expr;
+  if (!expr_is_externcdata(sptr) || !expr_is_symbol(sptr->extern_c_signature) ||
+      strcmp(sptr->extern_c_signature->text, "pointer")) {
+    return eval_result_make_err("read expects a pointer argument");
+  }
+  read_result_t r = zread(*(FILE **)sptr->extern_c_data);
+  if (read_result_is_err(r)) {
+    return eval_result_make_err(r.message);
+  } else if (!read_result_is_expr(r)) {
+    return eval_result_make_err("read error");
+  }
+  return eval_result_make_expr(r.expr);
+}
+
+eval_result_t print_all(expr_t *e, namespace_t *ctxt) {
+  for (expr_t *arg = e; !expr_is_nil(arg); arg = arg->cdr) {
+    eval_result_t v = eval(arg->car, ctxt);
+    if (eval_result_is_err(v)) {
+      return v;
+    }
+    printf("%s ", fmt(v.expr));
+  }
+  printf("\n");
+  return eval_result_make_expr(expr_make_nil());
+}
+
 void namespace_set_native_form(namespace_t *ctxt, char *name,
                                eval_result_t (*form)(expr_t *, namespace_t *)) {
   namespace_set(ctxt, expr_make_symbol(name), expr_make_native_form(form));
@@ -800,6 +834,8 @@ void namespace_set_native_form(namespace_t *ctxt, char *name,
 void namespace_populate_std(namespace_t *ns) {
   namespace_set_native_form(ns, "add", add);
   namespace_set_native_form(ns, "eval", eval_car);
+  namespace_set_native_form(ns, "read", read_car);
+  namespace_set_native_form(ns, "print", print_all);
   namespace_set_native_form(ns, "cons", cons);
   namespace_set_native_form(ns, "car", car);
   namespace_set_native_form(ns, "cdr", cdr);
@@ -812,13 +848,22 @@ void namespace_populate_std(namespace_t *ns) {
   namespace_set_native_form(ns, "externcdata", externcdata);
 }
 
-int main(void) {
+int main(int argc, char **argv) {
+  if (argc != 2) {
+    printf("usage: %s <filename>\n", argv[0]);
+    exit(EXIT_FAILURE);
+  }
+  FILE *f = fopen(argv[1], "r");
+  if (f == NULL) {
+    perror("error while opening the script file");
+    exit(EXIT_FAILURE);
+  }
   namespace_t *ns = namespace_make_new();
   namespace_populate_std(ns);
 
   read_result_t rr;
 
-  for (; read_result_is_expr(rr = zread(stdin));) {
+  for (; read_result_is_expr(rr = zread(f));) {
     eval_result_t val = eval(rr.expr, ns);
     if (eval_result_is_err(val)) {
       printf("%s\n", val.message);
