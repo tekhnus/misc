@@ -866,7 +866,7 @@ eval_result_t builtin_print(datum_t *e, namespace_t *ctxt) {
   return eval_result_make_expr(datum_make_nil());
 }
 
-void namespace_def_native_form(namespace_t *ctxt, char *name,
+void namespace_def_builtin(namespace_t *ctxt, char *name,
                                eval_result_t (*form)(datum_t *,
                                                      namespace_t *)) {
   namespace_set(ctxt, datum_make_symbol(name), datum_make_builtin(form));
@@ -875,22 +875,22 @@ void namespace_def_native_form(namespace_t *ctxt, char *name,
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt);
 
 void namespace_def_builtins(namespace_t *ns) {
-  namespace_def_native_form(ns, "add", builtin_add);
-  namespace_def_native_form(ns, "eval", builtin_eval);
-  namespace_def_native_form(ns, "eval-in", builtin_eval_in);
-  namespace_def_native_form(ns, "read", builtin_read);
-  namespace_def_native_form(ns, "print", builtin_print);
-  namespace_def_native_form(ns, "cons", builtin_cons);
-  namespace_def_native_form(ns, "car", builtin_car);
-  namespace_def_native_form(ns, "cdr", builtin_cdr);
-  namespace_def_native_form(ns, "builtin.macro", builtin_macro);
-  namespace_def_native_form(ns, "builtin.fn", builtin_fn);
-  namespace_def_native_form(ns, "builtin.form", builtin_operator);
-  namespace_def_native_form(ns, "def", builtin_def);
-  namespace_def_native_form(ns, "if", builtin_if);
-  namespace_def_native_form(ns, "backquote", builtin_backquote);
-  namespace_def_native_form(ns, "extern-pointer", builtin_extern_pointer);
-  namespace_def_native_form(ns, "make-namespace", builtin_make_namespace);
+  namespace_def_builtin(ns, "add", builtin_add);
+  namespace_def_builtin(ns, "eval", builtin_eval);
+  namespace_def_builtin(ns, "eval-in", builtin_eval_in);
+  namespace_def_builtin(ns, "read", builtin_read);
+  namespace_def_builtin(ns, "print", builtin_print);
+  namespace_def_builtin(ns, "cons", builtin_cons);
+  namespace_def_builtin(ns, "car", builtin_car);
+  namespace_def_builtin(ns, "cdr", builtin_cdr);
+  namespace_def_builtin(ns, "builtin.macro", builtin_macro);
+  namespace_def_builtin(ns, "builtin.fn", builtin_fn);
+  namespace_def_builtin(ns, "builtin.form", builtin_operator);
+  namespace_def_builtin(ns, "def", builtin_def);
+  namespace_def_builtin(ns, "if", builtin_if);
+  namespace_def_builtin(ns, "backquote", builtin_backquote);
+  namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
+  namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
 }
 
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
