@@ -30,7 +30,8 @@ struct datum {
       datum_t *list_head;
       datum_t *list_tail;
     };
-    char *text; // TODO: separate symbol and bytestring data
+    char *symbol_value;
+    char *bytestring_value;
     int64_t integer_value;
     eval_result_t (*builtin_call)(datum_t *, namespace_t *);
     struct {
@@ -125,9 +126,9 @@ datum_t *datum_make_symbol(char *name) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_SYMBOL;
   size_t length = strlen(name);
-  e->text = malloc((length + 1) * sizeof(char));
+  e->symbol_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
-    e->text[i] = name[i];
+    e->symbol_value[i] = name[i];
   }
   return e;
 }
@@ -136,9 +137,9 @@ datum_t *datum_make_bytestring(char *text) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_BYTESTRING;
   size_t length = strlen(text);
-  e->text = malloc((length + 1) * sizeof(char));
+  e->bytestring_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
-    e->text[i] = text[i];
+    e->bytestring_value[i] = text[i];
   }
   return e;
 }
@@ -362,12 +363,12 @@ bool eval_result_is_err(eval_result_t result) {
 eval_result_t flat_namespace_get(flat_namespace_t *ns, datum_t *symbol) {
   for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
     datum_t *kv = cur->list_head;
-    if (!strcmp(kv->list_head->text, symbol->text)) {
+    if (!strcmp(kv->list_head->symbol_value, symbol->symbol_value)) {
       return eval_result_make_expr(kv->list_tail->list_head);
     }
   }
   char *msg = malloc(1024);
-  sprintf(msg, "unbound symbol: %s", symbol->text);
+  sprintf(msg, "unbound symbol: %s", symbol->symbol_value);
   return eval_result_make_err(msg);
 }
 
@@ -427,19 +428,19 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
   }
-  if (!strcmp(definition->text, "string")) {
+  if (!strcmp(definition->symbol_value, "string")) {
     *type = &ffi_type_pointer;
     return true;
   }
-  if (!strcmp(definition->text, "pointer")) {
+  if (!strcmp(definition->symbol_value, "pointer")) {
     *type = &ffi_type_pointer;
     return true;
   }
-  if (!strcmp(definition->text, "sizet")) {
+  if (!strcmp(definition->symbol_value, "sizet")) {
     *type = &ffi_type_uint64;
     return true;
   }
-  if (!strcmp(definition->text, "int")) {
+  if (!strcmp(definition->symbol_value, "int")) {
     *type = &ffi_type_sint;
     return true;
   }
@@ -482,21 +483,21 @@ char *pointer_to_function_serialize_args(datum_t *f, datum_t *args, void **cargs
     if (datum_is_nil(arg)) {
       return "too few arguments";
     }
-    if (!strcmp(argt->list_head->text, "string")) {
+    if (!strcmp(argt->list_head->symbol_value, "string")) {
       if (!datum_is_bytestring(arg->list_head)) {
         return "string expected, got something else";
       }
-      cargs[arg_cnt] = &arg->list_head->text;
-    } else if (!strcmp(argt->list_head->text, "sizet")) {
+      cargs[arg_cnt] = &arg->list_head->symbol_value;
+    } else if (!strcmp(argt->list_head->symbol_value, "sizet")) {
       if (!datum_is_integer(arg->list_head)) {
         return "int expected, got something else";
       }
       cargs[arg_cnt] = &arg->list_head->integer_value;
-    } else if (!strcmp(argt->list_head->text, "pointer")) {
+    } else if (!strcmp(argt->list_head->symbol_value, "pointer")) {
       datum_t *sig;
       if (!datum_is_pointer(arg->list_head) ||
           !datum_is_symbol(sig = arg->list_head->pointer_descriptor) ||
-          strcmp(sig->text, "pointer")) {
+          strcmp(sig->symbol_value, "pointer")) {
         return "pointer expected, got something else";
       }
       cargs[arg_cnt] = arg->list_head->pointer_value;
@@ -514,7 +515,7 @@ char *pointer_to_function_serialize_args(datum_t *f, datum_t *args, void **cargs
 
 eval_result_t pointer_to_function_call(datum_t *f, ffi_cif *cif, void **cargs) {
   void (*fn_ptr)(void) = (void (*)(void))(f->pointer_value);
-  char *rettype = f->pointer_descriptor->list_tail->list_head->text;
+  char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
 
   if (!strcmp(rettype, "pointer")) {
     void *res = malloc(sizeof(void *));
@@ -709,7 +710,7 @@ eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_expr(args->list_head);
   }
   if (datum_is_symbol(args->list_head->list_head) &&
-      !strcmp(args->list_head->list_head->text, "tilde")) {
+      !strcmp(args->list_head->list_head->symbol_value, "tilde")) {
     return eval(args->list_head->list_tail->list_head, ctxt);
   }
   datum_t *processed = datum_make_nil();
@@ -749,12 +750,12 @@ eval_result_t builtin_extern_pointer(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(args->list_head) || !datum_is_bytestring(args->list_tail->list_head)) {
     return eval_result_make_err("wrong externcdata usage");
   }
-  void *handle = dlopen(args->list_head->text, RTLD_LAZY);
+  void *handle = dlopen(args->list_head->bytestring_value, RTLD_LAZY);
   char *err = dlerror();
   if (!handle) {
     return eval_result_make_err(err);
   }
-  void *call_ptr = dlsym(handle, args->list_tail->list_head->text);
+  void *call_ptr = dlsym(handle, args->list_tail->list_head->bytestring_value);
   err = dlerror();
   if (err != NULL) {
     return eval_result_make_err(err);
@@ -796,9 +797,9 @@ char *fmt(datum_t *e) {
     }
     end += sprintf(end, ")");
   } else if (datum_is_symbol(e)) {
-    end += sprintf(end, "%s", e->text);
+    end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
-    end += sprintf(end, "\"%s\"", e->text);
+    end += sprintf(end, "\"%s\"", e->bytestring_value);
   } else if (datum_is_operator(e)) {
     end += sprintf(end, "<form>");
   } else if (datum_is_builtin(e)) {
@@ -822,7 +823,7 @@ eval_result_t builtin_read(datum_t *e, namespace_t *ctxt) {
   }
   datum_t *sptr = v.expr;
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||
-      strcmp(sptr->pointer_descriptor->text, "pointer")) {
+      strcmp(sptr->pointer_descriptor->symbol_value, "pointer")) {
     return eval_result_make_err("read expects a pointer argument");
   }
   read_result_t r = datum_read(*(FILE **)sptr->pointer_value);
