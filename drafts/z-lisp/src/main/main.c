@@ -76,6 +76,10 @@ struct read_result {
   };
 };
 
+eval_result_t eval(datum_t *e, namespace_t *ctxt);
+char *fmt(datum_t *e);
+void namespace_def_builtins(namespace_t *ns);
+
 bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
 bool is_allowed_inside_symbol(char c) {
@@ -354,6 +358,7 @@ eval_result_t eval_result_make_err(char *message) {
   eval_result_t result = {.type = EVAL_RESULT_ERR, .err_message = message};
   return result;
 }
+
 eval_result_t eval_result_make_expr(datum_t *e) {
   eval_result_t result = {.type = EVAL_RESULT_EXPR, .expr = e};
   return result;
@@ -397,8 +402,6 @@ void namespace_set(namespace_t *ctxt, datum_t *symbol, datum_t *value) {
   namespace_set_own_bindings(ctxt, flat_namespace_set(locals, symbol, value));
 }
 
-eval_result_t eval(datum_t *e, namespace_t *ctxt);
-
 datum_t *symbol_make_args(void) { return datum_make_symbol("args"); }
 
 eval_result_t operator_apply(datum_t *f, datum_t *args, namespace_t *ctxt) {
@@ -428,8 +431,6 @@ eval_result_t operator_apply(datum_t *f, datum_t *args, namespace_t *ctxt) {
   expansion = eval(expansion.expr, ctxt);
   return expansion;
 }
-
-char *fmt(datum_t *e);
 
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
   if (!datum_is_symbol(definition)) {
@@ -866,13 +867,19 @@ eval_result_t builtin_print(datum_t *e, namespace_t *ctxt) {
   return eval_result_make_expr(datum_make_nil());
 }
 
-void namespace_def_builtin(namespace_t *ctxt, char *name,
-                               eval_result_t (*form)(datum_t *,
-                                                     namespace_t *)) {
-  namespace_set(ctxt, datum_make_symbol(name), datum_make_builtin(form));
+eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
+  if (!datum_is_nil(args)) {
+    return eval_result_make_err("makeemptyns takes no arguments");
+  }
+  namespace_t *ns = namespace_make_new();
+  namespace_def_builtins(ns);
+  return eval_result_make_expr(ns);
 }
 
-eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt);
+void namespace_def_builtin(namespace_t *ctxt, char *name,
+                           eval_result_t (*form)(datum_t *, namespace_t *)) {
+  namespace_set(ctxt, datum_make_symbol(name), datum_make_builtin(form));
+}
 
 void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "add", builtin_add);
@@ -891,15 +898,6 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "backquote", builtin_backquote);
   namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
-}
-
-eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
-  if (!datum_is_nil(args)) {
-    return eval_result_make_err("makeemptyns takes no arguments");
-  }
-  namespace_t *ns = namespace_make_new();
-  namespace_def_builtins(ns);
-  return eval_result_make_expr(ns);
 }
 
 int main(int argc, char **argv) {
