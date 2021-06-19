@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <dlfcn.h>
 #include <ffi.h>
 #include <stdbool.h>
@@ -62,7 +63,7 @@ struct eval_result {
 
 enum read_result_type {
   READ_RESULT_EXPR,
-  READ_RESULT_ERR, 
+  READ_RESULT_ERR,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
 };
@@ -75,12 +76,11 @@ struct read_result {
   };
 };
 
-bool is_whitespace(char c) {
-  return c == ' ' || c == '\t' || c == '\n' || c == '\r' ||
-         c == ',';
-}
+bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
-bool is_ascii_lowercase(char c) { return 'a' <= c && c <= 'z'; }
+bool is_allowed_inside_symbol(char c) {
+  return isalnum(c) || c == '.' || c == '-';
+}
 
 read_result_t read_result_make_eof(void) {
   read_result_t result = {.type = READ_RESULT_EOF};
@@ -159,7 +159,7 @@ datum_t *datum_make_builtin(eval_result_t (*call)(datum_t *, namespace_t *)) {
 }
 
 datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings,
-                       bool pre_eval, bool post_eval) {
+                             bool pre_eval, bool post_eval) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_OPERATOR;
   e->operator_body = body;
@@ -185,15 +185,21 @@ bool datum_is_nil(datum_t *e) { return e == NULL; }
 
 bool datum_is_list(datum_t *e) { return e == NULL || e->type == DATUM_LIST; }
 
-bool datum_is_symbol(datum_t *e) { return e != NULL && e->type == DATUM_SYMBOL; }
+bool datum_is_symbol(datum_t *e) {
+  return e != NULL && e->type == DATUM_SYMBOL;
+}
 
-bool datum_is_integer(datum_t *e) { return e != NULL && e->type == DATUM_INTEGER; }
+bool datum_is_integer(datum_t *e) {
+  return e != NULL && e->type == DATUM_INTEGER;
+}
 
 bool datum_is_bytestring(datum_t *e) {
   return e != NULL && e->type == DATUM_BYTESTRING;
 }
 
-bool datum_is_operator(datum_t *e) { return e != NULL && e->type == DATUM_OPERATOR; }
+bool datum_is_operator(datum_t *e) {
+  return e != NULL && e->type == DATUM_OPERATOR;
+}
 
 bool datum_is_builtin(datum_t *e) {
   return e != NULL && e->type == DATUM_BUILTIN;
@@ -280,12 +286,13 @@ read_result_t datum_read(FILE *strm) {
     }
     return elem;
   }
-  if (is_ascii_lowercase(c)) {
+  if (isalpha(c)) {
     char *nm = malloc(128);
     nm[0] = c;
     int i;
     char x;
-    for (i = 1; !feof(strm) && is_ascii_lowercase(x = getc(strm)); nm[i++] = x)
+    for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));
+         nm[i++] = x)
       ;
     if (!feof(strm)) {
       ungetc(x, strm);
@@ -449,7 +456,8 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
 
 char *pointer_to_function_init_cif(datum_t *f, ffi_cif *cif) {
   datum_t *sig = f->pointer_descriptor;
-  if (!datum_is_list(sig) || datum_is_nil(sig) || datum_is_nil(sig->list_tail) ||
+  if (!datum_is_list(sig) || datum_is_nil(sig) ||
+      datum_is_nil(sig->list_tail) ||
       !datum_is_nil(sig->list_tail->list_tail)) {
     return "the signature should be a two-item list";
   }
@@ -475,7 +483,8 @@ char *pointer_to_function_init_cif(datum_t *f, ffi_cif *cif) {
   return NULL;
 }
 
-char *pointer_to_function_serialize_args(datum_t *f, datum_t *args, void **cargs) {
+char *pointer_to_function_serialize_args(datum_t *f, datum_t *args,
+                                         void **cargs) {
   int arg_cnt = 0;
   datum_t *arg = args;
   for (datum_t *argt = f->pointer_descriptor->list_head; !datum_is_nil(argt);
@@ -535,7 +544,8 @@ eval_result_t pointer_to_function_call(datum_t *f, ffi_cif *cif, void **cargs) {
   return eval_result_make_err("unknown return type for extern func");
 }
 
-eval_result_t pointer_to_function_apply(datum_t *f, datum_t *args, namespace_t *ctxt) {
+eval_result_t pointer_to_function_apply(datum_t *f, datum_t *args,
+                                        namespace_t *ctxt) {
   datum_t *passed_args = NULL;
   datum_t **tail = &passed_args;
   for (datum_t *arg = args; !datum_is_nil(arg); arg = arg->list_tail) {
@@ -605,7 +615,8 @@ eval_result_t builtin_eval(datum_t *e, namespace_t *ctxt) {
 }
 
 eval_result_t builtin_eval_in(datum_t *e, namespace_t *ctxt) {
-  if (datum_is_nil(e) || datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
+  if (datum_is_nil(e) || datum_is_nil(e->list_tail) ||
+      !datum_is_nil(e->list_tail->list_tail)) {
     return eval_result_make_err("evalinns expects exactly two arguments");
   }
   eval_result_t ns = eval(e->list_head, ctxt);
@@ -673,21 +684,24 @@ eval_result_t builtin_macro(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_err("macro expects a single argument");
   }
-  return eval_result_make_expr(datum_make_operator(args->list_head, ctxt, false, true));
+  return eval_result_make_expr(
+      datum_make_operator(args->list_head, ctxt, false, true));
 }
 
 eval_result_t builtin_fn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_err("fn expects a single argument");
   }
-  return eval_result_make_expr(datum_make_operator(args->list_head, ctxt, true, false));
+  return eval_result_make_expr(
+      datum_make_operator(args->list_head, ctxt, true, false));
 }
 
 eval_result_t builtin_operator(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_err("form expects a single argument");
   }
-  return eval_result_make_expr(datum_make_operator(args->list_head, ctxt, false, false));
+  return eval_result_make_expr(
+      datum_make_operator(args->list_head, ctxt, false, false));
 }
 
 eval_result_t builtin_def(datum_t *args, namespace_t *ctxt) {
@@ -715,8 +729,10 @@ eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
   }
   datum_t *processed = datum_make_nil();
   datum_t **tail = &processed;
-  for (datum_t *elem = args->list_head; !datum_is_nil(elem); elem = elem->list_tail) {
-    eval_result_t inner = builtin_backquote(datum_make_list(elem->list_head), ctxt);
+  for (datum_t *elem = args->list_head; !datum_is_nil(elem);
+       elem = elem->list_tail) {
+    eval_result_t inner =
+        builtin_backquote(datum_make_list(elem->list_head), ctxt);
     if (eval_result_is_err(inner)) {
       return inner;
     }
@@ -729,7 +745,8 @@ eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
 
 eval_result_t builtin_if(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      datum_is_nil(args->list_tail->list_tail) || !datum_is_nil(args->list_tail->list_tail->list_tail)) {
+      datum_is_nil(args->list_tail->list_tail) ||
+      !datum_is_nil(args->list_tail->list_tail->list_tail)) {
     return eval_result_make_err("if expects exactly three arguments");
   }
   eval_result_t condition = eval(args->list_head, ctxt);
@@ -744,10 +761,12 @@ eval_result_t builtin_if(datum_t *args, namespace_t *ctxt) {
 
 eval_result_t builtin_extern_pointer(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      datum_is_nil(args->list_tail->list_tail) || !datum_is_nil(args->list_tail->list_tail->list_tail)) {
+      datum_is_nil(args->list_tail->list_tail) ||
+      !datum_is_nil(args->list_tail->list_tail->list_tail)) {
     return eval_result_make_err("externcdata expects exactly three arguments");
   }
-  if (!datum_is_bytestring(args->list_head) || !datum_is_bytestring(args->list_tail->list_head)) {
+  if (!datum_is_bytestring(args->list_head) ||
+      !datum_is_bytestring(args->list_tail->list_head)) {
     return eval_result_make_err("wrong externcdata usage");
   }
   void *handle = dlopen(args->list_head->bytestring_value, RTLD_LAZY);
@@ -848,7 +867,8 @@ eval_result_t builtin_print(datum_t *e, namespace_t *ctxt) {
 }
 
 void namespace_def_native_form(namespace_t *ctxt, char *name,
-                               eval_result_t (*form)(datum_t *, namespace_t *)) {
+                               eval_result_t (*form)(datum_t *,
+                                                     namespace_t *)) {
   namespace_set(ctxt, datum_make_symbol(name), datum_make_builtin(form));
 }
 
@@ -857,20 +877,20 @@ eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt);
 void namespace_def_builtins(namespace_t *ns) {
   namespace_def_native_form(ns, "add", builtin_add);
   namespace_def_native_form(ns, "eval", builtin_eval);
-  namespace_def_native_form(ns, "evalinns", builtin_eval_in);
+  namespace_def_native_form(ns, "eval-in", builtin_eval_in);
   namespace_def_native_form(ns, "read", builtin_read);
   namespace_def_native_form(ns, "print", builtin_print);
   namespace_def_native_form(ns, "cons", builtin_cons);
   namespace_def_native_form(ns, "car", builtin_car);
   namespace_def_native_form(ns, "cdr", builtin_cdr);
-  namespace_def_native_form(ns, "builtinmacro", builtin_macro);
-  namespace_def_native_form(ns, "builtinfn", builtin_fn);
-  namespace_def_native_form(ns, "builtinform", builtin_operator);
+  namespace_def_native_form(ns, "builtin.macro", builtin_macro);
+  namespace_def_native_form(ns, "builtin.fn", builtin_fn);
+  namespace_def_native_form(ns, "builtin.form", builtin_operator);
   namespace_def_native_form(ns, "def", builtin_def);
   namespace_def_native_form(ns, "if", builtin_if);
   namespace_def_native_form(ns, "backquote", builtin_backquote);
-  namespace_def_native_form(ns, "externcdata", builtin_extern_pointer);
-  namespace_def_native_form(ns, "makens", builtin_make_namespace);
+  namespace_def_native_form(ns, "extern-pointer", builtin_extern_pointer);
+  namespace_def_native_form(ns, "make-namespace", builtin_make_namespace);
 }
 
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {

@@ -1,21 +1,21 @@
 (def last
-     (builtinfn
+     (builtin.fn
 	 (if (cdr (car args))
 	     (last (cdr (car args)))
 	   (car (car args)))))
-(def progn (builtinfn (last args)))
-(def quote (builtinform  (car args)))
+(def progn (builtin.fn (last args)))
+(def quote (builtin.form  (car args)))
 
 "hello, world!"
 
 (def second
-     (builtinfn
+     (builtin.fn
       (car (cdr (car args)))))
 (def head car)
 (def tail cdr)
 
 (def deconsfn
-     (builtinfn
+     (builtin.fn
       (if (head args)
 	  `(progn
 	     (def ~(head (head args)) (head ~(second args)))
@@ -23,7 +23,7 @@
 	''())))
 
 (def decons
-     (builtinmacro
+     (builtin.macro
       (deconsfn (head args) (second args))))
 
 (decons (a b c) '(7 8 9))
@@ -31,15 +31,15 @@ a
 b
 c
 
-(def fn (builtinmacro `(builtinfn (progn (decons ~(car args) args) ~(car (cdr args))))))
-(def macro (builtinmacro `(builtinmacro (progn (def ~(car args) args) ~(car (cdr args))))))
-(def form (builtinmacro `(builtinform (progn (def ~(car args) args) ~(car (cdr args))))))
+(def fn (builtin.macro `(builtin.fn (progn (decons ~(car args) args) ~(car (cdr args))))))
+(def macro (builtin.macro `(builtin.macro (progn (def ~(car args) args) ~(car (cdr args))))))
+(def form (builtin.macro `(builtin.form (progn (def ~(car args) args) ~(car (cdr args))))))
 
 (def twice (fn (arg) (add arg arg)))
 (twice 35)
 
 (progn 1 2 3)
-(def list (builtinfn args))
+(def list (builtin.fn args))
 (list 1 2 3)
 
 (def defn (macro args `(def ~(car args) ~(cons 'fn (cdr args)))))
@@ -80,37 +80,37 @@ c
 ((adder 3) 4)
 
 (def fopen
-     (externcdata "libSystem.dylib" "fopen"
+     (extern-pointer "libSystem.dylib" "fopen"
 		((string string) pointer)))
 (def malloc
-     (externcdata "libSystem.dylib" "malloc"
+     (extern-pointer "libSystem.dylib" "malloc"
 		((sizet) pointer)))
 (def fread
-     (externcdata "libSystem.dylib" "fread"
+     (extern-pointer "libSystem.dylib" "fread"
 		  ((pointer sizet sizet pointer) sizet)))
 
 (def feof
-     (externcdata "libSystem.dylib" "feof"
+     (extern-pointer "libSystem.dylib" "feof"
 		((pointer) int)))
 
 (def printfptr
-     (externcdata "libSystem.dylib" "printf"
+     (extern-pointer "libSystem.dylib" "printf"
 		((string pointer) sizet)))
 
 (def fprintfstring
-     (externcdata "libSystem.dylib" "fprintf"
+     (extern-pointer "libSystem.dylib" "fprintf"
 		((pointer string string) sizet)))
 
 
 
 (def stdin
-     (externcdata "libSystem.dylib" "__stdinp" pointer))
+     (extern-pointer "libSystem.dylib" "__stdinp" pointer))
 
 (def stdout
-     (externcdata "libSystem.dylib" "__stdoutp" pointer))
+     (extern-pointer "libSystem.dylib" "__stdoutp" pointer))
 
 (def stderr
-     (externcdata "libSystem.dylib" "__stderrp" pointer))
+     (extern-pointer "libSystem.dylib" "__stderrp" pointer))
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))
@@ -126,9 +126,9 @@ c
   (progn
     (fprintfstring stdout "%s" "> ")
     (def e (read stdin))
-    (def v (evalinns nsp e))
+    (def v (eval-in nsp e))
     (print v)
     (repl nsp)))
 
-(def ns (makens))
+(def ns (make-namespace))
 (repl ns)
