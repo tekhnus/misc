@@ -15,8 +15,8 @@ target/obj/%.o: src/main/%.c
 	mkdir -p $(dir $@)
 	gcc $(CFLAGS) -c -o $@ $<
 
-run-prelude: target/z-lisp
-	target/z-lisp src/main/prelude.lisp
+run-repl: target/z-lisp
+	target/z-lisp src/main/repl.lisp
 
 clean:
 	rm -rf target/
