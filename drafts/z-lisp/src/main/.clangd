@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-std=c11, -Wpedantic, -Wall, -I/usr/local/opt/libffi/include]
