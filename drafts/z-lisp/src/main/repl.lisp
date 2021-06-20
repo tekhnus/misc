@@ -93,10 +93,14 @@
 (defn repl (nsp)
   (progn
     (fprintfstring stdout "%s" "> ")
-    (def e (read stdin))
-    (def v (eval-in nsp e))
-    (print v)
-    (repl nsp)))
+    (def readres (read stdin))
+    (if (tail readres)
+	(progn
+	  (def datum (second readres))
+	  (def v (eval-in nsp datum))
+	  (print v)
+	  (repl nsp))
+      (fprintfstring stdout "%s\n" ""))))
 
 (def ns (make-namespace))
 (repl ns)

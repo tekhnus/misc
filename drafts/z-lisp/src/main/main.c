@@ -330,6 +330,14 @@ read_result_t datum_read(FILE *strm) {
     char x;
     size_t i;
     for (i = 0; (x = getc(strm)) != '"'; ++i) {
+      if (x == '\\') {
+        x = getc(strm);
+        if (x == 'n') {
+          literal[i] = '\n';
+          continue;
+        }
+        return read_result_make_err("unknown escape code");
+      }
       literal[i] = x;
     }
     literal[i] = '\0';
@@ -850,12 +858,23 @@ eval_result_t builtin_read(datum_t *e, namespace_t *ctxt) {
     return eval_result_make_err("read expects a pointer argument");
   }
   read_result_t r = datum_read(*(FILE **)sptr->pointer_value);
-  if (read_result_is_err(r)) {
-    return eval_result_make_err(r.err_message);
-  } else if (!read_result_is_expr(r)) {
-    return eval_result_make_err("read error");
+  if (read_result_is_eof(r)) {
+    return eval_result_make_expr(datum_make_list(datum_make_symbol(":eof")));
   }
-  return eval_result_make_expr(r.expr);
+  if (!read_result_is_expr(r)) {
+    datum_t *err = datum_make_list(datum_make_symbol(":err"));
+    char *err_message;
+    if (read_result_is_err(r)) {
+      err_message = r.err_message;
+    } else {
+      err_message = "unknown read error";
+    }
+    err->list_tail = datum_make_list(datum_make_bytestring(err_message));
+    return eval_result_make_expr(err);
+  }
+  datum_t *ok = datum_make_list(datum_make_symbol(":ok"));
+  ok->list_tail = datum_make_list(r.expr);
+  return eval_result_make_expr(ok);
 }
 
 eval_result_t builtin_print(datum_t *e, namespace_t *ctxt) {
