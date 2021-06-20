@@ -98,7 +98,7 @@
 	(progn
 	  (def datum (second readres))
 	  (def v (eval-in nsp datum))
-	  (print v)
+	  (print (second v))
 	  (repl nsp))
       (fprintfstring stdout "%s\n" ""))))
 

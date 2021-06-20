@@ -116,15 +116,23 @@ read_result_t read_result_make_expr(datum_t *e) {
   return result;
 }
 
-datum_t *datum_make_list(datum_t *car) {
+datum_t *datum_make_nil() { return NULL; }
+
+datum_t *datum_make_list(datum_t *head, datum_t *tail) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_LIST;
-  e->list_head = car;
-  e->list_tail = NULL;
+  e->list_head = head;
+  e->list_tail = tail;
   return e;
 }
 
-datum_t *datum_make_nil() { return NULL; }
+datum_t *datum_make_list_1(datum_t *head) {
+  return datum_make_list(head, datum_make_nil());
+}
+
+datum_t *datum_make_list_2(datum_t *head, datum_t *second) {
+  return datum_make_list(head, datum_make_list_1(second));
+}
 
 datum_t *datum_make_symbol(char *name) {
   datum_t *e = malloc(sizeof(datum_t));
@@ -217,15 +225,15 @@ flat_namespace_t *flat_namespace_make() { return NULL; }
 
 flat_namespace_t *flat_namespace_set(flat_namespace_t *ns, datum_t *symbol,
                                      datum_t *value) {
-  datum_t *kv = datum_make_list(symbol);
-  kv->list_tail = datum_make_list(value);
-  datum_t *new_ns = datum_make_list(kv);
+  datum_t *kv = datum_make_list_1(symbol);
+  kv->list_tail = datum_make_list_1(value);
+  datum_t *new_ns = datum_make_list_1(kv);
   new_ns->list_tail = ns;
   return new_ns;
 }
 
 namespace_t *namespace_make_child(namespace_t *parent_namespace) {
-  namespace_t *res = datum_make_list(flat_namespace_make());
+  namespace_t *res = datum_make_list_1(flat_namespace_make());
   res->list_tail = parent_namespace;
   return res;
 }
@@ -276,7 +284,7 @@ read_result_t datum_read(FILE *strm) {
     datum_t **end_marker = &list;
     for (;;) {
       while (read_result_is_expr(elem = datum_read(strm))) {
-        *end_marker = datum_make_list(elem.expr);
+        *end_marker = datum_make_list_1(elem.expr);
         end_marker = &((*end_marker)->list_tail);
       }
       if (read_result_is_closing(elem)) {
@@ -353,8 +361,8 @@ read_result_t datum_read(FILE *strm) {
       return read_result_make_err(
           "expected an expression after a control character");
     }
-    datum_t *res = datum_make_list(form);
-    res->list_tail = datum_make_list(v.expr);
+    datum_t *res = datum_make_list_1(form);
+    res->list_tail = datum_make_list_1(v.expr);
     return read_result_make_expr(res);
   }
   char err[1024];
@@ -423,7 +431,7 @@ eval_result_t operator_apply(datum_t *f, datum_t *args, namespace_t *ctxt) {
       if (eval_result_is_err(evaled_arg)) {
         return evaled_arg;
       }
-      *tail = datum_make_list(evaled_arg.expr);
+      *tail = datum_make_list_1(evaled_arg.expr);
       tail = &((*tail)->list_tail);
     }
   }
@@ -562,7 +570,7 @@ eval_result_t pointer_to_function_apply(datum_t *f, datum_t *args,
     if (eval_result_is_err(evaled_arg)) {
       return evaled_arg;
     }
-    *tail = datum_make_list(evaled_arg.expr);
+    *tail = datum_make_list_1(evaled_arg.expr);
     tail = &((*tail)->list_tail);
   }
 
@@ -637,7 +645,12 @@ eval_result_t builtin_eval_in(datum_t *e, namespace_t *ctxt) {
     return v;
   }
   eval_result_t r = eval(v.expr, ns.expr);
-  return r;
+  if (eval_result_is_err(r)) {
+    return eval_result_make_expr(datum_make_list_2(
+        datum_make_symbol(":err"), datum_make_bytestring(r.err_message)));
+  }
+  return eval_result_make_expr(
+      datum_make_list_2(datum_make_symbol(":ok"), r.expr));
 }
 
 eval_result_t builtin_cons(datum_t *args, namespace_t *ctxt) {
@@ -652,7 +665,7 @@ eval_result_t builtin_cons(datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_err(er)) {
     return er;
   }
-  datum_t *result = datum_make_list(er.expr);
+  datum_t *result = datum_make_list_1(er.expr);
   er = eval(args->list_tail->list_head, ctxt);
   if (eval_result_is_err(er)) {
     return er;
@@ -741,11 +754,11 @@ eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
   for (datum_t *elem = args->list_head; !datum_is_nil(elem);
        elem = elem->list_tail) {
     eval_result_t inner =
-        builtin_backquote(datum_make_list(elem->list_head), ctxt);
+        builtin_backquote(datum_make_list_1(elem->list_head), ctxt);
     if (eval_result_is_err(inner)) {
       return inner;
     }
-    *tail = datum_make_list(inner.expr);
+    *tail = datum_make_list_1(inner.expr);
     tail = &((*tail)->list_tail);
   }
 
@@ -859,21 +872,20 @@ eval_result_t builtin_read(datum_t *e, namespace_t *ctxt) {
   }
   read_result_t r = datum_read(*(FILE **)sptr->pointer_value);
   if (read_result_is_eof(r)) {
-    return eval_result_make_expr(datum_make_list(datum_make_symbol(":eof")));
+    return eval_result_make_expr(datum_make_list_1(datum_make_symbol(":eof")));
   }
   if (!read_result_is_expr(r)) {
-    datum_t *err = datum_make_list(datum_make_symbol(":err"));
     char *err_message;
     if (read_result_is_err(r)) {
       err_message = r.err_message;
     } else {
       err_message = "unknown read error";
     }
-    err->list_tail = datum_make_list(datum_make_bytestring(err_message));
+    datum_t *err = datum_make_list_2(datum_make_symbol(":err"),
+                                     datum_make_bytestring(err_message));
     return eval_result_make_expr(err);
   }
-  datum_t *ok = datum_make_list(datum_make_symbol(":ok"));
-  ok->list_tail = datum_make_list(r.expr);
+  datum_t *ok = datum_make_list_2(datum_make_symbol(":ok"), r.expr);
   return eval_result_make_expr(ok);
 }
 
