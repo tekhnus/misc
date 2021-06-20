@@ -83,7 +83,7 @@ void namespace_def_builtins(namespace_t *ns);
 bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
 bool is_allowed_inside_symbol(char c) {
-  return isalnum(c) || c == '.' || c == '-';
+  return isalnum(c) || c == '.' || c == '-' || c == ':';
 }
 
 read_result_t read_result_make_eof(void) {
@@ -290,7 +290,27 @@ read_result_t datum_read(FILE *strm) {
     }
     return elem;
   }
-  if (isalpha(c)) {
+  if (isdigit(c) || c == '-') {
+    int64_t sign = 1;
+    char h;
+    if (c == '-') {
+      sign = -1;
+      c = getc(strm);
+      if (!isdigit(c)) {
+        return read_result_make_err("expected a number after unary minus");
+      }
+    }
+    int val = c - '0';
+    for (; !feof(strm) && isdigit(h = getc(strm));) {
+      val *= 10;
+      val += h - '0';
+    }
+    if (!feof(strm)) {
+      ungetc(h, strm);
+    }
+    return read_result_make_expr(datum_make_int(sign * val));
+  }
+  if (is_allowed_inside_symbol(c)) {
     char *nm = malloc(128);
     nm[0] = c;
     int i;
@@ -314,26 +334,6 @@ read_result_t datum_read(FILE *strm) {
     }
     literal[i] = '\0';
     return read_result_make_expr(datum_make_bytestring(literal));
-  }
-  if (('0' <= c && c <= '9') || c == '-') {
-    int64_t sign = 1;
-    char h;
-    if (c == '-') {
-      sign = -1;
-      c = getc(strm);
-      if (!('0' <= c && c <= '9')) {
-        return read_result_make_err("expected a number after unary minus");
-      }
-    }
-    int val = c - '0';
-    for (; !feof(strm) && '0' <= (h = getc(strm)) && h <= '9';) {
-      val *= 10;
-      val += h - '0';
-    }
-    if (!feof(strm)) {
-      ungetc(h, strm);
-    }
-    return read_result_make_expr(datum_make_int(sign * val));
   }
   datum_t *form;
   if (consume_control_sequence(c, &form)) {
@@ -785,6 +785,15 @@ eval_result_t builtin_extern_pointer(datum_t *args, namespace_t *ctxt) {
 }
 
 eval_result_t eval(datum_t *e, namespace_t *ctxt) {
+  if (datum_is_integer(e) || datum_is_bytestring(e)) {
+    return eval_result_make_expr(e);
+  }
+  if (datum_is_symbol(e)) {
+    if (e->symbol_value[0] == ':') {
+      return eval_result_make_expr(e);
+    }
+    return namespace_get(ctxt, e);
+  }
   if (datum_is_nil(e)) {
     return eval_result_make_err("cannot eval an empty list");
   }
@@ -795,12 +804,6 @@ eval_result_t eval(datum_t *e, namespace_t *ctxt) {
     }
     eval_result_t app = datum_apply(f.expr, e->list_tail, ctxt);
     return app;
-  }
-  if (datum_is_symbol(e)) {
-    return namespace_get(ctxt, e);
-  }
-  if (datum_is_integer(e) || datum_is_bytestring(e)) {
-    return eval_result_make_expr(e);
   }
   return eval_result_make_err("non-evalable expression");
 }

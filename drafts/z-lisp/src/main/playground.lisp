@@ -122,13 +122,4 @@ c
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))
 '(defn reverse  (()) (list)  ((cons head rest)) (append head (reverse rest)))
 
-(defn repl (nsp)
-  (progn
-    (fprintfstring stdout "%s" "> ")
-    (def e (read stdin))
-    (def v (eval-in nsp e))
-    (print v)
-    (repl nsp)))
-
-(def ns (make-namespace))
-(repl ns)
+:foo
