@@ -676,7 +676,7 @@ eval_result_t builtin_cons(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_datum(result);
 }
 
-eval_result_t builtin_car(datum_t *args, namespace_t *ctxt) {
+eval_result_t builtin_head(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_err("car expects exactly one argument");
   }
@@ -690,7 +690,7 @@ eval_result_t builtin_car(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_datum(er.datum->list_head);
 }
 
-eval_result_t builtin_cdr(datum_t *args, namespace_t *ctxt) {
+eval_result_t builtin_tail(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_err("cdr expects exactly one argument");
   }
@@ -924,8 +924,8 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "read", builtin_read);
   namespace_def_builtin(ns, "print", builtin_print);
   namespace_def_builtin(ns, "cons", builtin_cons);
-  namespace_def_builtin(ns, "car", builtin_car);
-  namespace_def_builtin(ns, "cdr", builtin_cdr);
+  namespace_def_builtin(ns, "head", builtin_head);
+  namespace_def_builtin(ns, "tail", builtin_tail);
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
   namespace_def_builtin(ns, "builtin.fn", builtin_fn);
   namespace_def_builtin(ns, "builtin.form", builtin_operator);

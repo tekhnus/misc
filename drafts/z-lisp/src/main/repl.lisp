@@ -1,16 +1,14 @@
 (def last
      (builtin.fn
-	 (if (cdr (car args))
-	     (last (cdr (car args)))
-	   (car (car args)))))
+	 (if (tail (head args))
+	     (last (tail (head args)))
+	   (head (head args)))))
 (def progn (builtin.fn (last args)))
-(def quote (builtin.form  (car args)))
+(def quote (builtin.form  (head args)))
 
 (def second
      (builtin.fn
-      (car (cdr (car args)))))
-(def head car)
-(def tail cdr)
+      (head (tail (head args)))))
 
 (def deconsfn
      (builtin.fn
@@ -24,19 +22,19 @@
      (builtin.macro
       (deconsfn (head args) (second args))))
 
-(def fn (builtin.macro `(builtin.fn (progn (decons ~(car args) args) ~(car (cdr args))))))
+(def fn (builtin.macro `(builtin.fn (progn (decons ~(head args) args) ~(head (tail args))))))
 
-(def macro (builtin.macro `(builtin.macro (progn (def ~(car args) args) ~(car (cdr args))))))
+(def macro (builtin.macro `(builtin.macro (progn (def ~(head args) args) ~(head (tail args))))))
 
-(def form (builtin.macro `(builtin.form (progn (def ~(car args) args) ~(car (cdr args))))))
+(def form (builtin.macro `(builtin.form (progn (def ~(head args) args) ~(head (tail args))))))
 
 (def list (builtin.fn args))
 
-(def defn (macro args `(def ~(car args) ~(cons 'fn (cdr args)))))
+(def defn (macro args `(def ~(head args) ~(cons 'fn (tail args)))))
 
-(def defmacro (macro args `(def ~(car args) ~(cons 'macro (cdr args)))))
+(def defmacro (macro args `(def ~(head args) ~(cons 'macro (tail args)))))
 
-(def defform (macro args `(def ~(car args) ~(cons 'form (cdr args)))))
+(def defform (macro args `(def ~(head args) ~(cons 'form (tail args)))))
 
 (defn third args (head (tail (tail (head args)))))
 

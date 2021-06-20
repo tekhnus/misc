@@ -1,18 +1,16 @@
 (def last
      (builtin.fn
-	 (if (cdr (car args))
-	     (last (cdr (car args)))
-	   (car (car args)))))
+	 (if (tail (head args))
+	     (last (tail (head args)))
+	   (head (head args)))))
 (def progn (builtin.fn (last args)))
-(def quote (builtin.form  (car args)))
+(def quote (builtin.form  (head args)))
 
 "hello, world!"
 
 (def second
      (builtin.fn
-      (car (cdr (car args)))))
-(def head car)
-(def tail cdr)
+      (head (tail (head args)))))
 
 (def deconsfn
      (builtin.fn
@@ -31,9 +29,9 @@ a
 b
 c
 
-(def fn (builtin.macro `(builtin.fn (progn (decons ~(car args) args) ~(car (cdr args))))))
-(def macro (builtin.macro `(builtin.macro (progn (def ~(car args) args) ~(car (cdr args))))))
-(def form (builtin.macro `(builtin.form (progn (def ~(car args) args) ~(car (cdr args))))))
+(def fn (builtin.macro `(builtin.fn (progn (decons ~(head args) args) ~(head (tail args))))))
+(def macro (builtin.macro `(builtin.macro (progn (def ~(head args) args) ~(head (tail args))))))
+(def form (builtin.macro `(builtin.form (progn (def ~(head args) args) ~(head (tail args))))))
 
 (def twice (fn (arg) (add arg arg)))
 (twice 35)
@@ -42,11 +40,11 @@ c
 (def list (builtin.fn args))
 (list 1 2 3)
 
-(def defn (macro args `(def ~(car args) ~(cons 'fn (cdr args)))))
-(def defmacro (macro args `(def ~(car args) ~(cons 'macro (cdr args)))))
-(def defform (macro args `(def ~(car args) ~(cons 'form (cdr args)))))
+(def defn (macro args `(def ~(head args) ~(cons 'fn (tail args)))))
+(def defmacro (macro args `(def ~(head args) ~(cons 'macro (tail args)))))
+(def defform (macro args `(def ~(head args) ~(cons 'form (tail args)))))
 
-(defmacro addpi args (list 'add (car args) pi))
+(defmacro addpi args (list 'add (head args) pi))
 (def pi 3)
 (addpi 8)
 
