@@ -24,17 +24,17 @@
 
 (def fn (builtin.macro `(builtin.fn (progn (decons ~(head args) args) ~(head (tail args))))))
 
-(def macro (builtin.macro `(builtin.macro (progn (def ~(head args) args) ~(head (tail args))))))
+(def macro (builtin.macro `(builtin.macro (progn (decons ~(head args) args) ~(head (tail args))))))
 
-(def form (builtin.macro `(builtin.form (progn (def ~(head args) args) ~(head (tail args))))))
+(def form (builtin.macro `(builtin.form (progn (decons ~(head args) args) ~(head (tail args))))))
 
 (def list (builtin.fn args))
 
-(def defn (macro args `(def ~(head args) ~(cons 'fn (tail args)))))
+(def defn (builtin.macro `(def ~(head args) ~(cons 'fn (tail args)))))
 
-(def defmacro (macro args `(def ~(head args) ~(cons 'macro (tail args)))))
+(def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
 
-(def defform (macro args `(def ~(head args) ~(cons 'form (tail args)))))
+(def defform (builtin.macro `(def ~(head args) ~(cons 'form (tail args)))))
 
 (defn third args (head (tail (tail (head args)))))
 
@@ -57,36 +57,52 @@
 	(tail xs)))
     (list x)))
 
+(defmacro handle-error (name) `(def ~name (second ~name)))
+
+(def libc (load-shared-library "libc.so.6"))
+(handle-error libc)
+	   
 (def fopen
-     (extern-pointer "libSystem.dylib" "fopen"
-		((string string) pointer)))
+     (extern-pointer libc "fopen"
+		     ((string string) pointer)))
+(handle-error fopen)
+
 (def malloc
-     (extern-pointer "libSystem.dylib" "malloc"
-		((sizet) pointer)))
+     (extern-pointer libc "malloc"
+		     ((sizet) pointer)))
+(handle-error malloc)
+
 (def fread
-     (extern-pointer "libSystem.dylib" "fread"
-		  ((pointer sizet sizet pointer) sizet)))
+     (extern-pointer libc "fread"
+		     ((pointer sizet sizet pointer) sizet)))
+(handle-error fread)
 
 (def feof
-     (extern-pointer "libSystem.dylib" "feof"
-		((pointer) int)))
+     (extern-pointer libc "feof"
+		     ((pointer) int)))
+(handle-error feof)
 
 (def printfptr
-     (extern-pointer "libSystem.dylib" "printf"
-		((string pointer) sizet)))
+     (extern-pointer libc "printf"
+		     ((string pointer) sizet)))
+(handle-error printfptr)
 
 (def fprintfstring
-     (extern-pointer "libSystem.dylib" "fprintf"
-		((pointer string string) sizet)))
+     (extern-pointer libc "fprintf"
+		     ((pointer string string) sizet)))
+(handle-error fprintfstring)
 
 (def stdin
-     (extern-pointer "libSystem.dylib" "__stdinp" pointer))
+     (extern-pointer libc "stdin" pointer))
+(handle-error stdin)
 
 (def stdout
-     (extern-pointer "libSystem.dylib" "__stdoutp" pointer))
+     (extern-pointer libc "stdout" pointer))
+(handle-error stdout)
 
 (def stderr
-     (extern-pointer "libSystem.dylib" "__stderrp" pointer))
+     (extern-pointer libc "stderr" pointer))
+(handle-error stderr)
 
 (defn repl (nsp)
   (progn

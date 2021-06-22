@@ -783,28 +783,48 @@ eval_result_t builtin_if(datum_t *args, namespace_t *ctxt) {
   return eval(args->list_tail->list_tail->list_head, ctxt);
 }
 
+eval_result_t builtin_load_shared_library(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_err("load-shared-library expects exactly one argument");
+  }
+  datum_t *library_name = args->list_head;
+  if (!datum_is_bytestring(library_name)) {
+    return eval_result_make_err("load-shared-library expects a bytestring");
+  }
+  void **handle = malloc(sizeof(void *));
+  *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
+  char *err = dlerror();
+  if (!handle) {
+    return eval_result_make_datum(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring(err)));
+  }
+  return eval_result_make_datum(datum_make_list_2(datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
+}
+
 eval_result_t builtin_extern_pointer(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       datum_is_nil(args->list_tail->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail->list_tail)) {
     return eval_result_make_err("externcdata expects exactly three arguments");
   }
-  if (!datum_is_bytestring(args->list_head) ||
+  eval_result_t shared_library = eval(args->list_head, ctxt);
+  if (eval_result_is_err(shared_library)) {
+    return shared_library;
+  }
+  if (!datum_is_pointer(shared_library.datum) ||
+      !datum_is_symbol(shared_library.datum->pointer_descriptor) ||
+      strcmp(shared_library.datum->pointer_descriptor->symbol_value, "pointer") ||
       !datum_is_bytestring(args->list_tail->list_head)) {
     return eval_result_make_err("wrong externcdata usage");
   }
-  void *handle = dlopen(args->list_head->bytestring_value, RTLD_LAZY);
-  char *err = dlerror();
-  if (!handle) {
-    return eval_result_make_err(err);
-  }
+  void *handle = *(void **)shared_library.datum->pointer_value;
   void *call_ptr = dlsym(handle, args->list_tail->list_head->bytestring_value);
-  err = dlerror();
+  char *err = dlerror();
   if (err != NULL) {
-    return eval_result_make_err(err);
+    return eval_result_make_datum(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring(err)));
   }
   return eval_result_make_datum(
-      datum_make_pointer(call_ptr, args->list_tail->list_tail->list_head));
+				datum_make_list_2(datum_make_symbol(":ok"),
+						  datum_make_pointer(call_ptr, args->list_tail->list_tail->list_head)));
 }
 
 eval_result_t eval(datum_t *e, namespace_t *ctxt) {
@@ -835,7 +855,7 @@ char *fmt(datum_t *e) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (datum_is_integer(e)) {
-    sprintf(buf, "%lld", e->integer_value);
+    sprintf(buf, "%ld", e->integer_value);
   } else if (datum_is_list(e)) {
     end += sprintf(end, "(");
     for (datum_t *item = e; !datum_is_nil(item); item = item->list_tail) {
@@ -932,6 +952,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "def", builtin_def);
   namespace_def_builtin(ns, "if", builtin_if);
   namespace_def_builtin(ns, "backquote", builtin_backquote);
+  namespace_def_builtin(ns, "load-shared-library", builtin_load_shared_library);
   namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
 }
