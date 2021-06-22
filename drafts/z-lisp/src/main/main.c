@@ -422,20 +422,34 @@ void namespace_set(namespace_t *ctxt, datum_t *symbol, datum_t *value) {
 
 datum_t *symbol_make_args(void) { return datum_make_symbol("args"); }
 
+
+eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *), datum_t *items, namespace_t *ctxt) {
+  if (!datum_is_list(items)) {
+    return eval_result_make_err("expected a list");
+  }
+  datum_t *evaled_items = datum_make_nil();
+  datum_t **tail = &evaled_items;
+  for (datum_t *arg = items; !datum_is_nil(arg); arg = arg->list_tail) {
+    eval_result_t evaled_arg = fn(arg->list_head, ctxt);
+    if (eval_result_is_err(evaled_arg)) {
+      return evaled_arg;
+    }
+    *tail = datum_make_list_1(evaled_arg.datum);
+    tail = &((*tail)->list_tail);
+  }
+  return eval_result_make_datum(evaled_items);
+}
+
 eval_result_t operator_apply(datum_t *f, datum_t *args, namespace_t *ctxt) {
   datum_t *passed_args = NULL;
   if (!f->operator_eval_args) {
     passed_args = args;
   } else {
-    datum_t **tail = &passed_args;
-    for (datum_t *arg = args; !datum_is_nil(arg); arg = arg->list_tail) {
-      eval_result_t evaled_arg = eval(arg->list_head, ctxt);
-      if (eval_result_is_err(evaled_arg)) {
-        return evaled_arg;
-      }
-      *tail = datum_make_list_1(evaled_arg.datum);
-      tail = &((*tail)->list_tail);
+    eval_result_t evaled_items = list_map(eval, args, ctxt);
+    if (eval_result_is_err(evaled_items)) {
+      return evaled_items;
     }
+    passed_args = evaled_items.datum;
   }
   namespace_t *datum_ctxt = namespace_make_child(f->operator_context);
   namespace_set(datum_ctxt, symbol_make_args(), passed_args);
@@ -565,15 +579,9 @@ eval_result_t pointer_to_function_call(datum_t *f, ffi_cif *cif, void **cargs) {
 
 eval_result_t pointer_to_function_apply(datum_t *f, datum_t *args,
                                         namespace_t *ctxt) {
-  datum_t *passed_args = NULL;
-  datum_t **tail = &passed_args;
-  for (datum_t *arg = args; !datum_is_nil(arg); arg = arg->list_tail) {
-    eval_result_t evaled_arg = eval(arg->list_head, ctxt);
-    if (eval_result_is_err(evaled_arg)) {
-      return evaled_arg;
-    }
-    *tail = datum_make_list_1(evaled_arg.datum);
-    tail = &((*tail)->list_tail);
+  eval_result_t passed_args = list_map(eval, args, ctxt);
+  if (eval_result_is_err(passed_args)) {
+    return passed_args;
   }
 
   ffi_cif cif;
@@ -583,7 +591,7 @@ eval_result_t pointer_to_function_apply(datum_t *f, datum_t *args,
     return eval_result_make_err(err);
   }
   void *cargs[32];
-  err = pointer_to_function_serialize_args(f, passed_args, cargs);
+  err = pointer_to_function_serialize_args(f, passed_args.datum, cargs);
   if (err != NULL) {
     return eval_result_make_err(err);
   }
@@ -743,28 +751,22 @@ eval_result_t builtin_def(datum_t *args, namespace_t *ctxt) {
   return er;
 }
 
-eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
-  if (!datum_is_list(args->list_head) || datum_is_nil(args->list_head)) {
-    return eval_result_make_datum(args->list_head);
+eval_result_t datum_backquote(datum_t *d, namespace_t *ctxt) {
+  if (!datum_is_list(d) || datum_is_nil(d)) {
+    return eval_result_make_datum(d);
   }
-  if (datum_is_symbol(args->list_head->list_head) &&
-      !strcmp(args->list_head->list_head->symbol_value, "tilde")) {
-    return eval(args->list_head->list_tail->list_head, ctxt);
+  if (datum_is_symbol(d->list_head) &&
+      !strcmp(d->list_head->symbol_value, "tilde")) {
+    return eval(d->list_tail->list_head, ctxt);
   }
-  datum_t *processed = datum_make_nil();
-  datum_t **tail = &processed;
-  for (datum_t *elem = args->list_head; !datum_is_nil(elem);
-       elem = elem->list_tail) {
-    eval_result_t inner =
-        builtin_backquote(datum_make_list_1(elem->list_head), ctxt);
-    if (eval_result_is_err(inner)) {
-      return inner;
-    }
-    *tail = datum_make_list_1(inner.datum);
-    tail = &((*tail)->list_tail);
-  }
+  return list_map(datum_backquote, d, ctxt);
+}
 
-  return eval_result_make_datum(processed);
+eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_err("backquote expects a single argument");
+  }
+  return datum_backquote(args->list_head, ctxt);
 }
 
 eval_result_t builtin_if(datum_t *args, namespace_t *ctxt) {
