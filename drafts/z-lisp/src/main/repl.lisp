@@ -4,7 +4,7 @@
 	     (last (tail (head args)))
 	   (head (head args)))))
 (def progn (builtin.fn (last args)))
-(def quote (builtin.form  (head args)))
+(def quote (builtin.operator  (head args)))
 
 (def second
      (builtin.fn
@@ -26,7 +26,7 @@
 
 (def macro (builtin.macro `(builtin.macro (progn (decons ~(head args) args) ~(head (tail args))))))
 
-(def form (builtin.macro `(builtin.form (progn (decons ~(head args) args) ~(head (tail args))))))
+(def form (builtin.macro `(builtin.operator (progn (decons ~(head args) args) ~(head (tail args))))))
 
 (def list (builtin.fn args))
 

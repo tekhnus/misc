@@ -4,7 +4,7 @@
 	     (last (tail (head args)))
 	   (head (head args)))))
 (def progn (builtin.fn (last args)))
-(def quote (builtin.form  (head args)))
+(def quote (builtin.operator  (head args)))
 
 "hello, world!"
 
@@ -30,8 +30,8 @@ b
 c
 
 (def fn (builtin.macro `(builtin.fn (progn (decons ~(head args) args) ~(head (tail args))))))
-(def macro (builtin.macro `(builtin.macro (progn (def ~(head args) args) ~(head (tail args))))))
-(def form (builtin.macro `(builtin.form (progn (def ~(head args) args) ~(head (tail args))))))
+(def macro (builtin.macro `(builtin.macro (progn (decons ~(head args) args) ~(head (tail args))))))
+(def form (builtin.macro `(builtin.operator (progn (decons ~(head args) args) ~(head (tail args))))))
 
 (def twice (fn (arg) (add arg arg)))
 (twice 35)
@@ -40,11 +40,11 @@ c
 (def list (builtin.fn args))
 (list 1 2 3)
 
-(def defn (macro args `(def ~(head args) ~(cons 'fn (tail args)))))
-(def defmacro (macro args `(def ~(head args) ~(cons 'macro (tail args)))))
-(def defform (macro args `(def ~(head args) ~(cons 'form (tail args)))))
+(def defn (builtin.macro `(def ~(head args) ~(cons 'fn (tail args)))))
+(def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
+(def defform (builtin.macro `(def ~(head args) ~(cons 'form (tail args)))))
 
-(defmacro addpi args (list 'add (head args) pi))
+(defmacro addpi (arg) (list 'add arg pi))
 (def pi 3)
 (addpi 8)
 
@@ -77,45 +77,36 @@ c
 (defn adder (n) (fn (m) (add n m)))
 ((adder 3) 4)
 
-(def fopen
-     (extern-pointer "libSystem.dylib" "fopen"
-		((string string) pointer)))
-(def malloc
-     (extern-pointer "libSystem.dylib" "malloc"
-		((sizet) pointer)))
-(def fread
-     (extern-pointer "libSystem.dylib" "fread"
-		  ((pointer sizet sizet pointer) sizet)))
 
-(def feof
-     (extern-pointer "libSystem.dylib" "feof"
-		((pointer) int)))
+(defmacro handle-error (name) `(def ~name (second ~name)))
+
+(def libc (load-shared-library "libc.so.6"))
+(handle-error libc)
+	   
+(def fopen
+     (extern-pointer libc "fopen"
+		     ((string string) pointer)))
+(handle-error fopen)
+
+(def malloc
+     (extern-pointer libc "malloc"
+		     ((sizet) pointer)))
+(handle-error malloc)
+
+(def fread
+     (extern-pointer libc "fread"
+		     ((pointer sizet sizet pointer) sizet)))
+(handle-error fread)
 
 (def printfptr
-     (extern-pointer "libSystem.dylib" "printf"
-		((string pointer) sizet)))
-
-(def fprintfstring
-     (extern-pointer "libSystem.dylib" "fprintf"
-		((pointer string string) sizet)))
-
-
-
-(def stdin
-     (extern-pointer "libSystem.dylib" "__stdinp" pointer))
-
-(def stdout
-     (extern-pointer "libSystem.dylib" "__stdoutp" pointer))
-
-(def stderr
-     (extern-pointer "libSystem.dylib" "__stderrp" pointer))
+     (extern-pointer libc "printf"
+		     ((string pointer) sizet)))
+(handle-error printfptr)
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))
 (fread buffer 1 1024 hostsfile)
-'(printfptr "%.2048s" buffer)
-'(fprintfstring stdout "%s" "Hello, world!")
-'(feof stdin)
+(printfptr "%.2048s" buffer)
 
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))
 '(defn reverse  (()) (list)  ((cons head rest)) (append head (reverse rest)))
