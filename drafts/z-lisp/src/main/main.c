@@ -930,6 +930,23 @@ eval_result_t builtin_print(datum_t *e, namespace_t *ctxt) {
   return eval_result_make_datum(datum_make_nil());
 }
 
+eval_result_t builtin_symbol_equals(datum_t *args, namespace_t *ctxt) {
+  eval_result_t evaled_args = list_map(eval, args, ctxt);
+  if (eval_result_is_err(evaled_args)) {
+    return evaled_args;
+  }
+  if (datum_is_nil(evaled_args.datum) || datum_is_nil(evaled_args.datum->list_tail) || !datum_is_nil(evaled_args.datum->list_tail->list_tail)) {
+    return eval_result_make_err("symbol-equals requires two arguments");
+  }
+  if (!datum_is_symbol(evaled_args.datum->list_head) || !datum_is_symbol(evaled_args.datum->list_tail->list_head)) {
+    return eval_result_make_err("symbol-equals expects symbols");
+  }
+  if (!strcmp(evaled_args.datum->list_head->symbol_value, evaled_args.datum->list_tail->list_head->symbol_value)) {
+    return eval_result_make_datum(datum_make_list_1(datum_make_nil()));
+  }
+  return eval_result_make_datum(datum_make_nil());
+}
+  
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_nil(args)) {
     return eval_result_make_err("makeemptyns takes no arguments");
@@ -961,6 +978,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "backquote", builtin_backquote);
   namespace_def_builtin(ns, "load-shared-library", builtin_load_shared_library);
   namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
+  namespace_def_builtin(ns, "symbol-equals", builtin_symbol_equals);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
 }
 

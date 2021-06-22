@@ -111,4 +111,7 @@ c
 '(defn append (x ()) (list x) (x (cons head rest)) (cons head (append x rest)))
 '(defn reverse  (()) (list)  ((cons head rest)) (append head (reverse rest)))
 
-:foo
+(def foo :foo)
+
+(symbol-equals :foo :bar)
+(symbol-equals :foo foo)
