@@ -57,6 +57,14 @@
 	(tail xs)))
     (list x)))
 
+(defmacro cond- (cases)
+  (if cases
+      `(if ~(head (head cases))
+	 ~(second (head cases))
+	 (cond- ~(tail cases)))
+    ''()))
+(def cond (builtin.macro `(cond- ~args)))
+
 (defmacro handle-error (name) `(def ~name (second ~name)))
 
 (def libc (load-shared-library "libc.so.6"))
