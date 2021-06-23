@@ -947,6 +947,36 @@ eval_result_t builtin_symbol_equals(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_ok(datum_make_nil());
 }
 
+eval_result_t builtin_type(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("type expects exactly one argument");
+  }
+  eval_result_t arg_eval = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(arg_eval)) {
+    return arg_eval;
+  }
+  datum_t *arg_value = arg_eval.ok_value;
+  char *type;
+  if (datum_is_list(arg_value)) {
+    type = ":list";
+  } else if (datum_is_symbol(arg_value)) {
+    type = ":symbol";
+  } else if (datum_is_bytestring(arg_value)) {
+    type = ":bytestring";
+  } else if (datum_is_integer(arg_value)) {
+    type = ":integer";
+  } else if (datum_is_builtin(arg_value)) {
+    type = ":builtin";
+  } else if (datum_is_operator(arg_value)) {
+    type = ":operator";
+  } else if (datum_is_pointer(arg_value)) {
+    type = ":pointer";
+  } else {
+    return eval_result_make_panic("incomplete implementation of type");
+  }
+  return eval_result_make_ok(datum_make_symbol(type));
+}
+
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_nil(args)) {
     return eval_result_make_panic("makeemptyns takes no arguments");
@@ -979,6 +1009,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "load-shared-library", builtin_load_shared_library);
   namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
   namespace_def_builtin(ns, "symbol-equals", builtin_symbol_equals);
+  namespace_def_builtin(ns, "type", builtin_type);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
 }
 
