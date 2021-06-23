@@ -23,7 +23,7 @@
 	      (if (head args)
 		  `(if (eq ~(decons-fn (head (head args)) `(head ~(second args))) :err) :err ~(decons-fn (tail (head args)) `(tail ~(second args))))
 		`(if ~(second args) :err :ok))
-	    :idontknowwhattodo)))))
+	    (panic "decons met an unsupported type"))))))
 
 '(print (decons-fn 42 'bar))
 '(print (decons-fn :foo 'bar))
@@ -75,10 +75,17 @@
       `(if ~(head (head cases))
 	 ~(second (head cases))
 	 (cond- ~(tail cases)))
-    ''()))
+    (panic "cond didn't match")))
 (def cond (builtin.macro `(cond- ~args)))
 
-(defmacro handle-error (name) `(def ~name (second ~name)))
+(defn is-nil (val) (if val '() '(())))
+(defn switch-decons-fn (exp cases)
+  (if (is-nil cases)
+      (panic "switch-decons didn't match")
+    `(cond- ~(map (fn ((pat val)) `((eq :ok (decons ~pat ~exp)) ~val)) cases))))
+(defmacro switch-decons args (switch-decons-fn (head args) (tail args)))
+
+(defmacro handle-error (name) `(switch-decons ~name ((:ok tmp) (def ~name tmp)) ((:err msg) (panic msg))))
 
 (def libc (load-shared-library "libc.so.6"))
 (handle-error libc)
@@ -86,6 +93,7 @@
 (def fopen
      (extern-pointer libc "fopen"
 		     ((string string) pointer)))
+
 (handle-error fopen)
 
 (def malloc
@@ -129,13 +137,19 @@
   (progn
     (fprintfstring stdout "%s" "> ")
     (def readres (read stdin))
-    (if (tail readres)
-	(progn
-	  (def datum (second readres))
-	  (def v (eval-in nsp datum))
-	  (print (second v))
-	  (repl nsp))
-      (fprintfstring stdout "%s\n" ""))))
+    (switch-decons readres
+		   ((:eof) (fprintfstring stdout "%s\n" ""))
+		   ((:ok datum)
+		    (progn
+		      (def v (eval-in nsp datum))
+		      (switch-decons v
+				     ((:ok val) (print val))
+				     ((:err msg) (fprintfstring stdout "eval error: %s\n" msg)))
+		      (repl nsp)))
+		   ((:err msg)
+		    (progn
+		      (fprintfstring stdout "read error: %s\n" msg)
+		      (repl nsp))))))
 
 (def ns (make-namespace))
 (repl ns)

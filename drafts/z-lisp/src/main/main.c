@@ -936,14 +936,25 @@ eval_result_t builtin_eq(datum_t *args, namespace_t *ctxt) {
       !datum_is_nil(evaled_args.ok_value->list_tail->list_tail)) {
     return eval_result_make_panic("symbol-equals requires two arguments");
   }
+  datum_t *t = datum_make_list_1(datum_make_nil());
+  datum_t *f = datum_make_nil();
   if (datum_is_symbol(evaled_args.ok_value->list_head) &&
       datum_is_symbol(evaled_args.ok_value->list_tail->list_head)) {
     if (!strcmp(evaled_args.ok_value->list_head->symbol_value,
-		evaled_args.ok_value->list_tail->list_head->symbol_value)) {
-      return eval_result_make_ok(datum_make_list_1(datum_make_nil()));
+                evaled_args.ok_value->list_tail->list_head->symbol_value)) {
+      return eval_result_make_ok(t);
     }
-    return eval_result_make_ok(datum_make_nil());
+    return eval_result_make_ok(f);
   }
+  if (datum_is_integer(evaled_args.ok_value->list_head) &&
+      datum_is_integer(evaled_args.ok_value->list_tail->list_head)) {
+    if (evaled_args.ok_value->list_head->integer_value ==
+        evaled_args.ok_value->list_tail->list_head->integer_value) {
+      return eval_result_make_ok(t);
+    }
+    return eval_result_make_ok(f);
+  }
+
   return eval_result_make_panic("eq can't compare those things");
 }
 
@@ -994,6 +1005,21 @@ eval_result_t builtin_is_constant(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_ok(datum_make_nil());
 }
 
+eval_result_t builtin_panic(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("panic expects exactly one argument");
+  }
+  eval_result_t arg_eval = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(arg_eval)) {
+    return arg_eval;
+  }
+  datum_t *arg_value = arg_eval.ok_value;
+  if (!datum_is_bytestring(arg_value)) {
+    return eval_result_make_panic("panic expects a bytestring");
+  }
+  return eval_result_make_panic(arg_value->bytestring_value);
+}
+
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_nil(args)) {
     return eval_result_make_panic("makeemptyns takes no arguments");
@@ -1028,6 +1054,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "eq", builtin_eq);
   namespace_def_builtin(ns, "annotate", builtin_annotate);
   namespace_def_builtin(ns, "is-constant", builtin_is_constant);
+  namespace_def_builtin(ns, "panic", builtin_panic);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
 }
 
