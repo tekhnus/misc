@@ -926,7 +926,7 @@ eval_result_t builtin_print(datum_t *e, namespace_t *ctxt) {
   return eval_result_make_ok(datum_make_nil());
 }
 
-eval_result_t builtin_symbol_equals(datum_t *args, namespace_t *ctxt) {
+eval_result_t builtin_eq(datum_t *args, namespace_t *ctxt) {
   eval_result_t evaled_args = list_map(datum_eval, args, ctxt);
   if (eval_result_is_panic(evaled_args)) {
     return evaled_args;
@@ -936,18 +936,18 @@ eval_result_t builtin_symbol_equals(datum_t *args, namespace_t *ctxt) {
       !datum_is_nil(evaled_args.ok_value->list_tail->list_tail)) {
     return eval_result_make_panic("symbol-equals requires two arguments");
   }
-  if (!datum_is_symbol(evaled_args.ok_value->list_head) ||
-      !datum_is_symbol(evaled_args.ok_value->list_tail->list_head)) {
-    return eval_result_make_panic("symbol-equals expects symbols");
+  if (datum_is_symbol(evaled_args.ok_value->list_head) &&
+      datum_is_symbol(evaled_args.ok_value->list_tail->list_head)) {
+    if (!strcmp(evaled_args.ok_value->list_head->symbol_value,
+		evaled_args.ok_value->list_tail->list_head->symbol_value)) {
+      return eval_result_make_ok(datum_make_list_1(datum_make_nil()));
+    }
+    return eval_result_make_ok(datum_make_nil());
   }
-  if (!strcmp(evaled_args.ok_value->list_head->symbol_value,
-              evaled_args.ok_value->list_tail->list_head->symbol_value)) {
-    return eval_result_make_ok(datum_make_list_1(datum_make_nil()));
-  }
-  return eval_result_make_ok(datum_make_nil());
+  return eval_result_make_panic("eq can't compare those things");
 }
 
-eval_result_t builtin_type(datum_t *args, namespace_t *ctxt) {
+eval_result_t builtin_annotate(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("type expects exactly one argument");
   }
@@ -974,7 +974,24 @@ eval_result_t builtin_type(datum_t *args, namespace_t *ctxt) {
   } else {
     return eval_result_make_panic("incomplete implementation of type");
   }
-  return eval_result_make_ok(datum_make_symbol(type));
+  return eval_result_make_ok(
+      datum_make_list_2(datum_make_symbol(type), arg_value));
+}
+
+eval_result_t builtin_is_constant(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("type expects exactly one argument");
+  }
+  eval_result_t arg_eval = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(arg_eval)) {
+    return arg_eval;
+  }
+  datum_t *arg_value = arg_eval.ok_value;
+  if (datum_is_integer(arg_value) || datum_is_bytestring(arg_value) ||
+      (datum_is_symbol(arg_value) && arg_value->symbol_value[0] == ':')) {
+    return eval_result_make_ok(datum_make_list_1(datum_make_nil()));
+  }
+  return eval_result_make_ok(datum_make_nil());
 }
 
 eval_result_t builtin_make_namespace(datum_t *args, namespace_t *ctxt) {
@@ -1008,8 +1025,9 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "backquote", builtin_backquote);
   namespace_def_builtin(ns, "load-shared-library", builtin_load_shared_library);
   namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
-  namespace_def_builtin(ns, "symbol-equals", builtin_symbol_equals);
-  namespace_def_builtin(ns, "type", builtin_type);
+  namespace_def_builtin(ns, "eq", builtin_eq);
+  namespace_def_builtin(ns, "annotate", builtin_annotate);
+  namespace_def_builtin(ns, "is-constant", builtin_is_constant);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
 }
 

@@ -10,17 +10,30 @@
      (builtin.fn
       (head (tail (head args)))))
 
-(def deconsfn
+(def type (builtin.fn (head (annotate (head args)))))
+(def decons-fn
      (builtin.fn
-      (if (head args)
-	  `(progn
-	     (def ~(head (head args)) (head ~(second args)))
-	     ~(deconsfn (tail (head args)) `(tail ~(second args))))
-	''())))
+      (if (is-constant (head args))
+	  `(if (eq ~(head args) ~(second args)) :ok :err)
+	(if (eq (type (head args)) :symbol)
+	    `(progn
+	       (def ~(head args) ~(second args))
+	       :ok)
+	  (if (eq (type (head args)) :list)
+	      (if (head args)
+		  `(if (eq ~(decons-fn (head (head args)) `(head ~(second args))) :err) :err ~(decons-fn (tail (head args)) `(tail ~(second args))))
+		`(if ~(second args) :err :ok))
+	    :idontknowwhattodo)))))
+
+'(print (decons-fn 42 'bar))
+'(print (decons-fn :foo 'bar))
+'(print (decons-fn 'foo 'bar))
+'(print (decons-fn '() 'bar))
+'(print (decons-fn '(foo1 foo2) 'bar))
 
 (def decons
      (builtin.macro
-      (deconsfn (head args) (second args))))
+      (decons-fn (head args) (second args))))
 
 (def fn (builtin.macro `(builtin.fn (progn (decons ~(head args) args) ~(head (tail args))))))
 
