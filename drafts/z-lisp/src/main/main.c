@@ -1059,33 +1059,36 @@ void namespace_def_builtins(namespace_t *ns) {
 }
 
 int main(int argc, char **argv) {
-  if (argc != 2) {
-    printf("usage: %s <filename>\n", argv[0]);
-    exit(EXIT_FAILURE);
-  }
-  FILE *f = fopen(argv[1], "r");
-  if (f == NULL) {
-    perror("error while opening the script file");
+  if (argc < 2) {
+    printf("usage: %s <prelude> <script> ...\n", argv[0]);
     exit(EXIT_FAILURE);
   }
   namespace_t *ns = namespace_make_new();
   namespace_def_builtins(ns);
 
-  read_result_t rr;
+  for (int i = 1; i < argc; ++i) {
+    FILE *f = fopen(argv[i], "r");
+    if (f == NULL) {
+      perror("error while opening the script file");
+      exit(EXIT_FAILURE);
+    }
 
-  for (; read_result_is_ok(rr = datum_read(f));) {
-    eval_result_t val = datum_eval(rr.ok_value, ns);
-    if (eval_result_is_panic(val)) {
-      printf("%s\n", val.panic_message);
+    read_result_t rr;
+
+    for (; read_result_is_ok(rr = datum_read(f));) {
+      eval_result_t val = datum_eval(rr.ok_value, ns);
+      if (eval_result_is_panic(val)) {
+	printf("%s\n", val.panic_message);
+	exit(EXIT_FAILURE);
+      }
+    }
+    if (read_result_is_right_paren(rr)) {
+      printf("unmatched closing bracket\n");
+      exit(EXIT_FAILURE);
+    } else if (read_result_is_panic(rr)) {
+      printf("%s\n", rr.panic_message);
       exit(EXIT_FAILURE);
     }
   }
-  if (read_result_is_right_paren(rr)) {
-    printf("unmatched closing bracket\n");
-    exit(EXIT_FAILURE);
-  } else if (read_result_is_panic(rr)) {
-    printf("%s\n", rr.panic_message);
-    exit(EXIT_FAILURE);
-  }
-  return 0;
+  return EXIT_SUCCESS;
 }

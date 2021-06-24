@@ -16,7 +16,7 @@ target/obj/%.o: src/main/%.c
 	gcc $(CFLAGS) -c -o $@ $<
 
 run-repl: target/z-lisp
-	target/z-lisp src/main/repl.lisp
+	target/z-lisp src/main/prelude.lisp src/main/repl.lisp
 
 clean:
 	rm -rf target/
