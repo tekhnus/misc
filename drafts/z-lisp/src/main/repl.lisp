@@ -35,19 +35,20 @@
      (builtin.macro
       (decons-fn (head args) (second args))))
 
-(def fn (builtin.macro `(builtin.fn (progn (decons ~(head args) args) ~(head (tail args))))))
+(def progn- (builtin.fn (cons 'progn (head args))))
 
-(def macro (builtin.macro `(builtin.macro (progn (decons ~(head args) args) ~(head (tail args))))))
+(def myprog '((print 42) (print 33)))
+(progn- myprog)
 
-(def form (builtin.macro `(builtin.operator (progn (decons ~(head args) args) ~(head (tail args))))))
+(def fn (builtin.macro `(builtin.fn (if (eq :ok (decons ~(head args) args)) ~(progn- (tail args)) (panic "wrong fn call")))))
+
+(def macro (builtin.macro `(builtin.macro (if (eq :ok (decons ~(head args) args)) ~(progn- (tail args)) (panic "wrong macro call")))))
 
 (def list (builtin.fn args))
 
 (def defn (builtin.macro `(def ~(head args) ~(cons 'fn (tail args)))))
 
 (def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
-
-(def defform (builtin.macro `(def ~(head args) ~(cons 'form (tail args)))))
 
 (defn third args (head (tail (tail (head args)))))
 
@@ -133,23 +134,23 @@
      (extern-pointer libc "stderr" pointer))
 (handle-error stderr)
 
-(defn repl (nsp)
-  (progn
-    (fprintfstring stdout "%s" "> ")
-    (def readres (read stdin))
-    (switch-decons readres
-		   ((:eof) (fprintfstring stdout "%s\n" ""))
-		   ((:ok datum)
-		    (progn
-		      (def v (eval-in nsp datum))
-		      (switch-decons v
-				     ((:ok val) (print val))
-				     ((:err msg) (fprintfstring stdout "eval error: %s\n" msg)))
-		      (repl nsp)))
-		   ((:err msg)
-		    (progn
-		      (fprintfstring stdout "read error: %s\n" msg)
-		      (repl nsp))))))
+(defn repl
+  (nsp)
+  (fprintfstring stdout "%s" "> ")
+  (def readres (read stdin))
+  (switch-decons readres
+		 ((:eof) (fprintfstring stdout "%s\n" ""))
+		 ((:ok datum)
+		  (progn
+		    (def v (eval-in nsp datum))
+		    (switch-decons v
+				   ((:ok val) (print val))
+				   ((:err msg) (fprintfstring stdout "eval error: %s\n" msg)))
+		    (repl nsp)))
+		 ((:err msg)
+		  (progn
+		    (fprintfstring stdout "read error: %s\n" msg)
+		    (repl nsp)))))
 
 (def ns (make-namespace))
 (repl ns)
