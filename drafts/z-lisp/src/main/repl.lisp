@@ -25,20 +25,11 @@
 		`(if ~(second args) :err :ok))
 	    (panic "decons met an unsupported type"))))))
 
-'(print (decons-fn 42 'bar))
-'(print (decons-fn :foo 'bar))
-'(print (decons-fn 'foo 'bar))
-'(print (decons-fn '() 'bar))
-'(print (decons-fn '(foo1 foo2) 'bar))
-
 (def decons
      (builtin.macro
       (decons-fn (head args) (second args))))
 
 (def progn- (builtin.fn (cons 'progn (head args))))
-
-(def myprog '((print 42) (print 33)))
-(progn- myprog)
 
 (def fn (builtin.macro `(builtin.fn (if (eq :ok (decons ~(head args) args)) ~(progn- (tail args)) (panic "wrong fn call")))))
 
@@ -90,12 +81,6 @@
 
 (def libc (load-shared-library "libc.so.6"))
 (handle-error libc)
-	   
-(def fopen
-     (extern-pointer libc "fopen"
-		     ((string string) pointer)))
-
-(handle-error fopen)
 
 (def malloc
      (extern-pointer libc "malloc"
@@ -112,15 +97,15 @@
 		     ((pointer) int)))
 (handle-error feof)
 
-(def printfptr
-     (extern-pointer libc "printf"
-		     ((string pointer) sizet)))
-(handle-error printfptr)
+(def fprintf
+     (extern-pointer libc "fprintf"
+		     ((pointer string) sizet)))
+(handle-error fprintf)
 
-(def fprintfstring
+(def fprintf-bytestring
      (extern-pointer libc "fprintf"
 		     ((pointer string string) sizet)))
-(handle-error fprintfstring)
+(handle-error fprintf-bytestring)
 
 (def stdin
      (extern-pointer libc "stdin" pointer))
@@ -136,21 +121,21 @@
 
 (defn repl
   (nsp)
-  (fprintfstring stdout "%s" "> ")
+  (fprintf stdout "> ")
   (def readres (read stdin))
   (switch readres
 	  ((:eof)
-	   (fprintfstring stdout "%s\n" ""))
+	   (fprintf stdout "\n"))
 	  ((:ok datum)
 	   (def v (eval-in nsp datum))
 	   (switch v
 		   ((:ok val)
 		    (print val))
 		   ((:err msg)
-		    (fprintfstring stdout "eval error: %s\n" msg)))
+		    (fprintf-bytestring stderr "eval error: %s\n" msg)))
 	   (repl nsp))
 	  ((:err msg)
-	   (fprintfstring stdout "read error: %s\n" msg)
+	   (fprintf-bytestring stderr "read error: %s\n" msg)
 	   (repl nsp))))
 
 (def ns (make-namespace))
