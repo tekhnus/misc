@@ -113,5 +113,5 @@ c
 
 (def foo :foo)
 
-(symbol-equals :foo :bar)
-(symbol-equals :foo foo)
+(eq :foo :bar)
+(eq :foo foo)
