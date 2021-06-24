@@ -80,13 +80,13 @@
 (def cond (builtin.macro `(cond- ~args)))
 
 (defn is-nil (val) (if val '() '(())))
-(defn switch-decons-fn (exp cases)
+(defn switch-fn (exp cases)
   (if (is-nil cases)
-      (panic "switch-decons didn't match")
-    `(cond- ~(map (fn ((pat val)) `((eq :ok (decons ~pat ~exp)) ~val)) cases))))
-(defmacro switch-decons args (switch-decons-fn (head args) (tail args)))
+      (panic "switch didn't match")
+    `(cond- ~(map (fn (pat-val) `((eq :ok (decons ~(head pat-val) ~exp)) ~(progn- (tail pat-val)))) cases))))
+(defmacro switch args (switch-fn (head args) (tail args)))
 
-(defmacro handle-error (name) `(switch-decons ~name ((:ok tmp) (def ~name tmp)) ((:err msg) (panic msg))))
+(defmacro handle-error (name) `(switch ~name ((:ok tmp) (def ~name tmp)) ((:err msg) (panic msg))))
 
 (def libc (load-shared-library "libc.so.6"))
 (handle-error libc)
@@ -138,19 +138,20 @@
   (nsp)
   (fprintfstring stdout "%s" "> ")
   (def readres (read stdin))
-  (switch-decons readres
-		 ((:eof) (fprintfstring stdout "%s\n" ""))
-		 ((:ok datum)
-		  (progn
-		    (def v (eval-in nsp datum))
-		    (switch-decons v
-				   ((:ok val) (print val))
-				   ((:err msg) (fprintfstring stdout "eval error: %s\n" msg)))
-		    (repl nsp)))
-		 ((:err msg)
-		  (progn
-		    (fprintfstring stdout "read error: %s\n" msg)
-		    (repl nsp)))))
+  (switch readres
+	  ((:eof)
+	   (fprintfstring stdout "%s\n" ""))
+	  ((:ok datum)
+	   (def v (eval-in nsp datum))
+	   (switch v
+		   ((:ok val)
+		    (print val))
+		   ((:err msg)
+		    (fprintfstring stdout "eval error: %s\n" msg)))
+	   (repl nsp))
+	  ((:err msg)
+	   (fprintfstring stdout "read error: %s\n" msg)
+	   (repl nsp))))
 
 (def ns (make-namespace))
 (repl ns)
