@@ -687,18 +687,6 @@ eval_result_t builtin_add(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_ok(datum_make_int(res));
 }
 
-eval_result_t builtin_eval(datum_t *e, namespace_t *ctxt) {
-  if (datum_is_nil(e) || !datum_is_nil(e->list_tail)) {
-    return eval_result_make_panic("eval expects exactly one argument");
-  }
-  eval_result_t v = datum_eval(e->list_head, ctxt);
-  if (eval_result_is_panic(v)) {
-    return v;
-  }
-  v = datum_eval(v.ok_value, ctxt);
-  return v;
-}
-
 eval_result_t builtin_eval_in(datum_t *e, namespace_t *ctxt) {
   if (datum_is_nil(e) || datum_is_nil(e->list_tail) ||
       !datum_is_nil(e->list_tail->list_tail)) {
@@ -1036,7 +1024,6 @@ void namespace_def_builtin(namespace_t *ctxt, char *name,
 
 void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "add", builtin_add);
-  namespace_def_builtin(ns, "eval", builtin_eval);
   namespace_def_builtin(ns, "eval-in", builtin_eval_in);
   namespace_def_builtin(ns, "read", builtin_read);
   namespace_def_builtin(ns, "print", builtin_print);
