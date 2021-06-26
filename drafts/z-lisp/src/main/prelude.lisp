@@ -70,12 +70,20 @@
     (panic "cond didn't match")))
 (def cond (builtin.macro `(cond- ~args)))
 
+(defmacro block-with-argument (exp blk)
+  `(progn
+     (def argstack (cons ~exp argstack))
+     ~blk
+     (def argstack (tail argstack))))
+
+(defmacro block-argument () `(head argstack))
+
 (defn is-nil (val) (if val '() '(())))
 (defn switch-fn (exp cases)
   (if (is-nil cases)
       (panic "switch didn't match")
     `(cond- ~(map (fn (pat-val) `((eq :ok (decons ~(head pat-val) ~exp)) ~(progn- (tail pat-val)))) cases))))
-(defmacro switch args (switch-fn (head args) (tail args)))
+(defmacro switch args `(block-with-argument ~(head args) ~(switch-fn `(block-argument) (tail args))))
 
 (defmacro handle-error (name) `(switch ~name ((:ok tmp) (def ~name tmp)) ((:err msg) (panic msg))))
 

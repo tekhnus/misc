@@ -726,9 +726,6 @@ eval_result_t builtin_cons(datum_t *args, namespace_t *ctxt) {
       !datum_is_nil(args->list_tail->list_tail)) {
     return eval_result_make_panic("cons expects exactly two arguments");
   }
-  if (!datum_is_list(args->list_tail->list_head)) {
-    return eval_result_make_panic("cons requires a list as a second argument");
-  }
   eval_result_t er = datum_eval(args->list_head, ctxt);
   if (eval_result_is_panic(er)) {
     return er;
@@ -737,6 +734,9 @@ eval_result_t builtin_cons(datum_t *args, namespace_t *ctxt) {
   er = datum_eval(args->list_tail->list_head, ctxt);
   if (eval_result_is_panic(er)) {
     return er;
+  }
+  if (!datum_is_list(er.ok_value)) {
+    return eval_result_make_panic("cons requires a list as a second argument");
   }
   result->list_tail = er.ok_value;
   return eval_result_make_ok(result);
@@ -1056,6 +1056,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "is-constant", builtin_is_constant);
   namespace_def_builtin(ns, "panic", builtin_panic);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
+  namespace_set(ns, datum_make_symbol("argstack"), datum_make_nil());
 }
 
 int main(int argc, char **argv) {

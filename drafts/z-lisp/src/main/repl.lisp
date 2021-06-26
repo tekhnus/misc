@@ -1,13 +1,11 @@
 (defn repl
   (nsp)
   (fprintf stdout "> ")
-  (def readres (read stdin))
-  (switch readres
+  (switch (read stdin)
 	  ((:eof)
 	   (fprintf stdout "\n"))
 	  ((:ok datum)
-	   (def v (eval-in nsp datum))
-	   (switch v
+	   (switch (eval-in nsp datum)
 		   ((:ok val)
 		    (print val))
 		   ((:err msg)
