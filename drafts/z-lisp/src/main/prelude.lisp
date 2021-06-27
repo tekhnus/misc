@@ -80,14 +80,6 @@
     (panic "cond didn't match")))
 (def cond (builtin.macro `(cond- ~args)))
 
-(defmacro block-with-argument (exp blk)
-  `(progn
-     (def argstack (cons ~exp argstack))
-     ~blk
-     (def argstack (tail argstack))))
-
-(defmacro block-argument () `(head argstack))
-
 (defmacro handle-error (name) `(switch ~name ((:ok tmp) (def ~name tmp)) ((:err msg) (panic msg))))
 
 (def libc (load-shared-library "libc.so.6"))

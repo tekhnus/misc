@@ -1079,7 +1079,6 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "is-constant", builtin_is_constant);
   namespace_def_builtin(ns, "panic", builtin_panic);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
-  namespace_set(ns, datum_make_symbol("argstack"), datum_make_nil());
 }
 
 int main(int argc, char **argv) {

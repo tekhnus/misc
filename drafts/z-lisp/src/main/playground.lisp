@@ -79,10 +79,3 @@ c
 
 (eq :foo :bar)
 (eq :foo foo)
-
-(block-with-argument 42
-		     (progn
-		       (print (block-argument))
-		       (block-with-argument 33
-					    (print (block-argument)))
-		       (print (block-argument))))
