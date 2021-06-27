@@ -403,8 +403,6 @@ namespace_t *namespace_make_child(namespace_t *parent_namespace) {
   return res;
 }
 
-namespace_t *namespace_make_new() { return namespace_make_child(NULL); }
-
 namespace_t *namespace_get_parent(namespace_t *ns) { return ns->list_tail; }
 
 flat_namespace_t *namespace_get_own_bindings(namespace_t *ns) {
@@ -446,6 +444,8 @@ void namespace_set(namespace_t *ctxt, datum_t *symbol, datum_t *value) {
   flat_namespace_t *locals = namespace_get_own_bindings(ctxt);
   namespace_set_own_bindings(ctxt, flat_namespace_set(locals, symbol, value));
 }
+
+namespace_t *namespace_make_new() { namespace_t *ns = namespace_make_child(NULL); namespace_set(ns, datum_make_symbol("args"), datum_make_nil()); return ns; }
 
 eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
                        datum_t *items, namespace_t *ctxt) {
@@ -782,16 +782,28 @@ eval_result_t builtin_operator(datum_t *args, namespace_t *ctxt) {
       datum_make_operator(args->list_head, ctxt, false, false));
 }
 
+eval_result_t builtin_provide(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
+      !datum_is_nil(args->list_tail->list_tail)) {
+    return eval_result_make_panic("provide expects exactly two arguments");
+  }
+  eval_result_t new_args = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(new_args)) {
+    return new_args;
+  }
+  datum_t *args_sym = datum_make_symbol("args");
+  eval_result_t old_args = namespace_get(ctxt, args_sym);
+  if (eval_result_is_panic(old_args)) {
+    return old_args;
+  }
+  namespace_set(ctxt, args_sym, new_args.ok_value);
+  eval_result_t res = datum_eval(args->list_tail->list_head, ctxt);
+  namespace_set(ctxt, args_sym, old_args.ok_value);
+  return res;
+}
+ 
 eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args)) {
-    return eval_result_make_panic("switch expects at least a single argument");
-  }
-  eval_result_t val = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(val)) {
-    return val;
-  }
-  for (datum_t *branch = args->list_tail; !datum_is_nil(branch); branch = branch->list_tail) {
-    namespace_set(ctxt, datum_make_symbol("args"), val.ok_value);
+  for (datum_t *branch = args; !datum_is_nil(branch); branch = branch->list_tail) {
     eval_result_t branch_val = datum_eval(branch->list_head, ctxt);
     if (eval_result_is_panic(branch_val)) {
       return branch_val;
@@ -1068,6 +1080,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
   namespace_def_builtin(ns, "builtin.fn", builtin_fn);
   namespace_def_builtin(ns, "builtin.operator", builtin_operator);
+  namespace_def_builtin(ns, "provide", builtin_provide);
   namespace_def_builtin(ns, "builtin.switch", builtin_switch);
   namespace_def_builtin(ns, "def", builtin_def);
   namespace_def_builtin(ns, "if", builtin_if);

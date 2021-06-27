@@ -1,5 +1,8 @@
 "hello, world!"
 
+(print args)
+(provide 42 (print args))
+
 (print
  (builtin.switch 42
 		 (if (eq args 42) '(:break 33) :continue)))

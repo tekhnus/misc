@@ -49,7 +49,7 @@
 (def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
 
 (defmacro switch argz
-  (cons 'builtin.switch (cons (head argz) (map (fn (blk) (cons 'code-block blk)) (tail argz)))))
+  `(provide ~(head argz) ~(cons 'builtin.switch (map (fn (blk) (cons 'code-block blk)) (tail argz)))))
 
 (defn third args (head (tail (tail (head args)))))
 
