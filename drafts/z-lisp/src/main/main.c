@@ -782,6 +782,41 @@ eval_result_t builtin_operator(datum_t *args, namespace_t *ctxt) {
       datum_make_operator(args->list_head, ctxt, false, false));
 }
 
+eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args)) {
+    return eval_result_make_panic("switch expects at least a single argument");
+  }
+  eval_result_t val = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(val)) {
+    return val;
+  }
+  for (datum_t *branch = args->list_tail; !datum_is_nil(branch); branch = branch->list_tail) {
+    namespace_set(ctxt, datum_make_symbol("args"), val.ok_value);
+    eval_result_t branch_val = datum_eval(branch->list_head, ctxt);
+    if (eval_result_is_panic(branch_val)) {
+      return branch_val;
+    }
+    if (!datum_is_list(branch_val.ok_value) || datum_is_nil(branch_val.ok_value) || !datum_is_symbol(branch_val.ok_value->list_head)) {
+      return eval_result_make_panic("the branch should either break or continue");
+    }
+    char *tag = branch_val.ok_value->list_head->symbol_value;
+    if (!strcmp(tag, ":continue")) {
+      if (!datum_is_nil(branch_val.ok_value->list_tail)) {
+	return eval_result_make_panic("the branch should either break or continue");
+      }
+      continue;
+    }
+    if (!strcmp(tag, ":break")) {
+      if (datum_is_nil(branch_val.ok_value->list_tail) || !datum_is_nil(branch_val.ok_value->list_tail->list_tail)) {
+	return eval_result_make_panic("the branch should either break or continue");
+      }
+      return eval_result_make_ok(branch_val.ok_value->list_tail->list_head);
+    }
+    return eval_result_make_panic("the branch should either break or continue");
+  }
+  return eval_result_make_panic("nothing matched");
+}
+
 eval_result_t builtin_def(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
@@ -1033,6 +1068,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
   namespace_def_builtin(ns, "builtin.fn", builtin_fn);
   namespace_def_builtin(ns, "builtin.operator", builtin_operator);
+  namespace_def_builtin(ns, "builtin.switch", builtin_switch);
   namespace_def_builtin(ns, "def", builtin_def);
   namespace_def_builtin(ns, "if", builtin_if);
   namespace_def_builtin(ns, "backquote", builtin_backquote);

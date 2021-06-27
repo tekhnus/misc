@@ -1,5 +1,10 @@
 "hello, world!"
 
+(print
+ (builtin.switch 42
+		 (if (eq args 42) '(:break 33) :continue)))
+
+
 (decons (a b c) '(7 8 9))
 a
 b
