@@ -29,6 +29,13 @@
      (builtin.macro
       (decons-fn (head args) (second args))))
 
+
+(def code-block
+     (builtin.macro
+      `(if (eq :err (decons ~(head args) args))
+	   (list :continue)
+	 (list :break ~(cons 'progn (tail args))))))
+
 (def progn- (builtin.fn (cons 'progn (head args))))
 
 (def fn (builtin.macro `(builtin.fn (if (eq :ok (decons ~(head args) args)) ~(progn- (tail args)) (panic "wrong fn call")))))
@@ -40,6 +47,9 @@
 (def defn (builtin.macro `(def ~(head args) ~(cons 'fn (tail args)))))
 
 (def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
+
+(defmacro switch argz
+  (cons 'builtin.switch (cons (head argz) (map (fn (blk) (cons 'code-block blk)) (tail argz)))))
 
 (defn third args (head (tail (tail (head args)))))
 
@@ -77,13 +87,6 @@
      (def argstack (tail argstack))))
 
 (defmacro block-argument () `(head argstack))
-
-(defn is-nil (val) (if val '() '(())))
-(defn switch-fn (exp cases)
-  (if (is-nil cases)
-      (panic "switch didn't match")
-    `(cond- ~(map (fn (pat-val) `((eq :ok (decons ~(head pat-val) ~exp)) ~(progn- (tail pat-val)))) cases))))
-(defmacro switch args `(block-with-argument ~(head args) ~(switch-fn `(block-argument) (tail args))))
 
 (defmacro handle-error (name) `(switch ~name ((:ok tmp) (def ~name tmp)) ((:err msg) (panic msg))))
 

@@ -4,6 +4,17 @@
  (builtin.switch 42
 		 (if (eq args 42) '(:break 33) :continue)))
 
+(def args (list :p :q :r))
+(code-block
+ (a b c)
+ 777
+ )
+
+(switch 42
+	    (33
+	     :one)
+	    (42
+	     :two))
 
 (decons (a b c) '(7 8 9))
 a
