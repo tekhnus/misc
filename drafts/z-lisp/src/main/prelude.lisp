@@ -36,11 +36,25 @@
 	   (list :continue)
 	 (list :break ~(cons 'progn (tail args))))))
 
+(def map (builtin.fn
+  (if (head (tail args))
+      (cons
+       ((head args)
+	(head (head (tail args))))
+       (map
+	(head args)
+	(tail (head (tail args)))))
+    '())))
+
+(def switch-blocks (builtin.macro (cons 'builtin.switch (map (builtin.fn (cons 'code-block (head args))) args))))
+
+(def panic-block '(argz (panic "wrong fn call")))
+
 (def progn- (builtin.fn (cons 'progn (head args))))
 
-(def fn (builtin.macro `(builtin.fn (if (eq :ok (decons ~(head args) args)) ~(progn- (tail args)) (panic "wrong fn call")))))
+(def fn (builtin.macro `(builtin.fn (switch-blocks ~args ~panic-block))))
 
-(def macro (builtin.macro `(builtin.macro (if (eq :ok (decons ~(head args) args)) ~(progn- (tail args)) (panic "wrong macro call")))))
+(def macro (builtin.macro `(builtin.macro (switch-blocks ~args ~panic-block))))
 
 (def list (builtin.fn args))
 
@@ -48,20 +62,9 @@
 
 (def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
 
-(defmacro switch argz
-  `(provide ~(head argz) ~(cons 'builtin.switch (map (fn (blk) (cons 'code-block blk)) (tail argz)))))
+(defmacro switch argz `(provide ~(head argz) ~(cons 'switch-blocks (tail argz))))
 
 (defn third args (head (tail (tail (head args)))))
-
-(defn map (f s)
-  (if s
-      (cons
-       (f
-	(head s))
-       (map
-	f
-	(tail s)))
-    '()))
 
 (defn append (x xs)
   (if xs
@@ -71,6 +74,7 @@
 	x
 	(tail xs)))
     (list x)))
+
 
 (defmacro cond- (cases)
   (if cases

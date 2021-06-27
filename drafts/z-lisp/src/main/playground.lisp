@@ -3,9 +3,10 @@
 (print args)
 (provide 42 (print args))
 
+(provide 42
 (print
- (builtin.switch 42
-		 (if (eq args 42) '(:break 33) :continue)))
+ (builtin.switch
+  (if (eq args 42) '(:break 33) '(:continue)))))
 
 (def args (list :p :q :r))
 (code-block
