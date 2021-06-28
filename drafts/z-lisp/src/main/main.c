@@ -872,12 +872,15 @@ eval_result_t builtin_load_shared_library(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic(
         "load-shared-library expects exactly one argument");
   }
-  datum_t *library_name = args->list_head;
-  if (!datum_is_bytestring(library_name)) {
+  eval_result_t library_name = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(library_name)) {
+    return library_name;
+  }
+  if (!datum_is_bytestring(library_name.ok_value)) {
     return eval_result_make_panic("load-shared-library expects a bytestring");
   }
   void **handle = malloc(sizeof(void *));
-  *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
+  *handle = dlopen(library_name.ok_value->bytestring_value, RTLD_LAZY);
   char *err = dlerror();
   if (!handle) {
     return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"),
@@ -906,7 +909,11 @@ eval_result_t builtin_extern_pointer(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("wrong externcdata usage");
   }
   void *handle = *(void **)shared_library.ok_value->pointer_value;
-  void *call_ptr = dlsym(handle, args->list_tail->list_head->bytestring_value);
+  eval_result_t name = datum_eval(args->list_tail->list_head, ctxt);
+  if (eval_result_is_panic(name)) {
+    return name;
+  }
+  void *call_ptr = dlsym(handle, name.ok_value->bytestring_value);
   char *err = dlerror();
   if (err != NULL) {
     return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"),
@@ -1070,13 +1077,7 @@ void namespace_def_builtin(namespace_t *ctxt, char *name,
 }
 
 void namespace_def_builtins(namespace_t *ns) {
-  namespace_def_builtin(ns, "add", builtin_add);
   namespace_def_builtin(ns, "eval-in", builtin_eval_in);
-  namespace_def_builtin(ns, "read", builtin_read);
-  namespace_def_builtin(ns, "print", builtin_print);
-  namespace_def_builtin(ns, "cons", builtin_cons);
-  namespace_def_builtin(ns, "head", builtin_head);
-  namespace_def_builtin(ns, "tail", builtin_tail);
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
   namespace_def_builtin(ns, "builtin.fn", builtin_fn);
   namespace_def_builtin(ns, "builtin.operator", builtin_operator);
@@ -1085,13 +1086,20 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "def", builtin_def);
   namespace_def_builtin(ns, "if", builtin_if);
   namespace_def_builtin(ns, "backquote", builtin_backquote);
-  namespace_def_builtin(ns, "load-shared-library", builtin_load_shared_library);
   namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
+  namespace_def_builtin(ns, "panic", builtin_panic);
+
+  namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
+  namespace_def_builtin(ns, "add", builtin_add);
+  namespace_def_builtin(ns, "read", builtin_read);
+  namespace_def_builtin(ns, "print", builtin_print);
+  namespace_def_builtin(ns, "cons", builtin_cons);
+  namespace_def_builtin(ns, "head", builtin_head);
+  namespace_def_builtin(ns, "tail", builtin_tail);
   namespace_def_builtin(ns, "eq", builtin_eq);
   namespace_def_builtin(ns, "annotate", builtin_annotate);
   namespace_def_builtin(ns, "is-constant", builtin_is_constant);
-  namespace_def_builtin(ns, "panic", builtin_panic);
-  namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
+  namespace_def_builtin(ns, "load-shared-library", builtin_load_shared_library);
 }
 
 int main(int argc, char **argv) {
