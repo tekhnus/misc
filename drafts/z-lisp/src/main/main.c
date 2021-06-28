@@ -509,6 +509,20 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
     *type = &ffi_type_sint;
     return true;
   }
+  if (!strcmp(definition->symbol_value, "datum")) {
+    *type = &ffi_type_pointer;
+    return true;
+  }
+  if (!strcmp(definition->symbol_value, "eval_result")) {
+    *type = malloc(sizeof(ffi_type));
+    (*type)->type = FFI_TYPE_STRUCT;
+    ffi_type **elements = malloc(3 * sizeof(ffi_type *));
+    elements[0] = &ffi_type_pointer;
+    elements[1] = &ffi_type_pointer;
+    elements[2] = NULL;
+    (*type)->elements = elements;
+    return type;
+  }
   return false;
 }
 
@@ -567,6 +581,8 @@ char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
         return "pointer expected, got something else";
       }
       cargs[arg_cnt] = arg->list_head->pointer_value;
+    } else if (!strcmp(argt->list_head->symbol_value, "datum")) {
+      cargs[arg_cnt] = &arg->list_head;
     } else {
       return "cannot load an argument";
     }
@@ -597,6 +613,11 @@ eval_result_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
     void *res = malloc(sizeof(int));
     ffi_call(cif, fn_ptr, res, cargs);
     return eval_result_make_ok(datum_make_int(*(int64_t *)res));
+  }
+  if (!strcmp(rettype, "eval_result")) {
+    eval_result_t res;
+    ffi_call(cif, fn_ptr, &res, cargs);
+    return res;
   }
   return eval_result_make_panic("unknown return type for extern func");
 }
@@ -672,19 +693,11 @@ eval_result_t datum_backquote(datum_t *d, namespace_t *ctxt) {
   return list_map(datum_backquote, d, ctxt);
 }
 
-eval_result_t builtin_add(datum_t *args, namespace_t *ctxt) {
-  int64_t res = 0;
-  for (datum_t *arg = args; !datum_is_nil(arg); arg = arg->list_tail) {
-    eval_result_t x = datum_eval(arg->list_head, ctxt);
-    if (eval_result_is_panic(x)) {
-      return x;
-    }
-    if (!datum_is_integer(x.ok_value)) {
-      return eval_result_make_panic("expected integers");
-    }
-    res += x.ok_value->integer_value;
+eval_result_t builtin_add(datum_t *x, datum_t *y) {
+  if (!datum_is_integer(x) || !datum_is_integer(y)) {
+    return eval_result_make_panic("expected integers");
   }
-  return eval_result_make_ok(datum_make_int(res));
+  return eval_result_make_ok(datum_make_int(x->integer_value + y->integer_value));
 }
 
 eval_result_t builtin_eval_in(datum_t *e, namespace_t *ctxt) {
@@ -1076,6 +1089,15 @@ void namespace_def_builtin(namespace_t *ctxt, char *name,
   namespace_set(ctxt, datum_make_symbol(name), datum_make_builtin(form));
 }
 
+void namespace_def_variadic(namespace_t *ctxt, char *name, eval_result_t (*fn)(), int cnt) {
+  datum_t *sig = datum_make_nil();
+  for (int i = 0; i < cnt; ++i) {
+    sig = datum_make_list(datum_make_symbol("datum"), sig);
+  }
+  datum_t *wrapped_fn = datum_make_pointer((void *)fn, datum_make_list_2(sig, datum_make_symbol("eval_result")));
+  namespace_set(ctxt, datum_make_symbol(name), wrapped_fn);
+}
+
 void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "eval-in", builtin_eval_in);
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
@@ -1090,7 +1112,7 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "panic", builtin_panic);
 
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
-  namespace_def_builtin(ns, "add", builtin_add);
+  namespace_def_variadic(ns, "add", builtin_add, 2);
   namespace_def_builtin(ns, "read", builtin_read);
   namespace_def_builtin(ns, "print", builtin_print);
   namespace_def_builtin(ns, "cons", builtin_cons);
