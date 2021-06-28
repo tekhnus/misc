@@ -46,29 +46,15 @@ c
 ((adder 3) 4)
 
 
-(defmacro handle-error (name) `(def ~name (second ~name)))
-
-(def libc (load-shared-library "libc.so.6"))
-(handle-error libc)
-	   
 (def fopen
      (extern-pointer libc "fopen"
-		     ((string string) pointer)))
+		     '((string string) pointer)))
 (handle-error fopen)
 
-(def malloc
-     (extern-pointer libc "malloc"
-		     ((sizet) pointer)))
-(handle-error malloc)
-
-(def fread
-     (extern-pointer libc "fread"
-		     ((pointer sizet sizet pointer) sizet)))
-(handle-error fread)
 
 (def printfptr
      (extern-pointer libc "printf"
-		     ((string pointer) sizet)))
+		     '((string pointer) sizet)))
 (handle-error printfptr)
 
 (def hostsfile (fopen "/etc/hosts" "r"))

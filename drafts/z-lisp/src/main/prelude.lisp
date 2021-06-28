@@ -91,37 +91,37 @@
 
 (def malloc
      (extern-pointer libc "malloc"
-		     ((sizet) pointer)))
+		     '((sizet) pointer)))
 (handle-error malloc)
 
 (def fread
      (extern-pointer libc "fread"
-		     ((pointer sizet sizet pointer) sizet)))
+		     '((pointer sizet sizet pointer) sizet)))
 (handle-error fread)
 
 (def feof
      (extern-pointer libc "feof"
-		     ((pointer) int)))
+		     '((pointer) int)))
 (handle-error feof)
 
 (def fprintf
      (extern-pointer libc "fprintf"
-		     ((pointer string) sizet)))
+		     '((pointer string) sizet)))
 (handle-error fprintf)
 
 (def fprintf-bytestring
      (extern-pointer libc "fprintf"
-		     ((pointer string string) sizet)))
+		     '((pointer string string) sizet)))
 (handle-error fprintf-bytestring)
 
 (def stdin
-     (extern-pointer libc "stdin" pointer))
+     (extern-pointer libc "stdin" 'pointer))
 (handle-error stdin)
 
 (def stdout
-     (extern-pointer libc "stdout" pointer))
+     (extern-pointer libc "stdout" 'pointer))
 (handle-error stdout)
 
 (def stderr
-     (extern-pointer libc "stderr" pointer))
+     (extern-pointer libc "stderr" 'pointer))
 (handle-error stderr)
