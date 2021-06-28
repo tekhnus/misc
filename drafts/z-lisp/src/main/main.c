@@ -903,44 +903,26 @@ eval_result_t builtin_load_shared_library(datum_t *args, namespace_t *ctxt) {
       datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
 }
 
-eval_result_t builtin_extern_pointer(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      datum_is_nil(args->list_tail->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail->list_tail)) {
-    return eval_result_make_panic(
-        "externcdata expects exactly three arguments");
-  }
-  eval_result_t shared_library = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(shared_library)) {
-    return shared_library;
-  }
-  if (!datum_is_pointer(shared_library.ok_value) ||
-      !datum_is_symbol(shared_library.ok_value->pointer_descriptor) ||
-      strcmp(shared_library.ok_value->pointer_descriptor->symbol_value,
+eval_result_t builtin_extern_pointer(datum_t *shared_library, datum_t *name, datum_t *descriptor) {
+  if (!datum_is_pointer(shared_library) ||
+      !datum_is_symbol(shared_library->pointer_descriptor) ||
+      strcmp(shared_library->pointer_descriptor->symbol_value,
              "pointer")) {
     return eval_result_make_panic("wrong externcdata usage");
   }
-  void *handle = *(void **)shared_library.ok_value->pointer_value;
-  eval_result_t name = datum_eval(args->list_tail->list_head, ctxt);
-  if (eval_result_is_panic(name)) {
-    return name;
-  }
-  if (!datum_is_bytestring(name.ok_value)) {
+  void *handle = *(void **)shared_library->pointer_value;
+  if (!datum_is_bytestring(name)) {
     return eval_result_make_panic("externcdata expected a string");
   }
-  void *call_ptr = dlsym(handle, name.ok_value->bytestring_value);
+  void *call_ptr = dlsym(handle, name->bytestring_value);
   char *err = dlerror();
   if (err != NULL) {
     return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"),
                                                  datum_make_bytestring(err)));
   }
-  eval_result_t descriptor =datum_eval(args->list_tail->list_tail->list_head, ctxt);
-  if (eval_result_is_panic(descriptor)) {
-    return descriptor;
-  }
   return eval_result_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"),
-      datum_make_pointer(call_ptr, descriptor.ok_value)));
+      datum_make_pointer(call_ptr, descriptor)));
 }
 
 eval_result_t builtin_read(datum_t *e, namespace_t *ctxt) {
@@ -1114,9 +1096,9 @@ void namespace_def_builtins(namespace_t *ns) {
   namespace_def_builtin(ns, "def", builtin_def);
   namespace_def_builtin(ns, "if", builtin_if);
   namespace_def_builtin(ns, "backquote", builtin_backquote);
-  namespace_def_builtin(ns, "extern-pointer", builtin_extern_pointer);
   namespace_def_builtin(ns, "panic", builtin_panic);
 
+  namespace_def_variadic(ns, "extern-pointer", builtin_extern_pointer, 3);
   namespace_def_builtin(ns, "make-namespace", builtin_make_namespace);
   namespace_def_variadic(ns, "add", builtin_add, 2);
   namespace_def_builtin(ns, "read", builtin_read);
