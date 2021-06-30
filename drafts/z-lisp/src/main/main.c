@@ -759,26 +759,8 @@ eval_result_t builtin_add(datum_t *x, datum_t *y) {
       datum_make_int(x->integer_value + y->integer_value));
 }
 
-eval_result_t builtin_eval_in(datum_t *e, namespace_t *ctxt) {
-  if (datum_is_nil(e) || datum_is_nil(e->list_tail) ||
-      !datum_is_nil(e->list_tail->list_tail)) {
-    return eval_result_make_panic("evalinns expects exactly two arguments");
-  }
-  eval_result_t ns = datum_eval(e->list_head, ctxt);
-  if (eval_result_is_panic(ns)) {
-    return ns;
-  }
-  if (eval_result_is_context(ns)) {
-    return eval_result_make_panic("eval-in expected a value, got a context");
-  }
-  eval_result_t v = datum_eval(e->list_tail->list_head, ctxt);
-  if (eval_result_is_panic(v)) {
-    return v;
-  }
-  if (eval_result_is_context(v)) {
-    return eval_result_make_panic("eval-in expected a value, got a context");
-  }
-  eval_result_t r = datum_eval(v.ok_value, ns.ok_value);
+eval_result_t builtin_eval_in(datum_t *ns, datum_t *v) {
+  eval_result_t r = datum_eval(v, ns);
   if (eval_result_is_panic(r)) {
     return eval_result_make_ok(datum_make_list_2(
         datum_make_symbol(":err"), datum_make_bytestring(r.panic_message)));
@@ -1115,7 +1097,6 @@ void namespace_def_variadic(namespace_t **ctxt, char *name,
 }
 
 void namespace_def_builtins(namespace_t **ns) {
-  namespace_def_builtin(ns, "eval-in", builtin_eval_in);
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
   namespace_def_builtin(ns, "builtin.fn", builtin_fn);
   namespace_def_builtin(ns, "builtin.operator", builtin_operator);
@@ -1130,8 +1111,6 @@ void namespace_def_builtins(namespace_t **ns) {
 
   namespace_def_variadic(ns, "extern-pointer", builtin_extern_pointer, 3);
   namespace_def_variadic(ns, "add", builtin_add, 2);
-  namespace_def_variadic(ns, "read", builtin_read, 1);
-  namespace_def_variadic(ns, "print", builtin_print, 1);
   namespace_def_variadic(ns, "cons", builtin_cons, 2);
   namespace_def_variadic(ns, "head", builtin_head, 1);
   namespace_def_variadic(ns, "tail", builtin_tail, 1);
@@ -1140,6 +1119,10 @@ void namespace_def_builtins(namespace_t **ns) {
   namespace_def_variadic(ns, "is-constant", builtin_is_constant, 1);
   namespace_def_variadic(ns, "load-shared-library", builtin_load_shared_library,
                          1);
+
+  namespace_def_variadic(ns, "read", builtin_read, 1);
+  namespace_def_variadic(ns, "eval-in", builtin_eval_in, 2);
+  namespace_def_variadic(ns, "print", builtin_print, 1);
 
   *ns = namespace_set(*ns, datum_make_symbol("namespace-with-builtins"), *ns);
 }
