@@ -409,7 +409,8 @@ flat_namespace_t *flat_namespace_set(flat_namespace_t *ns, datum_t *symbol,
   return datum_make_list(kv, ns);
 }
 
-flat_namespace_t *flat_namespace_set_fun(flat_namespace_t *ns, datum_t *symbol, datum_t *value) {
+flat_namespace_t *flat_namespace_set_fun(flat_namespace_t *ns, datum_t *symbol,
+                                         datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fun"), value);
   return datum_make_list(kv, ns);
 }
@@ -439,7 +440,8 @@ flat_namespace_t *namespace_get_own_bindings(namespace_t *ns) {
   return ns->list_head;
 }
 
-namespace_t *namespace_with_own_bindings(namespace_t *ns, flat_namespace_t *fns) {
+namespace_t *namespace_with_own_bindings(namespace_t *ns,
+                                         flat_namespace_t *fns) {
   return datum_make_list(fns, ns->list_tail);
 }
 
@@ -475,12 +477,15 @@ eval_result_t namespace_get(namespace_t *ctxt, datum_t *symbol) {
 
 namespace_t *namespace_set(namespace_t *ctxt, datum_t *symbol, datum_t *value) {
   flat_namespace_t *locals = namespace_get_own_bindings(ctxt);
-  return namespace_with_own_bindings(ctxt, flat_namespace_set(locals, symbol, value));
+  return namespace_with_own_bindings(ctxt,
+                                     flat_namespace_set(locals, symbol, value));
 }
 
-namespace_t *namespace_set_fun(namespace_t *ctxt, datum_t *symbol, datum_t *value) {
+namespace_t *namespace_set_fun(namespace_t *ctxt, datum_t *symbol,
+                               datum_t *value) {
   flat_namespace_t *locals = namespace_get_own_bindings(ctxt);
-  return namespace_with_own_bindings(ctxt, flat_namespace_set_fun(locals, symbol, value));
+  return namespace_with_own_bindings(
+      ctxt, flat_namespace_set_fun(locals, symbol, value));
 }
 
 namespace_t *namespace_make_new() {
@@ -525,7 +530,8 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
     passed_args = evaled_items.ok_value;
   }
   namespace_t *datum_ctxt = namespace_make_child(f->operator_context);
-  datum_ctxt = namespace_set(datum_ctxt, datum_make_symbol("args"), passed_args);
+  datum_ctxt =
+      namespace_set(datum_ctxt, datum_make_symbol("args"), passed_args);
   eval_result_t expansion = datum_eval(f->operator_body, datum_ctxt);
   if (eval_result_is_panic(expansion)) {
     return expansion;
@@ -733,7 +739,8 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
     if (eval_result_is_context(f)) {
       return eval_result_make_panic("expected a callable, got a context");
     }
-    // printf("calling %s with args %s\n", datum_repr(e->list_head), datum_repr(e->list_tail));
+    // printf("calling %s with args %s\n", datum_repr(e->list_head),
+    // datum_repr(e->list_tail));
     eval_result_t app = datum_call(f.ok_value, e->list_tail, ctxt);
     return app;
   }
@@ -766,8 +773,8 @@ eval_result_t builtin_eval_in(datum_t *ns, datum_t *v) {
         datum_make_symbol(":err"), datum_make_bytestring(r.panic_message)));
   }
   if (eval_result_is_context(r)) {
-    return eval_result_make_ok(datum_make_list_2(
-						 datum_make_symbol(":context"), r.context_value));
+    return eval_result_make_ok(
+        datum_make_list_2(datum_make_symbol(":context"), r.context_value));
   }
   return eval_result_make_ok(
       datum_make_list_2(datum_make_symbol(":ok"), r.ok_value));
@@ -832,7 +839,7 @@ eval_result_t builtin_provide(datum_t *args, namespace_t *ctxt) {
   }
   datum_t *args_sym = datum_make_symbol("args");
   // eval_result_t old_args = namespace_get(ctxt, args_sym);
-  //if (eval_result_is_panic(old_args)) {
+  // if (eval_result_is_panic(old_args)) {
   //  return old_args;
   //}
   namespace_t *provided_ctxt = namespace_set(ctxt, args_sym, new_args.ok_value);
@@ -840,7 +847,8 @@ eval_result_t builtin_provide(datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_panic(res)) {
     return res;
   }
-  //namespace_t *resulting_ctxt = namespace_set(res.ok_value, args_sym, old_args.ok_value);
+  // namespace_t *resulting_ctxt = namespace_set(res.ok_value, args_sym,
+  // old_args.ok_value);
   return res;
 }
 
@@ -848,7 +856,8 @@ eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
   for (datum_t *branch = args; !datum_is_nil(branch);
        branch = branch->list_tail) {
     datum_t *b = branch->list_head;
-    if (!datum_is_list(b) || datum_is_nil(b) || datum_is_nil(b->list_tail) || !datum_is_nil(b->list_tail->list_tail)) {
+    if (!datum_is_list(b) || datum_is_nil(b) || datum_is_nil(b->list_tail) ||
+        !datum_is_nil(b->list_tail->list_tail)) {
       return eval_result_make_panic("builtin.switch requires pairs");
     }
     eval_result_t cond = datum_eval(b->list_head, ctxt);
@@ -859,14 +868,17 @@ eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
       return eval_result_make_panic("switch expected a value, got a context");
     }
     datum_t *c = cond.ok_value;
-    if (!datum_is_list(c) || datum_is_nil(c) || !datum_is_symbol(c->list_head)) {
-      return eval_result_make_panic("builtin.switch condition should return a tuple");
+    if (!datum_is_list(c) || datum_is_nil(c) ||
+        !datum_is_symbol(c->list_head)) {
+      return eval_result_make_panic(
+          "builtin.switch condition should return a tuple");
     }
     char *tag = c->list_head->symbol_value;
     if (!strcmp(tag, ":err")) {
       continue;
     }
-    if (strcmp(tag, ":ok") || datum_is_nil(c->list_tail) || !datum_is_nil(c->list_tail->list_tail)) {
+    if (strcmp(tag, ":ok") || datum_is_nil(c->list_tail) ||
+        !datum_is_nil(c->list_tail->list_tail)) {
       return eval_result_make_panic("wrong switch");
     }
     datum_t *a = c->list_tail->list_head;
@@ -892,7 +904,8 @@ eval_result_t builtin_def(datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_context(er)) {
     return eval_result_make_panic("def expected a value, got a context");
   }
-  return eval_result_make_context(namespace_set(ctxt, args->list_head, er.ok_value));
+  return eval_result_make_context(
+      namespace_set(ctxt, args->list_head, er.ok_value));
 }
 
 eval_result_t builtin_defun(datum_t *args, namespace_t *ctxt) {
@@ -901,9 +914,12 @@ eval_result_t builtin_defun(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("defun expects exactly two arguments");
   }
   if (!datum_is_symbol(args->list_head)) {
-    return eval_result_make_panic("defun requires a symbol as a first argument");
+    return eval_result_make_panic(
+        "defun requires a symbol as a first argument");
   }
-  return eval_result_make_context(namespace_set_fun(ctxt, args->list_head, datum_make_operator(args->list_tail->list_head, ctxt, true, false)));
+  return eval_result_make_context(namespace_set_fun(
+      ctxt, args->list_head,
+      datum_make_operator(args->list_tail->list_head, ctxt, true, false)));
 }
 
 eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
@@ -1067,9 +1083,10 @@ eval_result_t builtin_panic(datum_t *args, namespace_t *ctxt) {
 
 eval_result_t builtin_progn(datum_t *args, namespace_t *ctxt) {
   eval_result_t val = eval_result_make_context(ctxt);
-  for (; !datum_is_nil(args); args=args->list_tail) {
+  for (; !datum_is_nil(args); args = args->list_tail) {
     if (eval_result_is_ok(val)) {
-      return eval_result_make_panic("only the last element in progn can be an expression");
+      return eval_result_make_panic(
+          "only the last element in progn can be an expression");
     }
     datum_t *arg = args->list_head;
     val = datum_eval(arg, val.context_value);
@@ -1082,7 +1099,8 @@ eval_result_t builtin_progn(datum_t *args, namespace_t *ctxt) {
 
 void namespace_def_builtin(namespace_t **ctxt, char *name,
                            eval_result_t (*form)(datum_t *, namespace_t *)) {
-  *ctxt = namespace_set(*ctxt, datum_make_symbol(name), datum_make_builtin(form));
+  *ctxt =
+      namespace_set(*ctxt, datum_make_symbol(name), datum_make_builtin(form));
 }
 
 void namespace_def_variadic(namespace_t **ctxt, char *name,
@@ -1109,6 +1127,8 @@ void namespace_def_builtins(namespace_t **ns) {
   namespace_def_builtin(ns, "panic", builtin_panic);
   namespace_def_builtin(ns, "progn", builtin_progn);
 
+  namespace_def_variadic(ns, "load-shared-library", builtin_load_shared_library,
+                         1);
   namespace_def_variadic(ns, "extern-pointer", builtin_extern_pointer, 3);
   namespace_def_variadic(ns, "add", builtin_add, 2);
   namespace_def_variadic(ns, "cons", builtin_cons, 2);
@@ -1117,8 +1137,6 @@ void namespace_def_builtins(namespace_t **ns) {
   namespace_def_variadic(ns, "eq", builtin_eq, 2);
   namespace_def_variadic(ns, "annotate", builtin_annotate, 1);
   namespace_def_variadic(ns, "is-constant", builtin_is_constant, 1);
-  namespace_def_variadic(ns, "load-shared-library", builtin_load_shared_library,
-                         1);
 
   namespace_def_variadic(ns, "read", builtin_read, 1);
   namespace_def_variadic(ns, "eval-in", builtin_eval_in, 2);
@@ -1151,7 +1169,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
       }
       if (eval_result_is_ok(val)) {
-	printf("the program should consist of statements\n");
+        printf("the program should consist of statements\n");
       }
       // printf("evaled %s\n", datum_repr(rr.ok_value));
       ns = val.context_value;
