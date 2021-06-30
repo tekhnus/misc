@@ -18,5 +18,4 @@
 	   (ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-(def ns (make-namespace))
-(ignore (repl ns))
+(ignore (repl namespace-with-builtins))

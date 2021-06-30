@@ -1098,12 +1098,6 @@ eval_result_t builtin_progn(datum_t *args, namespace_t *ctxt) {
   return val;
 }
 
-eval_result_t builtin_make_namespace() {
-  namespace_t *ns = namespace_make_new();
-  namespace_def_builtins(&ns);
-  return eval_result_make_ok(ns);
-}
-
 void namespace_def_builtin(namespace_t **ctxt, char *name,
                            eval_result_t (*form)(datum_t *, namespace_t *)) {
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), datum_make_builtin(form));
@@ -1135,7 +1129,6 @@ void namespace_def_builtins(namespace_t **ns) {
   namespace_def_builtin(ns, "progn", builtin_progn);
 
   namespace_def_variadic(ns, "extern-pointer", builtin_extern_pointer, 3);
-  namespace_def_variadic(ns, "make-namespace", builtin_make_namespace, 0);
   namespace_def_variadic(ns, "add", builtin_add, 2);
   namespace_def_variadic(ns, "read", builtin_read, 1);
   namespace_def_variadic(ns, "print", builtin_print, 1);
@@ -1147,6 +1140,8 @@ void namespace_def_builtins(namespace_t **ns) {
   namespace_def_variadic(ns, "is-constant", builtin_is_constant, 1);
   namespace_def_variadic(ns, "load-shared-library", builtin_load_shared_library,
                          1);
+
+  *ns = namespace_set(*ns, datum_make_symbol("namespace-with-builtins"), *ns);
 }
 
 int main(int argc, char **argv) {
