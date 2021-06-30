@@ -12,7 +12,6 @@ typedef struct datum datum_t;
 typedef struct eval_result eval_result_t;
 typedef struct datum namespace_t;
 typedef struct read_result read_result_t;
-typedef struct datum flat_namespace_t;
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
 void namespace_def_builtins(namespace_t **ns);
@@ -401,21 +400,19 @@ eval_result_t eval_result_make_panic(char *message) {
   return result;
 }
 
-flat_namespace_t *flat_namespace_make() { return datum_make_nil(); }
-
-flat_namespace_t *flat_namespace_set(flat_namespace_t *ns, datum_t *symbol,
+namespace_t *namespace_set(namespace_t *ns, datum_t *symbol,
                                      datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":as-is"), value);
   return datum_make_list(kv, ns);
 }
 
-flat_namespace_t *flat_namespace_set_fun(flat_namespace_t *ns, datum_t *symbol,
+namespace_t *namespace_set_fun(namespace_t *ns, datum_t *symbol,
                                          datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fun"), value);
   return datum_make_list(kv, ns);
 }
 
-eval_result_t flat_namespace_get(flat_namespace_t *ns, datum_t *symbol) {
+eval_result_t namespace_get_with_tag(namespace_t *ns, datum_t *symbol) {
   for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
     datum_t *kv = cur->list_head;
     if (!strcmp(kv->list_head->symbol_value, symbol->symbol_value)) {
@@ -428,68 +425,32 @@ eval_result_t flat_namespace_get(flat_namespace_t *ns, datum_t *symbol) {
   return eval_result_make_panic(msg);
 }
 
-namespace_t *namespace_make_child(namespace_t *parent_namespace) {
-  namespace_t *res = datum_make_list_1(flat_namespace_make());
-  res->list_tail = parent_namespace;
-  return res;
-}
-
-namespace_t *namespace_get_parent(namespace_t *ns) { return ns->list_tail; }
-
-flat_namespace_t *namespace_get_own_bindings(namespace_t *ns) {
-  return ns->list_head;
-}
-
-namespace_t *namespace_with_own_bindings(namespace_t *ns,
-                                         flat_namespace_t *fns) {
-  return datum_make_list(fns, ns->list_tail);
-}
-
-bool namespace_is_nil(namespace_t *ns) { return datum_is_nil(ns); }
-
 eval_result_t namespace_get(namespace_t *ctxt, datum_t *symbol) {
   eval_result_t v;
-  namespace_t *bindings;
-  for (bindings = ctxt; !namespace_is_nil(bindings);
-       bindings = namespace_get_parent(bindings)) {
-    v = flat_namespace_get(namespace_get_own_bindings(bindings), symbol);
-    if (eval_result_is_panic(v)) {
-      continue;
-    }
-    if (eval_result_is_context(v)) {
-      return eval_result_make_panic("context not expected here");
-    }
-    datum_t *tag_and_value = v.ok_value;
-    if (!strcmp(tag_and_value->list_head->symbol_value, ":as-is")) {
-      return eval_result_make_ok(tag_and_value->list_tail->list_head);
-    }
-    if (!strcmp(tag_and_value->list_head->symbol_value, ":fun")) {
-      // return eval_result_make_panic("no funs");
-      datum_t *patched = malloc(sizeof(datum_t));
-      *patched = *tag_and_value->list_tail->list_head;
-      patched->operator_context = ctxt;
-      return eval_result_make_ok(patched);
-    }
-    return eval_result_make_panic("namespace impl error");
+ 
+  v = namespace_get_with_tag(ctxt, symbol);
+  if (eval_result_is_panic(v)) {
+    return v;
   }
-  return v;
-}
-
-namespace_t *namespace_set(namespace_t *ctxt, datum_t *symbol, datum_t *value) {
-  flat_namespace_t *locals = namespace_get_own_bindings(ctxt);
-  return namespace_with_own_bindings(ctxt,
-                                     flat_namespace_set(locals, symbol, value));
-}
-
-namespace_t *namespace_set_fun(namespace_t *ctxt, datum_t *symbol,
-                               datum_t *value) {
-  flat_namespace_t *locals = namespace_get_own_bindings(ctxt);
-  return namespace_with_own_bindings(
-      ctxt, flat_namespace_set_fun(locals, symbol, value));
+  if (eval_result_is_context(v)) {
+    return eval_result_make_panic("context not expected here");
+  }
+  datum_t *tag_and_value = v.ok_value;
+  if (!strcmp(tag_and_value->list_head->symbol_value, ":as-is")) {
+    return eval_result_make_ok(tag_and_value->list_tail->list_head);
+  }
+  if (!strcmp(tag_and_value->list_head->symbol_value, ":fun")) {
+    // return eval_result_make_panic("no funs");
+    datum_t *patched = malloc(sizeof(datum_t));
+    *patched = *tag_and_value->list_tail->list_head;
+    patched->operator_context = ctxt;
+    return eval_result_make_ok(patched);
+  }
+  return eval_result_make_panic("namespace impl error");
 }
 
 namespace_t *namespace_make_new() {
-  namespace_t *ns = namespace_make_child(NULL);
+  namespace_t *ns = datum_make_nil();
   ns = namespace_set(ns, datum_make_symbol("args"), datum_make_nil());
   return ns;
 }
@@ -529,7 +490,7 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
     }
     passed_args = evaled_items.ok_value;
   }
-  namespace_t *datum_ctxt = namespace_make_child(f->operator_context);
+  namespace_t *datum_ctxt = f->operator_context;
   datum_ctxt =
       namespace_set(datum_ctxt, datum_make_symbol("args"), passed_args);
   eval_result_t expansion = datum_eval(f->operator_body, datum_ctxt);
