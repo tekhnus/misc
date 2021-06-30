@@ -122,17 +122,17 @@
 (debug (switch-fun '(((:a b c) (print b) (add b c)) ((x (print x))))))
 (debug 444)
 (def args '(:a 3 4))
-(def asdasds (builtin.switch (`(:ok ~args) (debug "yay"))))
+
 (def args '(:a 3 4))
 (debug (decons-pat '(:a b c) args))
-(debug (switch-args ((:a b c) (debug b) (debug (add b c))) ((x (print x)))))
+(switch-args ((:a b c) (debug b) (debug (add b c))) ((x (print x))))
 
 (def list (builtin.fn args))
 
 (def ignore (builtin.macro `(def throwaway ~(head args))))
 (debug args)
-(ignore (progn (debug args) (def foo 73) (debug foo)))
-(ignore (provide 42 (progn (debug args) (def foo 33))))
+(progn (debug args) (def foo 73) (debug foo))
+(provide 42 (progn (debug args) (def foo 33)))
 (debug args)
 
 (def panic-block '(argz (panic "wrong fn call")))

@@ -68,6 +68,7 @@ struct read_result {
 
 enum eval_result_type {
   EVAL_RESULT_OK,
+  EVAL_RESULT_CONTEXT,
   EVAL_RESULT_PANIC,
 };
 
@@ -75,6 +76,7 @@ struct eval_result {
   enum eval_result_type type;
   union {
     datum_t *ok_value;
+    namespace_t *context_value;
     char *panic_message;
   };
 };
@@ -376,12 +378,21 @@ bool eval_result_is_ok(eval_result_t result) {
   return result.type == EVAL_RESULT_OK;
 }
 
+bool eval_result_is_context(eval_result_t result) {
+  return result.type == EVAL_RESULT_CONTEXT;
+}
+
 bool eval_result_is_panic(eval_result_t result) {
   return result.type == EVAL_RESULT_PANIC;
 }
 
 eval_result_t eval_result_make_ok(datum_t *e) {
   eval_result_t result = {.type = EVAL_RESULT_OK, .ok_value = e};
+  return result;
+}
+
+eval_result_t eval_result_make_context(namespace_t *ns) {
+  eval_result_t result = {.type = EVAL_RESULT_CONTEXT, .context_value = ns};
   return result;
 }
 
@@ -443,6 +454,9 @@ eval_result_t namespace_get(namespace_t *ctxt, datum_t *symbol) {
     if (eval_result_is_panic(v)) {
       continue;
     }
+    if (eval_result_is_context(v)) {
+      return eval_result_make_panic("context not expected here");
+    }
     datum_t *tag_and_value = v.ok_value;
     if (!strcmp(tag_and_value->list_head->symbol_value, ":as-is")) {
       return eval_result_make_ok(tag_and_value->list_tail->list_head);
@@ -487,6 +501,9 @@ eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
     if (eval_result_is_panic(evaled_arg)) {
       return evaled_arg;
     }
+    if (eval_result_is_context(evaled_arg)) {
+      return eval_result_make_panic("context not expected in list_map");
+    }
     *tail = datum_make_list_1(evaled_arg.ok_value);
     tail = &((*tail)->list_tail);
   }
@@ -502,6 +519,9 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
     if (eval_result_is_panic(evaled_items)) {
       return evaled_items;
     }
+    if (eval_result_is_context(evaled_items)) {
+      return eval_result_make_panic("context not expected in operator_call");
+    }
     passed_args = evaled_items.ok_value;
   }
   namespace_t *datum_ctxt = namespace_make_child(f->operator_context);
@@ -509,6 +529,9 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   eval_result_t expansion = datum_eval(f->operator_body, datum_ctxt);
   if (eval_result_is_panic(expansion)) {
     return expansion;
+  }
+  if (eval_result_is_context(expansion)) {
+    return eval_result_make_panic("an operator should not return a context");
   }
   if (!f->operator_eval_value) {
     return expansion;
@@ -655,6 +678,9 @@ eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_panic(passed_args)) {
     return passed_args;
   }
+  if (eval_result_is_context(passed_args)) {
+    return eval_result_make_panic("context was not expected in pointer_call");
+  }
 
   ffi_cif cif;
   char *err = NULL;
@@ -701,8 +727,11 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
   }
   if (datum_is_list(e)) {
     eval_result_t f = datum_eval(e->list_head, ctxt);
-    if (!eval_result_is_ok(f)) {
+    if (eval_result_is_panic(f)) {
       return f;
+    }
+    if (eval_result_is_context(f)) {
+      return eval_result_make_panic("expected a callable, got a context");
     }
     // printf("calling %s with args %s\n", datum_repr(e->list_head), datum_repr(e->list_tail));
     eval_result_t app = datum_call(f.ok_value, e->list_tail, ctxt);
@@ -739,14 +768,24 @@ eval_result_t builtin_eval_in(datum_t *e, namespace_t *ctxt) {
   if (eval_result_is_panic(ns)) {
     return ns;
   }
+  if (eval_result_is_context(ns)) {
+    return eval_result_make_panic("eval-in expected a value, got a context");
+  }
   eval_result_t v = datum_eval(e->list_tail->list_head, ctxt);
   if (eval_result_is_panic(v)) {
     return v;
+  }
+  if (eval_result_is_context(v)) {
+    return eval_result_make_panic("eval-in expected a value, got a context");
   }
   eval_result_t r = datum_eval(v.ok_value, ns.ok_value);
   if (eval_result_is_panic(r)) {
     return eval_result_make_ok(datum_make_list_2(
         datum_make_symbol(":err"), datum_make_bytestring(r.panic_message)));
+  }
+  if (eval_result_is_context(r)) {
+    return eval_result_make_ok(datum_make_list_2(
+						 datum_make_symbol(":context"), r.context_value));
   }
   return eval_result_make_ok(
       datum_make_list_2(datum_make_symbol(":ok"), r.ok_value));
@@ -806,6 +845,9 @@ eval_result_t builtin_provide(datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_panic(new_args)) {
     return new_args;
   }
+  if (eval_result_is_context(new_args)) {
+    return eval_result_make_panic("provide expected a value, got a context");
+  }
   datum_t *args_sym = datum_make_symbol("args");
   // eval_result_t old_args = namespace_get(ctxt, args_sym);
   //if (eval_result_is_panic(old_args)) {
@@ -817,7 +859,7 @@ eval_result_t builtin_provide(datum_t *args, namespace_t *ctxt) {
     return res;
   }
   //namespace_t *resulting_ctxt = namespace_set(res.ok_value, args_sym, old_args.ok_value);
-  return eval_result_make_ok(ctxt);
+  return res;
 }
 
 eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
@@ -830,6 +872,9 @@ eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
     eval_result_t cond = datum_eval(b->list_head, ctxt);
     if (eval_result_is_panic(cond)) {
       return cond;
+    }
+    if (eval_result_is_context(cond)) {
+      return eval_result_make_panic("switch expected a value, got a context");
     }
     datum_t *c = cond.ok_value;
     if (!datum_is_list(c) || datum_is_nil(c) || !datum_is_symbol(c->list_head)) {
@@ -859,10 +904,13 @@ eval_result_t builtin_def(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("def requires a symbol as a first argument");
   }
   eval_result_t er = datum_eval(args->list_tail->list_head, ctxt);
-  if (!eval_result_is_panic(er)) {
-    return eval_result_make_ok(namespace_set(ctxt, args->list_head, er.ok_value));
+  if (eval_result_is_panic(er)) {
+    return er;
   }
-  return er;
+  if (eval_result_is_context(er)) {
+    return eval_result_make_panic("def expected a value, got a context");
+  }
+  return eval_result_make_context(namespace_set(ctxt, args->list_head, er.ok_value));
 }
 
 eval_result_t builtin_defun(datum_t *args, namespace_t *ctxt) {
@@ -873,7 +921,7 @@ eval_result_t builtin_defun(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_symbol(args->list_head)) {
     return eval_result_make_panic("defun requires a symbol as a first argument");
   }
-  return eval_result_make_ok(namespace_set_fun(ctxt, args->list_head, datum_make_operator(args->list_tail->list_head, ctxt, true, false)));
+  return eval_result_make_context(namespace_set_fun(ctxt, args->list_head, datum_make_operator(args->list_tail->list_head, ctxt, true, false)));
 }
 
 eval_result_t builtin_backquote(datum_t *args, namespace_t *ctxt) {
@@ -892,6 +940,9 @@ eval_result_t builtin_if(datum_t *args, namespace_t *ctxt) {
   eval_result_t condition = datum_eval(args->list_head, ctxt);
   if (eval_result_is_panic(condition)) {
     return condition;
+  }
+  if (eval_result_is_context(condition)) {
+    return eval_result_make_panic("if expected a value, got a context");
   }
   if (!datum_is_nil(condition.ok_value)) {
     return datum_eval(args->list_tail->list_head, ctxt);
@@ -1022,6 +1073,9 @@ eval_result_t builtin_panic(datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_panic(arg_eval)) {
     return arg_eval;
   }
+  if (eval_result_is_context(arg_eval)) {
+    return eval_result_make_panic("panic expected a value, got a context");
+  }
   datum_t *arg_value = arg_eval.ok_value;
   if (!datum_is_bytestring(arg_value)) {
     return eval_result_make_panic("panic expects a bytestring");
@@ -1030,16 +1084,18 @@ eval_result_t builtin_panic(datum_t *args, namespace_t *ctxt) {
 }
 
 eval_result_t builtin_progn(datum_t *args, namespace_t *ctxt) {
-  eval_result_t new_ctxt;
+  eval_result_t val = eval_result_make_context(ctxt);
   for (; !datum_is_nil(args); args=args->list_tail) {
-    datum_t *arg = args->list_head;
-    new_ctxt = datum_eval(arg, ctxt);
-    if (eval_result_is_panic(new_ctxt)) {
-      return new_ctxt;
+    if (eval_result_is_ok(val)) {
+      return eval_result_make_panic("only the last element in progn can be an expression");
     }
-    ctxt = new_ctxt.ok_value;
+    datum_t *arg = args->list_head;
+    val = datum_eval(arg, val.context_value);
+    if (eval_result_is_panic(val)) {
+      return val;
+    }
   }
-  return new_ctxt;
+  return val;
 }
 
 eval_result_t builtin_make_namespace() {
@@ -1116,8 +1172,11 @@ int main(int argc, char **argv) {
         printf("%s\n", val.panic_message);
         exit(EXIT_FAILURE);
       }
+      if (eval_result_is_ok(val)) {
+	printf("the program should consist of statements\n");
+      }
       // printf("evaled %s\n", datum_repr(rr.ok_value));
-      ns = val.ok_value;
+      ns = val.context_value;
     }
     if (read_result_is_right_paren(rr)) {
       printf("unmatched closing bracket\n");
