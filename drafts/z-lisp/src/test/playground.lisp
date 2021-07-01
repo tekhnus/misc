@@ -27,17 +27,9 @@
 (defn adder (n) (fn (m) (+ n m)))
 (print ((adder 3) 4))
 
-
-(def fopen
-     (extern-pointer libc "fopen"
-		     '((string string) pointer)))
-(handle-error fopen)
-
-
-(def printfptr
+(def-or-panic printfptr
      (extern-pointer libc "printf"
 		     '((string pointer) sizet)))
-(handle-error printfptr)
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))

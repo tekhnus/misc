@@ -140,71 +140,59 @@
 
 (def cond (builtin.macro `(cond- ~args)))
 
-(def handle-error
+(def def-or-panic
      (builtin.macro
-      `(if (eq :err (head ~(head args)))
-	   (panic (second ~(head args)))
-	 (def ~(head args) (second ~(head args))))))
+      `(progn
+	 (def tmp ~(second args))
+	 (if (eq :err (head tmp))
+	     (panic (second tmp))
+	   (def ~(head args) (second tmp))))))
 
-(def libc (shared-library "libc.so.6"))
-(handle-error libc)
+(def-or-panic libc (shared-library "libc.so.6"))
 
-(def malloc
+(def-or-panic malloc
      (extern-pointer libc "malloc"
 		     '((sizet) pointer)))
-(handle-error malloc)
 
-(def fopen
+(def-or-panic fopen
      (extern-pointer libc "fopen"
 		     '((string string) pointer)))
-(handle-error fopen)
 
-(def fread
+(def-or-panic fread
      (extern-pointer libc "fread"
 		     '((pointer sizet sizet pointer) sizet)))
-(handle-error fread)
 
-(def feof
+(def-or-panic feof
      (extern-pointer libc "feof"
 		     '((pointer) int)))
-(handle-error feof)
 
-(def fprintf
+(def-or-panic fprintf
      (extern-pointer libc "fprintf"
 		     '((pointer string) sizet)))
-(handle-error fprintf)
 
-(def fprintf-bytestring
+(def-or-panic fprintf-bytestring
      (extern-pointer libc "fprintf"
 		     '((pointer string string) sizet)))
-(handle-error fprintf-bytestring)
 
-(def stdin
+(def-or-panic stdin
      (extern-pointer libc "stdin" 'pointer))
-(handle-error stdin)
 
-(def stdout
+(def-or-panic stdout
      (extern-pointer libc "stdout" 'pointer))
-(handle-error stdout)
 
-(def stderr
+(def-or-panic stderr
      (extern-pointer libc "stderr" 'pointer))
-(handle-error stderr)
 
-(def zlisp-zlisp (shared-library "target/zlisp-zlisp.so"))
-(handle-error zlisp-zlisp)
+(def-or-panic zlisp-zlisp (shared-library "target/zlisp-zlisp.so"))
 
-(def read
+(def-or-panic read
      (extern-pointer zlisp-zlisp "read" '((datum) eval_result)))
-(handle-error read)
 
-(def eval
+(def-or-panic eval
      (extern-pointer zlisp-zlisp "eval" '((datum datum) eval_result)))
-(handle-error eval)
 
-(def builtins
+(def-or-panic builtins
      (extern-pointer zlisp-zlisp "builtins" '(() eval_result)))
-(handle-error builtins)
 
 (defmacro print (val)
   `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))
