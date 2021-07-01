@@ -1,3 +1,16 @@
+(defn eval-stream (fd nsp)
+  (switch (read fd)
+	  ((:eof)
+	   nsp)
+	  ((:ok datum)
+	   (switch (eval datum nsp)
+		   ((:context ctxt)
+		    (eval-stream fd ctxt))))))
+
+(defn eval-script (filename nsp)
+  (def fd (fopen filename "r"))
+  (eval-stream fd nsp))
+
 (defn repl
   (nsp)
   (def tmp (fprintf stdout "> "))
@@ -18,4 +31,6 @@
 	   (ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-(ignore (repl (builtins)))
+(def ns1 (builtins))
+(def ns2 (eval-script "src/main/prelude.lisp" ns1))
+(ignore (repl ns2))

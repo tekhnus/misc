@@ -1,6 +1,6 @@
 #include "zlisp.h"
 
-eval_result_t builtin_read(datum_t *sptr) {
+eval_result_t read(datum_t *sptr) {
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||
       strcmp(sptr->pointer_descriptor->symbol_value, "pointer")) {
     return eval_result_make_panic("read expects a pointer argument");
@@ -24,7 +24,7 @@ eval_result_t builtin_read(datum_t *sptr) {
   return eval_result_make_ok(ok);
 }
 
-eval_result_t builtin_eval(datum_t *v, datum_t *ns) {
+eval_result_t eval(datum_t *v, datum_t *ns) {
   eval_result_t r = datum_eval(v, ns);
   if (eval_result_is_panic(r)) {
     return eval_result_make_ok(datum_make_list_2(
@@ -38,6 +38,6 @@ eval_result_t builtin_eval(datum_t *v, datum_t *ns) {
       datum_make_list_2(datum_make_symbol(":ok"), r.ok_value));
 }
 
-eval_result_t builtin_builtins() {
+eval_result_t builtins() {
   return eval_result_make_ok(namespace_make_builtins());
 }

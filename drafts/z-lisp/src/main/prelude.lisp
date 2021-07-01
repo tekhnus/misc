@@ -184,6 +184,11 @@
 		     '((sizet) pointer)))
 (handle-error malloc)
 
+(def fopen
+     (extern-pointer libc "fopen"
+		     '((string string) pointer)))
+(handle-error fopen)
+
 (def fread
      (extern-pointer libc "fread"
 		     '((pointer sizet sizet pointer) sizet)))
@@ -216,17 +221,22 @@
      (extern-pointer libc "stderr" 'pointer))
 (handle-error stderr)
 
-(def interpreter (shared-library "target/zlisp-zlisp.so"))
-(handle-error interpreter)
+(def zlisp-zlisp (shared-library "target/zlisp-zlisp.so"))
+(handle-error zlisp-zlisp)
 
 (def read
-     (extern-pointer interpreter "builtin_read" '((datum) eval_result)))
+     (extern-pointer zlisp-zlisp "read" '((datum) eval_result)))
 (handle-error read)
 
 (def eval
-     (extern-pointer interpreter "builtin_eval" '((datum datum) eval_result)))
+     (extern-pointer zlisp-zlisp "eval" '((datum datum) eval_result)))
 (handle-error eval)
 
 (def builtins
-     (extern-pointer interpreter "builtin_builtins" '(() eval_result)))
+     (extern-pointer zlisp-zlisp "builtins" '(() eval_result)))
 (handle-error builtins)
+
+
+(defn print (val)
+  (ignore (fprintf-bytestring stdout "%s\n" (repr val)))
+  '())
