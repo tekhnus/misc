@@ -1,6 +1,6 @@
 (def debug (builtin.macro `(def discard ~(head args))))
 
-(defun last
+(builtin.defn last
 	 (if (tail (head args))
 	     (last (tail (head args)))
 	   (head (head args))))
@@ -14,7 +14,7 @@
       (head (tail (head args)))))
 
 (def type (builtin.fn (head (annotate (head args)))))
-(defun decons-fn
+(builtin.defn decons-fn
       (if (is-constant (head args))
 	  `(if (eq ~(head args) ~(second args)) :ok :err)
 	(if (eq (type (head args)) :symbol)
@@ -29,12 +29,12 @@
 		`(if ~(second args) :err :ok))
 	    (panic "decons met an unsupported type")))))
 
-(defun concat
+(builtin.defn concat
     (if (head args)
 	(cons (head (head args)) (concat (tail (head args)) (second args)))
       (second args)))
 
-(defun decons-pat
+(builtin.defn decons-pat
     (if (is-constant (head args))
 	(if (eq (head args) (second args))
 	    `(:ok ())
@@ -58,7 +58,7 @@
 		`(:ok ())))
 	  (panic "decons-pat met an unsupported type")))))
 
-(defun decons-vars
+(builtin.defn decons-vars
     (if (is-constant (head args))
 	`()
       (if (eq (type (head args)) :symbol)
@@ -87,12 +87,12 @@
 (debug (decons-pat '(:a b) '(:b 8)))
 (debug (decons-vars '(:a b)))
 
-(defun zip
+(builtin.defn zip
     (if (head args)
 	(cons `(~(head (head args)) ~(head (second args))) (zip (tail (head args)) (tail (second args))))
       `()))
 
-(defun map
+(builtin.defn map
   (if (head (tail args))
       (cons
        ((head args)
@@ -103,7 +103,7 @@
     '()))
 
 (def xxx '((head args) (second args) (third args)))
-(defun switch-clause
+(builtin.defn switch-clause
     (progn
       (def sig (head (head args)))
       (def cmds (tail (head args)))
@@ -112,20 +112,20 @@
       (def body (cons 'progn (concat (map (builtin.fn (cons 'def (head args))) (zip vars xxx)) cmds)))
       `(~checker ~body)))
 
-(defun switch-fun
+(builtin.defn switch-fun
     (cons 'builtin.switch (map switch-clause (head args))))
 
 (def switch-args (builtin.macro (switch-fun args)))
 
 (debug 999)
-(debug (switch-clause '((:a b c) (print b) (add b c))))
-(debug (switch-fun '(((:a b c) (print b) (add b c)) ((x (print x))))))
+(debug (switch-clause '((:a b c) (print b) c)))
+(debug (switch-fun '(((:a b c) (print b) c) ((x (print x))))))
 (debug 444)
 (def args '(:a 3 4))
 
 (def args '(:a 3 4))
 (debug (decons-pat '(:a b c) args))
-(switch-args ((:a b c) (debug b) (debug (add b c))) ((x (print x))))
+(switch-args ((:a b c) (debug b) (debug c)) ((x (print x))))
 
 (def list (builtin.fn args))
 
@@ -144,7 +144,7 @@
 
 
 
-(def defn (builtin.macro `(defun ~(head args) ~(switch-fun `(~(tail args))))))
+(def defn (builtin.macro `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
 
 (def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
 
@@ -170,9 +170,13 @@
     (panic "cond didn't match")))
 (def cond (builtin.macro `(cond- ~args)))
 
-(def handle-error (builtin.macro `(def ~(head args) (second ~(head args)))))
+(def handle-error
+     (builtin.macro
+      `(if (eq :err (head ~(head args)))
+	   (panic (second ~(head args)))
+	 (def ~(head args) (second ~(head args))))))
 
-(def libc (load-shared-library "libc.so.6"))
+(def libc (shared-library "libc.so.6"))
 (handle-error libc)
 
 (def malloc
@@ -211,3 +215,18 @@
 (def stderr
      (extern-pointer libc "stderr" 'pointer))
 (handle-error stderr)
+
+(def interpreter (shared-library "target/z-lisp.so"))
+(handle-error interpreter)
+
+(def read
+     (extern-pointer interpreter "builtin_read" '((datum) eval_result)))
+(handle-error read)
+
+(def eval
+     (extern-pointer interpreter "builtin_eval" '((datum datum) eval_result)))
+(handle-error eval)
+
+(def builtins
+     (extern-pointer interpreter "builtin_builtins" '(() eval_result)))
+(handle-error builtins)

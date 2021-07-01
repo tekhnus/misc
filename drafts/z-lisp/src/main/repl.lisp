@@ -5,9 +5,9 @@
 	  ((:eof)
 	   (fprintf stdout "\n"))
 	  ((:ok datum)
-	   (switch (eval-in nsp datum)
+	   (switch (eval datum nsp)
 		   ((:ok val)
-		    (ignore (print val))
+		    (ignore (fprintf-bytestring stdout "%s\n" (repr val)))
 		    (repl nsp))
 		   ((:err msg)
 		    (ignore (fprintf-bytestring stderr "eval error: %s\n" msg))
@@ -18,4 +18,4 @@
 	   (ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-(ignore (repl namespace-with-builtins))
+(ignore (repl (builtins)))
