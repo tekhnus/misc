@@ -31,6 +31,6 @@
 	   (ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-(def ns1 (builtins))
-(def ns2 (eval-script "src/main/prelude.lisp" ns1))
-(ignore (repl ns2))
+(def builtins_ (builtins))
+(def prelude (eval-script "src/main/prelude.lisp" builtins_))
+(ignore (repl prelude))

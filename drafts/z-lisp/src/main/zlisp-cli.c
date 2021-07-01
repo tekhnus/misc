@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
       }
       if (eval_result_is_ok(val)) {
         printf("the program should consist of statements\n");
+	exit(EXIT_FAILURE);
       }
       ns = val.context_value;
     }

@@ -14,6 +14,7 @@
       (head (tail (head args)))))
 
 (def type (builtin.fn (head (annotate (head args)))))
+
 (builtin.defn decons-fn
       (if (is-constant (head args))
 	  `(if (eq ~(head args) ~(second args)) :ok :err)
@@ -69,24 +70,6 @@
 	      `())
 	  (panic "decons-var met an unsupported type")))))
 
-(debug 777)
-(debug (decons-pat 'a 7))
-(debug (decons-vars 'a))
-(debug (decons-pat :a :a))
-(debug (decons-vars :a))
-(debug (decons-pat :a :b))
-(debug (decons-vars :a))
-(debug (decons-pat '() '()))
-(debug (decons-vars '()))
-(debug (decons-pat '(a) '(7)))
-(debug (decons-vars '(a)))
-(debug (decons-pat '(a b) '(7 8)))
-(debug (decons-vars '(a b)))
-(debug (decons-pat '(:a b) '(:a 8)))
-(debug (decons-vars '(:a b)))
-(debug (decons-pat '(:a b) '(:b 8)))
-(debug (decons-vars '(:a b)))
-
 (builtin.defn zip
     (if (head args)
 	(cons `(~(head (head args)) ~(head (second args))) (zip (tail (head args)) (tail (second args))))
@@ -102,14 +85,15 @@
 	(tail (head (tail args)))))
     '()))
 
-(def xxx '((head args) (second args) (third args)))
+(def switch-defines '((head args) (second args) (third args)))
+
 (builtin.defn switch-clause
     (progn
       (def sig (head (head args)))
       (def cmds (tail (head args)))
       (def checker `(decons-pat '~sig args))
       (def vars (decons-vars sig))
-      (def body (cons 'progn (concat (map (builtin.fn (cons 'def (head args))) (zip vars xxx)) cmds)))
+      (def body (cons 'progn (concat (map (builtin.fn (cons 'def (head args))) (zip vars switch-defines)) cmds)))
       `(~checker ~body)))
 
 (builtin.defn switch-fun
@@ -117,22 +101,9 @@
 
 (def switch-args (builtin.macro (switch-fun args)))
 
-(debug 999)
-(debug (switch-clause '((:a b c) (print b) c)))
-(debug (switch-fun '(((:a b c) (print b) c) ((x (print x))))))
-(debug 444)
-(def args '(:a 3 4))
-
-(def args '(:a 3 4))
-(debug (decons-pat '(:a b c) args))
-(switch-args ((:a b c) (debug b) (debug c)) ((x (print x))))
-
 (def list (builtin.fn args))
 
 (def ignore (builtin.macro `(def throwaway ~(head args))))
-(debug args)
-(progn (debug args) (def foo 73) (debug foo))
-(debug args)
 
 (def panic-block '(argz (panic "wrong fn call")))
 
@@ -141,8 +112,6 @@
 (def fn (builtin.macro `(builtin.fn (switch-args ~args ~panic-block))))
 
 (def macro (builtin.macro `(builtin.macro (switch-args ~args ~panic-block))))
-
-
 
 (def defn (builtin.macro `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
 
@@ -168,6 +137,7 @@
 	 ~(second (head cases))
 	 (cond- ~(tail cases)))
     (panic "cond didn't match")))
+
 (def cond (builtin.macro `(cond- ~args)))
 
 (def handle-error
@@ -236,7 +206,5 @@
      (extern-pointer zlisp-zlisp "builtins" '(() eval_result)))
 (handle-error builtins)
 
-
-(defn print (val)
-  (ignore (fprintf-bytestring stdout "%s\n" (repr val)))
-  '())
+(defmacro print (val)
+  `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))
