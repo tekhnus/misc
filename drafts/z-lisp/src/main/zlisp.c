@@ -1,3 +1,4 @@
+// zlisp interpreter.
 #include "zlisp.h"
 
 #include <ctype.h>

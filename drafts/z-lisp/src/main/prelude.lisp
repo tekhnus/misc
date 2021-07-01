@@ -1,3 +1,5 @@
+(def readme "The most basic fuctions. This module is always loaded implicitly at the start.")
+
 (def debug (builtin.macro `(def discard ~(head args))))
 
 (builtin.defn last

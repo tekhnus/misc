@@ -1,3 +1,5 @@
+// a small library which wraps zlisp interpreter implementation
+// so that it can be used from within zlisp itself.
 #include "zlisp.h"
 
 eval_result_t read(datum_t *sptr) {

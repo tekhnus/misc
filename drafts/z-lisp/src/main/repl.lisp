@@ -1,3 +1,5 @@
+(def readme "A basic REPL for zlisp.")
+
 (defn eval-stream (fd nsp)
   (switch (read fd)
 	  ((:eof)

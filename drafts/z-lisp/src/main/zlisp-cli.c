@@ -1,3 +1,4 @@
+// a basic CLI for zlisp interpreter.
 #include "zlisp.h"
 
 int main(int argc, char **argv) {
