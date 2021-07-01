@@ -524,7 +524,7 @@ char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
 }
 
 eval_result_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
-  void (*fn_ptr)(void) = __extension__ (void (*)(void))(f->pointer_value);
+  void (*fn_ptr)(void) = __extension__(void (*)(void))(f->pointer_value);
   char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
 
   if (!strcmp(rettype, "pointer")) {
@@ -912,7 +912,8 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
     sig = datum_make_list(datum_make_symbol("datum"), sig);
   }
   datum_t *wrapped_fn = datum_make_pointer(
-      __extension__(void *)fn, datum_make_list_2(sig, datum_make_symbol("eval_result")));
+      __extension__(void *) fn,
+      datum_make_list_2(sig, datum_make_symbol("eval_result")));
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 

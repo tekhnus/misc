@@ -78,7 +78,6 @@ struct eval_result {
   };
 };
 
-
 bool datum_is_nil(datum_t *e);
 
 bool datum_is_list(datum_t *e);
