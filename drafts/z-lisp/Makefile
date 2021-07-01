@@ -8,20 +8,18 @@ CFLAGS=-Isrc/main -std=c11 -Wpedantic -Wall -I/usr/local/opt/libffi/include -g -
 LDLIBS=-ldl -lffi
 LDFLAGS=-L/usr/local/opt/libffi/lib
 
-target/z-lisp: $(OBJ_FILES)
+target/zlisp-cli: target/obj/zlisp-cli.o target/obj/zlisp.o
 	gcc $(LDFLAGS) $(LDLIBS) -o $@ $^
 
-target/z-lisp.so: $(OBJ_FILES)
+target/zlisp-zlisp.so: target/obj/zlisp-zlisp.o target/obj/zlisp.o
 	gcc -shared $(LDFLAGS) $(LDLIBS) -o $@ $^
 
 target/obj/%.o: src/main/%.c
 	mkdir -p $(dir $@)
 	gcc $(CFLAGS) -c -o $@ $<
 
-
-
-run-repl: target/z-lisp target/z-lisp.so
-	target/z-lisp src/main/prelude.lisp src/main/repl.lisp
+run-repl: target/zlisp-cli target/zlisp-zlisp.so
+	target/zlisp-cli src/main/repl.lisp
 
 clean:
 	rm -rf target/

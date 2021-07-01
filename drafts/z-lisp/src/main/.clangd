@@ -1,2 +1,2 @@
 CompileFlags:
-  Add: [-std=c11, -Wpedantic, -Wall, -I/usr/local/opt/libffi/include]
+  Add: [-xc, -std=c99, -Wpedantic, -Wall, -I/usr/local/opt/libffi/include]

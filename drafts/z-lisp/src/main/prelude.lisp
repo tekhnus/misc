@@ -216,7 +216,7 @@
      (extern-pointer libc "stderr" 'pointer))
 (handle-error stderr)
 
-(def interpreter (shared-library "target/z-lisp.so"))
+(def interpreter (shared-library "target/zlisp-zlisp.so"))
 (handle-error interpreter)
 
 (def read
