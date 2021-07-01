@@ -132,7 +132,6 @@
 (def ignore (builtin.macro `(def throwaway ~(head args))))
 (debug args)
 (progn (debug args) (def foo 73) (debug foo))
-(provide 42 (progn (debug args) (def foo 33)))
 (debug args)
 
 (def panic-block '(argz (panic "wrong fn call")))
@@ -149,7 +148,7 @@
 
 (def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
 
-(defmacro switch argz `(provide ~(head argz) ~(cons 'switch-args (tail argz))))
+(defmacro switch argz `(progn (def args ~(head argz)) ~(cons 'switch-args (tail argz))))
 
 (defn third args (head (tail (tail (head args)))))
 

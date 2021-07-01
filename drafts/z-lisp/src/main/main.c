@@ -786,33 +786,6 @@ eval_result_t builtin_operator(datum_t *args, namespace_t *ctxt) {
       datum_make_operator(args->list_head, ctxt, false, false));
 }
 
-eval_result_t builtin_provide(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail)) {
-    return eval_result_make_panic("provide expects exactly two arguments");
-  }
-  eval_result_t new_args = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(new_args)) {
-    return new_args;
-  }
-  if (eval_result_is_context(new_args)) {
-    return eval_result_make_panic("provide expected a value, got a context");
-  }
-  datum_t *args_sym = datum_make_symbol("args");
-  // eval_result_t old_args = namespace_get(ctxt, args_sym);
-  // if (eval_result_is_panic(old_args)) {
-  //  return old_args;
-  //}
-  namespace_t *provided_ctxt = namespace_set(ctxt, args_sym, new_args.ok_value);
-  eval_result_t res = datum_eval(args->list_tail->list_head, provided_ctxt);
-  if (eval_result_is_panic(res)) {
-    return res;
-  }
-  // namespace_t *resulting_ctxt = namespace_set(res.ok_value, args_sym,
-  // old_args.ok_value);
-  return res;
-}
-
 eval_result_t builtin_switch(datum_t *args, namespace_t *ctxt) {
   for (datum_t *branch = args; !datum_is_nil(branch);
        branch = branch->list_tail) {
@@ -1079,7 +1052,6 @@ void namespace_def_builtins(namespace_t **ns) {
   namespace_def_builtin(ns, "builtin.macro", builtin_macro);
   namespace_def_builtin(ns, "builtin.fn", builtin_fn);
   namespace_def_builtin(ns, "builtin.operator", builtin_operator);
-  namespace_def_builtin(ns, "provide", builtin_provide);
   namespace_def_builtin(ns, "builtin.switch", builtin_switch);
   namespace_def_builtin(ns, "def", builtin_def);
   namespace_def_builtin(ns, "defun", builtin_defun);
