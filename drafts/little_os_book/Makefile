@@ -27,7 +27,10 @@ target/%.o: src/%.c
 	mkdir -p target
 	$(CC) $(CFLAGS) $< -o $@
 
-run: target/os.iso
+run: target/os.iso autorun.rc
+	bochs -f bochsrc.txt -q -rc autorun.rc
+
+debug: target/os.iso
 	bochs -f bochsrc.txt -q
 
 clean:
