@@ -1,7 +1,7 @@
 OBJECTS = target/loader.o target/kmain.o
-LD = i386-elf-ld
-CC = i386-elf-gcc
-CFLAGS = -ffreestanding -Wall -Wextra -c
+LD = ld
+CC = gcc
+CFLAGS = -ffreestanding -Wall -Wextra -c -march=i386 -m32 -fno-stack-protector
 LDFLAGS = -T src/link.ld -melf_i386
 AS = nasm
 ASFLAGS = -f elf
@@ -13,7 +13,7 @@ target/os.iso: target/kernel.elf src/menu.lst stage2_eltorito
 	cp src/menu.lst target/iso/boot/grub
 	cp stage2_eltorito target/iso/boot/grub
 	cp target/kernel.elf target/iso/boot
-	mkisofs -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A os -input-charset utf8 -quiet -boot-info-table -o target/os.iso target/iso
+	genisoimage -R -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -A os -input-charset utf8 -quiet -boot-info-table -o target/os.iso target/iso
 
 target/kernel.elf: $(OBJECTS) src/link.ld
 	$(LD) $(LDFLAGS) $(OBJECTS) -o target/kernel.elf
