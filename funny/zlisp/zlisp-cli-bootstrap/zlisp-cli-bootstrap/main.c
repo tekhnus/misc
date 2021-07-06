@@ -1,5 +1,5 @@
 // a basic CLI for zlisp interpreter.
-#include "zlisp.h"
+#include <zlisp-impl/main.h>
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  char *files[] = {"src/main/prelude.lisp", argv[1]};
+  char *files[] = {"../zlisp-impl/zlisp-impl/prelude.lisp", argv[1]};
 
   namespace_t *ns = namespace_make_builtins();
   for (int i = 0; i < 2; ++i) {

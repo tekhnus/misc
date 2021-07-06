@@ -1,5 +1,5 @@
 // zlisp interpreter.
-#include "zlisp.h"
+#include <zlisp-impl/main.h>
 
 #include <ctype.h>
 #include <dlfcn.h>

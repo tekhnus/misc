@@ -185,7 +185,7 @@
 (def-or-panic stderr
      (extern-pointer libc "stderr" 'pointer))
 
-(def-or-panic zlisp-zlisp (shared-library "target/zlisp-zlisp.so"))
+(def-or-panic zlisp-zlisp (shared-library "module/zlisp/libmodule-zlisp-wrapper.so"))
 
 (def-or-panic read
      (extern-pointer zlisp-zlisp "read" '((datum) eval_result)))

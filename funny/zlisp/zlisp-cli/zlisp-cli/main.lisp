@@ -34,5 +34,5 @@
 	   (repl nsp))))
 
 (def builtins_ (builtins))
-(def prelude (eval-script "src/main/prelude.lisp" builtins_))
+(def prelude (eval-script "../zlisp-impl/zlisp-impl/prelude.lisp" builtins_))
 (ignore (repl prelude))

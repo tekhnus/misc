@@ -1,6 +1,6 @@
 // a small library which wraps zlisp interpreter implementation
 // so that it can be used from within zlisp itself.
-#include "zlisp.h"
+#include <zlisp-impl/main.h>
 
 eval_result_t read(datum_t *sptr) {
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||
