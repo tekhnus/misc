@@ -6,6 +6,9 @@ The most basic stuff is implemented: functions, macros,
 quasiquotes, etc. Dynamically loading shared libraries and
 calling functions from them is also possible.
 
-To run a lisp script: `target/zlisp-cli <path-to-the-script>`.
-
-There is a basic repl: `target/zlisp-cli src/main/repl.lisp`
+To build and run the REPL:
+```
+cmake -S . -B build
+cmake --build build
+build/zlisp-cli-bootstrap/zlisp-run module/cli/main.lisp
+```
