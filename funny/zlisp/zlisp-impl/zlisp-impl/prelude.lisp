@@ -185,16 +185,5 @@
 (def-or-panic stderr
      (extern-pointer libc "stderr" 'pointer))
 
-(def-or-panic zlisp-zlisp (shared-library "module/zlisp/libmodule-zlisp-wrapper.so"))
-
-(def-or-panic read
-     (extern-pointer zlisp-zlisp "read" '((datum) eval_result)))
-
-(def-or-panic eval
-     (extern-pointer zlisp-zlisp "eval" '((datum datum) eval_result)))
-
-(def-or-panic prelude
-     (extern-pointer zlisp-zlisp "prelude" '(() eval_result)))
-
 (defmacro print (val)
   `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))

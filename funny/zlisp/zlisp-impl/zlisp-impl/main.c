@@ -775,6 +775,82 @@ eval_result_t special_if(datum_t *args, namespace_t *ctxt) {
   return datum_eval(args->list_tail->list_tail->list_head, ctxt);
 }
 
+datum_t *namespace_list(namespace_t *ns) {
+  datum_t *result = datum_make_nil();
+  datum_t **nil = &result;
+  for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
+    datum_t *kv = cur->list_head;
+    datum_t *key = kv->list_head;
+    datum_t *tag_and_value = kv->list_tail;
+    datum_t *tag = tag_and_value->list_head;
+    datum_t *value = tag_and_value->list_tail->list_head;
+    datum_t *keyval;
+    if (!strcmp(tag_and_value->list_head->symbol_value, ":value")) {
+      keyval = datum_make_list_2(key, value);
+    } else if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
+      datum_t *body = tag_and_value->list_tail->list_head;
+      datum_t *fn = datum_make_operator(body, ns, true, false);
+      keyval = datum_make_list_2(key, fn);
+    } else {
+      fprintf(stderr, "namespace implementation error");
+      exit(EXIT_FAILURE);
+    }
+    *nil = datum_make_list_1(keyval);
+    nil = &((*nil)->list_tail);
+  }
+  return result;
+}
+
+eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("require expects a single argument");
+  }
+  eval_result_t filename = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(filename)) {
+    return filename;
+  }
+  if (eval_result_is_context(filename)) {
+    return eval_result_make_panic("require expected a value, got a context");
+  }
+  if (!datum_is_bytestring(filename.ok_value)) {
+    return eval_result_make_panic("require expected a string");
+  }
+  FILE *module = fopen(filename.ok_value->bytestring_value, "r");
+  if (module == NULL) {
+    return eval_result_make_panic("error while opening the required file");
+  }
+
+  eval_result_t prelude = namespace_make_prelude();
+  if (eval_result_is_panic(prelude)) {
+    return filename;
+  }
+  if (eval_result_is_ok(prelude)) {
+    return eval_result_make_panic("prelude was expected to be a context");
+  }
+  namespace_t *ns = prelude.context_value;
+  read_result_t rr;
+  for (; read_result_is_ok(rr = datum_read(module));) {
+    eval_result_t val = datum_eval(rr.ok_value, ns);
+    if (eval_result_is_panic(val)) {
+      return val;
+    }
+    if (eval_result_is_ok(val)) {
+      return eval_result_make_panic(
+          "the program should consist of statements\n");
+    }
+    ns = val.context_value;
+  }
+  datum_t *imported_bindings = namespace_list(ns);
+  for (; !datum_is_nil(imported_bindings);
+       imported_bindings = imported_bindings->list_tail) {
+    datum_t *sym = imported_bindings->list_head->list_head;
+    datum_t *val = imported_bindings->list_head->list_tail->list_head;
+
+    ctxt = namespace_set(ctxt, sym, val);
+  }
+  return eval_result_make_context(ctxt);
+}
+
 eval_result_t builtin_shared_library(datum_t *library_name) {
   if (!datum_is_bytestring(library_name)) {
     return eval_result_make_panic("load-shared-library expects a bytestring");
@@ -953,6 +1029,7 @@ eval_result_t namespace_make_prelude() {
   namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
   namespace_def_special(&ns, "progn", special_progn);
+  namespace_def_special(&ns, "require", special_require);
 
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
   namespace_def_extern_fn(&ns, "extern-pointer", builtin_extern_pointer, 3);
