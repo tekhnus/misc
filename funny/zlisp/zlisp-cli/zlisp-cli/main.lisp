@@ -33,6 +33,5 @@
 	   (ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-(def builtins_ (builtins))
-(def prelude (eval-script "../zlisp-impl/zlisp-impl/prelude.lisp" builtins_))
-(ignore (repl prelude))
+(def prelude_ (prelude))
+(ignore (repl prelude_))

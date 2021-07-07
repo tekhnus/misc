@@ -917,7 +917,10 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-namespace_t *namespace_make_builtins() {
+extern unsigned char zlisp_impl_prelude_lisp[];
+extern unsigned int zlisp_impl_prelude_lisp_len;
+
+namespace_t *namespace_make_prelude() {
   namespace_t *ns = namespace_make();
 
   namespace_def_special(&ns, "builtin.macro", special_macro);
@@ -941,6 +944,25 @@ namespace_t *namespace_make_builtins() {
   namespace_def_extern_fn(&ns, "is-constant", builtin_is_constant, 1);
   namespace_def_extern_fn(&ns, "repr", builtin_repr, 1);
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
+
+  FILE *prelude = fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
+  if (prelude == NULL) {
+    return NULL;
+  }
+
+  read_result_t rr;
+   for (; read_result_is_ok(rr = datum_read(prelude));) {
+      eval_result_t val = datum_eval(rr.ok_value, ns);
+      if (eval_result_is_panic(val)) {
+        fprintf(stderr, "%s\n", val.panic_message);
+        return NULL;
+      }
+      if (eval_result_is_ok(val)) {
+        printf("the program should consist of statements\n");
+	return NULL;
+      }
+      ns = val.context_value;
+    }
 
   return ns;
 }

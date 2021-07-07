@@ -40,6 +40,6 @@ eval_result_t eval(datum_t *v, datum_t *ns) {
       datum_make_list_2(datum_make_symbol(":ok"), r.ok_value));
 }
 
-eval_result_t builtins() {
-  return eval_result_make_ok(namespace_make_builtins());
+eval_result_t prelude() {
+  return eval_result_make_ok(namespace_make_prelude());
 }

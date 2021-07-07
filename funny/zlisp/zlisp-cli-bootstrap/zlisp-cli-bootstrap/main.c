@@ -7,9 +7,9 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  char *files[] = {"../zlisp-impl/zlisp-impl/prelude.lisp", argv[1]};
+  char *files[] = {argv[1]};
 
-  namespace_t *ns = namespace_make_builtins();
+  namespace_t *ns = namespace_make_prelude();
   for (int i = 0; i < 2; ++i) {
     FILE *f = fopen(files[i], "r");
     if (f == NULL) {

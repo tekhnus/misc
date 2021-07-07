@@ -193,8 +193,8 @@
 (def-or-panic eval
      (extern-pointer zlisp-zlisp "eval" '((datum datum) eval_result)))
 
-(def-or-panic builtins
-     (extern-pointer zlisp-zlisp "builtins" '(() eval_result)))
+(def-or-panic prelude
+     (extern-pointer zlisp-zlisp "prelude" '(() eval_result)))
 
 (defmacro print (val)
   `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))

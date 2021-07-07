@@ -155,4 +155,4 @@ namespace_t *namespace_make();
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
 
-namespace_t *namespace_make_builtins();
+namespace_t *namespace_make_prelude();
