@@ -43,10 +43,10 @@ eval_result_t eval(datum_t *v, datum_t *ns) {
 eval_result_t prelude() {
   eval_result_t prelude = namespace_make_prelude();
   if(eval_result_is_panic(prelude)) {
-    return prelude;
+    return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring(prelude.panic_message)));
   }
   if (eval_result_is_ok(prelude)) {
-    return eval_result_make_panic("prelude should be a context");
+    return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring("prelude should be a context")));
   }
-  return eval_result_make_ok(prelude.context_value);
+  return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":ok"), prelude.context_value));
 }

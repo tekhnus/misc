@@ -156,3 +156,7 @@ namespace_t *namespace_make();
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
 
 eval_result_t namespace_make_prelude();
+
+extern unsigned char zlisp_impl_prelude_lisp[];
+
+extern unsigned int zlisp_impl_prelude_lisp_len;

@@ -917,8 +917,28 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-extern unsigned char zlisp_impl_prelude_lisp[];
-extern unsigned int zlisp_impl_prelude_lisp_len;
+static eval_result_t namespace_eval_prelude(namespace_t *ns) {
+  FILE *prelude =
+      fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
+  if (prelude == NULL) {
+    return eval_result_make_panic("error while reading the prelude source");
+  }
+
+  read_result_t rr;
+  for (; read_result_is_ok(rr = datum_read(prelude));) {
+    eval_result_t val = datum_eval(rr.ok_value, ns);
+    if (eval_result_is_panic(val)) {
+      return val;
+    }
+    if (eval_result_is_ok(val)) {
+      return eval_result_make_panic(
+          "the program should consist of statements\n");
+    }
+    ns = val.context_value;
+  }
+
+  return eval_result_make_context(ns);
+}
 
 eval_result_t namespace_make_prelude() {
   namespace_t *ns = namespace_make();
@@ -945,23 +965,5 @@ eval_result_t namespace_make_prelude() {
   namespace_def_extern_fn(&ns, "repr", builtin_repr, 1);
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
 
-  FILE *prelude =
-      fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
-  if (prelude == NULL) {
-    return eval_result_make_panic("error while reading the prelude source");
-  }
-
-  read_result_t rr;
-  for (; read_result_is_ok(rr = datum_read(prelude));) {
-    eval_result_t val = datum_eval(rr.ok_value, ns);
-    if (eval_result_is_panic(val)) {
-      return val;
-    }
-    if (eval_result_is_ok(val)) {
-      return eval_result_make_panic("the program should consist of statements\n");
-    }
-    ns = val.context_value;
-  }
-
-  return eval_result_make_context(ns);
+  return namespace_eval_prelude(ns);
 }

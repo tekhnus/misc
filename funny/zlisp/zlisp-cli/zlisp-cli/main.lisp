@@ -33,5 +33,5 @@
 	   (ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-(def prelude_ (prelude))
+(def-or-panic prelude_ (prelude))
 (ignore (repl prelude_))
