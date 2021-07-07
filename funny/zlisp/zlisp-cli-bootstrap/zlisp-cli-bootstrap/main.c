@@ -9,7 +9,16 @@ int main(int argc, char **argv) {
 
   char *files[] = {argv[1]};
 
-  namespace_t *ns = namespace_make_prelude();
+  eval_result_t prelude = namespace_make_prelude();
+  if (eval_result_is_panic(prelude)) {
+    fprintf(stderr, "%s\n", prelude.panic_message);
+    exit(EXIT_FAILURE);
+  }
+  if (!eval_result_is_context(prelude)) {
+    fprintf(stderr, "prelude expected to be a context, not a value");
+    exit(EXIT_FAILURE);
+  }
+  namespace_t *ns = prelude.context_value;
   for (int i = 0; i < 2; ++i) {
     FILE *f = fopen(files[i], "r");
     if (f == NULL) {

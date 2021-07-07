@@ -41,5 +41,12 @@ eval_result_t eval(datum_t *v, datum_t *ns) {
 }
 
 eval_result_t prelude() {
-  return eval_result_make_ok(namespace_make_prelude());
+  eval_result_t prelude = namespace_make_prelude();
+  if(eval_result_is_panic(prelude)) {
+    return prelude;
+  }
+  if (eval_result_is_ok(prelude)) {
+    return eval_result_make_panic("prelude should be a context");
+  }
+  return eval_result_make_ok(prelude.context_value);
 }
