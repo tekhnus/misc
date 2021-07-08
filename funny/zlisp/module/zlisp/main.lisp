@@ -7,4 +7,4 @@
      (extern-pointer zlisp-zlisp "eval" '((datum datum) eval_result)))
 
 (def-or-panic prelude
-     (extern-pointer zlisp-zlisp "prelude" '(() eval_result)))
+  (extern-pointer zlisp-zlisp "prelude" '(() eval_result)))

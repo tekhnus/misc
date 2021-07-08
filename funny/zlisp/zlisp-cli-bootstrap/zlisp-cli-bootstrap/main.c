@@ -1,6 +1,9 @@
 // a basic CLI for zlisp interpreter.
 #include <zlisp-impl/main.h>
 
+#include <libgen.h>
+#include <unistd.h>
+
 int main(int argc, char **argv) {
   if (argc != 2) {
     printf("usage: %s <script>\n", argv[0]);
@@ -17,6 +20,18 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
   namespace_t *ns = prelude.context_value;
+
+  char filename_copy[1024] = {0};
+
+  if (argv[1][0] != '/') {
+    getcwd(filename_copy, sizeof(filename_copy));
+    strcat(filename_copy, "/");
+  }
+  char arg_copy[1024];
+  strcpy(arg_copy, argv[1]);
+  strcat(filename_copy, dirname(arg_copy));
+  datum_t *new_this_directory = datum_make_bytestring(filename_copy);
+  ns = namespace_set(ns, datum_make_symbol("this-directory"), new_this_directory);
 
   FILE *f = fopen(argv[1], "r");
   if (f == NULL) {
