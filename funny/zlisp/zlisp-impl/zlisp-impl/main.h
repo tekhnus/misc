@@ -151,13 +151,15 @@ eval_result_t eval_result_make_context(namespace_t *ns);
 
 eval_result_t eval_result_make_panic(char *message);
 
-namespace_t *namespace_make();
+namespace_t *namespace_make_empty();
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value);
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
 
 eval_result_t namespace_make_prelude();
+
+eval_result_t namespace_make_eval_file(char *filename);
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 

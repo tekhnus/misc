@@ -332,7 +332,7 @@ eval_result_t eval_result_make_panic(char *message) {
   return result;
 }
 
-namespace_t *namespace_make() { return datum_make_nil(); }
+namespace_t *namespace_make_empty() { return datum_make_nil(); }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
@@ -814,6 +814,28 @@ datum_t *namespace_list(namespace_t *ns) {
   return result;
 }
 
+static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
+  read_result_t rr;
+  for (; read_result_is_ok(rr = datum_read(stream));) {
+    eval_result_t val = datum_eval(rr.ok_value, ctxt);
+    if (eval_result_is_panic(val)) {
+      return val;
+    }
+    if (eval_result_is_ok(val)) {
+      return eval_result_make_panic(
+          "the program should consist of statements\n");
+    }
+    ctxt = val.context_value;
+  }
+  if (read_result_is_panic(rr)) {
+    return eval_result_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr)) {
+    return eval_result_make_panic("unmatched right paren");
+  }
+  return eval_result_make_context(ctxt);
+}
+
 eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("require expects a single argument");
@@ -828,22 +850,6 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(filename.ok_value)) {
     return eval_result_make_panic("require expected a string");
   }
-  if (filename.ok_value->bytestring_value[0] != '/') {
-    return eval_result_make_panic("require expects an absolute path");
-  }
-  FILE *module = fopen(filename.ok_value->bytestring_value, "r");
-  if (module == NULL) {
-    return eval_result_make_panic("error while opening the required file");
-  }
-
-  eval_result_t prelude = namespace_make_prelude();
-  if (eval_result_is_panic(prelude)) {
-    return filename;
-  }
-  if (eval_result_is_ok(prelude)) {
-    return eval_result_make_panic("prelude was expected to be a context");
-  }
-  namespace_t *ns = prelude.context_value;
   eval_result_t this_directory = namespace_get(ctxt, datum_make_symbol("this-directory"));
   if (eval_result_is_panic(this_directory)) {
     return this_directory;
@@ -854,22 +860,14 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(this_directory.ok_value)) {
     return eval_result_make_panic("this-directory should be a string");
   }
-  char filename_copy[1024];
-  strcpy(filename_copy, filename.ok_value->bytestring_value);
-  datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));
-  ns = namespace_set(ns, datum_make_symbol("this-directory"), new_this_directory);
-  read_result_t rr;
-  for (; read_result_is_ok(rr = datum_read(module));) {
-    eval_result_t val = datum_eval(rr.ok_value, ns);
-    if (eval_result_is_panic(val)) {
-      return val;
-    }
-    if (eval_result_is_ok(val)) {
-      return eval_result_make_panic(
-          "the program should consist of statements\n");
-    }
-    ns = val.context_value;
+  eval_result_t file_ns = namespace_make_eval_file(filename.ok_value->bytestring_value);
+  if (eval_result_is_panic(file_ns)) {
+    return filename;
   }
+  if (eval_result_is_ok(file_ns)) {
+    return eval_result_make_panic("the code in the file should consist of statements");
+  }
+  namespace_t *ns = file_ns.context_value;
   datum_t *imported_bindings = namespace_list(ns);
   for (; !datum_is_nil(imported_bindings);
        imported_bindings = imported_bindings->list_tail) {
@@ -1026,31 +1024,8 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-static eval_result_t namespace_eval_prelude(namespace_t *ns) {
-  FILE *prelude =
-      fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
-  if (prelude == NULL) {
-    return eval_result_make_panic("error while reading the prelude source");
-  }
-
-  read_result_t rr;
-  for (; read_result_is_ok(rr = datum_read(prelude));) {
-    eval_result_t val = datum_eval(rr.ok_value, ns);
-    if (eval_result_is_panic(val)) {
-      return val;
-    }
-    if (eval_result_is_ok(val)) {
-      return eval_result_make_panic(
-          "the program should consist of statements\n");
-    }
-    ns = val.context_value;
-  }
-
-  return eval_result_make_context(ns);
-}
-
 eval_result_t namespace_make_prelude() {
-  namespace_t *ns = namespace_make();
+  namespace_t *ns = namespace_make_empty();
 
   namespace_def_special(&ns, "builtin.macro", special_macro);
   namespace_def_special(&ns, "builtin.fn", special_fn);
@@ -1076,5 +1051,38 @@ eval_result_t namespace_make_prelude() {
   namespace_def_extern_fn(&ns, "concat-bytestrings", builtin_concat_bytestrings, 2);
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
 
-  return namespace_eval_prelude(ns);
+  FILE *prelude =
+    fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
+  if (prelude == NULL) {
+    return eval_result_make_panic("error while reading the prelude source");
+  }
+
+  return stream_eval(prelude, ns);
+}
+
+eval_result_t namespace_make_eval_file(char *filename) {
+  FILE *module = fopen(filename, "r");
+  if (module == NULL) {
+    return eval_result_make_panic("error while opening the required file");
+  }
+  eval_result_t prelude = namespace_make_prelude();
+  if (eval_result_is_panic(prelude)) {
+    return prelude;
+  }
+  if (eval_result_is_ok(prelude)) {
+    return eval_result_make_panic("prelude was expected to be a context");
+  }
+  namespace_t *ns = prelude.context_value;
+  char filename_copy[1024];
+  strcpy(filename_copy, filename);
+  datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));
+  ns = namespace_set(ns, datum_make_symbol("this-directory"), new_this_directory);
+  eval_result_t ns_ = stream_eval(module, ns);
+  if (eval_result_is_panic(ns_)) {
+    return ns_;
+  }
+  if (eval_result_is_ok(ns_)) {
+    return eval_result_make_panic("expected a context, got a value");
+  }
+  return ns_;
 }
