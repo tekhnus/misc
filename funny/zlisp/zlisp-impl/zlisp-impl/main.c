@@ -4,13 +4,13 @@
 #include <ctype.h>
 #include <dlfcn.h>
 #include <ffi.h>
+#include <libgen.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libgen.h>
 
 bool datum_is_nil(datum_t *e) { return e == NULL; }
 
@@ -632,12 +632,12 @@ eval_result_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return eval_result_make_panic("expected integers");
   }
-  char *buf = malloc(strlen(x->bytestring_value) + strlen(y->bytestring_value) + 1);
+  char *buf =
+      malloc(strlen(x->bytestring_value) + strlen(y->bytestring_value) + 1);
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);
-  return eval_result_make_ok(
-			     datum_make_bytestring(buf));
+  return eval_result_make_ok(datum_make_bytestring(buf));
 }
 
 eval_result_t builtin_add(datum_t *x, datum_t *y) {
@@ -850,7 +850,8 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(filename.ok_value)) {
     return eval_result_make_panic("require expected a string");
   }
-  eval_result_t this_directory = namespace_get(ctxt, datum_make_symbol("this-directory"));
+  eval_result_t this_directory =
+      namespace_get(ctxt, datum_make_symbol("this-directory"));
   if (eval_result_is_panic(this_directory)) {
     return this_directory;
   }
@@ -860,12 +861,14 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(this_directory.ok_value)) {
     return eval_result_make_panic("this-directory should be a string");
   }
-  eval_result_t file_ns = namespace_make_eval_file(filename.ok_value->bytestring_value);
+  eval_result_t file_ns =
+      namespace_make_eval_file(filename.ok_value->bytestring_value);
   if (eval_result_is_panic(file_ns)) {
     return filename;
   }
   if (eval_result_is_ok(file_ns)) {
-    return eval_result_make_panic("the code in the file should consist of statements");
+    return eval_result_make_panic(
+        "the code in the file should consist of statements");
   }
   namespace_t *ns = file_ns.context_value;
   datum_t *imported_bindings = namespace_list(ns);
@@ -1048,11 +1051,12 @@ eval_result_t namespace_make_prelude() {
   namespace_def_extern_fn(&ns, "annotate", builtin_annotate, 1);
   namespace_def_extern_fn(&ns, "is-constant", builtin_is_constant, 1);
   namespace_def_extern_fn(&ns, "repr", builtin_repr, 1);
-  namespace_def_extern_fn(&ns, "concat-bytestrings", builtin_concat_bytestrings, 2);
+  namespace_def_extern_fn(&ns, "concat-bytestrings", builtin_concat_bytestrings,
+                          2);
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
 
   FILE *prelude =
-    fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
+      fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
   if (prelude == NULL) {
     return eval_result_make_panic("error while reading the prelude source");
   }
@@ -1076,7 +1080,8 @@ eval_result_t namespace_make_eval_file(char *filename) {
   char filename_copy[1024];
   strcpy(filename_copy, filename);
   datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));
-  ns = namespace_set(ns, datum_make_symbol("this-directory"), new_this_directory);
+  ns = namespace_set(ns, datum_make_symbol("this-directory"),
+                     new_this_directory);
   eval_result_t ns_ = stream_eval(module, ns);
   if (eval_result_is_panic(ns_)) {
     return ns_;

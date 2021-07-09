@@ -17,21 +17,6 @@
 
 (def type (builtin.fn (head (annotate (head args)))))
 
-(builtin.defn decons-fn
-      (if (is-constant (head args))
-	  `(if (eq ~(head args) ~(second args)) :ok :err)
-	(if (eq (type (head args)) :symbol)
-	    `(progn
-	       (def ~(head args) ~(second args))
-	       :ok)
-	  (if (eq (type (head args)) :list)
-	      (if (head args)
-		  `(if (eq ~(decons-fn (head (head args)) `(head ~(second args))) :err)
-		       :err
-		     ~(decons-fn (tail (head args)) `(tail ~(second args))))
-		`(if ~(second args) :err :ok))
-	    (panic "decons met an unsupported type")))))
-
 (builtin.defn concat
     (if (head args)
 	(cons (head (head args)) (concat (tail (head args)) (second args)))
