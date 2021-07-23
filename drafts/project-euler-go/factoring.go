@@ -1,6 +1,7 @@
 package euler
 
 import "math"
+import "math/big"
 
 func WriteFactors(n int, c chan int) {
 	var upperBound int = int(math.Sqrt(float64(n)))
@@ -39,4 +40,14 @@ func WritePrimeFactors(n int, c chan int) {
 		}
 	}
 	close(c)
+}
+
+func LCM(z *big.Int, a *big.Int, b *big.Int) {
+	// An temporary variable is allocated,
+	// because `z` can coincide with `a` or `b`.
+	var tmp big.Int
+	tmp.GCD(nil, nil, a, b)
+	tmp.Div(a, &tmp)
+	tmp.Mul(&tmp, b)
+	z.Set(&tmp)
 }
