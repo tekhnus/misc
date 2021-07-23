@@ -43,7 +43,7 @@ func WritePrimeFactors(n int, c chan int) {
 }
 
 func WritePrimes(c chan int) {
-	primes := make([]int, 0, 100000)
+	primes := []int{}
 	for p := 2;;p++ {
 		isPrime := true
 		var upperBound int = int(math.Sqrt(float64(p)))
