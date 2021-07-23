@@ -6,6 +6,7 @@ import "github.com/tekhnus/project-euler-go"
 
 //go:embed input.txt
 var input string
+
 const length = 13
 
 func P8() int {
@@ -28,7 +29,7 @@ func P8() int {
 	go func() {
 		lastStart := len(input) - length
 		for start := 0; start <= lastStart; start++ {
-			subseqs <- input[start:start+length]
+			subseqs <- input[start : start+length]
 		}
 		close(subseqs)
 	}()

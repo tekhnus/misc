@@ -4,7 +4,7 @@ func Reverse(s string) string {
 	length := len(s)
 	result := make([]byte, length)
 	for index, byte := range []byte(s) {
-		result[length - 1 - index] = byte
+		result[length-1-index] = byte
 	}
 	return string(result)
 }
@@ -12,7 +12,7 @@ func Reverse(s string) string {
 func IsPalindromic(s string) bool {
 	left := 0
 	right := len(s) - 1
-	for ; left < right; {
+	for left < right {
 		if s[left] != s[right] {
 			return false
 		}
