@@ -12,7 +12,7 @@ func WriteFactors(n int, c chan int) {
 			c <- quotient
 		}
 	}
-	if n%upperBound == 0 {
+	if n%upperBound == 0 && upperBound > 1 {
 		c <- upperBound
 	}
 	close(c)
@@ -40,6 +40,27 @@ func WritePrimeFactors(n int, c chan int) {
 		}
 	}
 	close(c)
+}
+
+func WritePrimes(c chan int) {
+	primes := make([]int, 0, 100000)
+	for p := 2;;p++ {
+		isPrime := true
+		var upperBound int = int(math.Sqrt(float64(p)))
+		for _, r := range primes {
+			if r > upperBound {
+				break
+			}
+			if p % r == 0 {
+				isPrime = false
+				break
+			}
+		}
+		if isPrime {
+			c <- p
+			primes = append(primes, p)
+		}
+	}
 }
 
 func LCM(z *big.Int, a *big.Int, b *big.Int) {
