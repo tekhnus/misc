@@ -9,4 +9,3 @@ func P3() int {
 	maxFac := euler.ReadMax(fac)
 	return maxFac
 }
-

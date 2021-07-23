@@ -5,6 +5,6 @@ func WriteFibonacci(c chan int) {
 	b := 1
 	for {
 		c <- a
-		a, b = b, a + b
+		a, b = b, a+b
 	}
 }

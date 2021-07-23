@@ -10,7 +10,7 @@ func P2() int {
 		if x > 4000000 {
 			break
 		}
-		if x % 2 == 0 {
+		if x%2 == 0 {
 			sum += x
 		}
 	}
