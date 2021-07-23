@@ -1,6 +1,6 @@
 package solutions
 
-import "github.com/tekhnus/euler-go"
+import "github.com/tekhnus/project-euler-go"
 
 func P2() int {
 	fib := make(chan int)

@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 import "os"
-import "github.com/tekhnus/euler-go/solutions"
+import "github.com/tekhnus/project-euler-go/solutions"
 
 var solutionById = map[string]func() int{
 	"P1": solutions.P1,

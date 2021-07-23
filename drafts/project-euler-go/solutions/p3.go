@@ -1,6 +1,6 @@
 package solutions
 
-import "github.com/tekhnus/euler-go"
+import "github.com/tekhnus/project-euler-go"
 
 func P3() int {
 	n := 600851475143
