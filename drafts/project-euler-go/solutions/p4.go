@@ -7,10 +7,10 @@ func P4() int {
 	ch := make(chan int)
 	go func() {
 		for a := 100; a <= 999; a++ {
-			for b := 100; b <= 999; b++ {
+			for b := a; b <= 999; b++ {
 				product := a * b
 				s := strconv.Itoa(product)
-				if s == euler.Reverse(s) {
+				if euler.IsPalindromic(s) {
 					ch <- product
 				}
 			}
