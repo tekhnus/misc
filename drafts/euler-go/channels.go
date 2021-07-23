@@ -1,4 +1,4 @@
-package share
+package euler
 
 func ReadMax(c chan int) int {
 	max := <- c

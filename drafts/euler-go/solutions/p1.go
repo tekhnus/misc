@@ -1,13 +1,11 @@
-package main
+package solutions
 
-import "fmt"
-
-func main() {
+func P1() int {
 	sum := 0
 	for x := 0; x < 1000; x++ {
 		if x % 3 == 0 || x % 5 == 0 {
 			sum += x
 		}
 	}
-	fmt.Println(sum)
+	return sum
 }

@@ -1,4 +1,4 @@
-package share
+package euler
 
 func WriteFibonacci(c chan int) {
 	a := 0
