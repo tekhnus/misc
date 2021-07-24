@@ -4,7 +4,7 @@ import _ "embed"
 import "strings"
 import "github.com/tekhnus/project-euler-go"
 
-//go:embed input.txt
+//go:embed p8.txt
 var input string
 
 const length = 13
