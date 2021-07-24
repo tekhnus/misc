@@ -5,6 +5,7 @@ import "fmt"
 import "log"
 import "go/parser"
 import "go/token"
+import "go/ast"
 import "os"
 import "strings"
 
@@ -23,11 +24,10 @@ func main() {
 	fmt.Fprintf(outfile, "var SolutionIndex = map[string]func() int{\n")
 	solutions := pkgs["solutions"]
 	for _, solutionFile := range solutions.Files {
-		for name, _ := range solutionFile.Scope.Objects {
-			if name == "SolutionIndex" {
-				continue
+		for name, obj := range solutionFile.Scope.Objects {
+			if obj.Kind == ast.Fun {
+				fmt.Fprintf(outfile, "  \"%s\": %s,\n", name, name)
 			}
-			fmt.Fprintf(outfile, "  \"%s\": %s,\n", name, name)
 		}
 	}
 	fmt.Fprintf(outfile, "}\n")
