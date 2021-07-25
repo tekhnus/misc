@@ -2,51 +2,50 @@ package solutions
 
 import _ "embed"
 import "strings"
-
 import "log"
 import "github.com/tekhnus/project-euler-go"
 
-//import "fmt"
 //go:embed p11.txt
 var p11txt string
 
+var size = 20
+var directions = []euler.Vec2D{
+	{1, 0}, {0, 1}, {1, 1}, {1, -1},
+}
+
 func P11() int {
 	stream := strings.NewReader(p11txt)
-	grid := make([][]int64, 20)
+	grid := make([][]int64, size)
 
 	for i := range grid {
-		grid[i] = make([]int64, 20)
+		grid[i] = make([]int64, size)
 		err := euler.FscanlnDecimals64(stream, grid[i])
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	ch := make(chan []int64)
-
+	segments := make(chan []euler.Vec2D)
 	go func() {
-		for i := 0; i < 20; i++ {
-			for j := 0; j < 20; j++ {
-				ch <- euler.LinearSlice(grid, i, j, 0, 1)
-				ch <- euler.LinearSlice(grid, i, j, 1, 0)
-				ch <- euler.LinearSlice(grid, i, j, 1, 1)
-				ch <- euler.LinearSlice(grid, i, j, 1, -1)
+		euler.GridEach(grid, func(p euler.Vec2D) {
+			for _, d := range directions {
+				segments <- euler.GridSegment(p, d, 4)
 			}
-		}
-		close(ch)
+		})
+		close(segments)
 	}()
 
-	prods := make(chan int)
-
+	products := make(chan int)
 	go func() {
-		for seg := range ch {
-			if len(seg) >= 4 {
-				//fmt.Println(euler.Product(seg[:4]))
-				prods <- int(euler.Product(seg[:4]))
+		for seg := range segments {
+			val, err := euler.GridGet(grid, seg)
+			if err {
+				continue
 			}
+			products <- int(euler.Product(val))
 		}
-		close(prods)
+		close(products)
 	}()
 
-	return euler.ReadMax(prods)
+	return euler.ReadMax(products)
 }
