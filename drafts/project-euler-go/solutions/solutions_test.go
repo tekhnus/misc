@@ -1,11 +1,12 @@
 package solutions
 
 import "testing"
+import "reflect"
 
 var tests = []struct {
 	N string
-	F func() int
-	V int
+	F interface{}
+	V interface{}
 }{
 	{"P1", P1, 233168},
 	{"P2", P2, 4613732},
@@ -24,7 +25,7 @@ var tests = []struct {
 func TestSolutions(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.N, func(t *testing.T) {
-			if test.F() != test.V {
+			if !reflect.DeepEqual(reflect.ValueOf(test.F).Call([]reflect.Value{})[0].Interface(), test.V) {
 				t.Fail()
 			}
 		})
