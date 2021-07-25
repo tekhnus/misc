@@ -2,15 +2,16 @@
 package solutions
 
 var SolutionIndex = map[string]func() int{
+	"P7":  P7,
+	"P8":  P8,
+	"P10": P10,
+	"P11": P11,
+	"P12": P12,
+	"P5":  P5,
+	"P6":  P6,
 	"P9":  P9,
 	"P1":  P1,
-	"P11": P11,
-	"P4":  P4,
-	"P5":  P5,
-	"P8":  P8,
-	"P7":  P7,
-	"P10": P10,
 	"P2":  P2,
 	"P3":  P3,
-	"P6":  P6,
+	"P4":  P4,
 }

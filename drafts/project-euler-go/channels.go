@@ -9,3 +9,11 @@ func ReadMax(c chan int) int {
 	}
 	return max
 }
+
+func ReadCount(c chan int) int {
+	count := 0
+	for _ = range c {
+		count++
+	}
+	return count
+}

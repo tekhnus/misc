@@ -14,6 +14,10 @@ func WriteFactors(n int, c chan int) {
 	}
 	if n%upperBound == 0 && upperBound > 1 {
 		c <- upperBound
+		quotient := n / upperBound
+		if quotient != upperBound {
+			c <- quotient
+		}
 	}
 	close(c)
 }
