@@ -4,6 +4,10 @@ type Vec2D = struct {
 	I, J int
 }
 
+type V2I64 = struct {
+	I, J int64
+}
+
 func GridBounds(g [][]int64) (int, int) {
 	return len(g), len(g[0])
 }

@@ -21,6 +21,7 @@ var tests = []struct {
 	{"P11", P11, 70600674},
 	{"P12", P12, 76576500},
 	{"P13", P13, "5537376230"},
+	{"P14", P14, int64(837799)},
 }
 
 func TestSolutions(t *testing.T) {
