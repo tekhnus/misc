@@ -4,7 +4,7 @@ type Vec2D = struct {
 	I, J int
 }
 
-type V2I64 = struct {
+type V2I64 struct {
 	I, J int64
 }
 
