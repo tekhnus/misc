@@ -4,6 +4,7 @@ import _ "embed"
 import "strings"
 import "math/big"
 import "fmt"
+
 //import "github.com/tekhnus/project-euler-go"
 
 //go:embed p13.txt

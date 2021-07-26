@@ -41,8 +41,8 @@ func CollatzLength(n int64) int64 {
 }
 
 func CollatzNext(n int64) int64 {
-	if n % 2 == 0 {
+	if n%2 == 0 {
 		return n / 2
 	}
-	return n * 3 + 1
+	return n*3 + 1
 }

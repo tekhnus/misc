@@ -5,7 +5,7 @@ import "reflect"
 
 func WriteIntegers(c chan int64, from int64, to int64) {
 	for i := from; i < to; i++ {
-		c<-i
+		c <- i
 	}
 	close(c)
 }
@@ -21,7 +21,7 @@ func ReadMax(c chan int) int {
 }
 
 func ReadMaxGeneric(inp chan Comparable) Comparable {
-	result := <- inp
+	result := <-inp
 	for p := range inp {
 		if p.CompareTo(result) == 1 {
 			result = p
