@@ -3,6 +3,7 @@ package solutions
 import _ "embed"
 import "strings"
 import "github.com/tekhnus/project-euler-go"
+import "math"
 
 //go:embed p18.txt
 var p18txt string
@@ -16,7 +17,7 @@ func P18() int64 {
 			best[i][j] = calc(best, i, j, input)
 		}
 	}
-	return MaxI64(best[len(best)-1])
+	return euler.MaxSliceI64(best[len(best)-1])
 }
 
 func readInput() [][]int64 {
@@ -33,28 +34,12 @@ func calc(best [][]int64, i int, j int, input [][]int64) int64 {
 	if i == 0 {
 		return input[0][0]
 	}
-	var m int64 = -1000000
+	var m int64 = math.MinInt64
 	if j > 0 {
-		x := best[i-1][j-1]
-		if x > m {
-			m = x
-		}
+		euler.SetMaxI64(&m, best[i-1][j-1])
 	}
 	if j < len(best[i-1]) {
-		x := best[i-1][j]
-		if x > m {
-			m = x
-		}
+		euler.SetMaxI64(&m, best[i-1][j])
 	}
 	return m + input[i][j]
-}
-
-func MaxI64(s []int64) int64 {
-	m := s[0]
-	for _, v := range s {
-		if v > m {
-			m = v
-		}
-	}
-	return m
 }
