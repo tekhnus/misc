@@ -38,6 +38,14 @@ func ReadCount(c chan int) int {
 	return count
 }
 
+func ReadSum(c chan int) int {
+	sum := 0
+	for x := range c {
+		sum += x
+	}
+	return sum
+}
+
 func Closer(c interface{}, wg *sync.WaitGroup) {
 	wg.Wait()
 	reflect.ValueOf(c).Close()
