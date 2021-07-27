@@ -1,6 +1,7 @@
 package solutions
 
 import "math/big"
+import "github.com/tekhnus/project-euler-go"
 
 func P16() int64 {
 	var two big.Int
@@ -9,14 +10,5 @@ func P16() int64 {
 	thousand.SetInt64(1000)
 	var x big.Int
 	x.Exp(&two, &thousand, nil)
-	return sumDigits(x)
-}
-
-func sumDigits(x big.Int) int64 {
-	s := x.String()
-	var sum int64
-	for _, c := range s {
-		sum += int64(c - '0')
-	}
-	return sum
+	return euler.Sum(euler.Digits(x))
 }

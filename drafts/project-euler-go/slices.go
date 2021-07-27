@@ -7,3 +7,11 @@ func Product(seq []int64) int64 {
 	}
 	return result
 }
+
+func Sum(seq []int) int64 {
+	var result int64 = 0
+	for _, x := range seq {
+		result += int64(x)
+	}
+	return result
+}
