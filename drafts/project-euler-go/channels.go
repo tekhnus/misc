@@ -10,6 +10,13 @@ func WriteIntegers(c chan int64, from int64, to int64) {
 	close(c)
 }
 
+func WriteSliceI64(c chan int64, s []int64) {
+	for _, i := range s {
+		c <- i
+	}
+	close(c)
+}
+
 func ReadMax(c chan int) int {
 	max := <-c
 	for v := range c {
@@ -44,6 +51,14 @@ func ReadSum(c chan int) int {
 		sum += x
 	}
 	return sum
+}
+
+func ReadSliceI64(c chan int64) []int64 {
+	var res []int64
+	for x := range c {
+		res = append(res, x)
+	}
+	return res
 }
 
 func Closer(c interface{}, wg *sync.WaitGroup) {
