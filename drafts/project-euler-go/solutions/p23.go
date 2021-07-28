@@ -3,11 +3,28 @@ package solutions
 import "github.com/tekhnus/project-euler-go"
 import "sync"
 
+const nn = 30000
+
 func P23() int {
 	nums := make(chan int64)
-	go euler.WriteIntegers(nums, 1, 30000)
+	go euler.WriteIntegers(nums, 1, nn)
 
 	abu := make(chan int64)
+	go writeAbundant(abu, nums)
+
+	ab := euler.ReadSliceI64(abu)
+	repr := computeRepr(ab)
+
+	res := 0
+	for i := 1; i < nn; i++ {
+		if !repr[i] {
+			res += i
+		}
+	}
+	return res
+}
+
+func writeAbundant(abu chan int64, nums chan int64) {
 	var wg sync.WaitGroup
 	euler.RunMany(3, &wg, func() {
 		for x := range nums {
@@ -17,37 +34,32 @@ func P23() int {
 		}
 	})
 	go euler.Closer(abu, &wg)
+}
 
-	ab := euler.ReadSliceI64(abu)
-
-	abu = make(chan int64)
+func computeRepr(ab []int64) []bool {
+	abu := make(chan int64)
 	go euler.WriteSliceI64(abu, ab)
 
-	var repr [30000]bool
+	var repr [nn]bool
+	var wg sync.WaitGroup
 	euler.RunMany(4, &wg, func() {
-		for n := range abu {
+		for k := range abu {
 			for _, m := range ab {
-				s := m + n
-				if s < 30000 {
+				s := m + k
+				if s < nn {
 					repr[s] = true
 				}
 			}
 		}
 	})
-
 	wg.Wait()
-	res := 0
-	for i := 1; i < 30000; i++ {
-		if !repr[i] {
-			res += i
-		}
-	}
-	return res
+
+	return repr[:]
 }
 
-func isAbundant(n int64) bool {
+func isAbundant(nn int64) bool {
 	divs := make(chan int)
-	go euler.WriteFactors(int(n), divs)
+	go euler.WriteFactors(int(nn), divs)
 	sum := 1 + euler.ReadSum(divs)
-	return sum > int(n)
+	return sum > int(nn)
 }
