@@ -10,6 +10,15 @@ func WriteIntegers(c chan int64, from int64, to int64) {
 	close(c)
 }
 
+func WritePairs(c chan V2I64, ifrom int64, ito int64, jfrom int64, jto int64) {
+	for i := ifrom; i < ito; i++ {
+		for j := jfrom; j < jto; j++ {
+			c <- V2I64{i, j}
+		}
+	}
+	close(c)
+}
+
 func WriteSliceI64(c chan int64, s []int64) {
 	for _, i := range s {
 		c <- i

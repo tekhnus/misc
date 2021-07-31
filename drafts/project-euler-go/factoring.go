@@ -23,6 +23,9 @@ func WriteFactors(n int, c chan int) {
 }
 
 func IsPrime(n int) bool {
+	if n <= 0 {
+		return false
+	}
 	if n == 1 {
 		return true
 	}
