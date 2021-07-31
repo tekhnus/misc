@@ -8,6 +8,10 @@ type V2I64 struct {
 	I, J int64
 }
 
+type V3I64 struct {
+	I, J, K int64
+}
+
 func GridBounds(g [][]int64) (int, int) {
 	return len(g), len(g[0])
 }

@@ -46,6 +46,16 @@ func ReadMaxGeneric(inp chan Comparable) Comparable {
 	return result
 }
 
+func ReadMaxV3I64(c chan V3I64) V3I64 {
+	max := <-c
+	for v := range c {
+		if v.I > max.I {
+			max = v
+		}
+	}
+	return max
+}
+
 func ReadCount(c chan int) int {
 	count := 0
 	for _ = range c {

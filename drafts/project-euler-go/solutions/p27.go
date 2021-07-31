@@ -3,12 +3,6 @@ package solutions
 import "github.com/tekhnus/project-euler-go"
 import "sync"
 
-type p27res struct{ I, J, N int64 }
-
-func (x p27res) CompareTo(y euler.Comparable) int {
-	return euler.CompareI64(x.N, y.(p27res).N)
-}
-
 func P27() int64 {
 	primec := make(chan int)
 	go euler.WritePrimes(primec)
@@ -21,21 +15,27 @@ func P27() int64 {
 		isprime[int64(p)] = true
 	}
 
-	pairs := make(chan euler.V2I64)
+	pairs := make(chan euler.V2I64, 4000000)
 	go euler.WritePairs(pairs, -999, 1000, -1000, 1001)
 
-	lengths := make(chan euler.Comparable, 4000000)
+	lengths := make(chan euler.V3I64)
 	var wg sync.WaitGroup
-	euler.RunMany(3, &wg, func() {
+	euler.RunMany(2, &wg, func() {
+		var best euler.V3I64
 		for p := range pairs {
 			n := primeCombo(p, isprime)
-			lengths <- p27res{p.I, p.J, n}
+			if n > best.I {
+				best = euler.V3I64{n, p.I, p.J}
+			}
+		}
+		if best.I > 0 {
+			lengths <- best
 		}
 	})
 	go euler.Closer(lengths, &wg)
 
-	best := euler.ReadMaxGeneric(lengths).(p27res)
-	return best.I * best.J
+	best := euler.ReadMaxV3I64(lengths)
+	return best.J * best.K
 }
 
 func primeCombo(coef euler.V2I64, isprime map[int64]bool) int64 {
