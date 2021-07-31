@@ -76,3 +76,25 @@ func LCM(z *big.Int, a *big.Int, b *big.Int) {
 	tmp.Mul(&tmp, b)
 	z.Set(&tmp)
 }
+
+func PrimeFactors(n int64) []int64 {
+	c := make(chan int)
+	go WritePrimeFactors(int(n), c)
+	var res []int64
+	for f := range c {
+		res = append(res, int64(f))
+	}
+	return res
+}
+
+func PartiallyFactor(fs []int64, n int64) ([]int64, int64) {
+	ind := make([]int64, len(fs))
+	for i, f := range fs {
+		for n%f == 0 {
+			ind[i]++
+			n /= f
+
+		}
+	}
+	return ind, n
+}

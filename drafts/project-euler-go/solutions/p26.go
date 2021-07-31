@@ -1,59 +1,33 @@
 package solutions
 
-import "fmt"
+import "github.com/tekhnus/project-euler-go"
 
-func P26() int {
-	longest := -1
-	best := 0
-	for d := 2; d < 1000; d++ {
-		_, cycle := ToDecimal(1, d)
-		n := len(cycle)
-		//fmt.Println(d, n)
+func P26() int64 {
+	var longest int64 = -1
+	var best int64
+	for d := int64(2); d < 1000; d++ {
+		_, n := decompose(10, d)
 		if n > longest {
 			longest = n
 			best = d
 		}
 	}
 	return best
-	/*
-		10^t * 1 / d = _ / (10^k - 1)
-		10^t * (10^k - 1) = _ * d
-		d' := d wo 2s and 5s
-		10^k - 1 = 0 (mod d')
-		10^k = 1 (mod d')
-	*/
 }
 
-func ToDecimal(n int, d int) (string, string) {
-	if n < 0 || d <= 0 || n >= d {
-		panic("Wrong arguments for ToDecimal")
-	}
-	a, b, k, t := ToABKT(n, d)
-	init := fmt.Sprintf("%0*d", t, a)
-	cycle := fmt.Sprintf("%0*d", k, b)
-	return init, cycle
-}
-
-func ToABKT(n int, d int) (int, int, int, int) {
+func decompose(base int64, d int64) (int64, int64) {
 	/*
-	   n / d = a / 10^t + b / (10^t * (10^k - 1))
-	   n / d = (a * (10^k - 1) + b) / (10^t * (10^k - 1))
+	   Given base > 1 and d > 0,
+	   return the smallest pair (x, y)
+	   with x >= 0 and y > 0
+	   such that base^x * (base^y - 1) divides d.
 	*/
-	dd := d
-	for dd%2 == 0 {
-		dd /= 2
+	if base <= 1 || d <= 0 {
+		panic("Wrong call")
 	}
-	for dd%5 == 0 {
-		dd /= 5
-	}
-	k := 1
-	tenk := 10
-	if dd != 1 {
-		for tenk%dd != 1 {
-			k++
-			tenk *= 10
-			tenk = tenk % dd
-		}
-	}
-	return 0, 0, k, 0
+	f := euler.PrimeFactors(base)
+	di, dc := euler.PartiallyFactor(f, d) // so d == Val(f, di) * dc
+	x := euler.MaxSliceI64(di)            // so base^x divides Val(f, di)
+	y := euler.DiscLogUnit(base, dc)      // so base^y = 1 modulo dc, thus (base^y - 1) divides dc
+	return x, y
 }
