@@ -77,17 +77,31 @@ func LCM(z *big.Int, a *big.Int, b *big.Int) {
 	z.Set(&tmp)
 }
 
-func PrimeFactors(n int64) []int64 {
+func PrimeDecomposition(n int64) ([]int64, []int64) {
+	/*
+	   Return the list of all prime factors of n
+	   and the list of the respective multiplicities (i.e. p-adic orders)
+	*/
 	c := make(chan int)
 	go WritePrimeFactors(int(n), c)
 	var res []int64
 	for f := range c {
 		res = append(res, int64(f))
 	}
-	return res
+	ix, rest := PartiallyFactor(res, n)
+	if rest != 1 {
+		panic("implementation failure")
+	}
+	return res, ix
 }
 
 func PartiallyFactor(fs []int64, n int64) ([]int64, int64) {
+	/*
+	   Given a list of distinct prime numbers
+	   and a number n, return the list of the respective
+	   multiplicities of prime factors in n,
+	   and the maximal divisor of n which is coprime to all listed primes.
+	*/
 	ind := make([]int64, len(fs))
 	for i, f := range fs {
 		for n%f == 0 {
@@ -97,4 +111,22 @@ func PartiallyFactor(fs []int64, n int64) ([]int64, int64) {
 		}
 	}
 	return ind, n
+}
+
+func Log(x []int64, b []int64) int64 {
+	/*
+	   Assuming that x and b encode numbers
+	   by listing their p-adic orders wrt
+	   the common list of primes,
+	   return the ceil of the logarithm of x with base b.
+	*/
+	var res int64 = 1
+	for i, xi := range x {
+		bi := b[i]
+		r := xi / bi
+		if r > res {
+			res = r
+		}
+	}
+	return res
 }
