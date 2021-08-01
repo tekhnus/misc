@@ -134,7 +134,7 @@
 	 (if (eq :err (head tmp))
 	     ~(def-or-panic-tmp-fn (tail arg))
 	     (progn)))
-    `(panic "def-or-panic failed")))
+    `(panic (second tmp))))
 
 (def def-or-panic
      (builtin.macro
