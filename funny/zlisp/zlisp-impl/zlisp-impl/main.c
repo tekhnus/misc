@@ -273,7 +273,7 @@ read_result_t datum_read(FILE *strm) {
     res->list_tail = datum_make_list_1(v.ok_value);
     return read_result_make_ok(res);
   }
-  char err[1024];
+  char *err = malloc(1024);
   sprintf(err, "unexpected symbol: 0x%x", c);
   return read_result_make_panic(err);
 }
