@@ -864,7 +864,7 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   eval_result_t file_ns =
       namespace_make_eval_file(filename.ok_value->bytestring_value);
   if (eval_result_is_panic(file_ns)) {
-    return filename;
+    return file_ns;
   }
   if (eval_result_is_ok(file_ns)) {
     return eval_result_make_panic(
