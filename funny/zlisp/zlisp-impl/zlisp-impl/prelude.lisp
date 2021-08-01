@@ -127,15 +127,24 @@
 
 (def cond (builtin.macro `(cond- ~args)))
 
+(defn def-or-panic-tmp-fn (arg)
+  (if arg
+      `(progn
+	 (def tmp ~(head arg))
+	 (if (eq :err (head tmp))
+	     ~(def-or-panic-tmp-fn (tail arg))
+	     (progn)))
+    `(panic "def-or-panic failed")))
+
 (def def-or-panic
      (builtin.macro
       `(progn
-	 (def tmp ~(second args))
-	 (if (eq :err (head tmp))
-	     (panic (second tmp))
-	   (def ~(head args) (second tmp))))))
+	 ~(def-or-panic-tmp-fn (tail args))
+	 (def ~(head args) (second tmp)))))
 
-(def-or-panic libc (shared-library "libSystem.B.dylib"))
+(def-or-panic libc
+  (shared-library "libc.so.6")
+  (shared-library "libSystem.B.dylib"))
 
 (def-or-panic malloc
      (extern-pointer libc "malloc"
@@ -162,13 +171,16 @@
 		     '((pointer string string) sizet)))
 
 (def-or-panic stdin
-     (extern-pointer libc "__stdinp" 'pointer))
+  (extern-pointer libc "stdin" 'pointer)
+  (extern-pointer libc "__stdinp" 'pointer))
 
 (def-or-panic stdout
-     (extern-pointer libc "__stdoutp" 'pointer))
+  (extern-pointer libc "stdout" 'pointer)
+  (extern-pointer libc "__stdoutp" 'pointer))
 
 (def-or-panic stderr
-     (extern-pointer libc "__stderrp" 'pointer))
+  (extern-pointer libc "stderr" 'pointer)
+  (extern-pointer libc "__stderrp" 'pointer))
 
 (defmacro print (val)
   `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))
