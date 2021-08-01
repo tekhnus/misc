@@ -135,7 +135,7 @@
 	     (panic (second tmp))
 	   (def ~(head args) (second tmp))))))
 
-(def-or-panic libc (shared-library "libc.so.6"))
+(def-or-panic libc (shared-library "libSystem.B.dylib"))
 
 (def-or-panic malloc
      (extern-pointer libc "malloc"
@@ -162,13 +162,13 @@
 		     '((pointer string string) sizet)))
 
 (def-or-panic stdin
-     (extern-pointer libc "stdin" 'pointer))
+     (extern-pointer libc "__stdinp" 'pointer))
 
 (def-or-panic stdout
-     (extern-pointer libc "stdout" 'pointer))
+     (extern-pointer libc "__stdoutp" 'pointer))
 
 (def-or-panic stderr
-     (extern-pointer libc "stderr" 'pointer))
+     (extern-pointer libc "__stderrp" 'pointer))
 
 (defmacro print (val)
   `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))

@@ -1,4 +1,4 @@
-(def-or-panic zlisp-zlisp (shared-library "libzlisp-impl-wrapper.so"))
+(def-or-panic zlisp-zlisp (shared-library "libzlisp-impl-wrapper.dylib"))
 
 (def-or-panic read
      (extern-pointer zlisp-zlisp "read" '((datum) eval_result)))
