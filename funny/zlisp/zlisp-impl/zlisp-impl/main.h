@@ -15,6 +15,7 @@ typedef struct datum namespace_t;
 typedef struct eval_result eval_result_t;
 
 enum datum_type {
+  DATUM_NIL,
   DATUM_LIST,
   DATUM_SYMBOL,
   DATUM_BYTESTRING,

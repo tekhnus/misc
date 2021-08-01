@@ -13,35 +13,43 @@
 #include <string.h>
 #include <inttypes.h>
 
-bool datum_is_nil(datum_t *e) { return e == NULL; }
+bool datum_is_nil(datum_t *e) {
+  return e->type == DATUM_NIL;
+}
 
-bool datum_is_list(datum_t *e) { return e == NULL || e->type == DATUM_LIST; }
+bool datum_is_list(datum_t *e) {
+  return e->type == DATUM_NIL || e->type == DATUM_LIST;
+}
 
 bool datum_is_symbol(datum_t *e) {
-  return e != NULL && e->type == DATUM_SYMBOL;
+  return e->type == DATUM_SYMBOL;
 }
 
 bool datum_is_integer(datum_t *e) {
-  return e != NULL && e->type == DATUM_INTEGER;
+  return e->type == DATUM_INTEGER;
 }
 
 bool datum_is_bytestring(datum_t *e) {
-  return e != NULL && e->type == DATUM_BYTESTRING;
+  return e->type == DATUM_BYTESTRING;
 }
 
 bool datum_is_operator(datum_t *e) {
-  return e != NULL && e->type == DATUM_OPERATOR;
+  return e->type == DATUM_OPERATOR;
 }
 
 bool datum_is_special(datum_t *e) {
-  return e != NULL && e->type == DATUM_SPECIAL;
+  return e->type == DATUM_SPECIAL;
 }
 
 bool datum_is_pointer(datum_t *e) {
-  return e != NULL && e->type == DATUM_POINTER;
+  return e->type == DATUM_POINTER;
 }
 
-datum_t *datum_make_nil() { return NULL; }
+datum_t *datum_make_nil() {
+  datum_t *e = malloc(sizeof(datum_t));
+  e->type = DATUM_NIL;
+  return e;
+}
 
 datum_t *datum_make_list(datum_t *head, datum_t *tail) {
   datum_t *e = malloc(sizeof(datum_t));
@@ -446,6 +454,13 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
   if (!strcmp(definition->symbol_value, "eval_result")) {
     *type = malloc(sizeof(ffi_type));
     (*type)->type = FFI_TYPE_STRUCT;
+    (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on Mac before adding this line.
+    (*type)->alignment = 0;
+    /*
+      TODO: this is incorrect. eval_result is not two pointers;
+      is consists of an enum and a union. each is a pain in the ass
+      to support correctly. Migrate to a pointer!
+    */
     ffi_type **elements = malloc(3 * sizeof(ffi_type *));
     elements[0] = &ffi_type_pointer;
     elements[1] = &ffi_type_pointer;

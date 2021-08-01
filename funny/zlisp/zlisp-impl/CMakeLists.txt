@@ -5,8 +5,7 @@ add_custom_command(OUTPUT zlisp-impl/prelude.c
 		DEPENDS zlisp-impl/prelude.lisp)
 add_library(zlisp-impl SHARED zlisp-impl/main.c zlisp-impl/main.h zlisp-impl/prelude.c)
 find_path(FFI_INCLUDE_DIRS ffi.h PATH_SUFFIXES ffi)
-find_library(FFI_LIBRARIES ffi)
-target_link_libraries(zlisp-impl ${FFI_LIBRARIES})
+target_link_libraries(zlisp-impl ffi dl)
 target_include_directories(zlisp-impl PUBLIC . ${FFI_INCLUDE_DIRS})
 set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD 11

@@ -23,28 +23,31 @@
       (second args)))
 
 (builtin.defn decons-pat
-    (if (is-constant (head args))
-	(if (eq (head args) (second args))
-	    `(:ok ())
-	  `(:err))
-      (if (eq (type (head args)) :symbol)
-	  `(:ok (~(second args)))
-	(if (eq (type (head args)) :list)
-	    (if (head args)
-		(if (second args)
-		    (progn
-		      (def first-decons (decons-pat (head (head args)) (head (second args))))
-		      (def rest-decons (decons-pat (tail (head args)) (tail (second args))))
-		      (if (eq :err (head rest-decons))
-			  `(:err)
-			(if (eq :err (head first-decons))
-			    `(:err)
-			  `(:ok ~(concat (second first-decons) (second rest-decons))))))
-		  `(:err))
-	      (if (second args)
-		  `(:err)
-		`(:ok ())))
-	  (panic "decons-pat met an unsupported type")))))
+	      (progn
+		(def pat (head args))
+		(def val (second args))
+		(if (is-constant pat)
+		    (if (eq pat val)
+			`(:ok ())
+		      `(:err))
+		  (if (eq (type pat) :symbol)
+		      `(:ok (~val))
+		    (if (eq (type pat) :list)
+			(if pat
+			    (if val
+				(progn
+				  (def first-decons (decons-pat (head pat) (head val)))
+				  (def rest-decons (decons-pat (tail pat) (tail val)))
+				  (if (eq :err (head rest-decons))
+				      `(:err)
+				    (if (eq :err (head first-decons))
+					`(:err)
+				      `(:ok ~(concat (second first-decons) (second rest-decons))))))
+			      `(:err))
+			  (if val
+			      `(:err)
+			    `(:ok ())))
+		      (panic "decons-pat met an unsupported type"))))))
 
 (builtin.defn decons-vars
     (if (is-constant (head args))
