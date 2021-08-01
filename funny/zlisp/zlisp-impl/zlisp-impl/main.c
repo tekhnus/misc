@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 bool datum_is_nil(datum_t *e) { return e == NULL; }
 
@@ -281,7 +282,7 @@ char *datum_repr(datum_t *e) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (datum_is_integer(e)) {
-    sprintf(buf, "%ld", e->integer_value);
+    sprintf(buf, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     end += sprintf(end, "(");
     for (datum_t *item = e; !datum_is_nil(item); item = item->list_tail) {
