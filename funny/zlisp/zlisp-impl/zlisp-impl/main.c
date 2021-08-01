@@ -456,15 +456,12 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
     (*type)->type = FFI_TYPE_STRUCT;
     (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on Mac before adding this line.
     (*type)->alignment = 0;
-    /*
-      TODO: this is incorrect. eval_result is not two pointers;
-      is consists of an enum and a union. each is a pain in the ass
-      to support correctly. Migrate to a pointer!
-    */
-    ffi_type **elements = malloc(3 * sizeof(ffi_type *));
-    elements[0] = &ffi_type_pointer;
+    ffi_type **elements = malloc(5 * sizeof(ffi_type *));
+    elements[0] = &ffi_type_sint;
     elements[1] = &ffi_type_pointer;
-    elements[2] = NULL;
+    elements[2] = &ffi_type_pointer;
+    elements[3] = &ffi_type_pointer;
+    elements[4] = NULL;
     (*type)->elements = elements;
     return type;
   }

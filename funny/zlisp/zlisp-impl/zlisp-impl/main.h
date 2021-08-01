@@ -71,12 +71,12 @@ enum eval_result_type {
 };
 
 struct eval_result {
-  enum eval_result_type type;
-  union {
+  int type;  // It's hard to deal with enums in FFI, so using int.
+  // union { // Not using union for the same reason.
     datum_t *ok_value;
     namespace_t *context_value;
     char *panic_message;
-  };
+  // };
 };
 
 bool datum_is_nil(datum_t *e);
