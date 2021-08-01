@@ -70,6 +70,28 @@ func WritePrimes(c chan int) {
 	}
 }
 
+func WritePrimesUpTo(c chan int, bound int) {
+	primes := []int{}
+	for p := 2; p < bound; p++ {
+		isPrime := true
+		var upperBound int = int(math.Sqrt(float64(p)))
+		for _, r := range primes {
+			if r > upperBound {
+				break
+			}
+			if p%r == 0 {
+				isPrime = false
+				break
+			}
+		}
+		if isPrime {
+			c <- p
+			primes = append(primes, p)
+		}
+	}
+	close(c)
+}
+
 func LCM(z *big.Int, a *big.Int, b *big.Int) {
 	// An temporary variable is allocated,
 	// because `z` can coincide with `a` or `b`.

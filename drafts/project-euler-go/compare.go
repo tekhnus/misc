@@ -29,3 +29,9 @@ func SetMaxI64(x *int64, y int64) {
 		*x = y
 	}
 }
+
+func SetMaxV3I64(acc *V3I64, val V3I64) {
+	if val.I > acc.I {
+		*acc = val
+	}
+}

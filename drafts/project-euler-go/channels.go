@@ -80,6 +80,14 @@ func ReadSliceI64(c chan int64) []int64 {
 	return res
 }
 
+func ReadSet(c chan int) map[int]bool {
+	res := make(map[int]bool)
+	for x := range c {
+		res[x] = true
+	}
+	return res
+}
+
 func Closer(c interface{}, wg *sync.WaitGroup) {
 	wg.Wait()
 	reflect.ValueOf(c).Close()

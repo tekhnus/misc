@@ -5,15 +5,9 @@ import "sync"
 
 func P27() int64 {
 	primec := make(chan int)
-	go euler.WritePrimes(primec)
+	go euler.WritePrimesUpTo(primec, 4000000)
 
-	isprime := make(map[int64]bool)
-	for p := range primec {
-		if p > 4000000 {
-			break
-		}
-		isprime[int64(p)] = true
-	}
+	isprime := euler.ReadSet(primec)
 
 	pairs := make(chan euler.V2I64, 4000000)
 	go euler.WritePairs(pairs, -999, 1000, -1000, 1001)
@@ -24,9 +18,7 @@ func P27() int64 {
 		var best euler.V3I64
 		for p := range pairs {
 			n := primeCombo(p, isprime)
-			if n > best.I {
-				best = euler.V3I64{n, p.I, p.J}
-			}
+			euler.SetMaxV3I64(&best, euler.V3I64{n, p.I, p.J})
 		}
 		if best.I > 0 {
 			lengths <- best
@@ -38,9 +30,9 @@ func P27() int64 {
 	return best.J * best.K
 }
 
-func primeCombo(coef euler.V2I64, isprime map[int64]bool) int64 {
+func primeCombo(coef euler.V2I64, isprime map[int]bool) int64 {
 	var n int64
-	for isprime[n*n+coef.I*n+coef.J] {
+	for isprime[int(n*n+coef.I*n+coef.J)] {
 		n++
 	}
 	return n
