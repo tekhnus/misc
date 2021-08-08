@@ -29,59 +29,53 @@ struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
 
 
-void *old_rsp;
-void *old_rbp;
-
 void (*start_f)();
 
-
-void *resume_rsp;
-void *resume_rbp;
-
 bool start(struct secondary_stack *s, void (*f)()) {
-  resume_rsp = s->suspend_rsp;
-  resume_rbp = s->suspend_rbp;
   start_f = f;
 
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=r"(old_rsp), "=r"(old_rbp)
+      : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
       :
       :);
+  ++current;
+  st[current] = s;
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "r"(resume_rsp), "r"(resume_rbp)
+      : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
       :);
 
   asm("call *%0" : : "r"(start_f) :);
 
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=r"(resume_rsp), "=r"(resume_rbp)
+      : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
       :
       :);
+  --current;
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "r"(old_rsp), "r"(old_rbp)
+      : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
       :);
 
   return false;
 }
 
 bool resume(struct secondary_stack *s) {
-  //resume_rsp = s->suspend_rsp;
-  //resume_rbp = s->suspend_rbp;
   asm volatile("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=m"(old_rsp), "=m"(old_rbp)
+      : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
       :
       :);
+  ++current;
+  st[current] = s;
   asm volatile("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "m"(resume_rsp), "m"(resume_rbp)
+      : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
       :);
 
   asm volatile(
@@ -89,14 +83,15 @@ bool resume(struct secondary_stack *s) {
       "yield:");
 
   asm volatile("mov %%rsp, %0 \n"
-      "mov %%rbp, %1 \n"
-      : "=m"(resume_rsp), "=m"(resume_rbp)
-      :
-      :);
+               "mov %%rbp, %1 \n"
+               : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
+               :
+               :);
+  --current;  
   asm volatile("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "m"(old_rsp), "m"(old_rbp)
+      : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
       :);
 
   return true;
