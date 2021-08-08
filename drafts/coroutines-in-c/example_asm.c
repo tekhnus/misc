@@ -5,6 +5,7 @@
 struct secondary_stack {
   void *suspend_rsp;
   void *suspend_rbp;
+  bool finished;
 };
 
 void swap(int *a, int *b) {
@@ -13,16 +14,16 @@ void swap(int *a, int *b) {
   *b = tmp;
 }
 
-bool yield();
+void yield(int val);
 
 void fib(void) {
-  yield();
+  yield(0);
   int a = 0, b = 1;
   for (; a < 100;) {
-    printf("%d\n", a);
+    // printf("%d\n", a);
     a = a + b;
     swap(&a, &b);
-    yield();
+    yield(a);
   }
 }
 
@@ -30,10 +31,9 @@ struct secondary_stack toplevel;
 struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
 
-
 void (*start_f)();
 
-bool start(struct secondary_stack *s, void (*f)()) {
+int start(struct secondary_stack *s, void (*f)()) {
   start_f = f;
 
   asm("mov %%rsp, %0 \n"
@@ -56,6 +56,7 @@ bool start(struct secondary_stack *s, void (*f)()) {
       : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
       :
       :);
+  st[current]->finished = true;
   --current;
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
@@ -63,58 +64,64 @@ bool start(struct secondary_stack *s, void (*f)()) {
       : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
       :);
 
-  return false;
+  return 0;
 }
 
-bool resume(struct secondary_stack *s) {
-  asm volatile("mov %%rsp, %0 \n"
-      "mov %%rbp, %1 \n"
-      : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
-      :
-      :);
-  ++current;
-  st[current] = s;
-  asm volatile("mov %0, %%rsp \n"
-      "mov %1, %%rbp \n"
-      :
-      : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
-      :);
+int val_int;
 
-  return false;
-};
-
-bool yield() {
+int resume(struct secondary_stack *s) {
   asm volatile("mov %%rsp, %0 \n"
                "mov %%rbp, %1 \n"
                : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
                :
                :);
-  --current;  
+  ++current;
+  st[current] = s;
   asm volatile("mov %0, %%rsp \n"
-      "mov %1, %%rbp \n"
-      :
-      : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
-      :);
+               "mov %1, %%rbp \n"
+               :
+               : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
+               :);
 
-  return true;
+  asm("return_int:");
+  return val_int;
+};
+
+void yield(int val) {
+  val_int = val;
+  asm volatile("mov %%rsp, %0 \n"
+               "mov %%rbp, %1 \n"
+               : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
+               :
+               :);
+  --current;
+  asm volatile("mov %0, %%rsp \n"
+               "mov %1, %%rbp \n"
+               :
+               : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
+               :);
+  asm("jmp return_int");
 }
 
 struct secondary_stack secondary_stack_make(size_t n) {
-  n = n - n % 16 + 1;  
+  n = n - n % 16 + 1;
   struct secondary_stack res;
   char *suspend_stack = malloc(n);
   res.suspend_rsp = suspend_stack + n - 1;
+  res.finished = false;
   return res;
 }
+
+bool finished(struct secondary_stack *s) { return s->finished; }
 
 #define KiB 1024
 #define MiB 1048576
 
 int main(void) {
-  struct secondary_stack thestack = secondary_stack_make(1 * MiB);  
+  struct secondary_stack s = secondary_stack_make(1 * MiB);
 
-  start(&thestack, fib);
-  while (resume(&thestack))
-    ;
+  for (int x = start(&s, fib); !finished(&s); x = resume(&s)) {
+    printf("%d\n", x);
+  }
   return 0;
 }
