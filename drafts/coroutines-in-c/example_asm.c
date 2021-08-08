@@ -24,6 +24,11 @@ void fib(void) {
   }
 }
 
+struct secondary_stack toplevel;
+struct secondary_stack *st[1024] = {&toplevel};
+int current = 0;
+
+
 void *old_rsp;
 void *old_rbp;
 
