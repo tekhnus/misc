@@ -13,6 +13,8 @@ void swap(int *a, int *b) {
   *b = tmp;
 }
 
+bool yieldo();
+
 void fib(void) {
   asm("call yield");
   int a = 0, b = 1;
@@ -79,7 +81,13 @@ bool resume(struct secondary_stack *s) {
       :);
 
   asm volatile(
-      "ret \n"
+	       "ret");
+  // never actually reached
+  return false;
+};
+
+bool yieldo() {
+  asm volatile(
       "yield:");
 
   asm volatile("mov %%rsp, %0 \n"
