@@ -13,16 +13,16 @@ void swap(int *a, int *b) {
   *b = tmp;
 }
 
-bool yieldo();
+bool yield();
 
 void fib(void) {
-  asm("call yield");
+  yield();
   int a = 0, b = 1;
   for (; a < 100;) {
     printf("%d\n", a);
     a = a + b;
     swap(&a, &b);
-    asm("call yield");
+    yield();
   }
 }
 
@@ -80,16 +80,10 @@ bool resume(struct secondary_stack *s) {
       : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
       :);
 
-  asm volatile(
-	       "ret");
-  // never actually reached
   return false;
 };
 
-bool yieldo() {
-  asm volatile(
-      "yield:");
-
+bool yield() {
   asm volatile("mov %%rsp, %0 \n"
                "mov %%rbp, %1 \n"
                : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
