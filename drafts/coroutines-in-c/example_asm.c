@@ -14,12 +14,7 @@ void swap(int *a, int *b) {
 }
 
 void fib(void) {
-
-  asm(
-      "push +8(%rbp) \n"
-      "ret \n"
-      "resume_label2:"
-      );
+  asm("call fin \n");
   int a = 0, b = 1;
   for (;;) {
     printf("%d\n", a);
@@ -47,10 +42,10 @@ void init(void) {
       : "r"(suspend_rsp), "r"(suspend_rbp)
       : /* nope */
       );
-  asm("call _fib");
-  asm(
-        "fin:"      
-	"lea " "resume_label2" "(%%rip), %0 \n"
+  asm("call _fib \n"
+      "fin: \n");
+  asm(   
+	"pop %0 \n"
 	: "=r"(suspend_rip)
 	:
 	:
@@ -95,15 +90,15 @@ void resume(void) {
       : /*nope*/
       );
   asm("yield:");
-      asm(
-	// Save rsp and rbp
-	"pop %2 \n"
-	"mov %%rsp, %0 \n"
-	"mov %%rbp, %1 \n"
-	: "=r"(suspend_rsp), "=r"(suspend_rbp), "=r"(suspend_rip)
-	:
-	:
-	);
+  asm(
+      // Save rsp and rbp
+      "pop %2 \n"
+      "mov %%rsp, %0 \n"
+      "mov %%rbp, %1 \n"
+      : "=r"(suspend_rsp), "=r"(suspend_rbp), "=r"(suspend_rip)
+      :
+      :
+      );
   asm(
       "mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
