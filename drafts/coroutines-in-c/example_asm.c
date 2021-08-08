@@ -29,19 +29,28 @@ void *old_rbp;
 bool init(void) {
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      "mov %2, %%rsp \n"
-      "mov %3, %%rbp \n"
       : "=r"(old_rsp), "=r"(old_rbp)
+      :
+      :);
+  asm("mov %0, %%rsp \n"
+      "mov %1, %%rbp \n"
+      :
       : "r"(suspend_rsp), "r"(suspend_rbp)
       :);
+
   asm("call _fib");
+
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      "mov %0, %%rsp \n"
-      "mov %1, %%rbp \n"
       : "=r"(suspend_rsp), "=r"(suspend_rbp)
+      :
+      :);
+  asm("mov %0, %%rsp \n"
+      "mov %1, %%rbp \n"
+      :
       : "r"(old_rsp), "r"(old_rbp)
       :);
+
   return false;
 }
 
@@ -49,30 +58,28 @@ bool resume(void) {
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
       : "=r"(old_rsp), "=r"(old_rbp)
-      : /* nope */
-      : /* nope */
-  );
+      :
+      :);
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
-      : /* nope */	
+      :
       : "r"(suspend_rsp), "r"(suspend_rbp)
-      : /* nope */
-  );
-  asm("ret \n");
-  asm("yield:");
-  asm(
-      // Save rsp and rbp
-      "mov %%rsp, %0 \n"
+      :);
+
+  asm("ret \n"
+      "yield:");
+
+  asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
       : "=r"(suspend_rsp), "=r"(suspend_rbp)
       :
       :);
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
-      : /* nope */
+      :
       : "r"(old_rsp), "r"(old_rbp)
-      : /* nope */
-  );
+      :);
+  
   return true;
 }
 
