@@ -2,9 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char _Alignas(16) suspend_stack[1024 * 1024 * 32];
-void *suspend_rsp = &suspend_stack[1024 * 1024 * 32 - 16];
-void *suspend_rbp;
+struct secondary_stack {
+  void *suspend_rsp;
+  void *suspend_rbp;
+};
 
 void swap(int *a, int *b) {
   int tmp = *a;
@@ -26,7 +27,17 @@ void fib(void) {
 void *old_rsp;
 void *old_rbp;
 
-bool init(void) {
+void (*start_f)();
+
+
+void *resume_rsp;
+void *resume_rbp;
+
+bool start(struct secondary_stack *s, void (*f)()) {
+  resume_rsp = s->suspend_rsp;
+  resume_rbp = s->suspend_rbp;
+  start_f = f;
+
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
       : "=r"(old_rsp), "=r"(old_rbp)
@@ -35,14 +46,14 @@ bool init(void) {
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "r"(suspend_rsp), "r"(suspend_rbp)
+      : "r"(resume_rsp), "r"(resume_rbp)
       :);
 
-  asm("call _fib");
+  asm("call *%0" : : "r"(start_f) :);
 
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=r"(suspend_rsp), "=r"(suspend_rbp)
+      : "=r"(resume_rsp), "=r"(resume_rbp)
       :
       :);
   asm("mov %0, %%rsp \n"
@@ -54,38 +65,54 @@ bool init(void) {
   return false;
 }
 
-bool resume(void) {
-  asm("mov %%rsp, %0 \n"
+bool resume(struct secondary_stack *s) {
+  //resume_rsp = s->suspend_rsp;
+  //resume_rbp = s->suspend_rbp;
+  asm volatile("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=r"(old_rsp), "=r"(old_rbp)
+      : "=m"(old_rsp), "=m"(old_rbp)
       :
       :);
-  asm("mov %0, %%rsp \n"
+  asm volatile("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "r"(suspend_rsp), "r"(suspend_rbp)
+      : "m"(resume_rsp), "m"(resume_rbp)
       :);
 
-  asm("ret \n"
+  asm volatile(
+      "ret \n"
       "yield:");
 
-  asm("mov %%rsp, %0 \n"
+  asm volatile("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=r"(suspend_rsp), "=r"(suspend_rbp)
+      : "=m"(resume_rsp), "=m"(resume_rbp)
       :
       :);
-  asm("mov %0, %%rsp \n"
+  asm volatile("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
-      : "r"(old_rsp), "r"(old_rbp)
+      : "m"(old_rsp), "m"(old_rbp)
       :);
-  
+
   return true;
 }
 
+struct secondary_stack secondary_stack_make(size_t n) {
+  n = n - n % 16 + 1;  
+  struct secondary_stack res;
+  char *suspend_stack = malloc(n);
+  res.suspend_rsp = suspend_stack + n - 1;
+  return res;
+}
+
+#define KiB 1024
+#define MiB 1048576
+
 int main(void) {
-  init();
-  while (resume())
+  struct secondary_stack thestack = secondary_stack_make(1 * MiB);  
+
+  start(&thestack, fib);
+  while (resume(&thestack))
     ;
   return 0;
 }
