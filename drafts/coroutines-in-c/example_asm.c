@@ -17,13 +17,11 @@ void swap(int *a, int *b) {
 void yield(int val);
 
 void fib(void) {
-  yield(0);
   int a = 0, b = 1;
-  for (; a < 100;) {
-    // printf("%d\n", a);
+  while (a < 100) {
+    yield(a);
     a = a + b;
     swap(&a, &b);
-    yield(a);
   }
 }
 
@@ -32,6 +30,8 @@ struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
 
 void (*start_f)();
+
+int val_int;
 
 int start(struct secondary_stack *s, void (*f)()) {
   start_f = f;
@@ -51,23 +51,21 @@ int start(struct secondary_stack *s, void (*f)()) {
 
   asm("call *%0" : : "r"(start_f) :);
 
+  st[current]->finished = true;
+
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
       : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
       :
       :);
-  st[current]->finished = true;
   --current;
   asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       :
       : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
       :);
-
   return 0;
 }
-
-int val_int;
 
 int resume(struct secondary_stack *s) {
   asm volatile("mov %%rsp, %0 \n"
@@ -82,8 +80,8 @@ int resume(struct secondary_stack *s) {
                :
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
                :);
-
-  asm("return_int:");
+  asm("jmp send_void");
+  asm("yield_int:");
   return val_int;
 };
 
@@ -100,7 +98,8 @@ void yield(int val) {
                :
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
                :);
-  asm("jmp return_int");
+  asm("jmp yield_int");
+  asm("send_void:");
 }
 
 struct secondary_stack secondary_stack_make(size_t n) {
