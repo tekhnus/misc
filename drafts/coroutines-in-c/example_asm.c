@@ -1,6 +1,6 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-
 
 char _Alignas(16) suspend_stack[1024 * 1024 * 32];
 void *suspend_rsp = &suspend_stack[1024 * 1024 * 32 - 16];
@@ -13,70 +13,52 @@ void swap(int *a, int *b) {
 }
 
 void fib(void) {
-  asm("call yield \n");
+  asm("call yield");
   int a = 0, b = 1;
-  for (;;) {
+  for (; a < 100;) {
     printf("%d\n", a);
     a = a + b;
     swap(&a, &b);
-    asm("call yield \n");
+    asm("call yield");
   }
 }
 
 void *old_rsp;
 void *old_rbp;
 
-void init(void) {
-  asm(
-      "mov %%rsp, %0 \n"
+bool init(void) {
+  asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
+      "mov %2, %%rsp \n"
+      "mov %3, %%rbp \n"
       : "=r"(old_rsp), "=r"(old_rbp)
-      : /* nope */
-      : /* nope */
-      );
-  asm(
+      : "r"(suspend_rsp), "r"(suspend_rbp)
+      :);
+  asm("call _fib");
+  asm("mov %%rsp, %0 \n"
+      "mov %%rbp, %1 \n"
       "mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
-      : /* nope */
-      : "r"(suspend_rsp), "r"(suspend_rbp)
-      : /* nope */
-      );
-  asm("call _fib");
-    asm(
-	// Save rsp and rbp
-	"mov %%rsp, %0 \n"
-	"mov %%rbp, %1 \n"
-    
-	: "=r"(suspend_rsp), "=r"(suspend_rbp)
-	:
-	:
-	);
-    asm(
-	"mov %0, %%rsp \n"
-	"mov %1, %%rbp \n"
-	: /* nope */
-	: "r"(old_rsp), "r"(old_rbp)
-	: /* nope */
-	);
+      : "=r"(suspend_rsp), "=r"(suspend_rbp)
+      : "r"(old_rsp), "r"(old_rbp)
+      :);
+  return false;
 }
 
-void resume(void) {
-  asm(
-      "mov %%rsp, %0 \n"
+bool resume(void) {
+  asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
       : "=r"(old_rsp), "=r"(old_rbp)
       : /* nope */
       : /* nope */
-      );
-  asm(
-      "mov %0, %%rsp \n"
+  );
+  asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
-      : /* nope */
+      : /* nope */	
       : "r"(suspend_rsp), "r"(suspend_rbp)
       : /* nope */
-      );
-  asm(
-      "ret \n");
+  );
+  asm("ret \n");
   asm("yield:");
   asm(
       // Save rsp and rbp
@@ -84,29 +66,19 @@ void resume(void) {
       "mov %%rbp, %1 \n"
       : "=r"(suspend_rsp), "=r"(suspend_rbp)
       :
-      :
-      );
-  asm(
-      "mov %0, %%rsp \n"
+      :);
+  asm("mov %0, %%rsp \n"
       "mov %1, %%rbp \n"
       : /* nope */
       : "r"(old_rsp), "r"(old_rbp)
       : /* nope */
-      );
-  //printf("still alive\n");
-}
-
-void bigfun() {
-  char bigarr[300000];
-  printf("%c\n", bigarr[300000 - 1]);
+  );
+  return true;
 }
 
 int main(void) {
   init();
-  for (int i = 0; i < 10; ++i) {
-    resume();
-  }
-  //printf("hello, world!\n");
-  //bigfun();
+  while (resume())
+    ;
   return 0;
 }
