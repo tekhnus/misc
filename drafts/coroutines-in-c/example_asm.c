@@ -3,7 +3,6 @@
 
 
 char _Alignas(16) suspend_stack[1024 * 1024 * 32];
-void *suspend_rip;
 void *suspend_rsp = &suspend_stack[1024 * 1024 * 32 - 16];
 void *suspend_rbp;
 
@@ -14,7 +13,7 @@ void swap(int *a, int *b) {
 }
 
 void fib(void) {
-  asm("call fin \n");
+  asm("call yield \n");
   int a = 0, b = 1;
   for (;;) {
     printf("%d\n", a);
@@ -42,14 +41,7 @@ void init(void) {
       : "r"(suspend_rsp), "r"(suspend_rbp)
       : /* nope */
       );
-  asm("call _fib \n"
-      "fin: \n");
-  asm(   
-	"pop %0 \n"
-	: "=r"(suspend_rip)
-	:
-	:
-	);
+  asm("call _fib");
     asm(
 	// Save rsp and rbp
 	"mov %%rsp, %0 \n"
@@ -84,18 +76,13 @@ void resume(void) {
       : /* nope */
       );
   asm(
-      "jmp *%0 \n"
-      : /* nope */
-      : "r"(suspend_rip)
-      : /*nope*/
-      );
+      "ret \n");
   asm("yield:");
   asm(
       // Save rsp and rbp
-      "pop %2 \n"
       "mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
-      : "=r"(suspend_rsp), "=r"(suspend_rbp), "=r"(suspend_rip)
+      : "=r"(suspend_rsp), "=r"(suspend_rbp)
       :
       :
       );
