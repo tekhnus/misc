@@ -2,38 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void (*co_f)();
+int val_int;
+
 struct secondary_stack {
   void *suspend_rsp;
   void *suspend_rbp;
   bool finished;
 };
 
-void swap(int *a, int *b) {
-  int tmp = *a;
-  *a = *b;
-  *b = tmp;
-}
-
-void yield(int val);
-
-void fib(void) {
-  int a = 0, b = 1;
-  while (a < 100) {
-    yield(a);
-    a = a + b;
-    swap(&a, &b);
-  }
-}
-
 struct secondary_stack toplevel;
 struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
-
-void (*co_f)();
-
-int val_int;
-
-void co_main(void);
 
 #define co_stack_push(s)                                                       \
   asm volatile("mov %%rsp, %0 \n"                                              \
@@ -64,7 +44,24 @@ void co_main(void);
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)  \
                :)
 
-void co_resume_impl(struct secondary_stack *s, bool resume) {
+void yield() {
+  co_stack_pop();
+  asm volatile("jmp continue_resume");
+  asm volatile("continue_yield:");
+}
+
+void yield_int(int val) {
+  val_int = val;
+  yield();
+}
+
+void co_main(void) {
+  co_f();
+  st[current]->finished = true;
+  yield();
+}
+
+void start_or_resume(struct secondary_stack *s, bool resume) {
   if (!resume) {
     co_stack_push(s);
     asm volatile("jmp _co_main");
@@ -78,51 +75,49 @@ void co_resume_impl(struct secondary_stack *s, bool resume) {
 
 int start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
-  co_resume_impl(s, false);
+  start_or_resume(s, false);
   return val_int;
 }
 
-void co_main(void) {
-  co_f();
-  st[current]->finished = true;
-  yield(0);
-}
+void resume(struct secondary_stack *s) { start_or_resume(s, true); }
 
-int resume(struct secondary_stack *s) {
-  co_resume_impl(s, true);
+int resume_receive_int(struct secondary_stack *s) {
+  resume(s);
   return val_int;
 };
 
-void yield_impl() {
-  co_stack_pop();
-  asm volatile("jmp continue_resume");
-  asm volatile("continue_yield:");
-}
-
-void yield(int val) {
-  val_int = val;
-  yield_impl();
-}
-
-struct secondary_stack secondary_stack_make(size_t n) {
-  n = n - n % 16 + 1;
+struct secondary_stack secondary_stack_make(char *rsp) {
   struct secondary_stack res;
-  char *suspend_stack = malloc(n);
-  res.suspend_rsp = suspend_stack + n - 1;
-  res.suspend_rbp = res.suspend_rsp;
+  res.suspend_rsp = rsp;
+  res.suspend_rbp = rsp;
   res.finished = false;
   return res;
 }
 
 bool finished(struct secondary_stack *s) { return s->finished; }
 
-#define KiB 1024
-#define MiB 1048576
+void swap(int *a, int *b) {
+  int tmp = *a;
+  *a = *b;
+  *b = tmp;
+}
+
+void fib(void) {
+  int a = 0, b = 1;
+  while (a < 100) {
+    yield_int(a);
+    a = a + b;
+    swap(&a, &b);
+  }
+}
+
+#define last_element(arr) arr + sizeof(arr) / sizeof(arr[0])
 
 int main(void) {
-  struct secondary_stack s = secondary_stack_make(1 * MiB);
+  char stack[1 * 1024 * 1024];
+  struct secondary_stack s = secondary_stack_make(last_element(stack));
 
-  for (int x = start(&s, fib); !finished(&s); x = resume(&s)) {
+  for (int x = start(&s, fib); !finished(&s); x = resume_receive_int(&s)) {
     printf("%d\n", x);
   }
   return 0;
