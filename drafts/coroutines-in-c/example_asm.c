@@ -5,7 +5,6 @@
 struct secondary_stack {
   void *suspend_rsp;
   void *suspend_rbp;
-  bool started;
   bool finished;
 };
 
@@ -65,41 +64,40 @@ void co_main(void);
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)  \
                :)
 
+void co_resume_impl(struct secondary_stack *s, bool resume) {
+  if (!resume) {
+    co_stack_push(s);
+    asm volatile("jmp _co_main");
+  } else {
+    co_stack_push(s);
+    asm volatile("jmp send_void");
+  }
+  asm volatile("yield_int:");
+  return;
+}
+
 int start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
-
-  co_stack_push(s);
-  asm volatile("jmp _co_main");
-
-  asm volatile("yield_int_to_start:");
-  s->started = true;
+  co_resume_impl(s, false);
   return val_int;
 }
 
 void co_main(void) {
   co_f();
-
   st[current]->finished = true;
   yield(0);
 }
 
 int resume(struct secondary_stack *s) {
-  co_stack_push(s);
-  asm volatile("jmp send_void");
-
-  asm volatile("yield_int_to_resume:");
+  co_resume_impl(s, true);
   return val_int;
 };
 
 void yield(int val) {
   val_int = val;
-  if (st[current]->started) {
-    co_stack_pop();
-    asm volatile("jmp yield_int_to_start");
-  } else {
-    co_stack_pop();
-    asm volatile("jmp yield_int_to_resume");
-  }
+  co_stack_pop();
+  asm volatile("jmp yield_int");
+
   asm volatile("send_void:");
 }
 
@@ -109,7 +107,6 @@ struct secondary_stack secondary_stack_make(size_t n) {
   char *suspend_stack = malloc(n);
   res.suspend_rsp = suspend_stack + n - 1;
   res.suspend_rbp = res.suspend_rsp;
-  res.started = false;
   res.finished = false;
   return res;
 }
