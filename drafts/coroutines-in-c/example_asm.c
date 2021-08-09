@@ -91,17 +91,15 @@ int resume(struct secondary_stack *s) {
   return val_int;
 };
 
-bool co_started;
-
 void yield(int val) {
-  co_started = st[current]->started;
   val_int = val;
-  co_stack_pop();
-  asm volatile("cmp $0, %0 \n"
-               "jz yield_int_to_start \n"
-               "jmp yield_int_to_resume"
-               :
-               : "r"(co_started));
+  if (st[current]->started) {
+    co_stack_pop();
+    asm volatile("jmp yield_int_to_start");
+  } else {
+    co_stack_pop();
+    asm volatile("jmp yield_int_to_resume");
+  }
   asm volatile("send_void:");
 }
 
