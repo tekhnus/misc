@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 void (*co_f)();
-int val_int;
 
 struct secondary_stack {
   void *suspend_rsp;
@@ -69,23 +68,12 @@ void switch_context(struct secondary_stack *s, int what) {
 
 void yield() { switch_context(NULL, YIELD); }
 
-void yield_int(int val) {
-  val_int = val;
-  yield();
-}
-
-int start(struct secondary_stack *s, void (*f)()) {
+void start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
   switch_context(s, START);
-  return val_int;
 }
 
 void resume(struct secondary_stack *s) { switch_context(s, RESUME); }
-
-int resume_receive_int(struct secondary_stack *s) {
-  resume(s);
-  return val_int;
-};
 
 struct secondary_stack secondary_stack_make(char *rsp) {
   struct secondary_stack res;
@@ -96,6 +84,23 @@ struct secondary_stack secondary_stack_make(char *rsp) {
 }
 
 bool finished(struct secondary_stack *s) { return s->finished; }
+
+int val_int;
+
+void yield_int(int val) {
+  val_int = val;
+  yield();
+}
+
+int resume_receive_int(struct secondary_stack *s) {
+  resume(s);
+  return val_int;
+};
+
+int start_receive_int(struct secondary_stack *s, void (*f)()) {
+  start(s, f);
+  return val_int;
+}
 
 void swap(int *a, int *b) {
   int tmp = *a;
@@ -118,7 +123,8 @@ int main(void) {
   char stack[1 * 1024 * 1024];
   struct secondary_stack s = secondary_stack_make(last_element(stack));
 
-  for (int x = start(&s, fib); !finished(&s); x = resume_receive_int(&s)) {
+  for (int x = start_receive_int(&s, fib); !finished(&s);
+       x = resume_receive_int(&s)) {
     printf("%d\n", x);
   }
   return 0;
