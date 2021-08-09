@@ -5,6 +5,7 @@
 struct secondary_stack {
   void *suspend_rsp;
   void *suspend_rbp;
+  bool started;
   bool finished;
 };
 
@@ -38,20 +39,22 @@ void co_main(void);
 int start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
 
-  asm("mov %%rsp, %0 \n"
-      "mov %%rbp, %1 \n"
-      : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
-      :
-      :);
+  asm volatile("mov %%rsp, %0 \n"
+               "mov %%rbp, %1 \n"
+               : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
+               :
+               :);
   ++current;
   st[current] = s;
-  asm("mov %0, %%rsp \n"
-      "mov %1, %%rbp \n"
-      :
-      : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
-      :);
-  asm("jmp _co_main");
-  asm("yield_int_to_start:"); // not used yet
+  asm volatile("mov %0, %%rsp \n"
+               "mov %1, %%rbp \n"
+               :
+               : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
+               :);
+  asm volatile("jmp _co_main");
+
+  asm volatile("yield_int_to_start:");
+  s->started = true;
   return val_int;
 }
 
@@ -75,12 +78,16 @@ int resume(struct secondary_stack *s) {
                :
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
                :);
-  asm("jmp send_void");
-  asm("yield_int:");
+  asm volatile("jmp send_void");
+
+  asm volatile("yield_int_to_resume:");
   return val_int;
 };
 
+bool co_started;
+
 void yield(int val) {
+  co_started = st[current]->started;
   val_int = val;
   asm volatile("mov %%rsp, %0 \n"
                "mov %%rbp, %1 \n"
@@ -93,8 +100,12 @@ void yield(int val) {
                :
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
                :);
-  asm("jmp yield_int");
-  asm("send_void:");
+  asm volatile("cmp $0, %0 \n"
+               "jz yield_int_to_start \n"
+               "jmp yield_int_to_resume"
+               :
+               : "r"(co_started));
+  asm volatile("send_void:");
 }
 
 struct secondary_stack secondary_stack_make(size_t n) {
@@ -103,6 +114,7 @@ struct secondary_stack secondary_stack_make(size_t n) {
   char *suspend_stack = malloc(n);
   res.suspend_rsp = suspend_stack + n - 1;
   res.suspend_rbp = res.suspend_rsp;
+  res.started = false;
   res.finished = false;
   return res;
 }
