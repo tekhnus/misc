@@ -44,42 +44,43 @@ int current = 0;
                : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)  \
                :)
 
-void yield() {
-  co_stack_pop();
-  asm volatile("jmp continue_resume");
-  asm volatile("continue_yield:");
+#define START 1
+#define RESUME 2
+#define YIELD 3
+
+void switch_context(struct secondary_stack *s, int what) {
+  switch (what) {
+  case START:
+    co_stack_push(s);
+    co_f();
+    st[current]->finished = true;
+    for (;;) {
+      switch_context(NULL, YIELD);
+    }
+  case RESUME:
+    co_stack_push(s);
+    return;
+  case YIELD:
+    co_stack_pop();
+    return;
+  }
+  return;
 }
+
+void yield() { switch_context(NULL, YIELD); }
 
 void yield_int(int val) {
   val_int = val;
   yield();
 }
 
-void co_main(void) {
-  co_f();
-  st[current]->finished = true;
-  yield();
-}
-
-void start_or_resume(struct secondary_stack *s, bool resume) {
-  if (!resume) {
-    co_stack_push(s);
-    asm volatile("jmp _co_main");
-  } else {
-    co_stack_push(s);
-    asm volatile("jmp continue_yield");
-  }
-  asm volatile("continue_resume:");
-  return;
-}
-
 int start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
-  start_or_resume(s, false);
+  switch_context(s, START);
   return val_int;
 }
 
-void resume(struct secondary_stack *s) { start_or_resume(s, true); }
+void resume(struct secondary_stack *s) { switch_context(s, RESUME); }
 
 int resume_receive_int(struct secondary_stack *s) {
   resume(s);
