@@ -70,9 +70,9 @@ void co_resume_impl(struct secondary_stack *s, bool resume) {
     asm volatile("jmp _co_main");
   } else {
     co_stack_push(s);
-    asm volatile("jmp send_void");
+    asm volatile("jmp continue_yield");
   }
-  asm volatile("yield_int:");
+  asm volatile("continue_resume:");
   return;
 }
 
@@ -93,12 +93,15 @@ int resume(struct secondary_stack *s) {
   return val_int;
 };
 
+void yield_impl() {
+  co_stack_pop();
+  asm volatile("jmp continue_resume");
+  asm volatile("continue_yield:");
+}
+
 void yield(int val) {
   val_int = val;
-  co_stack_pop();
-  asm volatile("jmp yield_int");
-
-  asm volatile("send_void:");
+  yield_impl();
 }
 
 struct secondary_stack secondary_stack_make(size_t n) {
