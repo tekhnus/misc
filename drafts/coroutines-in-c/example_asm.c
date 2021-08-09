@@ -29,12 +29,14 @@ struct secondary_stack toplevel;
 struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
 
-void (*start_f)();
+void (*co_f)();
 
 int val_int;
 
+void co_main(void);
+
 int start(struct secondary_stack *s, void (*f)()) {
-  start_f = f;
+  co_f = f;
 
   asm("mov %%rsp, %0 \n"
       "mov %%rbp, %1 \n"
@@ -48,23 +50,16 @@ int start(struct secondary_stack *s, void (*f)()) {
       :
       : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
       :);
+  asm("jmp _co_main");
+  asm("yield_int_to_start:"); // not used yet
+  return val_int;
+}
 
-  asm("call *%0" : : "r"(start_f) :);
+void co_main(void) {
+  co_f();
 
   st[current]->finished = true;
-
-  asm("mov %%rsp, %0 \n"
-      "mov %%rbp, %1 \n"
-      : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
-      :
-      :);
-  --current;
-  asm("mov %0, %%rsp \n"
-      "mov %1, %%rbp \n"
-      :
-      : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
-      :);
-  return 0;
+  yield(0);
 }
 
 int resume(struct secondary_stack *s) {
@@ -107,6 +102,7 @@ struct secondary_stack secondary_stack_make(size_t n) {
   struct secondary_stack res;
   char *suspend_stack = malloc(n);
   res.suspend_rsp = suspend_stack + n - 1;
+  res.suspend_rbp = res.suspend_rsp;
   res.finished = false;
   return res;
 }
