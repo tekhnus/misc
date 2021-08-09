@@ -36,21 +36,39 @@ int val_int;
 
 void co_main(void);
 
+#define co_stack_push(s)                                                       \
+  asm volatile("mov %%rsp, %0 \n"                                              \
+               "mov %%rbp, %1 \n"                                              \
+               : "=r"(st[current]->suspend_rsp),                               \
+                 "=r"(st[current]->suspend_rbp)                                \
+               :                                                               \
+               :);                                                             \
+  ++current;                                                                   \
+  st[current] = s;                                                             \
+  asm volatile("mov %0, %%rsp \n"                                              \
+               "mov %1, %%rbp \n"                                              \
+               :                                                               \
+               : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)  \
+               :)
+
+#define co_stack_pop()                                                         \
+  asm volatile("mov %%rsp, %0 \n"                                              \
+               "mov %%rbp, %1 \n"                                              \
+               : "=m"(st[current]->suspend_rsp),                               \
+                 "=m"(st[current]->suspend_rbp)                                \
+               :                                                               \
+               :);                                                             \
+  --current;                                                                   \
+  asm volatile("mov %0, %%rsp \n"                                              \
+               "mov %1, %%rbp \n"                                              \
+               :                                                               \
+               : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)  \
+               :)
+
 int start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
 
-  asm volatile("mov %%rsp, %0 \n"
-               "mov %%rbp, %1 \n"
-               : "=r"(st[current]->suspend_rsp), "=r"(st[current]->suspend_rbp)
-               :
-               :);
-  ++current;
-  st[current] = s;
-  asm volatile("mov %0, %%rsp \n"
-               "mov %1, %%rbp \n"
-               :
-               : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)
-               :);
+  co_stack_push(s);
   asm volatile("jmp _co_main");
 
   asm volatile("yield_int_to_start:");
@@ -66,18 +84,7 @@ void co_main(void) {
 }
 
 int resume(struct secondary_stack *s) {
-  asm volatile("mov %%rsp, %0 \n"
-               "mov %%rbp, %1 \n"
-               : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
-               :
-               :);
-  ++current;
-  st[current] = s;
-  asm volatile("mov %0, %%rsp \n"
-               "mov %1, %%rbp \n"
-               :
-               : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
-               :);
+  co_stack_push(s);
   asm volatile("jmp send_void");
 
   asm volatile("yield_int_to_resume:");
@@ -89,17 +96,7 @@ bool co_started;
 void yield(int val) {
   co_started = st[current]->started;
   val_int = val;
-  asm volatile("mov %%rsp, %0 \n"
-               "mov %%rbp, %1 \n"
-               : "=m"(st[current]->suspend_rsp), "=m"(st[current]->suspend_rbp)
-               :
-               :);
-  --current;
-  asm volatile("mov %0, %%rsp \n"
-               "mov %1, %%rbp \n"
-               :
-               : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)
-               :);
+  co_stack_pop();
   asm volatile("cmp $0, %0 \n"
                "jz yield_int_to_start \n"
                "jmp yield_int_to_resume"
