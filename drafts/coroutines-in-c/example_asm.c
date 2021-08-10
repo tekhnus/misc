@@ -47,15 +47,15 @@ int current = 0;
 #define RESUME 2
 #define YIELD 3
 
-void switch_context(struct secondary_stack *s, int what) {
+void switch_context(int what, struct secondary_stack *s, void (*m)(void)) {
+  static void (*volatile mm)(void); // off-stack storage
+
+  mm = m;
   switch (what) {
   case START:
     co_stack_push(s);
-    co_f();
-    st[current]->finished = true;
-    for (;;) {
-      switch_context(NULL, YIELD);
-    }
+    mm();
+    return;
   case RESUME:
     co_stack_push(s);
     return;
@@ -66,14 +66,22 @@ void switch_context(struct secondary_stack *s, int what) {
   return;
 }
 
-void yield() { switch_context(NULL, YIELD); }
+void yield() { switch_context(YIELD, NULL, NULL); }
+
+void co_main() {
+  co_f();
+  st[current]->finished = true;
+  for (;;) {
+    yield();
+  }
+}
 
 void start(struct secondary_stack *s, void (*f)()) {
   co_f = f;
-  switch_context(s, START);
+  switch_context(START, s, co_main);
 }
 
-void resume(struct secondary_stack *s) { switch_context(s, RESUME); }
+void resume(struct secondary_stack *s) { switch_context(RESUME, s, NULL); }
 
 struct secondary_stack secondary_stack_make(char *rsp) {
   struct secondary_stack res;
