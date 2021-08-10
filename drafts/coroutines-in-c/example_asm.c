@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void (*co_f)();
-
 struct secondary_stack {
   void *suspend_rsp;
   void *suspend_rbp;
@@ -14,50 +12,56 @@ struct secondary_stack toplevel;
 struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
 
-#define co_stack_push(s)                                                       \
+void *saved_rsp;
+void *saved_rbp;
+void *new_rsp;
+void *new_rbp;
+
+#define save_n_switch()                                                        \
   asm volatile("mov %%rsp, %0 \n"                                              \
                "mov %%rbp, %1 \n"                                              \
-               : "=r"(st[current]->suspend_rsp),                               \
-                 "=r"(st[current]->suspend_rbp)                                \
-               :                                                               \
-               :);                                                             \
+               "mov %2, %%rsp \n"                                              \
+               "mov %3, %%rbp \n"                                              \
+               : "=m"(saved_rsp), "=m"(saved_rbp)                              \
+               : "m"(new_rsp), "m"(new_rbp))
+
+#define co_stack_push(s)                                                       \
+  new_rsp = s->suspend_rsp;                                                    \
+  new_rbp = s->suspend_rbp;                                                    \
+  save_n_switch();                                                             \
+  st[current]->suspend_rsp = saved_rsp;                                        \
+  st[current]->suspend_rbp = saved_rbp;                                        \
   ++current;                                                                   \
-  st[current] = s;                                                             \
-  asm volatile("mov %0, %%rsp \n"                                              \
-               "mov %1, %%rbp \n"                                              \
-               :                                                               \
-               : "r"(st[current]->suspend_rsp), "r"(st[current]->suspend_rbp)  \
-               :)
+  st[current] = s;
 
 #define co_stack_pop()                                                         \
-  asm volatile("mov %%rsp, %0 \n"                                              \
-               "mov %%rbp, %1 \n"                                              \
-               : "=m"(st[current]->suspend_rsp),                               \
-                 "=m"(st[current]->suspend_rbp)                                \
-               :                                                               \
-               :);                                                             \
   --current;                                                                   \
-  asm volatile("mov %0, %%rsp \n"                                              \
-               "mov %1, %%rbp \n"                                              \
-               :                                                               \
-               : "m"(st[current]->suspend_rsp), "m"(st[current]->suspend_rbp)  \
-               :)
+  new_rsp = st[current]->suspend_rsp;                                          \
+  new_rbp = st[current]->suspend_rbp;                                          \
+  save_n_switch();                                                             \
+  ++current;                                                                   \
+  st[current]->suspend_rsp = saved_rsp;                                        \
+  st[current]->suspend_rbp = saved_rbp;                                        \
+  --current;
 
 #define START 1
 #define RESUME 2
 #define YIELD 3
 
 void switch_context(int what, struct secondary_stack *s, void (*m)(void)) {
-  static void (*volatile mm)(void); // off-stack storage
+  // off-stack storage
+  static struct secondary_stack *s_copy;
+  static void (*m_copy)(void);
 
-  mm = m;
+  s_copy = s;
+  m_copy = m;
   switch (what) {
   case START:
-    co_stack_push(s);
-    mm();
+    co_stack_push(s_copy);
+    m_copy();
     return;
   case RESUME:
-    co_stack_push(s);
+    co_stack_push(s_copy);
     return;
   case YIELD:
     co_stack_pop();
@@ -68,17 +72,8 @@ void switch_context(int what, struct secondary_stack *s, void (*m)(void)) {
 
 void yield() { switch_context(YIELD, NULL, NULL); }
 
-void co_main() {
-  co_f();
-  st[current]->finished = true;
-  for (;;) {
-    yield();
-  }
-}
-
-void start(struct secondary_stack *s, void (*f)()) {
-  co_f = f;
-  switch_context(START, s, co_main);
+void start_loop(struct secondary_stack *s, void (*m)()) {
+  switch_context(START, s, m);
 }
 
 void resume(struct secondary_stack *s) { switch_context(RESUME, s, NULL); }
@@ -93,6 +88,21 @@ struct secondary_stack secondary_stack_make(char *rsp) {
 
 bool finished(struct secondary_stack *s) { return s->finished; }
 
+void (*co_f)();
+
+void co_main() {
+  co_f();
+  st[current]->finished = true;
+  for (;;) {
+    yield();
+  }
+}
+
+void start_function(struct secondary_stack *s, void (*f)()) {
+  co_f = f;
+  start_loop(s, co_main);
+}
+
 int val_int;
 
 void yield_int(int val) {
@@ -106,7 +116,7 @@ int resume_receive_int(struct secondary_stack *s) {
 };
 
 int start_receive_int(struct secondary_stack *s, void (*f)()) {
-  start(s, f);
+  start_function(s, f);
   return val_int;
 }
 
