@@ -7,15 +7,6 @@ struct secondary_stack {
   void *suspend_rbp;
 };
 
-#define save_n_switch()                                                        \
-  asm volatile("mov %%rsp, %0 \n"                                              \
-               "mov %%rbp, %1 \n"                                              \
-               "mov %2, %%rsp \n"                                              \
-               "mov %3, %%rbp \n"                                              \
-               : "=m"(saved_rsp), "=m"(saved_rbp)                              \
-               : "m"(new_rsp), "m"(new_rbp)                                    \
-               : "memory")
-
 void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
                  void (*m)(void)) {
   // off-stack storage
@@ -32,7 +23,14 @@ void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
   m_copy = m;
   new_rsp = dest_copy->suspend_rsp;
   new_rbp = dest_copy->suspend_rbp;
-  save_n_switch();
+
+  asm volatile("mov %%rsp, %0 \n"
+               "mov %%rbp, %1 \n"
+               "mov %2, %%rsp \n"
+               "mov %3, %%rbp \n"
+               : "=m"(saved_rsp), "=m"(saved_rbp)
+               : "m"(new_rsp), "m"(new_rbp)
+               : "memory");
   save_copy->suspend_rsp = saved_rsp;
   save_copy->suspend_rbp = saved_rbp;
   if (m_copy != NULL) {
