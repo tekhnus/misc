@@ -24,7 +24,7 @@ void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
                "mov %3, %%rbp \n"
                "cmpq $0, %4 \n"
                "jz skip \n"
-               "call *%4 \n"
+               "jmp *%4 \n"
                "skip: \n"
                : "=m"(save_copy->suspend_rsp), "=m"(save_copy->suspend_rbp)
                : "m"(dest_copy->suspend_rsp), "m"(dest_copy->suspend_rbp),
