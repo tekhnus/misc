@@ -12,30 +12,24 @@ void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
   // off-stack storage
   static struct secondary_stack *save_copy;
   static struct secondary_stack *dest_copy;
-  static void *saved_rsp;
-  static void *saved_rbp;
-  static void *new_rsp;
-  static void *new_rbp;
   static void (*m_copy)(void);
 
   save_copy = save;
   dest_copy = dest;
   m_copy = m;
-  new_rsp = dest_copy->suspend_rsp;
-  new_rbp = dest_copy->suspend_rbp;
 
   asm volatile("mov %%rsp, %0 \n"
                "mov %%rbp, %1 \n"
                "mov %2, %%rsp \n"
                "mov %3, %%rbp \n"
-               : "=m"(saved_rsp), "=m"(saved_rbp)
-               : "m"(new_rsp), "m"(new_rbp)
+               "cmpq $0, %4 \n"
+               "jz skip \n"
+               "call *%4 \n"
+               "skip: \n"
+               : "=m"(save_copy->suspend_rsp), "=m"(save_copy->suspend_rbp)
+               : "m"(dest_copy->suspend_rsp), "m"(dest_copy->suspend_rbp),
+                 "m"(m_copy)
                : "memory");
-  save_copy->suspend_rsp = saved_rsp;
-  save_copy->suspend_rbp = saved_rbp;
-  if (m_copy != NULL) {
-    m_copy();
-  }
 }
 
 struct secondary_stack toplevel;
