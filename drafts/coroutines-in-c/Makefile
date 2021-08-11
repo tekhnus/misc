@@ -1,16 +1,18 @@
-all: build/co_O0.txt build/co_O1.txt
+all: build/example_asm
 
-build/co_O0: example_asm.c
-	${CC} -O0 -g example_asm.c -o build/co_O0
+build/co.o: co.c
+	mkdir -p build
+	${CC} -c co.c -o build/co.o
 
-build/co_O1: example_asm.c
-	${CC} -O1 -g example_asm.c -o build/co_O1
+build/example_asm.o: example_asm.c
+	mkdir -p build
+	${CC} -c example_asm.c -o build/example_asm.o
 
-build/co_O0.txt: build/co_O0
-	objdump -d build/co_O0 --no-leading-addr >build/co_O0.txt
+build/example_asm: build/co.o build/example_asm.o
+	mkdir -p build
+	${CC} build/co.o build/example_asm.o -o build/example_asm
 
+clean:
+	rm -rf build/*
 
-build/co_O1.txt: build/co_O1
-	objdump -d build/co_O1 --no-leading-addr >build/co_O1.txt
-
-.PHONY: all
+.PHONY: all clean
