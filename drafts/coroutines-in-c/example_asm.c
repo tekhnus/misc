@@ -7,8 +7,8 @@ struct secondary_stack {
   void *suspend_rbp;
 };
 
-void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
-                 void (*m)(void)) {
+void switch_context(struct secondary_stack *save, struct secondary_stack *dest,
+                    void (*m)(void)) {
   // off-stack storage
   static struct secondary_stack *save_copy;
   static struct secondary_stack *dest_copy;
@@ -18,14 +18,52 @@ void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
   dest_copy = dest;
   m_copy = m;
 
-  asm volatile("mov %%rsp, %0 \n"
+  asm volatile("push %%rax \n"
+               "push %%rcx \n"
+               "push %%rdx \n"
+               "push %%r8 \n"
+               "push %%r9 \n"
+               "push %%r10 \n"
+               "push %%r11 \n"
+
+               "push %%rsi \n"
+               "push %%rdi \n"
+
+               "push %%rbx \n"
+               "push %%rbp \n"
+               "push %%r12 \n"
+               "push %%r13 \n"
+               "push %%r14 \n"
+               "push %%r15 \n"
+
+               "mov %%rsp, %0 \n"
                "mov %%rbp, %1 \n"
                "mov %2, %%rsp \n"
                "mov %3, %%rbp \n"
+
                "cmpq $0, %4 \n"
-               "jz skip \n"
+               "jz switch_context_resume \n"
                "jmp *%4 \n"
-               "skip: \n"
+               "switch_context_resume: \n"
+
+               "pop %%r15 \n"
+               "pop %%r14 \n"
+               "pop %%r13 \n"
+               "pop %%r12 \n"
+               "pop %%rbp \n"
+               "pop %%rbx \n"
+
+               "pop %%rdi \n"
+               "pop %%rsi \n"
+
+               "pop %%r11 \n"
+               "pop %%r10 \n"
+               "pop %%r9 \n"
+               "pop %%r8 \n"
+               "pop %%rdx \n"
+               "pop %%rcx \n"
+               "pop %%rax \n"
+
                : "=m"(save_copy->suspend_rsp), "=m"(save_copy->suspend_rbp)
                : "m"(dest_copy->suspend_rsp), "m"(dest_copy->suspend_rbp),
                  "m"(m_copy)
@@ -38,19 +76,19 @@ int current = 0;
 
 void yield() {
   --current;
-  switch_ctxt(st[current + 1], st[current], NULL);
+  switch_context(st[current + 1], st[current], NULL);
 }
 
 void start(struct secondary_stack *s, void (*m)()) {
   ++current;
   st[current] = s;
-  switch_ctxt(st[current - 1], st[current], m);
+  switch_context(st[current - 1], st[current], m);
 }
 
 void resume(struct secondary_stack *s) {
   ++current;
   st[current] = s;
-  switch_ctxt(st[current - 1], st[current], NULL);
+  switch_context(st[current - 1], st[current], NULL);
 }
 
 struct secondary_stack secondary_stack_make(char *rsp) {
