@@ -5,7 +5,6 @@
 struct secondary_stack {
   void *suspend_rsp;
   void *suspend_rbp;
-  bool finished;
 };
 
 struct secondary_stack toplevel;
@@ -18,7 +17,8 @@ int current = 0;
                "mov %2, %%rsp \n"                                              \
                "mov %3, %%rbp \n"                                              \
                : "=m"(saved_rsp), "=m"(saved_rbp)                              \
-               : "m"(new_rsp), "m"(new_rbp))
+               : "m"(new_rsp), "m"(new_rbp)                                    \
+               : "memory")
 
 #define co_stack_push(s)                                                       \
   new_rsp = s->suspend_rsp;                                                    \
@@ -81,24 +81,24 @@ struct secondary_stack secondary_stack_make(char *rsp) {
   struct secondary_stack res;
   res.suspend_rsp = rsp;
   res.suspend_rbp = rsp;
-  res.finished = false;
   return res;
 }
 
-bool finished(struct secondary_stack *s) { return s->finished; }
-
 void (*co_f)();
+bool *co_fin;
 
 void co_main() {
+  bool *co_fin_copy = co_fin;
   co_f();
-  st[current]->finished = true;
+  *co_fin_copy = true;
   for (;;) {
     yield();
   }
 }
 
-void start_function(struct secondary_stack *s, void (*f)()) {
+void start_function(struct secondary_stack *s, bool *fin, void (*f)()) {
   co_f = f;
+  co_fin = fin;
   start_loop(s, co_main);
 }
 
@@ -114,8 +114,8 @@ int resume_receive_int(struct secondary_stack *s) {
   return val_int;
 };
 
-int start_receive_int(struct secondary_stack *s, void (*f)()) {
-  start_function(s, f);
+int start_receive_int(struct secondary_stack *s, bool *fin, void (*f)()) {
+  start_function(s, fin, f);
   return val_int;
 }
 
@@ -140,7 +140,8 @@ int main(void) {
   char stack[1 * 1024 * 1024];
   struct secondary_stack s = secondary_stack_make(last_element(stack));
 
-  for (int x = start_receive_int(&s, fib); !finished(&s);
+  bool fin = false;
+  for (int x = start_receive_int(&s, &fin, fib); !fin;
        x = resume_receive_int(&s)) {
     printf("%d\n", x);
   }
