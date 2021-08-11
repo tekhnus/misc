@@ -7,10 +7,6 @@ struct secondary_stack {
   void *suspend_rbp;
 };
 
-struct secondary_stack toplevel;
-struct secondary_stack *st[1024] = {&toplevel};
-int current = 0;
-
 #define save_n_switch()                                                        \
   asm volatile("mov %%rsp, %0 \n"                                              \
                "mov %%rbp, %1 \n"                                              \
@@ -20,62 +16,50 @@ int current = 0;
                : "m"(new_rsp), "m"(new_rbp)                                    \
                : "memory")
 
-#define co_stack_push(s)                                                       \
-  new_rsp = s->suspend_rsp;                                                    \
-  new_rbp = s->suspend_rbp;                                                    \
-  save_n_switch();                                                             \
-  st[current]->suspend_rsp = saved_rsp;                                        \
-  st[current]->suspend_rbp = saved_rbp;                                        \
-  ++current;                                                                   \
-  st[current] = s;
-
-#define co_stack_pop()                                                         \
-  --current;                                                                   \
-  new_rsp = st[current]->suspend_rsp;                                          \
-  new_rbp = st[current]->suspend_rbp;                                          \
-  save_n_switch();                                                             \
-  ++current;                                                                   \
-  st[current]->suspend_rsp = saved_rsp;                                        \
-  st[current]->suspend_rbp = saved_rbp;                                        \
-  --current;
-
-#define START 1
-#define RESUME 2
-#define YIELD 3
-
-void switch_context(int what, struct secondary_stack *s, void (*m)(void)) {
+void switch_ctxt(struct secondary_stack *save, struct secondary_stack *dest,
+                 void (*m)(void)) {
   // off-stack storage
-  static struct secondary_stack *s_copy;
-  static void (*m_copy)(void);
+  static struct secondary_stack *save_copy;
+  static struct secondary_stack *dest_copy;
   static void *saved_rsp;
   static void *saved_rbp;
   static void *new_rsp;
   static void *new_rbp;
+  static void (*m_copy)(void);
 
-  s_copy = s;
+  save_copy = save;
+  dest_copy = dest;
   m_copy = m;
-  switch (what) {
-  case START:
-    co_stack_push(s_copy);
+  new_rsp = dest_copy->suspend_rsp;
+  new_rbp = dest_copy->suspend_rbp;
+  save_n_switch();
+  save_copy->suspend_rsp = saved_rsp;
+  save_copy->suspend_rbp = saved_rbp;
+  if (m_copy != NULL) {
     m_copy();
-    return;
-  case RESUME:
-    co_stack_push(s_copy);
-    return;
-  case YIELD:
-    co_stack_pop();
-    return;
   }
-  return;
 }
 
-void yield() { switch_context(YIELD, NULL, NULL); }
+struct secondary_stack toplevel;
+struct secondary_stack *st[1024] = {&toplevel};
+int current = 0;
 
-void start_loop(struct secondary_stack *s, void (*m)()) {
-  switch_context(START, s, m);
+void yield() {
+  --current;
+  switch_ctxt(st[current + 1], st[current], NULL);
 }
 
-void resume(struct secondary_stack *s) { switch_context(RESUME, s, NULL); }
+void start(struct secondary_stack *s, void (*m)()) {
+  ++current;
+  st[current] = s;
+  switch_ctxt(st[current - 1], st[current], m);
+}
+
+void resume(struct secondary_stack *s) {
+  ++current;
+  st[current] = s;
+  switch_ctxt(st[current - 1], st[current], NULL);
+}
 
 struct secondary_stack secondary_stack_make(char *rsp) {
   struct secondary_stack res;
@@ -99,7 +83,7 @@ void co_main() {
 void start_function(struct secondary_stack *s, bool *fin, void (*f)()) {
   co_f = f;
   co_fin = fin;
-  start_loop(s, co_main);
+  start(s, co_main);
 }
 
 int val_int;
