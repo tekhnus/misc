@@ -2,20 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-struct secondary_stack {
-  void *suspend_rsp;
-};
+/* SYMMETRIC COROUTINE IMPLEMENTATION */
 
-void switch_context(struct secondary_stack *save, struct secondary_stack *dest,
-                    void (*m)(void)) {
+typedef void *co_t;
+
+co_t co_new(void *stack_top) { return stack_top; }
+
+void co_switch(co_t *a, co_t const *b, void (*f)(void)) {
   // off-stack storage
-  static struct secondary_stack *save_copy;
-  static struct secondary_stack *dest_copy;
-  static void (*m_copy)(void);
+  static co_t *a_;
+  static co_t const *b_;
+  static void (*f_)(void);
 
-  save_copy = save;
-  dest_copy = dest;
-  m_copy = m;
+  a_ = a;
+  b_ = b;
+  f_ = f;
 
   asm volatile("push %%rax \n"
                "push %%rcx \n"
@@ -61,72 +62,70 @@ void switch_context(struct secondary_stack *save, struct secondary_stack *dest,
                "pop %%rcx \n"
                "pop %%rax \n"
 
-               : "=m"(save_copy->suspend_rsp)
-               : "m"(dest_copy->suspend_rsp),
-                 "m"(m_copy)
+               : "=m"(*a_)
+               : "m"(*b_), "m"(f_)
                : "memory");
 }
 
-struct secondary_stack toplevel;
-struct secondary_stack *st[1024] = {&toplevel};
-int current = 0;
+/* ASYMMETRIC COROUTINE FACILITIES */
 
-void yield() {
-  --current;
-  switch_context(st[current + 1], st[current], NULL);
+co_t co_main;
+co_t *co_stack[1024] = {&co_main};
+int co_current = 0;
+
+void co_yield() {
+  --co_current;
+  co_switch(co_stack[co_current + 1], co_stack[co_current], NULL);
 }
 
-void start(struct secondary_stack *s, void (*m)()) {
-  ++current;
-  st[current] = s;
-  switch_context(st[current - 1], st[current], m);
+void co_start(co_t *c, void (*f)()) {
+  ++co_current;
+  co_stack[co_current] = c;
+  co_switch(co_stack[co_current - 1], co_stack[co_current], f);
 }
 
-void resume(struct secondary_stack *s) {
-  ++current;
-  st[current] = s;
-  switch_context(st[current - 1], st[current], NULL);
+void co_resume(co_t *c) {
+  ++co_current;
+  co_stack[co_current] = c;
+  co_switch(co_stack[co_current - 1], co_stack[co_current], NULL);
 }
 
-struct secondary_stack secondary_stack_make(char *rsp) {
-  struct secondary_stack res;
-  res.suspend_rsp = rsp;
-  return res;
-}
-
-void (*co_f)();
-bool *co_fin;
-
-void co_main() {
-  bool *co_fin_copy = co_fin;
-  co_f();
-  *co_fin_copy = true;
-  for (;;) {
-    yield();
-  }
-}
-
-void start_function(struct secondary_stack *s, bool *fin, void (*f)()) {
-  co_f = f;
-  co_fin = fin;
-  start(s, co_main);
-}
+/* HELPERS FOR PASSING VALUES */
 
 int val_int;
 
-void yield_int(int val) {
+void co_yield_int(int val) {
   val_int = val;
-  yield();
+  co_yield();
 }
 
-int resume_receive_int(struct secondary_stack *s) {
-  resume(s);
+int co_resume_receive_int(co_t *s) {
+  co_resume(s);
   return val_int;
 };
 
-int start_receive_int(struct secondary_stack *s, bool *fin, void (*f)()) {
-  start_function(s, fin, f);
-  return val_int;
+/* HELPERS FOR LAUNCHING FUNCTIONS CONVENIENTLY */
+
+// the "arguments" for `co_wrapper` function are provided via global variables.
+void (*co_wrapper_f)();
+bool *co_wrapper_fin;
+
+void co_wrapper() {
+  void (*co_f_)() = co_wrapper_f;
+  bool *co_fin_ = co_wrapper_fin;
+
+  co_yield();
+  co_f_();
+  *co_fin_ = true;
+  for (;;) {
+    co_yield();
+  }
+}
+
+void co_init(co_t *s, void (*f)(), bool *fin) {
+  co_wrapper_f = f;
+  co_wrapper_fin = fin;
+  co_start(s, co_wrapper);
 }
 
 void swap(int *a, int *b) {
@@ -138,7 +137,7 @@ void swap(int *a, int *b) {
 void fib(void) {
   int a = 0, b = 1;
   while (a < 100) {
-    yield_int(a);
+    co_yield_int(a);
     a = a + b;
     swap(&a, &b);
   }
@@ -148,11 +147,11 @@ void fib(void) {
 
 int main(void) {
   char stack[1 * 1024 * 1024];
-  struct secondary_stack s = secondary_stack_make(last_element(stack));
+  co_t s = co_new(last_element(stack));
 
   bool fin = false;
-  for (int x = start_receive_int(&s, &fin, fib); !fin;
-       x = resume_receive_int(&s)) {
+  co_init(&s, fib, &fin);
+  for (int x; x = co_resume_receive_int(&s), !fin;) {
     printf("%d\n", x);
   }
   return 0;
