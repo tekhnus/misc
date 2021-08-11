@@ -12,11 +12,6 @@ struct secondary_stack toplevel;
 struct secondary_stack *st[1024] = {&toplevel};
 int current = 0;
 
-void *saved_rsp;
-void *saved_rbp;
-void *new_rsp;
-void *new_rbp;
-
 #define save_n_switch()                                                        \
   asm volatile("mov %%rsp, %0 \n"                                              \
                "mov %%rbp, %1 \n"                                              \
@@ -52,6 +47,10 @@ void switch_context(int what, struct secondary_stack *s, void (*m)(void)) {
   // off-stack storage
   static struct secondary_stack *s_copy;
   static void (*m_copy)(void);
+  static void *saved_rsp;
+  static void *saved_rbp;
+  static void *new_rsp;
+  static void *new_rbp;
 
   s_copy = s;
   m_copy = m;
