@@ -4,7 +4,6 @@
 
 struct secondary_stack {
   void *suspend_rsp;
-  void *suspend_rbp;
 };
 
 void switch_context(struct secondary_stack *save, struct secondary_stack *dest,
@@ -37,13 +36,11 @@ void switch_context(struct secondary_stack *save, struct secondary_stack *dest,
                "push %%r15 \n"
 
                "mov %%rsp, %0 \n"
-               "mov %%rbp, %1 \n"
-               "mov %2, %%rsp \n"
-               "mov %3, %%rbp \n"
+               "mov %1, %%rsp \n"
 
-               "cmpq $0, %4 \n"
+               "cmpq $0, %2 \n"
                "jz switch_context_resume \n"
-               "jmp *%4 \n"
+               "jmp *%2 \n"
                "switch_context_resume: \n"
 
                "pop %%r15 \n"
@@ -64,8 +61,8 @@ void switch_context(struct secondary_stack *save, struct secondary_stack *dest,
                "pop %%rcx \n"
                "pop %%rax \n"
 
-               : "=m"(save_copy->suspend_rsp), "=m"(save_copy->suspend_rbp)
-               : "m"(dest_copy->suspend_rsp), "m"(dest_copy->suspend_rbp),
+               : "=m"(save_copy->suspend_rsp)
+               : "m"(dest_copy->suspend_rsp),
                  "m"(m_copy)
                : "memory");
 }
@@ -94,7 +91,6 @@ void resume(struct secondary_stack *s) {
 struct secondary_stack secondary_stack_make(char *rsp) {
   struct secondary_stack res;
   res.suspend_rsp = rsp;
-  res.suspend_rbp = rsp;
   return res;
 }
 
