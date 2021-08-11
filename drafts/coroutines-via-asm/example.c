@@ -1,3 +1,5 @@
+/* This is a demonstration of stackful asymmetric coroutines.
+   Context switching is implemented with the help of inline assembly. */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
