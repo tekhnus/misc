@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <dlfcn.h>
 #include <ffi.h>
+#include <inttypes.h>
 #include <libgen.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -11,39 +12,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 
-bool datum_is_nil(datum_t *e) {
-  return e->type == DATUM_NIL;
-}
+bool datum_is_nil(datum_t *e) { return e->type == DATUM_NIL; }
 
 bool datum_is_list(datum_t *e) {
   return e->type == DATUM_NIL || e->type == DATUM_LIST;
 }
 
-bool datum_is_symbol(datum_t *e) {
-  return e->type == DATUM_SYMBOL;
-}
+bool datum_is_symbol(datum_t *e) { return e->type == DATUM_SYMBOL; }
 
-bool datum_is_integer(datum_t *e) {
-  return e->type == DATUM_INTEGER;
-}
+bool datum_is_integer(datum_t *e) { return e->type == DATUM_INTEGER; }
 
-bool datum_is_bytestring(datum_t *e) {
-  return e->type == DATUM_BYTESTRING;
-}
+bool datum_is_bytestring(datum_t *e) { return e->type == DATUM_BYTESTRING; }
 
-bool datum_is_operator(datum_t *e) {
-  return e->type == DATUM_OPERATOR;
-}
+bool datum_is_operator(datum_t *e) { return e->type == DATUM_OPERATOR; }
 
-bool datum_is_special(datum_t *e) {
-  return e->type == DATUM_SPECIAL;
-}
+bool datum_is_special(datum_t *e) { return e->type == DATUM_SPECIAL; }
 
-bool datum_is_pointer(datum_t *e) {
-  return e->type == DATUM_POINTER;
-}
+bool datum_is_pointer(datum_t *e) { return e->type == DATUM_POINTER; }
 
 datum_t *datum_make_nil() {
   datum_t *e = malloc(sizeof(datum_t));
@@ -454,7 +440,8 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
   if (!strcmp(definition->symbol_value, "eval_result")) {
     *type = malloc(sizeof(ffi_type));
     (*type)->type = FFI_TYPE_STRUCT;
-    (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on Mac before adding this line.
+    (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
+                       // Mac before adding this line.
     (*type)->alignment = 0;
     ffi_type **elements = malloc(5 * sizeof(ffi_type *));
     elements[0] = &ffi_type_sint;
