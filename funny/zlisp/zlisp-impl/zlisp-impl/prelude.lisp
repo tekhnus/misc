@@ -1,22 +1,23 @@
 (def readme "The most basic fuctions. This module is always loaded implicitly at the start.")
 
 
-
 (builtin.defn last
+	      (return
 	 (if (tail (head args))
 	     (last (tail (head args)))
-	   (head (head args))))
+	   (head (head args)))))
 
 (def second
      (builtin.fn
-      (head (tail (head args)))))
+      (return (head (tail (head args))))))
 
-(def type (builtin.fn (head (annotate (head args)))))
+(def type (builtin.fn (return (head (annotate (head args))))))
 
 (builtin.defn concat
+	      (return
     (if (head args)
 	(cons (head (head args)) (concat (tail (head args)) (second args)))
-      (second args)))
+      (second args))))
 
 (builtin.defn decons-pat
 	      (progn
@@ -24,10 +25,10 @@
 		(def val (second args))
 		(if (is-constant pat)
 		    (if (eq pat val)
-			`(:ok ())
-		      `(:err))
+			(return `(:ok ()))
+		      (return `(:err)))
 		  (if (eq (type pat) :symbol)
-		      `(:ok (~val))
+		      (return `(:ok (~val)))
 		    (if (eq (type pat) :list)
 			(if pat
 			    (if val
@@ -35,18 +36,18 @@
 				  (def first-decons (decons-pat (head pat) (head val)))
 				  (def rest-decons (decons-pat (tail pat) (tail val)))
 				  (if (eq :err (head rest-decons))
-				      `(:err)
+				      (return `(:err))
 				    (if (eq :err (head first-decons))
-					`(:err)
-				      `(:ok ~(concat (second first-decons) (second rest-decons))))))
-			      `(:err))
+					(return `(:err))
+				      (return `(:ok ~(concat (second first-decons) (second rest-decons)))))))
+			      (return `(:err)))
 			  (if val
-			      `(:err)
-			    `(:ok ())))
+			      (return `(:err))
+			    (return `(:ok ()))))
 		      (panic "decons-pat met an unsupported type"))))))
 
 (builtin.defn decons-vars
-    (if (is-constant (head args))
+    (return (if (is-constant (head args))
 	`()
       (if (eq (type (head args)) :symbol)
 	  `(~(head args))
@@ -54,14 +55,16 @@
 	    (if (head args)
 		(concat (decons-vars (head (head args))) (decons-vars (tail (head args))))
 	      `())
-	  (panic "decons-var met an unsupported type")))))
+	  (panic "decons-var met an unsupported type"))))))
 
 (builtin.defn zip
+	      (return
     (if (head args)
 	(cons `(~(head (head args)) ~(head (second args))) (zip (tail (head args)) (tail (second args))))
-      `()))
+      `())))
 
 (builtin.defn map
+	      (return
   (if (head (tail args))
       (cons
        ((head args)
@@ -69,7 +72,7 @@
        (map
 	(head args)
 	(tail (head (tail args)))))
-    '()))
+    '())))
 
 (def switch-defines '((head args) (second args) (third args)))
 
@@ -79,52 +82,53 @@
       (def cmds (tail (head args)))
       (def checker `(decons-pat '~sig args))
       (def vars (decons-vars sig))
-      (def body (cons 'progn (concat (map (builtin.fn (cons 'def (head args))) (zip vars switch-defines)) cmds)))
-      `(~checker ~body)))
+      (def body (cons 'progn (concat (map (builtin.fn (return (cons 'def (head args)))) (zip vars switch-defines)) cmds)))
+      (return `(~checker ~body))))
 
 (builtin.defn switch-fun
-    (cons 'builtin.switch (map switch-clause (head args))))
+    (return (cons 'builtin.switch (map switch-clause (head args)))))
 
-(def list (builtin.fn args))
+(def list (builtin.fn (return args)))
 
-(def ignore-fn (builtin.fn `(def throwaway ~(head args))))
+(def ignore-fn (builtin.fn (return `(def throwaway ~(head args)))))
 
-(def ignore (builtin.fn (ignore-fn (head args))))
+(def ignore (builtin.fn (return (ignore-fn (head args)))))
 
 (def panic-block '(argz (panic "wrong fn call")))
 
-(def progn- (builtin.fn (cons 'progn (head args))))
+(def progn- (builtin.fn (return (cons 'progn (head args)))))
 
-(def defun (builtin.fn `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
+(def defun (builtin.fn (return `(builtin.defn ~(head args) ~(switch-fun `(~(tail args)))))))
 
-!(#defun switchx argz `(progn (def args ~(head argz)) ~(switch-fun (tail argz))))
+!(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))
 
-!(#defun third args (head (tail (tail (head args)))))
+!(#defun third args (return (head (tail (tail (head args))))))
 
-!(#defun append (x xs)
+!(#defun append (x xs) (return
   (if xs
       (cons
        (head xs)
        (append
 	x
 	(tail xs)))
-    (list x)))
+    (list x))))
 
 
-!(#defun def-or-panic-tmp-fn (arg)
+!(#defun def-or-panic-tmp-fn (arg) (return
   (if arg
       `(progn
 	 (def tmp ~(head arg))
 	 (if (eq :err (head tmp))
 	     ~(def-or-panic-tmp-fn (tail arg))
 	     (progn)))
-    `(panic (second tmp))))
+    `(panic (second tmp)))))
 
 (def def-or-panica
      (builtin.fn
+      (return
       `(progn
 	 ~(def-or-panic-tmp-fn (tail args))
-	 (def ~(head args) (second tmp)))))
+	 (def ~(head args) (second tmp))))))
 
 !(#def-or-panica libc
   (shared-library "libc.so.6")
@@ -167,4 +171,4 @@
   (extern-pointer libc "__stderrp" 'pointer))
 
 !(#defun print (val)
-  (ignore `(fprintf-bytestring stdout "%s\n" ~(repr val))))
+  (return (ignore `(fprintf-bytestring stdout "%s\n" ~(repr val)))))

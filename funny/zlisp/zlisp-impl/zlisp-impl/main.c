@@ -368,6 +368,14 @@ eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
   return eval_result_make_panic(msg);
 }
 
+namespace_t *namespace_put(namespace_t *ns, datum_t *value) {
+  return namespace_set(ns, datum_make_symbol("__namespace_stack_top"), value);
+}
+
+eval_result_t namespace_peek(namespace_t *ns) {
+  return namespace_get(ns, datum_make_symbol("__namespace_stack_top"));
+}
+
 eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
                        datum_t *items, namespace_t *ctxt) {
   if (!datum_is_list(items)) {
@@ -410,10 +418,10 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_panic(expansion)) {
     return expansion;
   }
-  if (eval_result_is_context(expansion)) {
-    return eval_result_make_panic("an operator should not return a context");
+  if (eval_result_is_ok(expansion)) {
+    return eval_result_make_panic("the function should use a return statement");
   }
-  return expansion;
+  return namespace_peek(expansion.context_value);
 }
 
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
@@ -787,6 +795,20 @@ eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
       namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head));
 }
 
+eval_result_t special_return(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("return expects a single argument");
+  }
+  eval_result_t val = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(val)) {
+    return val;
+  }
+  if (eval_result_is_context(val)) {
+    return eval_result_make_panic("a value was expected");
+  }
+  return eval_result_make_context(namespace_put(ctxt, val.ok_value));
+}
+
 eval_result_t special_quote(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("quote expects a single argument");
@@ -1075,6 +1097,7 @@ eval_result_t namespace_make_prelude() {
   namespace_def_special(&ns, "def", special_def);
   namespace_def_special(&ns, "builtin.defn", special_defn);
   namespace_def_special(&ns, "if", special_if);
+  namespace_def_special(&ns, "return", special_return);
   namespace_def_special(&ns, "quote", special_quote);
   namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
