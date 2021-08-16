@@ -1019,7 +1019,9 @@ static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
     if (eval_result_is_context(exp)) {
       return eval_result_make_panic("didn't expect a context from expand");
     }
-    eval_result_t val = datum_eval(exp.ok_value, ctxt);
+    state_t *s;
+    state_init(&s, exp.ok_value);
+    eval_result_t val = state_eval(s, ctxt);
     if (eval_result_is_panic(val)) {
       return val;
     }
