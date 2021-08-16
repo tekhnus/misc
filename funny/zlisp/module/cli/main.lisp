@@ -2,25 +2,25 @@
 
 (require (concat-bytestrings this-directory "/../zlisp/main.lisp"))
 
-!(defun repl
+!(#defun repl
   (nsp)
   (def tmp (fprintf stdout "> "))
-  !(switchx (read stdin)
+  !(#switchx (read stdin)
 	  ((:eof)
 	   (fprintf stdout "\n"))
 	  ((:ok datum)
-	   !(switchx (eval datum nsp)
+	   !(#switchx (eval datum nsp)
 		   ((:ok val)
-		    !(ignore (fprintf-bytestring stdout "%s\n" (repr val)))
+		    !(#ignore (fprintf-bytestring stdout "%s\n" (repr val)))
 		    (repl nsp))
 		   ((:err msg)
-		    !(ignore (fprintf-bytestring stderr "eval error: %s\n" msg))
+		    !(#ignore (fprintf-bytestring stderr "eval error: %s\n" msg))
 		    (repl nsp))
 		   ((:context ctxt)
 		    (repl ctxt))))
 	  ((:err msg)
-	   !(ignore (fprintf-bytestring stderr "read error: %s\n" msg))
+	   !(#ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (repl nsp))))
 
-!(def-or-panica prelude_ (prelude))
-!(ignore (repl prelude_))
+!(#def-or-panica prelude_ (prelude))
+!(#ignore (repl prelude_))

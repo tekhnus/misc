@@ -7,10 +7,6 @@
 	     (last (tail (head args)))
 	   (head (head args))))
 
-
-
-(def quote (builtin.operator  (head args)))
-
 (def second
      (builtin.fn
       (head (tail (head args)))))
@@ -93,21 +89,19 @@
 
 (def ignore-fn (builtin.fn `(def throwaway ~(head args))))
 
-(def ignore (builtin.operator (ignore-fn (head args))))
+(def ignore (builtin.fn (ignore-fn (head args))))
 
 (def panic-block '(argz (panic "wrong fn call")))
 
 (def progn- (builtin.fn (cons 'progn (head args))))
 
-(def defun (builtin.operator `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
+(def defun (builtin.fn `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
 
-(def defop (builtin.operator `(def ~(head args) (builtin.operator ~(switch-fun `(~(tail args)))))))
+!(#defun switchx argz `(progn (def args ~(head argz)) ~(switch-fun (tail argz))))
 
-!(defop switchx argz `(progn (def args ~(head argz)) ~(switch-fun (tail argz))))
+!(#defun third args (head (tail (tail (head args)))))
 
-!(defun third args (head (tail (tail (head args)))))
-
-!(defun append (x xs)
+!(#defun append (x xs)
   (if xs
       (cons
        (head xs)
@@ -117,7 +111,7 @@
     (list x)))
 
 
-!(defun def-or-panic-tmp-fn (arg)
+!(#defun def-or-panic-tmp-fn (arg)
   (if arg
       `(progn
 	 (def tmp ~(head arg))
@@ -127,50 +121,50 @@
     `(panic (second tmp))))
 
 (def def-or-panica
-     (builtin.operator
+     (builtin.fn
       `(progn
 	 ~(def-or-panic-tmp-fn (tail args))
 	 (def ~(head args) (second tmp)))))
 
-!(def-or-panica libc
+!(#def-or-panica libc
   (shared-library "libc.so.6")
   (shared-library "libSystem.B.dylib"))
 
-!(def-or-panica malloc
+!(#def-or-panica malloc
      (extern-pointer libc "malloc"
 		     '((sizet) pointer)))
 
-!(def-or-panica fopen
+!(#def-or-panica fopen
      (extern-pointer libc "fopen"
 		     '((string string) pointer)))
 
-!(def-or-panica fread
+!(#def-or-panica fread
      (extern-pointer libc "fread"
 		     '((pointer sizet sizet pointer) sizet)))
 
-!(def-or-panica feof
+!(#def-or-panica feof
      (extern-pointer libc "feof"
 		     '((pointer) int)))
 
-!(def-or-panica fprintf
+!(#def-or-panica fprintf
      (extern-pointer libc "fprintf"
 		     '((pointer string) sizet)))
 
-!(def-or-panica fprintf-bytestring
+!(#def-or-panica fprintf-bytestring
      (extern-pointer libc "fprintf"
 		     '((pointer string string) sizet)))
 
-!(def-or-panica stdin
+!(#def-or-panica stdin
   (extern-pointer libc "stdin" 'pointer)
   (extern-pointer libc "__stdinp" 'pointer))
 
-!(def-or-panica stdout
+!(#def-or-panica stdout
   (extern-pointer libc "stdout" 'pointer)
   (extern-pointer libc "__stdoutp" 'pointer))
 
-!(def-or-panica stderr
+!(#def-or-panica stderr
   (extern-pointer libc "stderr" 'pointer)
   (extern-pointer libc "__stderrp" 'pointer))
 
-!(defop print (val)
-  (ignore-fn `(fprintf-bytestring stdout "%s\n" ~(repr val))))
+!(#defun print (val)
+  (ignore `(fprintf-bytestring stdout "%s\n" ~(repr val))))

@@ -171,6 +171,10 @@ bool consume_control_sequence(char c, datum_t **form) {
     *form = datum_make_symbol("bang");
     return true;
   }
+  if (c == '#') {
+    *form = datum_make_symbol("hash");
+    return true;
+  }
   return false;
 }
 
@@ -710,6 +714,24 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
       datum_make_operator(args->list_head, ctxt, true, false));
 }
 
+eval_result_t special_hash(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("hash expects a single argument");
+  }
+  eval_result_t fn = datum_eval(args->list_head, ctxt);
+  if (eval_result_is_panic(fn)) {
+    return fn;
+  }
+  if (eval_result_is_context(fn)) {
+    return eval_result_make_panic("not expected a context here");
+  }
+  if (!datum_is_operator(fn.ok_value)) {
+    return eval_result_make_panic("# should be used with an operator");
+  }
+  return eval_result_make_ok(datum_make_operator(
+      fn.ok_value->operator_body, fn.ok_value->operator_context, false, false));
+}
+
 eval_result_t special_operator(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("form expects a single argument");
@@ -785,6 +807,13 @@ eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
   }
   return eval_result_make_context(
       namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head));
+}
+
+eval_result_t special_quote(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("quote expects a single argument");
+  }
+  return eval_result_make_ok(args->list_head);
 }
 
 eval_result_t special_backquote(datum_t *args, namespace_t *ctxt) {
@@ -1065,10 +1094,12 @@ eval_result_t namespace_make_prelude() {
   namespace_def_special(&ns, "builtin.macro", special_macro);
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "builtin.operator", special_operator);
+  namespace_def_special(&ns, "hash", special_hash);
   namespace_def_special(&ns, "builtin.switch", special_switch);
   namespace_def_special(&ns, "def", special_def);
   namespace_def_special(&ns, "builtin.defn", special_defn);
   namespace_def_special(&ns, "if", special_if);
+  namespace_def_special(&ns, "quote", special_quote);
   namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
   namespace_def_special(&ns, "progn", special_progn);
