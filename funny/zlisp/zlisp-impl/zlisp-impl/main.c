@@ -1057,14 +1057,14 @@ eval_result_t special_panic(datum_t *args, namespace_t *ctxt) {
 eval_result_t special_progn(datum_t *args, namespace_t *ctxt) {
   eval_result_t val = eval_result_make_context(ctxt);
   for (; !datum_is_nil(args); args = args->list_tail) {
-    if (eval_result_is_ok(val)) {
-      return eval_result_make_panic(
-          "only the last element in progn can be an expression");
-    }
     datum_t *arg = args->list_head;
     val = datum_eval(arg, val.context_value);
     if (eval_result_is_panic(val)) {
       return val;
+    }
+    if (eval_result_is_ok(val)) {
+      return eval_result_make_panic(
+          "progn should consist of statements, not expressions");
     }
   }
   return val;
