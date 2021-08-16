@@ -167,6 +167,10 @@ bool consume_control_sequence(char c, datum_t **form) {
     *form = datum_make_symbol("tilde");
     return true;
   }
+  if (c == '!') {
+    *form = datum_make_symbol("bang");
+    return true;
+  }
   return false;
 }
 
@@ -617,6 +621,27 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
   return eval_result_make_panic("non-evalable expression");
 }
 
+static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
+  if (!datum_is_list(e) || datum_is_nil(e)) {
+    return eval_result_make_ok(e);
+  }
+  if (!datum_is_symbol(e->list_head) ||
+      strcmp(e->list_head->symbol_value, "bang")) {
+    return list_map(datum_expand, e, ctxt);
+  }
+  if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
+    return eval_result_make_panic("! should be used with a single arg");
+  }
+  eval_result_t exp = datum_expand(e->list_tail->list_head, ctxt);
+  if (eval_result_is_panic(exp)) {
+    return exp;
+  }
+  if (eval_result_is_context(exp)) {
+    return eval_result_make_panic("! argument should be a value");
+  }
+  return datum_eval(exp.ok_value, ctxt);
+}
+
 eval_result_t datum_backquote(datum_t *d, namespace_t *ctxt) {
   if (!datum_is_list(d) || datum_is_nil(d)) {
     return eval_result_make_ok(d);
@@ -817,7 +842,14 @@ datum_t *namespace_list(namespace_t *ns) {
 static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
   read_result_t rr;
   for (; read_result_is_ok(rr = datum_read(stream));) {
-    eval_result_t val = datum_eval(rr.ok_value, ctxt);
+    eval_result_t exp = datum_expand(rr.ok_value, ctxt);
+    if (eval_result_is_panic(exp)) {
+      return exp;
+    }
+    if (eval_result_is_context(exp)) {
+      return eval_result_make_panic("didn't expect a context from expand");
+    }
+    eval_result_t val = datum_eval(exp.ok_value, ctxt);
     if (eval_result_is_panic(val)) {
       return val;
     }

@@ -1,6 +1,6 @@
 (def readme "The most basic fuctions. This module is always loaded implicitly at the start.")
 
-(def debug (builtin.macro `(def discard ~(head args))))
+
 
 (builtin.defn last
 	 (if (tail (head args))
@@ -89,29 +89,25 @@
 (builtin.defn switch-fun
     (cons 'builtin.switch (map switch-clause (head args))))
 
-(def switch-args (builtin.macro (switch-fun args)))
-
 (def list (builtin.fn args))
 
-(def ignore (builtin.macro `(def throwaway ~(head args))))
+(def ignore-fn (builtin.fn `(def throwaway ~(head args))))
+
+(def ignore (builtin.operator (ignore-fn (head args))))
 
 (def panic-block '(argz (panic "wrong fn call")))
 
 (def progn- (builtin.fn (cons 'progn (head args))))
 
-(def fn (builtin.macro `(builtin.fn (switch-args ~args ~panic-block))))
+(def defun (builtin.operator `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
 
-(def macro (builtin.macro `(builtin.macro (switch-args ~args ~panic-block))))
+(def defop (builtin.operator `(def ~(head args) (builtin.operator ~(switch-fun `(~(tail args)))))))
 
-(def defn (builtin.macro `(builtin.defn ~(head args) ~(switch-fun `(~(tail args))))))
+!(defop switchx argz `(progn (def args ~(head argz)) ~(switch-fun (tail argz))))
 
-(def defmacro (builtin.macro `(def ~(head args) ~(cons 'macro (tail args)))))
+!(defun third args (head (tail (tail (head args)))))
 
-(defmacro switch argz `(progn (def args ~(head argz)) ~(cons 'switch-args (tail argz))))
-
-(defn third args (head (tail (tail (head args)))))
-
-(defn append (x xs)
+!(defun append (x xs)
   (if xs
       (cons
        (head xs)
@@ -121,16 +117,7 @@
     (list x)))
 
 
-(defmacro cond- (cases)
-  (if cases
-      `(if ~(head (head cases))
-	 ~(second (head cases))
-	 (cond- ~(tail cases)))
-    (panic "cond didn't match")))
-
-(def cond (builtin.macro `(cond- ~args)))
-
-(defn def-or-panic-tmp-fn (arg)
+!(defun def-or-panic-tmp-fn (arg)
   (if arg
       `(progn
 	 (def tmp ~(head arg))
@@ -139,51 +126,51 @@
 	     (progn)))
     `(panic (second tmp))))
 
-(def def-or-panic
-     (builtin.macro
+(def def-or-panica
+     (builtin.operator
       `(progn
 	 ~(def-or-panic-tmp-fn (tail args))
 	 (def ~(head args) (second tmp)))))
 
-(def-or-panic libc
+!(def-or-panica libc
   (shared-library "libc.so.6")
   (shared-library "libSystem.B.dylib"))
 
-(def-or-panic malloc
+!(def-or-panica malloc
      (extern-pointer libc "malloc"
 		     '((sizet) pointer)))
 
-(def-or-panic fopen
+!(def-or-panica fopen
      (extern-pointer libc "fopen"
 		     '((string string) pointer)))
 
-(def-or-panic fread
+!(def-or-panica fread
      (extern-pointer libc "fread"
 		     '((pointer sizet sizet pointer) sizet)))
 
-(def-or-panic feof
+!(def-or-panica feof
      (extern-pointer libc "feof"
 		     '((pointer) int)))
 
-(def-or-panic fprintf
+!(def-or-panica fprintf
      (extern-pointer libc "fprintf"
 		     '((pointer string) sizet)))
 
-(def-or-panic fprintf-bytestring
+!(def-or-panica fprintf-bytestring
      (extern-pointer libc "fprintf"
 		     '((pointer string string) sizet)))
 
-(def-or-panic stdin
+!(def-or-panica stdin
   (extern-pointer libc "stdin" 'pointer)
   (extern-pointer libc "__stdinp" 'pointer))
 
-(def-or-panic stdout
+!(def-or-panica stdout
   (extern-pointer libc "stdout" 'pointer)
   (extern-pointer libc "__stdoutp" 'pointer))
 
-(def-or-panic stderr
+!(def-or-panica stderr
   (extern-pointer libc "stderr" 'pointer)
   (extern-pointer libc "__stderrp" 'pointer))
 
-(defmacro print (val)
-  `(ignore (fprintf-bytestring stdout "%s\n" (repr ~val))))
+!(defop print (val)
+  (ignore-fn `(fprintf-bytestring stdout "%s\n" ~(repr val))))

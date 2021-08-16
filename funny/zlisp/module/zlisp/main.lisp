@@ -1,12 +1,12 @@
-(def-or-panic zlisp-zlisp
+!(def-or-panica zlisp-zlisp
   (shared-library "libzlisp-impl-wrapper.so")
   (shared-library "libzlisp-impl-wrapper.dylib"))
 
-(def-or-panic read
+!(def-or-panica read
      (extern-pointer zlisp-zlisp "read" '((datum) eval_result)))
 
-(def-or-panic eval
+!(def-or-panica eval
      (extern-pointer zlisp-zlisp "eval" '((datum datum) eval_result)))
 
-(def-or-panic prelude
+!(def-or-panica prelude
   (extern-pointer zlisp-zlisp "prelude" '(() eval_result)))
