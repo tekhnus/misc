@@ -94,13 +94,12 @@ datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *)) {
 }
 
 datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings,
-                             bool pre_eval, bool post_eval) {
+                             bool pre_eval) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_OPERATOR;
   e->operator_body = body;
   e->operator_context = lexical_bindings;
   e->operator_eval_args = pre_eval;
-  e->operator_eval_value = post_eval;
   return e;
 }
 
@@ -358,7 +357,7 @@ eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
       }
       if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
         datum_t *body = tag_and_value->list_tail->list_head;
-        datum_t *fn = datum_make_operator(body, ns, true, false);
+        datum_t *fn = datum_make_operator(body, ns, true);
         return eval_result_make_ok(fn);
       }
       return eval_result_make_panic("namespace implementation error");
@@ -414,10 +413,6 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_context(expansion)) {
     return eval_result_make_panic("an operator should not return a context");
   }
-  if (!f->operator_eval_value) {
-    return expansion;
-  }
-  expansion = datum_eval(expansion.ok_value, ctxt);
   return expansion;
 }
 
@@ -698,20 +693,11 @@ eval_result_t builtin_tail(datum_t *list) {
   return eval_result_make_ok(list->list_tail);
 }
 
-eval_result_t special_macro(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("macro expects a single argument");
-  }
-  return eval_result_make_ok(
-      datum_make_operator(args->list_head, ctxt, false, true));
-}
-
 eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("fn expects a single argument");
   }
-  return eval_result_make_ok(
-      datum_make_operator(args->list_head, ctxt, true, false));
+  return eval_result_make_ok(datum_make_operator(args->list_head, ctxt, true));
 }
 
 eval_result_t special_hash(datum_t *args, namespace_t *ctxt) {
@@ -729,15 +715,7 @@ eval_result_t special_hash(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("# should be used with an operator");
   }
   return eval_result_make_ok(datum_make_operator(
-      fn.ok_value->operator_body, fn.ok_value->operator_context, false, false));
-}
-
-eval_result_t special_operator(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("form expects a single argument");
-  }
-  return eval_result_make_ok(
-      datum_make_operator(args->list_head, ctxt, false, false));
+      fn.ok_value->operator_body, fn.ok_value->operator_context, false));
 }
 
 eval_result_t special_switch(datum_t *args, namespace_t *ctxt) {
@@ -856,7 +834,7 @@ datum_t *namespace_list(namespace_t *ns) {
       keyval = datum_make_list_2(key, value);
     } else if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
       datum_t *body = tag_and_value->list_tail->list_head;
-      datum_t *fn = datum_make_operator(body, ns, true, false);
+      datum_t *fn = datum_make_operator(body, ns, true);
       keyval = datum_make_list_2(key, fn);
     } else {
       fprintf(stderr, "namespace implementation error");
@@ -1091,9 +1069,7 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
 eval_result_t namespace_make_prelude() {
   namespace_t *ns = namespace_make_empty();
 
-  namespace_def_special(&ns, "builtin.macro", special_macro);
   namespace_def_special(&ns, "builtin.fn", special_fn);
-  namespace_def_special(&ns, "builtin.operator", special_operator);
   namespace_def_special(&ns, "hash", special_hash);
   namespace_def_special(&ns, "builtin.switch", special_switch);
   namespace_def_special(&ns, "def", special_def);
