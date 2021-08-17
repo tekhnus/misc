@@ -82,6 +82,7 @@ enum state_type {
   STATE_END,
   STATE_STATEMENT,
   STATE_IF,
+  STATE_NOP,
 };
 
 struct state {
@@ -95,6 +96,9 @@ struct state {
       datum_t *if_condition;
       state_t *if_true;
       state_t *if_false;
+    };
+    struct {
+      state_t *nop_next;
     };
   };
 };
