@@ -2,10 +2,10 @@
 
 
 (builtin.defn last
-	      (return
+	      
 	 (if (tail (head args))
-	     (last (tail (head args)))
-	   (head (head args)))))
+	     (return (last (tail (head args))))
+	   (return (head (head args)))))
 
 (def second
      (builtin.fn
@@ -14,10 +14,10 @@
 (def type (builtin.fn (return (head (annotate (head args))))))
 
 (builtin.defn concat
-	      (return
+	     
     (if (head args)
-	(cons (head (head args)) (concat (tail (head args)) (second args)))
-      (second args))))
+	(return (cons (head (head args)) (concat (tail (head args)) (second args))))
+      (return (second args))))
 
 (builtin.defn decons-pat
 	      (progn
@@ -47,32 +47,32 @@
 		      (panic "decons-pat met an unsupported type"))))))
 
 (builtin.defn decons-vars
-    (return (if (is-constant (head args))
-	`()
+     (if (is-constant (head args))
+	(return `())
       (if (eq (type (head args)) :symbol)
-	  `(~(head args))
+	  (return `(~(head args)))
 	(if (eq (type (head args)) :list)
 	    (if (head args)
-		(concat (decons-vars (head (head args))) (decons-vars (tail (head args))))
-	      `())
-	  (panic "decons-var met an unsupported type"))))))
+		(return (concat (decons-vars (head (head args))) (decons-vars (tail (head args)))))
+	      (return `()))
+	  (panic "decons-var met an unsupported type")))))
 
 (builtin.defn zip
-	      (return
+	      
     (if (head args)
-	(cons `(~(head (head args)) ~(head (second args))) (zip (tail (head args)) (tail (second args))))
-      `())))
+	(return (cons `(~(head (head args)) ~(head (second args))) (zip (tail (head args)) (tail (second args)))))
+      (return `())))
 
 (builtin.defn map
-	      (return
+	    
   (if (head (tail args))
-      (cons
+      (return (cons
        ((head args)
 	(head (head (tail args))))
        (map
 	(head args)
-	(tail (head (tail args)))))
-    '())))
+	(tail (head (tail args))))))
+    (return '())))
 
 (def switch-defines '((head args) (second args) (third args)))
 
@@ -124,24 +124,24 @@
 
 !(#defun third args (return (head (tail (tail (head args))))))
 
-!(#defun append (x xs) (return
+!(#defun append (x xs)
   (if xs
-      (cons
+      (return (cons
        (head xs)
        (append
 	x
-	(tail xs)))
-    (list x))))
+	(tail xs))))
+    (return (list x))))
 
 
-!(#defun def-or-panic-tmp-fn (arg) (return
+!(#defun def-or-panic-tmp-fn (arg)
   (if arg
-      `(progn
+      (return `(progn
 	 (def tmp ~(head arg))
 	 (if (eq :err (head tmp))
 	     ~(def-or-panic-tmp-fn (tail arg))
-	     (progn)))
-    `(panic (second tmp)))))
+	     (progn))))
+    (return `(panic (second tmp)))))
 
 (def def-or-panica
      (builtin.fn

@@ -927,25 +927,6 @@ eval_result_t special_backquote(datum_t *args, namespace_t *ctxt) {
   return datum_backquote(args->list_head, ctxt);
 }
 
-eval_result_t special_if(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      datum_is_nil(args->list_tail->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail->list_tail)) {
-    return eval_result_make_panic("if expects exactly three arguments");
-  }
-  eval_result_t condition = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(condition)) {
-    return condition;
-  }
-  if (eval_result_is_context(condition)) {
-    return eval_result_make_panic("if expected a value, got a context");
-  }
-  if (!datum_is_nil(condition.ok_value)) {
-    return datum_eval(args->list_tail->list_head, ctxt);
-  }
-  return datum_eval(args->list_tail->list_tail->list_head, ctxt);
-}
-
 datum_t *namespace_list(namespace_t *ns) {
   datum_t *result = datum_make_nil();
   datum_t **nil = &result;
@@ -1185,7 +1166,6 @@ eval_result_t namespace_make_prelude() {
   namespace_def_special(&ns, "hash", special_hash);
   namespace_def_special(&ns, "def", special_def);
   namespace_def_special(&ns, "builtin.defn", special_defn);
-  namespace_def_special(&ns, "if", special_if);
   namespace_def_special(&ns, "return", special_return);
   namespace_def_special(&ns, "quote", special_quote);
   namespace_def_special(&ns, "backquote", special_backquote);
