@@ -867,43 +867,6 @@ eval_result_t special_hash(datum_t *args, namespace_t *ctxt) {
       fn.ok_value->operator_body, fn.ok_value->operator_context, false));
 }
 
-eval_result_t special_switch(datum_t *args, namespace_t *ctxt) {
-  for (datum_t *branch = args; !datum_is_nil(branch);
-       branch = branch->list_tail) {
-    datum_t *b = branch->list_head;
-    if (!datum_is_list(b) || datum_is_nil(b) || datum_is_nil(b->list_tail) ||
-        !datum_is_nil(b->list_tail->list_tail)) {
-      return eval_result_make_panic("builtin.switch requires pairs");
-    }
-    eval_result_t cond = datum_eval(b->list_head, ctxt);
-    if (eval_result_is_panic(cond)) {
-      return cond;
-    }
-    if (eval_result_is_context(cond)) {
-      return eval_result_make_panic("switch expected a value, got a context");
-    }
-    datum_t *c = cond.ok_value;
-    if (!datum_is_list(c) || datum_is_nil(c) ||
-        !datum_is_symbol(c->list_head)) {
-      return eval_result_make_panic(
-          "builtin.switch condition should return a tuple");
-    }
-    char *tag = c->list_head->symbol_value;
-    if (!strcmp(tag, ":err")) {
-      continue;
-    }
-    if (strcmp(tag, ":ok") || datum_is_nil(c->list_tail) ||
-        !datum_is_nil(c->list_tail->list_tail)) {
-      return eval_result_make_panic("wrong switch");
-    }
-    datum_t *a = c->list_tail->list_head;
-    namespace_t *new_ctxt = namespace_set(ctxt, datum_make_symbol("args"), a);
-    eval_result_t branch_val = datum_eval(b->list_tail->list_head, new_ctxt);
-    return branch_val;
-  }
-  return eval_result_make_panic("nothing matched");
-}
-
 eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
@@ -1236,7 +1199,6 @@ eval_result_t namespace_make_prelude() {
 
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "hash", special_hash);
-  namespace_def_special(&ns, "builtin.switch", special_switch);
   namespace_def_special(&ns, "def", special_def);
   namespace_def_special(&ns, "builtin.defn", special_defn);
   namespace_def_special(&ns, "if", special_if);

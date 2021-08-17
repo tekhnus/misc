@@ -85,8 +85,28 @@
       (def body (cons 'progn (concat (map (builtin.fn (return (cons 'def (head args)))) (zip vars switch-defines)) cmds)))
       (return `(~checker ~body))))
 
+
+
+
+(builtin.defn swtchone
+	      (if (head args)
+		  (progn
+		    (def firstarg (head (head args)))
+		    (def cond (head firstarg))
+		    (def body (second firstarg))
+		    (def rest (swtchone (tail (head args))))
+		    (return `(progn
+			       (def prearg ~cond)
+			       (if (eq (head prearg) :ok)
+				   (progn
+				     (def args (second prearg))
+				     ~body)
+				 ~rest))))
+		(return `(panic "nothing matched"))))
+
+
 (builtin.defn switch-fun
-    (return (cons 'builtin.switch (map switch-clause (head args)))))
+    (return (swtchone (map switch-clause (head args)))))
 
 (def list (builtin.fn (return args)))
 
