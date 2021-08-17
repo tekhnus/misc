@@ -40,12 +40,27 @@ void state_join(state_t *a, state_t *b, state_t *e) {
   b->nop_next = e;
 }
 
+void state_put_const(state_t **begin, datum_t *val) {
+  (*begin)->type = STATE_PUT_CONST;
+  (*begin)->put_const_value = val;
+  (*begin)->put_const_next = state_make();
+  *begin = (*begin)->put_const_next;
+}
+
+void state_put_var(state_t **begin, datum_t *val) {
+  (*begin)->type = STATE_PUT_VAR;
+  (*begin)->put_var_value = val;
+  (*begin)->put_var_next = state_make();
+  *begin = (*begin)->put_var_next;
+}
+
 char *state_extend(state_t **begin, datum_t *stmt) {
   if ((*begin)->type != STATE_END) {
     return "expected an end state";
   }
   if (!datum_is_list(stmt)) {
-    return "not implemented yet";
+    state_put_var(begin, stmt);
+    return NULL;
   }
   if (datum_is_nil(stmt)) {
     return "an empty list is not a statement";
@@ -84,15 +99,63 @@ char *state_extend(state_t **begin, datum_t *stmt) {
     }
     return NULL;
   }
+
+  datum_t *fn = stmt->list_head;
+  datum_t *real_fn;
+  bool hash;
+  if (datum_is_list(fn) && !datum_is_nil(fn) &&
+      datum_is_symbol(fn->list_head) &&
+      !strcmp(fn->list_head->symbol_value, "hash")) {
+    if (datum_is_nil(fn->list_tail) ||
+        !datum_is_nil(fn->list_tail->list_tail)) {
+      return "hash should have a single argument";
+    }
+    real_fn = fn->list_tail->list_head;
+    hash = true;
+  } else {
+    real_fn = fn;
+    hash = false;
+  }
+  if (datum_is_symbol(real_fn) &&
+      (!strcmp(real_fn->symbol_value, "builtin.fn") ||
+       !strcmp(real_fn->symbol_value, "def") ||
+       !strcmp(real_fn->symbol_value, "builtin.defn") ||
+       !strcmp(real_fn->symbol_value, "return") ||
+       !strcmp(real_fn->symbol_value, "quote") ||
+       !strcmp(real_fn->symbol_value, "backquote") ||
+       !strcmp(real_fn->symbol_value, "panic") ||
+       !strcmp(real_fn->symbol_value, "require"))) {
+    hash = true;
+  }
+  state_extend(begin, real_fn);
+  (*begin)->type = STATE_ARGS;
+  (*begin)->args_next = state_make();
+  *begin = (*begin)->args_next;
+  for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
+       rest_args = rest_args->list_tail) {
+    datum_t *arg = rest_args->list_head;
+    // printf("%s\n", datum_repr(arg));
+    if (hash) {
+      state_put_const(begin, arg);
+    } else {
+      state_extend(begin, arg);
+    }
+  }
+  (*begin)->type = STATE_CALL;
+  (*begin)->call_next = state_make();
+  *begin = (*begin)->call_next;
+  /*
   (*begin)->type = STATE_STATEMENT;
   (*begin)->statement_body = stmt;
   (*begin)->statement_next = state_make();
   *begin = (*begin)->statement_next;
+  */
   return NULL;
 }
 
 char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
-
+eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
+                         bool hash);
 eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
   // printf("evaling a state\n");
   for (;;) {
@@ -129,7 +192,52 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
         s = s->if_false;
       }
       break;
-    default:
+    case STATE_PUT_CONST:;
+      ctxt = namespace_put(ctxt, s->put_const_value);
+      s = s->put_const_next;
+      break;
+    case STATE_PUT_VAR:;
+      eval_result_t er = datum_eval(s->put_var_value, ctxt);
+      if (eval_result_is_panic(er)) {
+        return er;
+      }
+      if (eval_result_is_context(er)) {
+        return eval_result_make_panic("panic");
+      }
+      ctxt = namespace_put(ctxt, er.ok_value);
+      s = s->put_var_next;
+      break;
+    case STATE_ARGS:;
+      ctxt = namespace_put(ctxt, datum_make_symbol("__function_call"));
+      s = s->args_next;
+      break;
+    case STATE_CALL:;
+      datum_t *args = datum_make_nil();
+      eval_result_t arg;
+      while (arg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
+             !(eval_result_is_ok(arg) && datum_is_symbol(arg.ok_value) &&
+               !strcmp(arg.ok_value->bytestring_value, "__function_call"))) {
+        // printf("%s %s\n", datum_repr(arg.ok_value),
+        // datum_repr(namespace_peek(ctxt).ok_value));
+        args = datum_make_list(arg.ok_value, args);
+      }
+      eval_result_t fn = namespace_peek(ctxt);
+      ctxt = namespace_pop(ctxt);
+      if (!eval_result_is_ok(fn)) {
+        return eval_result_make_panic("panic");
+      }
+      eval_result_t res = datum_call(fn.ok_value, args, ctxt, true);
+      if (eval_result_is_panic(res)) {
+        return res;
+      }
+      if (eval_result_is_context(res)) {
+        ctxt = res.context_value;
+      } else {
+        ctxt = namespace_put(ctxt, res.ok_value);
+      }
+      s = s->call_next;
+      break;
+    default:;
       return eval_result_make_panic("unhandled state type");
     }
   }
@@ -462,7 +570,7 @@ namespace_t *namespace_make(datum_t *vars, datum_t *stack) {
 }
 
 namespace_t *namespace_make_empty() {
-  return namespace_make(datum_make_nil(), datum_make_nil()); 
+  return namespace_make(datum_make_nil(), datum_make_nil());
 }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
@@ -522,6 +630,14 @@ eval_result_t namespace_peek(namespace_t *ns) {
     return eval_result_make_panic("peek failed");
   }
   return eval_result_make_ok(ns->stack->list_head);
+}
+
+namespace_t *namespace_pop(namespace_t *ns) {
+  if (datum_is_nil(ns->stack)) {
+    fprintf(stderr, "cannot pop from an empty stack\n");
+    exit(EXIT_FAILURE);
+  }
+  return namespace_make(ns->vars, ns->stack->list_tail);
 }
 
 eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
@@ -742,9 +858,6 @@ eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
     return eval_result_make_panic("args should be list");
   }
   if (datum_is_special(f)) {
-    if (hash) {
-      return eval_result_make_panic("cannot use # with special");
-    }
     return (f->special_call)(args, ctxt);
   }
   if (datum_is_operator(f)) {
@@ -757,6 +870,7 @@ eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
     return pointer_call(f, args, ctxt);
   }
   return eval_result_make_panic("car should be callable");
+  //  return eval_result_make_panic(datum_repr(f));
 }
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {

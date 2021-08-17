@@ -88,6 +88,10 @@ enum state_type {
   STATE_STATEMENT,
   STATE_IF,
   STATE_NOP,
+  STATE_PUT_CONST,
+  STATE_PUT_VAR,
+  STATE_ARGS,
+  STATE_CALL,
 };
 
 struct state {
@@ -105,6 +109,16 @@ struct state {
     struct {
       state_t *nop_next;
     };
+    struct {
+      datum_t *put_const_value;
+      state_t *put_const_next;
+    };
+    struct {
+      datum_t *put_var_value;
+      state_t *put_var_next;
+    };
+    state_t *args_next;
+    state_t *call_next;
   };
 };
 
@@ -184,11 +198,15 @@ namespace_t *namespace_make(datum_t *vars, datum_t *stack);
 
 namespace_t *namespace_make_empty();
 
+eval_result_t namespace_get(namespace_t *ns, datum_t *symbol);
+
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value);
 
 namespace_t *namespace_put(namespace_t *ns, datum_t *value);
 
 eval_result_t namespace_peek(namespace_t *ns);
+
+namespace_t *namespace_pop(namespace_t *ns);
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
 
