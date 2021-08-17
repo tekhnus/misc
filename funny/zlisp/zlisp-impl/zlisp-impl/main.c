@@ -1160,22 +1160,6 @@ eval_result_t special_panic(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_panic(arg_value->bytestring_value);
 }
 
-eval_result_t special_progn(datum_t *args, namespace_t *ctxt) {
-  eval_result_t val = eval_result_make_context(ctxt);
-  for (; !datum_is_nil(args); args = args->list_tail) {
-    datum_t *arg = args->list_head;
-    val = datum_eval(arg, val.context_value);
-    if (eval_result_is_panic(val)) {
-      return val;
-    }
-    if (eval_result_is_ok(val)) {
-      return eval_result_make_panic(
-          "progn should consist of statements, not expressions");
-    }
-  }
-  return val;
-}
-
 void namespace_def_special(namespace_t **ctxt, char *name,
                            eval_result_t (*form)(datum_t *, namespace_t *)) {
   *ctxt =
@@ -1206,7 +1190,6 @@ eval_result_t namespace_make_prelude() {
   namespace_def_special(&ns, "quote", special_quote);
   namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
-  namespace_def_special(&ns, "progn", special_progn);
   namespace_def_special(&ns, "require", special_require);
 
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
