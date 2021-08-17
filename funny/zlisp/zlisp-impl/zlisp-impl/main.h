@@ -11,7 +11,7 @@
 
 typedef struct datum datum_t;
 typedef struct read_result read_result_t;
-typedef struct datum namespace_t;
+typedef struct namespace namespace_t;
 typedef struct eval_result eval_result_t;
 typedef struct state state_t;
 
@@ -46,6 +46,10 @@ struct datum {
       datum_t *pointer_descriptor;
     };
   };
+};
+
+struct namespace {
+  datum_t *vars;
 };
 
 enum read_result_type {
@@ -174,6 +178,8 @@ eval_result_t eval_result_make_ok(datum_t *e);
 eval_result_t eval_result_make_context(namespace_t *ns);
 
 eval_result_t eval_result_make_panic(char *message);
+
+namespace_t *namespace_make(datum_t *vars);
 
 namespace_t *namespace_make_empty();
 

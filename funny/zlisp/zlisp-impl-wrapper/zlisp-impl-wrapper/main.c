@@ -26,7 +26,8 @@ eval_result_t read(datum_t *sptr) {
   return eval_result_make_ok(ok);
 }
 
-eval_result_t eval(datum_t *v, datum_t *ns) {
+eval_result_t eval(datum_t *v, datum_t *vars) {
+  namespace_t *ns = namespace_make(vars);
   eval_result_t r = datum_eval(v, ns);
   if (eval_result_is_panic(r)) {
     return eval_result_make_ok(datum_make_list_2(
@@ -34,7 +35,7 @@ eval_result_t eval(datum_t *v, datum_t *ns) {
   }
   if (eval_result_is_context(r)) {
     return eval_result_make_ok(
-        datum_make_list_2(datum_make_symbol(":context"), r.context_value));
+        datum_make_list_2(datum_make_symbol(":context"), r.context_value->vars));
   }
   return eval_result_make_ok(
       datum_make_list_2(datum_make_symbol(":ok"), r.ok_value));
@@ -48,5 +49,5 @@ eval_result_t prelude() {
   if (eval_result_is_ok(prelude)) {
     return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring("prelude should be a context")));
   }
-  return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":ok"), prelude.context_value));
+  return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":ok"), prelude.context_value->vars));
 }

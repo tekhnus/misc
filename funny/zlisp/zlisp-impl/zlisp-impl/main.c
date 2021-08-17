@@ -44,8 +44,11 @@ char *state_extend(state_t **begin, datum_t *stmt) {
   if ((*begin)->type != STATE_END) {
     return "expected an end state";
   }
-  if (!datum_is_list(stmt) || datum_is_nil(stmt)) {
-    return "a statement should be represented by a non-empty list";
+  if (!datum_is_list(stmt)) {
+    return "not implemented yet";
+  }
+  if (datum_is_nil(stmt)) {
+    return "an empty list is not a statement";
   }
   if (datum_is_symbol(stmt->list_head) &&
       !strcmp(stmt->list_head->symbol_value, "if")) {
@@ -451,11 +454,19 @@ eval_result_t eval_result_make_panic(char *message) {
   return result;
 }
 
-namespace_t *namespace_make_empty() { return datum_make_nil(); }
+namespace_t *namespace_make(datum_t *vars) {
+  namespace_t *res = malloc(sizeof(namespace_t));
+  res->vars = vars;
+  return res;
+}
+
+namespace_t *namespace_make_empty() {
+  return namespace_make(datum_make_nil()); 
+}
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
-  return datum_make_list(kv, ns);
+  return namespace_make(datum_make_list(kv, ns->vars));
 }
 
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
@@ -468,7 +479,7 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
   }
   datum_t *fn = datum_make_operator(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
-  return datum_make_list(kv, ns);
+  return namespace_make(datum_make_list(kv, ns->vars));
 }
 
 datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
@@ -489,7 +500,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
 }
 
 eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
-  for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
+  for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
     datum_t *entry = cur->list_head;
     if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
       datum_t *cell = entry->list_tail;
@@ -935,7 +946,7 @@ eval_result_t special_backquote(datum_t *args, namespace_t *ctxt) {
 datum_t *namespace_list(namespace_t *ns) {
   datum_t *result = datum_make_nil();
   datum_t **nil = &result;
-  for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
+  for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
     datum_t *entry = cur->list_head;
     datum_t *key = entry->list_head;
     datum_t *cell = entry->list_tail;
