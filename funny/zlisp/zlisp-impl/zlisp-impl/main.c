@@ -40,8 +40,8 @@ void state_join(state_t *a, state_t *b, state_t *e) {
   b->nop_next = e;
 }
 
-char *state_extend(state_t *begin, state_t **new_end, datum_t *stmt) {
-  if (begin->type != STATE_END) {
+char *state_extend(state_t **begin, datum_t *stmt) {
+  if ((*begin)->type != STATE_END) {
     return "expected an end state";
   }
   if (!datum_is_list(stmt) || datum_is_nil(stmt)) {
@@ -52,47 +52,43 @@ char *state_extend(state_t *begin, state_t **new_end, datum_t *stmt) {
     if (list_length(stmt->list_tail) != 3) {
       return "if should have three args";
     }
-    begin->type = STATE_IF;
-    begin->if_condition = stmt->list_tail->list_head;
-    begin->if_true = state_make();
-    begin->if_false = state_make();
-    state_t *true_end, *false_end;
+    (*begin)->type = STATE_IF;
+    (*begin)->if_condition = stmt->list_tail->list_head;
+
+    state_t *true_end = state_make(), *false_end = state_make();
+    (*begin)->if_true = true_end;
+    (*begin)->if_false = false_end;
     char *err;
-    err = state_extend(begin->if_true, &true_end,
-                       stmt->list_tail->list_tail->list_head);
+    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head);
     if (err != NULL) {
       return err;
     }
-    err = state_extend(begin->if_false, &false_end,
+    err = state_extend(&false_end,
                        stmt->list_tail->list_tail->list_tail->list_head);
     if (err != NULL) {
       return err;
     }
-    *new_end = state_make();
-    state_join(true_end, false_end, *new_end);
+    *begin = state_make();
+    state_join(true_end, false_end, *begin);
     return NULL;
   }
   if (datum_is_symbol(stmt->list_head) &&
       !strcmp(stmt->list_head->symbol_value, "progn")) {
-    *new_end = begin;
     for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
          rest = rest->list_tail) {
       datum_t *step = rest->list_head;
-      state_extend(*new_end, new_end, step);
+      state_extend(begin, step);
     }
     return NULL;
   }
-  *new_end = state_make();
-  begin->type = STATE_STATEMENT;
-  begin->statement_body = stmt;
-  begin->statement_next = *new_end;
+  (*begin)->type = STATE_STATEMENT;
+  (*begin)->statement_body = stmt;
+  (*begin)->statement_next = state_make();
+  *begin = (*begin)->statement_next;
   return NULL;
 }
 
-char *state_init(state_t *s, datum_t *stmt) {
-  state_t *end;
-  return state_extend(s, &end, stmt);
-}
+char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
 
 eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
   // printf("evaling a state\n");
