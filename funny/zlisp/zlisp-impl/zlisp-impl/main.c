@@ -13,6 +13,118 @@
 #include <stdlib.h>
 #include <string.h>
 
+state_t *state_make() {
+  state_t *res = malloc(sizeof(state_t));
+  res->type = STATE_END;
+  return res;
+}
+
+int list_length(datum_t *seq) {
+  if (!datum_is_list(seq)) {
+    return -1;
+  }
+  int res;
+  for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res)
+    ;
+  return res;
+}
+
+char *state_extend(state_t **begin, state_t *end, datum_t *stmt) {
+  if (!datum_is_list(stmt) || datum_is_nil(stmt)) {
+    return "a statement should be represented by a non-empty list";
+  }
+  if (datum_is_symbol(stmt->list_head) &&
+      !strcmp(stmt->list_head->symbol_value, "if")) {
+    if (list_length(stmt->list_tail) != 3) {
+      return "if should have three args";
+    }
+    state_t *st = state_make();
+    st->type = STATE_IF;
+    st->if_condition = stmt->list_tail->list_head;
+    char *err;
+    err =
+        state_extend(&st->if_true, end, stmt->list_tail->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    err = state_extend(&st->if_false, end,
+                       stmt->list_tail->list_tail->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    *begin = st;
+    return NULL;
+  }
+  if (datum_is_symbol(stmt->list_head) &&
+      !strcmp(stmt->list_head->symbol_value, "progn")) {
+    if (datum_is_nil(stmt->list_tail)) {
+      *begin = end;
+      return NULL;
+    }
+    datum_t *progn_tail =
+        datum_make_list(datum_make_symbol("progn"), stmt->list_tail->list_tail);
+    state_t *step;
+    char *err;
+    err = state_extend(&step, end, progn_tail);
+    if (err != NULL) {
+      return err;
+    }
+    err = state_extend(begin, step, stmt->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    return NULL;
+  }
+  state_t *st = state_make();
+  st->type = STATE_STATEMENT;
+  st->statement_body = stmt;
+  st->statement_next = end;
+  *begin = st;
+  return NULL;
+}
+
+char *state_init(state_t **s, datum_t *stmt) {
+  state_t *end = state_make();
+  return state_extend(s, end, stmt);
+}
+
+eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
+  // printf("evaling a state\n");
+  for (;;) {
+    switch (s->type) {
+    case STATE_END:
+      return eval_result_make_context(ctxt);
+    case STATE_STATEMENT:;
+      // printf("a statement %s\n", datum_repr(s->statement_body));
+      eval_result_t e = datum_eval(s->statement_body, ctxt);
+      if (eval_result_is_panic(e)) {
+        return e;
+      }
+      if (eval_result_is_ok(e)) {
+        return eval_result_make_panic("a context is expected");
+      }
+      s = s->statement_next;
+      ctxt = e.context_value;
+      break;
+    case STATE_IF:;
+      // printf("an if %s\n", datum_repr(s->if_condition));
+      eval_result_t c = datum_eval(s->if_condition, ctxt);
+      if (eval_result_is_panic(c)) {
+        return c;
+      }
+      if (eval_result_is_context(c)) {
+        return eval_result_make_panic("a value is expected");
+      }
+      if (!datum_is_nil(c.ok_value)) {
+        s = s->if_true;
+      } else {
+        s = s->if_false;
+      }
+      break;
+    }
+  }
+}
+
 bool datum_is_nil(datum_t *e) { return e->type == DATUM_NIL; }
 
 bool datum_is_list(datum_t *e) {
@@ -93,10 +205,10 @@ datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *)) {
   return e;
 }
 
-datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings) {
+datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_OPERATOR;
-  e->operator_body = body;
+  e->operator_state = s;
   e->operator_context = lexical_bindings;
   return e;
 }
@@ -341,7 +453,13 @@ namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
 
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
                               datum_t *value) {
-  datum_t *fn = datum_make_operator(value, NULL);
+  state_t *s;
+  char *err = state_init(&s, value);
+  if (err != NULL) {
+    fprintf(stderr, "bad function def\n");
+    exit(EXIT_FAILURE);
+  }
+  datum_t *fn = datum_make_operator(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
   return datum_make_list(kv, ns);
 }
@@ -356,7 +474,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    return datum_make_operator(raw_value->operator_body, ns);
+    return datum_make_operator(raw_value->operator_state, ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
@@ -405,141 +523,6 @@ eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
   return eval_result_make_ok(evaled_items);
 }
 
-enum state_type {
-  STATE_END,
-  STATE_STATEMENT,
-  STATE_IF,
-};
-
-typedef struct state state_t;
-
-struct state {
-  enum state_type type;
-  union {
-    struct {
-      datum_t *statement_body;
-      state_t *statement_next;
-    };
-    struct {
-      datum_t *if_condition;
-      state_t *if_true;
-      state_t *if_false;
-    };
-  };
-};
-
-state_t *state_make() {
-  state_t *res = malloc(sizeof(state_t));
-  res->type = STATE_END;
-  return res;
-}
-
-int list_length(datum_t *seq) {
-  if (!datum_is_list(seq)) {
-    return -1;
-  }
-  int res;
-  for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res)
-    ;
-  return res;
-}
-
-char *state_extend(state_t **begin, state_t *end, datum_t *stmt) {
-  if (!datum_is_list(stmt) || datum_is_nil(stmt)) {
-    return "a statement should be represented by a non-empty list";
-  }
-  if (datum_is_symbol(stmt->list_head) &&
-      !strcmp(stmt->list_head->symbol_value, "if")) {
-    if (list_length(stmt->list_tail) != 3) {
-      return "if should have three args";
-    }
-    state_t *st = state_make();
-    st->type = STATE_IF;
-    st->if_condition = stmt->list_tail->list_head;
-    char *err;
-    err =
-        state_extend(&st->if_true, end, stmt->list_tail->list_tail->list_head);
-    if (err != NULL) {
-      return err;
-    }
-    err = state_extend(&st->if_false, end,
-                       stmt->list_tail->list_tail->list_tail->list_head);
-    if (err != NULL) {
-      return err;
-    }
-    *begin = st;
-    return NULL;
-  }
-  if (datum_is_symbol(stmt->list_head) &&
-      !strcmp(stmt->list_head->symbol_value, "progn")) {
-    if (datum_is_nil(stmt->list_tail)) {
-      *begin = end;
-      return NULL;
-    }
-    datum_t *progn_tail =
-        datum_make_list(datum_make_symbol("progn"), stmt->list_tail->list_tail);
-    state_t *step;
-    char *err;
-    err = state_extend(&step, end, progn_tail);
-    if (err != NULL) {
-      return err;
-    }
-    err = state_extend(begin, step, stmt->list_tail->list_head);
-    if (err != NULL) {
-      return err;
-    }
-    return NULL;
-  }
-  state_t *st = state_make();
-  st->type = STATE_STATEMENT;
-  st->statement_body = stmt;
-  st->statement_next = end;
-  *begin = st;
-  return NULL;
-}
-
-char *state_init(state_t **s, datum_t *stmt) {
-  state_t *end = state_make();
-  return state_extend(s, end, stmt);
-}
-
-eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
-  // printf("evaling a state\n");
-  for (;;) {
-    switch (s->type) {
-    case STATE_END:
-      return eval_result_make_context(ctxt);
-    case STATE_STATEMENT:;
-      // printf("a statement %s\n", datum_repr(s->statement_body));
-      eval_result_t e = datum_eval(s->statement_body, ctxt);
-      if (eval_result_is_panic(e)) {
-        return e;
-      }
-      if (eval_result_is_ok(e)) {
-        return eval_result_make_panic("a context is expected");
-      }
-      s = s->statement_next;
-      ctxt = e.context_value;
-      break;
-    case STATE_IF:;
-      // printf("an if %s\n", datum_repr(s->if_condition));
-      eval_result_t c = datum_eval(s->if_condition, ctxt);
-      if (eval_result_is_panic(c)) {
-        return c;
-      }
-      if (eval_result_is_context(c)) {
-        return eval_result_make_panic("a value is expected");
-      }
-      if (!datum_is_nil(c.ok_value)) {
-        s = s->if_true;
-      } else {
-        s = s->if_false;
-      }
-      break;
-    }
-  }
-}
-
 eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt,
                             bool hash) {
   datum_t *passed_args = NULL;
@@ -559,11 +542,7 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt,
   datum_ctxt =
       namespace_set(datum_ctxt, datum_make_symbol("args"), passed_args);
   // printf("calling %s\n", datum_repr(f->operator_body));
-  state_t *s;
-  char *err = state_init(&s, f->operator_body);
-  if (err != NULL) {
-    return eval_result_make_panic(err);
-  }
+  state_t *s = f->operator_state;
   eval_result_t expansion = state_eval(s, datum_ctxt);
   if (eval_result_is_panic(expansion)) {
     return expansion;
@@ -878,7 +857,12 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("fn expects a single argument");
   }
-  return eval_result_make_ok(datum_make_operator(args->list_head, ctxt));
+  state_t *s;
+  char *err = state_init(&s, args->list_head);
+  if (err != NULL) {
+    return eval_result_make_panic(err);
+  }
+  return eval_result_make_ok(datum_make_operator(s, ctxt));
 }
 
 eval_result_t special_def(datum_t *args, namespace_t *ctxt) {

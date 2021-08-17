@@ -13,6 +13,7 @@ typedef struct datum datum_t;
 typedef struct read_result read_result_t;
 typedef struct datum namespace_t;
 typedef struct eval_result eval_result_t;
+typedef struct state state_t;
 
 enum datum_type {
   DATUM_NIL,
@@ -37,7 +38,7 @@ struct datum {
     int64_t integer_value;
     eval_result_t (*special_call)(datum_t *, namespace_t *);
     struct {
-      datum_t *operator_body;
+      state_t *operator_state;
       namespace_t *operator_context;
     };
     struct {
@@ -77,6 +78,27 @@ struct eval_result {
   // };
 };
 
+enum state_type {
+  STATE_END,
+  STATE_STATEMENT,
+  STATE_IF,
+};
+
+struct state {
+  enum state_type type;
+  union {
+    struct {
+      datum_t *statement_body;
+      state_t *statement_next;
+    };
+    struct {
+      datum_t *if_condition;
+      state_t *if_true;
+      state_t *if_false;
+    };
+  };
+};
+
 bool datum_is_nil(datum_t *e);
 
 bool datum_is_list(datum_t *e);
@@ -111,7 +133,7 @@ datum_t *datum_make_int(int64_t value);
 
 datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *));
 
-datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings);
+datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings);
 
 datum_t *datum_make_pointer(void *data, datum_t *signature);
 
