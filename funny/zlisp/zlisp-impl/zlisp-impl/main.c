@@ -346,20 +346,29 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
   return datum_make_list(kv, ns);
 }
 
+datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
+   datum_t *raw_value = cell->list_tail->list_head;
+    datum_t *keyval;
+    if (!strcmp(cell->list_head->symbol_value, ":value")) {
+      return raw_value;
+    } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
+      if (!datum_is_operator(raw_value)) {
+	fprintf(stderr, "namespace implementation error");
+	exit(EXIT_FAILURE);
+      }
+      return datum_make_operator(raw_value->operator_body, ns);
+    } else {
+      fprintf(stderr, "namespace implementation error");
+      exit(EXIT_FAILURE);
+    }
+}
+
 eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
   for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum_t *kv = cur->list_head;
-    if (!strcmp(kv->list_head->symbol_value, symbol->symbol_value)) {
-      datum_t *tag_and_value = kv->list_tail;
-      if (!strcmp(tag_and_value->list_head->symbol_value, ":value")) {
-        return eval_result_make_ok(tag_and_value->list_tail->list_head);
-      }
-      if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
-        datum_t *fn = tag_and_value->list_tail->list_head;
-        datum_t *updated_fn = datum_make_operator(fn->operator_body, ns);
-        return eval_result_make_ok(updated_fn);
-      }
-      return eval_result_make_panic("namespace implementation error");
+    datum_t *entry = cur->list_head;
+    if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
+      datum_t *cell = entry->list_tail;
+      return eval_result_make_ok(namespace_cell_get_value(cell, ns));
     }
   }
   char *msg = malloc(1024);
@@ -931,22 +940,11 @@ datum_t *namespace_list(namespace_t *ns) {
   datum_t *result = datum_make_nil();
   datum_t **nil = &result;
   for (datum_t *cur = ns; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum_t *kv = cur->list_head;
-    datum_t *key = kv->list_head;
-    datum_t *tag_and_value = kv->list_tail;
-    datum_t *tag = tag_and_value->list_head;
-    datum_t *value = tag_and_value->list_tail->list_head;
-    datum_t *keyval;
-    if (!strcmp(tag_and_value->list_head->symbol_value, ":value")) {
-      keyval = datum_make_list_2(key, value);
-    } else if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
-      datum_t *fn = tag_and_value->list_tail->list_head;
-      datum_t *updated_fn = datum_make_operator(fn->operator_body, ns);
-      keyval = datum_make_list_2(key, updated_fn);
-    } else {
-      fprintf(stderr, "namespace implementation error");
-      exit(EXIT_FAILURE);
-    }
+    datum_t *entry = cur->list_head;
+    datum_t *key = entry->list_head;
+    datum_t *cell = entry->list_tail;
+    datum_t *val = namespace_cell_get_value(cell, ns);
+    datum_t *keyval = datum_make_list_2(key, val);
     *nil = datum_make_list_1(keyval);
     nil = &((*nil)->list_tail);
   }
