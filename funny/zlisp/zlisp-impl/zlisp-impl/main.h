@@ -38,7 +38,6 @@ struct datum {
     eval_result_t (*special_call)(datum_t *, namespace_t *);
     struct {
       datum_t *operator_body;
-      bool operator_eval_args;
       namespace_t *operator_context;
     };
     struct {
@@ -112,8 +111,7 @@ datum_t *datum_make_int(int64_t value);
 
 datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *));
 
-datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings,
-                             bool pre_eval);
+datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings);
 
 datum_t *datum_make_pointer(void *data, datum_t *signature);
 

@@ -93,13 +93,11 @@ datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *)) {
   return e;
 }
 
-datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings,
-                             bool pre_eval) {
+datum_t *datum_make_operator(datum_t *body, namespace_t *lexical_bindings) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_OPERATOR;
   e->operator_body = body;
   e->operator_context = lexical_bindings;
-  e->operator_eval_args = pre_eval;
   return e;
 }
 
@@ -343,7 +341,7 @@ namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
 
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
                               datum_t *value) {
-  datum_t *fn = datum_make_operator(value, NULL, true);
+  datum_t *fn = datum_make_operator(value, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
   return datum_make_list(kv, ns);
 }
@@ -358,7 +356,7 @@ eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
       }
       if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
         datum_t *fn = tag_and_value->list_tail->list_head;
-        datum_t *updated_fn = datum_make_operator(fn->operator_body, ns, true);
+        datum_t *updated_fn = datum_make_operator(fn->operator_body, ns);
         return eval_result_make_ok(updated_fn);
       }
       return eval_result_make_panic("namespace implementation error");
@@ -866,7 +864,7 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("fn expects a single argument");
   }
-  return eval_result_make_ok(datum_make_operator(args->list_head, ctxt, true));
+  return eval_result_make_ok(datum_make_operator(args->list_head, ctxt));
 }
 
 eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
@@ -943,7 +941,7 @@ datum_t *namespace_list(namespace_t *ns) {
       keyval = datum_make_list_2(key, value);
     } else if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
       datum_t *fn = tag_and_value->list_tail->list_head;
-      datum_t *updated_fn = datum_make_operator(fn->operator_body, ns, true);
+      datum_t *updated_fn = datum_make_operator(fn->operator_body, ns);
       keyval = datum_make_list_2(key, updated_fn);
     } else {
       fprintf(stderr, "namespace implementation error");
