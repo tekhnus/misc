@@ -533,9 +533,9 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
   }
 }
 
-eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
+eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt, bool hash) {
   datum_t *passed_args = NULL;
-  if (!f->operator_eval_args) {
+  if (hash) {
     passed_args = args;
   } else {
     eval_result_t evaled_items = list_map(datum_eval, args, ctxt);
@@ -727,17 +727,23 @@ eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
+eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt, bool hash) {
   if (!datum_is_list(args)) {
     return eval_result_make_panic("args should be list");
   }
   if (datum_is_special(f)) {
+    if (hash) {
+      return eval_result_make_panic("cannot use # with special");
+    }
     return (f->special_call)(args, ctxt);
   }
   if (datum_is_operator(f)) {
-    return operator_call(f, args, ctxt);
+    return operator_call(f, args, ctxt, hash);
   }
   if (datum_is_pointer(f)) {
+    if (hash) {
+      return eval_result_make_panic("# is not implemented for native calls");
+    }
     return pointer_call(f, args, ctxt);
   }
   return eval_result_make_panic("car should be callable");
@@ -757,14 +763,27 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
     return eval_result_make_panic("cannot eval an empty list");
   }
   if (datum_is_list(e)) {
-    eval_result_t f = datum_eval(e->list_head, ctxt);
+    datum_t *fn = e->list_head;
+    datum_t *real_fn;
+    bool hash;
+    if (datum_is_list(fn) && !datum_is_nil(fn) && datum_is_symbol(fn->list_head) && !strcmp(fn->list_head->symbol_value, "hash")) {
+      if (datum_is_nil(fn->list_tail) || !datum_is_nil(fn->list_tail->list_tail)) {
+	return eval_result_make_panic("hash should have a single argument");
+      }
+      real_fn = fn->list_tail->list_head;
+      hash = true;
+    } else {
+      real_fn = fn;
+      hash = false;
+    }
+    eval_result_t f = datum_eval(real_fn, ctxt);
     if (eval_result_is_panic(f)) {
       return f;
     }
     if (eval_result_is_context(f)) {
       return eval_result_make_panic("expected a callable, got a context");
     }
-    eval_result_t app = datum_call(f.ok_value, e->list_tail, ctxt);
+    eval_result_t app = datum_call(f.ok_value, e->list_tail, ctxt, hash);
     return app;
   }
   return eval_result_make_panic("non-evalable expression");
@@ -848,24 +867,6 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("fn expects a single argument");
   }
   return eval_result_make_ok(datum_make_operator(args->list_head, ctxt, true));
-}
-
-eval_result_t special_hash(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("hash expects a single argument");
-  }
-  eval_result_t fn = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(fn)) {
-    return fn;
-  }
-  if (eval_result_is_context(fn)) {
-    return eval_result_make_panic("not expected a context here");
-  }
-  if (!datum_is_operator(fn.ok_value)) {
-    return eval_result_make_panic("# should be used with an operator");
-  }
-  return eval_result_make_ok(datum_make_operator(
-      fn.ok_value->operator_body, fn.ok_value->operator_context, false));
 }
 
 eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
@@ -1164,7 +1165,6 @@ eval_result_t namespace_make_prelude() {
   namespace_t *ns = namespace_make_empty();
 
   namespace_def_special(&ns, "builtin.fn", special_fn);
-  namespace_def_special(&ns, "hash", special_hash);
   namespace_def_special(&ns, "def", special_def);
   namespace_def_special(&ns, "builtin.defn", special_defn);
   namespace_def_special(&ns, "return", special_return);
