@@ -343,7 +343,8 @@ namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
 
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
                               datum_t *value) {
-  datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), value);
+  datum_t *fn = datum_make_operator(value, NULL, true);
+  datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
   return datum_make_list(kv, ns);
 }
 
@@ -356,9 +357,9 @@ eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
         return eval_result_make_ok(tag_and_value->list_tail->list_head);
       }
       if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
-        datum_t *body = tag_and_value->list_tail->list_head;
-        datum_t *fn = datum_make_operator(body, ns, true);
-        return eval_result_make_ok(fn);
+        datum_t *fn = tag_and_value->list_tail->list_head;
+        datum_t *updated_fn = datum_make_operator(fn->operator_body, ns, true);
+        return eval_result_make_ok(updated_fn);
       }
       return eval_result_make_panic("namespace implementation error");
     }
@@ -940,9 +941,9 @@ datum_t *namespace_list(namespace_t *ns) {
     if (!strcmp(tag_and_value->list_head->symbol_value, ":value")) {
       keyval = datum_make_list_2(key, value);
     } else if (!strcmp(tag_and_value->list_head->symbol_value, ":fn")) {
-      datum_t *body = tag_and_value->list_tail->list_head;
-      datum_t *fn = datum_make_operator(body, ns, true);
-      keyval = datum_make_list_2(key, fn);
+      datum_t *fn = tag_and_value->list_tail->list_head;
+      datum_t *updated_fn = datum_make_operator(fn->operator_body, ns, true);
+      keyval = datum_make_list_2(key, updated_fn);
     } else {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
