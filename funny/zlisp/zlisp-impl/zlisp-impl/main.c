@@ -347,20 +347,20 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
 }
 
 datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
-   datum_t *raw_value = cell->list_tail->list_head;
-    datum_t *keyval;
-    if (!strcmp(cell->list_head->symbol_value, ":value")) {
-      return raw_value;
-    } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
-      if (!datum_is_operator(raw_value)) {
-	fprintf(stderr, "namespace implementation error");
-	exit(EXIT_FAILURE);
-      }
-      return datum_make_operator(raw_value->operator_body, ns);
-    } else {
+  datum_t *raw_value = cell->list_tail->list_head;
+  datum_t *keyval;
+  if (!strcmp(cell->list_head->symbol_value, ":value")) {
+    return raw_value;
+  } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
+    if (!datum_is_operator(raw_value)) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
+    return datum_make_operator(raw_value->operator_body, ns);
+  } else {
+    fprintf(stderr, "namespace implementation error");
+    exit(EXIT_FAILURE);
+  }
 }
 
 eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
@@ -540,7 +540,8 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
   }
 }
 
-eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt, bool hash) {
+eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt,
+                            bool hash) {
   datum_t *passed_args = NULL;
   if (hash) {
     passed_args = args;
@@ -734,7 +735,8 @@ eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt, bool hash) {
+eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
+                         bool hash) {
   if (!datum_is_list(args)) {
     return eval_result_make_panic("args should be list");
   }
@@ -773,9 +775,12 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
     datum_t *fn = e->list_head;
     datum_t *real_fn;
     bool hash;
-    if (datum_is_list(fn) && !datum_is_nil(fn) && datum_is_symbol(fn->list_head) && !strcmp(fn->list_head->symbol_value, "hash")) {
-      if (datum_is_nil(fn->list_tail) || !datum_is_nil(fn->list_tail->list_tail)) {
-	return eval_result_make_panic("hash should have a single argument");
+    if (datum_is_list(fn) && !datum_is_nil(fn) &&
+        datum_is_symbol(fn->list_head) &&
+        !strcmp(fn->list_head->symbol_value, "hash")) {
+      if (datum_is_nil(fn->list_tail) ||
+          !datum_is_nil(fn->list_tail->list_tail)) {
+        return eval_result_make_panic("hash should have a single argument");
       }
       real_fn = fn->list_tail->list_head;
       hash = true;
