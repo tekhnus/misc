@@ -27,7 +27,7 @@ eval_result_t read(datum_t *sptr) {
 }
 
 eval_result_t eval(datum_t *v, datum_t *vars) {
-  namespace_t *ns = namespace_make(vars);
+  namespace_t *ns = namespace_make(vars, datum_make_nil());
   eval_result_t r = datum_eval(v, ns);
   if (eval_result_is_panic(r)) {
     return eval_result_make_ok(datum_make_list_2(

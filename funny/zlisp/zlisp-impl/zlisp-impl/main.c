@@ -454,19 +454,20 @@ eval_result_t eval_result_make_panic(char *message) {
   return result;
 }
 
-namespace_t *namespace_make(datum_t *vars) {
+namespace_t *namespace_make(datum_t *vars, datum_t *stack) {
   namespace_t *res = malloc(sizeof(namespace_t));
   res->vars = vars;
+  res->stack = stack;
   return res;
 }
 
 namespace_t *namespace_make_empty() {
-  return namespace_make(datum_make_nil()); 
+  return namespace_make(datum_make_nil(), datum_make_nil()); 
 }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
-  return namespace_make(datum_make_list(kv, ns->vars));
+  return namespace_make(datum_make_list(kv, ns->vars), ns->stack);
 }
 
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
@@ -479,7 +480,7 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
   }
   datum_t *fn = datum_make_operator(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
-  return namespace_make(datum_make_list(kv, ns->vars));
+  return namespace_make(datum_make_list(kv, ns->vars), ns->stack);
 }
 
 datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
@@ -513,11 +514,14 @@ eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
 }
 
 namespace_t *namespace_put(namespace_t *ns, datum_t *value) {
-  return namespace_set(ns, datum_make_symbol("__namespace_stack_top"), value);
+  return namespace_make(ns->vars, datum_make_list(value, ns->stack));
 }
 
 eval_result_t namespace_peek(namespace_t *ns) {
-  return namespace_get(ns, datum_make_symbol("__namespace_stack_top"));
+  if (datum_is_nil(ns->stack)) {
+    return eval_result_make_panic("peek failed");
+  }
+  return eval_result_make_ok(ns->stack->list_head);
 }
 
 eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
