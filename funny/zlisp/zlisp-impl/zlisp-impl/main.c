@@ -104,8 +104,9 @@ eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic(
         "defun requires a symbol as a first argument");
   }
-  return eval_result_make_context(
-      namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head));
+  ctxt = namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head);
+  ctxt = namespace_put(ctxt, datum_make_void());
+  return eval_result_make_context(ctxt);
 }
 
 eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
@@ -147,6 +148,7 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
     }
     ctxt = namespace_set(ctxt, sym, val);
   }
+  ctxt = namespace_put(ctxt, datum_make_void());
   return eval_result_make_context(ctxt);
 }
 
@@ -231,34 +233,31 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (list_length(stmt->list_tail) != 2) {
         return "defn should have two args";
       }
-      state_put_const(begin, datum_make_special(special_defn));
       state_args(begin);
       state_put_const(begin, stmt->list_tail->list_head);
       state_put_const(begin, stmt->list_tail->list_tail->list_head);
-      state_call(begin);
+      state_call_special(begin, special_defn);
       return NULL;
     }
     if (!strcmp(sym, "builtin.fn")) {
       if (list_length(stmt->list_tail) != 1) {
         return "fn should have one arg";
       }
-      state_put_const(begin, datum_make_special(special_fn));
       state_args(begin);
       state_put_const(begin, stmt->list_tail->list_head);
-      state_call(begin);
+      state_call_special(begin, special_fn);
       return NULL;
     }
     if (!strcmp(sym, "require")) {
       if (list_length(stmt->list_tail) != 1) {
         return "require should have a single arg";
       }
-      state_put_const(begin, datum_make_special(special_require));
       state_args(begin);
       char *err = state_extend(begin, stmt->list_tail->list_head);
       if (err != NULL) {
         return err;
       }
-      state_call(begin);
+      state_call_special(begin, special_require);
       return NULL;
     }
     if (!strcmp(sym, "return")) {
@@ -358,7 +357,8 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (err != NULL) {
     return eval_result_make_panic(err);
   }
-  return eval_result_make_ok(datum_make_operator(s, ctxt));
+  ctxt = namespace_put(ctxt, datum_make_operator(s, ctxt));
+  return eval_result_make_context(ctxt);
 }
 
 eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
