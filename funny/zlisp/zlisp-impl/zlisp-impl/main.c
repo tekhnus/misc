@@ -277,7 +277,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       eval_result_t arg;
       while (arg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
              !(eval_result_is_ok(arg) && datum_is_symbol(arg.ok_value) &&
-               !strcmp(arg.ok_value->bytestring_value, "__function_call"))) {
+               !strcmp(arg.ok_value->symbol_value, "__function_call"))) {
         args = datum_make_list(arg.ok_value, args);
       }
       eval_result_t fn = namespace_peek(ctxt);
@@ -1089,20 +1089,6 @@ eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
   }
   return eval_result_make_context(
       namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head));
-}
-
-eval_result_t special_return(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("return expects a single argument");
-  }
-  eval_result_t val = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(val)) {
-    return val;
-  }
-  if (eval_result_is_context(val)) {
-    return eval_result_make_panic("a value was expected");
-  }
-  return eval_result_make_context(namespace_put(ctxt, val.ok_value));
 }
 
 datum_t *namespace_list(namespace_t *ns) {
