@@ -56,6 +56,7 @@ void state_put_var(state_t **begin, datum_t *val) {
 
 eval_result_t special_def(datum_t *args, namespace_t *ctxt);
 eval_result_t special_return(datum_t *args, namespace_t *ctxt);
+char *state_extend_backquoted(state_t **begin, datum_t *stmt);
 char *state_extend(state_t **begin, datum_t *stmt) {
   if ((*begin)->type != STATE_END) {
     return "expected an end state";
@@ -131,6 +132,13 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       state_extend(begin, stmt->list_tail->list_head);
       return NULL;
     }
+    if (!strcmp(sym, "backquote")) {
+      if (list_length(stmt->list_tail) != 1) {
+        return "backquote should have a single arg";
+      }
+      state_extend_backquoted(begin, stmt->list_tail->list_head);
+      return NULL;
+    }
   }
 
   datum_t *fn = stmt->list_head;
@@ -183,6 +191,36 @@ char *state_extend(state_t **begin, datum_t *stmt) {
   (*begin)->statement_next = state_make();
   *begin = (*begin)->statement_next;
   */
+  return NULL;
+}
+
+char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
+  if (!datum_is_list(stmt)) {
+    state_put_const(begin, stmt);
+    return NULL;
+  }
+  state_put_var(begin, datum_make_symbol("list"));
+  (*begin)->type = STATE_ARGS;
+  (*begin)->args_next = state_make();
+  *begin = (*begin)->args_next;
+  for (datum_t *rest_elems = stmt; !datum_is_nil(rest_elems);
+       rest_elems = rest_elems->list_tail) {
+    datum_t *elem = rest_elems->list_head;
+    char *err;
+    if (datum_is_list(elem) && list_length(elem) == 2 &&
+        datum_is_symbol(elem->list_head) &&
+        !strcmp(elem->list_head->symbol_value, "tilde")) {
+      err = state_extend(begin, elem->list_tail->list_head);
+    } else {
+      err = state_extend_backquoted(begin, elem);
+    }
+    if (err != NULL) {
+      return err;
+    }
+  }
+  (*begin)->type = STATE_CALL;
+  (*begin)->call_next = state_make();
+  *begin = (*begin)->call_next;
   return NULL;
 }
 
@@ -974,17 +1012,6 @@ static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
   return datum_eval(exp.ok_value, ctxt);
 }
 
-eval_result_t datum_backquote(datum_t *d, namespace_t *ctxt) {
-  if (!datum_is_list(d) || datum_is_nil(d)) {
-    return eval_result_make_ok(d);
-  }
-  if (datum_is_symbol(d->list_head) &&
-      !strcmp(d->list_head->symbol_value, "tilde")) {
-    return datum_eval(d->list_tail->list_head, ctxt);
-  }
-  return list_map(datum_backquote, d, ctxt);
-}
-
 eval_result_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return eval_result_make_panic("expected integers");
@@ -1078,13 +1105,6 @@ eval_result_t special_return(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_context(namespace_put(ctxt, val.ok_value));
 }
 
-eval_result_t special_backquote(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("backquote expects a single argument");
-  }
-  return datum_backquote(args->list_head, ctxt);
-}
-
 datum_t *namespace_list(namespace_t *ns) {
   datum_t *result = datum_make_nil();
   datum_t **nil = &result;
@@ -1103,7 +1123,7 @@ datum_t *namespace_list(namespace_t *ns) {
 static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
   read_result_t rr;
   for (; read_result_is_ok(rr = datum_read(stream));) {
-    //printf("running %s\n", datum_repr(rr.ok_value));
+    // printf("running %s\n", datum_repr(rr.ok_value));
     eval_result_t exp = datum_expand(rr.ok_value, ctxt);
     if (eval_result_is_panic(exp)) {
       return exp;
@@ -1111,7 +1131,7 @@ static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
     if (eval_result_is_context(exp)) {
       return eval_result_make_panic("didn't expect a context from expand");
     }
-    //printf("expanded to %s\n", datum_repr(exp.ok_value));
+    // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
     state_init(s, exp.ok_value);
     eval_result_t val = state_eval(s, ctxt);
@@ -1313,7 +1333,6 @@ eval_result_t namespace_make_prelude() {
 
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "builtin.defn", special_defn);
-  namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
   namespace_def_special(&ns, "require", special_require);
 
