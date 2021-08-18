@@ -274,17 +274,6 @@ char *state_extend(state_t **begin, datum_t *stmt) {
     real_fn = fn;
     hash = false;
   }
-  if (datum_is_symbol(real_fn) &&
-      (!strcmp(real_fn->symbol_value, "builtin.fn") ||
-       !strcmp(real_fn->symbol_value, "def") ||
-       !strcmp(real_fn->symbol_value, "builtin.defn") ||
-       !strcmp(real_fn->symbol_value, "return") ||
-       !strcmp(real_fn->symbol_value, "quote") ||
-       !strcmp(real_fn->symbol_value, "backquote") ||
-       !strcmp(real_fn->symbol_value, "panic") ||
-       !strcmp(real_fn->symbol_value, "require"))) {
-    hash = true;
-  }
   state_extend(begin, real_fn);
   (*begin)->type = STATE_ARGS;
   (*begin)->args_next = state_make();
@@ -1078,46 +1067,19 @@ eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
 }
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
-  if (datum_is_integer(e) || datum_is_bytestring(e)) {
-    return eval_result_make_ok(e);
+  state_t *s = state_make();
+  char *err = state_init(s, e);
+  if (err != NULL) {
+    return eval_result_make_panic(err);
   }
-  if (datum_is_symbol(e)) {
-    if (e->symbol_value[0] == ':') {
-      return eval_result_make_ok(e);
-    }
-    return namespace_get(ctxt, e);
+  eval_result_t res = state_eval(s, ctxt);
+  if (eval_result_is_panic(res)) {
+    return res;
   }
-  if (datum_is_nil(e)) {
-    return eval_result_make_panic("cannot eval an empty list");
+  if (eval_result_is_ok(res)) {
+    return eval_result_make_panic("value? here?!");
   }
-  if (datum_is_list(e)) {
-    datum_t *fn = e->list_head;
-    datum_t *real_fn;
-    bool hash;
-    if (datum_is_list(fn) && !datum_is_nil(fn) &&
-        datum_is_symbol(fn->list_head) &&
-        !strcmp(fn->list_head->symbol_value, "hash")) {
-      if (datum_is_nil(fn->list_tail) ||
-          !datum_is_nil(fn->list_tail->list_tail)) {
-        return eval_result_make_panic("hash should have a single argument");
-      }
-      real_fn = fn->list_tail->list_head;
-      hash = true;
-    } else {
-      real_fn = fn;
-      hash = false;
-    }
-    eval_result_t f = datum_eval(real_fn, ctxt);
-    if (eval_result_is_panic(f)) {
-      return f;
-    }
-    if (eval_result_is_context(f)) {
-      return eval_result_make_panic("expected a callable, got a context");
-    }
-    eval_result_t app = datum_call(f.ok_value, e->list_tail, ctxt, hash);
-    return app;
-  }
-  return eval_result_make_panic("non-evalable expression");
+  return namespace_peek(res.context_value);
 }
 
 static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
