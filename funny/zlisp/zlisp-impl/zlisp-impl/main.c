@@ -473,8 +473,6 @@ bool datum_is_bytestring(datum_t *e) { return e->type == DATUM_BYTESTRING; }
 
 bool datum_is_operator(datum_t *e) { return e->type == DATUM_OPERATOR; }
 
-bool datum_is_special(datum_t *e) { return e->type == DATUM_SPECIAL; }
-
 bool datum_is_pointer(datum_t *e) { return e->type == DATUM_POINTER; }
 
 bool datum_is_void(datum_t *e) { return e->type == DATUM_VOID; }
@@ -531,13 +529,6 @@ datum_t *datum_make_int(int64_t value) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_INTEGER;
   e->integer_value = value;
-  return e;
-}
-
-datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *)) {
-  datum_t *e = malloc(sizeof(datum_t));
-  e->type = DATUM_SPECIAL;
-  e->special_call = call;
   return e;
 }
 
@@ -748,8 +739,6 @@ char *datum_repr(datum_t *e) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
   } else if (datum_is_operator(e)) {
     end += sprintf(end, "<form>");
-  } else if (datum_is_special(e)) {
-    end += sprintf(end, "<native form>");
   } else if (datum_is_pointer(e)) {
     end += sprintf(end, "<externcdata %p %s>", e->pointer_value,
                    datum_repr(e->pointer_descriptor));
@@ -1059,9 +1048,6 @@ eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (!datum_is_list(args)) {
     return eval_result_make_panic("args should be list");
   }
-  if (datum_is_special(f)) {
-    return (f->special_call)(args, ctxt);
-  }
   if (datum_is_operator(f)) {
     return operator_call(f, args, ctxt);
   }
@@ -1287,8 +1273,6 @@ eval_result_t builtin_annotate(datum_t *arg_value) {
     type = ":bytestring";
   } else if (datum_is_integer(arg_value)) {
     type = ":integer";
-  } else if (datum_is_special(arg_value)) {
-    type = ":special";
   } else if (datum_is_operator(arg_value)) {
     type = ":operator";
   } else if (datum_is_pointer(arg_value)) {

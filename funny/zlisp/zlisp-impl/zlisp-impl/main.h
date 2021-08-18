@@ -21,7 +21,6 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
-  DATUM_SPECIAL,
   DATUM_OPERATOR,
   DATUM_POINTER,
   DATUM_VOID,
@@ -37,7 +36,6 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    eval_result_t (*special_call)(datum_t *, namespace_t *);
     struct {
       state_t *operator_state;
       namespace_t *operator_context;
@@ -136,8 +134,6 @@ bool datum_is_bytestring(datum_t *e);
 
 bool datum_is_operator(datum_t *e);
 
-bool datum_is_special(datum_t *e);
-
 bool datum_is_pointer(datum_t *e);
 
 bool datum_is_void(datum_t *e);
@@ -157,8 +153,6 @@ datum_t *datum_make_symbol(char *name);
 datum_t *datum_make_bytestring(char *text);
 
 datum_t *datum_make_int(int64_t value);
-
-datum_t *datum_make_special(eval_result_t (*call)(datum_t *, namespace_t *));
 
 datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings);
 
