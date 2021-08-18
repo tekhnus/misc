@@ -1078,13 +1078,6 @@ eval_result_t special_return(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_context(namespace_put(ctxt, val.ok_value));
 }
 
-eval_result_t special_quote(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("quote expects a single argument");
-  }
-  return eval_result_make_ok(args->list_head);
-}
-
 eval_result_t special_backquote(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("backquote expects a single argument");
@@ -1320,7 +1313,6 @@ eval_result_t namespace_make_prelude() {
 
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "builtin.defn", special_defn);
-  namespace_def_special(&ns, "quote", special_quote);
   namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
   namespace_def_special(&ns, "require", special_require);
