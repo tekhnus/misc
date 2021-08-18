@@ -92,6 +92,7 @@ enum state_type {
   STATE_PUT_VAR,
   STATE_ARGS,
   STATE_CALL,
+  STATE_POP,
 };
 
 struct state {
@@ -114,6 +115,7 @@ struct state {
     };
     state_t *args_next;
     state_t *call_next;
+    state_t *pop_next;
   };
 };
 

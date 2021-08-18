@@ -66,6 +66,12 @@ void state_call(state_t **begin) {
   *begin = (*begin)->call_next;
 }
 
+void state_ignore(state_t **begin) {
+  (*begin)->type = STATE_POP;
+  (*begin)->call_next = state_make();
+  *begin = (*begin)->call_next;
+}
+
 eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
@@ -179,8 +185,12 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       return NULL;
     }
     if (!strcmp(sym, "progn")) {
+      bool first = true;
       for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
-           rest = rest->list_tail) {
+           rest = rest->list_tail, first = false) {
+        if (!first) {
+          state_ignore(begin);
+        }
         datum_t *step = rest->list_head;
         char *err = state_extend(begin, step);
         if (err != NULL) {
@@ -385,6 +395,10 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       ctxt = namespace_put(ctxt, er.ok_value);
       s = s->put_var_next;
       break;
+    case STATE_POP:;
+      ctxt = namespace_pop(ctxt);
+      s = s->pop_next;
+      break;
     case STATE_ARGS:;
       ctxt = namespace_put(ctxt, datum_make_symbol("__function_call"));
       s = s->args_next;
@@ -408,7 +422,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       }
       if (eval_result_is_context(res)) {
         ctxt = res.context_value;
-	ctxt = namespace_put(ctxt, datum_make_void());
+        ctxt = namespace_put(ctxt, datum_make_void());
       } else {
         ctxt = namespace_put(ctxt, res.ok_value);
       }
