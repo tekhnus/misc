@@ -93,6 +93,7 @@ enum state_type {
   STATE_ARGS,
   STATE_CALL,
   STATE_POP,
+  STATE_CALL_SPECIAL,
 };
 
 struct state {
@@ -116,6 +117,10 @@ struct state {
     state_t *args_next;
     state_t *call_next;
     state_t *pop_next;
+    struct {
+      eval_result_t (*call_special_func)(datum_t *, namespace_t *);
+      state_t *call_special_next;
+    };
   };
 };
 

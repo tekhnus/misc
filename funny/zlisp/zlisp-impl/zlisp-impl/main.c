@@ -72,6 +72,15 @@ void state_ignore(state_t **begin) {
   *begin = (*begin)->call_next;
 }
 
+void state_call_special(state_t **begin,
+                        eval_result_t (*call_special_func)(datum_t *,
+                                                           namespace_t *)) {
+  (*begin)->type = STATE_CALL_SPECIAL;
+  (*begin)->call_special_func = call_special_func;
+  (*begin)->call_special_next = state_make();
+  *begin = (*begin)->call_special_next;
+}
+
 eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
@@ -81,8 +90,9 @@ eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("def requires a symbol as a first argument");
   }
 
-  return eval_result_make_context(
-      namespace_set(ctxt, args->list_head, args->list_tail->list_head));
+  ctxt = namespace_set(ctxt, args->list_head, args->list_tail->list_head);
+  ctxt = namespace_put(ctxt, datum_make_void());
+  return eval_result_make_context(ctxt);
 }
 
 eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
@@ -188,7 +198,7 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       state_put_const(begin, datum_make_void());
       for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
            rest = rest->list_tail) {
-	state_ignore(begin);
+        state_ignore(begin);
         datum_t *step = rest->list_head;
         char *err = state_extend(begin, step);
         if (err != NULL) {
@@ -208,14 +218,13 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (list_length(stmt->list_tail) != 2) {
         return "def should have two args";
       }
-      state_put_const(begin, datum_make_special(special_def));
       state_args(begin);
       state_put_const(begin, stmt->list_tail->list_head);
       char *err = state_extend(begin, stmt->list_tail->list_tail->list_head);
       if (err != NULL) {
         return err;
       }
-      state_call(begin);
+      state_call_special(begin, special_def);
       return NULL;
     }
     if (!strcmp(sym, "builtin.defn")) {
@@ -425,6 +434,24 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
         ctxt = namespace_put(ctxt, res.ok_value);
       }
       s = s->call_next;
+      break;
+    case STATE_CALL_SPECIAL:;
+      datum_t *sargs = datum_make_nil();
+      eval_result_t sarg;
+      while (sarg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
+             !(eval_result_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
+               !strcmp(sarg.ok_value->symbol_value, "__function_call"))) {
+        sargs = datum_make_list(sarg.ok_value, sargs);
+      }
+      eval_result_t sres = s->call_special_func(sargs, ctxt);
+      if (eval_result_is_panic(sres)) {
+        return sres;
+      }
+      if (!eval_result_is_context(sres)) {
+        return eval_result_make_panic("a special should return a context");
+      }
+      ctxt = sres.context_value;
+      s = s->call_special_next;
       break;
     default:;
       return eval_result_make_panic("unhandled state type");
