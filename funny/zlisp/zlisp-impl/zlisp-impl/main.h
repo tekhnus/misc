@@ -24,6 +24,7 @@ enum datum_type {
   DATUM_SPECIAL,
   DATUM_OPERATOR,
   DATUM_POINTER,
+  DATUM_VOID,
 };
 
 struct datum {
@@ -132,6 +133,8 @@ bool datum_is_special(datum_t *e);
 
 bool datum_is_pointer(datum_t *e);
 
+bool datum_is_void(datum_t *e);
+
 datum_t *datum_make_nil();
 
 datum_t *datum_make_list(datum_t *head, datum_t *tail);
@@ -155,6 +158,8 @@ datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings);
 datum_t *datum_make_pointer(void *data, datum_t *signature);
 
 datum_t *datum_make_pointer_to_pointer(void **ptr);
+
+datum_t *datum_make_void();
 
 bool read_result_is_ok(read_result_t x);
 

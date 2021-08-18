@@ -408,6 +408,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       }
       if (eval_result_is_context(res)) {
         ctxt = res.context_value;
+	ctxt = namespace_put(ctxt, datum_make_void());
       } else {
         ctxt = namespace_put(ctxt, res.ok_value);
       }
@@ -436,6 +437,8 @@ bool datum_is_operator(datum_t *e) { return e->type == DATUM_OPERATOR; }
 bool datum_is_special(datum_t *e) { return e->type == DATUM_SPECIAL; }
 
 bool datum_is_pointer(datum_t *e) { return e->type == DATUM_POINTER; }
+
+bool datum_is_void(datum_t *e) { return e->type == DATUM_VOID; }
 
 datum_t *datum_make_nil() {
   datum_t *e = malloc(sizeof(datum_t));
@@ -517,6 +520,12 @@ datum_t *datum_make_pointer(void *data, datum_t *signature) {
 
 datum_t *datum_make_pointer_to_pointer(void **ptr) {
   return datum_make_pointer(ptr, datum_make_symbol("pointer"));
+}
+
+datum_t *datum_make_void() {
+  datum_t *e = malloc(sizeof(datum_t));
+  e->type = DATUM_VOID;
+  return e;
 }
 
 bool read_result_is_ok(read_result_t x) { return x.type == READ_RESULT_OK; }
@@ -705,6 +714,8 @@ char *datum_repr(datum_t *e) {
   } else if (datum_is_pointer(e)) {
     end += sprintf(end, "<externcdata %p %s>", e->pointer_value,
                    datum_repr(e->pointer_descriptor));
+  } else if (datum_is_void(e)) {
+    end += sprintf(end, "<void>");
   } else {
     sprintf(buf, "<fmt not implemented>");
   }
