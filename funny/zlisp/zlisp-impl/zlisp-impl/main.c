@@ -54,8 +54,21 @@ void state_put_var(state_t **begin, datum_t *val) {
   *begin = (*begin)->put_var_next;
 }
 
+void state_args(state_t **begin) {
+  (*begin)->type = STATE_ARGS;
+  (*begin)->args_next = state_make();
+  *begin = (*begin)->args_next;
+}
+
+void state_call(state_t **begin) {
+  (*begin)->type = STATE_CALL;
+  (*begin)->call_next = state_make();
+  *begin = (*begin)->call_next;
+}
+
 eval_result_t special_def(datum_t *args, namespace_t *ctxt);
 eval_result_t special_return(datum_t *args, namespace_t *ctxt);
+eval_result_t special_require(datum_t *args, namespace_t *ctxt);
 char *state_extend_backquoted(state_t **begin, datum_t *stmt);
 char *state_extend(state_t **begin, datum_t *stmt) {
   if ((*begin)->type != STATE_END) {
@@ -75,13 +88,16 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (list_length(stmt->list_tail) != 3) {
         return "if should have three args";
       }
-      state_extend(begin, stmt->list_tail->list_head);
+      char *err;
+      err = state_extend(begin, stmt->list_tail->list_head);
+      if (err != NULL) {
+        return err;
+      }
       (*begin)->type = STATE_IF;
 
       state_t *true_end = state_make(), *false_end = state_make();
       (*begin)->if_true = true_end;
       (*begin)->if_false = false_end;
-      char *err;
       err = state_extend(&true_end, stmt->list_tail->list_tail->list_head);
       if (err != NULL) {
         return err;
@@ -99,7 +115,10 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
            rest = rest->list_tail) {
         datum_t *step = rest->list_head;
-        state_extend(begin, step);
+        char *err = state_extend(begin, step);
+        if (err != NULL) {
+          return err;
+        }
       }
       return NULL;
     }
@@ -115,29 +134,39 @@ char *state_extend(state_t **begin, datum_t *stmt) {
         return "def should have two args";
       }
       state_put_const(begin, datum_make_special(special_def));
-      (*begin)->type = STATE_ARGS;
-      (*begin)->args_next = state_make();
-      *begin = (*begin)->args_next;
+      state_args(begin);
       state_put_const(begin, stmt->list_tail->list_head);
-      state_extend(begin, stmt->list_tail->list_tail->list_head);
-      (*begin)->type = STATE_CALL;
-      (*begin)->call_next = state_make();
-      *begin = (*begin)->call_next;
+      char *err = state_extend(begin, stmt->list_tail->list_tail->list_head);
+      if (err != NULL) {
+        return err;
+      }
+      state_call(begin);
+      return NULL;
+    }
+    if (!strcmp(sym, "require")) {
+      if (list_length(stmt->list_tail) != 1) {
+        return "require should have a single arg";
+      }
+      state_put_const(begin, datum_make_special(special_require));
+      state_args(begin);
+      char *err = state_extend(begin, stmt->list_tail->list_head);
+      if (err != NULL) {
+        return err;
+      }
+      state_call(begin);
       return NULL;
     }
     if (!strcmp(sym, "return")) {
       if (list_length(stmt->list_tail) != 1) {
         return "return should have a single arg";
       }
-      state_extend(begin, stmt->list_tail->list_head);
-      return NULL;
+      return state_extend(begin, stmt->list_tail->list_head);
     }
     if (!strcmp(sym, "backquote")) {
       if (list_length(stmt->list_tail) != 1) {
         return "backquote should have a single arg";
       }
-      state_extend_backquoted(begin, stmt->list_tail->list_head);
-      return NULL;
+      return state_extend_backquoted(begin, stmt->list_tail->list_head);
     }
   }
 
@@ -1143,14 +1172,7 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
     return eval_result_make_panic("require expects a single argument");
   }
-  eval_result_t filename = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(filename)) {
-    return filename;
-  }
-  if (eval_result_is_context(filename)) {
-    return eval_result_make_panic("require expected a value, got a context");
-  }
-  if (!datum_is_bytestring(filename.ok_value)) {
+  if (!datum_is_bytestring(args->list_head)) {
     return eval_result_make_panic("require expected a string");
   }
   eval_result_t this_directory =
@@ -1165,7 +1187,7 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
     return eval_result_make_panic("this-directory should be a string");
   }
   eval_result_t file_ns =
-      namespace_make_eval_file(filename.ok_value->bytestring_value);
+      namespace_make_eval_file(args->list_head->bytestring_value);
   if (eval_result_is_panic(file_ns)) {
     return file_ns;
   }
@@ -1320,7 +1342,6 @@ eval_result_t namespace_make_prelude() {
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "builtin.defn", special_defn);
   namespace_def_special(&ns, "panic", special_panic);
-  namespace_def_special(&ns, "require", special_require);
 
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
   namespace_def_extern_fn(&ns, "extern-pointer", builtin_extern_pointer, 3);
