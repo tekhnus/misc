@@ -428,11 +428,9 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
         return res;
       }
       if (eval_result_is_context(res)) {
-        ctxt = res.context_value;
-        ctxt = namespace_put(ctxt, datum_make_void());
-      } else {
-        ctxt = namespace_put(ctxt, res.ok_value);
+	return eval_result_make_panic("this shouldn't happen");
       }
+      ctxt = namespace_put(ctxt, res.ok_value);
       s = s->call_next;
       break;
     case STATE_CALL_SPECIAL:;
