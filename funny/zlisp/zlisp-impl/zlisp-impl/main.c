@@ -185,12 +185,10 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       return NULL;
     }
     if (!strcmp(sym, "progn")) {
-      bool first = true;
+      state_put_const(begin, datum_make_void());
       for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
-           rest = rest->list_tail, first = false) {
-        if (!first) {
-          state_ignore(begin);
-        }
+           rest = rest->list_tail) {
+	state_ignore(begin);
         datum_t *step = rest->list_head;
         char *err = state_extend(begin, step);
         if (err != NULL) {
