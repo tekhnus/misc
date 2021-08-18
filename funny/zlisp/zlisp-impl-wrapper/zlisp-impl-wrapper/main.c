@@ -33,21 +33,29 @@ eval_result_t eval(datum_t *v, datum_t *vars) {
     return eval_result_make_ok(datum_make_list_2(
         datum_make_symbol(":err"), datum_make_bytestring(r.panic_message)));
   }
-  if (eval_result_is_context(r)) {
-    return eval_result_make_ok(
-        datum_make_list_2(datum_make_symbol(":context"), r.context_value->vars));
+  if (eval_result_is_ok(r)) {
+    return eval_result_make_panic("nooooo");
   }
-  return eval_result_make_ok(
-      datum_make_list_2(datum_make_symbol(":ok"), r.ok_value));
+  eval_result_t val = namespace_peek(r.context_value);
+  if (!eval_result_is_ok(val)) {
+    return eval_result_make_panic("nonsense");
+  }
+  return eval_result_make_ok(datum_make_list_3(
+      datum_make_symbol(":ok"), val.ok_value, r.context_value->vars));
 }
 
 eval_result_t prelude() {
   eval_result_t prelude = namespace_make_prelude();
-  if(eval_result_is_panic(prelude)) {
-    return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring(prelude.panic_message)));
+  if (eval_result_is_panic(prelude)) {
+    return eval_result_make_ok(
+        datum_make_list_2(datum_make_symbol(":err"),
+                          datum_make_bytestring(prelude.panic_message)));
   }
   if (eval_result_is_ok(prelude)) {
-    return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"), datum_make_bytestring("prelude should be a context")));
+    return eval_result_make_ok(datum_make_list_2(
+        datum_make_symbol(":err"),
+        datum_make_bytestring("prelude should be a context")));
   }
-  return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":ok"), prelude.context_value->vars));
+  return eval_result_make_ok(
+      datum_make_list_2(datum_make_symbol(":ok"), prelude.context_value->vars));
 }

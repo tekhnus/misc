@@ -1071,7 +1071,7 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
   if (eval_result_is_ok(res)) {
     return eval_result_make_panic("value? here?!");
   }
-  return namespace_peek(res.context_value);
+  return res;
 }
 
 static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
@@ -1092,7 +1092,14 @@ static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
   if (eval_result_is_context(exp)) {
     return eval_result_make_panic("! argument should be a value");
   }
-  return datum_eval(exp.ok_value, ctxt);
+  eval_result_t ev = datum_eval(exp.ok_value, ctxt);
+  if (eval_result_is_panic(ev)) {
+    return ev;
+  }
+  if (eval_result_is_ok(ev)) {
+    return eval_result_make_panic("no way!");
+  }
+  return namespace_peek(ev.context_value);
 }
 
 eval_result_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
