@@ -55,6 +55,7 @@ void state_put_var(state_t **begin, datum_t *val) {
 }
 
 eval_result_t special_def(datum_t *args, namespace_t *ctxt);
+eval_result_t special_return(datum_t *args, namespace_t *ctxt);
 char *state_extend(state_t **begin, datum_t *stmt) {
   if ((*begin)->type != STATE_END) {
     return "expected an end state";
@@ -121,6 +122,13 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       (*begin)->type = STATE_CALL;
       (*begin)->call_next = state_make();
       *begin = (*begin)->call_next;
+      return NULL;
+    }
+    if (!strcmp(sym, "return")) {
+      if (list_length(stmt->list_tail) != 1) {
+        return "return should have a single arg";
+      }
+      state_extend(begin, stmt->list_tail->list_head);
       return NULL;
     }
   }
@@ -1312,7 +1320,6 @@ eval_result_t namespace_make_prelude() {
 
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "builtin.defn", special_defn);
-  namespace_def_special(&ns, "return", special_return);
   namespace_def_special(&ns, "quote", special_quote);
   namespace_def_special(&ns, "backquote", special_backquote);
   namespace_def_special(&ns, "panic", special_panic);
