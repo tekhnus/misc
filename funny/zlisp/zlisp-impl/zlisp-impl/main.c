@@ -1300,18 +1300,7 @@ eval_result_t builtin_is_constant(datum_t *arg_value) {
   return eval_result_make_ok(datum_make_nil());
 }
 
-eval_result_t special_panic(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("panic expects exactly one argument");
-  }
-  eval_result_t arg_eval = datum_eval(args->list_head, ctxt);
-  if (eval_result_is_panic(arg_eval)) {
-    return arg_eval;
-  }
-  if (eval_result_is_context(arg_eval)) {
-    return eval_result_make_panic("panic expected a value, got a context");
-  }
-  datum_t *arg_value = arg_eval.ok_value;
+eval_result_t builtin_panic(datum_t *arg_value) {
   if (!datum_is_bytestring(arg_value)) {
     return eval_result_make_panic("panic expects a bytestring");
   }
@@ -1341,8 +1330,8 @@ eval_result_t namespace_make_prelude() {
 
   namespace_def_special(&ns, "builtin.fn", special_fn);
   namespace_def_special(&ns, "builtin.defn", special_defn);
-  namespace_def_special(&ns, "panic", special_panic);
 
+  namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
   namespace_def_extern_fn(&ns, "extern-pointer", builtin_extern_pointer, 3);
   namespace_def_extern_fn(&ns, "cons", builtin_cons, 2);
