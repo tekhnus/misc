@@ -196,6 +196,11 @@ eval_result_t namespace_get(namespace_t *ns, datum_t *symbol);
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value);
 
+namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
+                              datum_t *value);
+
+datum_t *namespace_list(namespace_t *ns);
+
 namespace_t *namespace_put(namespace_t *ns, datum_t *value);
 
 eval_result_t namespace_peek(namespace_t *ns);

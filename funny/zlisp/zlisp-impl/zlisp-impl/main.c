@@ -66,9 +66,76 @@ void state_call(state_t **begin) {
   *begin = (*begin)->call_next;
 }
 
-eval_result_t special_def(datum_t *args, namespace_t *ctxt);
-eval_result_t special_return(datum_t *args, namespace_t *ctxt);
-eval_result_t special_require(datum_t *args, namespace_t *ctxt);
+eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
+      !datum_is_nil(args->list_tail->list_tail)) {
+    return eval_result_make_panic("def expects exactly two arguments");
+  }
+  if (!datum_is_symbol(args->list_head)) {
+    return eval_result_make_panic("def requires a symbol as a first argument");
+  }
+
+  return eval_result_make_context(
+      namespace_set(ctxt, args->list_head, args->list_tail->list_head));
+}
+
+eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
+      !datum_is_nil(args->list_tail->list_tail)) {
+    return eval_result_make_panic("defun expects exactly two arguments");
+  }
+  if (!datum_is_symbol(args->list_head)) {
+    return eval_result_make_panic(
+        "defun requires a symbol as a first argument");
+  }
+  return eval_result_make_context(
+      namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head));
+}
+
+eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("require expects a single argument");
+  }
+  if (!datum_is_bytestring(args->list_head)) {
+    return eval_result_make_panic("require expected a string");
+  }
+  eval_result_t this_directory =
+      namespace_get(ctxt, datum_make_symbol("this-directory"));
+  if (eval_result_is_panic(this_directory)) {
+    return this_directory;
+  }
+  if (eval_result_is_context(this_directory)) {
+    return eval_result_make_panic("this-directory should be a value");
+  }
+  if (!datum_is_bytestring(this_directory.ok_value)) {
+    return eval_result_make_panic("this-directory should be a string");
+  }
+  eval_result_t file_ns =
+      namespace_make_eval_file(args->list_head->bytestring_value);
+  if (eval_result_is_panic(file_ns)) {
+    return file_ns;
+  }
+  if (eval_result_is_ok(file_ns)) {
+    return eval_result_make_panic(
+        "the code in the file should consist of statements");
+  }
+  namespace_t *ns = file_ns.context_value;
+  datum_t *imported_bindings = namespace_list(ns);
+  for (; !datum_is_nil(imported_bindings);
+       imported_bindings = imported_bindings->list_tail) {
+    datum_t *sym = imported_bindings->list_head->list_head;
+    datum_t *val = imported_bindings->list_head->list_tail->list_head;
+
+    if (!strcmp("this-directory", sym->symbol_value)) {
+      continue;
+    }
+    ctxt = namespace_set(ctxt, sym, val);
+  }
+  return eval_result_make_context(ctxt);
+}
+
+eval_result_t special_fn(datum_t *args, namespace_t *ctxt);
+
 char *state_extend_backquoted(state_t **begin, datum_t *stmt);
 char *state_extend(state_t **begin, datum_t *stmt) {
   if ((*begin)->type != STATE_END) {
@@ -140,6 +207,27 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (err != NULL) {
         return err;
       }
+      state_call(begin);
+      return NULL;
+    }
+    if (!strcmp(sym, "builtin.defn")) {
+      if (list_length(stmt->list_tail) != 2) {
+        return "defn should have two args";
+      }
+      state_put_const(begin, datum_make_special(special_defn));
+      state_args(begin);
+      state_put_const(begin, stmt->list_tail->list_head);
+      state_put_const(begin, stmt->list_tail->list_tail->list_head);
+      state_call(begin);
+      return NULL;
+    }
+    if (!strcmp(sym, "builtin.fn")) {
+      if (list_length(stmt->list_tail) != 1) {
+        return "fn should have one arg";
+      }
+      state_put_const(begin, datum_make_special(special_fn));
+      state_args(begin);
+      state_put_const(begin, stmt->list_tail->list_head);
       state_call(begin);
       return NULL;
     }
@@ -254,6 +342,18 @@ char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
 }
 
 char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
+
+eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
+  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+    return eval_result_make_panic("fn expects a single argument");
+  }
+  state_t *s = state_make();
+  char *err = state_init(s, args->list_head);
+  if (err != NULL) {
+    return eval_result_make_panic(err);
+  }
+  return eval_result_make_ok(datum_make_operator(s, ctxt));
+}
 
 eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
 eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
@@ -1082,44 +1182,6 @@ eval_result_t builtin_tail(datum_t *list) {
   return eval_result_make_ok(list->list_tail);
 }
 
-eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("fn expects a single argument");
-  }
-  state_t *s = state_make();
-  char *err = state_init(s, args->list_head);
-  if (err != NULL) {
-    return eval_result_make_panic(err);
-  }
-  return eval_result_make_ok(datum_make_operator(s, ctxt));
-}
-
-eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail)) {
-    return eval_result_make_panic("def expects exactly two arguments");
-  }
-  if (!datum_is_symbol(args->list_head)) {
-    return eval_result_make_panic("def requires a symbol as a first argument");
-  }
-
-  return eval_result_make_context(
-      namespace_set(ctxt, args->list_head, args->list_tail->list_head));
-}
-
-eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail)) {
-    return eval_result_make_panic("defun expects exactly two arguments");
-  }
-  if (!datum_is_symbol(args->list_head)) {
-    return eval_result_make_panic(
-        "defun requires a symbol as a first argument");
-  }
-  return eval_result_make_context(
-      namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head));
-}
-
 datum_t *namespace_list(namespace_t *ns) {
   datum_t *result = datum_make_nil();
   datum_t **nil = &result;
@@ -1164,48 +1226,6 @@ static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
   }
   if (read_result_is_right_paren(rr)) {
     return eval_result_make_panic("unmatched right paren");
-  }
-  return eval_result_make_context(ctxt);
-}
-
-eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("require expects a single argument");
-  }
-  if (!datum_is_bytestring(args->list_head)) {
-    return eval_result_make_panic("require expected a string");
-  }
-  eval_result_t this_directory =
-      namespace_get(ctxt, datum_make_symbol("this-directory"));
-  if (eval_result_is_panic(this_directory)) {
-    return this_directory;
-  }
-  if (eval_result_is_context(this_directory)) {
-    return eval_result_make_panic("this-directory should be a value");
-  }
-  if (!datum_is_bytestring(this_directory.ok_value)) {
-    return eval_result_make_panic("this-directory should be a string");
-  }
-  eval_result_t file_ns =
-      namespace_make_eval_file(args->list_head->bytestring_value);
-  if (eval_result_is_panic(file_ns)) {
-    return file_ns;
-  }
-  if (eval_result_is_ok(file_ns)) {
-    return eval_result_make_panic(
-        "the code in the file should consist of statements");
-  }
-  namespace_t *ns = file_ns.context_value;
-  datum_t *imported_bindings = namespace_list(ns);
-  for (; !datum_is_nil(imported_bindings);
-       imported_bindings = imported_bindings->list_tail) {
-    datum_t *sym = imported_bindings->list_head->list_head;
-    datum_t *val = imported_bindings->list_head->list_tail->list_head;
-
-    if (!strcmp("this-directory", sym->symbol_value)) {
-      continue;
-    }
-    ctxt = namespace_set(ctxt, sym, val);
   }
   return eval_result_make_context(ctxt);
 }
@@ -1307,12 +1327,6 @@ eval_result_t builtin_panic(datum_t *arg_value) {
   return eval_result_make_panic(arg_value->bytestring_value);
 }
 
-void namespace_def_special(namespace_t **ctxt, char *name,
-                           eval_result_t (*form)(datum_t *, namespace_t *)) {
-  *ctxt =
-      namespace_set(*ctxt, datum_make_symbol(name), datum_make_special(form));
-}
-
 void namespace_def_extern_fn(namespace_t **ctxt, char *name,
                              eval_result_t (*fn)(), int cnt) {
   datum_t *sig = datum_make_nil();
@@ -1327,9 +1341,6 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
 
 eval_result_t namespace_make_prelude() {
   namespace_t *ns = namespace_make_empty();
-
-  namespace_def_special(&ns, "builtin.fn", special_fn);
-  namespace_def_special(&ns, "builtin.defn", special_defn);
 
   namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
