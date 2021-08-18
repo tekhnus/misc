@@ -85,7 +85,6 @@ struct eval_result {
 
 enum state_type {
   STATE_END,
-  STATE_STATEMENT,
   STATE_IF,
   STATE_NOP,
   STATE_PUT_CONST,
@@ -98,11 +97,6 @@ struct state {
   enum state_type type;
   union {
     struct {
-      datum_t *statement_body;
-      state_t *statement_next;
-    };
-    struct {
-      datum_t *if_condition;
       state_t *if_true;
       state_t *if_false;
     };

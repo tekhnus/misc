@@ -70,8 +70,8 @@ char *state_extend(state_t **begin, datum_t *stmt) {
     if (list_length(stmt->list_tail) != 3) {
       return "if should have three args";
     }
+    state_extend(begin, stmt->list_tail->list_head);
     (*begin)->type = STATE_IF;
-    (*begin)->if_condition = stmt->list_tail->list_head;
 
     state_t *true_end = state_make(), *false_end = state_make();
     (*begin)->if_true = true_end;
@@ -134,7 +134,7 @@ char *state_extend(state_t **begin, datum_t *stmt) {
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
     datum_t *arg = rest_args->list_head;
-    // printf("%s\n", datum_repr(arg));
+
     if (hash) {
       state_put_const(begin, arg);
     } else {
@@ -154,10 +154,12 @@ char *state_extend(state_t **begin, datum_t *stmt) {
 }
 
 char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
+
+eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
 eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
                          bool hash);
 eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
-  // printf("evaling a state\n");
+
   for (;;) {
     switch (s->type) {
     case STATE_END:;
@@ -165,21 +167,9 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
     case STATE_NOP:;
       s = s->nop_next;
       break;
-    case STATE_STATEMENT:;
-      // printf("a statement %s\n", datum_repr(s->statement_body));
-      eval_result_t e = datum_eval(s->statement_body, ctxt);
-      if (eval_result_is_panic(e)) {
-        return e;
-      }
-      if (eval_result_is_ok(e)) {
-        return eval_result_make_panic("a context is expected");
-      }
-      s = s->statement_next;
-      ctxt = e.context_value;
-      break;
     case STATE_IF:;
-      // printf("an if %s\n", datum_repr(s->if_condition));
-      eval_result_t c = datum_eval(s->if_condition, ctxt);
+      eval_result_t c = namespace_peek(ctxt);
+      ctxt = namespace_pop(ctxt);
       if (eval_result_is_panic(c)) {
         return c;
       }
@@ -197,7 +187,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       s = s->put_const_next;
       break;
     case STATE_PUT_VAR:;
-      eval_result_t er = datum_eval(s->put_var_value, ctxt);
+      eval_result_t er = datum_eval_primitive(s->put_var_value, ctxt);
       if (eval_result_is_panic(er)) {
         return er;
       }
@@ -217,8 +207,6 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       while (arg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
              !(eval_result_is_ok(arg) && datum_is_symbol(arg.ok_value) &&
                !strcmp(arg.ok_value->bytestring_value, "__function_call"))) {
-        // printf("%s %s\n", datum_repr(arg.ok_value),
-        // datum_repr(namespace_peek(ctxt).ok_value));
         args = datum_make_list(arg.ok_value, args);
       }
       eval_result_t fn = namespace_peek(ctxt);
@@ -679,7 +667,7 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt,
   namespace_t *datum_ctxt = f->operator_context;
   datum_ctxt =
       namespace_set(datum_ctxt, datum_make_symbol("args"), passed_args);
-  // printf("calling %s\n", datum_repr(f->operator_body));
+
   state_t *s = f->operator_state;
   eval_result_t expansion = state_eval(s, datum_ctxt);
   if (eval_result_is_panic(expansion)) {
@@ -829,8 +817,14 @@ eval_result_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
   return eval_result_make_panic("unknown return type for extern func");
 }
 
-eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
-  eval_result_t passed_args = list_map(datum_eval, args, ctxt);
+eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt,
+                           bool hash) {
+  eval_result_t passed_args;
+  if (hash) {
+    passed_args = eval_result_make_ok(args);
+  } else {
+    passed_args = list_map(datum_eval, args, ctxt);
+  }
   if (eval_result_is_panic(passed_args)) {
     return passed_args;
   }
@@ -864,13 +858,23 @@ eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt,
     return operator_call(f, args, ctxt, hash);
   }
   if (datum_is_pointer(f)) {
-    if (hash) {
-      return eval_result_make_panic("# is not implemented for native calls");
-    }
-    return pointer_call(f, args, ctxt);
+    return pointer_call(f, args, ctxt, hash);
   }
   return eval_result_make_panic("car should be callable");
   //  return eval_result_make_panic(datum_repr(f));
+}
+
+eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
+  if (datum_is_integer(e) || datum_is_bytestring(e)) {
+    return eval_result_make_ok(e);
+  }
+  if (datum_is_symbol(e)) {
+    if (e->symbol_value[0] == ':') {
+      return eval_result_make_ok(e);
+    }
+    return namespace_get(ctxt, e);
+  }
+  return eval_result_make_panic("not a primitive");
 }
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
