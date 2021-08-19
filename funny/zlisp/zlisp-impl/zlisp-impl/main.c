@@ -865,23 +865,19 @@ val_t list_map(val_t (*fn)(datum_t *, namespace_t *), datum_t *items,
   return val_make_ok(evaled_items);
 }
 
-eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
+val_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   namespace_t *datum_ctxt = f->operator_context;
   datum_ctxt = namespace_set(datum_ctxt, datum_make_symbol("args"), args);
 
   state_t *s = f->operator_state;
   eval_result_t expansion = state_eval(s, datum_ctxt);
   if (eval_result_is_panic(expansion)) {
-    return expansion;
+    return val_make_panic(expansion.panic_message);
   }
   if (eval_result_is_ok(expansion)) {
-    return eval_result_make_panic("the function should use a return statement");
+    return val_make_panic("the function should use a return statement");
   }
-  val_t res = namespace_peek(expansion.context_value);
-  if (val_is_panic(res)) {
-    return eval_result_make_panic(res.panic_message);
-  }
-  return eval_result_make_ok(res.ok_value);
+  return namespace_peek(expansion.context_value);
 }
 
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
@@ -1043,7 +1039,7 @@ val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   }
   eval_result_t res;
   if (datum_is_operator(f)) {
-    res = operator_call(f, args, ctxt);
+    return operator_call(f, args, ctxt);
   } else if (datum_is_pointer(f)) {
     res = pointer_call(f, args, ctxt);
   } else {
