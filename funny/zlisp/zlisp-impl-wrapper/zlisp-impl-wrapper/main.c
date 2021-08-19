@@ -36,9 +36,9 @@ eval_result_t eval(datum_t *v, datum_t *vars) {
   if (eval_result_is_ok(r)) {
     return eval_result_make_panic("nooooo");
   }
-  eval_result_t val = namespace_peek(r.context_value);
-  if (!eval_result_is_ok(val)) {
-    return eval_result_make_panic("nonsense");
+  val_t val = namespace_peek(r.context_value);
+  if (val_is_panic(val)) {
+    return eval_result_make_panic(val.panic_message);
   }
   return eval_result_make_ok(datum_make_list_3(
       datum_make_symbol(":ok"), val.ok_value, r.context_value->vars));

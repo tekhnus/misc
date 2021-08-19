@@ -229,7 +229,7 @@ datum_t *namespace_list(namespace_t *ns);
 
 namespace_t *namespace_put(namespace_t *ns, datum_t *value);
 
-eval_result_t namespace_peek(namespace_t *ns);
+val_t namespace_peek(namespace_t *ns);
 
 namespace_t *namespace_pop(namespace_t *ns);
 

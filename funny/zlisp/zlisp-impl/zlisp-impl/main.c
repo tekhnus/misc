@@ -362,13 +362,10 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       s = s->nop_next;
       break;
     case STATE_IF:;
-      eval_result_t c = namespace_peek(ctxt);
+      val_t c = namespace_peek(ctxt);
       ctxt = namespace_pop(ctxt);
-      if (eval_result_is_panic(c)) {
-        return c;
-      }
-      if (eval_result_is_context(c)) {
-        return eval_result_make_panic("a value is expected");
+      if (val_is_panic(c)) {
+        return eval_result_make_panic(c.panic_message);
       }
       if (!datum_is_nil(c.ok_value)) {
         s = s->if_true;
@@ -398,16 +395,16 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       break;
     case STATE_CALL:;
       datum_t *args = datum_make_nil();
-      eval_result_t arg;
+      val_t arg;
       while (arg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
-             !(eval_result_is_ok(arg) && datum_is_symbol(arg.ok_value) &&
+             !(val_is_ok(arg) && datum_is_symbol(arg.ok_value) &&
                !strcmp(arg.ok_value->symbol_value, "__function_call"))) {
         args = datum_make_list(arg.ok_value, args);
       }
-      eval_result_t fn = namespace_peek(ctxt);
+      val_t fn = namespace_peek(ctxt);
       ctxt = namespace_pop(ctxt);
-      if (!eval_result_is_ok(fn)) {
-        return eval_result_make_panic("panic");
+      if (val_is_panic(fn)) {
+        return eval_result_make_panic(fn.panic_message);
       }
       eval_result_t res = datum_call(fn.ok_value, args, ctxt);
       if (eval_result_is_panic(res)) {
@@ -421,9 +418,9 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       break;
     case STATE_CALL_SPECIAL:;
       datum_t *sargs = datum_make_nil();
-      eval_result_t sarg;
+      val_t sarg;
       while (sarg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
-             !(eval_result_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
+             !(val_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
                !strcmp(sarg.ok_value->symbol_value, "__function_call"))) {
         sargs = datum_make_list(sarg.ok_value, sargs);
       }
@@ -842,11 +839,11 @@ namespace_t *namespace_put(namespace_t *ns, datum_t *value) {
   return namespace_make(ns->vars, datum_make_list(value, ns->stack));
 }
 
-eval_result_t namespace_peek(namespace_t *ns) {
+val_t namespace_peek(namespace_t *ns) {
   if (datum_is_nil(ns->stack)) {
-    return eval_result_make_panic("peek failed");
+    return val_make_panic("peek failed");
   }
-  return eval_result_make_ok(ns->stack->list_head);
+  return val_make_ok(ns->stack->list_head);
 }
 
 namespace_t *namespace_pop(namespace_t *ns) {
@@ -890,7 +887,11 @@ eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (eval_result_is_ok(expansion)) {
     return eval_result_make_panic("the function should use a return statement");
   }
-  return namespace_peek(expansion.context_value);
+  val_t res = namespace_peek(expansion.context_value);
+  if (val_is_panic(res)) {
+    return eval_result_make_panic(res.panic_message);
+  }
+  return eval_result_make_ok(res.ok_value);
 }
 
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
@@ -1114,7 +1115,11 @@ static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
   if (eval_result_is_ok(ev)) {
     return eval_result_make_panic("no way!");
   }
-  return namespace_peek(ev.context_value);
+  val_t res = namespace_peek(ev.context_value);
+  if (val_is_panic(res)) {
+    return eval_result_make_panic(res.panic_message);
+  }
+  return eval_result_make_ok(res.ok_value);
 }
 
 eval_result_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
