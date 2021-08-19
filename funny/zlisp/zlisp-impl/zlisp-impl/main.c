@@ -769,6 +769,21 @@ val_t val_make_panic(char *message) {
   return result;
 }
 
+
+bool ctx_is_ok(ctx_t result) { return result.type == CTX_OK; }
+
+bool ctx_is_panic(ctx_t result) { return result.type == CTX_PANIC; }
+
+ctx_t ctx_make_ok(namespace_t *v) {
+  ctx_t result = {.type = CTX_OK, .ok_value = v};
+  return result;
+}
+
+ctx_t ctx_make_panic(char *message) {
+  ctx_t result = {.type = CTX_PANIC, .panic_message = message};
+  return result;
+}
+
 namespace_t *namespace_make(datum_t *vars, datum_t *stack) {
   namespace_t *res = malloc(sizeof(namespace_t));
   res->vars = vars;

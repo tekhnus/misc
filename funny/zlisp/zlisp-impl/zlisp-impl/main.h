@@ -14,6 +14,7 @@ typedef struct read_result read_result_t;
 typedef struct namespace namespace_t;
 typedef struct eval_result eval_result_t;
 typedef struct val val_t;
+typedef struct ctx ctx_t;
 typedef struct state state_t;
 
 enum datum_type {
@@ -91,6 +92,17 @@ enum val_type {
 struct val {
   int type;
   datum_t *ok_value;
+  char *panic_message;
+};
+
+enum ctx_type {
+  CTX_OK,
+  CTX_PANIC,
+};
+
+struct ctx {
+  int type;
+  namespace_t *ok_value;
   char *panic_message;
 };
 
@@ -213,6 +225,14 @@ bool val_is_panic(val_t result);
 val_t val_make_ok(datum_t *v);
 
 val_t val_make_panic(char *message);
+
+bool ctx_is_ok(ctx_t result);
+
+bool ctx_is_panic(ctx_t result);
+
+ctx_t ctx_make_ok(namespace_t *v);
+
+ctx_t ctx_make_panic(char *message);
 
 namespace_t *namespace_make(datum_t *vars, datum_t *stack);
 
