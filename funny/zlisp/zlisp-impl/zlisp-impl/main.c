@@ -114,8 +114,7 @@ ctx_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(args->list_head)) {
     return ctx_make_panic("require expected a string");
   }
-  ctx_t file_ns =
-      namespace_make_eval_file(args->list_head->bytestring_value);
+  ctx_t file_ns = namespace_make_eval_file(args->list_head->bytestring_value);
   if (ctx_is_panic(file_ns)) {
     return file_ns;
   }
@@ -1067,17 +1066,13 @@ val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
   return val_make_panic("not a primitive");
 }
 
-eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
+ctx_t datum_eval(datum_t *e, namespace_t *ctxt) {
   state_t *s = state_make();
   char *err = state_init(s, e);
   if (err != NULL) {
-    return eval_result_make_panic(err);
+    return ctx_make_panic(err);
   }
-  ctx_t res = state_eval(s, ctxt);
-  if (ctx_is_panic(res)) {
-    return eval_result_make_panic(res.panic_message);
-  }
-  return eval_result_make_context(res.ok_value);
+  return state_eval(s, ctxt);
 }
 
 static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
@@ -1095,14 +1090,11 @@ static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
   if (val_is_panic(exp)) {
     return exp;
   }
-  eval_result_t ev = datum_eval(exp.ok_value, ctxt);
-  if (eval_result_is_panic(ev)) {
+  ctx_t ev = datum_eval(exp.ok_value, ctxt);
+  if (ctx_is_panic(ev)) {
     return val_make_panic(ev.panic_message);
   }
-  if (eval_result_is_ok(ev)) {
-    return val_make_panic("no way!");
-  }
-  val_t res = namespace_peek(ev.context_value);
+  val_t res = namespace_peek(ev.ok_value);
   if (val_is_panic(res)) {
     return res;
   }
@@ -1331,7 +1323,7 @@ ctx_t namespace_make_eval_file(char *filename) {
   }
   ctx_t prelude = namespace_make_prelude();
   if (ctx_is_panic(prelude)) {
-    return  prelude;
+    return prelude;
   }
   namespace_t *ns = prelude.ok_value;
   char filename_copy[1024];
@@ -1341,5 +1333,4 @@ ctx_t namespace_make_eval_file(char *filename) {
                      new_this_directory);
   ctx_t ns_ = stream_eval(module, ns);
   return ns_;
- 
 }

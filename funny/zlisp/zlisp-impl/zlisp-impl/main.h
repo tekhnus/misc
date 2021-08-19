@@ -253,7 +253,7 @@ val_t namespace_peek(namespace_t *ns);
 
 namespace_t *namespace_pop(namespace_t *ns);
 
-eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
+ctx_t datum_eval(datum_t *e, namespace_t *ctxt);
 
 ctx_t namespace_make_prelude();
 
