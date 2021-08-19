@@ -1168,30 +1168,30 @@ datum_t *namespace_list(namespace_t *ns) {
   return result;
 }
 
-static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
+static ctx_t stream_eval(FILE *stream, namespace_t *ctxt) {
   read_result_t rr;
   for (; read_result_is_ok(rr = datum_read(stream));) {
     // printf("running %s\n", datum_repr(rr.ok_value));
     val_t exp = datum_expand(rr.ok_value, ctxt);
     if (val_is_panic(exp)) {
-      return eval_result_make_panic(exp.panic_message);
+      return ctx_make_panic(exp.panic_message);
     }
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
     state_init(s, exp.ok_value);
     ctx_t val = state_eval(s, ctxt);
     if (ctx_is_panic(val)) {
-      return eval_result_make_panic(val.panic_message);
+      return val;
     }
     ctxt = val.ok_value;
   }
   if (read_result_is_panic(rr)) {
-    return eval_result_make_panic(rr.panic_message);
+    return ctx_make_panic(rr.panic_message);
   }
   if (read_result_is_right_paren(rr)) {
-    return eval_result_make_panic("unmatched right paren");
+    return ctx_make_panic("unmatched right paren");
   }
-  return eval_result_make_context(ctxt);
+  return ctx_make_ok(ctxt);
 }
 
 eval_result_t builtin_shared_library(datum_t *library_name) {
@@ -1324,7 +1324,11 @@ eval_result_t namespace_make_prelude() {
     return eval_result_make_panic("error while reading the prelude source");
   }
 
-  return stream_eval(prelude, ns);
+  ctx_t res = stream_eval(prelude, ns);
+  if (ctx_is_panic(res)) {
+    return eval_result_make_panic(res.panic_message);
+  }
+  return eval_result_make_context(res.ok_value);
 }
 
 eval_result_t namespace_make_eval_file(char *filename) {
@@ -1345,12 +1349,9 @@ eval_result_t namespace_make_eval_file(char *filename) {
   datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));
   ns = namespace_set(ns, datum_make_symbol("this-directory"),
                      new_this_directory);
-  eval_result_t ns_ = stream_eval(module, ns);
-  if (eval_result_is_panic(ns_)) {
-    return ns_;
+  ctx_t ns_ = stream_eval(module, ns);
+  if (ctx_is_panic(ns_)) {
+    return eval_result_make_panic(ns_.panic_message);
   }
-  if (eval_result_is_ok(ns_)) {
-    return eval_result_make_panic("expected a context, got a value");
-  }
-  return ns_;
+  return eval_result_make_context(ns_.ok_value);
 }
