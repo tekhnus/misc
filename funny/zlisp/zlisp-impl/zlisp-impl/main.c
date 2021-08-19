@@ -116,17 +116,6 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(args->list_head)) {
     return eval_result_make_panic("require expected a string");
   }
-  eval_result_t this_directory =
-      namespace_get(ctxt, datum_make_symbol("this-directory"));
-  if (eval_result_is_panic(this_directory)) {
-    return this_directory;
-  }
-  if (eval_result_is_context(this_directory)) {
-    return eval_result_make_panic("this-directory should be a value");
-  }
-  if (!datum_is_bytestring(this_directory.ok_value)) {
-    return eval_result_make_panic("this-directory should be a string");
-  }
   eval_result_t file_ns =
       namespace_make_eval_file(args->list_head->bytestring_value);
   if (eval_result_is_panic(file_ns)) {
@@ -428,7 +417,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
         return res;
       }
       if (eval_result_is_context(res)) {
-	return eval_result_make_panic("this shouldn't happen");
+        return eval_result_make_panic("this shouldn't happen");
       }
       ctxt = namespace_put(ctxt, res.ok_value);
       s = s->call_next;
