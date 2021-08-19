@@ -1301,7 +1301,7 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-eval_result_t namespace_make_prelude() {
+ctx_t namespace_make_prelude() {
   namespace_t *ns = namespace_make_empty();
 
   namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
@@ -1321,14 +1321,10 @@ eval_result_t namespace_make_prelude() {
   FILE *prelude =
       fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
   if (prelude == NULL) {
-    return eval_result_make_panic("error while reading the prelude source");
+    return ctx_make_panic("error while reading the prelude source");
   }
 
-  ctx_t res = stream_eval(prelude, ns);
-  if (ctx_is_panic(res)) {
-    return eval_result_make_panic(res.panic_message);
-  }
-  return eval_result_make_context(res.ok_value);
+  return stream_eval(prelude, ns);
 }
 
 eval_result_t namespace_make_eval_file(char *filename) {
@@ -1336,14 +1332,11 @@ eval_result_t namespace_make_eval_file(char *filename) {
   if (module == NULL) {
     return eval_result_make_panic("error while opening the required file");
   }
-  eval_result_t prelude = namespace_make_prelude();
-  if (eval_result_is_panic(prelude)) {
-    return prelude;
+  ctx_t prelude = namespace_make_prelude();
+  if (ctx_is_panic(prelude)) {
+    return eval_result_make_panic(prelude.panic_message);
   }
-  if (eval_result_is_ok(prelude)) {
-    return eval_result_make_panic("prelude was expected to be a context");
-  }
-  namespace_t *ns = prelude.context_value;
+  namespace_t *ns = prelude.ok_value;
   char filename_copy[1024];
   strcpy(filename_copy, filename);
   datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));

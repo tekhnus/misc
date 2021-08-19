@@ -255,7 +255,7 @@ namespace_t *namespace_pop(namespace_t *ns);
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt);
 
-eval_result_t namespace_make_prelude();
+ctx_t namespace_make_prelude();
 
 eval_result_t namespace_make_eval_file(char *filename);
 
