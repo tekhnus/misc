@@ -985,13 +985,10 @@ val_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
     return val_make_ok(datum_make_int(*(int64_t *)res));
   }
   if (!strcmp(rettype, "eval_result")) {
-    eval_result_t res;
+    val_t res;
     ffi_call(cif, fn_ptr, &res, cargs);
-    if (eval_result_is_panic(res)) {
+    if (val_is_panic(res)) {
       return val_make_panic(res.panic_message);
-    }
-    if (eval_result_is_context(res)) {
-      return val_make_panic("forget about contexts here!");
     }
     return val_make_ok(res.ok_value);
   }
@@ -1074,45 +1071,45 @@ static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
   return val_make_ok(res.ok_value);
 }
 
-eval_result_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
+val_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
-    return eval_result_make_panic("expected integers");
+    return val_make_panic("expected integers");
   }
   char *buf =
       malloc(strlen(x->bytestring_value) + strlen(y->bytestring_value) + 1);
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);
-  return eval_result_make_ok(datum_make_bytestring(buf));
+  return val_make_ok(datum_make_bytestring(buf));
 }
 
-eval_result_t builtin_add(datum_t *x, datum_t *y) {
+val_t builtin_add(datum_t *x, datum_t *y) {
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
-    return eval_result_make_panic("expected integers");
+    return val_make_panic("expected integers");
   }
-  return eval_result_make_ok(
+  return val_make_ok(
       datum_make_int(x->integer_value + y->integer_value));
 }
 
-eval_result_t builtin_cons(datum_t *head, datum_t *tail) {
+val_t builtin_cons(datum_t *head, datum_t *tail) {
   if (!datum_is_list(tail)) {
-    return eval_result_make_panic("cons requires a list as a second argument");
+    return val_make_panic("cons requires a list as a second argument");
   }
-  return eval_result_make_ok(datum_make_list(head, tail));
+  return val_make_ok(datum_make_list(head, tail));
 }
 
-eval_result_t builtin_head(datum_t *list) {
+val_t builtin_head(datum_t *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
-    return eval_result_make_panic("car expects a nonempty list");
+    return val_make_panic("car expects a nonempty list");
   }
-  return eval_result_make_ok(list->list_head);
+  return val_make_ok(list->list_head);
 }
 
-eval_result_t builtin_tail(datum_t *list) {
+val_t builtin_tail(datum_t *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
-    return eval_result_make_panic("cdr expects a nonempty list");
+    return val_make_panic("cdr expects a nonempty list");
   }
-  return eval_result_make_ok(list->list_tail);
+  return val_make_ok(list->list_tail);
 }
 
 datum_t *namespace_list(namespace_t *ns) {
@@ -1156,66 +1153,66 @@ static ctx_t stream_eval(FILE *stream, namespace_t *ctxt) {
   return ctx_make_ok(ctxt);
 }
 
-eval_result_t builtin_shared_library(datum_t *library_name) {
+val_t builtin_shared_library(datum_t *library_name) {
   if (!datum_is_bytestring(library_name)) {
-    return eval_result_make_panic("load-shared-library expects a bytestring");
+    return val_make_panic("load-shared-library expects a bytestring");
   }
   void **handle = malloc(sizeof(void *));
   *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
   char *err = dlerror();
   if (!*handle) {
-    return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"),
+    return val_make_ok(datum_make_list_2(datum_make_symbol(":err"),
                                                  datum_make_bytestring(err)));
   }
-  return eval_result_make_ok(datum_make_list_2(
+  return val_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
 }
 
-eval_result_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
+val_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
                                      datum_t *descriptor) {
   if (!datum_is_pointer(shared_library) ||
       !datum_is_symbol(shared_library->pointer_descriptor) ||
       strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
-    return eval_result_make_panic("wrong externcdata usage");
+    return val_make_panic("wrong externcdata usage");
   }
   void *handle = *(void **)shared_library->pointer_value;
   if (!datum_is_bytestring(name)) {
-    return eval_result_make_panic("externcdata expected a string");
+    return val_make_panic("externcdata expected a string");
   }
   void *call_ptr = dlsym(handle, name->bytestring_value);
   char *err = dlerror();
   if (err != NULL) {
-    return eval_result_make_ok(datum_make_list_2(datum_make_symbol(":err"),
+    return val_make_ok(datum_make_list_2(datum_make_symbol(":err"),
                                                  datum_make_bytestring(err)));
   }
-  return eval_result_make_ok(datum_make_list_2(
+  return val_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
 }
 
-eval_result_t builtin_repr(datum_t *v) {
-  return eval_result_make_ok(datum_make_bytestring(datum_repr(v)));
+val_t builtin_repr(datum_t *v) {
+  return val_make_ok(datum_make_bytestring(datum_repr(v)));
 }
 
-eval_result_t builtin_eq(datum_t *x, datum_t *y) {
+val_t builtin_eq(datum_t *x, datum_t *y) {
   datum_t *t = datum_make_list_1(datum_make_nil());
   datum_t *f = datum_make_nil();
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
-      return eval_result_make_ok(t);
+      return val_make_ok(t);
     }
-    return eval_result_make_ok(f);
+    return val_make_ok(f);
   }
   if (datum_is_integer(x) && datum_is_integer(y)) {
     if (x->integer_value == y->integer_value) {
-      return eval_result_make_ok(t);
+      return val_make_ok(t);
     }
-    return eval_result_make_ok(f);
+    return val_make_ok(f);
   }
 
-  return eval_result_make_panic("eq can't compare those things");
+  return val_make_panic("eq can't compare those things");
 }
 
-eval_result_t builtin_annotate(datum_t *arg_value) {
+val_t builtin_annotate(datum_t *arg_value) {
   char *type;
   if (datum_is_list(arg_value)) {
     type = ":list";
@@ -1230,29 +1227,29 @@ eval_result_t builtin_annotate(datum_t *arg_value) {
   } else if (datum_is_pointer(arg_value)) {
     type = ":pointer";
   } else {
-    return eval_result_make_panic("incomplete implementation of type");
+    return val_make_panic("incomplete implementation of type");
   }
-  return eval_result_make_ok(
+  return val_make_ok(
       datum_make_list_2(datum_make_symbol(type), arg_value));
 }
 
-eval_result_t builtin_is_constant(datum_t *arg_value) {
+val_t builtin_is_constant(datum_t *arg_value) {
   if (datum_is_integer(arg_value) || datum_is_bytestring(arg_value) ||
       (datum_is_symbol(arg_value) && arg_value->symbol_value[0] == ':')) {
-    return eval_result_make_ok(datum_make_list_1(datum_make_nil()));
+    return val_make_ok(datum_make_list_1(datum_make_nil()));
   }
-  return eval_result_make_ok(datum_make_nil());
+  return val_make_ok(datum_make_nil());
 }
 
-eval_result_t builtin_panic(datum_t *arg_value) {
+val_t builtin_panic(datum_t *arg_value) {
   if (!datum_is_bytestring(arg_value)) {
-    return eval_result_make_panic("panic expects a bytestring");
+    return val_make_panic("panic expects a bytestring");
   }
-  return eval_result_make_panic(arg_value->bytestring_value);
+  return val_make_panic(arg_value->bytestring_value);
 }
 
 void namespace_def_extern_fn(namespace_t **ctxt, char *name,
-                             eval_result_t (*fn)(), int cnt) {
+                             val_t (*fn)(), int cnt) {
   datum_t *sig = datum_make_nil();
   for (int i = 0; i < cnt; ++i) {
     sig = datum_make_list(datum_make_symbol("datum"), sig);
