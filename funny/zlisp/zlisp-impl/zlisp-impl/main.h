@@ -12,7 +12,6 @@
 typedef struct datum datum_t;
 typedef struct read_result read_result_t;
 typedef struct namespace namespace_t;
-typedef struct eval_result eval_result_t;
 typedef struct val val_t;
 typedef struct ctx ctx_t;
 typedef struct state state_t;
@@ -67,21 +66,6 @@ struct read_result {
     datum_t *ok_value;
     char *panic_message;
   };
-};
-
-enum eval_result_type {
-  EVAL_RESULT_OK,
-  EVAL_RESULT_CONTEXT,
-  EVAL_RESULT_PANIC,
-};
-
-struct eval_result {
-  int type;  // It's hard to deal with enums in FFI, so using int.
-  // union { // Not using union for the same reason.
-    datum_t *ok_value;
-    namespace_t *context_value;
-    char *panic_message;
-  // };
 };
 
 enum val_type {
@@ -205,18 +189,6 @@ read_result_t read_result_make_right_paren(void);
 read_result_t datum_read(FILE *strm);
 
 char *datum_repr(datum_t *e);
-
-bool eval_result_is_ok(eval_result_t result);
-
-bool eval_result_is_context(eval_result_t result);
-
-bool eval_result_is_panic(eval_result_t result);
-
-eval_result_t eval_result_make_ok(datum_t *e);
-
-eval_result_t eval_result_make_context(namespace_t *ns);
-
-eval_result_t eval_result_make_panic(char *message);
 
 bool val_is_ok(val_t result);
 

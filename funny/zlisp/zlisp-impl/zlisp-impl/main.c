@@ -718,33 +718,6 @@ char *datum_repr(datum_t *e) {
   return buf;
 }
 
-bool eval_result_is_ok(eval_result_t result) {
-  return result.type == EVAL_RESULT_OK;
-}
-
-bool eval_result_is_context(eval_result_t result) {
-  return result.type == EVAL_RESULT_CONTEXT;
-}
-
-bool eval_result_is_panic(eval_result_t result) {
-  return result.type == EVAL_RESULT_PANIC;
-}
-
-eval_result_t eval_result_make_ok(datum_t *e) {
-  eval_result_t result = {.type = EVAL_RESULT_OK, .ok_value = e};
-  return result;
-}
-
-eval_result_t eval_result_make_context(namespace_t *ns) {
-  eval_result_t result = {.type = EVAL_RESULT_CONTEXT, .context_value = ns};
-  return result;
-}
-
-eval_result_t eval_result_make_panic(char *message) {
-  eval_result_t result = {.type = EVAL_RESULT_PANIC, .panic_message = message};
-  return result;
-}
-
 bool val_is_ok(val_t result) { return result.type == VAL_OK; }
 
 bool val_is_panic(val_t result) { return result.type == VAL_PANIC; }
