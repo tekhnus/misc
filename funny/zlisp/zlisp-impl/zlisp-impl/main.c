@@ -991,44 +991,50 @@ char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
   return NULL;
 }
 
-eval_result_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
+val_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
   void (*fn_ptr)(void) = __extension__(void (*)(void))(f->pointer_value);
   char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
 
   if (!strcmp(rettype, "pointer")) {
     void *res = malloc(sizeof(void *));
     ffi_call(cif, fn_ptr, res, cargs);
-    return eval_result_make_ok(datum_make_pointer_to_pointer(res));
+    return val_make_ok(datum_make_pointer_to_pointer(res));
   }
   if (!strcmp(rettype, "sizet")) {
     void *res = malloc(sizeof(size_t));
     ffi_call(cif, fn_ptr, res, cargs);
-    return eval_result_make_ok(datum_make_int(*(int64_t *)res));
+    return val_make_ok(datum_make_int(*(int64_t *)res));
   }
   if (!strcmp(rettype, "int")) {
     void *res = malloc(sizeof(int));
     ffi_call(cif, fn_ptr, res, cargs);
-    return eval_result_make_ok(datum_make_int(*(int64_t *)res));
+    return val_make_ok(datum_make_int(*(int64_t *)res));
   }
   if (!strcmp(rettype, "eval_result")) {
     eval_result_t res;
     ffi_call(cif, fn_ptr, &res, cargs);
-    return res;
+    if (eval_result_is_panic(res)) {
+      return val_make_panic(res.panic_message);
+    }
+    if (eval_result_is_context(res)) {
+      return val_make_panic("forget about contexts here!");
+    }
+    return val_make_ok(res.ok_value);
   }
-  return eval_result_make_panic("unknown return type for extern func");
+  return val_make_panic("unknown return type for extern func");
 }
 
-eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
+val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   ffi_cif cif;
   char *err = NULL;
   err = pointer_ffi_init_cif(f, &cif);
   if (err != NULL) {
-    return eval_result_make_panic(err);
+    return val_make_panic(err);
   }
   void *cargs[32];
   err = pointer_ffi_serialize_args(f, args, cargs);
   if (err != NULL) {
-    return eval_result_make_panic(err);
+    return val_make_panic(err);
   }
   return pointer_ffi_call(f, &cif, cargs);
 }
@@ -1037,22 +1043,13 @@ val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (!datum_is_list(args)) {
     return val_make_panic("args should be list");
   }
-  eval_result_t res;
   if (datum_is_operator(f)) {
     return operator_call(f, args, ctxt);
-  } else if (datum_is_pointer(f)) {
-    res = pointer_call(f, args, ctxt);
-  } else {
-    res = eval_result_make_panic("car should be callable");
   }
-  if (eval_result_is_panic(res)) {
-    return val_make_panic(res.panic_message);
+  if (datum_is_pointer(f)) {
+    return pointer_call(f, args, ctxt);
   }
-  if (eval_result_is_context(res)) {
-    return val_make_panic("unexpected context");
-  }
-  return val_make_ok(res.ok_value);
-  //  return eval_result_make_panic(datum_repr(f));
+  return val_make_panic("car should be callable");
 }
 
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
