@@ -73,8 +73,7 @@ void state_ignore(state_t **begin) {
 }
 
 void state_call_special(state_t **begin,
-                        ctx_t (*call_special_func)(datum_t *,
-                                                           namespace_t *)) {
+                        ctx_t (*call_special_func)(datum_t *, namespace_t *)) {
   (*begin)->type = STATE_CALL_SPECIAL;
   (*begin)->call_special_func = call_special_func;
   (*begin)->call_special_next = state_make();
@@ -101,8 +100,7 @@ ctx_t special_defn(datum_t *args, namespace_t *ctxt) {
     return ctx_make_panic("defun expects exactly two arguments");
   }
   if (!datum_is_symbol(args->list_head)) {
-    return ctx_make_panic(
-        "defun requires a symbol as a first argument");
+    return ctx_make_panic("defun requires a symbol as a first argument");
   }
   ctxt = namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head);
   ctxt = namespace_put(ctxt, datum_make_void());
@@ -122,8 +120,7 @@ ctx_t special_require(datum_t *args, namespace_t *ctxt) {
     return ctx_make_panic(file_ns.panic_message);
   }
   if (eval_result_is_ok(file_ns)) {
-    return ctx_make_panic(
-        "the code in the file should consist of statements");
+    return ctx_make_panic("the code in the file should consist of statements");
   }
   namespace_t *ns = file_ns.context_value;
   datum_t *imported_bindings = namespace_list(ns);
@@ -352,12 +349,12 @@ ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
 
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
 val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt);
-eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
+static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
 
   for (;;) {
     switch (s->type) {
     case STATE_END:;
-      return eval_result_make_context(ctxt);
+      return ctx_make_ok(ctxt);
     case STATE_NOP:;
       s = s->nop_next;
       break;
@@ -365,7 +362,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       val_t c = namespace_peek(ctxt);
       ctxt = namespace_pop(ctxt);
       if (val_is_panic(c)) {
-        return eval_result_make_panic(c.panic_message);
+        return ctx_make_panic(c.panic_message);
       }
       if (!datum_is_nil(c.ok_value)) {
         s = s->if_true;
@@ -380,7 +377,7 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
     case STATE_PUT_VAR:;
       val_t er = datum_eval_primitive(s->put_var_value, ctxt);
       if (val_is_panic(er)) {
-        return eval_result_make_panic(er.panic_message);
+        return ctx_make_panic(er.panic_message);
       }
       ctxt = namespace_put(ctxt, er.ok_value);
       s = s->put_var_next;
@@ -404,11 +401,11 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       val_t fn = namespace_peek(ctxt);
       ctxt = namespace_pop(ctxt);
       if (val_is_panic(fn)) {
-        return eval_result_make_panic(fn.panic_message);
+        return ctx_make_panic(fn.panic_message);
       }
       val_t res = datum_call(fn.ok_value, args, ctxt);
       if (val_is_panic(res)) {
-        return eval_result_make_panic(res.panic_message);
+        return ctx_make_panic(res.panic_message);
       }
       ctxt = namespace_put(ctxt, res.ok_value);
       s = s->call_next;
@@ -423,13 +420,13 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       }
       ctx_t sres = s->call_special_func(sargs, ctxt);
       if (ctx_is_panic(sres)) {
-        return eval_result_make_panic(sres.panic_message);
+        return sres;
       }
       ctxt = sres.ok_value;
       s = s->call_special_next;
       break;
     default:;
-      return eval_result_make_panic("unhandled state type");
+      return ctx_make_panic("unhandled state type");
     }
   }
 }
@@ -766,7 +763,6 @@ val_t val_make_panic(char *message) {
   return result;
 }
 
-
 bool ctx_is_ok(ctx_t result) { return result.type == CTX_OK; }
 
 bool ctx_is_panic(ctx_t result) { return result.type == CTX_PANIC; }
@@ -882,14 +878,11 @@ val_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   datum_ctxt = namespace_set(datum_ctxt, datum_make_symbol("args"), args);
 
   state_t *s = f->operator_state;
-  eval_result_t expansion = state_eval(s, datum_ctxt);
-  if (eval_result_is_panic(expansion)) {
+  ctx_t expansion = state_eval(s, datum_ctxt);
+  if (ctx_is_panic(expansion)) {
     return val_make_panic(expansion.panic_message);
   }
-  if (eval_result_is_ok(expansion)) {
-    return val_make_panic("the function should use a return statement");
-  }
-  return namespace_peek(expansion.context_value);
+  return namespace_peek(expansion.ok_value);
 }
 
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
@@ -1083,14 +1076,11 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
   if (err != NULL) {
     return eval_result_make_panic(err);
   }
-  eval_result_t res = state_eval(s, ctxt);
-  if (eval_result_is_panic(res)) {
-    return res;
+  ctx_t res = state_eval(s, ctxt);
+  if (ctx_is_panic(res)) {
+    return eval_result_make_panic(res.panic_message);
   }
-  if (eval_result_is_ok(res)) {
-    return eval_result_make_panic("value? here?!");
-  }
-  return res;
+  return eval_result_make_context(res.ok_value);
 }
 
 static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
@@ -1189,15 +1179,11 @@ static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
     state_init(s, exp.ok_value);
-    eval_result_t val = state_eval(s, ctxt);
-    if (eval_result_is_panic(val)) {
-      return val;
+    ctx_t val = state_eval(s, ctxt);
+    if (ctx_is_panic(val)) {
+      return eval_result_make_panic(val.panic_message);
     }
-    if (eval_result_is_ok(val)) {
-      return eval_result_make_panic(
-          "the program should consist of statements\n");
-    }
-    ctxt = val.context_value;
+    ctxt = val.ok_value;
   }
   if (read_result_is_panic(rr)) {
     return eval_result_make_panic(rr.panic_message);
