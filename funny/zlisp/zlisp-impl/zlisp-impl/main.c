@@ -351,7 +351,7 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
 }
 
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
-eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt);
+val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
 
   for (;;) {
@@ -406,12 +406,9 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       if (val_is_panic(fn)) {
         return eval_result_make_panic(fn.panic_message);
       }
-      eval_result_t res = datum_call(fn.ok_value, args, ctxt);
-      if (eval_result_is_panic(res)) {
-        return res;
-      }
-      if (eval_result_is_context(res)) {
-        return eval_result_make_panic("this shouldn't happen");
+      val_t res = datum_call(fn.ok_value, args, ctxt);
+      if (val_is_panic(res)) {
+        return eval_result_make_panic(res.panic_message);
       }
       ctxt = namespace_put(ctxt, res.ok_value);
       s = s->call_next;
@@ -1040,17 +1037,25 @@ eval_result_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
+val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   if (!datum_is_list(args)) {
-    return eval_result_make_panic("args should be list");
+    return val_make_panic("args should be list");
   }
+  eval_result_t res;
   if (datum_is_operator(f)) {
-    return operator_call(f, args, ctxt);
+    res = operator_call(f, args, ctxt);
+  } else if (datum_is_pointer(f)) {
+    res = pointer_call(f, args, ctxt);
+  } else {
+    res = eval_result_make_panic("car should be callable");
   }
-  if (datum_is_pointer(f)) {
-    return pointer_call(f, args, ctxt);
+  if (eval_result_is_panic(res)) {
+    return val_make_panic(res.panic_message);
   }
-  return eval_result_make_panic("car should be callable");
+  if (eval_result_is_context(res)) {
+    return val_make_panic("unexpected context");
+  }
+  return val_make_ok(res.ok_value);
   //  return eval_result_make_panic(datum_repr(f));
 }
 
