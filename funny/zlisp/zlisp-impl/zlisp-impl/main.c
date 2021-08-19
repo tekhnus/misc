@@ -758,13 +758,9 @@ eval_result_t eval_result_make_panic(char *message) {
   return result;
 }
 
-bool val_is_ok(val_t result) {
-  return result.type == VAL_OK;
-}
+bool val_is_ok(val_t result) { return result.type == VAL_OK; }
 
-bool val_is_panic(val_t result) {
-  return result.type == VAL_PANIC;
-}
+bool val_is_panic(val_t result) { return result.type == VAL_PANIC; }
 
 val_t val_make_ok(datum_t *v) {
   val_t result = {.type = VAL_OK, .ok_value = v};
@@ -854,25 +850,22 @@ namespace_t *namespace_pop(namespace_t *ns) {
   return namespace_make(ns->vars, ns->stack->list_tail);
 }
 
-eval_result_t list_map(eval_result_t (*fn)(datum_t *, namespace_t *),
-                       datum_t *items, namespace_t *ctxt) {
+val_t list_map(val_t (*fn)(datum_t *, namespace_t *), datum_t *items,
+               namespace_t *ctxt) {
   if (!datum_is_list(items)) {
-    return eval_result_make_panic("expected a list");
+    return val_make_panic("expected a list");
   }
   datum_t *evaled_items = datum_make_nil();
   datum_t **tail = &evaled_items;
   for (datum_t *arg = items; !datum_is_nil(arg); arg = arg->list_tail) {
-    eval_result_t evaled_arg = fn(arg->list_head, ctxt);
-    if (eval_result_is_panic(evaled_arg)) {
+    val_t evaled_arg = fn(arg->list_head, ctxt);
+    if (val_is_panic(evaled_arg)) {
       return evaled_arg;
-    }
-    if (eval_result_is_context(evaled_arg)) {
-      return eval_result_make_panic("context not expected in list_map");
     }
     *tail = datum_make_list_1(evaled_arg.ok_value);
     tail = &((*tail)->list_tail);
   }
-  return eval_result_make_ok(evaled_items);
+  return val_make_ok(evaled_items);
 }
 
 eval_result_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
@@ -1090,36 +1083,33 @@ eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
   return res;
 }
 
-static eval_result_t datum_expand(datum_t *e, namespace_t *ctxt) {
+static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
-    return eval_result_make_ok(e);
+    return val_make_ok(e);
   }
   if (!datum_is_symbol(e->list_head) ||
       strcmp(e->list_head->symbol_value, "bang")) {
     return list_map(datum_expand, e, ctxt);
   }
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
-    return eval_result_make_panic("! should be used with a single arg");
+    return val_make_panic("! should be used with a single arg");
   }
-  eval_result_t exp = datum_expand(e->list_tail->list_head, ctxt);
-  if (eval_result_is_panic(exp)) {
+  val_t exp = datum_expand(e->list_tail->list_head, ctxt);
+  if (val_is_panic(exp)) {
     return exp;
-  }
-  if (eval_result_is_context(exp)) {
-    return eval_result_make_panic("! argument should be a value");
   }
   eval_result_t ev = datum_eval(exp.ok_value, ctxt);
   if (eval_result_is_panic(ev)) {
-    return ev;
+    return val_make_panic(ev.panic_message);
   }
   if (eval_result_is_ok(ev)) {
-    return eval_result_make_panic("no way!");
+    return val_make_panic("no way!");
   }
   val_t res = namespace_peek(ev.context_value);
   if (val_is_panic(res)) {
-    return eval_result_make_panic(res.panic_message);
+    return res;
   }
-  return eval_result_make_ok(res.ok_value);
+  return val_make_ok(res.ok_value);
 }
 
 eval_result_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
@@ -1182,12 +1172,9 @@ static eval_result_t stream_eval(FILE *stream, namespace_t *ctxt) {
   read_result_t rr;
   for (; read_result_is_ok(rr = datum_read(stream));) {
     // printf("running %s\n", datum_repr(rr.ok_value));
-    eval_result_t exp = datum_expand(rr.ok_value, ctxt);
-    if (eval_result_is_panic(exp)) {
-      return exp;
-    }
-    if (eval_result_is_context(exp)) {
-      return eval_result_make_panic("didn't expect a context from expand");
+    val_t exp = datum_expand(rr.ok_value, ctxt);
+    if (val_is_panic(exp)) {
+      return eval_result_make_panic(exp.panic_message);
     }
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
