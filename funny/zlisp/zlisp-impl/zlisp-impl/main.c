@@ -73,7 +73,7 @@ void state_ignore(state_t **begin) {
 }
 
 void state_call_special(state_t **begin,
-                        eval_result_t (*call_special_func)(datum_t *,
+                        ctx_t (*call_special_func)(datum_t *,
                                                            namespace_t *)) {
   (*begin)->type = STATE_CALL_SPECIAL;
   (*begin)->call_special_func = call_special_func;
@@ -81,48 +81,48 @@ void state_call_special(state_t **begin,
   *begin = (*begin)->call_special_next;
 }
 
-eval_result_t special_def(datum_t *args, namespace_t *ctxt) {
+ctx_t special_def(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
-    return eval_result_make_panic("def expects exactly two arguments");
+    return ctx_make_panic("def expects exactly two arguments");
   }
   if (!datum_is_symbol(args->list_head)) {
-    return eval_result_make_panic("def requires a symbol as a first argument");
+    return ctx_make_panic("def requires a symbol as a first argument");
   }
 
   ctxt = namespace_set(ctxt, args->list_head, args->list_tail->list_head);
   ctxt = namespace_put(ctxt, datum_make_void());
-  return eval_result_make_context(ctxt);
+  return ctx_make_ok(ctxt);
 }
 
-eval_result_t special_defn(datum_t *args, namespace_t *ctxt) {
+ctx_t special_defn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
-    return eval_result_make_panic("defun expects exactly two arguments");
+    return ctx_make_panic("defun expects exactly two arguments");
   }
   if (!datum_is_symbol(args->list_head)) {
-    return eval_result_make_panic(
+    return ctx_make_panic(
         "defun requires a symbol as a first argument");
   }
   ctxt = namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head);
   ctxt = namespace_put(ctxt, datum_make_void());
-  return eval_result_make_context(ctxt);
+  return ctx_make_ok(ctxt);
 }
 
-eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
+ctx_t special_require(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("require expects a single argument");
+    return ctx_make_panic("require expects a single argument");
   }
   if (!datum_is_bytestring(args->list_head)) {
-    return eval_result_make_panic("require expected a string");
+    return ctx_make_panic("require expected a string");
   }
   eval_result_t file_ns =
       namespace_make_eval_file(args->list_head->bytestring_value);
   if (eval_result_is_panic(file_ns)) {
-    return file_ns;
+    return ctx_make_panic(file_ns.panic_message);
   }
   if (eval_result_is_ok(file_ns)) {
-    return eval_result_make_panic(
+    return ctx_make_panic(
         "the code in the file should consist of statements");
   }
   namespace_t *ns = file_ns.context_value;
@@ -138,10 +138,10 @@ eval_result_t special_require(datum_t *args, namespace_t *ctxt) {
     ctxt = namespace_set(ctxt, sym, val);
   }
   ctxt = namespace_put(ctxt, datum_make_void());
-  return eval_result_make_context(ctxt);
+  return ctx_make_ok(ctxt);
 }
 
-eval_result_t special_fn(datum_t *args, namespace_t *ctxt);
+ctx_t special_fn(datum_t *args, namespace_t *ctxt);
 
 char *state_extend_backquoted(state_t **begin, datum_t *stmt);
 char *state_extend(state_t **begin, datum_t *stmt) {
@@ -337,17 +337,17 @@ char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
 
 char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
 
-eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
+ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return eval_result_make_panic("fn expects a single argument");
+    return ctx_make_panic("fn expects a single argument");
   }
   state_t *s = state_make();
   char *err = state_init(s, args->list_head);
   if (err != NULL) {
-    return eval_result_make_panic(err);
+    return ctx_make_panic(err);
   }
   ctxt = namespace_put(ctxt, datum_make_operator(s, ctxt));
-  return eval_result_make_context(ctxt);
+  return ctx_make_ok(ctxt);
 }
 
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
@@ -421,14 +421,11 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
                !strcmp(sarg.ok_value->symbol_value, "__function_call"))) {
         sargs = datum_make_list(sarg.ok_value, sargs);
       }
-      eval_result_t sres = s->call_special_func(sargs, ctxt);
-      if (eval_result_is_panic(sres)) {
-        return sres;
+      ctx_t sres = s->call_special_func(sargs, ctxt);
+      if (ctx_is_panic(sres)) {
+        return eval_result_make_panic(sres.panic_message);
       }
-      if (!eval_result_is_context(sres)) {
-        return eval_result_make_panic("a special should return a context");
-      }
-      ctxt = sres.context_value;
+      ctxt = sres.ok_value;
       s = s->call_special_next;
       break;
     default:;
