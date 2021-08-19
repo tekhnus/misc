@@ -13,6 +13,7 @@ typedef struct datum datum_t;
 typedef struct read_result read_result_t;
 typedef struct namespace namespace_t;
 typedef struct eval_result eval_result_t;
+typedef struct val val_t;
 typedef struct state state_t;
 
 enum datum_type {
@@ -80,6 +81,17 @@ struct eval_result {
     namespace_t *context_value;
     char *panic_message;
   // };
+};
+
+enum val_type {
+  VAL_OK,
+  VAL_PANIC,
+};
+
+struct val {
+  int type;
+  datum_t *ok_value;
+  char *panic_message;
 };
 
 enum state_type {
@@ -194,11 +206,19 @@ eval_result_t eval_result_make_context(namespace_t *ns);
 
 eval_result_t eval_result_make_panic(char *message);
 
+bool val_is_ok(val_t result);
+
+bool val_is_panic(val_t result);
+
+val_t val_make_ok(datum_t *v);
+
+val_t val_make_panic(char *message);
+
 namespace_t *namespace_make(datum_t *vars, datum_t *stack);
 
 namespace_t *namespace_make_empty();
 
-eval_result_t namespace_get(namespace_t *ns, datum_t *symbol);
+val_t namespace_get(namespace_t *ns, datum_t *symbol);
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value);
 

@@ -350,7 +350,7 @@ eval_result_t special_fn(datum_t *args, namespace_t *ctxt) {
   return eval_result_make_context(ctxt);
 }
 
-eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
+val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
 eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
 
@@ -381,12 +381,9 @@ eval_result_t state_eval(state_t *s, namespace_t *ctxt) {
       s = s->put_const_next;
       break;
     case STATE_PUT_VAR:;
-      eval_result_t er = datum_eval_primitive(s->put_var_value, ctxt);
-      if (eval_result_is_panic(er)) {
-        return er;
-      }
-      if (eval_result_is_context(er)) {
-        return eval_result_make_panic("panic");
+      val_t er = datum_eval_primitive(s->put_var_value, ctxt);
+      if (val_is_panic(er)) {
+        return eval_result_make_panic(er.panic_message);
       }
       ctxt = namespace_put(ctxt, er.ok_value);
       s = s->put_var_next;
@@ -764,6 +761,24 @@ eval_result_t eval_result_make_panic(char *message) {
   return result;
 }
 
+bool val_is_ok(val_t result) {
+  return result.type == VAL_OK;
+}
+
+bool val_is_panic(val_t result) {
+  return result.type == VAL_PANIC;
+}
+
+val_t val_make_ok(datum_t *v) {
+  val_t result = {.type = VAL_OK, .ok_value = v};
+  return result;
+}
+
+val_t val_make_panic(char *message) {
+  val_t result = {.type = VAL_PANIC, .panic_message = message};
+  return result;
+}
+
 namespace_t *namespace_make(datum_t *vars, datum_t *stack) {
   namespace_t *res = malloc(sizeof(namespace_t));
   res->vars = vars;
@@ -810,17 +825,17 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
   }
 }
 
-eval_result_t namespace_get(namespace_t *ns, datum_t *symbol) {
+val_t namespace_get(namespace_t *ns, datum_t *symbol) {
   for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
     datum_t *entry = cur->list_head;
     if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
       datum_t *cell = entry->list_tail;
-      return eval_result_make_ok(namespace_cell_get_value(cell, ns));
+      return val_make_ok(namespace_cell_get_value(cell, ns));
     }
   }
   char *msg = malloc(1024);
   sprintf(msg, "unbound symbol: %s", symbol->symbol_value);
-  return eval_result_make_panic(msg);
+  return val_make_panic(msg);
 }
 
 namespace_t *namespace_put(namespace_t *ns, datum_t *value) {
@@ -1045,17 +1060,17 @@ eval_result_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   //  return eval_result_make_panic(datum_repr(f));
 }
 
-eval_result_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
+val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
   if (datum_is_integer(e) || datum_is_bytestring(e)) {
-    return eval_result_make_ok(e);
+    return val_make_ok(e);
   }
   if (datum_is_symbol(e)) {
     if (e->symbol_value[0] == ':') {
-      return eval_result_make_ok(e);
+      return val_make_ok(e);
     }
     return namespace_get(ctxt, e);
   }
-  return eval_result_make_panic("not a primitive");
+  return val_make_panic("not a primitive");
 }
 
 eval_result_t datum_eval(datum_t *e, namespace_t *ctxt) {
