@@ -878,18 +878,17 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
     *type = &ffi_type_pointer;
     return true;
   }
-  if (!strcmp(definition->symbol_value, "eval_result")) {
+  if (!strcmp(definition->symbol_value, "val")) {
     *type = malloc(sizeof(ffi_type));
     (*type)->type = FFI_TYPE_STRUCT;
     (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
                        // Mac before adding this line.
     (*type)->alignment = 0;
-    ffi_type **elements = malloc(5 * sizeof(ffi_type *));
+    ffi_type **elements = malloc(4 * sizeof(ffi_type *));
     elements[0] = &ffi_type_sint;
     elements[1] = &ffi_type_pointer;
     elements[2] = &ffi_type_pointer;
-    elements[3] = &ffi_type_pointer;
-    elements[4] = NULL;
+    elements[3] = NULL;
     (*type)->elements = elements;
     return type;
   }
@@ -984,7 +983,7 @@ val_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
     ffi_call(cif, fn_ptr, res, cargs);
     return val_make_ok(datum_make_int(*(int64_t *)res));
   }
-  if (!strcmp(rettype, "eval_result")) {
+  if (!strcmp(rettype, "val")) {
     val_t res;
     ffi_call(cif, fn_ptr, &res, cargs);
     if (val_is_panic(res)) {
@@ -1256,7 +1255,7 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name,
   }
   datum_t *wrapped_fn = datum_make_pointer(
       __extension__(void *) fn,
-      datum_make_list_2(sig, datum_make_symbol("eval_result")));
+      datum_make_list_2(sig, datum_make_symbol("val")));
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
