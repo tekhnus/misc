@@ -16,13 +16,9 @@ int main(int argc, char **argv) {
     strcat(filename_copy, "/");
   }
   strcat(filename_copy, argv[1]);
-  eval_result_t ns = namespace_make_eval_file(filename_copy);
-  if (eval_result_is_panic(ns)) {
+  ctx_t ns = namespace_make_eval_file(filename_copy);
+  if (ctx_is_panic(ns)) {
     fprintf(stderr, "%s\n", ns.panic_message);
-    return EXIT_FAILURE;
-  }
-  if (eval_result_is_ok(ns)) {
-    fprintf(stderr, "expected statements, got an expression");
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

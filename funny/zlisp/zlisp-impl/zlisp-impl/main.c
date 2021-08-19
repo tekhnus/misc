@@ -114,15 +114,12 @@ ctx_t special_require(datum_t *args, namespace_t *ctxt) {
   if (!datum_is_bytestring(args->list_head)) {
     return ctx_make_panic("require expected a string");
   }
-  eval_result_t file_ns =
+  ctx_t file_ns =
       namespace_make_eval_file(args->list_head->bytestring_value);
-  if (eval_result_is_panic(file_ns)) {
-    return ctx_make_panic(file_ns.panic_message);
+  if (ctx_is_panic(file_ns)) {
+    return file_ns;
   }
-  if (eval_result_is_ok(file_ns)) {
-    return ctx_make_panic("the code in the file should consist of statements");
-  }
-  namespace_t *ns = file_ns.context_value;
+  namespace_t *ns = file_ns.ok_value;
   datum_t *imported_bindings = namespace_list(ns);
   for (; !datum_is_nil(imported_bindings);
        imported_bindings = imported_bindings->list_tail) {
@@ -1327,14 +1324,14 @@ ctx_t namespace_make_prelude() {
   return stream_eval(prelude, ns);
 }
 
-eval_result_t namespace_make_eval_file(char *filename) {
+ctx_t namespace_make_eval_file(char *filename) {
   FILE *module = fopen(filename, "r");
   if (module == NULL) {
-    return eval_result_make_panic("error while opening the required file");
+    return ctx_make_panic("error while opening the required file");
   }
   ctx_t prelude = namespace_make_prelude();
   if (ctx_is_panic(prelude)) {
-    return eval_result_make_panic(prelude.panic_message);
+    return  prelude;
   }
   namespace_t *ns = prelude.ok_value;
   char filename_copy[1024];
@@ -1343,8 +1340,6 @@ eval_result_t namespace_make_eval_file(char *filename) {
   ns = namespace_set(ns, datum_make_symbol("this-directory"),
                      new_this_directory);
   ctx_t ns_ = stream_eval(module, ns);
-  if (ctx_is_panic(ns_)) {
-    return eval_result_make_panic(ns_.panic_message);
-  }
-  return eval_result_make_context(ns_.ok_value);
+  return ns_;
+ 
 }
