@@ -355,7 +355,9 @@ ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
 val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
-
+  state_t *sstack[1024];
+  namespace_t *cstack[1024];
+  int next_index = 0;
   for (;;) {
     switch (s->type) {
     case STATE_END:;
@@ -409,21 +411,14 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
         return ctx_make_panic(fn.panic_message);
       }
       if (datum_is_operator(fn.ok_value)) {
-        namespace_t *op_ctxt = fn.ok_value->operator_context;
-        op_ctxt = namespace_set(op_ctxt, datum_make_symbol("args"), args);
+	sstack[next_index] = s->call_next;
+	cstack[next_index] = ctxt;
+	++next_index;
 
-        state_t *op_s = fn.ok_value->operator_state;
-        ctx_t expansion = state_eval(op_s, op_ctxt);
-        if (ctx_is_panic(expansion)) {
-          return expansion;
-        }
+        ctxt = fn.ok_value->operator_context;
+        ctxt = namespace_set(ctxt, datum_make_symbol("args"), args);
 
-        val_t v = namespace_peek(expansion.ok_value);
-        if (val_is_panic(v)) {
-          return ctx_make_panic(v.panic_message);
-        }
-        ctxt = namespace_put(ctxt, v.ok_value);
-        s = s->call_next;
+        s = fn.ok_value->operator_state;
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, ctxt);
         if (val_is_panic(res)) {
@@ -437,7 +432,15 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
 
       break;
     case STATE_RETURN:;
-      return ctx_make_ok(ctxt);
+      val_t res = namespace_peek(ctxt);
+      if (val_is_panic(res)) {
+	return ctx_make_panic(res.panic_message);
+      }
+      --next_index;
+      s = sstack[next_index];
+      ctxt = cstack[next_index];
+      ctxt = namespace_put(ctxt, res.ok_value);
+      break;
     case STATE_CALL_SPECIAL:;
       datum_t *sargs = datum_make_nil();
       val_t sarg;
