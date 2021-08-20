@@ -311,12 +311,16 @@ char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
 
 char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
 
+char *state_init_fn_body(state_t *s, datum_t *stmt) {
+  state_pop(&s, datum_make_symbol("args"));
+  return state_extend(&s, stmt); }
+
 ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (list_length(args) != 1) {
     return ctx_make_panic("fn expects a single argument");
   }
   state_t *s = state_make();
-  char *err = state_init(s, args->list_head);
+  char *err = state_init_fn_body(s, args->list_head);
   if (err != NULL) {
     return ctx_make_panic(err);
   }
@@ -413,7 +417,7 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
         cstack[next_index] = ctxt;
         ++next_index;
         ctxt = fn.ok_value->operator_context;
-        ctxt = namespace_set(ctxt, datum_make_symbol("args"), args);
+	ctxt = namespace_put(ctxt, args);
         s = fn.ok_value->operator_state;
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, ctxt);
@@ -796,7 +800,7 @@ namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
                               datum_t *value) {
   state_t *s = state_make();
-  char *err = state_init(s, value);
+  char *err = state_init_fn_body(s, value);
   if (err != NULL) {
     fprintf(stderr, "bad function def\n");
     exit(EXIT_FAILURE);
