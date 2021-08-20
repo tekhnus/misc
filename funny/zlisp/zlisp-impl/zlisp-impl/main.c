@@ -344,7 +344,7 @@ ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
 }
 
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
-val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt);
+val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
 
   for (;;) {
@@ -399,12 +399,33 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       if (val_is_panic(fn)) {
         return ctx_make_panic(fn.panic_message);
       }
-      val_t res = datum_call(fn.ok_value, args, ctxt);
-      if (val_is_panic(res)) {
-        return ctx_make_panic(res.panic_message);
+      if (datum_is_operator(fn.ok_value)) {
+        namespace_t *op_ctxt = fn.ok_value->operator_context;
+        op_ctxt = namespace_set(op_ctxt, datum_make_symbol("args"), args);
+
+        state_t *op_s = fn.ok_value->operator_state;
+        ctx_t expansion = state_eval(op_s, op_ctxt);
+        if (ctx_is_panic(expansion)) {
+          return expansion;
+        }
+
+        val_t v = namespace_peek(expansion.ok_value);
+        if (val_is_panic(v)) {
+          return ctx_make_panic(v.panic_message);
+        }
+        ctxt = namespace_put(ctxt, v.ok_value);
+        s = s->call_next;
+      } else if (datum_is_pointer(fn.ok_value)) {
+        val_t res = pointer_call(fn.ok_value, args, ctxt);
+        if (val_is_panic(res)) {
+          return ctx_make_panic(res.panic_message);
+        }
+        ctxt = namespace_put(ctxt, res.ok_value);
+        s = s->call_next;
+      } else {
+        return ctx_make_panic("non-callable datum");
       }
-      ctxt = namespace_put(ctxt, res.ok_value);
-      s = s->call_next;
+
       break;
     case STATE_CALL_SPECIAL:;
       datum_t *sargs = datum_make_nil();
@@ -842,18 +863,6 @@ val_t list_map(val_t (*fn)(datum_t *, namespace_t *), datum_t *items,
   return val_make_ok(evaled_items);
 }
 
-val_t operator_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
-  namespace_t *datum_ctxt = f->operator_context;
-  datum_ctxt = namespace_set(datum_ctxt, datum_make_symbol("args"), args);
-
-  state_t *s = f->operator_state;
-  ctx_t expansion = state_eval(s, datum_ctxt);
-  if (ctx_is_panic(expansion)) {
-    return val_make_panic(expansion.panic_message);
-  }
-  return namespace_peek(expansion.ok_value);
-}
-
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
@@ -1009,19 +1018,6 @@ val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-val_t datum_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
-  if (!datum_is_list(args)) {
-    return val_make_panic("args should be list");
-  }
-  if (datum_is_operator(f)) {
-    return operator_call(f, args, ctxt);
-  }
-  if (datum_is_pointer(f)) {
-    return pointer_call(f, args, ctxt);
-  }
-  return val_make_panic("car should be callable");
-}
-
 val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
   if (datum_is_integer(e) || datum_is_bytestring(e)) {
     return val_make_ok(e);
@@ -1086,8 +1082,7 @@ val_t builtin_add(datum_t *x, datum_t *y) {
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
     return val_make_panic("expected integers");
   }
-  return val_make_ok(
-      datum_make_int(x->integer_value + y->integer_value));
+  return val_make_ok(datum_make_int(x->integer_value + y->integer_value));
 }
 
 val_t builtin_cons(datum_t *head, datum_t *tail) {
@@ -1161,14 +1156,14 @@ val_t builtin_shared_library(datum_t *library_name) {
   char *err = dlerror();
   if (!*handle) {
     return val_make_ok(datum_make_list_2(datum_make_symbol(":err"),
-                                                 datum_make_bytestring(err)));
+                                         datum_make_bytestring(err)));
   }
-  return val_make_ok(datum_make_list_2(
-      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
+  return val_make_ok(datum_make_list_2(datum_make_symbol(":ok"),
+                                       datum_make_pointer_to_pointer(handle)));
 }
 
 val_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
-                                     datum_t *descriptor) {
+                             datum_t *descriptor) {
   if (!datum_is_pointer(shared_library) ||
       !datum_is_symbol(shared_library->pointer_descriptor) ||
       strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
@@ -1182,7 +1177,7 @@ val_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
   char *err = dlerror();
   if (err != NULL) {
     return val_make_ok(datum_make_list_2(datum_make_symbol(":err"),
-                                                 datum_make_bytestring(err)));
+                                         datum_make_bytestring(err)));
   }
   return val_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
@@ -1228,8 +1223,7 @@ val_t builtin_annotate(datum_t *arg_value) {
   } else {
     return val_make_panic("incomplete implementation of type");
   }
-  return val_make_ok(
-      datum_make_list_2(datum_make_symbol(type), arg_value));
+  return val_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
 }
 
 val_t builtin_is_constant(datum_t *arg_value) {
@@ -1247,15 +1241,15 @@ val_t builtin_panic(datum_t *arg_value) {
   return val_make_panic(arg_value->bytestring_value);
 }
 
-void namespace_def_extern_fn(namespace_t **ctxt, char *name,
-                             val_t (*fn)(), int cnt) {
+void namespace_def_extern_fn(namespace_t **ctxt, char *name, val_t (*fn)(),
+                             int cnt) {
   datum_t *sig = datum_make_nil();
   for (int i = 0; i < cnt; ++i) {
     sig = datum_make_list(datum_make_symbol("datum"), sig);
   }
-  datum_t *wrapped_fn = datum_make_pointer(
-      __extension__(void *) fn,
-      datum_make_list_2(sig, datum_make_symbol("val")));
+  datum_t *wrapped_fn =
+      datum_make_pointer(__extension__(void *) fn,
+                         datum_make_list_2(sig, datum_make_symbol("val")));
   *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
