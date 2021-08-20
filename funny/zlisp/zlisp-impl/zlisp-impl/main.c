@@ -13,6 +13,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+cont_t cont_make_ok(state_t *s, namespace_t *ctxt) {
+  cont_t res = {.type=CONT_OK, .state=s, .context=ctxt};
+  return res;
+}
+
+cont_t cont_make_panic(char *msg) {
+  cont_t res = {.type=CONT_PANIC,.panic_message=msg};
+  return res;
+}
+
+bool cont_is_panic(cont_t c) {
+  return c.state == NULL;
+}
+
 static bool datum_is_the_symbol(datum_t *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
@@ -413,7 +427,7 @@ static ctx_t state_eval(cont_t c) {
         return ctx_make_panic(fn.panic_message);
       }
       if (datum_is_operator(fn.ok_value)) {
-        datum_t *parent_cont = datum_make_operator(s->call_next, ctxt);
+        cont_t parent_cont = cont_make_ok(s->call_next, ctxt);
         ctxt =
             namespace_make(fn.ok_value->operator_value.context->vars,
                            fn.ok_value->operator_value.context->stack, parent_cont);
@@ -435,14 +449,11 @@ static ctx_t state_eval(cont_t c) {
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
       }
-      if (datum_is_nil(ctxt->parent)) {
+      if (cont_is_panic(ctxt->parent)) {
         return ctx_make_panic("cannot return");
       }
-      if (!datum_is_operator(ctxt->parent)) {
-        return ctx_make_panic("stack impl error");
-      }
-      s = ctxt->parent->operator_value.state;
-      ctxt = ctxt->parent->operator_value.context;
+      s = ctxt->parent.state;
+      ctxt = ctxt->parent.context;
       ctxt = namespace_put(ctxt, res.ok_value);
     } break;
     case STATE_CALL_SPECIAL: {
@@ -786,7 +797,7 @@ ctx_t ctx_make_panic(char *message) {
   return result;
 }
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack, datum_t *parent) {
+namespace_t *namespace_make(datum_t *vars, datum_t *stack, cont_t parent) {
   namespace_t *res = malloc(sizeof(namespace_t));
   res->vars = vars;
   res->stack = stack;
@@ -795,7 +806,7 @@ namespace_t *namespace_make(datum_t *vars, datum_t *stack, datum_t *parent) {
 }
 
 namespace_t *namespace_make_empty() {
-  return namespace_make(datum_make_nil(), datum_make_nil(), datum_make_nil());
+  return namespace_make(datum_make_nil(), datum_make_nil(), cont_make_panic("panic"));
 }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
@@ -1039,18 +1050,13 @@ val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-static cont_t cont_make(state_t *s, namespace_t *ctxt) {
-  cont_t res = {.state=s, .context=ctxt};
-  return res;
-}
-
 ctx_t datum_eval(datum_t *e, namespace_t *ctxt) {
   state_t *s = state_make();
   char *err = state_init(s, e);
   if (err != NULL) {
     return ctx_make_panic(err);
   }
-  cont_t c = cont_make(s, ctxt);
+  cont_t c = cont_make_ok(s, ctxt);
   return state_eval(c);
 }
 
@@ -1146,7 +1152,7 @@ static ctx_t stream_eval(FILE *stream, namespace_t *ctxt) {
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
     state_init(s, exp.ok_value);
-    ctx_t val = state_eval(cont_make(s, ctxt));
+    ctx_t val = state_eval(cont_make_ok(s, ctxt));
     if (ctx_is_panic(val)) {
       return val;
     }

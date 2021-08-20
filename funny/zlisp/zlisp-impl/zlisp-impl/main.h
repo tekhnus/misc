@@ -28,9 +28,16 @@ enum datum_type {
   DATUM_VOID,
 };
 
+enum cont_type {
+  CONT_OK,
+  CONT_PANIC,
+};
+
 struct cont {
+  enum cont_type type;
   state_t *state;
   namespace_t *context;
+  char *panic_message;
 };
 
 struct datum {
@@ -54,7 +61,7 @@ struct datum {
 struct namespace {
   datum_t *vars;
   datum_t *stack;
-  datum_t *parent;
+  cont_t parent;
 };
 
 enum read_result_type {
@@ -214,7 +221,7 @@ ctx_t ctx_make_ok(namespace_t *v);
 
 ctx_t ctx_make_panic(char *message);
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack, datum_t *parent);
+namespace_t *namespace_make(datum_t *vars, datum_t *stack, cont_t parent);
 
 namespace_t *namespace_make_empty();
 
@@ -222,8 +229,7 @@ val_t namespace_get(namespace_t *ns, datum_t *symbol);
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value);
 
-namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
-                              datum_t *value);
+namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol, datum_t *value);
 
 datum_t *namespace_list(namespace_t *ns);
 
@@ -238,6 +244,12 @@ ctx_t datum_eval(datum_t *e, namespace_t *ctxt);
 ctx_t namespace_make_prelude();
 
 ctx_t namespace_make_eval_file(char *filename);
+
+cont_t cont_make_ok(state_t *s, namespace_t *ctxt);
+
+cont_t cont_make_panic(char *message);
+
+bool cont_is_panic(cont_t c);
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 
