@@ -100,6 +100,7 @@ enum state_type {
   STATE_CALL,
   STATE_POP,
   STATE_CALL_SPECIAL,
+  STATE_RETURN,
 };
 
 struct state {

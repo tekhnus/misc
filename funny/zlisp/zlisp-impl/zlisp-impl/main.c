@@ -80,6 +80,11 @@ void state_call_special(state_t **begin,
   *begin = (*begin)->call_special_next;
 }
 
+void state_return(state_t **begin) {
+  (*begin)->type = STATE_RETURN;
+  *begin = state_make();
+}
+
 ctx_t special_def(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
@@ -246,7 +251,11 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (list_length(stmt->list_tail) != 1) {
         return "return should have a single arg";
       }
-      return state_extend(begin, stmt->list_tail->list_head);
+      char *err = state_extend(begin, stmt->list_tail->list_head);
+      if (err != NULL) {
+	return err;
+      }
+      state_return(begin);
     }
     if (!strcmp(sym, "backquote")) {
       if (list_length(stmt->list_tail) != 1) {
@@ -427,6 +436,8 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       }
 
       break;
+    case STATE_RETURN:;
+      return ctx_make_ok(ctxt);
     case STATE_CALL_SPECIAL:;
       datum_t *sargs = datum_make_nil();
       val_t sarg;
