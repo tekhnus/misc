@@ -112,6 +112,7 @@ enum state_type {
   STATE_POP,
   STATE_CALL_SPECIAL,
   STATE_RETURN,
+  STATE_YIELD,
 };
 
 struct state {
@@ -142,6 +143,7 @@ struct state {
       ctx_t (*call_special_func)(datum_t *, namespace_t *);
       state_t *call_special_next;
     };
+    state_t *yield_next;
   };
 };
 

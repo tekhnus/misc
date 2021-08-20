@@ -1,5 +1,27 @@
 (print "hello, world!")
 
+!(#defun fib ()
+   (yield 3)
+   (yield 5)
+   (yield 8)
+   (yield 13))
+
+!(#defun def2 (left right val)
+   (return `(progn
+	      (def tmp ~val)
+	      (def ~left (head tmp))
+	      (def ~right (second tmp)))))
+
+!(#def2 x fib (fib))
+(print x)
+!(#def2 x fib (fib))
+(print x)
+!(#def2 x fib (fib))
+(print x)
+!(#def2 x fib (fib))
+(print x)
+
+
 (def args (list :p :q :r))
 
 !(#defun twice (arg) (+ arg arg))

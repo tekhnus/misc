@@ -104,6 +104,12 @@ void state_return(state_t **begin) {
   *begin = state_make();
 }
 
+void state_yield(state_t **begin) {
+  (*begin)->type = STATE_YIELD;
+  (*begin)->yield_next = state_make();
+  *begin = (*begin)->yield_next;
+}
+
 ctx_t special_defn(datum_t *args, namespace_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
@@ -260,6 +266,18 @@ char *state_extend(state_t **begin, datum_t *stmt) {
         return err;
       }
       state_return(begin);
+      return NULL;
+    }
+    if (!strcmp(sym, "yield")) {
+      if (list_length(stmt->list_tail) != 1) {
+        return "yield should have a single arg";
+      }
+      char *err = state_extend(begin, stmt->list_tail->list_head);
+      if (err != NULL) {
+        return err;
+      }
+      state_yield(begin);
+      return NULL;
     }
     if (!strcmp(sym, "backquote")) {
       if (list_length(stmt->list_tail) != 1) {
@@ -455,6 +473,20 @@ static ctx_t state_eval(routine_t c) {
       s = ctxt->parent.ok_state;
       ctxt = ctxt->parent.ok_context;
       ctxt = namespace_put(ctxt, res.ok_value);
+    } break;
+    case STATE_YIELD: {
+      val_t res = namespace_peek(ctxt);
+      if (val_is_panic(res)) {
+        return ctx_make_panic(res.panic_message);
+      }
+      if (routine_is_panic(ctxt->parent)) {
+        return ctx_make_panic("cannot yield");
+      }
+      ctxt = namespace_pop(ctxt);
+      datum_t *resume = datum_make_operator(s->yield_next, ctxt);
+      s = ctxt->parent.ok_state;
+      ctxt = ctxt->parent.ok_context;
+      ctxt = namespace_put(ctxt, datum_make_list_2(res.ok_value, resume));
     } break;
     case STATE_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
