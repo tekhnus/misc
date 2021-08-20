@@ -15,6 +15,7 @@ typedef struct namespace namespace_t;
 typedef struct val val_t;
 typedef struct ctx ctx_t;
 typedef struct state state_t;
+typedef struct cont cont_t;
 
 enum datum_type {
   DATUM_NIL,
@@ -27,6 +28,11 @@ enum datum_type {
   DATUM_VOID,
 };
 
+struct cont {
+  state_t *state;
+  namespace_t *context;
+};
+
 struct datum {
   enum datum_type type;
   union {
@@ -37,10 +43,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct {
-      state_t *operator_state;
-      namespace_t *operator_context;
-    };
+    cont_t operator_value;
     struct {
       void *pointer_value;
       datum_t *pointer_descriptor;

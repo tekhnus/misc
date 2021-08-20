@@ -413,10 +413,10 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       if (datum_is_operator(fn.ok_value)) {
         datum_t *parent_cont = datum_make_operator(s->call_next, ctxt);
         ctxt =
-            namespace_make(fn.ok_value->operator_context->vars,
-                           fn.ok_value->operator_context->stack, parent_cont);
+            namespace_make(fn.ok_value->operator_value.context->vars,
+                           fn.ok_value->operator_value.context->stack, parent_cont);
         ctxt = namespace_put(ctxt, args);
-        s = fn.ok_value->operator_state;
+        s = fn.ok_value->operator_value.state;
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, ctxt);
         if (val_is_panic(res)) {
@@ -439,8 +439,8 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       if (!datum_is_operator(ctxt->parent)) {
         return ctx_make_panic("stack impl error");
       }
-      s = ctxt->parent->operator_state;
-      ctxt = ctxt->parent->operator_context;
+      s = ctxt->parent->operator_value.state;
+      ctxt = ctxt->parent->operator_value.context;
       ctxt = namespace_put(ctxt, res.ok_value);
     } break;
     case STATE_CALL_SPECIAL: {
@@ -541,8 +541,8 @@ datum_t *datum_make_int(int64_t value) {
 datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_OPERATOR;
-  e->operator_state = s;
-  e->operator_context = lexical_bindings;
+  e->operator_value.state = s;
+  e->operator_value.context = lexical_bindings;
   return e;
 }
 
@@ -824,7 +824,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    return datum_make_operator(raw_value->operator_state, ns);
+    return datum_make_operator(raw_value->operator_value.state, ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
