@@ -15,7 +15,7 @@ typedef struct namespace namespace_t;
 typedef struct val val_t;
 typedef struct ctx ctx_t;
 typedef struct state state_t;
-typedef struct cont cont_t;
+typedef struct routine routine_t;
 
 enum datum_type {
   DATUM_NIL,
@@ -23,20 +23,20 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
-  DATUM_OPERATOR,
+  DATUM_ROUTINE,
   DATUM_POINTER,
   DATUM_VOID,
 };
 
-enum cont_type {
-  CONT_OK,
-  CONT_PANIC,
+enum routine_type {
+  ROUTINE_OK,
+  ROUTINE_PANIC,
 };
 
-struct cont {
-  enum cont_type type;
-  state_t *state;
-  namespace_t *context;
+struct routine {
+  enum routine_type type;
+  state_t *ok_state;
+  namespace_t *ok_context;
   char *panic_message;
 };
 
@@ -50,7 +50,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    cont_t operator_value;
+    routine_t routine_value;
     struct {
       void *pointer_value;
       datum_t *pointer_descriptor;
@@ -61,7 +61,7 @@ struct datum {
 struct namespace {
   datum_t *vars;
   datum_t *stack;
-  cont_t parent;
+  routine_t parent;
 };
 
 enum read_result_type {
@@ -221,7 +221,7 @@ ctx_t ctx_make_ok(namespace_t *v);
 
 ctx_t ctx_make_panic(char *message);
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack, cont_t parent);
+namespace_t *namespace_make(datum_t *vars, datum_t *stack, routine_t parent);
 
 namespace_t *namespace_make_empty();
 
@@ -245,11 +245,11 @@ ctx_t namespace_make_prelude();
 
 ctx_t namespace_make_eval_file(char *filename);
 
-cont_t cont_make_ok(state_t *s, namespace_t *ctxt);
+routine_t routine_make_ok(state_t *s, namespace_t *ctxt);
 
-cont_t cont_make_panic(char *message);
+routine_t routine_make_panic(char *message);
 
-bool cont_is_panic(cont_t c);
+bool routine_is_panic(routine_t c);
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 
