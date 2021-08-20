@@ -191,4 +191,4 @@
   (extern-pointer libc "__stderrp" 'pointer))
 
 !(#defun print (val)
-  (return (ignore `(fprintf-bytestring stdout "%s\n" ~(repr val)))))
+  (return (fprintf-bytestring stdout "%s\n" (repr val))))
