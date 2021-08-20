@@ -51,6 +51,7 @@ struct datum {
 struct namespace {
   datum_t *vars;
   datum_t *stack;
+  datum_t *parent;
 };
 
 enum read_result_type {
@@ -210,7 +211,7 @@ ctx_t ctx_make_ok(namespace_t *v);
 
 ctx_t ctx_make_panic(char *message);
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack);
+namespace_t *namespace_make(datum_t *vars, datum_t *stack, datum_t *parent);
 
 namespace_t *namespace_make_empty();
 

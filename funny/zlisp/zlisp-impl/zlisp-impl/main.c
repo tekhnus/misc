@@ -313,7 +313,8 @@ char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
 
 char *state_init_fn_body(state_t *s, datum_t *stmt) {
   state_pop(&s, datum_make_symbol("args"));
-  return state_extend(&s, stmt); }
+  return state_extend(&s, stmt);
+}
 
 ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (list_length(args) != 1) {
@@ -343,9 +344,6 @@ val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
 
 val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
-  state_t *sstack[1024];
-  namespace_t *cstack[1024];
-  int next_index = 0;
   for (;;) {
     switch (s->type) {
     case STATE_END: {
@@ -413,11 +411,11 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
         return ctx_make_panic(fn.panic_message);
       }
       if (datum_is_operator(fn.ok_value)) {
-        sstack[next_index] = s->call_next;
-        cstack[next_index] = ctxt;
-        ++next_index;
-        ctxt = fn.ok_value->operator_context;
-	ctxt = namespace_put(ctxt, args);
+        datum_t *parent_cont = datum_make_operator(s->call_next, ctxt);
+        ctxt =
+            namespace_make(fn.ok_value->operator_context->vars,
+                           fn.ok_value->operator_context->stack, parent_cont);
+        ctxt = namespace_put(ctxt, args);
         s = fn.ok_value->operator_state;
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, ctxt);
@@ -435,9 +433,14 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
       }
-      --next_index;
-      s = sstack[next_index];
-      ctxt = cstack[next_index];
+      if (datum_is_nil(ctxt->parent)) {
+        return ctx_make_panic("cannot return");
+      }
+      if (!datum_is_operator(ctxt->parent)) {
+        return ctx_make_panic("stack impl error");
+      }
+      s = ctxt->parent->operator_state;
+      ctxt = ctxt->parent->operator_context;
       ctxt = namespace_put(ctxt, res.ok_value);
     } break;
     case STATE_CALL_SPECIAL: {
@@ -781,20 +784,21 @@ ctx_t ctx_make_panic(char *message) {
   return result;
 }
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack) {
+namespace_t *namespace_make(datum_t *vars, datum_t *stack, datum_t *parent) {
   namespace_t *res = malloc(sizeof(namespace_t));
   res->vars = vars;
   res->stack = stack;
+  res->parent = parent;
   return res;
 }
 
 namespace_t *namespace_make_empty() {
-  return namespace_make(datum_make_nil(), datum_make_nil());
+  return namespace_make(datum_make_nil(), datum_make_nil(), datum_make_nil());
 }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
-  return namespace_make(datum_make_list(kv, ns->vars), ns->stack);
+  return namespace_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
 }
 
 namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
@@ -807,7 +811,7 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
   }
   datum_t *fn = datum_make_operator(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
-  return namespace_make(datum_make_list(kv, ns->vars), ns->stack);
+  return namespace_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
 }
 
 datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
@@ -841,7 +845,8 @@ val_t namespace_get(namespace_t *ns, datum_t *symbol) {
 }
 
 namespace_t *namespace_put(namespace_t *ns, datum_t *value) {
-  return namespace_make(ns->vars, datum_make_list(value, ns->stack));
+  return namespace_make(ns->vars, datum_make_list(value, ns->stack),
+                        ns->parent);
 }
 
 val_t namespace_peek(namespace_t *ns) {
@@ -856,7 +861,7 @@ namespace_t *namespace_pop(namespace_t *ns) {
     fprintf(stderr, "cannot pop from an empty stack\n");
     exit(EXIT_FAILURE);
   }
-  return namespace_make(ns->vars, ns->stack->list_tail);
+  return namespace_make(ns->vars, ns->stack->list_tail, ns->parent);
 }
 
 val_t list_map(val_t (*fn)(datum_t *, namespace_t *), datum_t *items,
