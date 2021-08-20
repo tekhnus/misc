@@ -72,8 +72,8 @@ void state_call(state_t **begin) {
 
 void state_ignore(state_t **begin) {
   (*begin)->type = STATE_POP;
-  (*begin)->call_next = state_make();
-  *begin = (*begin)->call_next;
+  (*begin)->pop_next = state_make();
+  *begin = (*begin)->pop_next;
 }
 
 void state_call_special(state_t **begin,
