@@ -343,7 +343,9 @@ val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
 }
 
 val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
-static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
+static ctx_t state_eval(cont_t c) {
+  state_t *s = c.state;
+  namespace_t *ctxt = c.context;
   for (;;) {
     switch (s->type) {
     case STATE_END: {
@@ -1037,13 +1039,19 @@ val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
+static cont_t cont_make(state_t *s, namespace_t *ctxt) {
+  cont_t res = {.state=s, .context=ctxt};
+  return res;
+}
+
 ctx_t datum_eval(datum_t *e, namespace_t *ctxt) {
   state_t *s = state_make();
   char *err = state_init(s, e);
   if (err != NULL) {
     return ctx_make_panic(err);
   }
-  return state_eval(s, ctxt);
+  cont_t c = cont_make(s, ctxt);
+  return state_eval(c);
 }
 
 static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
@@ -1138,7 +1146,7 @@ static ctx_t stream_eval(FILE *stream, namespace_t *ctxt) {
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
     state_init(s, exp.ok_value);
-    ctx_t val = state_eval(s, ctxt);
+    ctx_t val = state_eval(cont_make(s, ctxt));
     if (ctx_is_panic(val)) {
       return val;
     }
