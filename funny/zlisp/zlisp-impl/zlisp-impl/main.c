@@ -13,6 +13,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+static bool datum_is_the_symbol(datum_t *d, char *val) {
+  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
+}
+
 state_t *state_make() {
   state_t *res = malloc(sizeof(state_t));
   res->type = STATE_END;
@@ -253,7 +257,7 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       }
       char *err = state_extend(begin, stmt->list_tail->list_head);
       if (err != NULL) {
-	return err;
+        return err;
       }
       state_return(begin);
     }
@@ -269,10 +273,8 @@ char *state_extend(state_t **begin, datum_t *stmt) {
   datum_t *real_fn;
   bool hash;
   if (datum_is_list(fn) && !datum_is_nil(fn) &&
-      datum_is_symbol(fn->list_head) &&
-      !strcmp(fn->list_head->symbol_value, "hash")) {
-    if (datum_is_nil(fn->list_tail) ||
-        !datum_is_nil(fn->list_tail->list_tail)) {
+      datum_is_the_symbol(fn->list_head, "hash")) {
+    if (list_length(fn) != 2) {
       return "hash should have a single argument";
     }
     real_fn = fn->list_tail->list_head;
@@ -282,28 +284,17 @@ char *state_extend(state_t **begin, datum_t *stmt) {
     hash = false;
   }
   state_extend(begin, real_fn);
-  (*begin)->type = STATE_ARGS;
-  (*begin)->args_next = state_make();
-  *begin = (*begin)->args_next;
+  state_args(begin);
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
     datum_t *arg = rest_args->list_head;
-
     if (hash) {
       state_put_const(begin, arg);
     } else {
       state_extend(begin, arg);
     }
   }
-  (*begin)->type = STATE_CALL;
-  (*begin)->call_next = state_make();
-  *begin = (*begin)->call_next;
-  /*
-  (*begin)->type = STATE_STATEMENT;
-  (*begin)->statement_body = stmt;
-  (*begin)->statement_next = state_make();
-  *begin = (*begin)->statement_next;
-  */
+  state_call(begin);
   return NULL;
 }
 
@@ -313,16 +304,13 @@ char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
     return NULL;
   }
   state_put_var(begin, datum_make_symbol("list"));
-  (*begin)->type = STATE_ARGS;
-  (*begin)->args_next = state_make();
-  *begin = (*begin)->args_next;
+  state_args(begin);
   for (datum_t *rest_elems = stmt; !datum_is_nil(rest_elems);
        rest_elems = rest_elems->list_tail) {
     datum_t *elem = rest_elems->list_head;
     char *err;
     if (datum_is_list(elem) && list_length(elem) == 2 &&
-        datum_is_symbol(elem->list_head) &&
-        !strcmp(elem->list_head->symbol_value, "tilde")) {
+        datum_is_the_symbol(elem->list_head, "tilde")) {
       err = state_extend(begin, elem->list_tail->list_head);
     } else {
       err = state_extend_backquoted(begin, elem);
@@ -331,16 +319,14 @@ char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
       return err;
     }
   }
-  (*begin)->type = STATE_CALL;
-  (*begin)->call_next = state_make();
-  *begin = (*begin)->call_next;
+  state_call(begin);
   return NULL;
 }
 
 char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
 
 ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
+  if (list_length(args) != 1) {
     return ctx_make_panic("fn expects a single argument");
   }
   state_t *s = state_make();
@@ -352,7 +338,19 @@ ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
   return ctx_make_ok(ctxt);
 }
 
-val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt);
+val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
+  if (datum_is_integer(e) || datum_is_bytestring(e)) {
+    return val_make_ok(e);
+  }
+  if (datum_is_symbol(e)) {
+    if (e->symbol_value[0] == ':') {
+      return val_make_ok(e);
+    }
+    return namespace_get(ctxt, e);
+  }
+  return val_make_panic("not a primitive");
+}
+
 val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
   state_t *sstack[1024];
@@ -360,12 +358,13 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
   int next_index = 0;
   for (;;) {
     switch (s->type) {
-    case STATE_END:;
+    case STATE_END: {
       return ctx_make_ok(ctxt);
-    case STATE_NOP:;
+    } break;
+    case STATE_NOP: {
       s = s->nop_next;
-      break;
-    case STATE_IF:;
+    } break;
+    case STATE_IF: {
       val_t c = namespace_peek(ctxt);
       ctxt = namespace_pop(ctxt);
       if (val_is_panic(c)) {
@@ -376,33 +375,39 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       } else {
         s = s->if_false;
       }
-      break;
-    case STATE_PUT_CONST:;
+    } break;
+    case STATE_PUT_CONST: {
       ctxt = namespace_put(ctxt, s->put_const_value);
       s = s->put_const_next;
-      break;
-    case STATE_PUT_VAR:;
+    } break;
+    case STATE_PUT_VAR: {
       val_t er = datum_eval_primitive(s->put_var_value, ctxt);
       if (val_is_panic(er)) {
         return ctx_make_panic(er.panic_message);
       }
       ctxt = namespace_put(ctxt, er.ok_value);
       s = s->put_var_next;
-      break;
-    case STATE_POP:;
+    } break;
+    case STATE_POP: {
       ctxt = namespace_pop(ctxt);
       s = s->pop_next;
-      break;
-    case STATE_ARGS:;
+    } break;
+    case STATE_ARGS: {
       ctxt = namespace_put(ctxt, datum_make_symbol("__function_call"));
       s = s->args_next;
-      break;
-    case STATE_CALL:;
+    } break;
+    case STATE_CALL: {
       datum_t *args = datum_make_nil();
       val_t arg;
-      while (arg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
-             !(val_is_ok(arg) && datum_is_symbol(arg.ok_value) &&
-               !strcmp(arg.ok_value->symbol_value, "__function_call"))) {
+      for (;;) {
+        arg = namespace_peek(ctxt);
+        ctxt = namespace_pop(ctxt);
+        if (val_is_panic(arg)) {
+          return ctx_make_panic(arg.panic_message);
+        }
+        if (datum_is_the_symbol(arg.ok_value, "__function_call")) {
+          break;
+        }
         args = datum_make_list(arg.ok_value, args);
       }
       val_t fn = namespace_peek(ctxt);
@@ -411,13 +416,11 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
         return ctx_make_panic(fn.panic_message);
       }
       if (datum_is_operator(fn.ok_value)) {
-	sstack[next_index] = s->call_next;
-	cstack[next_index] = ctxt;
-	++next_index;
-
+        sstack[next_index] = s->call_next;
+        cstack[next_index] = ctxt;
+        ++next_index;
         ctxt = fn.ok_value->operator_context;
         ctxt = namespace_set(ctxt, datum_make_symbol("args"), args);
-
         s = fn.ok_value->operator_state;
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, ctxt);
@@ -429,19 +432,18 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       } else {
         return ctx_make_panic("non-callable datum");
       }
-
-      break;
-    case STATE_RETURN:;
+    } break;
+    case STATE_RETURN: {
       val_t res = namespace_peek(ctxt);
       if (val_is_panic(res)) {
-	return ctx_make_panic(res.panic_message);
+        return ctx_make_panic(res.panic_message);
       }
       --next_index;
       s = sstack[next_index];
       ctxt = cstack[next_index];
       ctxt = namespace_put(ctxt, res.ok_value);
-      break;
-    case STATE_CALL_SPECIAL:;
+    } break;
+    case STATE_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
       val_t sarg;
       while (sarg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
@@ -455,9 +457,10 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       }
       ctxt = sres.ok_value;
       s = s->call_special_next;
-      break;
-    default:;
+    } break;
+    default: {
       return ctx_make_panic("unhandled state type");
+    } break;
     }
   }
 }
@@ -1030,19 +1033,6 @@ val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
     return val_make_panic(err);
   }
   return pointer_ffi_call(f, &cif, cargs);
-}
-
-val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
-  if (datum_is_integer(e) || datum_is_bytestring(e)) {
-    return val_make_ok(e);
-  }
-  if (datum_is_symbol(e)) {
-    if (e->symbol_value[0] == ':') {
-      return val_make_ok(e);
-    }
-    return namespace_get(ctxt, e);
-  }
-  return val_make_panic("not a primitive");
 }
 
 ctx_t datum_eval(datum_t *e, namespace_t *ctxt) {
