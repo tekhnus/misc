@@ -26,8 +26,8 @@ val_t read(datum_t *sptr) {
   return val_make_ok(ok);
 }
 
-val_t eval(datum_t *v, datum_t *vars) {
-  namespace_t *ns = namespace_make(vars, datum_make_nil(), routine_make_panic("panic"));
+val_t eval(datum_t *v, datum_t *nsp) {
+  namespace_t *ns = *(namespace_t **)nsp->pointer_value;
   ctx_t r = datum_eval(v, ns);
   if (ctx_is_panic(r)) {
     return val_make_ok(datum_make_list_2(
@@ -37,8 +37,10 @@ val_t eval(datum_t *v, datum_t *vars) {
   if (val_is_panic(val)) {
     return val_make_panic(val.panic_message);
   }
-  return val_make_ok(datum_make_list_3(
-      datum_make_symbol(":ok"), val.ok_value, r.ok_value->vars));
+  void **new_nsp = malloc(sizeof(void **));
+  *new_nsp = r.ok_value;
+  return val_make_ok(datum_make_list_3(datum_make_symbol(":ok"), val.ok_value,
+                                       datum_make_pointer_to_pointer(new_nsp)));
 }
 
 val_t prelude() {
@@ -48,6 +50,8 @@ val_t prelude() {
         datum_make_list_2(datum_make_symbol(":err"),
                           datum_make_bytestring(prelude.panic_message)));
   }
-  return val_make_ok(
-      datum_make_list_2(datum_make_symbol(":ok"), prelude.ok_value->vars));
+  void **prelude_p = malloc(sizeof(void **));
+  *prelude_p = prelude.ok_value;
+  return val_make_ok(datum_make_list_2(
+      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(prelude_p)));
 }
