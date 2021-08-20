@@ -123,7 +123,10 @@ struct state {
     };
     state_t *args_next;
     state_t *call_next;
-    state_t *pop_next;
+    struct {
+      datum_t *pop_var;
+      state_t *pop_next;
+    };
     struct {
       ctx_t (*call_special_func)(datum_t *, namespace_t *);
       state_t *call_special_next;

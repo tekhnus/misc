@@ -70,8 +70,9 @@ void state_call(state_t **begin) {
   *begin = (*begin)->call_next;
 }
 
-void state_ignore(state_t **begin) {
+void state_pop(state_t **begin, datum_t *var) {
   (*begin)->type = STATE_POP;
+  (*begin)->pop_var = var;
   (*begin)->pop_next = state_make();
   *begin = (*begin)->pop_next;
 }
@@ -87,20 +88,6 @@ void state_call_special(state_t **begin,
 void state_return(state_t **begin) {
   (*begin)->type = STATE_RETURN;
   *begin = state_make();
-}
-
-ctx_t special_def(datum_t *args, namespace_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail)) {
-    return ctx_make_panic("def expects exactly two arguments");
-  }
-  if (!datum_is_symbol(args->list_head)) {
-    return ctx_make_panic("def requires a symbol as a first argument");
-  }
-
-  ctxt = namespace_set(ctxt, args->list_head, args->list_tail->list_head);
-  ctxt = namespace_put(ctxt, datum_make_void());
-  return ctx_make_ok(ctxt);
 }
 
 ctx_t special_defn(datum_t *args, namespace_t *ctxt) {
@@ -191,7 +178,7 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       state_put_const(begin, datum_make_void());
       for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
            rest = rest->list_tail) {
-        state_ignore(begin);
+        state_pop(begin, NULL);
         datum_t *step = rest->list_head;
         char *err = state_extend(begin, step);
         if (err != NULL) {
@@ -211,13 +198,12 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (list_length(stmt->list_tail) != 2) {
         return "def should have two args";
       }
-      state_args(begin);
-      state_put_const(begin, stmt->list_tail->list_head);
       char *err = state_extend(begin, stmt->list_tail->list_tail->list_head);
       if (err != NULL) {
         return err;
       }
-      state_call_special(begin, special_def);
+      state_pop(begin, stmt->list_tail->list_head);
+      state_put_const(begin, datum_make_void());
       return NULL;
     }
     if (!strcmp(sym, "builtin.defn")) {
@@ -389,7 +375,14 @@ static ctx_t state_eval(state_t *s, namespace_t *ctxt) {
       s = s->put_var_next;
     } break;
     case STATE_POP: {
+      val_t v = namespace_peek(ctxt);
+      if (val_is_panic(v)) {
+        return ctx_make_panic(v.panic_message);
+      }
       ctxt = namespace_pop(ctxt);
+      if (s->pop_var != NULL) {
+        ctxt = namespace_set(ctxt, s->pop_var, v.ok_value);
+      }
       s = s->pop_next;
     } break;
     case STATE_ARGS: {
