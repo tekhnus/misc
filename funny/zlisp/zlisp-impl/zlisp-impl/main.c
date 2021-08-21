@@ -18,6 +18,15 @@ routine_t routine_make(state_t *s, namespace_t *ctxt) {
   return res;
 }
 
+routine_t routine_make_null() {
+  routine_t res = {};
+  return res;
+}
+
+bool routine_is_null(routine_t r) {
+  return r.state == NULL && r.context == NULL;
+}
+
 namespace_t *namespace_change_parent(namespace_t *ns, routine_t new_parent) {
   return namespace_make(ns->vars, ns->stack, new_parent);
 }
@@ -460,6 +469,9 @@ static ctx_t state_eval(routine_t c) {
       }
     } break;
     case STATE_RETURN: {
+      if (routine_is_null(c.context->parent)) {
+	return ctx_make_panic("bad return");
+      }
       val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
@@ -467,6 +479,9 @@ static ctx_t state_eval(routine_t c) {
       switch_context(&c, c.context->parent, res.ok_value);
     } break;
     case STATE_YIELD: {
+      if (routine_is_null(c.context->parent)) {
+	return ctx_make_panic("bad yield");
+      }
       val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
@@ -831,10 +846,8 @@ namespace_t *namespace_make(datum_t *vars, datum_t *stack, routine_t parent) {
 
 namespace_t *namespace_make_empty() {
   state_t *s = state_make();
-  s->type = STATE_BAD_RETURN;
-  routine_t zero;
-  routine_t one = routine_make(s, namespace_make(NULL, datum_make_nil(), zero));
-  return namespace_make(datum_make_nil(), datum_make_nil(), one);
+  routine_t zero = routine_make_null();
+  return namespace_make(datum_make_nil(), datum_make_nil(), zero);
 }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
