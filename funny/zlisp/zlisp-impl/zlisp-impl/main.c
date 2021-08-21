@@ -18,6 +18,10 @@ routine_t routine_make(state_t *s, namespace_t *ctxt) {
   return res;
 }
 
+namespace_t *namespace_change_parent(namespace_t *ns, routine_t new_parent) {
+  return namespace_make(ns->vars, ns->stack, new_parent);
+}
+
 static bool datum_is_the_symbol(datum_t *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
@@ -366,6 +370,12 @@ val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
 }
 
 val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
+
+void switch_context(routine_t *c, routine_t b, datum_t *v) {
+  *c = b;
+  c->context = namespace_put(c->context, v);
+}
+
 static ctx_t state_eval(routine_t c) {
   for (;;) {
     switch (c.state->type) {
@@ -406,8 +416,7 @@ static ctx_t state_eval(routine_t c) {
       }
       c.context = namespace_pop(c.context);
       if (c.state->pop_var != NULL) {
-        c.context =
-            namespace_set(c.context, c.state->pop_var, v.ok_value);
+        c.context = namespace_set(c.context, c.state->pop_var, v.ok_value);
       }
       c.state = c.state->pop_next;
     } break;
@@ -435,14 +444,10 @@ static ctx_t state_eval(routine_t c) {
       if (val_is_panic(fn)) {
         return ctx_make_panic(fn.panic_message);
       }
-      if (datum_is_operator(fn.ok_value)) {
-        routine_t parent_cont =
-            routine_make(c.state->call_next, c.context);
-        c.context = namespace_make(
-            fn.ok_value->routine_value.context->vars,
-            fn.ok_value->routine_value.context->stack, parent_cont);
-        c.context = namespace_put(c.context, args);
-        c.state = fn.ok_value->routine_value.state;
+      if (datum_is_routine(fn.ok_value)) {
+        routine_t parent_cont = routine_make(c.state->call_next, c.context);
+        switch_context(&c, fn.ok_value->routine_value, args);
+	c.context = namespace_change_parent(c.context, parent_cont);
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, c.context);
         if (val_is_panic(res)) {
@@ -459,9 +464,7 @@ static ctx_t state_eval(routine_t c) {
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
       }
-      c.state = c.context->parent.state;
-      c.context = c.context->parent.context;
-      c.context = namespace_put(c.context, res.ok_value);
+      switch_context(&c, c.context->parent, res.ok_value);
     } break;
     case STATE_YIELD: {
       val_t res = namespace_peek(c.context);
@@ -469,12 +472,9 @@ static ctx_t state_eval(routine_t c) {
         return ctx_make_panic(res.panic_message);
       }
       c.context = namespace_pop(c.context);
-      datum_t *resume =
-          datum_make_operator(c.state->yield_next, c.context);
-      c.state = c.context->parent.state;
-      c.context = c.context->parent.context;
-      c.context =
-          namespace_put(c.context, datum_make_list_2(res.ok_value, resume));
+      datum_t *resume = datum_make_operator(c.state->yield_next, c.context);
+      datum_t *r = datum_make_list_2(res.ok_value, resume);
+      switch_context(&c, c.context->parent, r);
     } break;
     case STATE_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
@@ -514,7 +514,7 @@ bool datum_is_integer(datum_t *e) { return e->type == DATUM_INTEGER; }
 
 bool datum_is_bytestring(datum_t *e) { return e->type == DATUM_BYTESTRING; }
 
-bool datum_is_operator(datum_t *e) { return e->type == DATUM_ROUTINE; }
+bool datum_is_routine(datum_t *e) { return e->type == DATUM_ROUTINE; }
 
 bool datum_is_pointer(datum_t *e) { return e->type == DATUM_POINTER; }
 
@@ -780,7 +780,7 @@ char *datum_repr(datum_t *e) {
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
-  } else if (datum_is_operator(e)) {
+  } else if (datum_is_routine(e)) {
     end += sprintf(end, "<form>");
   } else if (datum_is_pointer(e)) {
     end += sprintf(end, "<externcdata %p %s>", e->pointer_value,
@@ -833,8 +833,7 @@ namespace_t *namespace_make_empty() {
   state_t *s = state_make();
   s->type = STATE_BAD_RETURN;
   routine_t zero;
-  routine_t one =
-      routine_make(s, namespace_make(NULL, datum_make_nil(), zero));
+  routine_t one = routine_make(s, namespace_make(NULL, datum_make_nil(), zero));
   return namespace_make(datum_make_nil(), datum_make_nil(), one);
 }
 
@@ -862,7 +861,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
   if (!strcmp(cell->list_head->symbol_value, ":value")) {
     return raw_value;
   } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
-    if (!datum_is_operator(raw_value)) {
+    if (!datum_is_routine(raw_value)) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
@@ -1265,7 +1264,7 @@ val_t builtin_annotate(datum_t *arg_value) {
     type = ":bytestring";
   } else if (datum_is_integer(arg_value)) {
     type = ":integer";
-  } else if (datum_is_operator(arg_value)) {
+  } else if (datum_is_routine(arg_value)) {
     type = ":operator";
   } else if (datum_is_pointer(arg_value)) {
     type = ":pointer";

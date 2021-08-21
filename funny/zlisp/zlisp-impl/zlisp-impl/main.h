@@ -156,7 +156,7 @@ bool datum_is_integer(datum_t *e);
 
 bool datum_is_bytestring(datum_t *e);
 
-bool datum_is_operator(datum_t *e);
+bool datum_is_routine(datum_t *e);
 
 bool datum_is_pointer(datum_t *e);
 
