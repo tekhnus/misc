@@ -13,18 +13,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-routine_t routine_make_ok(state_t *s, namespace_t *ctxt) {
-  routine_t res = {.type=ROUTINE_OK, .ok_state=s, .ok_context=ctxt};
+routine_t routine_make(state_t *s, namespace_t *ctxt) {
+  routine_t res = {.state = s, .context = ctxt};
   return res;
-}
-
-routine_t routine_make_panic(char *msg) {
-  routine_t res = {.type=ROUTINE_PANIC,.panic_message=msg};
-  return res;
-}
-
-bool routine_is_panic(routine_t c) {
-  return c.ok_state == NULL;
 }
 
 static bool datum_is_the_symbol(datum_t *d, char *val) {
@@ -376,61 +367,61 @@ val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
 
 val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
 static ctx_t state_eval(routine_t c) {
-  state_t *s = c.ok_state;
-  namespace_t *ctxt = c.ok_context;
   for (;;) {
-    switch (s->type) {
+    switch (c.state->type) {
     case STATE_END: {
-      return ctx_make_ok(ctxt);
+      return ctx_make_ok(c.context);
     } break;
     case STATE_NOP: {
-      s = s->nop_next;
+      c.state = c.state->nop_next;
     } break;
     case STATE_IF: {
-      val_t c = namespace_peek(ctxt);
-      ctxt = namespace_pop(ctxt);
-      if (val_is_panic(c)) {
-        return ctx_make_panic(c.panic_message);
-      }
-      if (!datum_is_nil(c.ok_value)) {
-        s = s->if_true;
-      } else {
-        s = s->if_false;
-      }
-    } break;
-    case STATE_PUT_CONST: {
-      ctxt = namespace_put(ctxt, s->put_const_value);
-      s = s->put_const_next;
-    } break;
-    case STATE_PUT_VAR: {
-      val_t er = datum_eval_primitive(s->put_var_value, ctxt);
-      if (val_is_panic(er)) {
-        return ctx_make_panic(er.panic_message);
-      }
-      ctxt = namespace_put(ctxt, er.ok_value);
-      s = s->put_var_next;
-    } break;
-    case STATE_POP: {
-      val_t v = namespace_peek(ctxt);
+      val_t v = namespace_peek(c.context);
+      c.context = namespace_pop(c.context);
       if (val_is_panic(v)) {
         return ctx_make_panic(v.panic_message);
       }
-      ctxt = namespace_pop(ctxt);
-      if (s->pop_var != NULL) {
-        ctxt = namespace_set(ctxt, s->pop_var, v.ok_value);
+      if (!datum_is_nil(v.ok_value)) {
+        c.state = c.state->if_true;
+      } else {
+        c.state = c.state->if_false;
       }
-      s = s->pop_next;
+    } break;
+    case STATE_PUT_CONST: {
+      c.context = namespace_put(c.context, c.state->put_const_value);
+      c.state = c.state->put_const_next;
+    } break;
+    case STATE_PUT_VAR: {
+      val_t er = datum_eval_primitive(c.state->put_var_value, c.context);
+      if (val_is_panic(er)) {
+        return ctx_make_panic(er.panic_message);
+      }
+      c.context = namespace_put(c.context, er.ok_value);
+      c.state = c.state->put_var_next;
+    } break;
+    case STATE_POP: {
+      val_t v = namespace_peek(c.context);
+      if (val_is_panic(v)) {
+        return ctx_make_panic(v.panic_message);
+      }
+      c.context = namespace_pop(c.context);
+      if (c.state->pop_var != NULL) {
+        c.context =
+            namespace_set(c.context, c.state->pop_var, v.ok_value);
+      }
+      c.state = c.state->pop_next;
     } break;
     case STATE_ARGS: {
-      ctxt = namespace_put(ctxt, datum_make_symbol("__function_call"));
-      s = s->args_next;
+      c.context =
+          namespace_put(c.context, datum_make_symbol("__function_call"));
+      c.state = c.state->args_next;
     } break;
     case STATE_CALL: {
       datum_t *args = datum_make_nil();
       val_t arg;
       for (;;) {
-        arg = namespace_peek(ctxt);
-        ctxt = namespace_pop(ctxt);
+        arg = namespace_peek(c.context);
+        c.context = namespace_pop(c.context);
         if (val_is_panic(arg)) {
           return ctx_make_panic(arg.panic_message);
         }
@@ -439,69 +430,70 @@ static ctx_t state_eval(routine_t c) {
         }
         args = datum_make_list(arg.ok_value, args);
       }
-      val_t fn = namespace_peek(ctxt);
-      ctxt = namespace_pop(ctxt);
+      val_t fn = namespace_peek(c.context);
+      c.context = namespace_pop(c.context);
       if (val_is_panic(fn)) {
         return ctx_make_panic(fn.panic_message);
       }
       if (datum_is_operator(fn.ok_value)) {
-        routine_t parent_cont = routine_make_ok(s->call_next, ctxt);
-        ctxt =
-            namespace_make(fn.ok_value->routine_value.ok_context->vars,
-                           fn.ok_value->routine_value.ok_context->stack, parent_cont);
-        ctxt = namespace_put(ctxt, args);
-        s = fn.ok_value->routine_value.ok_state;
+        routine_t parent_cont =
+            routine_make(c.state->call_next, c.context);
+        c.context = namespace_make(
+            fn.ok_value->routine_value.context->vars,
+            fn.ok_value->routine_value.context->stack, parent_cont);
+        c.context = namespace_put(c.context, args);
+        c.state = fn.ok_value->routine_value.state;
       } else if (datum_is_pointer(fn.ok_value)) {
-        val_t res = pointer_call(fn.ok_value, args, ctxt);
+        val_t res = pointer_call(fn.ok_value, args, c.context);
         if (val_is_panic(res)) {
           return ctx_make_panic(res.panic_message);
         }
-        ctxt = namespace_put(ctxt, res.ok_value);
-        s = s->call_next;
+        c.context = namespace_put(c.context, res.ok_value);
+        c.state = c.state->call_next;
       } else {
         return ctx_make_panic("non-callable datum");
       }
     } break;
     case STATE_RETURN: {
-      val_t res = namespace_peek(ctxt);
+      val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
       }
-      if (routine_is_panic(ctxt->parent)) {
-        return ctx_make_panic("cannot return");
-      }
-      s = ctxt->parent.ok_state;
-      ctxt = ctxt->parent.ok_context;
-      ctxt = namespace_put(ctxt, res.ok_value);
+      c.state = c.context->parent.state;
+      c.context = c.context->parent.context;
+      c.context = namespace_put(c.context, res.ok_value);
     } break;
     case STATE_YIELD: {
-      val_t res = namespace_peek(ctxt);
+      val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
       }
-      if (routine_is_panic(ctxt->parent)) {
-        return ctx_make_panic("cannot yield");
-      }
-      ctxt = namespace_pop(ctxt);
-      datum_t *resume = datum_make_operator(s->yield_next, ctxt);
-      s = ctxt->parent.ok_state;
-      ctxt = ctxt->parent.ok_context;
-      ctxt = namespace_put(ctxt, datum_make_list_2(res.ok_value, resume));
+      c.context = namespace_pop(c.context);
+      datum_t *resume =
+          datum_make_operator(c.state->yield_next, c.context);
+      c.state = c.context->parent.state;
+      c.context = c.context->parent.context;
+      c.context =
+          namespace_put(c.context, datum_make_list_2(res.ok_value, resume));
     } break;
     case STATE_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
       val_t sarg;
-      while (sarg = namespace_peek(ctxt), ctxt = namespace_pop(ctxt),
+      while (sarg = namespace_peek(c.context),
+             c.context = namespace_pop(c.context),
              !(val_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
                !strcmp(sarg.ok_value->symbol_value, "__function_call"))) {
         sargs = datum_make_list(sarg.ok_value, sargs);
       }
-      ctx_t sres = s->call_special_func(sargs, ctxt);
+      ctx_t sres = c.state->call_special_func(sargs, c.context);
       if (ctx_is_panic(sres)) {
         return sres;
       }
-      ctxt = sres.ok_value;
-      s = s->call_special_next;
+      c.context = sres.ok_value;
+      c.state = c.state->call_special_next;
+    } break;
+    case STATE_BAD_RETURN: {
+      return ctx_make_panic("bad return");
     } break;
     default: {
       return ctx_make_panic("unhandled state type");
@@ -586,8 +578,8 @@ datum_t *datum_make_int(int64_t value) {
 datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_ROUTINE;
-  e->routine_value.ok_state = s;
-  e->routine_value.ok_context = lexical_bindings;
+  e->routine_value.state = s;
+  e->routine_value.context = lexical_bindings;
   return e;
 }
 
@@ -838,7 +830,12 @@ namespace_t *namespace_make(datum_t *vars, datum_t *stack, routine_t parent) {
 }
 
 namespace_t *namespace_make_empty() {
-  return namespace_make(datum_make_nil(), datum_make_nil(), routine_make_panic("panic"));
+  state_t *s = state_make();
+  s->type = STATE_BAD_RETURN;
+  routine_t zero;
+  routine_t one =
+      routine_make(s, namespace_make(NULL, datum_make_nil(), zero));
+  return namespace_make(datum_make_nil(), datum_make_nil(), one);
 }
 
 namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
@@ -869,7 +866,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    return datum_make_operator(raw_value->routine_value.ok_state, ns);
+    return datum_make_operator(raw_value->routine_value.state, ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
@@ -1088,7 +1085,7 @@ ctx_t datum_eval(datum_t *e, namespace_t *ctxt) {
   if (err != NULL) {
     return ctx_make_panic(err);
   }
-  routine_t c = routine_make_ok(s, ctxt);
+  routine_t c = routine_make(s, ctxt);
   return state_eval(c);
 }
 
@@ -1184,7 +1181,7 @@ static ctx_t stream_eval(FILE *stream, namespace_t *ctxt) {
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     state_t *s = state_make();
     state_init(s, exp.ok_value);
-    ctx_t val = state_eval(routine_make_ok(s, ctxt));
+    ctx_t val = state_eval(routine_make(s, ctxt));
     if (ctx_is_panic(val)) {
       return val;
     }

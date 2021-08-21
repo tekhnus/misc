@@ -34,10 +34,8 @@ enum routine_type {
 };
 
 struct routine {
-  enum routine_type type;
-  state_t *ok_state;
-  namespace_t *ok_context;
-  char *panic_message;
+  state_t *state;
+  namespace_t *context;
 };
 
 struct datum {
@@ -113,6 +111,7 @@ enum state_type {
   STATE_CALL_SPECIAL,
   STATE_RETURN,
   STATE_YIELD,
+  STATE_BAD_RETURN,
 };
 
 struct state {
@@ -247,11 +246,7 @@ ctx_t namespace_make_prelude();
 
 ctx_t namespace_make_eval_file(char *filename);
 
-routine_t routine_make_ok(state_t *s, namespace_t *ctxt);
-
-routine_t routine_make_panic(char *message);
-
-bool routine_is_panic(routine_t c);
+routine_t routine_make(state_t *s, namespace_t *ctxt);
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 
