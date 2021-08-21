@@ -127,7 +127,10 @@ struct prog {
       prog_t *put_var_next;
     };
     prog_t *args_next;
-    prog_t *call_next;
+    struct {
+      bool call_hat;
+      prog_t *call_next;
+    };
     struct {
       datum_t *pop_var;
       prog_t *pop_next;

@@ -86,8 +86,9 @@ void state_args(prog_t **begin) {
   *begin = (*begin)->args_next;
 }
 
-void state_call(prog_t **begin) {
+void state_call(prog_t **begin, bool hat) {
   (*begin)->type = PROG_CALL;
+  (*begin)->call_hat = hat;
   (*begin)->call_next = prog_make();
   *begin = (*begin)->call_next;
 }
@@ -301,20 +302,21 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
   }
 
   datum_t *fn = stmt->list_head;
-  datum_t *real_fn;
-  bool hash;
-  if (datum_is_list(fn) && !datum_is_nil(fn) &&
-      datum_is_the_symbol(fn->list_head, "hash")) {
-    if (list_length(fn) != 2) {
-      return "hash should have a single argument";
+  bool hash = false;
+  bool hat = false;
+  for (; datum_is_list(fn) && list_length(fn) == 2 &&
+         datum_is_symbol(fn->list_head);
+       fn = fn->list_tail->list_head) {
+    char *tag = fn->list_head->symbol_value;
+    if (!strcmp(tag, "hash")) {
+      hash = true;
+    } else if (!strcmp(tag, "hat")) {
+      hat = true;
+    } else {
+      break;
     }
-    real_fn = fn->list_tail->list_head;
-    hash = true;
-  } else {
-    real_fn = fn;
-    hash = false;
   }
-  state_extend(begin, real_fn);
+  state_extend(begin, fn);
   state_args(begin);
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
@@ -325,7 +327,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
       state_extend(begin, arg);
     }
   }
-  state_call(begin);
+  state_call(begin, hat);
   return NULL;
 }
 
@@ -350,7 +352,7 @@ char *state_extend_backquoted(prog_t **begin, datum_t *stmt) {
       return err;
     }
   }
-  state_call(begin);
+  state_call(begin, false);
   return NULL;
 }
 
@@ -467,6 +469,9 @@ static fstate_t state_eval(routine_t c) {
         return fstate_make_panic(fn.panic_message);
       }
       if (datum_is_routine(fn.ok_value)) {
+        if (c.prog->call_hat) {
+          return fstate_make_panic("hat-call not implemented yet");
+        }
         routine_t parent_cont = routine_make(c.prog->call_next, c.state);
         switch_context(&c, fn.ok_value->routine_value, args);
         if (!routine_is_null(c.state->parent)) {
@@ -475,6 +480,9 @@ static fstate_t state_eval(routine_t c) {
         }
         c.state = namespace_change_parent(c.state, parent_cont);
       } else if (datum_is_pointer(fn.ok_value)) {
+        if (c.prog->call_hat) {
+          return fstate_make_panic("hat-call makes no sense for native calls");
+        }
         fdatum_t res = pointer_call(fn.ok_value, args, c.state);
         if (fdatum_is_panic(res)) {
           return fstate_make_panic(res.panic_message);
