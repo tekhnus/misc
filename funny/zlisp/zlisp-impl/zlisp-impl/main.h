@@ -9,11 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct datum datum_t;
 typedef struct read_result read_result_t;
-typedef struct namespace namespace_t;
-typedef struct val val_t;
-typedef struct ctx ctx_t;
+typedef struct datum datum_t;
+typedef struct fdatum fdatum_t;
+typedef struct fstate fstate_t;
+typedef struct prog prog_t;
 typedef struct state state_t;
 typedef struct routine routine_t;
 
@@ -29,8 +29,8 @@ enum datum_type {
 };
 
 struct routine {
+  prog_t *prog;
   state_t *state;
-  namespace_t *context;
 };
 
 struct datum {
@@ -51,7 +51,7 @@ struct datum {
   };
 };
 
-struct namespace {
+struct state {
   datum_t *vars;
   datum_t *stack;
   routine_t parent;
@@ -72,71 +72,71 @@ struct read_result {
   };
 };
 
-enum val_type {
-  VAL_OK,
-  VAL_PANIC,
+enum fdatum_type {
+  FDATUM_OK,
+  FDATUM_PANIC,
 };
 
-struct val {
+struct fdatum {
   int type;
   datum_t *ok_value;
   char *panic_message;
 };
 
-enum ctx_type {
-  CTX_OK,
-  CTX_PANIC,
+enum fstate_type {
+  FSTATE_OK,
+  FSTATE_PANIC,
 };
 
-struct ctx {
+struct fstate {
   int type;
-  namespace_t *ok_value;
+  state_t *ok_value;
   char *panic_message;
 };
 
-enum state_type {
-  STATE_END,
-  STATE_IF,
-  STATE_NOP,
-  STATE_PUT_CONST,
-  STATE_PUT_VAR,
-  STATE_ARGS,
-  STATE_CALL,
-  STATE_POP,
-  STATE_CALL_SPECIAL,
-  STATE_RETURN,
-  STATE_YIELD,
+enum prog_type {
+  PROG_END,
+  PROG_IF,
+  PROG_NOP,
+  PROG_PUT_CONST,
+  PROG_PUT_VAR,
+  PROG_ARGS,
+  PROG_CALL,
+  PROG_POP,
+  PROG_CALL_SPECIAL,
+  PROG_RETURN,
+  PROG_YIELD,
 };
 
-struct state {
-  enum state_type type;
+struct prog {
+  enum prog_type type;
   union {
     struct {
-      state_t *if_true;
-      state_t *if_false;
+      prog_t *if_true;
+      prog_t *if_false;
     };
     struct {
-      state_t *nop_next;
+      prog_t *nop_next;
     };
     struct {
       datum_t *put_const_value;
-      state_t *put_const_next;
+      prog_t *put_const_next;
     };
     struct {
       datum_t *put_var_value;
-      state_t *put_var_next;
+      prog_t *put_var_next;
     };
-    state_t *args_next;
-    state_t *call_next;
+    prog_t *args_next;
+    prog_t *call_next;
     struct {
       datum_t *pop_var;
-      state_t *pop_next;
+      prog_t *pop_next;
     };
     struct {
-      ctx_t (*call_special_func)(datum_t *, namespace_t *);
-      state_t *call_special_next;
+      fstate_t (*call_special_func)(datum_t *, state_t *);
+      prog_t *call_special_next;
     };
-    state_t *yield_next;
+    prog_t *yield_next;
   };
 };
 
@@ -172,7 +172,7 @@ datum_t *datum_make_bytestring(char *text);
 
 datum_t *datum_make_int(int64_t value);
 
-datum_t *datum_make_routine(state_t *s, namespace_t *lexical_bindings);
+datum_t *datum_make_routine(prog_t *s, state_t *lexical_bindings);
 
 datum_t *datum_make_pointer(void *data, datum_t *signature);
 
@@ -200,47 +200,47 @@ read_result_t datum_read(FILE *strm);
 
 char *datum_repr(datum_t *e);
 
-bool val_is_ok(val_t result);
+bool fdatum_is_ok(fdatum_t result);
 
-bool val_is_panic(val_t result);
+bool fdatum_is_panic(fdatum_t result);
 
-val_t val_make_ok(datum_t *v);
+fdatum_t fdatum_make_ok(datum_t *v);
 
-val_t val_make_panic(char *message);
+fdatum_t fdatum_make_panic(char *message);
 
-bool ctx_is_ok(ctx_t result);
+bool fstate_is_ok(fstate_t result);
 
-bool ctx_is_panic(ctx_t result);
+bool fstate_is_panic(fstate_t result);
 
-ctx_t ctx_make_ok(namespace_t *v);
+fstate_t fstate_make_ok(state_t *v);
 
-ctx_t ctx_make_panic(char *message);
+fstate_t fstate_make_panic(char *message);
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack, routine_t parent);
+state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent);
 
-namespace_t *namespace_make_empty();
+state_t *state_make_fresh();
 
-val_t namespace_get(namespace_t *ns, datum_t *symbol);
+fdatum_t state_get_var(state_t *ns, datum_t *symbol);
 
-namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value);
+state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value);
 
-namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol, datum_t *value);
+state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value);
 
-datum_t *namespace_list(namespace_t *ns);
+datum_t *state_list_vars(state_t *ns);
 
-namespace_t *namespace_put(namespace_t *ns, datum_t *value);
+state_t *state_stack_put(state_t *ns, datum_t *value);
 
-val_t namespace_peek(namespace_t *ns);
+fdatum_t state_stack_peek(state_t *ns);
 
-namespace_t *namespace_pop(namespace_t *ns);
+state_t *state_stack_pop(state_t *ns);
 
-ctx_t datum_eval(datum_t *e, namespace_t *ctxt);
+fstate_t datum_eval(datum_t *e, state_t *ctxt);
 
-ctx_t namespace_make_prelude();
+fstate_t fstate_make_prelude();
 
-ctx_t namespace_make_eval_file(char *filename);
+fstate_t fstate_make_eval_file(char *filename);
 
-routine_t routine_make(state_t *s, namespace_t *ctxt);
+routine_t routine_make(prog_t *s, state_t *ctxt);
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 

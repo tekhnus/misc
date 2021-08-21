@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
     strcat(filename_copy, "/");
   }
   strcat(filename_copy, argv[1]);
-  ctx_t ns = namespace_make_eval_file(filename_copy);
-  if (ctx_is_panic(ns)) {
+  fstate_t ns = fstate_make_eval_file(filename_copy);
+  if (fstate_is_panic(ns)) {
     fprintf(stderr, "%s\n", ns.panic_message);
     return EXIT_FAILURE;
   }

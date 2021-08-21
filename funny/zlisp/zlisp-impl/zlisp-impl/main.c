@@ -13,8 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-routine_t routine_make(state_t *s, namespace_t *ctxt) {
-  routine_t res = {.state = s, .context = ctxt};
+routine_t routine_make(prog_t *s, state_t *ctxt) {
+  routine_t res = {.prog = s, .state = ctxt};
   return res;
 }
 
@@ -24,20 +24,20 @@ routine_t routine_make_null() {
 }
 
 bool routine_is_null(routine_t r) {
-  return r.state == NULL && r.context == NULL;
+  return r.prog == NULL && r.state == NULL;
 }
 
-namespace_t *namespace_change_parent(namespace_t *ns, routine_t new_parent) {
-  return namespace_make(ns->vars, ns->stack, new_parent);
+state_t *namespace_change_parent(state_t *ns, routine_t new_parent) {
+  return state_make(ns->vars, ns->stack, new_parent);
 }
 
 static bool datum_is_the_symbol(datum_t *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-state_t *state_make() {
-  state_t *res = malloc(sizeof(state_t));
-  res->type = STATE_END;
+prog_t *prog_make() {
+  prog_t *res = malloc(sizeof(prog_t));
+  res->type = PROG_END;
   return res;
 }
 
@@ -51,95 +51,95 @@ int list_length(datum_t *seq) {
   return res;
 }
 
-void state_join(state_t *a, state_t *b, state_t *e) {
-  if (a->type != STATE_END || b->type != STATE_END) {
+void state_join(prog_t *a, prog_t *b, prog_t *e) {
+  if (a->type != PROG_END || b->type != PROG_END) {
     fprintf(stderr, "wrong usage\n");
     exit(1);
   }
-  a->type = STATE_NOP;
+  a->type = PROG_NOP;
   a->nop_next = e;
-  b->type = STATE_NOP;
+  b->type = PROG_NOP;
   b->nop_next = e;
 }
 
-void state_put_const(state_t **begin, datum_t *val) {
-  (*begin)->type = STATE_PUT_CONST;
+void state_put_const(prog_t **begin, datum_t *val) {
+  (*begin)->type = PROG_PUT_CONST;
   (*begin)->put_const_value = val;
-  (*begin)->put_const_next = state_make();
+  (*begin)->put_const_next = prog_make();
   *begin = (*begin)->put_const_next;
 }
 
-void state_put_var(state_t **begin, datum_t *val) {
-  (*begin)->type = STATE_PUT_VAR;
+void state_put_var(prog_t **begin, datum_t *val) {
+  (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
-  (*begin)->put_var_next = state_make();
+  (*begin)->put_var_next = prog_make();
   *begin = (*begin)->put_var_next;
 }
 
-void state_args(state_t **begin) {
-  (*begin)->type = STATE_ARGS;
-  (*begin)->args_next = state_make();
+void state_args(prog_t **begin) {
+  (*begin)->type = PROG_ARGS;
+  (*begin)->args_next = prog_make();
   *begin = (*begin)->args_next;
 }
 
-void state_call(state_t **begin) {
-  (*begin)->type = STATE_CALL;
-  (*begin)->call_next = state_make();
+void state_call(prog_t **begin) {
+  (*begin)->type = PROG_CALL;
+  (*begin)->call_next = prog_make();
   *begin = (*begin)->call_next;
 }
 
-void state_pop(state_t **begin, datum_t *var) {
-  (*begin)->type = STATE_POP;
+void state_pop(prog_t **begin, datum_t *var) {
+  (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
-  (*begin)->pop_next = state_make();
+  (*begin)->pop_next = prog_make();
   *begin = (*begin)->pop_next;
 }
 
-void state_call_special(state_t **begin,
-                        ctx_t (*call_special_func)(datum_t *, namespace_t *)) {
-  (*begin)->type = STATE_CALL_SPECIAL;
+void state_call_special(prog_t **begin,
+                        fstate_t (*call_special_func)(datum_t *, state_t *)) {
+  (*begin)->type = PROG_CALL_SPECIAL;
   (*begin)->call_special_func = call_special_func;
-  (*begin)->call_special_next = state_make();
+  (*begin)->call_special_next = prog_make();
   *begin = (*begin)->call_special_next;
 }
 
-void state_return(state_t **begin) {
-  (*begin)->type = STATE_RETURN;
-  *begin = state_make();
+void state_return(prog_t **begin) {
+  (*begin)->type = PROG_RETURN;
+  *begin = prog_make();
 }
 
-void state_yield(state_t **begin) {
-  (*begin)->type = STATE_YIELD;
-  (*begin)->yield_next = state_make();
+void state_yield(prog_t **begin) {
+  (*begin)->type = PROG_YIELD;
+  (*begin)->yield_next = prog_make();
   *begin = (*begin)->yield_next;
 }
 
-ctx_t special_defn(datum_t *args, namespace_t *ctxt) {
+fstate_t special_defn(datum_t *args, state_t *ctxt) {
   if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
       !datum_is_nil(args->list_tail->list_tail)) {
-    return ctx_make_panic("defun expects exactly two arguments");
+    return fstate_make_panic("defun expects exactly two arguments");
   }
   if (!datum_is_symbol(args->list_head)) {
-    return ctx_make_panic("defun requires a symbol as a first argument");
+    return fstate_make_panic("defun requires a symbol as a first argument");
   }
-  ctxt = namespace_set_fn(ctxt, args->list_head, args->list_tail->list_head);
-  ctxt = namespace_put(ctxt, datum_make_void());
-  return ctx_make_ok(ctxt);
+  ctxt = state_set_fn(ctxt, args->list_head, args->list_tail->list_head);
+  ctxt = state_stack_put(ctxt, datum_make_void());
+  return fstate_make_ok(ctxt);
 }
 
-ctx_t special_require(datum_t *args, namespace_t *ctxt) {
+fstate_t special_require(datum_t *args, state_t *ctxt) {
   if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return ctx_make_panic("require expects a single argument");
+    return fstate_make_panic("require expects a single argument");
   }
   if (!datum_is_bytestring(args->list_head)) {
-    return ctx_make_panic("require expected a string");
+    return fstate_make_panic("require expected a string");
   }
-  ctx_t file_ns = namespace_make_eval_file(args->list_head->bytestring_value);
-  if (ctx_is_panic(file_ns)) {
+  fstate_t file_ns = fstate_make_eval_file(args->list_head->bytestring_value);
+  if (fstate_is_panic(file_ns)) {
     return file_ns;
   }
-  namespace_t *ns = file_ns.ok_value;
-  datum_t *imported_bindings = namespace_list(ns);
+  state_t *ns = file_ns.ok_value;
+  datum_t *imported_bindings = state_list_vars(ns);
   for (; !datum_is_nil(imported_bindings);
        imported_bindings = imported_bindings->list_tail) {
     datum_t *sym = imported_bindings->list_head->list_head;
@@ -148,17 +148,17 @@ ctx_t special_require(datum_t *args, namespace_t *ctxt) {
     if (!strcmp("this-directory", sym->symbol_value)) {
       continue;
     }
-    ctxt = namespace_set(ctxt, sym, val);
+    ctxt = state_set_var(ctxt, sym, val);
   }
-  ctxt = namespace_put(ctxt, datum_make_void());
-  return ctx_make_ok(ctxt);
+  ctxt = state_stack_put(ctxt, datum_make_void());
+  return fstate_make_ok(ctxt);
 }
 
-ctx_t special_fn(datum_t *args, namespace_t *ctxt);
+fstate_t special_fn(datum_t *args, state_t *ctxt);
 
-char *state_extend_backquoted(state_t **begin, datum_t *stmt);
-char *state_extend(state_t **begin, datum_t *stmt) {
-  if ((*begin)->type != STATE_END) {
+char *state_extend_backquoted(prog_t **begin, datum_t *stmt);
+char *state_extend(prog_t **begin, datum_t *stmt) {
+  if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
   if (!datum_is_list(stmt)) {
@@ -180,9 +180,9 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (err != NULL) {
         return err;
       }
-      (*begin)->type = STATE_IF;
+      (*begin)->type = PROG_IF;
 
-      state_t *true_end = state_make(), *false_end = state_make();
+      prog_t *true_end = prog_make(), *false_end = prog_make();
       (*begin)->if_true = true_end;
       (*begin)->if_false = false_end;
       err = state_extend(&true_end, stmt->list_tail->list_tail->list_head);
@@ -194,7 +194,7 @@ char *state_extend(state_t **begin, datum_t *stmt) {
       if (err != NULL) {
         return err;
       }
-      *begin = state_make();
+      *begin = prog_make();
       state_join(true_end, false_end, *begin);
       return NULL;
     }
@@ -320,7 +320,7 @@ char *state_extend(state_t **begin, datum_t *stmt) {
   return NULL;
 }
 
-char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
+char *state_extend_backquoted(prog_t **begin, datum_t *stmt) {
   if (!datum_is_list(stmt)) {
     state_put_const(begin, stmt);
     return NULL;
@@ -345,180 +345,180 @@ char *state_extend_backquoted(state_t **begin, datum_t *stmt) {
   return NULL;
 }
 
-char *state_init(state_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
+char *state_init(prog_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
 
-char *state_init_fn_body(state_t *s, datum_t *stmt) {
+char *state_init_fn_body(prog_t *s, datum_t *stmt) {
   state_pop(&s, datum_make_symbol("args"));
   return state_extend(&s, stmt);
 }
 
-ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
+fstate_t special_fn(datum_t *args, state_t *ctxt) {
   if (list_length(args) != 1) {
-    return ctx_make_panic("fn expects a single argument");
+    return fstate_make_panic("fn expects a single argument");
   }
-  state_t *s = state_make();
+  prog_t *s = prog_make();
   char *err = state_init_fn_body(s, args->list_head);
   if (err != NULL) {
-    return ctx_make_panic(err);
+    return fstate_make_panic(err);
   }
-  namespace_t *routine_ctxt =
-      namespace_make(ctxt->vars, datum_make_nil(), routine_make_null());
-  ctxt = namespace_put(ctxt, datum_make_routine(s, routine_ctxt));
-  return ctx_make_ok(ctxt);
+  state_t *routine_ctxt =
+      state_make(ctxt->vars, datum_make_nil(), routine_make_null());
+  ctxt = state_stack_put(ctxt, datum_make_routine(s, routine_ctxt));
+  return fstate_make_ok(ctxt);
 }
 
-val_t datum_eval_primitive(datum_t *e, namespace_t *ctxt) {
+fdatum_t datum_eval_primitive(datum_t *e, state_t *ctxt) {
   if (datum_is_integer(e) || datum_is_bytestring(e)) {
-    return val_make_ok(e);
+    return fdatum_make_ok(e);
   }
   if (datum_is_symbol(e)) {
     if (e->symbol_value[0] == ':') {
-      return val_make_ok(e);
+      return fdatum_make_ok(e);
     }
-    return namespace_get(ctxt, e);
+    return state_get_var(ctxt, e);
   }
-  return val_make_panic("not a primitive");
+  return fdatum_make_panic("not a primitive");
 }
 
-val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt);
+fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt);
 
 void switch_context(routine_t *c, routine_t b, datum_t *v) {
   *c = b;
-  c->context = namespace_put(c->context, v);
+  c->state = state_stack_put(c->state, v);
 }
 
-static ctx_t state_eval(routine_t c) {
+static fstate_t state_eval(routine_t c) {
   for (;;) {
-    switch (c.state->type) {
-    case STATE_END: {
-      if (!routine_is_null(c.context->parent)) {
-        return ctx_make_panic("reached the end state in a subroutine");
+    switch (c.prog->type) {
+    case PROG_END: {
+      if (!routine_is_null(c.state->parent)) {
+        return fstate_make_panic("reached the end state in a subroutine");
       }
-      return ctx_make_ok(c.context);
+      return fstate_make_ok(c.state);
     } break;
-    case STATE_NOP: {
-      c.state = c.state->nop_next;
+    case PROG_NOP: {
+      c.prog = c.prog->nop_next;
     } break;
-    case STATE_IF: {
-      val_t v = namespace_peek(c.context);
-      c.context = namespace_pop(c.context);
-      if (val_is_panic(v)) {
-        return ctx_make_panic(v.panic_message);
+    case PROG_IF: {
+      fdatum_t v = state_stack_peek(c.state);
+      c.state = state_stack_pop(c.state);
+      if (fdatum_is_panic(v)) {
+        return fstate_make_panic(v.panic_message);
       }
       if (!datum_is_nil(v.ok_value)) {
-        c.state = c.state->if_true;
+        c.prog = c.prog->if_true;
       } else {
-        c.state = c.state->if_false;
+        c.prog = c.prog->if_false;
       }
     } break;
-    case STATE_PUT_CONST: {
-      c.context = namespace_put(c.context, c.state->put_const_value);
-      c.state = c.state->put_const_next;
+    case PROG_PUT_CONST: {
+      c.state = state_stack_put(c.state, c.prog->put_const_value);
+      c.prog = c.prog->put_const_next;
     } break;
-    case STATE_PUT_VAR: {
-      val_t er = datum_eval_primitive(c.state->put_var_value, c.context);
-      if (val_is_panic(er)) {
-        return ctx_make_panic(er.panic_message);
+    case PROG_PUT_VAR: {
+      fdatum_t er = datum_eval_primitive(c.prog->put_var_value, c.state);
+      if (fdatum_is_panic(er)) {
+        return fstate_make_panic(er.panic_message);
       }
-      c.context = namespace_put(c.context, er.ok_value);
-      c.state = c.state->put_var_next;
+      c.state = state_stack_put(c.state, er.ok_value);
+      c.prog = c.prog->put_var_next;
     } break;
-    case STATE_POP: {
-      val_t v = namespace_peek(c.context);
-      if (val_is_panic(v)) {
-        return ctx_make_panic(v.panic_message);
+    case PROG_POP: {
+      fdatum_t v = state_stack_peek(c.state);
+      if (fdatum_is_panic(v)) {
+        return fstate_make_panic(v.panic_message);
       }
-      c.context = namespace_pop(c.context);
-      if (c.state->pop_var != NULL) {
-        c.context = namespace_set(c.context, c.state->pop_var, v.ok_value);
+      c.state = state_stack_pop(c.state);
+      if (c.prog->pop_var != NULL) {
+        c.state = state_set_var(c.state, c.prog->pop_var, v.ok_value);
       }
-      c.state = c.state->pop_next;
+      c.prog = c.prog->pop_next;
     } break;
-    case STATE_ARGS: {
-      c.context =
-          namespace_put(c.context, datum_make_symbol("__function_call"));
-      c.state = c.state->args_next;
+    case PROG_ARGS: {
+      c.state =
+          state_stack_put(c.state, datum_make_symbol("__function_call"));
+      c.prog = c.prog->args_next;
     } break;
-    case STATE_CALL: {
+    case PROG_CALL: {
       datum_t *args = datum_make_nil();
-      val_t arg;
+      fdatum_t arg;
       for (;;) {
-        arg = namespace_peek(c.context);
-        c.context = namespace_pop(c.context);
-        if (val_is_panic(arg)) {
-          return ctx_make_panic(arg.panic_message);
+        arg = state_stack_peek(c.state);
+        c.state = state_stack_pop(c.state);
+        if (fdatum_is_panic(arg)) {
+          return fstate_make_panic(arg.panic_message);
         }
         if (datum_is_the_symbol(arg.ok_value, "__function_call")) {
           break;
         }
         args = datum_make_list(arg.ok_value, args);
       }
-      val_t fn = namespace_peek(c.context);
-      c.context = namespace_pop(c.context);
-      if (val_is_panic(fn)) {
-        return ctx_make_panic(fn.panic_message);
+      fdatum_t fn = state_stack_peek(c.state);
+      c.state = state_stack_pop(c.state);
+      if (fdatum_is_panic(fn)) {
+        return fstate_make_panic(fn.panic_message);
       }
       if (datum_is_routine(fn.ok_value)) {
-        routine_t parent_cont = routine_make(c.state->call_next, c.context);
+        routine_t parent_cont = routine_make(c.prog->call_next, c.state);
         switch_context(&c, fn.ok_value->routine_value, args);
-        if (!routine_is_null(c.context->parent)) {
-          return ctx_make_panic("attempt to call routine with existing parent");
+        if (!routine_is_null(c.state->parent)) {
+          return fstate_make_panic("attempt to call routine with existing parent");
         }
-        c.context = namespace_change_parent(c.context, parent_cont);
+        c.state = namespace_change_parent(c.state, parent_cont);
       } else if (datum_is_pointer(fn.ok_value)) {
-        val_t res = pointer_call(fn.ok_value, args, c.context);
-        if (val_is_panic(res)) {
-          return ctx_make_panic(res.panic_message);
+        fdatum_t res = pointer_call(fn.ok_value, args, c.state);
+        if (fdatum_is_panic(res)) {
+          return fstate_make_panic(res.panic_message);
         }
-        c.context = namespace_put(c.context, res.ok_value);
-        c.state = c.state->call_next;
+        c.state = state_stack_put(c.state, res.ok_value);
+        c.prog = c.prog->call_next;
       } else {
-        return ctx_make_panic("non-callable datum");
+        return fstate_make_panic("non-callable datum");
       }
     } break;
-    case STATE_RETURN: {
-      if (routine_is_null(c.context->parent)) {
-        return ctx_make_panic("bad return");
+    case PROG_RETURN: {
+      if (routine_is_null(c.state->parent)) {
+        return fstate_make_panic("bad return");
       }
-      val_t res = namespace_peek(c.context);
-      if (val_is_panic(res)) {
-        return ctx_make_panic(res.panic_message);
+      fdatum_t res = state_stack_peek(c.state);
+      if (fdatum_is_panic(res)) {
+        return fstate_make_panic(res.panic_message);
       }
-      switch_context(&c, c.context->parent, res.ok_value);
+      switch_context(&c, c.state->parent, res.ok_value);
     } break;
-    case STATE_YIELD: {
-      routine_t par = c.context->parent;
+    case PROG_YIELD: {
+      routine_t par = c.state->parent;
       if (routine_is_null(par)) {
-        return ctx_make_panic("bad yield");
+        return fstate_make_panic("bad yield");
       }
-      c.context = namespace_change_parent(c.context, routine_make_null());
-      val_t res = namespace_peek(c.context);
-      if (val_is_panic(res)) {
-        return ctx_make_panic(res.panic_message);
+      c.state = namespace_change_parent(c.state, routine_make_null());
+      fdatum_t res = state_stack_peek(c.state);
+      if (fdatum_is_panic(res)) {
+        return fstate_make_panic(res.panic_message);
       }
-      c.context = namespace_pop(c.context);
-      datum_t *resume = datum_make_routine(c.state->yield_next, c.context);
+      c.state = state_stack_pop(c.state);
+      datum_t *resume = datum_make_routine(c.prog->yield_next, c.state);
       datum_t *r = datum_make_list_2(res.ok_value, resume);
       switch_context(&c, par, r);
     } break;
-    case STATE_CALL_SPECIAL: {
+    case PROG_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
-      val_t sarg;
-      while (sarg = namespace_peek(c.context),
-             c.context = namespace_pop(c.context),
-             !(val_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
+      fdatum_t sarg;
+      while (sarg = state_stack_peek(c.state),
+             c.state = state_stack_pop(c.state),
+             !(fdatum_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
                !strcmp(sarg.ok_value->symbol_value, "__function_call"))) {
         sargs = datum_make_list(sarg.ok_value, sargs);
       }
-      ctx_t sres = c.state->call_special_func(sargs, c.context);
-      if (ctx_is_panic(sres)) {
+      fstate_t sres = c.prog->call_special_func(sargs, c.state);
+      if (fstate_is_panic(sres)) {
         return sres;
       }
-      c.context = sres.ok_value;
-      c.state = c.state->call_special_next;
+      c.state = sres.ok_value;
+      c.prog = c.prog->call_special_next;
     } break;
     default: {
-      return ctx_make_panic("unhandled state type");
+      return fstate_make_panic("unhandled state type");
     } break;
     }
   }
@@ -597,11 +597,11 @@ datum_t *datum_make_int(int64_t value) {
   return e;
 }
 
-datum_t *datum_make_routine(state_t *s, namespace_t *lexical_bindings) {
+datum_t *datum_make_routine(prog_t *s, state_t *lexical_bindings) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_ROUTINE;
-  e->routine_value.state = s;
-  e->routine_value.context = lexical_bindings;
+  e->routine_value.prog = s;
+  e->routine_value.state = lexical_bindings;
   return e;
 }
 
@@ -815,56 +815,56 @@ char *datum_repr(datum_t *e) {
   return buf;
 }
 
-bool val_is_ok(val_t result) { return result.type == VAL_OK; }
+bool fdatum_is_ok(fdatum_t result) { return result.type == FDATUM_OK; }
 
-bool val_is_panic(val_t result) { return result.type == VAL_PANIC; }
+bool fdatum_is_panic(fdatum_t result) { return result.type == FDATUM_PANIC; }
 
-val_t val_make_ok(datum_t *v) {
-  val_t result = {.type = VAL_OK, .ok_value = v};
+fdatum_t fdatum_make_ok(datum_t *v) {
+  fdatum_t result = {.type = FDATUM_OK, .ok_value = v};
   return result;
 }
 
-val_t val_make_panic(char *message) {
-  val_t result = {.type = VAL_PANIC, .panic_message = message};
+fdatum_t fdatum_make_panic(char *message) {
+  fdatum_t result = {.type = FDATUM_PANIC, .panic_message = message};
   return result;
 }
 
-bool ctx_is_ok(ctx_t result) { return result.type == CTX_OK; }
+bool fstate_is_ok(fstate_t result) { return result.type == FSTATE_OK; }
 
-bool ctx_is_panic(ctx_t result) { return result.type == CTX_PANIC; }
+bool fstate_is_panic(fstate_t result) { return result.type == FSTATE_PANIC; }
 
-ctx_t ctx_make_ok(namespace_t *v) {
-  ctx_t result = {.type = CTX_OK, .ok_value = v};
+fstate_t fstate_make_ok(state_t *v) {
+  fstate_t result = {.type = FSTATE_OK, .ok_value = v};
   return result;
 }
 
-ctx_t ctx_make_panic(char *message) {
-  ctx_t result = {.type = CTX_PANIC, .panic_message = message};
+fstate_t fstate_make_panic(char *message) {
+  fstate_t result = {.type = FSTATE_PANIC, .panic_message = message};
   return result;
 }
 
-namespace_t *namespace_make(datum_t *vars, datum_t *stack, routine_t parent) {
-  namespace_t *res = malloc(sizeof(namespace_t));
+state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent) {
+  state_t *res = malloc(sizeof(state_t));
   res->vars = vars;
   res->stack = stack;
   res->parent = parent;
   return res;
 }
 
-namespace_t *namespace_make_empty() {
-  state_t *s = state_make();
+state_t *state_make_fresh() {
+  prog_t *s = prog_make();
   routine_t zero = routine_make_null();
-  return namespace_make(datum_make_nil(), datum_make_nil(), zero);
+  return state_make(datum_make_nil(), datum_make_nil(), zero);
 }
 
-namespace_t *namespace_set(namespace_t *ns, datum_t *symbol, datum_t *value) {
+state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
-  return namespace_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
+  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
 }
 
-namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
+state_t *state_set_fn(state_t *ns, datum_t *symbol,
                               datum_t *value) {
-  state_t *s = state_make();
+  prog_t *s = prog_make();
   char *err = state_init_fn_body(s, value);
   if (err != NULL) {
     fprintf(stderr, "bad function def\n");
@@ -872,10 +872,10 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
   }
   datum_t *fn = datum_make_routine(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
-  return namespace_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
+  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
 }
 
-datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
+datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
   datum_t *raw_value = cell->list_tail->list_head;
   datum_t *keyval;
   if (!strcmp(cell->list_head->symbol_value, ":value")) {
@@ -885,64 +885,64 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    namespace_t *routine_ns =
-        namespace_make(ns->vars, datum_make_nil(), routine_make_null());
-    return datum_make_routine(raw_value->routine_value.state, routine_ns);
+    state_t *routine_ns =
+        state_make(ns->vars, datum_make_nil(), routine_make_null());
+    return datum_make_routine(raw_value->routine_value.prog, routine_ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
   }
 }
 
-val_t namespace_get(namespace_t *ns, datum_t *symbol) {
+fdatum_t state_get_var(state_t *ns, datum_t *symbol) {
   for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
     datum_t *entry = cur->list_head;
     if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
       datum_t *cell = entry->list_tail;
-      return val_make_ok(namespace_cell_get_value(cell, ns));
+      return fdatum_make_ok(namespace_cell_get_value(cell, ns));
     }
   }
   char *msg = malloc(1024);
   sprintf(msg, "unbound symbol: %s", symbol->symbol_value);
-  return val_make_panic(msg);
+  return fdatum_make_panic(msg);
 }
 
-namespace_t *namespace_put(namespace_t *ns, datum_t *value) {
-  return namespace_make(ns->vars, datum_make_list(value, ns->stack),
+state_t *state_stack_put(state_t *ns, datum_t *value) {
+  return state_make(ns->vars, datum_make_list(value, ns->stack),
                         ns->parent);
 }
 
-val_t namespace_peek(namespace_t *ns) {
+fdatum_t state_stack_peek(state_t *ns) {
   if (datum_is_nil(ns->stack)) {
-    return val_make_panic("peek failed");
+    return fdatum_make_panic("peek failed");
   }
-  return val_make_ok(ns->stack->list_head);
+  return fdatum_make_ok(ns->stack->list_head);
 }
 
-namespace_t *namespace_pop(namespace_t *ns) {
+state_t *state_stack_pop(state_t *ns) {
   if (datum_is_nil(ns->stack)) {
     fprintf(stderr, "cannot pop from an empty stack\n");
     exit(EXIT_FAILURE);
   }
-  return namespace_make(ns->vars, ns->stack->list_tail, ns->parent);
+  return state_make(ns->vars, ns->stack->list_tail, ns->parent);
 }
 
-val_t list_map(val_t (*fn)(datum_t *, namespace_t *), datum_t *items,
-               namespace_t *ctxt) {
+fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,
+               state_t *ctxt) {
   if (!datum_is_list(items)) {
-    return val_make_panic("expected a list");
+    return fdatum_make_panic("expected a list");
   }
   datum_t *evaled_items = datum_make_nil();
   datum_t **tail = &evaled_items;
   for (datum_t *arg = items; !datum_is_nil(arg); arg = arg->list_tail) {
-    val_t evaled_arg = fn(arg->list_head, ctxt);
-    if (val_is_panic(evaled_arg)) {
+    fdatum_t evaled_arg = fn(arg->list_head, ctxt);
+    if (fdatum_is_panic(evaled_arg)) {
       return evaled_arg;
     }
     *tail = datum_make_list_1(evaled_arg.ok_value);
     tail = &((*tail)->list_tail);
   }
-  return val_make_ok(evaled_items);
+  return fdatum_make_ok(evaled_items);
 }
 
 bool ffi_type_init(ffi_type **type, datum_t *definition) {
@@ -1055,128 +1055,128 @@ char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
   return NULL;
 }
 
-val_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
+fdatum_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
   void (*fn_ptr)(void) = __extension__(void (*)(void))(f->pointer_value);
   char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
 
   if (!strcmp(rettype, "pointer")) {
     void *res = malloc(sizeof(void *));
     ffi_call(cif, fn_ptr, res, cargs);
-    return val_make_ok(datum_make_pointer_to_pointer(res));
+    return fdatum_make_ok(datum_make_pointer_to_pointer(res));
   }
   if (!strcmp(rettype, "sizet")) {
     void *res = malloc(sizeof(size_t));
     ffi_call(cif, fn_ptr, res, cargs);
-    return val_make_ok(datum_make_int(*(int64_t *)res));
+    return fdatum_make_ok(datum_make_int(*(int64_t *)res));
   }
   if (!strcmp(rettype, "int")) {
     void *res = malloc(sizeof(int));
     ffi_call(cif, fn_ptr, res, cargs);
-    return val_make_ok(datum_make_int(*(int64_t *)res));
+    return fdatum_make_ok(datum_make_int(*(int64_t *)res));
   }
   if (!strcmp(rettype, "val")) {
-    val_t res;
+    fdatum_t res;
     ffi_call(cif, fn_ptr, &res, cargs);
-    if (val_is_panic(res)) {
-      return val_make_panic(res.panic_message);
+    if (fdatum_is_panic(res)) {
+      return fdatum_make_panic(res.panic_message);
     }
-    return val_make_ok(res.ok_value);
+    return fdatum_make_ok(res.ok_value);
   }
-  return val_make_panic("unknown return type for extern func");
+  return fdatum_make_panic("unknown return type for extern func");
 }
 
-val_t pointer_call(datum_t *f, datum_t *args, namespace_t *ctxt) {
+fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt) {
   ffi_cif cif;
   char *err = NULL;
   err = pointer_ffi_init_cif(f, &cif);
   if (err != NULL) {
-    return val_make_panic(err);
+    return fdatum_make_panic(err);
   }
   void *cargs[32];
   err = pointer_ffi_serialize_args(f, args, cargs);
   if (err != NULL) {
-    return val_make_panic(err);
+    return fdatum_make_panic(err);
   }
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-ctx_t datum_eval(datum_t *e, namespace_t *ctxt) {
-  state_t *s = state_make();
+fstate_t datum_eval(datum_t *e, state_t *ctxt) {
+  prog_t *s = prog_make();
   char *err = state_init(s, e);
   if (err != NULL) {
-    return ctx_make_panic(err);
+    return fstate_make_panic(err);
   }
   routine_t c = routine_make(s, ctxt);
   return state_eval(c);
 }
 
-static val_t datum_expand(datum_t *e, namespace_t *ctxt) {
+static fdatum_t datum_expand(datum_t *e, state_t *ctxt) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
-    return val_make_ok(e);
+    return fdatum_make_ok(e);
   }
   if (!datum_is_symbol(e->list_head) ||
       strcmp(e->list_head->symbol_value, "bang")) {
     return list_map(datum_expand, e, ctxt);
   }
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
-    return val_make_panic("! should be used with a single arg");
+    return fdatum_make_panic("! should be used with a single arg");
   }
-  val_t exp = datum_expand(e->list_tail->list_head, ctxt);
-  if (val_is_panic(exp)) {
+  fdatum_t exp = datum_expand(e->list_tail->list_head, ctxt);
+  if (fdatum_is_panic(exp)) {
     return exp;
   }
-  ctx_t ev = datum_eval(exp.ok_value, ctxt);
-  if (ctx_is_panic(ev)) {
-    return val_make_panic(ev.panic_message);
+  fstate_t ev = datum_eval(exp.ok_value, ctxt);
+  if (fstate_is_panic(ev)) {
+    return fdatum_make_panic(ev.panic_message);
   }
-  val_t res = namespace_peek(ev.ok_value);
-  if (val_is_panic(res)) {
+  fdatum_t res = state_stack_peek(ev.ok_value);
+  if (fdatum_is_panic(res)) {
     return res;
   }
-  return val_make_ok(res.ok_value);
+  return fdatum_make_ok(res.ok_value);
 }
 
-val_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
+fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
-    return val_make_panic("expected integers");
+    return fdatum_make_panic("expected integers");
   }
   char *buf =
       malloc(strlen(x->bytestring_value) + strlen(y->bytestring_value) + 1);
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);
-  return val_make_ok(datum_make_bytestring(buf));
+  return fdatum_make_ok(datum_make_bytestring(buf));
 }
 
-val_t builtin_add(datum_t *x, datum_t *y) {
+fdatum_t builtin_add(datum_t *x, datum_t *y) {
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
-    return val_make_panic("expected integers");
+    return fdatum_make_panic("expected integers");
   }
-  return val_make_ok(datum_make_int(x->integer_value + y->integer_value));
+  return fdatum_make_ok(datum_make_int(x->integer_value + y->integer_value));
 }
 
-val_t builtin_cons(datum_t *head, datum_t *tail) {
+fdatum_t builtin_cons(datum_t *head, datum_t *tail) {
   if (!datum_is_list(tail)) {
-    return val_make_panic("cons requires a list as a second argument");
+    return fdatum_make_panic("cons requires a list as a second argument");
   }
-  return val_make_ok(datum_make_list(head, tail));
+  return fdatum_make_ok(datum_make_list(head, tail));
 }
 
-val_t builtin_head(datum_t *list) {
+fdatum_t builtin_head(datum_t *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
-    return val_make_panic("car expects a nonempty list");
+    return fdatum_make_panic("car expects a nonempty list");
   }
-  return val_make_ok(list->list_head);
+  return fdatum_make_ok(list->list_head);
 }
 
-val_t builtin_tail(datum_t *list) {
+fdatum_t builtin_tail(datum_t *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
-    return val_make_panic("cdr expects a nonempty list");
+    return fdatum_make_panic("cdr expects a nonempty list");
   }
-  return val_make_ok(list->list_tail);
+  return fdatum_make_ok(list->list_tail);
 }
 
-datum_t *namespace_list(namespace_t *ns) {
+datum_t *state_list_vars(state_t *ns) {
   datum_t *result = datum_make_nil();
   datum_t **nil = &result;
   for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
@@ -1191,92 +1191,92 @@ datum_t *namespace_list(namespace_t *ns) {
   return result;
 }
 
-static ctx_t stream_eval(FILE *stream, namespace_t *ctxt) {
+static fstate_t stream_eval(FILE *stream, state_t *ctxt) {
   read_result_t rr;
   for (; read_result_is_ok(rr = datum_read(stream));) {
     // printf("running %s\n", datum_repr(rr.ok_value));
-    val_t exp = datum_expand(rr.ok_value, ctxt);
-    if (val_is_panic(exp)) {
-      return ctx_make_panic(exp.panic_message);
+    fdatum_t exp = datum_expand(rr.ok_value, ctxt);
+    if (fdatum_is_panic(exp)) {
+      return fstate_make_panic(exp.panic_message);
     }
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
-    state_t *s = state_make();
+    prog_t *s = prog_make();
     state_init(s, exp.ok_value);
-    ctx_t val = state_eval(routine_make(s, ctxt));
-    if (ctx_is_panic(val)) {
+    fstate_t val = state_eval(routine_make(s, ctxt));
+    if (fstate_is_panic(val)) {
       return val;
     }
     ctxt = val.ok_value;
   }
   if (read_result_is_panic(rr)) {
-    return ctx_make_panic(rr.panic_message);
+    return fstate_make_panic(rr.panic_message);
   }
   if (read_result_is_right_paren(rr)) {
-    return ctx_make_panic("unmatched right paren");
+    return fstate_make_panic("unmatched right paren");
   }
-  return ctx_make_ok(ctxt);
+  return fstate_make_ok(ctxt);
 }
 
-val_t builtin_shared_library(datum_t *library_name) {
+fdatum_t builtin_shared_library(datum_t *library_name) {
   if (!datum_is_bytestring(library_name)) {
-    return val_make_panic("load-shared-library expects a bytestring");
+    return fdatum_make_panic("load-shared-library expects a bytestring");
   }
   void **handle = malloc(sizeof(void *));
   *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
   char *err = dlerror();
   if (!*handle) {
-    return val_make_ok(datum_make_list_2(datum_make_symbol(":err"),
+    return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
                                          datum_make_bytestring(err)));
   }
-  return val_make_ok(datum_make_list_2(datum_make_symbol(":ok"),
+  return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":ok"),
                                        datum_make_pointer_to_pointer(handle)));
 }
 
-val_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
+fdatum_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
                              datum_t *descriptor) {
   if (!datum_is_pointer(shared_library) ||
       !datum_is_symbol(shared_library->pointer_descriptor) ||
       strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
-    return val_make_panic("wrong externcdata usage");
+    return fdatum_make_panic("wrong externcdata usage");
   }
   void *handle = *(void **)shared_library->pointer_value;
   if (!datum_is_bytestring(name)) {
-    return val_make_panic("externcdata expected a string");
+    return fdatum_make_panic("externcdata expected a string");
   }
   void *call_ptr = dlsym(handle, name->bytestring_value);
   char *err = dlerror();
   if (err != NULL) {
-    return val_make_ok(datum_make_list_2(datum_make_symbol(":err"),
+    return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
                                          datum_make_bytestring(err)));
   }
-  return val_make_ok(datum_make_list_2(
+  return fdatum_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
 }
 
-val_t builtin_repr(datum_t *v) {
-  return val_make_ok(datum_make_bytestring(datum_repr(v)));
+fdatum_t builtin_repr(datum_t *v) {
+  return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
 }
 
-val_t builtin_eq(datum_t *x, datum_t *y) {
+fdatum_t builtin_eq(datum_t *x, datum_t *y) {
   datum_t *t = datum_make_list_1(datum_make_nil());
   datum_t *f = datum_make_nil();
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
-      return val_make_ok(t);
+      return fdatum_make_ok(t);
     }
-    return val_make_ok(f);
+    return fdatum_make_ok(f);
   }
   if (datum_is_integer(x) && datum_is_integer(y)) {
     if (x->integer_value == y->integer_value) {
-      return val_make_ok(t);
+      return fdatum_make_ok(t);
     }
-    return val_make_ok(f);
+    return fdatum_make_ok(f);
   }
 
-  return val_make_panic("eq can't compare those things");
+  return fdatum_make_panic("eq can't compare those things");
 }
 
-val_t builtin_annotate(datum_t *arg_value) {
+fdatum_t builtin_annotate(datum_t *arg_value) {
   char *type;
   if (datum_is_list(arg_value)) {
     type = ":list";
@@ -1291,27 +1291,27 @@ val_t builtin_annotate(datum_t *arg_value) {
   } else if (datum_is_pointer(arg_value)) {
     type = ":pointer";
   } else {
-    return val_make_panic("incomplete implementation of type");
+    return fdatum_make_panic("incomplete implementation of type");
   }
-  return val_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
+  return fdatum_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
 }
 
-val_t builtin_is_constant(datum_t *arg_value) {
+fdatum_t builtin_is_constant(datum_t *arg_value) {
   if (datum_is_integer(arg_value) || datum_is_bytestring(arg_value) ||
       (datum_is_symbol(arg_value) && arg_value->symbol_value[0] == ':')) {
-    return val_make_ok(datum_make_list_1(datum_make_nil()));
+    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
-  return val_make_ok(datum_make_nil());
+  return fdatum_make_ok(datum_make_nil());
 }
 
-val_t builtin_panic(datum_t *arg_value) {
+fdatum_t builtin_panic(datum_t *arg_value) {
   if (!datum_is_bytestring(arg_value)) {
-    return val_make_panic("panic expects a bytestring");
+    return fdatum_make_panic("panic expects a bytestring");
   }
-  return val_make_panic(arg_value->bytestring_value);
+  return fdatum_make_panic(arg_value->bytestring_value);
 }
 
-void namespace_def_extern_fn(namespace_t **ctxt, char *name, val_t (*fn)(),
+void namespace_def_extern_fn(state_t **ctxt, char *name, fdatum_t (*fn)(),
                              int cnt) {
   datum_t *sig = datum_make_nil();
   for (int i = 0; i < cnt; ++i) {
@@ -1320,11 +1320,11 @@ void namespace_def_extern_fn(namespace_t **ctxt, char *name, val_t (*fn)(),
   datum_t *wrapped_fn =
       datum_make_pointer(__extension__(void *) fn,
                          datum_make_list_2(sig, datum_make_symbol("val")));
-  *ctxt = namespace_set(*ctxt, datum_make_symbol(name), wrapped_fn);
+  *ctxt = state_set_var(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-ctx_t namespace_make_prelude() {
-  namespace_t *ns = namespace_make_empty();
+fstate_t fstate_make_prelude() {
+  state_t *ns = state_make_fresh();
 
   namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
@@ -1343,27 +1343,27 @@ ctx_t namespace_make_prelude() {
   FILE *prelude =
       fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
   if (prelude == NULL) {
-    return ctx_make_panic("error while reading the prelude source");
+    return fstate_make_panic("error while reading the prelude source");
   }
 
   return stream_eval(prelude, ns);
 }
 
-ctx_t namespace_make_eval_file(char *filename) {
+fstate_t fstate_make_eval_file(char *filename) {
   FILE *module = fopen(filename, "r");
   if (module == NULL) {
-    return ctx_make_panic("error while opening the required file");
+    return fstate_make_panic("error while opening the required file");
   }
-  ctx_t prelude = namespace_make_prelude();
-  if (ctx_is_panic(prelude)) {
+  fstate_t prelude = fstate_make_prelude();
+  if (fstate_is_panic(prelude)) {
     return prelude;
   }
-  namespace_t *ns = prelude.ok_value;
+  state_t *ns = prelude.ok_value;
   char filename_copy[1024];
   strcpy(filename_copy, filename);
   datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));
-  ns = namespace_set(ns, datum_make_symbol("this-directory"),
+  ns = state_set_var(ns, datum_make_symbol("this-directory"),
                      new_this_directory);
-  ctx_t ns_ = stream_eval(module, ns);
+  fstate_t ns_ = stream_eval(module, ns);
   return ns_;
 }
