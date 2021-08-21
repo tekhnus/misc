@@ -680,6 +680,10 @@ bool consume_control_sequence(char c, datum_t **form) {
     *form = datum_make_symbol("hash");
     return true;
   }
+  if (c == '^') {
+    *form = datum_make_symbol("hat");
+    return true;
+  }
   return false;
 }
 
