@@ -167,126 +167,125 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     return "an empty list is not a statement";
   }
 
-  if (datum_is_symbol(stmt->list_head)) {
-    char *sym = stmt->list_head->symbol_value;
-    if (!strcmp(sym, "if")) {
-      if (list_length(stmt->list_tail) != 3) {
-        return "if should have three args";
-      }
-      char *err;
-      err = state_extend(begin, stmt->list_tail->list_head);
-      if (err != NULL) {
-        return err;
-      }
-      (*begin)->type = PROG_IF;
+  datum_t *op = stmt->list_head;
 
-      prog_t *true_end = prog_make(), *false_end = prog_make();
-      (*begin)->if_true = true_end;
-      (*begin)->if_false = false_end;
-      err = state_extend(&true_end, stmt->list_tail->list_tail->list_head);
+  if (datum_is_the_symbol(op, "if")) {
+    if (list_length(stmt->list_tail) != 3) {
+      return "if should have three args";
+    }
+    char *err;
+    err = state_extend(begin, stmt->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    (*begin)->type = PROG_IF;
+
+    prog_t *true_end = prog_make(), *false_end = prog_make();
+    (*begin)->if_true = true_end;
+    (*begin)->if_false = false_end;
+    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    err = state_extend(&false_end,
+                       stmt->list_tail->list_tail->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    *begin = prog_make();
+    state_join(true_end, false_end, *begin);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "progn")) {
+    state_put_const(begin, datum_make_void());
+    for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
+         rest = rest->list_tail) {
+      state_pop(begin, NULL);
+      datum_t *step = rest->list_head;
+      char *err = state_extend(begin, step);
       if (err != NULL) {
         return err;
       }
-      err = state_extend(&false_end,
-                         stmt->list_tail->list_tail->list_tail->list_head);
-      if (err != NULL) {
-        return err;
-      }
-      *begin = prog_make();
-      state_join(true_end, false_end, *begin);
-      return NULL;
     }
-    if (!strcmp(sym, "progn")) {
-      state_put_const(begin, datum_make_void());
-      for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
-           rest = rest->list_tail) {
-        state_pop(begin, NULL);
-        datum_t *step = rest->list_head;
-        char *err = state_extend(begin, step);
-        if (err != NULL) {
-          return err;
-        }
-      }
-      return NULL;
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "quote")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "quote should have a single arg";
     }
-    if (!strcmp(sym, "quote")) {
-      if (list_length(stmt->list_tail) != 1) {
-        return "quote should have a single arg";
-      }
-      state_put_const(begin, stmt->list_tail->list_head);
-      return NULL;
+    state_put_const(begin, stmt->list_tail->list_head);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "def")) {
+    if (list_length(stmt->list_tail) != 2) {
+      return "def should have two args";
     }
-    if (!strcmp(sym, "def")) {
-      if (list_length(stmt->list_tail) != 2) {
-        return "def should have two args";
-      }
-      char *err = state_extend(begin, stmt->list_tail->list_tail->list_head);
-      if (err != NULL) {
-        return err;
-      }
-      state_pop(begin, stmt->list_tail->list_head);
-      state_put_const(begin, datum_make_void());
-      return NULL;
+    char *err = state_extend(begin, stmt->list_tail->list_tail->list_head);
+    if (err != NULL) {
+      return err;
     }
-    if (!strcmp(sym, "builtin.defn")) {
-      if (list_length(stmt->list_tail) != 2) {
-        return "defn should have two args";
-      }
-      state_args(begin);
-      state_put_const(begin, stmt->list_tail->list_head);
-      state_put_const(begin, stmt->list_tail->list_tail->list_head);
-      state_call_special(begin, special_defn);
-      return NULL;
+    state_pop(begin, stmt->list_tail->list_head);
+    state_put_const(begin, datum_make_void());
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "builtin.defn")) {
+    if (list_length(stmt->list_tail) != 2) {
+      return "defn should have two args";
     }
-    if (!strcmp(sym, "builtin.fn")) {
-      if (list_length(stmt->list_tail) != 1) {
-        return "fn should have one arg";
-      }
-      state_args(begin);
-      state_put_const(begin, stmt->list_tail->list_head);
-      state_call_special(begin, special_fn);
-      return NULL;
+    state_args(begin);
+    state_put_const(begin, stmt->list_tail->list_head);
+    state_put_const(begin, stmt->list_tail->list_tail->list_head);
+    state_call_special(begin, special_defn);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "builtin.fn")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "fn should have one arg";
     }
-    if (!strcmp(sym, "require")) {
-      if (list_length(stmt->list_tail) != 1) {
-        return "require should have a single arg";
-      }
-      state_args(begin);
-      char *err = state_extend(begin, stmt->list_tail->list_head);
-      if (err != NULL) {
-        return err;
-      }
-      state_call_special(begin, special_require);
-      return NULL;
+    state_args(begin);
+    state_put_const(begin, stmt->list_tail->list_head);
+    state_call_special(begin, special_fn);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "require")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "require should have a single arg";
     }
-    if (!strcmp(sym, "return")) {
-      if (list_length(stmt->list_tail) != 1) {
-        return "return should have a single arg";
-      }
-      char *err = state_extend(begin, stmt->list_tail->list_head);
-      if (err != NULL) {
-        return err;
-      }
-      state_return(begin);
-      return NULL;
+    state_args(begin);
+    char *err = state_extend(begin, stmt->list_tail->list_head);
+    if (err != NULL) {
+      return err;
     }
-    if (!strcmp(sym, "yield")) {
-      if (list_length(stmt->list_tail) != 1) {
-        return "yield should have a single arg";
-      }
-      char *err = state_extend(begin, stmt->list_tail->list_head);
-      if (err != NULL) {
-        return err;
-      }
-      state_yield(begin);
-      return NULL;
+    state_call_special(begin, special_require);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "return")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "return should have a single arg";
     }
-    if (!strcmp(sym, "backquote")) {
-      if (list_length(stmt->list_tail) != 1) {
-        return "backquote should have a single arg";
-      }
-      return state_extend_backquoted(begin, stmt->list_tail->list_head);
+    char *err = state_extend(begin, stmt->list_tail->list_head);
+    if (err != NULL) {
+      return err;
     }
+    state_return(begin);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "yield")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "yield should have a single arg";
+    }
+    char *err = state_extend(begin, stmt->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    state_yield(begin);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "backquote")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "backquote should have a single arg";
+    }
+    return state_extend_backquoted(begin, stmt->list_tail->list_head);
   }
 
   datum_t *fn = stmt->list_head;
