@@ -361,7 +361,9 @@ ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (err != NULL) {
     return ctx_make_panic(err);
   }
-  ctxt = namespace_put(ctxt, datum_make_routine(s, ctxt));
+  namespace_t *routine_ctxt =
+      namespace_make(ctxt->vars, datum_make_nil(), routine_make_null());
+  ctxt = namespace_put(ctxt, datum_make_routine(s, routine_ctxt));
   return ctx_make_ok(ctxt);
 }
 
@@ -390,7 +392,7 @@ static ctx_t state_eval(routine_t c) {
     switch (c.state->type) {
     case STATE_END: {
       if (!routine_is_null(c.context->parent)) {
-	return ctx_make_panic("reached the end state in a subroutine");
+        return ctx_make_panic("reached the end state in a subroutine");
       }
       return ctx_make_ok(c.context);
     } break;
@@ -459,6 +461,9 @@ static ctx_t state_eval(routine_t c) {
       if (datum_is_routine(fn.ok_value)) {
         routine_t parent_cont = routine_make(c.state->call_next, c.context);
         switch_context(&c, fn.ok_value->routine_value, args);
+        if (!routine_is_null(c.context->parent)) {
+          return ctx_make_panic("attempt to call routine with existing parent");
+        }
         c.context = namespace_change_parent(c.context, parent_cont);
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, c.context);
@@ -482,9 +487,11 @@ static ctx_t state_eval(routine_t c) {
       switch_context(&c, c.context->parent, res.ok_value);
     } break;
     case STATE_YIELD: {
-      if (routine_is_null(c.context->parent)) {
+      routine_t par = c.context->parent;
+      if (routine_is_null(par)) {
         return ctx_make_panic("bad yield");
       }
+      c.context = namespace_change_parent(c.context, routine_make_null());
       val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
@@ -492,7 +499,7 @@ static ctx_t state_eval(routine_t c) {
       c.context = namespace_pop(c.context);
       datum_t *resume = datum_make_routine(c.state->yield_next, c.context);
       datum_t *r = datum_make_list_2(res.ok_value, resume);
-      switch_context(&c, c.context->parent, r);
+      switch_context(&c, par, r);
     } break;
     case STATE_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
@@ -878,7 +885,9 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    return datum_make_routine(raw_value->routine_value.state, ns);
+    namespace_t *routine_ns =
+        namespace_make(ns->vars, datum_make_nil(), routine_make_null());
+    return datum_make_routine(raw_value->routine_value.state, routine_ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
