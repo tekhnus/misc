@@ -23,9 +23,7 @@ routine_t routine_make_null() {
   return res;
 }
 
-bool routine_is_null(routine_t r) {
-  return r.prog == NULL && r.state == NULL;
-}
+bool routine_is_null(routine_t r) { return r.prog == NULL && r.state == NULL; }
 
 state_t *namespace_change_parent(state_t *ns, routine_t new_parent) {
   return state_make(ns->vars, ns->stack, new_parent);
@@ -435,8 +433,7 @@ static fstate_t state_eval(routine_t c) {
       c.prog = c.prog->pop_next;
     } break;
     case PROG_ARGS: {
-      c.state =
-          state_stack_put(c.state, datum_make_symbol("__function_call"));
+      c.state = state_stack_put(c.state, datum_make_symbol("__function_call"));
       c.prog = c.prog->args_next;
     } break;
     case PROG_CALL: {
@@ -462,7 +459,8 @@ static fstate_t state_eval(routine_t c) {
         routine_t parent_cont = routine_make(c.prog->call_next, c.state);
         switch_context(&c, fn.ok_value->routine_value, args);
         if (!routine_is_null(c.state->parent)) {
-          return fstate_make_panic("attempt to call routine with existing parent");
+          return fstate_make_panic(
+              "attempt to call routine with existing parent");
         }
         c.state = namespace_change_parent(c.state, parent_cont);
       } else if (datum_is_pointer(fn.ok_value)) {
@@ -862,8 +860,7 @@ state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value) {
   return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
 }
 
-state_t *state_set_fn(state_t *ns, datum_t *symbol,
-                              datum_t *value) {
+state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
   prog_t *s = prog_make();
   char *err = state_init_fn_body(s, value);
   if (err != NULL) {
@@ -908,8 +905,7 @@ fdatum_t state_get_var(state_t *ns, datum_t *symbol) {
 }
 
 state_t *state_stack_put(state_t *ns, datum_t *value) {
-  return state_make(ns->vars, datum_make_list(value, ns->stack),
-                        ns->parent);
+  return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent);
 }
 
 fdatum_t state_stack_peek(state_t *ns) {
@@ -928,7 +924,7 @@ state_t *state_stack_pop(state_t *ns) {
 }
 
 fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,
-               state_t *ctxt) {
+                  state_t *ctxt) {
   if (!datum_is_list(items)) {
     return fdatum_make_panic("expected a list");
   }
@@ -1226,14 +1222,14 @@ fdatum_t builtin_shared_library(datum_t *library_name) {
   char *err = dlerror();
   if (!*handle) {
     return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
-                                         datum_make_bytestring(err)));
+                                            datum_make_bytestring(err)));
   }
-  return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":ok"),
-                                       datum_make_pointer_to_pointer(handle)));
+  return fdatum_make_ok(datum_make_list_2(
+      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
 }
 
 fdatum_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
-                             datum_t *descriptor) {
+                                datum_t *descriptor) {
   if (!datum_is_pointer(shared_library) ||
       !datum_is_symbol(shared_library->pointer_descriptor) ||
       strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
@@ -1247,7 +1243,7 @@ fdatum_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
   char *err = dlerror();
   if (err != NULL) {
     return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
-                                         datum_make_bytestring(err)));
+                                            datum_make_bytestring(err)));
   }
   return fdatum_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
