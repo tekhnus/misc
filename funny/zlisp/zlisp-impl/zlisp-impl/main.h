@@ -28,11 +28,6 @@ enum datum_type {
   DATUM_VOID,
 };
 
-enum routine_type {
-  ROUTINE_OK,
-  ROUTINE_PANIC,
-};
-
 struct routine {
   state_t *state;
   namespace_t *context;
@@ -111,7 +106,6 @@ enum state_type {
   STATE_CALL_SPECIAL,
   STATE_RETURN,
   STATE_YIELD,
-  STATE_BAD_RETURN,
 };
 
 struct state {

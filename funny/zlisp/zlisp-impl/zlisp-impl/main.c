@@ -510,9 +510,6 @@ static ctx_t state_eval(routine_t c) {
       c.context = sres.ok_value;
       c.state = c.state->call_special_next;
     } break;
-    case STATE_BAD_RETURN: {
-      return ctx_make_panic("bad return");
-    } break;
     default: {
       return ctx_make_panic("unhandled state type");
     } break;
