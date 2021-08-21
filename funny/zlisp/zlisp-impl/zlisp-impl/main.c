@@ -29,16 +29,6 @@ state_t *namespace_change_parent(state_t *ns, routine_t new_parent) {
   return state_make(ns->vars, ns->stack, new_parent);
 }
 
-static bool datum_is_the_symbol(datum_t *d, char *val) {
-  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
-}
-
-prog_t *prog_make() {
-  prog_t *res = malloc(sizeof(prog_t));
-  res->type = PROG_END;
-  return res;
-}
-
 int list_length(datum_t *seq) {
   if (!datum_is_list(seq)) {
     return -1;
@@ -46,6 +36,22 @@ int list_length(datum_t *seq) {
   int res;
   for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res)
     ;
+  return res;
+}
+
+static bool datum_is_the_symbol(datum_t *d, char *val) {
+  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
+}
+
+static bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
+  return datum_is_list(d) && list_length(d) == 2 &&
+         datum_is_the_symbol(d->list_head, val1) &&
+         datum_is_the_symbol(d->list_tail->list_head, val2);
+}
+
+prog_t *prog_make() {
+  prog_t *res = malloc(sizeof(prog_t));
+  res->type = PROG_END;
   return res;
 }
 
@@ -270,6 +276,9 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     state_return(begin);
     return NULL;
   }
+  if (datum_is_the_symbol_pair(op, "hat", "return")) {
+    return "^return not implemented yet";
+  }
   if (datum_is_the_symbol(op, "yield")) {
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
@@ -280,6 +289,9 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     }
     state_yield(begin);
     return NULL;
+  }
+  if (datum_is_the_symbol_pair(op, "hat", "yield")) {
+    return "^yield not implemented yet";
   }
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt->list_tail) != 1) {
