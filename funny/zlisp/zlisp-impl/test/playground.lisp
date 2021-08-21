@@ -39,8 +39,8 @@
 
 (print (append 5 '(1 2 3 4)))
 
-'!(#defun adder (n) (fn (m) (+ n m)))
-'(print ((adder 3) 4))
+!(#defun adder (n) (return !(#fn (m) (return (+ n m)))))
+(print ((adder 3) 4))
 
 !(#def-or-panica printfptr
      (extern-pointer libc "printf"
