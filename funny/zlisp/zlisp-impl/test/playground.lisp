@@ -24,7 +24,7 @@
 
 (def args (list :p :q :r))
 
-!(#defun twice (arg) (+ arg arg))
+!(#defun twice (arg) (return (+ arg arg)))
 
 (print (twice 35))
 
@@ -35,7 +35,6 @@
 
 (print (if (list pi) pi (add pi pi)))
 (print (second '(1 2)))
-!(#defun third args (head (tail (tail (head args)))))
 
 (print (append 5 '(1 2 3 4)))
 

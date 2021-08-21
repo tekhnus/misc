@@ -389,6 +389,9 @@ static ctx_t state_eval(routine_t c) {
   for (;;) {
     switch (c.state->type) {
     case STATE_END: {
+      if (!routine_is_null(c.context->parent)) {
+	return ctx_make_panic("reached the end state in a subroutine");
+      }
       return ctx_make_ok(c.context);
     } break;
     case STATE_NOP: {
