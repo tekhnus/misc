@@ -139,7 +139,11 @@ struct prog {
       fstate_t (*call_special_func)(datum_t *, state_t *);
       prog_t *call_special_next;
     };
-    prog_t *yield_next;
+    bool return_hat;
+    struct {
+      bool yield_hat;
+      prog_t *yield_next;
+    };
   };
 };
 

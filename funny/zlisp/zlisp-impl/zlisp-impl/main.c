@@ -108,13 +108,15 @@ void state_call_special(prog_t **begin,
   *begin = (*begin)->call_special_next;
 }
 
-void state_return(prog_t **begin) {
+void state_return(prog_t **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
+  (*begin)->return_hat = hat;
   *begin = prog_make();
 }
 
-void state_yield(prog_t **begin) {
+void state_yield(prog_t **begin, bool hat) {
   (*begin)->type = PROG_YIELD;
+  (*begin)->yield_hat = hat;
   (*begin)->yield_next = prog_make();
   *begin = (*begin)->yield_next;
 }
@@ -266,7 +268,8 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     state_call_special(begin, special_require);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "return")) {
+  if (datum_is_the_symbol(op, "return") || datum_is_the_symbol_pair(op, "hat", "return")) {
+    bool hat = datum_is_the_symbol_pair(op, "hat", "return");
     if (list_length(stmt->list_tail) != 1) {
       return "return should have a single arg";
     }
@@ -274,13 +277,11 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (err != NULL) {
       return err;
     }
-    state_return(begin);
+    state_return(begin, hat);
     return NULL;
   }
-  if (datum_is_the_symbol_pair(op, "hat", "return")) {
-    return "^return not implemented yet";
-  }
-  if (datum_is_the_symbol(op, "yield")) {
+  if (datum_is_the_symbol(op, "yield") || datum_is_the_symbol_pair(op, "hat", "yield")) {
+    bool hat = datum_is_the_symbol_pair(op, "hat", "yield");
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
@@ -288,11 +289,8 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (err != NULL) {
       return err;
     }
-    state_yield(begin);
+    state_yield(begin, hat);
     return NULL;
-  }
-  if (datum_is_the_symbol_pair(op, "hat", "yield")) {
-    return "^yield not implemented yet";
   }
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt->list_tail) != 1) {
@@ -494,18 +492,29 @@ static fstate_t state_eval(routine_t c) {
       }
     } break;
     case PROG_RETURN: {
-      if (routine_is_null(c.state->parent)) {
+      routine_t return_to;
+      if (c.prog->return_hat) {
+	return fstate_make_panic("^return not implemented yet");
+      } else {
+	return_to = c.state->parent;
+      }
+      if (routine_is_null(return_to)) {
         return fstate_make_panic("bad return");
       }
       fdatum_t res = state_stack_peek(c.state);
       if (fdatum_is_panic(res)) {
         return fstate_make_panic(res.panic_message);
       }
-      switch_context(&c, c.state->parent, res.ok_value);
+      switch_context(&c, return_to, res.ok_value);
     } break;
     case PROG_YIELD: {
-      routine_t par = c.state->parent;
-      if (routine_is_null(par)) {
+      routine_t yield_to;
+      if (c.prog->yield_hat) {
+	return fstate_make_panic("^yield not implemented yet");
+      } else {
+	yield_to = c.state->parent;
+      }
+      if (routine_is_null(yield_to)) {
         return fstate_make_panic("bad yield");
       }
       c.state = namespace_change_parent(c.state, routine_make_null());
@@ -516,7 +525,7 @@ static fstate_t state_eval(routine_t c) {
       c.state = state_stack_pop(c.state);
       datum_t *resume = datum_make_routine(c.prog->yield_next, c.state);
       datum_t *r = datum_make_list_2(res.ok_value, resume);
-      switch_context(&c, par, r);
+      switch_context(&c, yield_to, r);
     } break;
     case PROG_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
