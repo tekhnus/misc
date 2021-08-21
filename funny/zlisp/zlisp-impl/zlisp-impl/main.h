@@ -178,7 +178,7 @@ datum_t *datum_make_bytestring(char *text);
 
 datum_t *datum_make_int(int64_t value);
 
-datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings);
+datum_t *datum_make_routine(state_t *s, namespace_t *lexical_bindings);
 
 datum_t *datum_make_pointer(void *data, datum_t *signature);
 

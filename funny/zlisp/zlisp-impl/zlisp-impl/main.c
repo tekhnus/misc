@@ -361,7 +361,7 @@ ctx_t special_fn(datum_t *args, namespace_t *ctxt) {
   if (err != NULL) {
     return ctx_make_panic(err);
   }
-  ctxt = namespace_put(ctxt, datum_make_operator(s, ctxt));
+  ctxt = namespace_put(ctxt, datum_make_routine(s, ctxt));
   return ctx_make_ok(ctxt);
 }
 
@@ -456,7 +456,7 @@ static ctx_t state_eval(routine_t c) {
       if (datum_is_routine(fn.ok_value)) {
         routine_t parent_cont = routine_make(c.state->call_next, c.context);
         switch_context(&c, fn.ok_value->routine_value, args);
-	c.context = namespace_change_parent(c.context, parent_cont);
+        c.context = namespace_change_parent(c.context, parent_cont);
       } else if (datum_is_pointer(fn.ok_value)) {
         val_t res = pointer_call(fn.ok_value, args, c.context);
         if (val_is_panic(res)) {
@@ -470,7 +470,7 @@ static ctx_t state_eval(routine_t c) {
     } break;
     case STATE_RETURN: {
       if (routine_is_null(c.context->parent)) {
-	return ctx_make_panic("bad return");
+        return ctx_make_panic("bad return");
       }
       val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
@@ -480,14 +480,14 @@ static ctx_t state_eval(routine_t c) {
     } break;
     case STATE_YIELD: {
       if (routine_is_null(c.context->parent)) {
-	return ctx_make_panic("bad yield");
+        return ctx_make_panic("bad yield");
       }
       val_t res = namespace_peek(c.context);
       if (val_is_panic(res)) {
         return ctx_make_panic(res.panic_message);
       }
       c.context = namespace_pop(c.context);
-      datum_t *resume = datum_make_operator(c.state->yield_next, c.context);
+      datum_t *resume = datum_make_routine(c.state->yield_next, c.context);
       datum_t *r = datum_make_list_2(res.ok_value, resume);
       switch_context(&c, c.context->parent, r);
     } break;
@@ -590,7 +590,7 @@ datum_t *datum_make_int(int64_t value) {
   return e;
 }
 
-datum_t *datum_make_operator(state_t *s, namespace_t *lexical_bindings) {
+datum_t *datum_make_routine(state_t *s, namespace_t *lexical_bindings) {
   datum_t *e = malloc(sizeof(datum_t));
   e->type = DATUM_ROUTINE;
   e->routine_value.state = s;
@@ -863,7 +863,7 @@ namespace_t *namespace_set_fn(namespace_t *ns, datum_t *symbol,
     fprintf(stderr, "bad function def\n");
     exit(EXIT_FAILURE);
   }
-  datum_t *fn = datum_make_operator(s, NULL);
+  datum_t *fn = datum_make_routine(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
   return namespace_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
 }
@@ -878,7 +878,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, namespace_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    return datum_make_operator(raw_value->routine_value.state, ns);
+    return datum_make_routine(raw_value->routine_value.state, ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
