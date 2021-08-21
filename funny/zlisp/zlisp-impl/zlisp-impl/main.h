@@ -55,6 +55,7 @@ struct state {
   datum_t *vars;
   datum_t *stack;
   routine_t parent;
+  routine_t hat_parent;
 };
 
 enum read_result_type {
@@ -223,7 +224,7 @@ fstate_t fstate_make_ok(state_t *v);
 
 fstate_t fstate_make_panic(char *message);
 
-state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent);
+state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent, routine_t hat_parent);
 
 state_t *state_make_fresh();
 

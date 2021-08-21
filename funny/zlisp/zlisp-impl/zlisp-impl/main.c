@@ -25,8 +25,18 @@ routine_t routine_make_null() {
 
 bool routine_is_null(routine_t r) { return r.prog == NULL && r.state == NULL; }
 
-state_t *namespace_change_parent(state_t *ns, routine_t new_parent) {
-  return state_make(ns->vars, ns->stack, new_parent);
+routine_t state_get_parent(state_t *ns, bool hat) {
+  if (hat) {
+    return ns->hat_parent;
+  }
+  return ns->parent;
+}
+
+state_t *namespace_change_parent(state_t *ns, routine_t new_parent, bool hat) {
+  if (hat) {
+    return state_make(ns->vars, ns->stack, ns->parent, new_parent);
+  }
+  return state_make(ns->vars, ns->stack, new_parent, ns->hat_parent);
 }
 
 int list_length(datum_t *seq) {
@@ -268,7 +278,8 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     state_call_special(begin, special_require);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "return") || datum_is_the_symbol_pair(op, "hat", "return")) {
+  if (datum_is_the_symbol(op, "return") ||
+      datum_is_the_symbol_pair(op, "hat", "return")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "return");
     if (list_length(stmt->list_tail) != 1) {
       return "return should have a single arg";
@@ -280,7 +291,8 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     state_return(begin, hat);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "yield") || datum_is_the_symbol_pair(op, "hat", "yield")) {
+  if (datum_is_the_symbol(op, "yield") ||
+      datum_is_the_symbol_pair(op, "hat", "yield")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "yield");
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
@@ -370,8 +382,8 @@ fstate_t special_fn(datum_t *args, state_t *ctxt) {
   if (err != NULL) {
     return fstate_make_panic(err);
   }
-  state_t *routine_ctxt =
-      state_make(ctxt->vars, datum_make_nil(), routine_make_null());
+  state_t *routine_ctxt = state_make(ctxt->vars, datum_make_nil(),
+                                     routine_make_null(), routine_make_null());
   ctxt = state_stack_put(ctxt, datum_make_routine(s, routine_ctxt));
   return fstate_make_ok(ctxt);
 }
@@ -467,16 +479,22 @@ static fstate_t state_eval(routine_t c) {
         return fstate_make_panic(fn.panic_message);
       }
       if (datum_is_routine(fn.ok_value)) {
-        if (c.prog->call_hat) {
-          return fstate_make_panic("hat-call not implemented yet");
-        }
+        bool hat = c.prog->call_hat;
         routine_t parent_cont = routine_make(c.prog->call_next, c.state);
         switch_context(&c, fn.ok_value->routine_value, args);
-        if (!routine_is_null(c.state->parent)) {
+        if (!routine_is_null(state_get_parent(c.state, hat))) {
           return fstate_make_panic(
               "attempt to call routine with existing parent");
         }
-        c.state = namespace_change_parent(c.state, parent_cont);
+        c.state = namespace_change_parent(c.state, parent_cont, hat);
+        if (!hat) {
+          if (!routine_is_null(state_get_parent(c.state, true))) {
+            return fstate_make_panic(
+                "attempt to call routine with existing hat-parent");
+          }
+          c.state = namespace_change_parent(
+              c.state, parent_cont.state->hat_parent, true);
+        }
       } else if (datum_is_pointer(fn.ok_value)) {
         if (c.prog->call_hat) {
           return fstate_make_panic("hat-call makes no sense for native calls");
@@ -494,9 +512,9 @@ static fstate_t state_eval(routine_t c) {
     case PROG_RETURN: {
       routine_t return_to;
       if (c.prog->return_hat) {
-	return fstate_make_panic("^return not implemented yet");
+        return fstate_make_panic("^return not implemented yet");
       } else {
-	return_to = c.state->parent;
+        return_to = c.state->parent;
       }
       if (routine_is_null(return_to)) {
         return fstate_make_panic("bad return");
@@ -508,16 +526,19 @@ static fstate_t state_eval(routine_t c) {
       switch_context(&c, return_to, res.ok_value);
     } break;
     case PROG_YIELD: {
+      bool hat;
       routine_t yield_to;
       if (c.prog->yield_hat) {
-	return fstate_make_panic("^yield not implemented yet");
+        hat = true;
+        yield_to = c.state->hat_parent;
       } else {
-	yield_to = c.state->parent;
+        hat = false;
+        yield_to = c.state->parent;
       }
       if (routine_is_null(yield_to)) {
         return fstate_make_panic("bad yield");
       }
-      c.state = namespace_change_parent(c.state, routine_make_null());
+      c.state = namespace_change_parent(c.state, routine_make_null(), hat);
       fdatum_t res = state_stack_peek(c.state);
       if (fdatum_is_panic(res)) {
         return fstate_make_panic(res.panic_message);
@@ -873,23 +894,26 @@ fstate_t fstate_make_panic(char *message) {
   return result;
 }
 
-state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent) {
+state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent,
+                    routine_t hat_parent) {
   state_t *res = malloc(sizeof(state_t));
   res->vars = vars;
   res->stack = stack;
   res->parent = parent;
+  res->hat_parent = hat_parent;
   return res;
 }
 
 state_t *state_make_fresh() {
   prog_t *s = prog_make();
   routine_t zero = routine_make_null();
-  return state_make(datum_make_nil(), datum_make_nil(), zero);
+  return state_make(datum_make_nil(), datum_make_nil(), zero, zero);
 }
 
 state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value) {
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
-  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
+  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
+                    ns->hat_parent);
 }
 
 state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
@@ -901,7 +925,8 @@ state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
   }
   datum_t *fn = datum_make_routine(s, NULL);
   datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
-  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
+  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
+                    ns->hat_parent);
 }
 
 datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
@@ -914,8 +939,8 @@ datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    state_t *routine_ns =
-        state_make(ns->vars, datum_make_nil(), routine_make_null());
+    state_t *routine_ns = state_make(ns->vars, datum_make_nil(),
+                                     routine_make_null(), routine_make_null());
     return datum_make_routine(raw_value->routine_value.prog, routine_ns);
   } else {
     fprintf(stderr, "namespace implementation error");
@@ -937,7 +962,8 @@ fdatum_t state_get_var(state_t *ns, datum_t *symbol) {
 }
 
 state_t *state_stack_put(state_t *ns, datum_t *value) {
-  return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent);
+  return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent,
+                    ns->hat_parent);
 }
 
 fdatum_t state_stack_peek(state_t *ns) {
@@ -952,7 +978,7 @@ state_t *state_stack_pop(state_t *ns) {
     fprintf(stderr, "cannot pop from an empty stack\n");
     exit(EXIT_FAILURE);
   }
-  return state_make(ns->vars, ns->stack->list_tail, ns->parent);
+  return state_make(ns->vars, ns->stack->list_tail, ns->parent, ns->hat_parent);
 }
 
 fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,
