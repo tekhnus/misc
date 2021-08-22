@@ -173,9 +173,6 @@ fstate_t special_require(datum_t *args, state_t *ctxt) {
     datum_t *sym = imported_bindings->list_head->list_head;
     datum_t *val = imported_bindings->list_head->list_tail->list_head;
 
-    if (!strcmp("this-directory", sym->symbol_value)) {
-      continue;
-    }
     ctxt = state_set_var(ctxt, sym, val);
   }
   ctxt = state_stack_put(ctxt, datum_make_void());
@@ -1424,11 +1421,6 @@ fstate_t fstate_make_eval_file(char *filename) {
     return prelude;
   }
   state_t *ns = prelude.ok_value;
-  char filename_copy[1024];
-  strcpy(filename_copy, filename);
-  datum_t *new_this_directory = datum_make_bytestring(dirname(filename_copy));
-  ns = state_set_var(ns, datum_make_symbol("this-directory"),
-                     new_this_directory);
   fstate_t ns_ = stream_eval(module, ns);
   return ns_;
 }
