@@ -28,12 +28,19 @@ char *state_extend(prog_t **begin, datum_t *stmt);
 
 static fdatum_t datum_expand(datum_t *e, state_t *ctxt);
 
-char *prog_init_from_file(prog_t *s, char *filename) {
+char *state_require_stream(prog_t **begin, FILE *stre, bool with_prelude);
+
+char *prog_init_from_stream(prog_t *s, FILE *stream, bool with_prelude) {
+  if (with_prelude) {
+    char *err = state_require_stream(&s, fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r"), false);
+    if (err != NULL) {
+      return err;
+    }
+  }
   fstate_t prelude = fstate_make_prelude();
   if (fstate_is_panic(prelude)) {
     return prelude.panic_message;
   }
-  FILE *stream = fopen(filename, "r");
   read_result_t rr;
   for (; read_result_is_ok(rr = datum_read(stream));) {
     fdatum_t exp = datum_expand(rr.ok_value, prelude.ok_value);
@@ -47,6 +54,11 @@ char *prog_init_from_file(prog_t *s, char *filename) {
   }
   state_module_end(&s);
   return NULL;
+}
+
+char *prog_init_from_file(prog_t *s, char *filename, bool with_prelude) {
+  FILE *stream = fopen(filename, "r");
+  return prog_init_from_stream(s, stream, with_prelude);
 }
 
 routine_t routine_make(prog_t *s, state_t *ctxt) {
@@ -177,6 +189,25 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
 fstate_t special_fn(datum_t *args, state_t *ctxt);
 
 char *state_extend_backquoted(prog_t **begin, datum_t *stmt);
+
+static state_t *state_make_builtins();
+
+char *state_require_stream(prog_t **begin, FILE *stre, bool with_prelude) {
+  prog_t *pr = prog_make();
+  prog_t *pr2 = pr;
+
+  char *err = prog_init_from_stream(pr2, stre, with_prelude);
+  if (err != NULL) {
+    return err;
+  }
+  state_t *s = state_make_builtins();
+  datum_t *r = datum_make_routine(pr, s);
+  state_put_const(begin, r);
+  state_args(begin);
+  state_call(begin, false); // TODO: bare call
+  return NULL;
+}
+
 char *state_extend(prog_t **begin, datum_t *stmt) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
@@ -284,21 +315,9 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     strcat(fname, "/");
     strcat(fname, pkg);
     strcat(fname, "/main.lisp");
-    prog_t *pr = prog_make();
-    char *err = prog_init_from_file(pr, fname);
-    if (err != NULL) {
-      return err;
-    }
-    fstate_t pre = fstate_make_prelude();
-    if (fstate_is_panic(pre)) {
-      return pre.panic_message;
-    }
-    state_t *s = pre.ok_value;
-    datum_t *r = datum_make_routine(pr, s);
-    state_put_const(begin, r);
-    state_args(begin);
-    state_call(begin, false); // TODO: bare call
-    return NULL;
+
+    FILE *stre = fopen(fname, "r");
+    return state_require_stream(begin, stre, true);
   }
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
@@ -548,7 +567,8 @@ fstate_t state_eval(routine_t c) {
         return fstate_make_panic(res.panic_message);
       }
       switch_context(&c, return_to, res.ok_value);
-      c.state->hat_parent = hat_par; /* Because the caller hat parent might be out-of-date.*/
+      c.state->hat_parent =
+          hat_par; /* Because the caller hat parent might be out-of-date.*/
     } break;
     case PROG_YIELD: {
       bool hat;
@@ -1423,7 +1443,7 @@ void namespace_def_extern_fn(state_t **ctxt, char *name, fdatum_t (*fn)(),
   *ctxt = state_set_var(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-fstate_t fstate_make_prelude() {
+static state_t *state_make_builtins() {
   state_t *ns = state_make_fresh();
 
   namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
@@ -1439,6 +1459,12 @@ fstate_t fstate_make_prelude() {
   namespace_def_extern_fn(&ns, "concat-bytestrings", builtin_concat_bytestrings,
                           2);
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
+
+  return ns;
+}
+
+fstate_t fstate_make_prelude() {
+  state_t *ns = state_make_builtins();
 
   FILE *prelude =
       fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");

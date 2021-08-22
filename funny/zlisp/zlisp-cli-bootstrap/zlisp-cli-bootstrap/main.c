@@ -17,17 +17,13 @@ int main(int argc, char **argv) {
   }
   strcat(filename_copy, argv[1]);
   prog_t *p = prog_make();
-  char *err = prog_init_from_file(p, filename_copy);
+  char *err = prog_init_from_file(p, filename_copy, true);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  fstate_t i = fstate_make_prelude();
-  if (fstate_is_panic(i)) {
-    fprintf(stderr, "prelude error: %s\n", i.panic_message);
-    return EXIT_FAILURE;
-  }
-  fstate_t ns = state_eval(routine_make(p, i.ok_value));
+  state_t *s = state_make_fresh();
+  fstate_t ns = state_eval(routine_make(p, s));
   if (fstate_is_panic(ns)) {
     fprintf(stderr, "runtime error: %s\n", ns.panic_message);
     return EXIT_FAILURE;
