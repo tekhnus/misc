@@ -1,6 +1,6 @@
 (def readme "A basic REPL for zlisp.")
 
-(require (concat-bytestrings this-directory "/../zlisp/main.lisp"))
+(require "zlisp")
 
 !(#defun repl
   (nsp)

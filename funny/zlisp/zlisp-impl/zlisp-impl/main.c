@@ -151,7 +151,18 @@ fstate_t special_require(datum_t *args, state_t *ctxt) {
   if (!datum_is_bytestring(args->list_head)) {
     return fstate_make_panic("require expected a string");
   }
-  fstate_t file_ns = fstate_make_eval_file(args->list_head->bytestring_value);
+  char *pkg = args->list_head->bytestring_value;
+  char fname[1024] = {};
+  char *zlisp_home = getenv("ZLISP");
+  if (zlisp_home == NULL) {
+    return fstate_make_panic("ZLISP variable not defined");
+  }
+  strcat(fname, zlisp_home);
+  strcat(fname, "/");
+  strcat(fname, pkg);
+  strcat(fname, "/main.lisp");
+  printf("%s\n", fname);
+  fstate_t file_ns = fstate_make_eval_file(fname);
   if (fstate_is_panic(file_ns)) {
     return file_ns;
   }
