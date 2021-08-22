@@ -194,3 +194,9 @@
 
 !(#defun print (val)
   (return (fprintf-bytestring stdout "%s\n" (repr val))))
+
+!(#defun def2 (left right val)
+   (return `(progn
+	      (def tmp ~val)
+	      (def ~left (head tmp))
+	      (def ~right (second tmp)))))

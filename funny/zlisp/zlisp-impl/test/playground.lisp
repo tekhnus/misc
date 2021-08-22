@@ -6,12 +6,6 @@
    (yield 8)
    (yield 13))
 
-!(#defun def2 (left right val)
-   (return `(progn
-	      (def tmp ~val)
-	      (def ~left (head tmp))
-	      (def ~right (second tmp)))))
-
 !(#def2 x fib (fib))
 (print x)
 !(#def2 x fib (fib))
@@ -39,7 +33,6 @@
 (print x)
 !(#def2 x more-far-fib (^more-far-fib))
 (print x)
-
 
 (def args (list :p :q :r))
 

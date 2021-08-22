@@ -107,6 +107,7 @@ enum prog_type {
   PROG_CALL_SPECIAL,
   PROG_RETURN,
   PROG_YIELD,
+  PROG_MODULE_END,
 };
 
 struct prog {
@@ -246,10 +247,14 @@ fstate_t datum_eval(datum_t *e, state_t *ctxt);
 
 fstate_t fstate_make_prelude();
 
-fstate_t fstate_make_eval_file(char *filename);
-
 routine_t routine_make(prog_t *s, state_t *ctxt);
+
+prog_t *prog_make();
+
+char *prog_init_from_file(prog_t *s, char *filename);
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 
 extern unsigned int zlisp_impl_prelude_lisp_len;
+
+fstate_t state_eval(routine_t c);

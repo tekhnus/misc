@@ -13,6 +13,42 @@
 #include <stdlib.h>
 #include <string.h>
 
+prog_t *prog_make() {
+  prog_t *res = malloc(sizeof(prog_t));
+  res->type = PROG_END;
+  return res;
+}
+
+void state_module_end(prog_t **begin) {
+  (*begin)->type = PROG_MODULE_END;
+  *begin = prog_make();
+}
+
+char *state_extend(prog_t **begin, datum_t *stmt);
+
+static fdatum_t datum_expand(datum_t *e, state_t *ctxt);
+
+char *prog_init_from_file(prog_t *s, char *filename) {
+  fstate_t prelude = fstate_make_prelude();
+  if (fstate_is_panic(prelude)) {
+    return prelude.panic_message;
+  }
+  FILE *stream = fopen(filename, "r");
+  read_result_t rr;
+  for (; read_result_is_ok(rr = datum_read(stream));) {
+    fdatum_t exp = datum_expand(rr.ok_value, prelude.ok_value);
+    if (fdatum_is_panic(exp)) {
+      return exp.panic_message;
+    }
+    char *err = state_extend(&s, exp.ok_value);
+    if (err != NULL) {
+      return err;
+    }
+  }
+  state_module_end(&s);
+  return NULL;
+}
+
 routine_t routine_make(prog_t *s, state_t *ctxt) {
   routine_t res = {.prog = s, .state = ctxt};
   return res;
@@ -57,12 +93,6 @@ static bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
   return datum_is_list(d) && list_length(d) == 2 &&
          datum_is_the_symbol(d->list_head, val1) &&
          datum_is_the_symbol(d->list_tail->list_head, val2);
-}
-
-prog_t *prog_make() {
-  prog_t *res = malloc(sizeof(prog_t));
-  res->type = PROG_END;
-  return res;
 }
 
 void state_join(prog_t *a, prog_t *b, prog_t *e) {
@@ -140,41 +170,6 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
     return fstate_make_panic("defun requires a symbol as a first argument");
   }
   ctxt = state_set_fn(ctxt, args->list_head, args->list_tail->list_head);
-  ctxt = state_stack_put(ctxt, datum_make_void());
-  return fstate_make_ok(ctxt);
-}
-
-fstate_t special_require(datum_t *args, state_t *ctxt) {
-  if (datum_is_nil(args) || !datum_is_nil(args->list_tail)) {
-    return fstate_make_panic("require expects a single argument");
-  }
-  if (!datum_is_bytestring(args->list_head)) {
-    return fstate_make_panic("require expected a string");
-  }
-  char *pkg = args->list_head->bytestring_value;
-  char fname[1024] = {};
-  char *zlisp_home = getenv("ZLISP");
-  if (zlisp_home == NULL) {
-    return fstate_make_panic("ZLISP variable not defined");
-  }
-  strcat(fname, zlisp_home);
-  strcat(fname, "/");
-  strcat(fname, pkg);
-  strcat(fname, "/main.lisp");
-  printf("%s\n", fname);
-  fstate_t file_ns = fstate_make_eval_file(fname);
-  if (fstate_is_panic(file_ns)) {
-    return file_ns;
-  }
-  state_t *ns = file_ns.ok_value;
-  datum_t *imported_bindings = state_list_vars(ns);
-  for (; !datum_is_nil(imported_bindings);
-       imported_bindings = imported_bindings->list_tail) {
-    datum_t *sym = imported_bindings->list_head->list_head;
-    datum_t *val = imported_bindings->list_head->list_tail->list_head;
-
-    ctxt = state_set_var(ctxt, sym, val);
-  }
   ctxt = state_stack_put(ctxt, datum_make_void());
   return fstate_make_ok(ctxt);
 }
@@ -275,15 +270,34 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     return NULL;
   }
   if (datum_is_the_symbol(op, "require")) {
-    if (list_length(stmt->list_tail) != 1) {
-      return "require should have a single arg";
+    if (list_length(stmt->list_tail) != 1 ||
+        !datum_is_bytestring(stmt->list_tail->list_head)) {
+      return "require should have a single string arg";
     }
-    state_args(begin);
-    char *err = state_extend(begin, stmt->list_tail->list_head);
+    char *pkg = stmt->list_tail->list_head->bytestring_value;
+    char fname[1024] = {};
+    char *zlisp_home = getenv("ZLISP");
+    if (zlisp_home == NULL) {
+      return "ZLISP variable not defined";
+    }
+    strcat(fname, zlisp_home);
+    strcat(fname, "/");
+    strcat(fname, pkg);
+    strcat(fname, "/main.lisp");
+    prog_t *pr = prog_make();
+    char *err = prog_init_from_file(pr, fname);
     if (err != NULL) {
       return err;
     }
-    state_call_special(begin, special_require);
+    fstate_t pre = fstate_make_prelude();
+    if (fstate_is_panic(pre)) {
+      return pre.panic_message;
+    }
+    state_t *s = pre.ok_value;
+    datum_t *r = datum_make_routine(pr, s);
+    state_put_const(begin, r);
+    state_args(begin);
+    state_call(begin, false); // TODO: bare call
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
@@ -416,8 +430,9 @@ void switch_context(routine_t *c, routine_t b, datum_t *v) {
   c->state = state_stack_put(c->state, v);
 }
 
-static fstate_t state_eval(routine_t c) {
+fstate_t state_eval(routine_t c) {
   for (;;) {
+    // printf("%d\n", c.prog->type);
     switch (c.prog->type) {
     case PROG_END: {
       if (!routine_is_null(c.state->parent)) {
@@ -518,6 +533,7 @@ static fstate_t state_eval(routine_t c) {
       }
     } break;
     case PROG_RETURN: {
+      routine_t hat_par = c.state->hat_parent;
       routine_t return_to;
       if (c.prog->return_hat) {
         return fstate_make_panic("^return not implemented yet");
@@ -532,6 +548,7 @@ static fstate_t state_eval(routine_t c) {
         return fstate_make_panic(res.panic_message);
       }
       switch_context(&c, return_to, res.ok_value);
+      c.state->hat_parent = hat_par; /* Because the caller hat parent might be out-of-date.*/
     } break;
     case PROG_YIELD: {
       bool hat;
@@ -555,6 +572,27 @@ static fstate_t state_eval(routine_t c) {
       datum_t *resume = datum_make_routine(c.prog->yield_next, c.state);
       datum_t *r = datum_make_list_2(res.ok_value, resume);
       switch_context(&c, yield_to, r);
+    } break;
+    case PROG_MODULE_END: {
+      state_t *module_state = c.state;
+      routine_t return_to = c.state->parent;
+      if (routine_is_null(return_to)) {
+        return fstate_make_ok(c.state);
+      }
+      fdatum_t res = state_stack_peek(c.state);
+      if (fdatum_is_panic(res)) {
+        return fstate_make_panic(res.panic_message);
+      }
+      switch_context(&c, return_to, datum_make_void());
+
+      datum_t *imported_bindings = state_list_vars(module_state);
+      for (; !datum_is_nil(imported_bindings);
+           imported_bindings = imported_bindings->list_tail) {
+        datum_t *sym = imported_bindings->list_head->list_head;
+        datum_t *val = imported_bindings->list_head->list_tail->list_head;
+
+        c.state = state_set_var(c.state, sym, val);
+      }
     } break;
     case PROG_CALL_SPECIAL: {
       datum_t *sargs = datum_make_nil();
@@ -1409,18 +1447,4 @@ fstate_t fstate_make_prelude() {
   }
 
   return stream_eval(prelude, ns);
-}
-
-fstate_t fstate_make_eval_file(char *filename) {
-  FILE *module = fopen(filename, "r");
-  if (module == NULL) {
-    return fstate_make_panic("error while opening the required file");
-  }
-  fstate_t prelude = fstate_make_prelude();
-  if (fstate_is_panic(prelude)) {
-    return prelude;
-  }
-  state_t *ns = prelude.ok_value;
-  fstate_t ns_ = stream_eval(module, ns);
-  return ns_;
 }
