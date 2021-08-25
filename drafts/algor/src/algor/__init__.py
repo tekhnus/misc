@@ -19,29 +19,35 @@ class GraphHashView:
         return self._graph[v]
 
 
-def dfs_recursive(g, s):
+def dfs_recursive(g, vs):
     visited = set()
 
     def _dfs(v):
-        yield v
+        yield ("enter", v)
         visited.add(v)
         for u in g.successors(v):
             if not u in visited:
                 yield from _dfs(u)
+        yield ("exit", v)
 
-    return _dfs(s)
+    while vs:
+        yield from _dfs(vs.pop())
 
 
-def dfs_iterative(g, v):
+def dfs_iterative(g, vs):
     visited = set()
-    st = collections.deque([v])
+    st = collections.deque([("enter", v) for v in vs])
     while st:
-        u = st.pop()
+        item = label, u = st.pop()
+        if label == "exit":
+            yield item
+            continue
         if u in visited:
             continue
-        yield u
+        yield item
         visited.add(u)
-        st.extend(reversed(g.successors(u)))
+        st.append(("exit", u))
+        st.extend(("enter", w) for w in reversed(g.successors(u)))
 
 
 def bfs(g, v):
@@ -54,3 +60,13 @@ def bfs(g, v):
         yield u
         visited.add(u)
         st.extend(g.successors(u))
+
+
+def topo_sort(vs, g):
+    """
+    If u ---> v and v -/-> u, then v will be outputted before u.
+    """
+    vs = set(vs)
+    for label, v in dfs_iterative(g, vs):
+        if label == "exit" and v in vs:
+            yield v
