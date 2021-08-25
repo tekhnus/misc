@@ -1,3 +1,8 @@
+"""
+gl = graph represented by list
+gh = graph represented by hash
+s.c.c = strongly connected component
+"""
 import collections
 
 
@@ -11,12 +16,21 @@ def graph_list_to_hash(gl):
     return g
 
 
+def gh_reversed(g):
+    vs = list(g.keys())
+    es = [(t, s) for s, ts in g.items() for t in ts]
+    return graph_list_to_hash((vs, es))
+
+
 class GraphHashView:
     def __init__(self, g):
         self._graph = g
 
     def successors(self, v):
         return self._graph[v]
+
+    def reversed(self):
+        return GraphHashView(gh_reversed(self._graph))
 
 
 def dfs_recursive(g, vs):
@@ -64,9 +78,30 @@ def bfs(g, v):
 
 def topo_sort(vs, g):
     """
-    If u ---> v and v -/-> u, then v will be outputted before u.
+    Output all vertices of g reachable from any of vs.
+
+    When the last element of an s.c.c. is outputted,
+    all elements of all successor s.c.c. are already outputted.
     """
-    vs = set(vs)
     for label, v in dfs_iterative(g, vs):
-        if label == "exit" and v in vs:
+        if label == "exit":
             yield v
+
+
+def strong_components(vs, g):
+    """
+    Output all vertices of g reachable from any of vs enumerated by strong components.
+
+    The components are outputted in reversed topological order.
+    """
+    c = collections.deque(topo_sort(vs, g))
+    nest = 0
+    current_comp = 0
+    for label, v in dfs_iterative(g.reversed(), c):
+        if label == "enter":
+            nest += 1
+            yield current_comp, v
+        else:
+            nest -= 1
+        if nest == 0:
+            current_comp += 1

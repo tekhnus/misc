@@ -47,3 +47,9 @@ def test_bfs(gr, exp):
 def test_topo_sort(gr, vs, exp):
     g = algor.GraphHashView(algor.graph_list_to_hash(gr))
     assert list(algor.topo_sort(vs, g)) == exp
+
+
+@pytest.mark.parametrize("gr,vs,exp", [(g1, [1], [(0, 1), (1, 2), (2, 3), (3, 4)])])
+def test_strong_components(gr, vs, exp):
+    g = algor.GraphHashView(algor.graph_list_to_hash(gr))
+    assert list(algor.strong_components(vs, g)) == exp
