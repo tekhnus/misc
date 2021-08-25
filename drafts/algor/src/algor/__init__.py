@@ -33,6 +33,15 @@ class GraphHashView:
         return GraphHashView(gh_reversed(self._graph))
 
 
+class GraphFilteredView:
+    def __init__(self, gv, vs):
+        self._orig_view = gv
+        self._vset = vs
+
+    def successors(self, v):
+        return [u for u in self._orig_view.successors(v) if u in self._vset]
+
+
 def dfs_recursive(g, vs):
     visited = set()
 
@@ -97,7 +106,7 @@ def strong_components(vs, g):
     c = collections.deque(topo_sort(vs, g))
     nest = 0
     current_comp = 0
-    for label, v in dfs_iterative(g.reversed(), c):
+    for label, v in dfs_iterative(GraphFilteredView(g.reversed(), set(c)), c):
         if label == "enter":
             nest += 1
             yield current_comp, v
