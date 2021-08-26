@@ -6,31 +6,36 @@ s.c.c = strongly connected component
 import collections
 
 
-def graph_list_to_hash(gl):
-    vs, es = gl
-    g = {}
-    for v in vs:
-        g[v] = []
-    for (s, t) in es:
-        g[s].append(t)
-    return g
+class Graph:
+    def __init__(self, vs, es):
+        self._vs = []
+        self._es = {}
+        self._ix = collections.defaultdict(list)
 
+        self.vs_extend(vs)
+        self.es_extend(es)
 
-def gh_reversed(g):
-    vs = list(g.keys())
-    es = [(t, s) for s, ts in g.items() for t in ts]
-    return graph_list_to_hash((vs, es))
+    @property
+    def vs(self):
+        return self._vs
 
+    @property
+    def edges(self):
+        return ((eid, u, v) for eid, (u, v) in self._es.items())
 
-class GraphHashView:
-    def __init__(self, g):
-        self._graph = g
+    def vs_extend(self, vs):
+        self._vs.extend(vs)
 
-    def successors(self, v):
-        return self._graph[v]
+    def es_extend(self, es):
+        for eid, u, v in es:
+            self._es[eid] = (u, v)
+            self._ix[u].append(eid)
+
+    def successors(self, u):
+        return [self._es[eid][1] for eid in self._ix[u]]
 
     def reversed(self):
-        return GraphHashView(gh_reversed(self._graph))
+        return Graph(self._vs, [(eid, v, u) for eid, (u, v) in self._es.items()])
 
 
 class GraphFilteredView:
@@ -114,3 +119,29 @@ def strong_components(vs, g):
             nest -= 1
         if nest == 0:
             current_comp += 1
+
+
+def ford_bellman(v, g, wg):
+    best = {v: 0}
+    pred = {}
+
+    def upd(edgedata):
+        eid, u, v = edgedata
+        bestu = best.get(u)
+        if bestu is None:
+            return False
+        cand = bestu + wg[eid]
+        if (bestv := best.get(v) is None) or bestv > cand:
+            best[v] = cand
+            pred[v] = u
+            return True
+        return False
+
+    n = len(g.vs)
+    for _ in range(n - 1):
+        if not any(upd(edata) for edata in g.edges):
+            break
+    else:
+        if any(upd(edata) for edata in g.edges):
+            raise ValueError("graph contains a nevative loop")
+    return best, pred
