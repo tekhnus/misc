@@ -4,6 +4,46 @@ gh = graph represented by hash
 s.c.c = strongly connected component
 """
 import collections
+import math
+import heapq
+
+
+class Bimap:
+    def __init__(self, vals):
+        self._arr = []
+        self._map = {}
+        self.extend(vals)
+
+    def __setitem__(self, i, pk):
+        p, k = pk
+        self._arr[i] = pk
+        self._map[k] = i
+
+    def __getitem__(self, i):
+        return self._arr[i]
+
+    def get_by_key(self, k):
+        return self[self._map[k]]
+
+    def append(self, pk):
+        i = len(self._arr)
+        self._arr.append(pk)
+        self._map[k] = i
+
+    def extend(self, seq):
+        for pk in seq:
+            self.append(pk)
+
+
+class BinomialHeap:
+    def __init__(self, items):
+        pass
+
+    def pop(self):
+        pass
+
+    def update(self, idx, val):
+        pass
 
 
 class Graph:
@@ -33,6 +73,9 @@ class Graph:
 
     def successors(self, u):
         return [self._es[eid][1] for eid in self._ix[u]]
+
+    def outbound_edges(self, u):
+        return [(eid, self._es[eid][1]) for eid in self._ix[u]]
 
     def reversed(self):
         return Graph(self._vs, [(eid, v, u) for eid, (u, v) in self._es.items()])
@@ -144,4 +187,29 @@ def ford_bellman(v, g, wg):
     else:
         if any(upd(edata) for edata in g.edges):
             raise ValueError("graph contains a nevative loop")
+    return best, pred
+
+
+def dijkstra(v, g, wg):
+    best = {}
+    pred = {}
+
+
+    q = [(math.inf, u) for u in g.vs if u != v]
+    q.append((0, v))
+    ix_in_q = {u: i for i, u in enumerate(g.vs) if u != v}
+    ix_in_q[v] = len(q) - 1
+
+    h = BinomialHeap(q)
+    while h:
+        dist, vert = h.pop()
+        best[vert] = dist
+        for edg, ver in g.outbound_edges(vert):
+            i = ix_in_q[ver]
+            curbest, _ = q[i]
+            x = best + wg[edg]
+            if x < dist:
+                newix = h.update(i, (x, ver))
+                ix_in_q[ver] = newix
+
     return best, pred
