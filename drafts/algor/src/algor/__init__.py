@@ -155,16 +155,18 @@ def strong_components(vs, g):
 
 
 def ford_bellman(v, g, wg):
-    best = {v: 0}
+    infty = sum(x for x in wg.values() if x > 0) + 1
+    best = {u: infty for u in g.vs}
+    best[v] = 0
     pred = {}
 
     def upd(edgedata):
         eid, u, v = edgedata
         bestu = best.get(u)
-        if bestu is None:
-            return False
+
         cand = bestu + wg[eid]
-        if (bestv := best.get(v) is None) or bestv > cand:
+        bestv = best.get(v)
+        if bestv > cand:
             best[v] = cand
             pred[v] = u
             return True
@@ -181,10 +183,11 @@ def ford_bellman(v, g, wg):
 
 
 def dijkstra(v, g, wg):
+    infty = sum(x for x in wg.values() if x > 0) + 1
     best = {}
     pred = {}
 
-    q = IndexedHeap([(u, math.inf) for u in g.vs if u != v] + [(v, 0)])
+    q = IndexedHeap([(u, infty) for u in g.vs if u != v] + [(v, 0)])
 
     while q:
         vert, dist = q.pop()
