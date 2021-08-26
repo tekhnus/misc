@@ -8,42 +8,32 @@ import math
 import heapq
 
 
-class Bimap:
-    def __init__(self, vals):
-        self._arr = []
-        self._map = {}
-        self.extend(vals)
-
-    def __setitem__(self, i, pk):
-        p, k = pk
-        self._arr[i] = pk
-        self._map[k] = i
-
-    def __getitem__(self, i):
-        return self._arr[i]
-
-    def get_by_key(self, k):
-        return self[self._map[k]]
-
-    def append(self, pk):
-        i = len(self._arr)
-        self._arr.append(pk)
-        self._map[k] = i
-
-    def extend(self, seq):
-        for pk in seq:
-            self.append(pk)
-
-
-class BinomialHeap:
+class IndexedHeap:
     def __init__(self, items):
-        pass
+        self._items = items
+
+    def __bool__(self):
+        return bool(self._items)
 
     def pop(self):
-        pass
+        best = min(self._items, key=lambda x: x[1])
+        self._items.remove(best)
+        return best
 
-    def update(self, idx, val):
-        pass
+    def decrease_priority(self, key, p):
+        for i, (k, _) in enumerate(self._items):
+            if k == key:
+                break
+        else:
+            raise ValueError(f"no such key: {key}")
+        del self._items[i]
+        self._items.append((key, p))
+
+    def get_priority(self, key):
+        for k, p in self._items:
+            if k == key:
+                return p
+        return None
 
 
 class Graph:
@@ -194,22 +184,18 @@ def dijkstra(v, g, wg):
     best = {}
     pred = {}
 
+    q = IndexedHeap([(u, math.inf) for u in g.vs if u != v] + [(v, 0)])
 
-    q = [(math.inf, u) for u in g.vs if u != v]
-    q.append((0, v))
-    ix_in_q = {u: i for i, u in enumerate(g.vs) if u != v}
-    ix_in_q[v] = len(q) - 1
-
-    h = BinomialHeap(q)
-    while h:
-        dist, vert = h.pop()
+    while q:
+        vert, dist = q.pop()
         best[vert] = dist
         for edg, ver in g.outbound_edges(vert):
-            i = ix_in_q[ver]
-            curbest, _ = q[i]
-            x = best + wg[edg]
-            if x < dist:
-                newix = h.update(i, (x, ver))
-                ix_in_q[ver] = newix
+            curbest = q.get_priority(ver)
+            if curbest is None:
+                continue
+            x = dist + wg[edg]
+            if x < curbest:
+                newix = q.decrease_priority(ver, x)
+                pred[ver] = vert
 
     return best, pred
