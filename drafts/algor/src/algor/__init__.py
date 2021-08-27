@@ -194,29 +194,23 @@ def strong_components(vs, g):
 
 def ford_bellman(v, g, wg):
     infty = sum(x for x in wg.values() if x > 0) + 1
-    best = {u: infty for u in g.vs}
-    best[v] = 0
+    best = {**{u: infty for u in g.vs}, v: 0}
     pred = {}
 
     def upd(edgedata):
         eid, u, v = edgedata
-        bestu = best.get(u)
-
-        cand = bestu + wg[eid]
-        bestv = best.get(v)
-        if bestv > cand:
-            best[v] = cand
-            pred[v] = u
+        cand = best[u] + wg[eid]
+        if best[v] > cand:
+            best[v], pred[v] = cand, u
             return True
         return False
 
-    n = len(g.vs)
-    for _ in range(n - 1):
+    for _ in range(len(g.vs) - 1):
         if not any(upd(edata) for edata in g.edges):
             break
     else:
         if any(upd(edata) for edata in g.edges):
-            raise ValueError("graph contains a nevative loop")
+            raise ValueError("graph contains a nevative cycle")
     return best, pred
 
 
@@ -224,9 +218,7 @@ def dijkstra(v, g, wg):
     infty = sum(x for x in wg.values() if x > 0) + 1
     best = {}
     pred = {}
-
-    q = IndexedHeap([(u, (infty, None)) for u in g.vs if u != v] + [(v, (0, None))])
-
+    q = IndexedHeap([*[(u, (infty, None)) for u in g.vs if u != v], (v, (0, None))])
     while q:
         vert, (dist, prd) = q.pop()
         best[vert] = dist
@@ -236,6 +228,5 @@ def dijkstra(v, g, wg):
                 continue
             x = dist + wg[edg]
             q.push_or_update(ver, (x, vert))
-
     del pred[v]
     return best, pred
