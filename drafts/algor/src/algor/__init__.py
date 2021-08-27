@@ -6,6 +6,8 @@ s.c.c = strongly connected component
 import collections
 import math
 import heapq
+import operator
+import dataclasses
 
 
 class Heap:
@@ -230,3 +232,62 @@ def dijkstra(v, g, wg):
             q.push_or_update(ver, (x, vert))
     del pred[v]
     return best, pred
+
+
+@dataclasses.dataclass
+class Ring:
+    zero: object
+    sum: object
+    product: object
+
+
+def pairwise_distances(g, wg):
+    infty = sum(x for x in wg.values() if x > 0) + 1
+    ring = Ring(zero=infty, sum=min, product=operator.add)
+    m1 = weight_matrix(g, wg, infty)
+    m = matrix_power(m1, len(g.vs) - 1, ring=ring)
+    mcheck = matrix_mul(m, m1, ring=ring)
+    if mcheck != m:
+        raise ValueError("graph contains a negative cycle")
+    return remove_infinity(m, infty)
+
+
+def weight_matrix(g, wg, infty):
+    res = {(u, v): infty for u in g.vs for v in g.vs}
+    for eid, u, v in g.edges:
+        w = wg[eid]
+        if res[u, v] > w:
+            res[u, v] = w
+    for u in g.vs:
+        res[u, u] = 0
+    return res
+
+
+def matrix_power(m, k, *, ring):
+    if k == 0:
+        raise ValueError("not implemented")
+    if k == 1:
+        return m
+    mhalfk = matrix_power(m, k // 2, ring=ring)
+    malmostk = matrix_mul(mhalfk, mhalfk, ring=ring)
+    if k % 2 == 0:
+        return malmostk
+    return matrix_mul(malmostk, m, ring=ring)
+
+
+def matrix_mul(x, y, *, ring):
+    is_ = [i for i, _ in x.keys()]
+    js = [j for _, j in x.keys()]
+    ks = [k for _, k in y.keys()]
+    res = {}
+    for i in is_:
+        for k in ks:
+            v = ring.zero
+            for j in js:
+                v = ring.sum(v, ring.product(x[i, j], y[j, k]))
+            res[i, k] = v
+    return res
+
+
+def remove_infinity(m, infty):
+    return {k: v for k, v in m.items() if v != infty}

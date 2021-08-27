@@ -69,3 +69,28 @@ def test_ford_bellman(v, gr, ws, exp):
 )
 def test_dijkstra(v, gr, ws, exp):
     assert list(algor.dijkstra(v, gr, ws)) == exp
+
+
+@pytest.mark.parametrize(
+    "gr,ws,exp",
+    [
+        (
+            g1,
+            ws,
+            {
+                (1, 1): 0,
+                (1, 2): 3,
+                (1, 3): 1,
+                (1, 4): 6,
+                (2, 2): 0,
+                (2, 3): 7,
+                (2, 4): 12,
+                (3, 3): 0,
+                (3, 4): 5,
+                (4, 4): 0,
+            },
+        )
+    ],
+)
+def test_pairwise_distances(gr, ws, exp):
+    assert algor.pairwise_distances(gr, ws) == exp
