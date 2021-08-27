@@ -8,7 +8,7 @@ import math
 import heapq
 
 
-class IndexedHeap:
+class Heap:
     def __init__(self, items):
         self._items = items
 
@@ -16,24 +16,35 @@ class IndexedHeap:
         return bool(self._items)
 
     def pop(self):
-        best = min(self._items, key=lambda x: x[1])
+        best = min(self._items)
         self._items.remove(best)
         return best
 
-    def decrease_priority(self, key, p):
-        for i, (k, _) in enumerate(self._items):
-            if k == key:
-                break
-        else:
-            raise ValueError(f"no such key: {key}")
-        del self._items[i]
-        self._items.append((key, p))
+    def push(self, val):
+        self._items.append(val)
 
-    def get_priority(self, key):
-        for k, p in self._items:
-            if k == key:
-                return p
-        return None
+
+class IndexedHeap:
+    def __init__(self, items):
+        items = list(items)
+        self._heap = Heap([(p, k) for k, p in items])
+        self._keys = set(k for k, _ in items)
+
+    def __bool__(self):
+        return bool(self._keys)
+
+    def __contains__(self, k):
+        return k in self._keys
+
+    def pop(self):
+        pri, key = None, object()
+        while key not in self._keys:
+            pri, key = self._heap.pop()
+        self._keys.remove(key)
+        return key, pri
+
+    def push_or_update(self, key, p):
+        self._heap.push((p, key))
 
 
 class Graph:
@@ -187,18 +198,17 @@ def dijkstra(v, g, wg):
     best = {}
     pred = {}
 
-    q = IndexedHeap([(u, infty) for u in g.vs if u != v] + [(v, 0)])
+    q = IndexedHeap([(u, (infty, None)) for u in g.vs if u != v] + [(v, (0, None))])
 
     while q:
-        vert, dist = q.pop()
+        vert, (dist, prd) = q.pop()
         best[vert] = dist
+        pred[vert] = prd
         for edg, ver in g.outbound_edges(vert):
-            curbest = q.get_priority(ver)
-            if curbest is None:
+            if ver not in q:
                 continue
             x = dist + wg[edg]
-            if x < curbest:
-                newix = q.decrease_priority(ver, x)
-                pred[ver] = vert
+            q.push_or_update(ver, (x, vert))
 
+    del pred[v]
     return best, pred
