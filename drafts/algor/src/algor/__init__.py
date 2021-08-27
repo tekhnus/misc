@@ -10,18 +10,45 @@ import heapq
 
 class Heap:
     def __init__(self, items):
-        self._items = items
-
-    def __bool__(self):
-        return bool(self._items)
+        self._items = []
+        for i in items:
+            self.push(i)
 
     def pop(self):
-        best = min(self._items)
-        self._items.remove(best)
-        return best
+        val = self._items[0]
+        self._items[0] = self._items.pop()
+        self._move_to_bottom(0)
+        return val
 
     def push(self, val):
         self._items.append(val)
+        self._move_to_top(len(self._items) - 1)
+
+    def _move_to_top(self, index):
+        it = self._items
+        while index > 0 and it[index] < it[(parent := ((index - 1) // 2))]:
+            it[index], it[parent] = it[parent], it[index]
+            index = parent
+
+    def _move_to_bottom(self, index):
+        it = self._items
+        n = len(it)
+        while True:
+            left = 2 * index + 1
+            if left >= n:
+                break
+            if it[index] > it[left]:
+                it[index], it[left] = it[left], it[index]
+                index = left
+                continue
+            right = left + 1
+            if right >= n:
+                break
+            if it[index] > it[right]:
+                it[index], it[right] = it[right], it[index]
+                index = right
+                continue
+            break
 
 
 class IndexedHeap:
