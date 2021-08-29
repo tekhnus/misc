@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
