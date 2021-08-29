@@ -3,6 +3,9 @@
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 using namespace std;
 
@@ -81,7 +84,7 @@ public:
   }
   void renderTextBlended(Font &f, const string &s, SDL_Color c) {
     value = unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>{
-        ttf_ensure_not_null(TTF_RenderText_Blended(f.get(), s.c_str(), c)),
+        ttf_ensure_not_null(TTF_RenderUTF8_Blended(f.get(), s.c_str(), c)),
         SDL_FreeSurface};
   }
 
@@ -105,27 +108,63 @@ private:
   unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
+void drawText(Renderer &r, const vector<string> &text,
+              unordered_map<string, Texture> &table) {
+  SDL_Rect dst{0, 0, 0, 0};
+  Texture &x = table.at("x");
+  SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
+  for (string cc : text) {
+    if (cc == "\n") {
+      dst.x = 0;
+      dst.y += dst.h;
+      continue;
+    }
+    try {
+      Texture &t = table.at(cc);
+      SDL_RenderCopy(r.get(), t.get(), NULL, &dst);
+      dst.x += dst.w;
+    } catch (std::out_of_range &e) {
+    }
+  }
+}
+
 int main() {
   SDL sdl(SDL_INIT_VIDEO);
-  Window window{
-      "Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1920,
-      1080,     SDL_WINDOW_SHOWN};
+  Window window{"Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800,
+                600,      SDL_WINDOW_SHOWN};
   Renderer ren{window, -1,
                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
 
+  unordered_map<string, Texture> table;
   Texture tex;
   {
+    string rusalphabet[] = {"а", "б", "в", "г", "д", "е", "ж", "з",
+                            "и", "й", "к", "л", "м", "н", "о", "п",
+                            "р", "с", "т", "у", "ф", "х", "ц", "ч",
+                            "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"};
     Font f{"/System/Library/Fonts/Menlo.ttc", 14};
-    Surface bmp;
-    bmp.renderTextBlended(f, "Hello, world!", {100, 255, 255, 255});
-    tex = Texture(ren, bmp);
+    for (string ch : rusalphabet) {
+      Surface bmp;
+      bmp.renderTextBlended(f, ch, {100, 255, 255, 255});
+      table[ch] = Texture{ren, bmp};
+    }
+    for (char ch = 32; ch <= 126; ch++) {
+      string chr{ch};
+      Surface bmp;
+      bmp.renderTextBlended(f, chr, {100, 255, 255, 255});
+      table[chr] = Texture{ren, bmp};
+    }
   }
 
   SDL_Event e;
   bool quit = false;
+  SDL_StartTextInput();
+  vector<string> text = {"h", "e", "l", "l", "o", ",", " ",
+                         "w", "o", "r", "l", "d", "!"};
   while (!quit) {
     SDL_RenderClear(ren.get());
-    SDL_Rect dst {};
+    drawText(ren, text, table);
+    SDL_Rect dst{};
     SDL_QueryTexture(tex.get(), NULL, NULL, &dst.w, &dst.h);
     SDL_RenderCopy(ren.get(), tex.get(), NULL, &dst);
     SDL_RenderPresent(ren.get());
@@ -133,8 +172,16 @@ int main() {
       if (e.type == SDL_QUIT) {
         quit = true;
       }
+      if (e.type == SDL_TEXTINPUT) {
+        string s = e.text.text;
+        text.push_back(s);
+      }
       if (e.type == SDL_KEYDOWN) {
-        quit = true;
+        if (e.key.keysym.sym == SDLK_RETURN) {
+          text.push_back("\n");
+        } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+          text.pop_back();
+        }
       }
     }
   }
