@@ -19,76 +19,63 @@ public:
 class Window {
 public:
   Window(std::string t, int x, int y, int w, int h, Uint32 f)
-      : value{SDL_CreateWindow(t.c_str(), x, y, w, h, f)} {
+      : value{SDL_CreateWindow(t.c_str(), x, y, w, h, f), SDL_DestroyWindow} {
     if (!value) {
       throw runtime_error(SDL_GetError());
     }
   }
 
-  ~Window() { SDL_DestroyWindow(value); }
-
-  SDL_Window *get() { return value; }
+  SDL_Window *get() { return value.get(); }
 
 private:
-  SDL_Window *value;
+  unique_ptr<SDL_Window, decltype(&SDL_DestroyWindow)> value;
 };
 
 class Renderer {
 public:
   Renderer(Window &w, int x, Uint32 f)
-      : value{SDL_CreateRenderer(w.get(), x, f)} {
+    : value{SDL_CreateRenderer(w.get(), x, f), SDL_DestroyRenderer} {
     if (!value) {
       throw runtime_error(SDL_GetError());
     }
   }
 
-  ~Renderer() { SDL_DestroyRenderer(value); }
-
-  SDL_Renderer *get() { return value; }
+  SDL_Renderer *get() { return value.get(); }
 
 private:
-  SDL_Renderer *value;
+  unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> value;
 };
 
 class Surface {
 public:
+  Surface() : value{nullptr, nullptr} {}
   void loadBMP(string path) {
-    value = SDL_LoadBMP(path.c_str());
+    value = unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>{SDL_LoadBMP(path.c_str()), SDL_FreeSurface};
     if (!value) {
       throw runtime_error(SDL_GetError());
     }
   }
 
-  ~Surface() { SDL_FreeSurface(value); }
-
-  SDL_Surface *get() { return value; }
+  SDL_Surface *get() { return value.get(); }
 
 private:
-  SDL_Surface *value;
+  unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)> value;
 };
 
 class Texture {
 public:
-  Texture() { value = nullptr; }
+  Texture() : value{nullptr, nullptr} {}
   Texture(Renderer &f, Surface &s)
-      : value{SDL_CreateTextureFromSurface(f.get(), s.get())} {
+    : value{SDL_CreateTextureFromSurface(f.get(), s.get()), SDL_DestroyTexture} {
     if (!value) {
       throw runtime_error(SDL_GetError());
     }
   }
 
-  Texture &operator=(Texture &&t) {
-    value = t.value;
-    t.value = nullptr;
-    return *this;
-  }
-
-  ~Texture() { SDL_DestroyTexture(value); }
-
-  SDL_Texture *get() { return value; }
+  SDL_Texture *get() { return value.get(); }
 
 private:
-  SDL_Texture *value;
+  unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
 int main() {
