@@ -35,12 +35,13 @@ private:
 
 class Renderer {
 public:
-  Renderer(SDL_Window *w, int x, Uint32 f)
-      : value{SDL_CreateRenderer(w, x, f)} {
+  Renderer(Window &w, int x, Uint32 f)
+      : value{SDL_CreateRenderer(w.get(), x, f)} {
     if (!value) {
       throw runtime_error(SDL_GetError());
     }
   }
+
   ~Renderer() { SDL_DestroyRenderer(value); }
 
   SDL_Renderer *get() { return value; }
@@ -69,8 +70,8 @@ private:
 class Texture {
 public:
   Texture() { value = nullptr; }
-  Texture(SDL_Renderer *f, SDL_Surface *s)
-      : value{SDL_CreateTextureFromSurface(f, s)} {
+  Texture(Renderer &f, Surface &s)
+      : value{SDL_CreateTextureFromSurface(f.get(), s.get())} {
     if (!value) {
       throw runtime_error(SDL_GetError());
     }
@@ -95,7 +96,7 @@ int main() {
   Window window{
       "Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1920,
       1080,     SDL_WINDOW_SHOWN};
-  Renderer ren{window.get(), -1,
+  Renderer ren{window, -1,
                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
 
   std::string imagePath = "hello.bmp";
@@ -103,7 +104,7 @@ int main() {
   {
     Surface bmp;
     bmp.loadBMP(imagePath);
-    tex = Texture(ren.get(), bmp.get());
+    tex = Texture(ren, bmp);
   }
 
   SDL_Event e;
