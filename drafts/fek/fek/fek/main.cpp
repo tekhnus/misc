@@ -5,6 +5,13 @@
 
 using namespace std;
 
+template <typename T> T *sdl_ensure_not_null(T *ptr) {
+  if (!ptr) {
+    throw runtime_error(SDL_GetError());
+  }
+  return ptr;
+}
+
 class SDL {
 public:
   SDL(Uint32 flags) {
@@ -19,11 +26,8 @@ public:
 class Window {
 public:
   Window(std::string t, int x, int y, int w, int h, Uint32 f)
-      : value{SDL_CreateWindow(t.c_str(), x, y, w, h, f), SDL_DestroyWindow} {
-    if (!value) {
-      throw runtime_error(SDL_GetError());
-    }
-  }
+      : value{sdl_ensure_not_null(SDL_CreateWindow(t.c_str(), x, y, w, h, f)),
+              SDL_DestroyWindow} {}
 
   SDL_Window *get() { return value.get(); }
 
@@ -34,11 +38,8 @@ private:
 class Renderer {
 public:
   Renderer(Window &w, int x, Uint32 f)
-    : value{SDL_CreateRenderer(w.get(), x, f), SDL_DestroyRenderer} {
-    if (!value) {
-      throw runtime_error(SDL_GetError());
-    }
-  }
+      : value{sdl_ensure_not_null(SDL_CreateRenderer(w.get(), x, f)),
+              SDL_DestroyRenderer} {}
 
   SDL_Renderer *get() { return value.get(); }
 
@@ -50,10 +51,8 @@ class Surface {
 public:
   Surface() : value{nullptr, nullptr} {}
   void loadBMP(string path) {
-    value = unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>{SDL_LoadBMP(path.c_str()), SDL_FreeSurface};
-    if (!value) {
-      throw runtime_error(SDL_GetError());
-    }
+    value = unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>{
+        sdl_ensure_not_null(SDL_LoadBMP(path.c_str())), SDL_FreeSurface};
   }
 
   SDL_Surface *get() { return value.get(); }
@@ -66,11 +65,9 @@ class Texture {
 public:
   Texture() : value{nullptr, nullptr} {}
   Texture(Renderer &f, Surface &s)
-    : value{SDL_CreateTextureFromSurface(f.get(), s.get()), SDL_DestroyTexture} {
-    if (!value) {
-      throw runtime_error(SDL_GetError());
-    }
-  }
+      : value{
+            sdl_ensure_not_null(SDL_CreateTextureFromSurface(f.get(), s.get())),
+            SDL_DestroyTexture} {}
 
   SDL_Texture *get() { return value.get(); }
 
