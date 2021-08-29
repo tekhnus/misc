@@ -113,6 +113,7 @@ void drawText(Renderer &r, const vector<string> &text,
   SDL_Rect dst{0, 0, 0, 0};
   Texture &x = table.at("x");
   SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
+  SDL_SetRenderDrawColor(r.get(), 100, 255, 255, 255);
   for (string cc : text) {
     if (cc == "\n") {
       dst.x = 0;
@@ -126,6 +127,7 @@ void drawText(Renderer &r, const vector<string> &text,
     } catch (std::out_of_range &e) {
     }
   }
+  SDL_RenderFillRect(r.get(), &dst);
 }
 
 int main() {
@@ -162,6 +164,7 @@ int main() {
   vector<string> text = {"h", "e", "l", "l", "o", ",", " ",
                          "w", "o", "r", "l", "d", "!"};
   while (!quit) {
+    SDL_SetRenderDrawColor(ren.get(), 0, 0, 0, 0);
     SDL_RenderClear(ren.get());
     drawText(ren, text, table);
     SDL_Rect dst{};
