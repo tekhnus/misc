@@ -125,7 +125,9 @@ int main() {
   bool quit = false;
   while (!quit) {
     SDL_RenderClear(ren.get());
-    SDL_RenderCopy(ren.get(), tex.get(), NULL, NULL);
+    SDL_Rect dst {};
+    SDL_QueryTexture(tex.get(), NULL, NULL, &dst.w, &dst.h);
+    SDL_RenderCopy(ren.get(), tex.get(), NULL, &dst);
     SDL_RenderPresent(ren.get());
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_QUIT) {
