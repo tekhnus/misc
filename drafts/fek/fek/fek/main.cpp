@@ -13,20 +13,33 @@ template <typename T> T *sdl_ensure_not_null(T *ptr) {
   return ptr;
 }
 
+template <typename T> T *ttf_ensure_not_null(T *ptr) {
+  if (!ptr) {
+    throw runtime_error(TTF_GetError());
+  }
+  return ptr;
+}
+
 class SDL {
 public:
   SDL(Uint32 flags) {
     if (SDL_Init(flags)) {
       throw runtime_error(SDL_GetError());
     }
+    if (TTF_Init()) {
+      throw runtime_error(TTF_GetError());
+    }
   }
 
-  ~SDL() { SDL_Quit(); }
+  ~SDL() {
+    TTF_Quit();
+    SDL_Quit();
+  }
 };
 
 class Window {
 public:
-  Window(std::string t, int x, int y, int w, int h, Uint32 f)
+  Window(const string &t, int x, int y, int w, int h, Uint32 f)
       : value{sdl_ensure_not_null(SDL_CreateWindow(t.c_str(), x, y, w, h, f)),
               SDL_DestroyWindow} {}
 
@@ -48,12 +61,28 @@ private:
   unique_ptr<SDL_Renderer, decltype(&SDL_DestroyRenderer)> value;
 };
 
+class Font {
+public:
+  Font(const string &n, int s)
+      : value{sdl_ensure_not_null(TTF_OpenFont(n.c_str(), s)), TTF_CloseFont} {}
+
+  TTF_Font *get() { return value.get(); }
+
+private:
+  unique_ptr<TTF_Font, decltype(&TTF_CloseFont)> value;
+};
+
 class Surface {
 public:
   Surface() : value{nullptr, nullptr} {}
-  void loadBMP(string path) {
+  void loadBMP(const string &path) {
     value = unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>{
         sdl_ensure_not_null(SDL_LoadBMP(path.c_str())), SDL_FreeSurface};
+  }
+  void renderTextBlended(Font &f, const string &s, SDL_Color c) {
+    value = unique_ptr<SDL_Surface, decltype(&SDL_FreeSurface)>{
+        ttf_ensure_not_null(TTF_RenderText_Blended(f.get(), s.c_str(), c)),
+        SDL_FreeSurface};
   }
 
   SDL_Surface *get() { return value.get(); }
@@ -84,11 +113,11 @@ int main() {
   Renderer ren{window, -1,
                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
 
-  std::string imagePath = "hello.bmp";
   Texture tex;
   {
+    Font f{"/System/Library/Fonts/Menlo.ttc", 14};
     Surface bmp;
-    bmp.loadBMP(imagePath);
+    bmp.renderTextBlended(f, "Hello, world!", {100, 255, 255, 255});
     tex = Texture(ren, bmp);
   }
 
