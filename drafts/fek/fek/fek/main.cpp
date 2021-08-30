@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -28,7 +29,9 @@ template <typename T> T *ttf_ensure_not_null(T *ptr) {
 
 class SDL {
 public:
-  SDL(Uint32 flags) {
+  SDL() : nonzero{false} {}
+
+  SDL(Uint32 flags) : nonzero{true} {
     if (SDL_Init(flags)) {
       throw runtime_error(SDL_GetError());
     }
@@ -37,14 +40,32 @@ public:
     }
   }
 
+  SDL(SDL &&s) {
+    nonzero = s.nonzero;
+    s.nonzero = false;
+  }
+
+  SDL &operator=(SDL &&s) {
+    nonzero = s.nonzero;
+    s.nonzero = false;
+    return *this;
+  }
+
   ~SDL() {
+    if (!nonzero) {
+      return;
+    }
     TTF_Quit();
     SDL_Quit();
   }
+
+private:
+  bool nonzero;
 };
 
 class Window {
 public:
+  Window() : value{nullptr, nullptr} {}
   Window(const string &t, int x, int y, int w, int h, Uint32 f)
       : value{sdl_ensure_not_null(SDL_CreateWindow(t.c_str(), x, y, w, h, f)),
               SDL_DestroyWindow} {}
@@ -134,73 +155,79 @@ void drawText(Renderer &r, const vector<string> &text,
   SDL_RenderFillRect(r.get(), &dst);
 }
 
-Renderer rrr;
-vector<string> ttt;
-unordered_map<string, Texture> tbl;
-bool qqq;
+SDL sdl;
+Window window;
+Renderer renderer;
+unordered_map<string, Texture> font_cache;
+vector<string> buffer;
+bool quit;
 
-void upd() {
-  try {
-    SDL_Event e;
-    SDL_SetRenderDrawColor(rrr.get(), 0, 0, 0, 0);
-    SDL_RenderClear(rrr.get());
-    drawText(rrr, ttt, tbl);
-    SDL_RenderPresent(rrr.get());
-    while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
-        qqq = true;
-      }
-      if (e.type == SDL_TEXTINPUT) {
-        string s = e.text.text;
-        ttt.push_back(s);
-      }
-      if (e.type == SDL_KEYDOWN) {
-        if (e.key.keysym.sym == SDLK_RETURN) {
-          ttt.push_back("\n");
-        } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-          ttt.pop_back();
-        }
+void update() {
+  SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
+  SDL_RenderClear(renderer.get());
+  drawText(renderer, buffer, font_cache);
+  SDL_RenderPresent(renderer.get());
+  SDL_Event e;
+  while (SDL_PollEvent(&e)) {
+    if (e.type == SDL_QUIT) {
+      quit = true;
+    }
+    if (e.type == SDL_TEXTINPUT) {
+      string s = e.text.text;
+      buffer.push_back(s);
+    }
+    if (e.type == SDL_KEYDOWN) {
+      if (e.key.keysym.sym == SDLK_RETURN) {
+        buffer.push_back("\n");
+      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+        buffer.pop_back();
       }
     }
+  }
+}
+
+void update_w_logging() {
+  try {
+    update();
   } catch (exception &e) {
     cout << e.what() << endl;
     throw e;
   }
 }
 
-int main() {
-  SDL sdl(SDL_INIT_VIDEO);
-  Window window{"Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800,
-                600,      SDL_WINDOW_SHOWN};
-  rrr = {window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
-
-  {
-    string rusalphabet[] = {"а", "б", "в", "г", "д", "е", "ж", "з",
-                            "и", "й", "к", "л", "м", "н", "о", "п",
-                            "р", "с", "т", "у", "ф", "х", "ц", "ч",
-                            "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"};
-    Font f{"fonts/Menlo.ttc", 14};
-    for (string ch : rusalphabet) {
-      Surface bmp;
-      bmp.renderTextBlended(f, ch, {100, 255, 255, 255});
-      tbl[ch] = Texture{rrr, bmp};
-    }
-    for (char ch = 32; ch <= 126; ch++) {
-      string chr{ch};
-      Surface bmp;
-      bmp.renderTextBlended(f, chr, {100, 255, 255, 255});
-      tbl[chr] = Texture{rrr, bmp};
-    }
+void font_cache_render() {
+  Font f{"fonts/Menlo.ttc", 14};
+  string rusalphabet[] = {"а", "б", "в", "г", "д", "е", "ж", "з", "и", "й", "к",
+                          "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х",
+                          "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"};
+  for (string ch : rusalphabet) {
+    Surface bmp;
+    bmp.renderTextBlended(f, ch, {100, 255, 255, 255});
+    font_cache[ch] = Texture{renderer, bmp};
   }
+  for (char ch = 32; ch <= 126; ch++) {
+    string chr{ch};
+    Surface bmp;
+    bmp.renderTextBlended(f, chr, {100, 255, 255, 255});
+    font_cache[chr] = Texture{renderer, bmp};
+  }
+}
+
+int main() {
+  sdl = {SDL_INIT_VIDEO};
+  window = {"Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800,
+            600,      SDL_WINDOW_SHOWN};
+  renderer = {window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
+  font_cache_render();
+  buffer = {"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"};
 
   SDL_StartTextInput();
-  ttt = {"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"};
 
 #ifdef __EMSCRIPTEN__
-  emscripten_set_main_loop(upd, 0, true);
+  emscripten_set_main_loop(update_w_logging, 0, false);
 #else
-  while (!qqq) {
-    upd();
+  while (!quit) {
+    update_w_logging();
   }
 #endif
 
