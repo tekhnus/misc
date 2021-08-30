@@ -6,6 +6,9 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 using namespace std;
 
@@ -130,21 +133,54 @@ void drawText(Renderer &r, const vector<string> &text,
   SDL_RenderFillRect(r.get(), &dst);
 }
 
+Renderer *rrr;
+vector<string> *ttt;
+unordered_map<string, Texture> *tbl;
+bool *qqq;
+
+void upd() {
+  SDL_Event e;
+  SDL_SetRenderDrawColor(rrr->get(), 0, 0, 0, 0);
+  SDL_RenderClear(rrr->get());
+  drawText(*rrr, *ttt, *tbl);
+  SDL_RenderPresent(rrr->get());
+  while (SDL_PollEvent(&e)) {
+    if (e.type == SDL_QUIT) {
+      *qqq = true;
+    }
+    if (e.type == SDL_TEXTINPUT) {
+      string s = e.text.text;
+      ttt->push_back(s);
+    }
+    if (e.type == SDL_KEYDOWN) {
+      if (e.key.keysym.sym == SDLK_RETURN) {
+        ttt->push_back("\n");
+      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+        ttt->pop_back();
+      }
+    }
+  }
+}
+
 int main() {
+    cout << "starting main" << endl;
   SDL sdl(SDL_INIT_VIDEO);
   Window window{"Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800,
                 600,      SDL_WINDOW_SHOWN};
   Renderer ren{window, -1,
                SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
-
+  rrr = &ren;
   unordered_map<string, Texture> table;
-  Texture tex;
+  tbl = &table;
+
   {
     string rusalphabet[] = {"а", "б", "в", "г", "д", "е", "ж", "з",
                             "и", "й", "к", "л", "м", "н", "о", "п",
                             "р", "с", "т", "у", "ф", "х", "ц", "ч",
                             "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"};
-    Font f{"/System/Library/Fonts/Menlo.ttc", 14};
+    cout << "opening font" << endl;
+    Font f{"fonts/Menlo.ttc", 14};
+    cout << "font opened" << endl;
     for (string ch : rusalphabet) {
       Surface bmp;
       bmp.renderTextBlended(f, ch, {100, 255, 255, 255});
@@ -158,36 +194,20 @@ int main() {
     }
   }
 
-  SDL_Event e;
   bool quit = false;
+  qqq = &quit;
   SDL_StartTextInput();
   vector<string> text = {"h", "e", "l", "l", "o", ",", " ",
                          "w", "o", "r", "l", "d", "!"};
+  ttt = &text;
+#ifdef __EMSCRIPTEN__
+  cout << "setting main loop" << endl;
+  emscripten_set_main_loop(upd, 0, true);
+#else
   while (!quit) {
-    SDL_SetRenderDrawColor(ren.get(), 0, 0, 0, 0);
-    SDL_RenderClear(ren.get());
-    drawText(ren, text, table);
-    SDL_Rect dst{};
-    SDL_QueryTexture(tex.get(), NULL, NULL, &dst.w, &dst.h);
-    SDL_RenderCopy(ren.get(), tex.get(), NULL, &dst);
-    SDL_RenderPresent(ren.get());
-    while (SDL_PollEvent(&e)) {
-      if (e.type == SDL_QUIT) {
-        quit = true;
-      }
-      if (e.type == SDL_TEXTINPUT) {
-        string s = e.text.text;
-        text.push_back(s);
-      }
-      if (e.type == SDL_KEYDOWN) {
-        if (e.key.keysym.sym == SDLK_RETURN) {
-          text.push_back("\n");
-        } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-          text.pop_back();
-        }
-      }
-    }
+    upd();
   }
+#endif
 
   return EXIT_SUCCESS;
 }
