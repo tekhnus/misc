@@ -57,6 +57,7 @@ private:
 
 class Renderer {
 public:
+  Renderer() : value{nullptr, nullptr} {}
   Renderer(Window &w, int x, Uint32 f)
       : value{sdl_ensure_not_null(SDL_CreateRenderer(w.get(), x, f)),
               SDL_DestroyRenderer} {}
@@ -133,78 +134,72 @@ void drawText(Renderer &r, const vector<string> &text,
   SDL_RenderFillRect(r.get(), &dst);
 }
 
-Renderer *rrr;
-vector<string> *ttt;
-unordered_map<string, Texture> *tbl;
-bool *qqq;
+Renderer rrr;
+vector<string> ttt;
+unordered_map<string, Texture> tbl;
+bool qqq;
 
 void upd() {
-  SDL_Event e;
-  SDL_SetRenderDrawColor(rrr->get(), 0, 0, 0, 0);
-  SDL_RenderClear(rrr->get());
-  drawText(*rrr, *ttt, *tbl);
-  SDL_RenderPresent(rrr->get());
-  while (SDL_PollEvent(&e)) {
-    if (e.type == SDL_QUIT) {
-      *qqq = true;
-    }
-    if (e.type == SDL_TEXTINPUT) {
-      string s = e.text.text;
-      ttt->push_back(s);
-    }
-    if (e.type == SDL_KEYDOWN) {
-      if (e.key.keysym.sym == SDLK_RETURN) {
-        ttt->push_back("\n");
-      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-        ttt->pop_back();
+  try {
+    SDL_Event e;
+    SDL_SetRenderDrawColor(rrr.get(), 0, 0, 0, 0);
+    SDL_RenderClear(rrr.get());
+    drawText(rrr, ttt, tbl);
+    SDL_RenderPresent(rrr.get());
+    while (SDL_PollEvent(&e)) {
+      if (e.type == SDL_QUIT) {
+        qqq = true;
+      }
+      if (e.type == SDL_TEXTINPUT) {
+        string s = e.text.text;
+        ttt.push_back(s);
+      }
+      if (e.type == SDL_KEYDOWN) {
+        if (e.key.keysym.sym == SDLK_RETURN) {
+          ttt.push_back("\n");
+        } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+          ttt.pop_back();
+        }
       }
     }
+  } catch (exception &e) {
+    cout << e.what() << endl;
+    throw e;
   }
 }
 
 int main() {
-    cout << "starting main" << endl;
   SDL sdl(SDL_INIT_VIDEO);
   Window window{"Hello!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800,
                 600,      SDL_WINDOW_SHOWN};
-  Renderer ren{window, -1,
-               SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
-  rrr = &ren;
-  unordered_map<string, Texture> table;
-  tbl = &table;
+  rrr = {window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
 
   {
     string rusalphabet[] = {"а", "б", "в", "г", "д", "е", "ж", "з",
                             "и", "й", "к", "л", "м", "н", "о", "п",
                             "р", "с", "т", "у", "ф", "х", "ц", "ч",
                             "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"};
-    cout << "opening font" << endl;
     Font f{"fonts/Menlo.ttc", 14};
-    cout << "font opened" << endl;
     for (string ch : rusalphabet) {
       Surface bmp;
       bmp.renderTextBlended(f, ch, {100, 255, 255, 255});
-      table[ch] = Texture{ren, bmp};
+      tbl[ch] = Texture{rrr, bmp};
     }
     for (char ch = 32; ch <= 126; ch++) {
       string chr{ch};
       Surface bmp;
       bmp.renderTextBlended(f, chr, {100, 255, 255, 255});
-      table[chr] = Texture{ren, bmp};
+      tbl[chr] = Texture{rrr, bmp};
     }
   }
 
-  bool quit = false;
-  qqq = &quit;
   SDL_StartTextInput();
-  vector<string> text = {"h", "e", "l", "l", "o", ",", " ",
-                         "w", "o", "r", "l", "d", "!"};
-  ttt = &text;
+  ttt = {"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"};
+
 #ifdef __EMSCRIPTEN__
-  cout << "setting main loop" << endl;
   emscripten_set_main_loop(upd, 0, true);
 #else
-  while (!quit) {
+  while (!qqq) {
     upd();
   }
 #endif
