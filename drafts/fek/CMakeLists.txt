@@ -1,14 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 
 project(fek VERSION 0.1 LANGUAGES CXX)
-add_compile_options(-Wall -Wextra -pedantic)
-if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
-add_compile_options(-sUSE_SDL=2)
-add_compile_options(-sUSE_SDL_TTF=2)
-add_link_options(-sUSE_SDL=2)
-add_link_options(-sUSE_SDL_TTF=2)
-add_link_options(-sNO_DISABLE_EXCEPTION_CATCHING)
-add_link_options(--preload-file=fonts/Menlo.ttc)
-endif()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl2)
+add_compile_options(-Wall -Wextra -pedantic)
+
 add_subdirectory(fek)
