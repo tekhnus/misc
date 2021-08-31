@@ -135,16 +135,9 @@ private:
   unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
-SDL sdl;
-Window window;
-Renderer renderer;
-unordered_map<string, Texture> font_cache;
-vector<string> buffer;
-bool quit;
-
 class Viewport {
 public:
-  Viewport(const vector<string> &buffer) : buffer{buffer}, cursor{} {}
+  Viewport(vector<string> &buffer) : buffer{buffer}, cursor{} {}
 
   void drawBuffer(Renderer &r, unordered_map<string, Texture> &table) {
     SDL_Rect dst{0, 0, 0, 0};
@@ -210,15 +203,51 @@ public:
     cursor = pos;
   }
 
+  void handleEvent(SDL_Event &e) {
+    if (e.type == SDL_TEXTINPUT) {
+      string s = e.text.text;
+      buffer.insert(buffer.begin() + get_cursor(), s);
+      ++get_cursor();
+    }
+    if (e.type == SDL_KEYDOWN) {
+      if (e.key.keysym.sym == SDLK_RETURN) {
+        buffer.insert(buffer.begin() + get_cursor(), "\n");
+        ++get_cursor();
+      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+        if (get_cursor() != 0) {
+          --get_cursor();
+          buffer.erase(buffer.begin() + get_cursor());
+        }
+      } else if (e.key.keysym.sym == SDLK_LEFT) {
+        if (get_cursor() != 0) {
+          --get_cursor();
+        }
+      } else if (e.key.keysym.sym == SDLK_RIGHT) {
+        if (get_cursor() != buffer.size()) {
+          get_cursor();
+        }
+      }
+    }
+    if (e.type == SDL_MOUSEBUTTONDOWN) {
+      handleMouseClick(e.button.x, e.button.y);
+    }
+  }
+
   size_t &get_cursor() { return cursor; }
 
 private:
-  const vector<string> &buffer;
+  vector<string> &buffer;
   size_t cursor;
   vector<tuple<int, int, int>> lineOffsets;
   int symbolWidth;
 };
 
+SDL sdl;
+Window window;
+Renderer renderer;
+unordered_map<string, Texture> font_cache;
+vector<string> buffer;
+bool quit;
 Viewport viewport{buffer};
 
 void update() {
@@ -231,33 +260,7 @@ void update() {
     if (e.type == SDL_QUIT) {
       quit = true;
     }
-    if (e.type == SDL_TEXTINPUT) {
-      string s = e.text.text;
-      buffer.insert(buffer.begin() + viewport.get_cursor(), s);
-      ++viewport.get_cursor();
-    }
-    if (e.type == SDL_KEYDOWN) {
-      if (e.key.keysym.sym == SDLK_RETURN) {
-        buffer.insert(buffer.begin() + viewport.get_cursor(), "\n");
-        ++viewport.get_cursor();
-      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-        if (viewport.get_cursor() != 0) {
-          --viewport.get_cursor();
-          buffer.erase(buffer.begin() + viewport.get_cursor());
-        }
-      } else if (e.key.keysym.sym == SDLK_LEFT) {
-        if (viewport.get_cursor() != 0) {
-          --viewport.get_cursor();
-        }
-      } else if (e.key.keysym.sym == SDLK_RIGHT) {
-        if (viewport.get_cursor() != buffer.size()) {
-          ++viewport.get_cursor();
-        }
-      }
-    }
-    if (e.type == SDL_MOUSEBUTTONDOWN) {
-      viewport.handleMouseClick(e.button.x, e.button.y);
-    }
+    viewport.handleEvent(e);
   }
 }
 
