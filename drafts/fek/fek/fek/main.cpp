@@ -140,13 +140,13 @@ Window window;
 Renderer renderer;
 unordered_map<string, Texture> font_cache;
 vector<string> buffer;
-size_t cursor = buffer.size();
 bool quit;
 
 class Viewport {
 public:
-  void drawBuffer(Renderer &r, const vector<string> &buffer, size_t &cursor,
-                  unordered_map<string, Texture> &table) {
+  Viewport(const vector<string> &buffer) : buffer{buffer}, cursor{} {}
+
+  void drawBuffer(Renderer &r, unordered_map<string, Texture> &table) {
     SDL_Rect dst{0, 0, 0, 0};
     Texture &x = table.at("x");
     SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
@@ -210,17 +210,21 @@ public:
     cursor = pos;
   }
 
+  size_t &get_cursor() { return cursor; }
+
 private:
+  const vector<string> &buffer;
+  size_t cursor;
   vector<tuple<int, int, int>> lineOffsets;
   int symbolWidth;
 };
 
-Viewport viewport;
+Viewport viewport{buffer};
 
 void update() {
   SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
   SDL_RenderClear(renderer.get());
-  viewport.drawBuffer(renderer, buffer, cursor, font_cache);
+  viewport.drawBuffer(renderer, font_cache);
   SDL_RenderPresent(renderer.get());
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
@@ -229,25 +233,25 @@ void update() {
     }
     if (e.type == SDL_TEXTINPUT) {
       string s = e.text.text;
-      buffer.insert(buffer.begin() + cursor, s);
-      ++cursor;
+      buffer.insert(buffer.begin() + viewport.get_cursor(), s);
+      ++viewport.get_cursor();
     }
     if (e.type == SDL_KEYDOWN) {
       if (e.key.keysym.sym == SDLK_RETURN) {
-        buffer.insert(buffer.begin() + cursor, "\n");
-        ++cursor;
+        buffer.insert(buffer.begin() + viewport.get_cursor(), "\n");
+        ++viewport.get_cursor();
       } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-        if (cursor != 0) {
-          --cursor;
-          buffer.erase(buffer.begin() + cursor);
+        if (viewport.get_cursor() != 0) {
+          --viewport.get_cursor();
+          buffer.erase(buffer.begin() + viewport.get_cursor());
         }
       } else if (e.key.keysym.sym == SDLK_LEFT) {
-        if (cursor != 0) {
-          --cursor;
+        if (viewport.get_cursor() != 0) {
+          --viewport.get_cursor();
         }
       } else if (e.key.keysym.sym == SDLK_RIGHT) {
-        if (cursor != buffer.size()) {
-          ++cursor;
+        if (viewport.get_cursor() != buffer.size()) {
+          ++viewport.get_cursor();
         }
       }
     }
@@ -291,7 +295,6 @@ int main() {
   renderer = {window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
   font_cache_render();
   buffer = {"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"};
-  cursor = buffer.size();
 
   SDL_StartTextInput();
 
