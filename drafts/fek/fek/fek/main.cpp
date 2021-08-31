@@ -1,9 +1,11 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <cmath>
 #include <cstdlib>
 #include <exception>
 #include <iostream>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -133,25 +135,37 @@ private:
   unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
+vector<tuple<int, int, int>> lineOffsets;
+int symbolWidth;
+
 void drawBuffer(Renderer &r, const vector<string> &buffer,
                 const vector<string>::iterator &cursor,
                 unordered_map<string, Texture> &table) {
   SDL_Rect dst{0, 0, 0, 0};
   Texture &x = table.at("x");
   SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
+  symbolWidth = dst.w;
   SDL_SetRenderDrawColor(r.get(), 100, 255, 255, 255);
+  int lineLength = 0;
+  int lineOffset = 0;
+  lineOffsets.clear();
   for (auto pos = buffer.begin();; ++pos) {
     if (pos == cursor) {
-      SDL_Rect currect{dst.x,dst.y,dst.w/3,dst.h};
+      SDL_Rect currect{dst.x, dst.y, dst.w / 3, dst.h};
       SDL_RenderFillRect(r.get(), &currect);
     }
-    if (pos == buffer.end()) {
-      break;
-    }
-    string cc = *pos;
-    if (cc == "\n") {
+    ++lineLength;
+    string cc;
+    if (pos == buffer.end() || (cc = *pos) == "\n") {
+      lineOffsets.push_back({dst.y + dst.h / 2, lineOffset, lineLength});
+      lineLength = 0;
+      lineOffset = pos - buffer.begin() + 1;
+      lineLength = 0;
       dst.x = 0;
       dst.y += dst.h;
+      if (pos == buffer.end()) {
+        break;
+      }
       continue;
     }
     try {
@@ -170,6 +184,32 @@ unordered_map<string, Texture> font_cache;
 vector<string> buffer;
 auto cursor = buffer.end();
 bool quit;
+
+void handleMouseClick(int x, int y) {
+  auto it = lineOffsets.begin();
+  for (; it != lineOffsets.end(); ++it) {
+    if (get<0>(*it) >= y) {
+      break;
+    }
+  }
+  if (it == lineOffsets.end()) {
+    if (it == lineOffsets.begin()) {
+      throw runtime_error("lineOffsets cannot be empty");
+    }
+    --it;
+  }
+  if (it != lineOffsets.begin() && y < (get<0>(*it) + get<0>(*(it - 1))) / 2) {
+    --it;
+  }
+  int lineOffset = get<1>(*it);
+  int lineLength = get<2>(*it);
+  int column = round((double)x / symbolWidth);
+  if (column >= lineLength) {
+    column = lineLength - 1;
+  }
+  int pos = lineOffset + column;
+  cursor = buffer.begin() + pos;
+}
 
 void update() {
   SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
@@ -205,6 +245,9 @@ void update() {
         }
       }
     }
+    if (e.type == SDL_MOUSEBUTTONDOWN) {
+      handleMouseClick(e.button.x, e.button.y);
+    }
   }
 }
 
@@ -218,7 +261,7 @@ void update_w_logging() {
 }
 
 void font_cache_render() {
-  Font f{"fonts/Menlo.ttc", 14};
+  Font f{"fonts/Menlo.ttc", 16};
   string rusalphabet[] = {"а", "б", "в", "г", "д", "е", "ж", "з", "и", "й", "к",
                           "л", "м", "н", "о", "п", "р", "с", "т", "у", "ф", "х",
                           "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я"};
