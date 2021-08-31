@@ -135,48 +135,6 @@ private:
   unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
-vector<tuple<int, int, int>> lineOffsets;
-int symbolWidth;
-
-void drawBuffer(Renderer &r, const vector<string> &buffer,
-                const vector<string>::iterator &cursor,
-                unordered_map<string, Texture> &table) {
-  SDL_Rect dst{0, 0, 0, 0};
-  Texture &x = table.at("x");
-  SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
-  symbolWidth = dst.w;
-  SDL_SetRenderDrawColor(r.get(), 100, 255, 255, 255);
-  int lineLength = 0;
-  int lineOffset = 0;
-  lineOffsets.clear();
-  for (auto pos = buffer.begin();; ++pos) {
-    if (pos == cursor) {
-      SDL_Rect currect{dst.x, dst.y, dst.w / 3, dst.h};
-      SDL_RenderFillRect(r.get(), &currect);
-    }
-    ++lineLength;
-    string cc;
-    if (pos == buffer.end() || (cc = *pos) == "\n") {
-      lineOffsets.push_back({dst.y + dst.h / 2, lineOffset, lineLength});
-      lineLength = 0;
-      lineOffset = pos - buffer.begin() + 1;
-      lineLength = 0;
-      dst.x = 0;
-      dst.y += dst.h;
-      if (pos == buffer.end()) {
-        break;
-      }
-      continue;
-    }
-    try {
-      Texture &t = table.at(cc);
-      SDL_RenderCopy(r.get(), t.get(), NULL, &dst);
-      dst.x += dst.w;
-    } catch (std::out_of_range &e) {
-    }
-  }
-}
-
 SDL sdl;
 Window window;
 Renderer renderer;
@@ -185,36 +143,83 @@ vector<string> buffer;
 auto cursor = buffer.end();
 bool quit;
 
-void handleMouseClick(int x, int y) {
-  auto it = lineOffsets.begin();
-  for (; it != lineOffsets.end(); ++it) {
-    if (get<0>(*it) >= y) {
-      break;
+class Viewport {
+public:
+  void drawBuffer(Renderer &r, const vector<string> &buffer,
+		  const vector<string>::iterator &cursor,
+		  unordered_map<string, Texture> &table) {
+    SDL_Rect dst{0, 0, 0, 0};
+    Texture &x = table.at("x");
+    SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
+    symbolWidth = dst.w;
+    SDL_SetRenderDrawColor(r.get(), 100, 255, 255, 255);
+    int lineLength = 0;
+    int lineOffset = 0;
+    lineOffsets.clear();
+    for (auto pos = buffer.begin();; ++pos) {
+      if (pos == cursor) {
+	SDL_Rect currect{dst.x, dst.y, dst.w / 3, dst.h};
+	SDL_RenderFillRect(r.get(), &currect);
+      }
+      ++lineLength;
+      string cc;
+      if (pos == buffer.end() || (cc = *pos) == "\n") {
+	lineOffsets.push_back({dst.y + dst.h / 2, lineOffset, lineLength});
+	lineLength = 0;
+	lineOffset = pos - buffer.begin() + 1;
+	lineLength = 0;
+	dst.x = 0;
+	dst.y += dst.h;
+	if (pos == buffer.end()) {
+	  break;
+	}
+	continue;
+      }
+      try {
+	Texture &t = table.at(cc);
+	SDL_RenderCopy(r.get(), t.get(), NULL, &dst);
+	dst.x += dst.w;
+      } catch (std::out_of_range &e) {
+      }
     }
   }
-  if (it == lineOffsets.end()) {
-    if (it == lineOffsets.begin()) {
-      throw runtime_error("lineOffsets cannot be empty");
+
+  void handleMouseClick(int x, int y) {
+    auto it = lineOffsets.begin();
+    for (; it != lineOffsets.end(); ++it) {
+      if (get<0>(*it) >= y) {
+	break;
+      }
     }
-    --it;
+    if (it == lineOffsets.end()) {
+      if (it == lineOffsets.begin()) {
+	throw runtime_error("lineOffsets cannot be empty");
+      }
+      --it;
+    }
+    if (it != lineOffsets.begin() && y < (get<0>(*it) + get<0>(*(it - 1))) / 2) {
+      --it;
+    }
+    int lineOffset = get<1>(*it);
+    int lineLength = get<2>(*it);
+    int column = round((double)x / symbolWidth);
+    if (column >= lineLength) {
+      column = lineLength - 1;
+    }
+    int pos = lineOffset + column;
+    cursor = buffer.begin() + pos;
   }
-  if (it != lineOffsets.begin() && y < (get<0>(*it) + get<0>(*(it - 1))) / 2) {
-    --it;
-  }
-  int lineOffset = get<1>(*it);
-  int lineLength = get<2>(*it);
-  int column = round((double)x / symbolWidth);
-  if (column >= lineLength) {
-    column = lineLength - 1;
-  }
-  int pos = lineOffset + column;
-  cursor = buffer.begin() + pos;
-}
+private:
+  vector<tuple<int, int, int>> lineOffsets;
+  int symbolWidth;
+};
+
+Viewport viewport;
 
 void update() {
   SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
   SDL_RenderClear(renderer.get());
-  drawBuffer(renderer, buffer, cursor, font_cache);
+  viewport.drawBuffer(renderer, buffer, cursor, font_cache);
   SDL_RenderPresent(renderer.get());
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
@@ -246,7 +251,7 @@ void update() {
       }
     }
     if (e.type == SDL_MOUSEBUTTONDOWN) {
-      handleMouseClick(e.button.x, e.button.y);
+      viewport.handleMouseClick(e.button.x, e.button.y);
     }
   }
 }
