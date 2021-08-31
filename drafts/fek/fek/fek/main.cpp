@@ -140,14 +140,13 @@ Window window;
 Renderer renderer;
 unordered_map<string, Texture> font_cache;
 vector<string> buffer;
-auto cursor = buffer.end();
+size_t cursor = buffer.size();
 bool quit;
 
 class Viewport {
 public:
-  void drawBuffer(Renderer &r, const vector<string> &buffer,
-		  const vector<string>::iterator &cursor,
-		  unordered_map<string, Texture> &table) {
+  void drawBuffer(Renderer &r, const vector<string> &buffer, size_t &cursor,
+                  unordered_map<string, Texture> &table) {
     SDL_Rect dst{0, 0, 0, 0};
     Texture &x = table.at("x");
     SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
@@ -157,28 +156,28 @@ public:
     int lineOffset = 0;
     lineOffsets.clear();
     for (auto pos = buffer.begin();; ++pos) {
-      if (pos == cursor) {
-	SDL_Rect currect{dst.x, dst.y, dst.w / 3, dst.h};
-	SDL_RenderFillRect(r.get(), &currect);
+      if (pos == cursor + buffer.begin()) {
+        SDL_Rect currect{dst.x, dst.y, dst.w / 3, dst.h};
+        SDL_RenderFillRect(r.get(), &currect);
       }
       ++lineLength;
       string cc;
       if (pos == buffer.end() || (cc = *pos) == "\n") {
-	lineOffsets.push_back({dst.y + dst.h / 2, lineOffset, lineLength});
-	lineLength = 0;
-	lineOffset = pos - buffer.begin() + 1;
-	lineLength = 0;
-	dst.x = 0;
-	dst.y += dst.h;
-	if (pos == buffer.end()) {
-	  break;
-	}
-	continue;
+        lineOffsets.push_back({dst.y + dst.h / 2, lineOffset, lineLength});
+        lineLength = 0;
+        lineOffset = pos - buffer.begin() + 1;
+        lineLength = 0;
+        dst.x = 0;
+        dst.y += dst.h;
+        if (pos == buffer.end()) {
+          break;
+        }
+        continue;
       }
       try {
-	Texture &t = table.at(cc);
-	SDL_RenderCopy(r.get(), t.get(), NULL, &dst);
-	dst.x += dst.w;
+        Texture &t = table.at(cc);
+        SDL_RenderCopy(r.get(), t.get(), NULL, &dst);
+        dst.x += dst.w;
       } catch (std::out_of_range &e) {
       }
     }
@@ -188,16 +187,17 @@ public:
     auto it = lineOffsets.begin();
     for (; it != lineOffsets.end(); ++it) {
       if (get<0>(*it) >= y) {
-	break;
+        break;
       }
     }
     if (it == lineOffsets.end()) {
       if (it == lineOffsets.begin()) {
-	throw runtime_error("lineOffsets cannot be empty");
+        throw runtime_error("lineOffsets cannot be empty");
       }
       --it;
     }
-    if (it != lineOffsets.begin() && y < (get<0>(*it) + get<0>(*(it - 1))) / 2) {
+    if (it != lineOffsets.begin() &&
+        y < (get<0>(*it) + get<0>(*(it - 1))) / 2) {
       --it;
     }
     int lineOffset = get<1>(*it);
@@ -207,8 +207,9 @@ public:
       column = lineLength - 1;
     }
     int pos = lineOffset + column;
-    cursor = buffer.begin() + pos;
+    cursor = pos;
   }
+
 private:
   vector<tuple<int, int, int>> lineOffsets;
   int symbolWidth;
@@ -228,24 +229,24 @@ void update() {
     }
     if (e.type == SDL_TEXTINPUT) {
       string s = e.text.text;
-      cursor = buffer.insert(cursor, s);
+      buffer.insert(buffer.begin() + cursor, s);
       ++cursor;
     }
     if (e.type == SDL_KEYDOWN) {
       if (e.key.keysym.sym == SDLK_RETURN) {
-        cursor = buffer.insert(cursor, "\n");
+        buffer.insert(buffer.begin() + cursor, "\n");
         ++cursor;
       } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-        if (cursor != buffer.begin()) {
+        if (cursor != 0) {
           --cursor;
-          cursor = buffer.erase(cursor);
+          buffer.erase(buffer.begin() + cursor);
         }
       } else if (e.key.keysym.sym == SDLK_LEFT) {
-        if (cursor != buffer.begin()) {
+        if (cursor != 0) {
           --cursor;
         }
       } else if (e.key.keysym.sym == SDLK_RIGHT) {
-        if (cursor != buffer.end()) {
+        if (cursor != buffer.size()) {
           ++cursor;
         }
       }
@@ -290,7 +291,7 @@ int main() {
   renderer = {window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
   font_cache_render();
   buffer = {"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"};
-  cursor = buffer.end();
+  cursor = buffer.size();
 
   SDL_StartTextInput();
 
