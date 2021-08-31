@@ -139,7 +139,7 @@ class Viewport {
 public:
   Viewport(vector<string> &buffer) : buffer{buffer}, cursor{} {}
 
-  void drawBuffer(Renderer &r, unordered_map<string, Texture> &table) {
+  void render(Renderer &r, unordered_map<string, Texture> &table) {
     SDL_Rect dst{0, 0, 0, 0};
     Texture &x = table.at("x");
     SDL_QueryTexture(x.get(), NULL, NULL, &dst.w, &dst.h);
@@ -176,7 +176,7 @@ public:
     }
   }
 
-  void handleMouseClick(int x, int y) {
+  size_t get_offset_by_point(int x, int y) {
     auto it = lineOffsets.begin();
     for (; it != lineOffsets.end(); ++it) {
       if (get<0>(*it) >= y) {
@@ -200,40 +200,35 @@ public:
       column = lineLength - 1;
     }
     int pos = lineOffset + column;
-    cursor = pos;
+    return pos;
   }
 
-  void handleEvent(SDL_Event &e) {
-    if (e.type == SDL_TEXTINPUT) {
-      string s = e.text.text;
-      buffer.insert(buffer.begin() + get_cursor(), s);
-      ++get_cursor();
-    }
-    if (e.type == SDL_KEYDOWN) {
-      if (e.key.keysym.sym == SDLK_RETURN) {
-        buffer.insert(buffer.begin() + get_cursor(), "\n");
-        ++get_cursor();
-      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-        if (get_cursor() != 0) {
-          --get_cursor();
-          buffer.erase(buffer.begin() + get_cursor());
-        }
-      } else if (e.key.keysym.sym == SDLK_LEFT) {
-        if (get_cursor() != 0) {
-          --get_cursor();
-        }
-      } else if (e.key.keysym.sym == SDLK_RIGHT) {
-        if (get_cursor() != buffer.size()) {
-          get_cursor();
-        }
-      }
-    }
-    if (e.type == SDL_MOUSEBUTTONDOWN) {
-      handleMouseClick(e.button.x, e.button.y);
+  void insert_text(const string &s) {
+    buffer.insert(buffer.begin() + cursor, s);
+    ++cursor;
+  }
+
+  void insert_newline() { insert_text("\n"); }
+
+  void erase_before_cursor() {
+    if (cursor != 0) {
+      --cursor;
+      buffer.erase(buffer.begin() + cursor);
     }
   }
 
-  size_t &get_cursor() { return cursor; }
+  void move_cursor(int delta) {
+    if ((long long)cursor + delta < 0) {
+      cursor = 0;
+      return;
+    }
+    cursor += delta;
+    if (cursor > buffer.size()) {
+      cursor = buffer.size();
+    }
+  }
+
+  void set_cursor(size_t pos) { cursor = pos; }
 
 private:
   vector<string> &buffer;
@@ -252,16 +247,33 @@ Viewport viewport{buffer};
 
 void update() {
   SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 0);
-  SDL_RenderClear(renderer.get());
-  viewport.drawBuffer(renderer, font_cache);
-  SDL_RenderPresent(renderer.get());
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
     if (e.type == SDL_QUIT) {
       quit = true;
     }
-    viewport.handleEvent(e);
+    if (e.type == SDL_TEXTINPUT) {
+      viewport.insert_text(e.text.text);
+    }
+    if (e.type == SDL_KEYDOWN) {
+      if (e.key.keysym.sym == SDLK_RETURN) {
+        viewport.insert_newline();
+      } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+        viewport.erase_before_cursor();
+      } else if (e.key.keysym.sym == SDLK_LEFT) {
+        viewport.move_cursor(-1);
+      } else if (e.key.keysym.sym == SDLK_RIGHT) {
+        viewport.move_cursor(+1);
+      }
+    }
+    if (e.type == SDL_MOUSEBUTTONDOWN) {
+      size_t pos = viewport.get_offset_by_point(e.button.x, e.button.y);
+      viewport.set_cursor(pos);
+    }
   }
+  SDL_RenderClear(renderer.get());
+  viewport.render(renderer, font_cache);
+  SDL_RenderPresent(renderer.get());
 }
 
 void update_w_logging() {
