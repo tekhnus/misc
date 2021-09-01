@@ -18,8 +18,11 @@ class Heap:
 
     def pop(self):
         val = self._items[0]
-        self._items[0] = self._items.pop()
-        self._move_to_bottom(0)
+        if len(self._items) > 1:
+            self._items[0] = self._items.pop()
+            self._move_to_bottom(0)
+        else:
+            self._items = []
         return val
 
     def push(self, val):
@@ -85,6 +88,7 @@ class IndexedHeap:
 
     def push_or_update(self, key, p):
         self._heap.push((p, key))
+        self._keys.add(key)
 
 
 class Graph:
@@ -230,14 +234,15 @@ def ford_bellman(v, g, wg):
     return best, pred
 
 
-def greedy_tree(v, g, wg, pri):
-    infty = sum(x for x in wg.values() if x > 0) + 1
-    q = IndexedHeap([*[(u, (infty, None)) for u in g.vs if u != v], (v, (0, None))])
+def greedy_tree(v, g, pri):
+    q = IndexedHeap([(v, (0, None))])
+    reached = set()
     while q:
         vert, (dist, prd) = q.pop()
         yield vert, (dist, prd)
+        reached.add(vert)
         for edg, ver in g.outbound_edges(vert):
-            if ver not in q:
+            if ver in reached:
                 continue
             x = pri(edg, dist)
             q.push_or_update(ver, (x, vert))
@@ -246,7 +251,7 @@ def greedy_tree(v, g, wg, pri):
 def dijkstra(v, g, wg):
     best = {}
     pred = {}
-    for vert, (dist, prd) in greedy_tree(v, g, wg, lambda edg, dist: dist + wg[edg]):
+    for vert, (dist, prd) in greedy_tree(v, g, lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
     del pred[v]
