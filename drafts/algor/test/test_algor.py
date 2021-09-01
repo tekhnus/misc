@@ -122,3 +122,20 @@ def test_pairwise_distances(gr, ws, exp):
 )
 def test_pairwise_distances(gr, ws, exp):
     assert algor.floyd_warshall(gr, ws) == exp
+
+
+@pytest.mark.parametrize(
+    "gr,ws,exp",
+    [
+        (
+            g1,
+            ws,
+            (
+                9,
+                ["b", "a", "d"],
+            ),
+        )
+    ],
+)
+def test_kruscal(gr, ws, exp):
+    assert algor.kruskal(gr, ws) == exp

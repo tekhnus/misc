@@ -53,6 +53,17 @@ class Heap:
             break
 
 
+class EquivalenceRelation:
+    def __init__(self, objects):
+        self._sets = {obj: {obj} for obj in objects}
+
+    def are_equivalent(self, a, b):
+        return b in self._sets[a]
+
+    def declare_equivalent(self, a, b):
+        self._sets[a] = self._sets[b] = self._sets[a] | self._sets[b]
+
+
 class IndexedHeap:
     def __init__(self, items):
         items = list(items)
@@ -92,6 +103,9 @@ class Graph:
     @property
     def edges(self):
         return ((eid, u, v) for eid, (u, v) in self._es.items())
+
+    def edge_ends(self, e):
+        return self._es[e]
 
     def vs_extend(self, vs):
         self._vs.extend(vs)
@@ -306,3 +320,18 @@ def floyd_warshall(g, wg):
                     m[i, j] = thru_v
                     pred[i, j] = pred[v, j]
     return (remove_infinity(m, infty), pred)
+
+
+def kruskal(g, wg):
+    e = EquivalenceRelation(g.vs)
+    sorted_edges = sorted((w, eid) for eid, w in wg.items())
+    weight = 0
+    tree = []
+    for w, eid in sorted_edges:
+        u, v = g.edge_ends(eid)
+        if e.are_equivalent(u, v):
+            continue
+        weight += w
+        tree.append(eid)
+        e.declare_equivalent(u, v)
+    return weight, tree
