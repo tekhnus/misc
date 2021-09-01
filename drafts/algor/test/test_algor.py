@@ -139,3 +139,20 @@ def test_pairwise_distances(gr, ws, exp):
 )
 def test_kruscal(gr, ws, exp):
     assert algor.kruskal(gr, ws) == exp
+
+
+@pytest.mark.parametrize(
+    "gr,ws,exp",
+    [
+        (
+            g1,
+            ws,
+            (
+                9,
+                {2: 1, 3: 1, 4: 3},
+            ),
+        )
+    ],
+)
+def test_prim(gr, ws, exp):
+    assert algor.prim(1, gr, ws) == exp

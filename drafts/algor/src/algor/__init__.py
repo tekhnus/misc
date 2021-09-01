@@ -345,3 +345,13 @@ def kruskal(g, wg):
         tree.append(eid)
         e.declare_equivalent(u, v)
     return weight, tree
+
+
+def prim(v, g, wg):
+    weight = 0
+    pred = {}
+    for vert, (dist, prd) in greedy_tree(v, g, lambda edg, _: wg[edg]):
+        weight += dist
+        pred[vert] = prd
+    del pred[v]
+    return weight, pred
