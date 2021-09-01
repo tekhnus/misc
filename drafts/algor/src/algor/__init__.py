@@ -230,20 +230,25 @@ def ford_bellman(v, g, wg):
     return best, pred
 
 
-def dijkstra(v, g, wg):
+def greedy_tree(v, g, wg, pri):
     infty = sum(x for x in wg.values() if x > 0) + 1
-    best = {}
-    pred = {}
     q = IndexedHeap([*[(u, (infty, None)) for u in g.vs if u != v], (v, (0, None))])
     while q:
         vert, (dist, prd) = q.pop()
-        best[vert] = dist
-        pred[vert] = prd
+        yield vert, (dist, prd)
         for edg, ver in g.outbound_edges(vert):
             if ver not in q:
                 continue
-            x = dist + wg[edg]
+            x = pri(edg, dist)
             q.push_or_update(ver, (x, vert))
+
+
+def dijkstra(v, g, wg):
+    best = {}
+    pred = {}
+    for vert, (dist, prd) in greedy_tree(v, g, wg, lambda edg, dist: dist + wg[edg]):
+        best[vert] = dist
+        pred[vert] = prd
     del pred[v]
     return best, pred
 
