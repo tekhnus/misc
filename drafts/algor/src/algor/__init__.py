@@ -171,14 +171,15 @@ def dfs_iterative(g, vs):
 
 def bfs(g, v):
     visited = set()
-    st = collections.deque([v])
+    st = collections.deque([(None, v)])
     while st:
-        u = st.popleft()
+        pred, u = st.popleft()
         if u in visited:
             continue
-        yield u
+        if pred is not None:
+            yield pred, u
         visited.add(u)
-        st.extend(g.successors(u))
+        st.extend((u, w) for w in g.successors(u))
 
 
 def topo_sort(vs, g):
@@ -355,3 +356,9 @@ def prim(v, g, wg):
         pred[vert] = prd
     del pred[v]
     return weight, pred
+
+
+def edmonds_carp(s, t, mat):
+    rest = mat.copy()
+    g = nonzero_graph(mat)
+    
