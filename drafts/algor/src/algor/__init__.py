@@ -427,17 +427,31 @@ def partition(xs, bounds, pivot_value):
     left, right = bounds
     i = left
     j = right - 1
-    # [left, i) and (j, right) are good.
+
     while i <= j:
-        while i < right and xs[i] < pivot_value:
+        # The slices [left:i] and [j+1:right] are good.
+        while i <= j and xs[i] < pivot_value:
             i += 1
-        while j >= left and xs[j] > pivot_value:
+        # Either we're done or i is swappable.
+        while i <= j and xs[j] > pivot_value:
             j -= 1
+        # Either we're done or j is swappable.
         if i > j:
+            # We're done.
             break
+        # i and j are swappable.
         xs[i], xs[j] = xs[j], xs[i]
+        # The slices [left:i+1] and [j:right] are good.
         i += 1
         j -= 1
+        # The slices [left:i] and [j+1:right] are good.
+    # The slices [left:i] and [j+1:right] are good.
+    # i > j, e.g. i >= j+1.
+    # Thus the slices [left:j+1] and [i:right] are good.
+    # Therefore the slice [j+1:i] contains the pivot value.
+
+    # The first loop iteration moved both i and j,
+    # so both [left:j+1] and [i:right] are smaller than [left:right]
     return j + 1, i
 
 
