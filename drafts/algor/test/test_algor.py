@@ -1,5 +1,6 @@
 import pytest
 import algor
+import random
 
 
 g1 = algor.Graph(
@@ -180,3 +181,13 @@ def test_prim(gr, ws, exp):
 )
 def test_edmonds_karp(s, t, gr, ws, exp):
     assert algor.edmonds_karp(s, t, gr, ws) == exp
+
+
+@pytest.mark.parametrize(
+    "xs",
+    [[3, 1, 2], [5], [], [7, 7], [7, 7, 7]]
+)
+def test_quicksort(xs):
+    exp = sorted(xs)
+    algor.quicksort(xs, rng=random.Random(123))
+    assert xs == exp

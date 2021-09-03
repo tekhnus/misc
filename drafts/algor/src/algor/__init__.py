@@ -8,6 +8,7 @@ import math
 import heapq
 import operator
 import dataclasses
+import random
 
 
 class Heap:
@@ -420,3 +421,38 @@ def edmonds_karp(s, t, g, wg):
             rest_wg[reverse(e)] += pathwgh
     used_wgh = {e: rest_wg[backward(e)] for e in wg}
     return wgh, used_wgh
+
+
+def partition(xs, bounds, pivot_value):
+    left, right = bounds
+    i = left
+    j = right - 1
+    # [left, i) and (j, right) are good.
+    while i <= j:
+        while i < right and xs[i] < pivot_value:
+            i += 1
+        while j >= left and xs[j] > pivot_value:
+            j -= 1
+        if i > j:
+            break
+        xs[i], xs[j] = xs[j], xs[i]
+        i += 1
+        j -= 1
+    return j + 1, i
+
+
+def _quicksort(xs, bounds, rng):
+    left, right = bounds
+    if right - left < 2:
+        return
+    pivot_value = xs[rng.randrange(left, right)]
+    m1, m2 = partition(xs, bounds, pivot_value)
+    _quicksort(xs, (left, m1), rng)
+    _quicksort(xs, (m2, right), rng)
+
+
+def quicksort(xs, rng=None):
+    if rng is None:
+        rng = random
+    bounds = (0, len(xs))
+    _quicksort(xs, bounds, rng)
