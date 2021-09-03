@@ -119,9 +119,6 @@ class Graph:
             self._es[eid] = (u, v)
             self._ix[u].append(eid)
 
-    def successors(self, u):
-        return [self._es[eid][1] for eid in self._ix[u]]
-
     def outbound_edges(self, u):
         return [(eid, self._es[eid][1]) for eid in self._ix[u]]
 
@@ -134,8 +131,8 @@ class GraphFilteredView:
         self._orig_view = gv
         self._vset = vs
 
-    def successors(self, v):
-        return [u for u in self._orig_view.successors(v) if u in self._vset]
+    def outbound_edges(self, v):
+        return [(e, u) for e, u in self._orig_view.outbound_edges(v) if u in self._vset]
 
 
 def dfs_recursive(g, vs):
@@ -144,7 +141,7 @@ def dfs_recursive(g, vs):
     def _dfs(v):
         yield ("enter", v)
         visited.add(v)
-        for u in g.successors(v):
+        for _, u in g.outbound_edges(v):
             if not u in visited:
                 yield from _dfs(u)
         yield ("exit", v)
@@ -166,7 +163,7 @@ def dfs_iterative(g, vs):
         yield item
         visited.add(u)
         st.append(("exit", u))
-        st.extend(("enter", w) for w in reversed(g.successors(u)))
+        st.extend(("enter", w) for _, w in reversed(g.outbound_edges(u)))
 
 
 def bfs(g, v):
