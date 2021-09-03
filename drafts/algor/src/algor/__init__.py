@@ -171,15 +171,15 @@ def dfs_iterative(g, vs):
 
 def bfs(g, v):
     visited = set()
-    st = collections.deque([(None, v)])
+    st = collections.deque([(None, None, v)])
     while st:
-        pred, u = st.popleft()
+        e, pred, u = st.popleft()
         if u in visited:
             continue
         if pred is not None:
-            yield pred, u
+            yield e, pred, u
         visited.add(u)
-        st.extend((u, w) for w in g.successors(u))
+        st.extend((eid, u, w) for eid, w in g.outbound_edges(u))
 
 
 def topo_sort(vs, g):
@@ -419,8 +419,8 @@ def nonzero_graph(mat):
 
 def find_path_bfs(s, t, g):
     pred = {}
-    for u, v in bfs(g, s):
-        pred[v] = u
+    for e, u, v in bfs(g, s):
+        pred[v] = (e, u)
         if v == t:
             break
     else:
