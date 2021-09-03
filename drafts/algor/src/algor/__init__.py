@@ -358,65 +358,6 @@ def prim(v, g, wg):
     return weight, pred
 
 
-class Matrix:
-    def __init__(self, vs, wghs=None):
-        self._vs = vs
-        self._wghs = wghs or {}
-
-    @property
-    def vs(self):
-        return self._vs
-
-    def copy(self):
-        return Matrix(self._vs.copy(), self._wghs.copy())
-
-    def __getitem__(self, k):
-        return self._wghs.get(k, 0)
-
-    def __setitem__(self, k, v):
-        self._wghs[k] = v
-
-    def __sub__(self, m):
-        w = collections.defaultdict(int, self._wghs.copy())
-        for k, v in m._wghs.items():
-            w[k] -= v
-        return Matrix(self._vs, dict(w))
-
-    def __eq__(self, m):
-        if not isinstance(m, Matrix):
-            return False
-        for u in self.vs:
-            for v in self.vs:
-                if self[u, v] != m[u, v]:
-                    return False
-        return True
-
-    def __repr__(self):
-        return repr(self._wghs)
-
-
-def graph_to_matrix(g, wg):
-    wghs = collections.defaultdict(int)
-    for eid, u, v in g.edges:
-        wghs[u, v] += wg[eid]
-    return Matrix(g.vs, dict(wghs))
-
-
-class MatrixGraphView:
-    def __init__(self, mat, efilter):
-        self._mat = mat
-        self._efilter = efilter
-
-    def successors(self, u):
-        for v in self._mat.vs:
-            if self._efilter(u, v, self._mat[u, v]):
-                yield v
-
-
-def nonzero_graph(mat):
-    return MatrixGraphView(mat, lambda _1, _2, wgh: wgh > 0)
-
-
 def find_path_bfs(s, t, g):
     pred = {}
     for e, u, v in bfs(g, s):
@@ -428,20 +369,44 @@ def find_path_bfs(s, t, g):
     path = []
     x = t
     while x != s:
-        p = pred[x]
-        path.append((p, x))
+        ed, p = pred[x]
+        path.append((ed, p, x))
         x = p
     return list(reversed(path))
 
 
-def edmonds_karp(s, t, mat):
-    rest = mat.copy()
+def ff_copy(g, wg):
+    e = []
+    w = {}
+    for eid, u, v in g.edges:
+        e.append(((eid, False), u, v))
+        w[eid, False] = wg[eid]
+        e.append(((eid, True), v, u))
+        w[eid, True] = 0
+    return Graph(g.vs, e), w
+
+
+class GraphFilteredByEdgeWeight:
+    def __init__(self, g, wg):
+        self._g = g
+        self._wg = wg
+
+    def outbound_edges(self, u):
+        for eid, v in self._g.outbound_edges(u):
+            if self._wg[eid]:
+                yield eid, v
+
+
+def edmonds_karp(s, t, g, wg):
+    rest, rest_wg = ff_copy(g, wg)
     wgh = 0
-    g = nonzero_graph(rest)
+    g = GraphFilteredByEdgeWeight(rest, rest_wg)
     while (path := find_path_bfs(s, t, g)) is not None:
-        pathwgh = min(mat[u, v] for u, v in path)
+        pathwgh = min(rest_wg[e] for e, _1, _2 in path)
         wgh += pathwgh
-        for u, v in path:
-            rest[u, v] -= pathwgh
-            rest[v, u] += pathwgh
-    return wgh, mat - rest
+        for e, _1, _2 in path:
+            eid, eflg = e
+            rest_wg[eid, eflg] -= pathwgh
+            rest_wg[eid, not eflg] += pathwgh
+    rest_wgh = {e: www for (e, flg), www in rest_wg.items() if not flg}
+    return wgh, {e: wg[e] - rest_wgh[e] for e in wg}

@@ -159,30 +159,24 @@ def test_prim(gr, ws, exp):
 
 
 @pytest.mark.parametrize(
-    "s, t, mat, exp",
+    "s, t, gr, ws, exp",
     [
         (
             1,
             4,
-            algor.graph_to_matrix(g1, ws),
+            g1,
+            ws,
             (
                 4,
-                algor.Matrix(
-                    g1.vs,
-                    {
-                        (1, 2): 3,
-                        (1, 3): 1,
-                        (2, 3): 3,
-                        (3, 4): 4,
-                        (3, 1): -1,
-                        (4, 3): -4,
-                        (2, 1): -3,
-                        (3, 2): -3,
-                    },
-                ),
+                {
+                    "a": 3,
+                    "b": 1,
+                    "c": 3,
+                    "d": 4,
+                },
             ),
         )
     ],
 )
-def test_edmonds_karp(s, t, mat, exp):
-    assert algor.edmonds_karp(s, t, mat) == exp
+def test_edmonds_karp(s, t, gr, ws, exp):
+    assert algor.edmonds_karp(s, t, gr, ws) == exp
