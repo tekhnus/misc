@@ -383,28 +383,40 @@ class GraphFilteredByEdgeWeight:
                 yield eid, v
 
 
-def add_reversed_zero_edges(g, wg):
+def forward(eid):
+    return (eid, False)
+
+
+def backward(eid):
+    return (eid, True)
+
+
+def reverse(eid):
+    e, flg = eid
+    return (e, not flg)
+
+
+def double_graph(g):
     e = [
-        *[((eid, False), u, v) for eid, u, v in g.edges],
-        *[((eid, True), v, u) for eid, u, v in g.edges],
+        *[(forward(eid), u, v) for eid, u, v in g.edges],
+        *[(backward(eid), v, u) for eid, u, v in g.edges],
     ]
-    w = {
-        **{(eid, False): wg[eid] for eid, _, _ in g.edges},
-        **{(eid, True): 0 for eid, _, _ in g.edges},
-    }
-    return Graph(g.vs, e), w
+    return Graph(g.vs, e)
 
 
 def edmonds_karp(s, t, g, wg):
-    rest, rest_wg = add_reversed_zero_edges(g, wg)
+    rest = double_graph(g)
+    rest_wg = {
+        **{forward(eid): w for eid, w in wg.items()},
+        **{backward(eid): 0 for eid in wg.keys()},
+    }
     wgh = 0
     g = GraphFilteredByEdgeWeight(rest, rest_wg)
     while (path := find_path_bfs(s, t, g)) is not None:
         pathwgh = min(rest_wg[e] for e, _, _ in path)
         wgh += pathwgh
         for e, _, _ in path:
-            eid, eflg = e
-            rest_wg[eid, eflg] -= pathwgh
-            rest_wg[eid, not eflg] += pathwgh
-    used_wgh = {e: www for (e, flg), www in rest_wg.items() if flg}
+            rest_wg[e] -= pathwgh
+            rest_wg[reverse(e)] += pathwgh
+    used_wgh = {e: rest_wg[backward(e)] for e in wg}
     return wgh, used_wgh
