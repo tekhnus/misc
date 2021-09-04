@@ -469,3 +469,33 @@ def quicksort(xs, rng=None):
         rng = random
     bounds = (0, len(xs))
     _quicksort(xs, bounds, rng)
+
+
+def mergesort_top_down(xs):
+    bounds = (0, len(xs))
+    xs2 = [x for x in xs]
+    _mergesort_top_down(xs2, bounds, xs)
+
+
+def _mergesort_top_down(src, bounds, dst):
+    left, right = bounds
+    if right - left < 2:
+        return
+    mid = (left + right + 1) // 2
+    _mergesort_top_down(dst, (left, mid), src)
+    _mergesort_top_down(dst, (mid, right), src)
+    _mergesorted(src, (left, mid), src, (mid, right), dst, bounds)
+
+
+def _mergesorted(src_a, bounds_a, src_b, bounds_b, dst, dst_bounds):
+    a, a_end = bounds_a
+    b, b_end = bounds_b
+    d, d_end = dst_bounds
+    while a != a_end or b != b_end:
+        if b == b_end or (a != a_end and src_a[a] <= src_b[b]):
+            dst[d] = src_a[a]
+            a += 1
+        else:
+            dst[d] = src_b[b]
+            b += 1
+        d += 1
