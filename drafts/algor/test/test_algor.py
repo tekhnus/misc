@@ -2,6 +2,7 @@ import pytest
 import algor
 import random
 import itertools
+import collections
 
 
 g1 = algor.Graph(
@@ -206,3 +207,19 @@ def test_mergesort(xs, f):
     exp = sorted(xs)
     f(xs)
     assert xs == exp
+
+
+SKIP = object()
+
+
+@pytest.mark.parametrize(
+    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
+)
+@pytest.mark.parametrize("counter", [lambda: algor.ListSortedCounter(-100, 100), SKIP])
+def test_counting_sort(xs, counter):
+    args = {}
+    if counter is not SKIP:
+        args["counter_cls"] = counter
+    res = algor.counting_sort(xs, **args)
+    exp = sorted(xs)
+    assert res == exp

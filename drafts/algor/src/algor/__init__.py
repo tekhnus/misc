@@ -526,3 +526,51 @@ def _merge_chunks(buf_a, buf_b, chunk):
             buf_b,
             (chunk_x, chunk_y_end),
         )
+
+
+class ListSortedCounter:
+    def __init__(self, lower, upper):
+        self._freq = [0 for _ in range(upper - lower)]
+        self._lower = lower
+
+    def __setitem__(self, k, v):
+        self._freq[k - self._lower] = v
+
+    def __getitem__(self, k):
+        return self._freq[k - self._lower]
+
+    def items(self):
+        for k, v in enumerate(self._freq):
+            if v == 0:
+                continue
+            yield k + self._lower, v
+
+
+class CounterBasedCounter:
+    def __init__(self):
+        self._cnt = collections.Counter()
+
+    def __setitem__(self, k, v):
+        self._cnt[k] = v
+
+    def __getitem__(self, k):
+        return self._cnt[k]
+
+    def items(self):
+        return sorted(self._cnt.items())
+
+
+def counting_sort(xs, key=lambda x: x, counter_cls=CounterBasedCounter):
+    index = counter_cls()
+    for x in xs:
+        index[key(x)] += 1
+    prev = 0
+    for v, cnt in index.items():
+        index[v] = prev
+        prev += cnt
+    res = [None for _ in xs]
+    for x in xs:
+        k = key(x)
+        res[index[k]] = x
+        index[k] += 1
+    return res
