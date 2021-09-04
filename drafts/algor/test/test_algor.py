@@ -223,3 +223,16 @@ def test_counting_sort(xs, counter):
     res = algor.counting_sort(xs, **args)
     exp = sorted(xs)
     assert res == exp
+
+
+trng = random.Random(1234)
+
+
+@pytest.mark.parametrize(
+    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], trng.choices(range(10000), k=100)]
+)
+def test_radix_sort(xs):
+    keys = [algor.nth_digit_getter(n) for n in range(10, -1, -1)]
+    res = algor.radix_sort(xs, keys=keys)
+    exp = sorted(xs)
+    assert res == exp

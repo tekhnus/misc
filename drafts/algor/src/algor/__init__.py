@@ -574,3 +574,19 @@ def counting_sort(xs, key=lambda x: x, counter_cls=CounterBasedCounter):
         res[index[k]] = x
         index[k] += 1
     return res
+
+
+def radix_sort(xs, keys, inner_sort=None):
+    if inner_sort is None:
+        inner_sort = lambda ys, key: counting_sort(ys, key)
+    ys = xs
+    for key in reversed(keys):
+        ys = inner_sort(ys, key=key)
+    return ys
+
+
+def nth_digit_getter(n):
+    p = 10 ** n
+    def fn(k):
+        return (k // p) % 10
+    return fn
