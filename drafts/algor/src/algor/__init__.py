@@ -428,27 +428,26 @@ def partition(xs, bounds, pivot_value):
     i = left
     j = right - 1
 
+    # The following invariants are maintained during the rest of the procedure:
+    # * for all x in xs[left:i]: x <= pivot_value
+    # * for all x in xs[j+1:right]: x >= pivot_value
     while i <= j:
-        # The slices [left:i] and [j+1:right] are good.
         while i <= j and xs[i] < pivot_value:
             i += 1
-        # Either we're done or i is swappable.
+        # Either i-th element is swappable or slices meet/overlap.
         while i <= j and xs[j] > pivot_value:
             j -= 1
-        # Either we're done or j is swappable.
+        # Either j-th element is swappable or slices meet/overlap.
         if i > j:
-            # We're done.
+            # Slices meet/overlap.
             break
-        # i and j are swappable.
+        # Slices do not meet/overlap and
+        # i-th and j-th elements are swappable.
         xs[i], xs[j] = xs[j], xs[i]
-        # The slices [left:i+1] and [j:right] are good.
         i += 1
         j -= 1
-        # The slices [left:i] and [j+1:right] are good.
-    # The slices [left:i] and [j+1:right] are good.
-    # i > j, e.g. i >= j+1.
-    # Thus the slices [left:j+1] and [i:right] are good.
-    # Therefore the slice [j+1:i] contains the pivot value.
+    # Slices meet/overlap.
+    # Therefore the slice xs[j+1:i] contains only the pivot value.
 
     # The first loop iteration moved both i and j,
     # so both [left:j+1] and [i:right] are smaller than [left:right]
