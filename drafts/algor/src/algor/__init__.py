@@ -499,3 +499,30 @@ def _mergesorted(src_a, bounds_a, src_b, bounds_b, dst, dst_bounds):
             dst[d] = src_b[b]
             b += 1
         d += 1
+
+
+def mergesort_bottom_up(xs):
+    chunk = 1
+    buf_a = xs
+    buf_b = [None for _ in xs]
+    while chunk < len(xs):
+        _merge_chunks(buf_a, buf_b, chunk)
+        chunk *= 2
+        buf_a, buf_b = buf_b, buf_a
+    if buf_a is not xs:
+        for i, x in enumerate(buf_a):
+            xs[i] = x
+
+
+def _merge_chunks(buf_a, buf_b, chunk):
+    for chunk_x in range(0, len(buf_a), 2 * chunk):
+        chunk_y = min(chunk_x + chunk, len(buf_a))
+        chunk_y_end = min(chunk_x + 2 * chunk, len(buf_a))
+        _mergesorted(
+            buf_a,
+            (chunk_x, chunk_y),
+            buf_a,
+            (chunk_y, chunk_y_end),
+            buf_b,
+            (chunk_x, chunk_y_end),
+        )

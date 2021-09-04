@@ -184,13 +184,14 @@ def test_edmonds_karp(s, t, gr, ws, exp):
     assert algor.edmonds_karp(s, t, gr, ws) == exp
 
 
-short_sequences = [list(seq) for seq in itertools.product(range(4), repeat=4)]
+short_sequences = [list(seq) for seq in itertools.product(list(range(4)), repeat=4)]
 
 
 @pytest.mark.parametrize(
     "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
 )
 def test_quicksort(xs):
+    xs = xs[:]
     exp = sorted(xs)
     algor.quicksort(xs, rng=random.Random(123))
     assert xs == exp
@@ -199,7 +200,9 @@ def test_quicksort(xs):
 @pytest.mark.parametrize(
     "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
 )
-def test_mergesort(xs):
+@pytest.mark.parametrize("f", [algor.mergesort_top_down, algor.mergesort_bottom_up])
+def test_mergesort(xs, f):
+    xs = xs[:]
     exp = sorted(xs)
-    algor.mergesort_top_down(xs)
+    f(xs)
     assert xs == exp
