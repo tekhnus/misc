@@ -628,20 +628,11 @@ class DLList:
             e.next.prev = e.prev
 
 
-class HashTable:
-    def __init__(self, bucket_count=8, max_load_factor=4):
+class StaticHashTable:
+    def __init__(self, bucket_count):
         self._element_count = 0
         self._bucket_count = bucket_count
-        self._max_load_factor = 1
-        self._max_element_count = self._bucket_count * self._max_load_factor
         self._buckets = [DLList() for _ in range(self._bucket_count)]
-
-    def reinit(self, another):
-        self._element_count = another._element_count
-        self._bucket_count = another._bucket_count
-        self._max_load_factor = another._max_load_factor
-        self._max_element_count = another._max_element_count
-        self._buckets = another._buckets
 
     def update(self, items):
         for k, v in items:
@@ -661,10 +652,6 @@ class HashTable:
         return hash(k) % self._bucket_count
 
     def __setitem__(self, k, v):
-        if self._element_count >= self._max_element_count:
-            newtable = HashTable(bucket_count=self._bucket_count * 2, max_load_factor=self._max_load_factor)
-            newtable.update(self.items())
-            self.reinit(newtable)
         h = self._get_bucket(k)
         for e in self._buckets[h].iter_forward():
             kk, _ = e.val
@@ -690,3 +677,43 @@ class HashTable:
     def items(self):
         for b in self._buckets:
             yield from b.iter_values_forward()
+
+
+def move_hash_table(old_table, *args, **kwargs):
+    new_table = StaticHashTable(*args, **kwargs)
+    new_table.update(old_table.items())
+
+    return new_table
+
+
+class HashTable:
+    def __init__(self, max_load_factor=4):
+        self._tab = None
+        self._max_load_factor = max_load_factor
+        self._max_element_count = None
+
+        self._set_tab(StaticHashTable(8))
+
+    def _set_tab(self, newtab):
+        self._tab = newtab
+        self._max_element_count = newtab._bucket_count * self._max_load_factor
+
+    def __len__(self):
+        return len(self._tab)
+
+    def __getitem__(self, k):
+        return self._tab[k]
+
+    def __setitem__(self, k, v):
+        if len(self._tab) >= self._max_element_count:
+            self._set_tab(move_hash_table(self._tab, 2 * self._tab._bucket_count))
+        self._tab[k] = v
+
+    def pop(self):
+        return self._tab.pop()
+
+    def __delitem__(self, k):
+        del self._tab[k]
+
+    def items(self):
+        return self._tab.items()
