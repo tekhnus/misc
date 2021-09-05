@@ -236,3 +236,49 @@ def test_radix_sort(xs):
     res = algor.radix_sort(xs, keys=keys)
     exp = sorted(xs)
     assert res == exp
+
+
+def random_instruction(rngen):
+    if rngen.random() > 0.5:
+        return ("insert", rngen.choice(["a", "b", "c", "d"]), rngen.choice([1, 2, 3]))
+    else:
+        return ("delete", rngen.choice(["a", "b", "c", "d"]))
+
+
+def try_delete(m, k):
+    try:
+        del m[k]
+    except KeyError as e:
+        return e
+    return None
+
+
+@pytest.mark.parametrize(
+    "insertions",
+    [
+        [],
+        [("insert", "a", 42), ("insert", "b", 33), ("delete", "a")],
+        [random_instruction(trng) for _ in range(30)],
+    ],
+)
+def test_hash_table(insertions):
+    h = algor.HashTable()
+    d = {}
+    allkeys = set()
+    for cmd, *args in insertions:
+        if cmd == "insert":
+            k, v = args
+            h[k] = v
+            d[k] = v
+            allkeys.add(k)
+        elif cmd == "delete":
+            (k,) = args
+            assert (try_delete(h, k) is not None) == (try_delete(d, k) is not None)
+        else:
+            raise ValueError("wrong test")
+        assert sorted(h.items()) == sorted(d.items())
+        for k, v in d.items():
+            assert h[k] == v
+        for k in allkeys - d.keys():
+            with pytest.raises(KeyError):
+                h[k]

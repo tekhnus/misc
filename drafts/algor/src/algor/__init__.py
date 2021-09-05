@@ -587,6 +587,90 @@ def radix_sort(xs, keys, inner_sort=None):
 
 def nth_digit_getter(n):
     p = 10 ** n
+
     def fn(k):
         return (k // p) % 10
+
     return fn
+
+
+class DLCons:
+    def __init__(self, val, prev, next_):
+        self.val = val
+        self.prev = prev
+        self.next = next_
+
+
+class DLList:
+    def __init__(self):
+        self._head = None
+
+    def iter_forward(self):
+        elem = self._head
+        while elem is not None:
+            yield elem
+            elem = elem.next
+
+    def iter_values_forward(self):
+        return (e.val for e in self.iter_forward())
+
+    def prepend(self, v):
+        self._head = DLCons(v, None, self._head)
+        if self._head.next is not None:
+            self._head.next.prev = self._head
+
+    def delete(self, e):
+        if e.prev is not None:
+            e.prev.next = e.next
+        else:
+            self._head = e.next
+        if e.next is not None:
+            e.next.prev = e.prev
+
+
+class HashTable:
+    def __init__(self):
+        self._element_count = 0
+        self._bucket_count = 1
+        self._max_load_factor = 4
+        self._max_element_count = self._bucket_count * self._max_load_factor
+        self._buckets = [DLList() for _ in range(self._bucket_count)]
+
+    def update(self, items):
+        for k, v in items:
+            self[k] = v
+
+    def __getitem__(self, k):
+        h = self._get_bucket(k)
+        for kk, vv in self._buckets[h].iter_values_forward():
+            if kk == k:
+                return vv
+        raise KeyError(k)
+
+    def _get_bucket(self, k):
+        return hash(k) % self._bucket_count
+
+    def __setitem__(self, k, v):
+        h = self._get_bucket(k)
+        for e in self._buckets[h].iter_forward():
+            kk, _ = e.val
+            if kk == k:
+                e.val = (k, v)
+                return
+        self._buckets[h].prepend((k, v))
+
+    def pop(self, k):
+        h = self._get_bucket(k)
+        for e in self._buckets[h].iter_forward():
+            kk, vv = e.val
+            if kk == k:
+                self._buckets[h].delete(e)
+                return vv
+        raise KeyError(k)
+
+    def __delitem__(self, k):
+        self.pop(k)
+
+    def items(self):
+        for b in self._buckets:
+            yield from b.iter_values_forward()
