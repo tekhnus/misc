@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <filesystem>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -135,9 +136,42 @@ private:
   unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
+class Buffer {
+public:
+  Buffer() : txt{} {}
+
+  void bind_to_file(filesystem::path p);
+
+  void insert(size_t pos, string text) {
+    txt.insert(txt.begin() + pos, text);
+  }
+
+  void new_line(size_t pos) {
+    insert(pos, "\n");
+  }
+
+  void erase(size_t pos) {
+    if (pos == 0) {
+      return;
+    }
+    txt.erase(txt.begin() + pos - 1);
+  }
+
+  void set(const vector<string>& newtext) {
+    txt = newtext;
+  }
+  
+  const vector<string>& text() {
+    return txt;
+  }
+
+private:
+  vector<string> txt;
+};
+
 class Viewport {
 public:
-  Viewport(vector<string> &buffer) : buffer{buffer}, cursor{} {}
+  Viewport(Buffer &buffer) : buffer{buffer}, cursor{} {}
 
   void render(Renderer &r, unordered_map<string, Texture> &table) {
     SDL_Rect dst{0, 0, 0, 0};
@@ -148,21 +182,22 @@ public:
     int lineLength = 0;
     int lineOffset = 0;
     lineOffsets.clear();
-    for (auto pos = buffer.begin();; ++pos) {
-      if (pos == cursor + buffer.begin()) {
+    auto txt = buffer.text();
+    for (auto pos = txt.begin();; ++pos) {
+      if (pos == cursor + txt.begin()) {
         SDL_Rect currect{dst.x, dst.y, dst.w / 3, dst.h};
         SDL_RenderFillRect(r.get(), &currect);
       }
       ++lineLength;
       string cc;
-      if (pos == buffer.end() || (cc = *pos) == "\n") {
+      if (pos == txt.end() || (cc = *pos) == "\n") {
         lineOffsets.push_back({dst.y + dst.h / 2, lineOffset, lineLength});
         lineLength = 0;
-        lineOffset = pos - buffer.begin() + 1;
+        lineOffset = pos - txt.begin() + 1;
         lineLength = 0;
         dst.x = 0;
         dst.y += dst.h;
-        if (pos == buffer.end()) {
+        if (pos == txt.end()) {
           break;
         }
         continue;
@@ -203,17 +238,17 @@ public:
     return pos;
   }
 
-  void insert_text(const string &s) {
-    buffer.insert(buffer.begin() + cursor, s);
+  void insert_before_cursor(const string &s) {
+    buffer.insert(cursor, s);
     ++cursor;
   }
 
-  void insert_newline() { insert_text("\n"); }
+  void new_line_before_cursor() { insert_before_cursor("\n"); }
 
   void erase_before_cursor() {
     if (cursor != 0) {
+      buffer.erase(cursor);
       --cursor;
-      buffer.erase(buffer.begin() + cursor);
     }
   }
 
@@ -223,15 +258,16 @@ public:
       return;
     }
     cursor += delta;
-    if (cursor > buffer.size()) {
-      cursor = buffer.size();
+    auto txt = buffer.text().size();
+    if (cursor > txt) {
+      cursor = txt;
     }
   }
 
   void set_cursor(size_t pos) { cursor = pos; }
 
 private:
-  vector<string> &buffer;
+  Buffer &buffer;
   size_t cursor;
   vector<tuple<int, int, int>> lineOffsets;
   int symbolWidth;
@@ -241,7 +277,7 @@ SDL sdl;
 Window window;
 Renderer renderer;
 unordered_map<string, Texture> font_cache;
-vector<string> buffer;
+Buffer buffer;
 bool quit;
 Viewport viewport{buffer};
 
@@ -253,11 +289,11 @@ void update() {
       quit = true;
     }
     if (e.type == SDL_TEXTINPUT) {
-      viewport.insert_text(e.text.text);
+      viewport.insert_before_cursor(e.text.text);
     }
     if (e.type == SDL_KEYDOWN) {
       if (e.key.keysym.sym == SDLK_RETURN) {
-        viewport.insert_newline();
+        viewport.new_line_before_cursor();
       } else if (e.key.keysym.sym == SDLK_BACKSPACE) {
         viewport.erase_before_cursor();
       } else if (e.key.keysym.sym == SDLK_LEFT) {
@@ -309,7 +345,7 @@ int main() {
             600,      SDL_WINDOW_SHOWN};
   renderer = {window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC};
   font_cache_render();
-  buffer = {"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"};
+  buffer.set({"h", "e", "l", "l", "o", ",", " ", "w", "o", "r", "l", "d", "!"});
 
   SDL_StartTextInput();
 
