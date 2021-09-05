@@ -629,16 +629,26 @@ class DLList:
 
 
 class HashTable:
-    def __init__(self):
+    def __init__(self, bucket_count=8, max_load_factor=4):
         self._element_count = 0
-        self._bucket_count = 1
-        self._max_load_factor = 4
+        self._bucket_count = bucket_count
+        self._max_load_factor = 1
         self._max_element_count = self._bucket_count * self._max_load_factor
         self._buckets = [DLList() for _ in range(self._bucket_count)]
+
+    def reinit(self, another):
+        self._element_count = another._element_count
+        self._bucket_count = another._bucket_count
+        self._max_load_factor = another._max_load_factor
+        self._max_element_count = another._max_element_count
+        self._buckets = another._buckets
 
     def update(self, items):
         for k, v in items:
             self[k] = v
+
+    def __len__(self):
+        return self._element_count
 
     def __getitem__(self, k):
         h = self._get_bucket(k)
@@ -651,12 +661,17 @@ class HashTable:
         return hash(k) % self._bucket_count
 
     def __setitem__(self, k, v):
+        if self._element_count >= self._max_element_count:
+            newtable = HashTable(bucket_count=self._bucket_count * 2, max_load_factor=self._max_load_factor)
+            newtable.update(self.items())
+            self.reinit(newtable)
         h = self._get_bucket(k)
         for e in self._buckets[h].iter_forward():
             kk, _ = e.val
             if kk == k:
                 e.val = (k, v)
                 return
+        self._element_count += 1
         self._buckets[h].prepend((k, v))
 
     def pop(self, k):
@@ -665,6 +680,7 @@ class HashTable:
             kk, vv = e.val
             if kk == k:
                 self._buckets[h].delete(e)
+                self._element_count -= 1
                 return vv
         raise KeyError(k)
 

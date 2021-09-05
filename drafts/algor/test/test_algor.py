@@ -240,9 +240,9 @@ def test_radix_sort(xs):
 
 def random_instruction(rngen):
     if rngen.random() > 0.5:
-        return ("insert", rngen.choice(["a", "b", "c", "d"]), rngen.choice([1, 2, 3]))
+        return ("insert", rngen.choice(range(100)), rngen.choice([1, 2, 3]))
     else:
-        return ("delete", rngen.choice(["a", "b", "c", "d"]))
+        return ("delete", rngen.choice(range(100)))
 
 
 def try_delete(m, k):
@@ -258,7 +258,7 @@ def try_delete(m, k):
     [
         [],
         [("insert", "a", 42), ("insert", "b", 33), ("delete", "a")],
-        [random_instruction(trng) for _ in range(30)],
+        [random_instruction(trng) for _ in range(10_000)],
     ],
 )
 def test_hash_table(insertions):
@@ -276,6 +276,7 @@ def test_hash_table(insertions):
             assert (try_delete(h, k) is not None) == (try_delete(d, k) is not None)
         else:
             raise ValueError("wrong test")
+        assert len(h) == len(d)
         assert sorted(h.items()) == sorted(d.items())
         for k, v in d.items():
             assert h[k] == v
