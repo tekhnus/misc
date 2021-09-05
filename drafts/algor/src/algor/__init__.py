@@ -687,16 +687,16 @@ def move_hash_table(old_table, *args, **kwargs):
 
 
 class HashTable:
-    def __init__(self, max_load_factor=4):
+    def __init__(self, max_load_factor=0.75):
         self._tab = None
         self._max_load_factor = max_load_factor
         self._max_element_count = None
 
-        self._set_tab(StaticHashTable(8))
+        self._set_tab(StaticHashTable(11))
 
     def _set_tab(self, newtab):
         self._tab = newtab
-        self._max_element_count = newtab._bucket_count * self._max_load_factor
+        self._max_element_count = int(newtab._bucket_count * self._max_load_factor)
 
     def __len__(self):
         return len(self._tab)
