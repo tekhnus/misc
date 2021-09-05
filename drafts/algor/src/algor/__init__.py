@@ -4,6 +4,7 @@ gh = graph represented by hash
 s.c.c = strongly connected component
 """
 import collections
+import itertools
 import math
 import heapq
 import operator
@@ -707,6 +708,142 @@ class HashTable:
     def __setitem__(self, k, v):
         if len(self._tab) >= self._max_element_count:
             self._set_tab(move_hash_table(self._tab, 2 * self._tab._bucket_count))
+        self._tab[k] = v
+
+    def pop(self):
+        return self._tab.pop()
+
+    def __delitem__(self, k):
+        del self._tab[k]
+
+    def items(self):
+        return self._tab.items()
+
+
+class StaticOpenAddressingTable:
+    def __init__(self, size):
+        self._size = size
+        self._data = [None for _ in range(size)]
+        self._len = 0
+
+    def __len__(self):
+        return self._len
+
+    def update(self, items):
+        for k, v in items:
+            self[k] = v
+
+    def __getitem__(self, k):
+        visited = set()
+        for i in self._seq(k):
+            if i in visited:
+                raise RuntimeError("loop!")
+            kv = self._data[i]
+            if kv is None:
+                raise KeyError(k)
+            kk, v = kv
+            if kk == k:
+                return v
+            visited.add(i)
+
+    def _seq(self, k):
+        size = self._size
+        h = hash(k)
+        for n in itertools.count():
+            h = (h + 1) % size
+            yield h
+
+    def set(self, k, v):
+        for i in self._seq(k):
+            kv = self._data[i]
+            if kv is None:
+                self._data[i] = (k, v)
+                self._len += 1
+                return False, None
+            kk, oldv = kv
+            if kk == k:
+                self._data[i] = (k, v)
+                return True, oldv
+
+    def __setitem__(self, k, v):
+        self.set(k, v)
+
+    def items(self):
+        for kv in self._data:
+            if kv is None:
+                continue
+            yield kv
+
+
+class StaticOpenAddressingTableWDeletion(StaticOpenAddressingTable):
+    deleted = object()
+
+    def __init__(self, size):
+        super().__init__(size)
+        self._len_wo_deleted = 0
+
+    def len_with_deleted(self):
+        return super().__len__()
+
+    def __len__(self):
+        return self._len_wo_deleted
+
+    def __getitem__(self, k):
+        v = super().__getitem__(k)
+        if v is self.deleted:
+            raise KeyError(k)
+        return v
+
+    def pop(self, k):
+        oldval = super().__getitem__(k)
+        if oldval is self.deleted:
+            raise KeyError(k)
+        super().__setitem__(k, self.deleted)
+        self._len_wo_deleted -= 1
+
+    def __delitem__(self, k):
+        self.pop(k)
+
+    def __setitem__(self, k, v):
+        updated, oldval = self.set(k, v)
+        if not updated or oldval is self.deleted:
+            self._len_wo_deleted += 1
+
+    def items(self):
+        for k, v in super().items():
+            if v is self.deleted:
+                continue
+            yield k, v
+
+
+def move_open_table(old_table, *args, **kwargs):
+    new_table = StaticOpenAddressingTableWDeletion(*args, **kwargs)
+    new_table.update(old_table.items())
+
+    return new_table
+
+
+class OpenHashTable:
+    def __init__(self, max_load_factor=0.75):
+        self._tab = None
+        self._max_load_factor = max_load_factor
+        self._max_element_count = None
+
+        self._set_tab(StaticOpenAddressingTableWDeletion(11))
+
+    def _set_tab(self, newtab):
+        self._tab = newtab
+        self._max_element_count = int(newtab._size * self._max_load_factor)
+
+    def __len__(self):
+        return len(self._tab)
+
+    def __getitem__(self, k):
+        return self._tab[k]
+
+    def __setitem__(self, k, v):
+        if self._tab.len_with_deleted() >= self._max_element_count:
+            self._set_tab(move_open_table(self._tab, 2 * self._tab._size))
         self._tab[k] = v
 
     def pop(self):

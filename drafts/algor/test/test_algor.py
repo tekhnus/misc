@@ -261,8 +261,12 @@ def try_delete(m, k):
         [random_instruction(trng) for _ in range(10_000)],
     ],
 )
-def test_hash_table(insertions):
-    h = algor.HashTable()
+@pytest.mark.parametrize(
+    "cls",
+    [algor.HashTable, algor.OpenHashTable],
+)
+def test_hash_table(insertions, cls):
+    h = cls()
     d = {}
     allkeys = set()
     for cmd, *args in insertions:
