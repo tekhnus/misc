@@ -3,13 +3,14 @@
 #include <cmath>
 #include <cstdlib>
 #include <exception>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <filesystem>
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
@@ -136,19 +137,17 @@ private:
   unique_ptr<SDL_Texture, decltype(&SDL_DestroyTexture)> value;
 };
 
+class Saver;
+
 class Buffer {
 public:
   Buffer() : txt{} {}
 
   void bind_to_file(filesystem::path p);
 
-  void insert(size_t pos, string text) {
-    txt.insert(txt.begin() + pos, text);
-  }
+  void insert(size_t pos, string text) { txt.insert(txt.begin() + pos, text); }
 
-  void new_line(size_t pos) {
-    insert(pos, "\n");
-  }
+  void new_line(size_t pos) { insert(pos, "\n"); }
 
   void erase(size_t pos) {
     if (pos == 0) {
@@ -157,16 +156,36 @@ public:
     txt.erase(txt.begin() + pos - 1);
   }
 
-  void set(const vector<string>& newtext) {
-    txt = newtext;
-  }
-  
-  const vector<string>& text() {
-    return txt;
-  }
+  void set(const vector<string> &newtext) { txt = newtext; }
+
+  const vector<string> &text() { return txt; }
 
 private:
   vector<string> txt;
+};
+
+class ISyncer {
+public:
+  virtual void sync() = 0;
+};
+
+class TrivialSyncer : ISyncer {
+  virtual void sync() override{};
+};
+
+class Syncer : ISyncer {
+public:
+  Syncer(Buffer &b, filesystem::path p) : buffer{b}, path{p} {}
+  virtual void sync() override {
+    fstream f{path, fstream::trunc};
+    for (auto &s : buffer.text()) {
+      f << s;
+    }
+  }
+
+private:
+  Buffer &buffer;
+  filesystem::path path;
 };
 
 class Viewport {
