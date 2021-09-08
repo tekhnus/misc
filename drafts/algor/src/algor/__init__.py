@@ -5,6 +5,7 @@ s.c.c = strongly connected component
 """
 import collections
 import itertools
+import functools
 import math
 import heapq
 import operator
@@ -66,16 +67,21 @@ class DLCons:
 
 
 class DLList:
-    def __init__(self):
+    def __init__(self, seq):
         self._head = None
         self._tail = None
         self._len = 0
+        for x in seq:
+            self.append(x)
 
     def __len__(self):
         return self._len
 
     def __repr__(self):
         return repr(list(self.iter_values_forward()))
+
+    def __iter__(self):
+        return self.iter_values_forward()
 
     def iter_forward(self):
         elem = self._head
@@ -92,6 +98,14 @@ class DLList:
             self._head.next.prev = self._head
         else:
             self._tail = self._head
+        self._len += 1
+
+    def append(self, v):
+        self._tail = DLCons(v, self._tail, None)
+        if self._tail.prev is not None:
+            self._tail.prev.next = self._tail
+        else:
+            self._head = self._tail
         self._len += 1
 
     def splice(self, another):
@@ -120,15 +134,25 @@ class DLList:
         self._len -= 1
 
 
+@functools.singledispatch
+def splice(dst, src):
+    dst.splice(src)
+
+
+@splice.register
+def _(dst: list, src):
+    dst.extend(src)
+    src.clear()
+
+
 class EquivalenceRelation:
-    def __init__(self, objects):
+    def __init__(self, objects, container=DLList):
         rep = {}
         s = {}
 
         for obj in objects:
             rep[obj] = obj
-            s[obj] = DLList()
-            s[obj].prepend(obj)
+            s[obj] = container([obj])
 
         self._rep = rep
         self._s = s
@@ -146,9 +170,9 @@ class EquivalenceRelation:
         if len(s[rep_a]) < len(s[rep_b]):
             a, b = b, a
 
-        for x in s[rep_b].iter_values_forward():
+        for x in s[rep_b]:
             rep[x] = rep_a
-        s[rep_a].splice(s.pop(rep_b))
+        splice(s[rep_a], s.pop(rep_b))
 
 
 class IndexedHeap:
