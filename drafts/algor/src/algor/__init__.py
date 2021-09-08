@@ -164,10 +164,11 @@ class EquivalenceRelation:
         s = self._s
         if len(s[a]) < len(s[b]):
             a, b = b, a
-        sb = list(s[b])
-        splice(s[a], s[b])
+        sb = s[b]
         for x in sb:
             s[x] = s[a]
+        splice(s[a], sb)
+
 
 
 class IndexedHeap:
