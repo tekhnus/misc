@@ -58,6 +58,68 @@ class Heap:
             break
 
 
+class DLCons:
+    def __init__(self, val, prev, next_):
+        self.val = val
+        self.prev = prev
+        self.next = next_
+
+
+class DLList:
+    def __init__(self):
+        self._head = None
+        self._tail = None
+        self._len = 0
+
+    def __len__(self):
+        return self._len
+
+    def __repr__(self):
+        return repr(list(self.iter_values_forward()))
+
+    def iter_forward(self):
+        elem = self._head
+        while elem is not None:
+            yield elem
+            elem = elem.next
+
+    def iter_values_forward(self):
+        return (e.val for e in self.iter_forward())
+
+    def prepend(self, v):
+        self._head = DLCons(v, None, self._head)
+        if self._head.next is not None:
+            self._head.next.prev = self._head
+        else:
+            self._tail = self._head
+        self._len += 1
+
+    def splice(self, another):
+        if another._head is None:
+            return
+        if self._tail is None:
+            self._head = another._head
+            self._tail = another.tail
+            another._head = another._tail = None
+            another._len = 0
+            return
+        self._tail.next = another._head
+        another._head.prev = self._tail
+        self._tail = another._tail
+        another._head = another._tail = None
+        self._len += another._len
+        another._len = 0
+
+    def delete(self, e):
+        if e.prev is not None:
+            e.prev.next = e.next
+        else:
+            self._head = e.next
+        if e.next is not None:
+            e.next.prev = e.prev
+        self._len -= 1
+
+
 class EquivalenceRelation:
     def __init__(self, objects):
         rep = {}
@@ -65,7 +127,8 @@ class EquivalenceRelation:
 
         for obj in objects:
             rep[obj] = obj
-            s[obj] = [obj]
+            s[obj] = DLList()
+            s[obj].prepend(obj)
 
         self._rep = rep
         self._s = s
@@ -83,9 +146,9 @@ class EquivalenceRelation:
         if len(s[rep_a]) < len(s[rep_b]):
             a, b = b, a
 
-        for x in s[rep_b]:
+        for x in s[rep_b].iter_values_forward():
             rep[x] = rep_a
-        s[rep_a] += s.pop(rep_b)
+        s[rep_a].splice(s.pop(rep_b))
 
 
 class IndexedHeap:
@@ -612,40 +675,6 @@ def nth_digit_getter(n):
         return (k // p) % 10
 
     return fn
-
-
-class DLCons:
-    def __init__(self, val, prev, next_):
-        self.val = val
-        self.prev = prev
-        self.next = next_
-
-
-class DLList:
-    def __init__(self):
-        self._head = None
-
-    def iter_forward(self):
-        elem = self._head
-        while elem is not None:
-            yield elem
-            elem = elem.next
-
-    def iter_values_forward(self):
-        return (e.val for e in self.iter_forward())
-
-    def prepend(self, v):
-        self._head = DLCons(v, None, self._head)
-        if self._head.next is not None:
-            self._head.next.prev = self._head
-
-    def delete(self, e):
-        if e.prev is not None:
-            e.prev.next = e.next
-        else:
-            self._head = e.next
-        if e.next is not None:
-            e.next.prev = e.prev
 
 
 class StaticHashTable:
