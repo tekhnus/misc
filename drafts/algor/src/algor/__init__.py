@@ -147,33 +147,27 @@ def _(dst: list, src):
 
 class EquivalenceRelation:
     def __init__(self, objects, container=DLList):
-        rep = {}
         s = {}
 
         for obj in objects:
-            rep[obj] = obj
             s[obj] = container([obj])
 
-        self._rep = rep
         self._s = s
 
     def are_equivalent(self, a, b):
-        return self._rep[a] == self._rep[b]
+        s = self._s
+        return s[a] is s[b]
 
     def declare_equivalent(self, a, b):
-        rep = self._rep
+        if self.are_equivalent(a, b):
+            return
         s = self._s
-
-        rep_a = rep[a]
-        rep_b = rep[b]
-
-        if len(s[rep_a]) < len(s[rep_b]):
+        if len(s[a]) < len(s[b]):
             a, b = b, a
-            rep_a, rep_b = rep_b, rep_a
-
-        for x in s[rep_b]:
-            rep[x] = rep_a
-        splice(s[rep_a], s.pop(rep_b))
+        sb = list(s[b])
+        splice(s[a], s[b])
+        for x in sb:
+            s[x] = s[a]
 
 
 class IndexedHeap:
