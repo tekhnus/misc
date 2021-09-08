@@ -60,13 +60,32 @@ class Heap:
 
 class EquivalenceRelation:
     def __init__(self, objects):
-        self._sets = {obj: {obj} for obj in objects}
+        rep = {}
+        s = {}
+
+        for obj in objects:
+            rep[obj] = obj
+            s[obj] = [obj]
+
+        self._rep = rep
+        self._s = s
 
     def are_equivalent(self, a, b):
-        return b in self._sets[a]
+        return self._rep[a] == self._rep[b]
 
     def declare_equivalent(self, a, b):
-        self._sets[a] = self._sets[b] = self._sets[a] | self._sets[b]
+        rep = self._rep
+        s = self._s
+
+        rep_a = rep[a]
+        rep_b = rep[b]
+
+        if len(s[rep_a]) < len(s[rep_b]):
+            a, b = b, a
+
+        for x in s[rep_b]:
+            rep[x] = rep_a
+        s[rep_a] += s.pop(rep_b)
 
 
 class IndexedHeap:
