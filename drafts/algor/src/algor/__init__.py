@@ -169,6 +169,7 @@ class EquivalenceRelation:
 
         if len(s[rep_a]) < len(s[rep_b]):
             a, b = b, a
+            rep_a, rep_b = rep_b, rep_a
 
         for x in s[rep_b]:
             rep[x] = rep_a
