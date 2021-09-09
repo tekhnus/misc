@@ -170,7 +170,6 @@ class EquivalenceRelation:
         splice(s[a], sb)
 
 
-
 class IndexedHeap:
     def __init__(self, items):
         items = list(items)
@@ -922,3 +921,159 @@ class OpenHashTable:
 
     def items(self):
         return self._tab.items()
+
+
+class TreapNode:
+    def __init__(self, k, v, w, left, right):
+        self.k = k
+        self.v = v
+        self.w = w
+        self.left = left
+        self.right = right
+
+    def set_left(self, left):
+        self.left = left
+
+    def set_right(self, right):
+        self.right = right
+
+
+class Treap:
+    def __init__(self):
+        self._root = None
+        self._len = 0
+
+    def __getitem__(self, k):
+        ok, n = self._get_node(k)
+        if not ok:
+            raise KeyError(k)
+        return n.v
+
+    def __setitem__(self, k, v):
+        ok, n = self._get_node(k)
+        if ok:
+            n.v = v
+            return
+        w = random.random()
+        cont, arg = self._root_action(k, v, w)
+        while cont:
+            cont, arg = self._action(k, v, w, arg)
+        self._len += 1
+
+    def __delitem__(self, k):
+        ok, edge = self._get_edge(k)
+        if not ok:
+            raise KeyError(k)
+        node = self._get_child(edge)
+        new_subtree = self._merge(node.left, node.right)
+        self._set_child(edge, new_subtree)
+        self._len -= 1
+
+    def __len__(self):
+        return self._len
+
+    def items(self):
+        return ((node.k, node.v) for node in self._traverse(self._root))
+
+    def _get_child(self, edge):
+        par, which = edge
+        if par is None:
+            return self._root
+        if which == "left":
+            return par.left
+        if which == "right":
+            return par.right
+        raise RuntimeError("incorrect")
+
+    def _set_child(self, edge, node):
+        par, which = edge
+        if par is None:
+            self._root = node
+            return
+        if which == "left":
+            par.left = node
+            return
+        if which == "right":
+            par.right = node
+            return
+        raise RuntimeError("incorrect")
+
+    def _get_edge(self, k):
+        e = (None, None)
+        while (c := self._get_child(e)) is not None:
+            if c.k == k:
+                return True, e
+            if c.k > k:
+                e = (c, "left")
+            else:
+                e = (c, "right")
+        return False, None
+
+    def _get_node(self, k):
+        n = self._root
+        while n is not None:
+            if n.k == k:
+                return True, n
+            if n.k > k:
+                n = n.left
+            else:
+                n = n.right
+        return False, None
+
+    def _traverse(self, node):
+        if node is None:
+            return
+        yield from self._traverse(node.left)
+        yield node
+        yield from self._traverse(node.right)
+
+    def _root_action(self, k, v, w):
+        if self._root is not None and self._root.w < w:
+            return (True, self._root)
+        left, right = self._split(self._root, k)
+        self._root = TreapNode(k, v, w, left, right)
+        return (False, None)
+
+    def _action(self, k, v, w, par):
+        if par.k == k:
+            raise ValueError("key already present")
+        if par.k > k:
+            child = par.left
+            rebind = par.set_left
+        else:
+            child = par.right
+            rebind = par.set_right
+        if child is not None and child.w < w:
+            return (True, child)
+        left, right = self._split(child, k)
+        node = TreapNode(k, v, w, left, right)
+        rebind(node)
+        return (False, None)
+
+    def _split(self, node, k):
+        if node is None:
+            return None, None
+        if node.k == k:
+            raise ValueError("key is already present")
+        if node.k > k:
+            left, mid = self._split(node.left, k)
+            node.left = mid
+            right = node
+        else:
+            mid, right = self._split(node.right, k)
+            node.right = mid
+            left = node
+        return left, right
+
+    def _merge(self, left, right):
+        if left is None:
+            return right
+        if right is None:
+            return left
+        if left.w <= right.w:
+            result = left
+            left.right = self._merge(left.right, right)
+        else:
+            result = right
+            right.left = self._merge(left, right.left)
+        return result

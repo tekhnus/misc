@@ -263,7 +263,7 @@ def try_delete(m, k):
 )
 @pytest.mark.parametrize(
     "cls",
-    [algor.HashTable, algor.OpenHashTable],
+    [algor.HashTable, algor.OpenHashTable, algor.Treap],
 )
 def test_hash_table(insertions, cls):
     h = cls()
