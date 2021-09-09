@@ -950,10 +950,15 @@ class Treap:
             return
         w = random.random()
         e = (None, None)
-        # while (c := self._get_child(e) is not None) and c.w
-        cont, arg = self._root_action(k, v, w)
-        while cont:
-            cont, arg = self._action(k, v, w, arg)
+        while (c := self._get_child(e)) is not None and c.w < w:
+            if c.k == k:
+                raise RuntimeError("impossible")
+            if c.k > k:
+                e = (c, "left")
+            else:
+                e = (c, "right")
+        left, right = self._split(c, k)
+        self._set_child(e, TreapNode(k, v, w, left, right))
         self._len += 1
 
     def __delitem__(self, k):
@@ -994,6 +999,12 @@ class Treap:
             return
         raise RuntimeError("incorrect")
 
+    def _get_node(self, k):
+        ok, e = self._get_edge(k)
+        if not ok:
+            return False, None
+        return True, self._get_child(e)
+
     def _get_edge(self, k):
         e = (None, None)
         while (c := self._get_child(e)) is not None:
@@ -1005,44 +1016,12 @@ class Treap:
                 e = (c, "right")
         return False, None
 
-    def _get_node(self, k):
-        n = self._root
-        while n is not None:
-            if n.k == k:
-                return True, n
-            if n.k > k:
-                n = n.left
-            else:
-                n = n.right
-        return False, None
-
     def _traverse(self, node):
         if node is None:
             return
         yield from self._traverse(node.left)
         yield node
         yield from self._traverse(node.right)
-
-    def _root_action(self, k, v, w):
-        if self._root is not None and self._root.w < w:
-            return (True, self._root)
-        left, right = self._split(self._root, k)
-        self._root = TreapNode(k, v, w, left, right)
-        return (False, None)
-
-    def _action(self, k, v, w, par):
-        if par.k == k:
-            raise ValueError("key already present")
-        if par.k > k:
-            e = (par, "left")
-        else:
-            e = (par, "right")
-        child = self._get_child(e)
-        if child is not None and child.w < w:
-            return (True, child)
-        left, right = self._split(child, k)
-        self._set_child(e, TreapNode(k, v, w, left, right))
-        return (False, None)
 
     def _split(self, node, k):
         if node is None:
