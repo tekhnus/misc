@@ -951,12 +951,9 @@ class Treap:
         w = random.random()
         e = self._get_root_edge()
         while (c := self._get_child(e)) is not None and c.w < w:
-            if c.k == k:
+            e = self._get_corresponding_edge(c, k)
+            if e is None:
                 raise RuntimeError("impossible")
-            if c.k > k:
-                e = self._get_left_edge(c)
-            else:
-                e = self._get_right_edge(c)
         left, right = self._split(c, k)
         self._set_child(e, TreapNode(k, v, w, left, right))
         self._len += 1
@@ -985,12 +982,10 @@ class Treap:
     def _get_edge(self, k):
         e = self._get_root_edge()
         while (c := self._get_child(e)) is not None:
-            if c.k == k:
+            new_e = self._get_corresponding_edge(c, k)
+            if new_e is None:
                 return True, e
-            if c.k > k:
-                e = self._get_left_edge(c)
-            else:
-                e = self._get_right_edge(c)
+            e = new_e
         return False, None
 
     def _traverse(self, node):
@@ -1030,6 +1025,13 @@ class Treap:
 
     def _get_root_edge(self):
         return (None, None)
+
+    def _get_corresponding_edge(self, node, k):
+        if node.k > k:
+            return self._get_left_edge(node)
+        if node.k < k:
+            return self._get_right_edge(node)
+        return None
 
     def _get_left_edge(self, node):
         return (node, "left")
