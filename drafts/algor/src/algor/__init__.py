@@ -931,12 +931,6 @@ class TreapNode:
         self.left = left
         self.right = right
 
-    def set_left(self, left):
-        self.left = left
-
-    def set_right(self, right):
-        self.right = right
-
 
 class Treap:
     def __init__(self):
@@ -955,6 +949,8 @@ class Treap:
             n.v = v
             return
         w = random.random()
+        e = (None, None)
+        # while (c := self._get_child(e) is not None) and c.w
         cont, arg = self._root_action(k, v, w)
         while cont:
             cont, arg = self._action(k, v, w, arg)
@@ -1038,16 +1034,14 @@ class Treap:
         if par.k == k:
             raise ValueError("key already present")
         if par.k > k:
-            child = par.left
-            rebind = par.set_left
+            e = (par, "left")
         else:
-            child = par.right
-            rebind = par.set_right
+            e = (par, "right")
+        child = self._get_child(e)
         if child is not None and child.w < w:
             return (True, child)
         left, right = self._split(child, k)
-        node = TreapNode(k, v, w, left, right)
-        rebind(node)
+        self._set_child(e, TreapNode(k, v, w, left, right))
         return (False, None)
 
     def _split(self, node, k):
