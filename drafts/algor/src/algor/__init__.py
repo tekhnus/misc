@@ -949,14 +949,14 @@ class Treap:
             n.v = v
             return
         w = random.random()
-        e = (None, None)
+        e = self._get_root_edge()
         while (c := self._get_child(e)) is not None and c.w < w:
             if c.k == k:
                 raise RuntimeError("impossible")
             if c.k > k:
-                e = (c, "left")
+                e = self._get_left_edge(c)
             else:
-                e = (c, "right")
+                e = self._get_right_edge(c)
         left, right = self._split(c, k)
         self._set_child(e, TreapNode(k, v, w, left, right))
         self._len += 1
@@ -976,29 +976,6 @@ class Treap:
     def items(self):
         return ((node.k, node.v) for node in self._traverse(self._root))
 
-    def _get_child(self, edge):
-        par, which = edge
-        if par is None:
-            return self._root
-        if which == "left":
-            return par.left
-        if which == "right":
-            return par.right
-        raise RuntimeError("incorrect")
-
-    def _set_child(self, edge, node):
-        par, which = edge
-        if par is None:
-            self._root = node
-            return
-        if which == "left":
-            par.left = node
-            return
-        if which == "right":
-            par.right = node
-            return
-        raise RuntimeError("incorrect")
-
     def _get_node(self, k):
         ok, e = self._get_edge(k)
         if not ok:
@@ -1006,14 +983,14 @@ class Treap:
         return True, self._get_child(e)
 
     def _get_edge(self, k):
-        e = (None, None)
+        e = self._get_root_edge()
         while (c := self._get_child(e)) is not None:
             if c.k == k:
                 return True, e
             if c.k > k:
-                e = (c, "left")
+                e = self._get_left_edge(c)
             else:
-                e = (c, "right")
+                e = self._get_right_edge(c)
         return False, None
 
     def _traverse(self, node):
@@ -1050,3 +1027,35 @@ class Treap:
             result = right
             right.left = self._merge(left, right.left)
         return result
+
+    def _get_root_edge(self):
+        return (None, None)
+
+    def _get_left_edge(self, node):
+        return (node, "left")
+
+    def _get_right_edge(self, node):
+        return (node, "right")
+
+    def _get_child(self, edge):
+        par, which = edge
+        if par is None:
+            return self._root
+        if which == "left":
+            return par.left
+        if which == "right":
+            return par.right
+        raise RuntimeError("incorrect")
+
+    def _set_child(self, edge, node):
+        par, which = edge
+        if par is None:
+            self._root = node
+            return
+        if which == "left":
+            par.left = node
+            return
+        if which == "right":
+            par.right = node
+            return
+        raise RuntimeError("incorrect")
