@@ -67,7 +67,7 @@ class DLCons:
 
 
 class DLList:
-    def __init__(self, seq):
+    def __init__(self, seq=()):
         self._head = None
         self._tail = None
         self._len = 0
