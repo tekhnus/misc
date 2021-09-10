@@ -1061,3 +1061,28 @@ class Treap:
             par.right = node
             return
         raise RuntimeError("incorrect")
+
+
+def first_matching(pred, left, right):
+    # invariant: left <= result <= right
+    while left < right:
+        mid = (left + right) // 2
+        # left <= mid < right
+        if pred(mid):
+            right = mid  # decreases right
+        else:
+            left = mid + 1  # increases left
+    # left == right
+    return left
+
+
+def lower_bound(value, xs):
+    return first_matching(lambda i: xs[i] >= value, 0, len(xs))
+
+
+def upper_bound(value, xs):
+    return first_matching(lambda i: xs[i] > value, 0, len(xs))
+
+
+def equal_range(value, xs):
+    return lower_bound(value, xs), upper_bound(value, xs)

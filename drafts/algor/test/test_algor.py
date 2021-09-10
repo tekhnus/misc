@@ -287,3 +287,26 @@ def test_hash_table(insertions, cls):
         for k in allkeys - d.keys():
             with pytest.raises(KeyError):
                 h[k]
+
+
+def _dumb_first_matching(pred, xs):
+    for i, x in enumerate(xs):
+        if pred(x):
+            return i
+    return len(xs)
+
+
+def _dumb_equal_range(value, xs):
+    return _dumb_first_matching(lambda x: x >= value, xs), _dumb_first_matching(
+        lambda x: x > value, xs
+    )
+
+
+@pytest.mark.parametrize(
+    "xs",
+    itertools.chain(
+        *[itertools.combinations_with_replacement([0, 1, 2], n) for n in range(9)]
+    ),
+)
+def test_equal_range(xs):
+    assert algor.equal_range(1, xs) == _dumb_equal_range(1, xs)
