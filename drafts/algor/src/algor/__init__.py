@@ -696,51 +696,77 @@ def nth_digit_getter(n):
     return fn
 
 
-class StaticHashTable:
-    def __init__(self, bucket_count):
-        self._element_count = 0
-        self._bucket_count = bucket_count
-        self._buckets = [DLList() for _ in range(self._bucket_count)]
+class DictFromMultiMixin:
+    def __setitem__(self, k, v):
+        self.replace_or_add(k, v)
+
+    def __getitem__(self, k):
+        for v in self.getvalues(k):
+            return v
+        raise KeyError(k)
+
+    def __delitem__(self, k):
+        empty = True
+        for _ in self.popvalues(k):
+            empty = False
+        if empty:
+            raise KeyError(k)
 
     def update(self, items):
         for k, v in items:
             self[k] = v
 
+
+class StaticHashTable(DictFromMultiMixin):
+    def __init__(self, bucket_count):
+        self._element_count = 0
+        self._bucket_count = bucket_count
+        self._buckets = [DLList() for _ in range(self._bucket_count)]
+
+    def extend(self, items):
+        for k, v in items:
+            self.add(k, v)
+
     def __len__(self):
         return self._element_count
 
-    def __getitem__(self, k):
+    def getvalues(self, k):
         h = self._get_bucket(k)
         for kk, vv in self._buckets[h].iter_values_forward():
             if kk == k:
-                return vv
-        raise KeyError(k)
+                yield vv
 
     def _get_bucket(self, k):
         return hash(k) % self._bucket_count
 
-    def __setitem__(self, k, v):
+    def try_replace(self, k, v):
         h = self._get_bucket(k)
         for e in self._buckets[h].iter_forward():
-            kk, _ = e.val
+            kk, vv = e.val
             if kk == k:
                 e.val = (k, v)
-                return
+                return True, vv
+        return False, None
+
+    def add(self, k, v):
+        h = self._get_bucket(k)
         self._element_count += 1
         self._buckets[h].prepend((k, v))
 
-    def pop(self, k):
+    def replace_or_add(self, k, v):
+        ok, _ = self.try_replace(k, v)
+        if ok:
+            return
+        self.add(k, v)
+
+    def popvalues(self, k):
         h = self._get_bucket(k)
         for e in self._buckets[h].iter_forward():
             kk, vv = e.val
             if kk == k:
                 self._buckets[h].delete(e)
                 self._element_count -= 1
-                return vv
-        raise KeyError(k)
-
-    def __delitem__(self, k):
-        self.pop(k)
+                yield vv
 
     def items(self):
         for b in self._buckets:
@@ -785,6 +811,15 @@ class HashTable:
 
     def items(self):
         return self._tab.items()
+
+    def getvalues(self, k):
+        return self._tab.getvalues(k)
+
+    def add(self, k, v):
+        return self._tab.add(k, v)
+
+    def popvalues(self, k):
+        return self._tab.popvalues(k)
 
 
 class StaticOpenAddressingTable:

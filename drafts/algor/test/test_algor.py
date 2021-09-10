@@ -265,7 +265,7 @@ def try_delete(m, k):
     "cls",
     [algor.HashTable, algor.OpenHashTable, algor.Treap],
 )
-def test_hash_table(insertions, cls):
+def test_dict(insertions, cls):
     h = cls()
     d = {}
     allkeys = set()
@@ -287,6 +287,61 @@ def test_hash_table(insertions, cls):
         for k in allkeys - d.keys():
             with pytest.raises(KeyError):
                 h[k]
+
+
+class _Multidict:
+    def __init__(self):
+        self._d = collections.defaultdict(list)
+
+    def add(self, k, v):
+        self._d[k].append(v)
+
+    def __len__(self):
+        return sum(len(v) for v in self._d.values())
+
+    def items(self):
+        for k, vs in self._d.items():
+            for v in vs:
+                yield k, v
+
+    def getvalues(self, k):
+        return self._d[k]
+
+    def popvalues(self, k):
+        return self._d.pop(k, [])
+
+
+@pytest.mark.parametrize(
+    "insertions",
+    [
+        [],
+        [("insert", "a", 42), ("insert", "b", 33), ("delete", "a")],
+        [random_instruction(trng) for _ in range(10_000)],
+    ],
+)
+@pytest.mark.parametrize(
+    "cls",
+    [algor.HashTable],
+)
+def test_multidict(insertions, cls):
+    h = cls()
+    d = _Multidict()
+    allkeys = set()
+    for cmd, *args in insertions:
+        if cmd == "insert":
+            k, v = args
+            h.add(k, v)
+            d.add(k, v)
+            allkeys.add(k)
+        elif cmd == "delete":
+            (k,) = args
+            assert sorted(h.popvalues(k)) == sorted(d.popvalues(k))
+        else:
+            raise ValueError("wrong test")
+        assert len(h) == len(d)
+        assert sorted(h.items()) == sorted(d.items())
+        for k in allkeys:
+            assert sorted(h.getvalues(k)) == sorted(d.getvalues(k))
 
 
 def _dumb_first_matching(pred, xs):
