@@ -1086,3 +1086,110 @@ def upper_bound(value, xs):
 
 def equal_range(value, xs):
     return lower_bound(value, xs), upper_bound(value, xs)
+
+
+class Monoid:
+    pass
+
+
+addition = Monoid()
+addition.unit = 0
+addition.op = lambda x, y: x + y
+
+
+class BinaryTree:
+    def __init__(self, size, init_value):
+        act_size = 1
+        while act_size < size:
+            act_size *= 2
+        self._act_size = act_size
+        self._data = [init_value for _ in range(2 * act_size)]
+
+    def __getitem__(self, k):
+        return self._data[k]
+
+    def __setitem__(self, k, v):
+        self._data[k] = v
+
+    def leaf_key(self, leaf_index):
+        return self._act_size - 1 + leaf_index
+
+    def path_to(self, k):
+        cur = k
+
+        p = [k]
+        while k != 0:
+            k = (k - 1) // 2
+            p.append(k)
+
+        return reversed(p)
+
+    def nodes_covering_leaf_range(self, leafrng):
+        a, b = leafrng
+        if a >= b:
+            return
+        yield from self._nclr(leafrng, 0)
+
+    def _nclr(self, leafrng, node):
+        if self._contains(node, leafrng):
+            yield node
+            return
+        if self._disjoint(node, leafrng):
+            return
+        for child in self._children(node):
+            yield from self._nclr(leafrng, child)
+
+    def _contains(self, node, leafrng):
+        return self._range_contains(leafrng, self._node_range(node))
+
+    def _disjoint(self, node, leafrng):
+        return self._range_disjoint(self._node_range(node), leafrng)
+
+    def _children(self, node):
+        return (2 * node + 1, 2 * node + 2)
+
+    def _range_contains(self, a, b):
+        ax, ay = a
+        bx, by = b
+        return ax <= bx and by <= ay
+
+    def _range_disjoint(self, a, b):
+        ax, ay = a
+        bx, by = b
+        return ay <= bx or by <= ax
+
+    def _node_range(self, node):
+        if node >= self._act_size - 1:
+            leaf = node - self._act_size + 1
+            return (leaf, leaf + 1)
+        l, r = self._children(node)
+        x, _ = self._node_range(l)
+        _, y = self._node_range(r)
+        return x, y
+
+
+class SegmentTree:
+    def __init__(self, size, monoid=addition):
+        self._monoid = monoid
+        self._data = BinaryTree(size, monoid.unit)
+
+    def op(self, k, v):
+        monoid = self._monoid
+        data = self._data
+
+        l, r = k
+        if l + 1 != r:
+            raise NotImplementedError("not yet")
+
+        for node in self._data.path_to(self._data.leaf_key(l)):
+            data[node] = monoid.op(data[node], v)
+
+    def __getitem__(self, k):
+        monoid = self._monoid
+        data = self._data
+
+        result = monoid.unit
+        for node in self._data.nodes_covering_leaf_range(k):
+            result = monoid.op(result, data[node])
+
+        return result

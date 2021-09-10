@@ -310,3 +310,46 @@ def _dumb_equal_range(value, xs):
 )
 def test_equal_range(xs):
     assert algor.equal_range(1, xs) == _dumb_equal_range(1, xs)
+
+
+class _DumbSegmentTree:
+    def __init__(self, size, monoid=algor.addition):
+        self._monoid = monoid
+        self._data = [monoid.unit for _ in range(size)]
+
+    def op(self, rng, val):
+        monoid = self._monoid
+        for i in range(*rng):
+            self._data[i] = monoid.op(self._data[i], val)
+
+    def __getitem__(self, rng):
+        monoid = self._monoid
+        res = monoid.unit
+        for i in range(*rng):
+            res = monoid.op(res, self._data[i])
+        return res
+
+
+def _gen_segment_action(size):
+    cmd = "op" if trng.random() < 0.5 else "get"
+    left = trng.randrange(size)
+    right = trng.randrange(size)
+    val = trng.randrange(300)
+    return cmd, ((left, right), val)
+
+
+@pytest.mark.parametrize("actions", [[_gen_segment_action(10) for _ in range(100)]])
+def test_segment_tree(actions):
+    t = algor.SegmentTree(10)
+    e = _DumbSegmentTree(10)
+    for cmd, arg in actions:
+        if cmd == "op":
+            leafrng, val = arg
+            leafrng = (leafrng[0], leafrng[0] + 1)  # FIXME when supported
+            t.op(leafrng, val)
+            e.op(leafrng, val)
+        elif cmd == "get":
+            leafrng, _ = arg
+            res = t[leafrng]
+            exp = e[leafrng]
+            assert res == exp
