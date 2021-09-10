@@ -321,7 +321,7 @@ class _Multidict:
 )
 @pytest.mark.parametrize(
     "cls",
-    [algor.HashTable, algor.Treap],
+    [algor.HashTable],
 )
 def test_multidict(insertions, cls):
     h = cls()

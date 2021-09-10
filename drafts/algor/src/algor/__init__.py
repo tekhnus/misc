@@ -967,32 +967,33 @@ class TreapNode:
         self.right = right
 
 
-class Treap(DictFromMultiMixin):
+class Treap:
     def __init__(self):
         self._root = None
         self._len = 0
 
-    def getvalues(self, k):
-        for n in self._get_nodes(k):
-            yield n.v
+    def __getitem__(self, k):
+        ok, n = self._get_node(k)
+        if not ok:
+            raise KeyError(k)
+        return n.v
 
-    def replace_or_add(self, k, v):
+    def __setitem__(self, k, v):
         ok, n = self._get_node(k)
         if ok:
             n.v = v
             return
-        self.add(k, v)
-
-    def add(self, k, v):
         w = random.random()
         e = self._get_root_edge()
         while (c := self._get_child(e)) is not None and c.w < w:
-            e = random.choice(list(self._get_corresponding_edges(c, k)))
+            e = self._get_corresponding_edge(c, k)
+            if e is None:
+                raise RuntimeError("impossible")
         left, right = self._split(c, k)
         self._set_child(e, TreapNode(k, v, w, left, right))
         self._len += 1
 
-    def pop(self, k):
+    def __delitem__(self, k):
         ok, edge = self._get_edge(k)
         if not ok:
             raise KeyError(k)
@@ -1000,15 +1001,6 @@ class Treap(DictFromMultiMixin):
         new_subtree = self._merge(node.left, node.right)
         self._set_child(edge, new_subtree)
         self._len -= 1
-        return node.v
-
-    def popvalues(self, k):
-        ok = True
-        while ok:
-            try:
-                yield self.pop(k)
-            except KeyError:
-                ok = False
 
     def __len__(self):
         return self._len
@@ -1022,10 +1014,6 @@ class Treap(DictFromMultiMixin):
             return False, None
         return True, self._get_child(e)
 
-    def _get_nodes(self, k):
-        for e in self._get_edges(k):
-            yield self._get_child(e)
-
     def _get_edge(self, k):
         e = self._get_root_edge()
         while (c := self._get_child(e)) is not None:
@@ -1034,17 +1022,6 @@ class Treap(DictFromMultiMixin):
                 return True, e
             e = new_e
         return False, None
-
-    def _get_edges(self, k, e=None):
-        if e is None:
-            e = self._get_root_edge()
-        c = self._get_child(e)
-        if c is None:
-            return
-        if c.k == k:
-            yield e
-        for new_e in self._get_corresponding_edges(c, k):
-            yield from self._get_edges(k, new_e)
 
     def _traverse(self, node):
         if node is None:
@@ -1056,7 +1033,9 @@ class Treap(DictFromMultiMixin):
     def _split(self, node, k):
         if node is None:
             return None, None
-        if node.k > k or (node.k == k and random.random() > 0.5):
+        if node.k == k:
+            raise ValueError("key is already present")
+        if node.k > k:
             left, mid = self._split(node.left, k)
             node.left = mid
             right = node
@@ -1088,12 +1067,6 @@ class Treap(DictFromMultiMixin):
         if node.k < k:
             return self._get_right_edge(node)
         return None
-
-    def _get_corresponding_edges(self, node, k):
-        if node.k >= k:
-            yield self._get_left_edge(node)
-        if node.k <= k:
-            yield self._get_right_edge(node)
 
     def _get_left_edge(self, node):
         return (node, "left")
