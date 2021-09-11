@@ -3,6 +3,7 @@ import algor
 import random
 import itertools
 import collections
+import re
 
 
 g1 = algor.Graph(
@@ -353,3 +354,21 @@ def test_segment_tree(actions):
             res = t[leafrng]
             exp = e[leafrng]
             assert res == exp
+
+
+PATTERNS = ["".join(s) for s in itertools.product("abc", repeat=3)]
+TEXTS = ["".join(s) for s in itertools.product("abc", repeat=5)]
+
+
+@pytest.fixture(scope="module")
+def matchers(request):
+    return {s: algor.Matcher(s) for s in PATTERNS}
+
+
+@pytest.mark.parametrize("pattern", PATTERNS)
+@pytest.mark.parametrize("text", TEXTS)
+def test_substring_search(pattern, text, matchers):
+    aut = matchers[pattern]
+    res = list(algor.search(aut, text))
+    exp = list(i for i in range(len(text)) if text[i : i + len(pattern)] == pattern)
+    assert res == exp

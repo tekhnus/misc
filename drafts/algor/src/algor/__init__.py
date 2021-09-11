@@ -1203,3 +1203,39 @@ class SegmentTree:
                 continue
             result = monoid.op(result, own)
         return result
+
+
+def endswith(s1, s2):
+    if not s2:
+        return True
+    return s1[-len(s2) :] == s2
+
+
+class Matcher:
+    def __init__(self, seq):
+        aut = {}
+        prefixes = [tuple(seq[:i]) for i in range(len(seq) + 1)]
+        for b in prefixes[1:]:
+            binit, blast = b[:-1], b[-1]
+            for a in prefixes:
+                if endswith(a, binit):
+                    aut[a, blast] = b
+        self._seq = tuple(seq)
+        self._aut = aut
+
+    def processor(self):
+        a = self._aut
+        state = ()
+        seq = self._seq
+        while True:
+            x = yield (True if state == seq else None)
+            state = a.get((state, x), ())
+
+
+def search(matcher, text):
+    p = matcher.processor()
+    p.send(None)
+    for i, x in enumerate(text):
+        res = p.send(x)
+        if res:
+            yield i - len(matcher._seq) + 1
