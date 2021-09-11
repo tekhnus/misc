@@ -1089,7 +1089,11 @@ def equal_range(value, xs):
 
 
 class Monoid:
-    pass
+    def mul(self, n, v):
+        result = self.unit
+        for _ in range(n):
+            result = self.op(result, v)
+        return result
 
 
 addition = Monoid()
@@ -1131,15 +1135,29 @@ class BinaryTree:
         return self._nclr(leafrng, 0)
 
     def _nclr(self, leafrng, node):
-        if self._disjoint(node, leafrng):
+        comm = self._common_cnt(node, leafrng)
+        sz = self._node_leaf_cnt(node)
+        if comm == 0:
             return
-        if self._contains(node, leafrng):
-            yield True, node
+        if comm == sz:
+            yield True, comm, node
             return
-        yield False, node
+        yield False, comm, node
         for child in self._children(node):
             yield from self._nclr(leafrng, child)
 
+    def _common_cnt(self, node, leafrng):
+        return self._ranges_common_cnt(self._node_range(node), leafrng)
+
+    def _node_leaf_cnt(self, node):
+        a, b = self._node_range(node)
+        return b - a
+
+    def _ranges_common_cnt(self, a, b):
+        ax, ay = a
+        bx, by = b
+        return max(0, min(ay, by) - max(ax, bx))
+        
     def _contains(self, node, leafrng):
         return self._range_contains(leafrng, self._node_range(node))
 
@@ -1172,27 +1190,33 @@ class BinaryTree:
 class SegmentTree:
     def __init__(self, size, monoid=addition):
         self._monoid = monoid
-        self._data = BinaryTree(size, monoid.unit)
+        self._data = BinaryTree(size, (monoid.unit, monoid.unit))
 
     def op(self, k, v):
         monoid = self._monoid
         data = self._data
 
         l, r = k
-        if l + 1 != r:
-            raise NotImplementedError("not yet")
 
-        for node in self._data.path_to(self._data.leaf_key(l)):
-            data[node] = monoid.op(data[node], v)
+        for isleaf, sz, node in self._data.nodes_covering_leaf_range(k):
+            own, prop = data[node]
+            sum_v = monoid.mul(sz, v)
+            if not isleaf:
+                own = monoid.op(own, sum_v)
+            else:
+                prop = monoid.op(prop, v)
+            data[node] = own, prop
 
     def __getitem__(self, k):
         monoid = self._monoid
         data = self._data
 
         result = monoid.unit
-        for isleaf, node in self._data.nodes_covering_leaf_range(k):
+        for isleaf, sz, node in self._data.nodes_covering_leaf_range(k):
             if not isleaf:
                 continue
-            result = monoid.op(result, data[node])
+            own, prop = data[node]
+            result = monoid.op(result, own)
+            result = monoid.op(result, monoid.mul(sz, prop))
 
         return result
