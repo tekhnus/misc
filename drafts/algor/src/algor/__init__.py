@@ -1211,25 +1211,32 @@ def endswith(s1, s2):
     return s1[-len(s2) :] == s2
 
 
+def _matching_automaton(pattern):
+    aut = {}
+    prefixes = [tuple(pattern[:i]) for i in range(len(pattern) + 1)]
+    for b in prefixes[1:]:
+        binit, blast = b[:-1], b[-1]
+        for a in prefixes:
+            if endswith(a, binit):
+                aut[len(a), blast] = len(b)
+    return aut
+
+
 class Matcher:
     def __init__(self, seq):
-        aut = {}
-        prefixes = [tuple(seq[:i]) for i in range(len(seq) + 1)]
-        for b in prefixes[1:]:
-            binit, blast = b[:-1], b[-1]
-            for a in prefixes:
-                if endswith(a, binit):
-                    aut[a, blast] = b
-        self._seq = tuple(seq)
-        self._aut = aut
+        seq = tuple(seq)
+
+        self._seq = seq
+        self._aut = _matching_automaton(seq)
 
     def processor(self):
-        a = self._aut
-        state = ()
-        seq = self._seq
+        matching_state = len(self._seq)
+        aut = self._aut
+
+        state = 0
         while True:
-            x = yield (True if state == seq else None)
-            state = a.get((state, x), ())
+            x = yield (matching_state if state == matching_state else None)
+            state = aut.get((state, x), 0)
 
 
 def search(matcher, text):
@@ -1237,5 +1244,5 @@ def search(matcher, text):
     p.send(None)
     for i, x in enumerate(text):
         res = p.send(x)
-        if res:
-            yield i - len(matcher._seq) + 1
+        if res is not None:
+            yield i - res + 1
