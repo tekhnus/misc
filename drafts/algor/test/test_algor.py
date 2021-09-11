@@ -343,9 +343,9 @@ def test_segment_tree(actions):
     t = algor.SegmentTree(10)
     e = _DumbSegmentTree(10)
     for cmd, arg in actions:
+        print(cmd, *arg)
         if cmd == "op":
             leafrng, val = arg
-            leafrng = (leafrng[0], leafrng[0] + 1)  # FIXME when supported
             t.op(leafrng, val)
             e.op(leafrng, val)
         elif cmd == "get":

@@ -1157,25 +1157,9 @@ class BinaryTree:
         ax, ay = a
         bx, by = b
         return max(0, min(ay, by) - max(ax, bx))
-        
-    def _contains(self, node, leafrng):
-        return self._range_contains(leafrng, self._node_range(node))
-
-    def _disjoint(self, node, leafrng):
-        return self._range_disjoint(self._node_range(node), leafrng)
 
     def _children(self, node):
         return (2 * node + 1, 2 * node + 2)
-
-    def _range_contains(self, a, b):
-        ax, ay = a
-        bx, by = b
-        return ax <= bx and by <= ay
-
-    def _range_disjoint(self, a, b):
-        ax, ay = a
-        bx, by = b
-        return ay <= bx or by <= ax
 
     def _node_range(self, node):
         if node >= self._act_size - 1:
@@ -1187,6 +1171,8 @@ class BinaryTree:
         return x, y
 
 
+# This version doesn't propagate the lazy updates,
+# so the retrieval might be O((log(n))**2). Not sure though.
 class SegmentTree:
     def __init__(self, size, monoid=addition):
         self._monoid = monoid
@@ -1195,8 +1181,6 @@ class SegmentTree:
     def op(self, k, v):
         monoid = self._monoid
         data = self._data
-
-        l, r = k
 
         for isleaf, sz, node in self._data.nodes_covering_leaf_range(k):
             own, prop = data[node]
@@ -1213,10 +1197,9 @@ class SegmentTree:
 
         result = monoid.unit
         for isleaf, sz, node in self._data.nodes_covering_leaf_range(k):
+            own, prop = data[node]
+            result = monoid.op(result, monoid.mul(sz, prop))
             if not isleaf:
                 continue
-            own, prop = data[node]
             result = monoid.op(result, own)
-            result = monoid.op(result, monoid.mul(sz, prop))
-
         return result
