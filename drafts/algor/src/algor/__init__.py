@@ -1127,15 +1127,16 @@ class BinaryTree:
     def nodes_covering_leaf_range(self, leafrng):
         a, b = leafrng
         if a >= b:
-            return
-        yield from self._nclr(leafrng, 0)
+            return ()
+        return self._nclr(leafrng, 0)
 
     def _nclr(self, leafrng, node):
-        if self._contains(node, leafrng):
-            yield node
-            return
         if self._disjoint(node, leafrng):
             return
+        if self._contains(node, leafrng):
+            yield True, node
+            return
+        yield False, node
         for child in self._children(node):
             yield from self._nclr(leafrng, child)
 
@@ -1189,7 +1190,9 @@ class SegmentTree:
         data = self._data
 
         result = monoid.unit
-        for node in self._data.nodes_covering_leaf_range(k):
+        for isleaf, node in self._data.nodes_covering_leaf_range(k):
+            if not isleaf:
+                continue
             result = monoid.op(result, data[node])
 
         return result
