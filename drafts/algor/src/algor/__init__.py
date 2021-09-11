@@ -1246,3 +1246,31 @@ def search(matcher, text):
         res = p.send(x)
         if res is not None:
             yield i - res + 1
+
+
+def convex_hull(points):
+    points = [(point, i) for i, point in enumerate(points)]
+    points = sorted(points)
+    higher_arc = _convex_arc(points)
+    lower_arc = _convex_arc([((-x, -y), i) for ((x, y), i) in reversed(points)])
+    return higher_arc[:-1] + lower_arc[:-1]
+
+
+def _convex_arc(points):
+    res = [0, 1]
+    for i in range(2, len(points)):
+        while len(res) > 1 and not _is_above(points[res[-1]], points[res[-2]], points[i]):
+            res.pop()
+        res.append(i)
+    return [points[i][1] for i in res]
+
+
+def _is_above(p, a, b):
+    (px, py), _ = p
+    (ax, ay), _ = a
+    (bx, by), _ = b
+    if px - ax == 0:
+        return True
+    if bx - ax == 0:
+        raise RuntimeError("oops")
+    return ((py - ay) / (px - ax)) > ((by - ay) / (bx - ax))

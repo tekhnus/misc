@@ -4,6 +4,7 @@ import random
 import itertools
 import collections
 import re
+import scipy.spatial
 
 
 g1 = algor.Graph(
@@ -372,3 +373,23 @@ def test_substring_search(pattern, text, matchers):
     res = list(algor.search(aut, text))
     exp = list(i for i in range(len(text)) if text[i : i + len(pattern)] == pattern)
     assert res == exp
+
+
+def _convex_hull(points):
+    h = scipy.spatial.ConvexHull(points)
+    return h.vertices
+
+
+def _random_point():
+    return (trng.random(), trng.random())
+
+
+def _random_ngon(n):
+    return [_random_point() for _ in range(n)]
+
+
+@pytest.mark.parametrize("points", [_random_ngon(n) for n in range(3, 20) for _ in range(10)])
+def test_convex_hull(points):
+    res = algor.convex_hull(points)
+    exp = _convex_hull(points)
+    assert sorted(res) == sorted(exp)
