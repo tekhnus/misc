@@ -1279,40 +1279,59 @@ def _is_above(p, a, b):
 
 
 def line_intersection(a, b):
-    x = _line_intersection_coords(a, b)
-    if x is COINCIDE or x is PARALLEL:
-        return x
+    t, x = _mutual_position(a, b)
+    if t is COINCIDE or t is PARALLEL:
+        return t, None
     alpha, _ = x
     ap, av = a
-    return point_add(ap, vector_mul(alpha, av))
+    return INTERSECT, point_add(ap, vector_mul(alpha, av))
 
 
 def segment_intersection(a, b):
-    x = _line_intersection_coords(a, b)
-    if x is COINCIDE or x is PARALLEL:
-        return x
+    t, x = _mutual_position(a, b)
+    if t is PARALLEL:
+        return EMPTY, None
+    if t is COINCIDE:
+        ap, av = a
+        bp, bv = b
+        d = point_diff(bp, ap)
+        p = vector_dot(d, av) / vector_dot(av, av)
+        r = vector_dot(vector_add(d, bv), av) / vector_dot(av, av)
+        if r < p:
+            p, r = r, p
+        if common_length((0, 1), (p, r)) > 0:
+            return OVERLAP, None
+        return EMPTY, None
     alpha, beta = x
     if not (0 <= alpha <= 1) or not (0 <= beta <= 1):
-        return EMPTY
+        return EMPTY, None
     ap, av = a
-    return point_add(ap, vector_mul(alpha, av))
+    return INTERSECT, point_add(ap, vector_mul(alpha, av))
 
 
-def _line_intersection_coords(a, b):
+def common_length(a, b):
+    ab, ae = a
+    bb, be = b
+    return max(0, min(ae, be) - max(ab, bb))
+
+
+def _mutual_position(a, b):
     ap, av = a
     bp, bv = b
     d = point_diff(bp, ap)
     if vector_collinear(av, bv):
         if vector_collinear(av, d):
-            return COINCIDE
-        return PARALLEL
+            return COINCIDE, None
+        return PARALLEL, None
     alpha, beta = coeffs_in_basis(av, vector_mul(-1, bv), d)
-    return alpha, beta
+    return INTERSECT, (alpha, beta)
 
 
 COINCIDE = object()
 PARALLEL = object()
 EMPTY = object()
+INTERSECT = object()
+OVERLAP = object()
 
 
 def point_diff(a, b):
@@ -1333,6 +1352,18 @@ def coeffs_in_basis(b1, b2, v):
 def vector_mul(k, v):
     x, y = v
     return (k * x, k * y)
+
+
+def vector_dot(a, b):
+    ax, ay = a
+    bx, by = b
+    return ax * bx + ay * by
+
+
+def vector_add(a, b):
+    ax, ay = a
+    bx, by = b
+    return (ax + bx, ay + by)
 
 
 def point_add(p, v):

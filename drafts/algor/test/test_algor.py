@@ -409,10 +409,10 @@ def _line_intersection(a, b):
             geometer.Line(geometer.Point(*bp), geometer.Point(*bp2))
         )
     except geometer.exceptions.LinearDependenceError:
-        return algor.COINCIDE
+        return algor.COINCIDE, None
     if c.isinf:
-        return algor.PARALLEL
-    return tuple(c.normalized_array)[:-1]
+        return algor.PARALLEL, None
+    return algor.INTERSECT, tuple(c.normalized_array)[:-1]
 
 
 def _segment_intersection(a, b):
@@ -425,8 +425,8 @@ def _segment_intersection(a, b):
     )
     if not c:
         # Also returns EMPTY for the interleaving segments lying on the same line :(
-        return algor.EMPTY
-    return tuple(c[0].normalized_array)[:-1]
+        return algor.EMPTY, None
+    return algor.INTERSECT, tuple(c[0].normalized_array)[:-1]
 
 
 def _random_line():
@@ -434,6 +434,9 @@ def _random_line():
 
 
 def assert_close(xs, ys):
+    if xs is None or ys is None:
+        assert xs is None and ys is None
+        return
     assert len(xs) == len(ys)
     for x, y in zip(xs, ys):
         assert math.isclose(x, y)
@@ -448,15 +451,10 @@ def assert_close(xs, ys):
     ],
 )
 def test_line_intersection(a, b):
-    res = algor.line_intersection(a, b)
-    exp = _line_intersection(a, b)
-    if exp is algor.PARALLEL:
-        assert res is algor.PARALLEL
-        return
-    if exp is algor.COINCIDE:
-        assert res is algor.COINCIDE
-        return
-    assert_close(res, exp)
+    rest, resv = algor.line_intersection(a, b)
+    expt, expv = _line_intersection(a, b)
+    assert rest == expt
+    assert_close(resv, expv)
 
 
 @pytest.mark.parametrize(
@@ -469,15 +467,7 @@ def test_line_intersection(a, b):
     ],
 )
 def test_segment_intersection(a, b):
-    res = algor.segment_intersection(a, b)
-    exp = _segment_intersection(a, b)
-    if exp is algor.PARALLEL:
-        assert res is algor.PARALLEL
-        return
-    if exp is algor.COINCIDE:
-        assert res is algor.COINCIDE
-        return
-    if exp is algor.EMPTY:
-        assert res is algor.EMPTY or res is algor.PARALLEL or res is algor.COINCIDE
-        return
-    assert_close(res, exp)
+    rest, resv = algor.segment_intersection(a, b)
+    expt, expv = _segment_intersection(a, b)
+    assert rest == expt or (expt is algor.EMPTY and rest is algor.OVERLAP)
+    assert_close(resv, expv)
