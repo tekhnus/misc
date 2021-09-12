@@ -5,6 +5,8 @@ import itertools
 import collections
 import re
 import scipy.spatial
+import geometer
+import math
 
 
 g1 = algor.Graph(
@@ -388,8 +390,56 @@ def _random_ngon(n):
     return [_random_point() for _ in range(n)]
 
 
-@pytest.mark.parametrize("points", [_random_ngon(n) for n in range(3, 20) for _ in range(10)])
+@pytest.mark.parametrize(
+    "points", [_random_ngon(n) for n in range(3, 20) for _ in range(10)]
+)
 def test_convex_hull(points):
     res = algor.convex_hull(points)
     exp = _convex_hull(points)
     assert sorted(res) == sorted(exp)
+
+
+def _line_intersection(a, b):
+    ap, av = a
+    bp, bv = b
+    ap2 = algor.point_add(ap, av)
+    bp2 = algor.point_add(bp, bv)
+    try:
+        c = geometer.Line(geometer.Point(*ap), geometer.Point(*ap2)).meet(
+            geometer.Line(geometer.Point(*bp), geometer.Point(*bp2))
+        )
+    except geometer.exceptions.LinearDependenceError:
+        return algor.COINCIDE
+    if c.isinf:
+        return algor.PARALLEL
+    return tuple(c.normalized_array)[:-1]
+
+
+def _random_line():
+    return (_random_point(), _random_point())
+
+
+def assert_close(xs, ys):
+    assert len(xs) == len(ys)
+    for x, y in zip(xs, ys):
+        assert math.isclose(x, y)
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        *[(_random_line(), _random_line()) for _ in range(30)],
+        (((0, 0), (0, 1)), ((1, 0), (0, 1))),
+        (((0, 0), (0, 1)), ((0, 2), (0, 1))),
+    ],
+)
+def test_line_intersection(a, b):
+    res = algor.line_intersection(a, b)
+    exp = _line_intersection(a, b)
+    if exp is algor.PARALLEL:
+        assert res is algor.PARALLEL
+        return
+    if exp is algor.COINCIDE:
+        assert res is algor.COINCIDE
+        return
+    assert_close(res, exp)

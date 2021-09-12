@@ -1259,7 +1259,9 @@ def convex_hull(points):
 def _convex_arc(points):
     res = [0, 1]
     for i in range(2, len(points)):
-        while len(res) > 1 and not _is_above(points[res[-1]], points[res[-2]], points[i]):
+        while len(res) > 1 and not _is_above(
+            points[res[-1]], points[res[-2]], points[i]
+        ):
             res.pop()
         res.append(i)
     return [points[i][1] for i in res]
@@ -1274,3 +1276,51 @@ def _is_above(p, a, b):
     if bx - ax == 0:
         raise RuntimeError("oops")
     return ((py - ay) / (px - ax)) > ((by - ay) / (bx - ax))
+
+
+def line_intersection(a, b):
+    ap, av = a
+    bp, bv = b
+    d = point_diff(bp, ap)
+    if vector_collinear(av, bv):
+        if vector_collinear(av, d):
+            return COINCIDE
+        return PARALLEL
+    alpha, _ = coeffs_in_basis(av, vector_mul(-1, bv), d)
+    return point_add(ap, vector_mul(alpha, av))
+
+
+COINCIDE = object()
+PARALLEL = object()
+
+
+def point_diff(a, b):
+    ax, ay = a
+    bx, by = b
+    return (ax - bx, ay - by)
+
+
+def vector_collinear(a, b):
+    return det(a, b) == 0
+
+
+def coeffs_in_basis(b1, b2, v):
+    d = det(b1, b2)
+    return det(v, b2) / d, det(b1, v) / d
+
+
+def vector_mul(k, v):
+    x, y = v
+    return (k * x, k * y)
+
+
+def point_add(p, v):
+    px, py = p
+    vx, vy = v
+    return (px + vx, py + vy)
+
+
+def det(a, b):
+    ax, ay = a
+    bx, by = b
+    return ax * by - ay * bx
