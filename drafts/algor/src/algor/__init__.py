@@ -1279,6 +1279,26 @@ def _is_above(p, a, b):
 
 
 def line_intersection(a, b):
+    x = _line_intersection_coords(a, b)
+    if x is COINCIDE or x is PARALLEL:
+        return x
+    alpha, _ = x
+    ap, av = a
+    return point_add(ap, vector_mul(alpha, av))
+
+
+def segment_intersection(a, b):
+    x = _line_intersection_coords(a, b)
+    if x is COINCIDE or x is PARALLEL:
+        return x
+    alpha, beta = x
+    if not (0 <= alpha <= 1) or not (0 <= beta <= 1):
+        return EMPTY
+    ap, av = a
+    return point_add(ap, vector_mul(alpha, av))
+
+
+def _line_intersection_coords(a, b):
     ap, av = a
     bp, bv = b
     d = point_diff(bp, ap)
@@ -1286,12 +1306,13 @@ def line_intersection(a, b):
         if vector_collinear(av, d):
             return COINCIDE
         return PARALLEL
-    alpha, _ = coeffs_in_basis(av, vector_mul(-1, bv), d)
-    return point_add(ap, vector_mul(alpha, av))
+    alpha, beta = coeffs_in_basis(av, vector_mul(-1, bv), d)
+    return alpha, beta
 
 
 COINCIDE = object()
 PARALLEL = object()
+EMPTY = object()
 
 
 def point_diff(a, b):

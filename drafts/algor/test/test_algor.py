@@ -415,6 +415,20 @@ def _line_intersection(a, b):
     return tuple(c.normalized_array)[:-1]
 
 
+def _segment_intersection(a, b):
+    ap, av = a
+    bp, bv = b
+    ap2 = algor.point_add(ap, av)
+    bp2 = algor.point_add(bp, bv)
+    c = geometer.Segment(geometer.Point(*ap), geometer.Point(*ap2)).intersect(
+        geometer.Segment(geometer.Point(*bp), geometer.Point(*bp2))
+    )
+    if not c:
+        # Also returns EMPTY for the interleaving segments lying on the same line :(
+        return algor.EMPTY
+    return tuple(c[0].normalized_array)[:-1]
+
+
 def _random_line():
     return (_random_point(), _random_point())
 
@@ -441,5 +455,29 @@ def test_line_intersection(a, b):
         return
     if exp is algor.COINCIDE:
         assert res is algor.COINCIDE
+        return
+    assert_close(res, exp)
+
+
+@pytest.mark.parametrize(
+    "a,b",
+    [
+        *[(_random_line(), _random_line()) for _ in range(30)],
+        (((0, 0), (0, 1)), ((1, 0), (0, 1))),
+        (((0, 0), (0, 1)), ((0, 2), (0, 1))),
+        (((0, 0), (0, 2)), ((0, 1), (0, 2))),
+    ],
+)
+def test_segment_intersection(a, b):
+    res = algor.segment_intersection(a, b)
+    exp = _segment_intersection(a, b)
+    if exp is algor.PARALLEL:
+        assert res is algor.PARALLEL
+        return
+    if exp is algor.COINCIDE:
+        assert res is algor.COINCIDE
+        return
+    if exp is algor.EMPTY:
+        assert res is algor.EMPTY or res is algor.PARALLEL or res is algor.COINCIDE
         return
     assert_close(res, exp)
