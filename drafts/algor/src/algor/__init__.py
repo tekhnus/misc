@@ -1376,3 +1376,11 @@ def det(a, b):
     ax, ay = a
     bx, by = b
     return ax * by - ay * bx
+
+
+def area(xs):
+    b = xs[0]
+    res = 0
+    for i in range(len(xs)):
+        res += det(point_diff(xs[i - 1], b), point_diff(xs[i], b))
+    return res / 2

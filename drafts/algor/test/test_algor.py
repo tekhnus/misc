@@ -471,3 +471,16 @@ def test_segment_intersection(a, b):
     expt, expv = _segment_intersection(a, b)
     assert rest == expt or (expt is algor.EMPTY and rest is algor.OVERLAP)
     assert_close(resv, expv)
+
+
+def _area(points):
+    return geometer.shapes.Polygon(*[geometer.Point(*p) for p in points]).area
+
+
+@pytest.mark.parametrize(
+    "points", [_random_ngon(n) for n in range(3, 20) for _ in range(3, 10)]
+)
+def test_area(points):
+    res = algor.area(points)
+    exp = _area(points)
+    assert_close([abs(res)], [exp])
