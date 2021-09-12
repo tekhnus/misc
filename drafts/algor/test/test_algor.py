@@ -484,3 +484,19 @@ def test_area(points):
     res = algor.area(points)
     exp = _area(points)
     assert_close([abs(res)], [exp])
+
+
+def _point_inside_polygon(poly, pt):
+    return geometer.shapes.Polygon(*[geometer.Point(*p) for p in poly]).contains(
+        geometer.Point(*pt)
+    )
+
+
+POLY = [(0.2, 0.2), (0.8, 0.2), (0.5, 0.5), (0.8, 0.8), (0.2, 0.8)]
+
+
+@pytest.mark.parametrize("point", [_random_point() for _ in range(1000)])
+def test_point_inside_polygon(point):
+    res = algor.point_inside_polygon(POLY, point)
+    exp = _point_inside_polygon(POLY, point)
+    assert res == exp

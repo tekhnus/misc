@@ -1384,3 +1384,39 @@ def area(xs):
     for i in range(len(xs)):
         res += det(point_diff(xs[i - 1], b), point_diff(xs[i], b))
     return res / 2
+
+
+class WindingCounter:
+    def __init__(self, pt, first_v):
+        self._pt = pt
+        self._first_v = first_v
+        self._v = first_v
+        self._angle = 0
+
+    def send(self, v):
+        self._angle += angle(point_diff(self._v, self._pt), point_diff(v, self._pt))
+        self._v = v
+
+    def close_curve(self):
+        self.send(self._first_v)
+        return round(self._angle / math.tau)
+
+
+def angle(v1, v2):
+    v1rot = rotate_90_counter(v1)
+    cos, sin = coeffs_in_basis(v1, v1rot, v2)
+    return math.atan2(sin, cos)
+
+
+def rotate_90_counter(v):
+    x, y = v
+    return (y, -x)
+
+
+def point_inside_polygon(poly, pt, winding_counter=WindingCounter):
+    pit = iter(poly)
+    w = winding_counter(pt, next(pit))
+    for vert in pit:
+        w.send(vert)
+    num = w.close_curve()
+    return num != 0
