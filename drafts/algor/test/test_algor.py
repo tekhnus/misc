@@ -521,3 +521,31 @@ def test_closest_pair(points):
     ra, rb, rd = algor.closest_pair(points)
     ea, eb, ed = _closest_pair(points)
     assert rd == ed and ((ra, rb) == (ea, eb)) or ((ra, rb) == (eb, ea))
+
+
+def _online_median():
+    xs = []
+    while True:
+        x = yield _median(xs)
+        xs.append(x)
+
+
+def _median(xs):
+    if not xs:
+        return None
+    sz = len(xs)
+    m = sz // 2
+    return sorted(xs)[m]
+
+
+seqs = [list(seq) for seq in itertools.product(list(range(4)), repeat=4)]
+
+
+@pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *seqs])
+def test_online_median(xs):
+    res = algor.online_median()
+    exp = _online_median()
+    next(exp)
+
+    for x in xs:
+        assert res.send(x) == exp.send(x)

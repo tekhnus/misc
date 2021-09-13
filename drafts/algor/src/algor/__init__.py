@@ -14,10 +14,17 @@ import random
 
 
 class Heap:
-    def __init__(self, items):
+    def __init__(self, items, key=lambda x: x):
+        self._key = key
         self._items = []
         for i in items:
             self.push(i)
+
+    def __len__(self):
+        return len(self._items)
+
+    def top(self):
+        return self._items[0]
 
     def pop(self):
         val = self._items[0]
@@ -33,26 +40,28 @@ class Heap:
         self._move_to_top(len(self._items) - 1)
 
     def _move_to_top(self, index):
+        key = self._key
         it = self._items
-        while index > 0 and it[index] < it[(parent := ((index - 1) // 2))]:
+        while index > 0 and key(it[index]) < key(it[(parent := ((index - 1) // 2))]):
             it[index], it[parent] = it[parent], it[index]
             index = parent
 
     def _move_to_bottom(self, index):
+        key = self._key
         it = self._items
         n = len(it)
         while True:
             left = 2 * index + 1
             if left >= n:
                 break
-            if it[index] > it[left]:
+            if key(it[index]) > key(it[left]):
                 it[index], it[left] = it[left], it[index]
                 index = left
                 continue
             right = left + 1
             if right >= n:
                 break
-            if it[index] > it[right]:
+            if key(it[index]) > key(it[right]):
                 it[index], it[right] = it[right], it[index]
                 index = right
                 continue
@@ -1203,6 +1212,37 @@ class SegmentTree:
                 continue
             result = monoid.op(result, own)
         return result
+
+
+def online_median():
+    om = _online_median()
+    next(om)
+    return om
+
+
+def _online_median():
+    lower_half = Heap([], key=lambda x: -x)
+    upper_half = Heap([])
+
+    median = 0
+    while True:
+        # lengths differ not more than by one
+        x = yield median
+        if x >= median:
+            upper_half.push(x)
+        else:
+            lower_half.push(x)
+        diff = len(upper_half) - len(lower_half)
+        if diff > 1:
+            lower_half.push(upper_half.pop())
+            diff = 0
+        elif diff < -1:
+            upper_half.push(lower_half.pop())
+            diff = 0
+        if diff >= 0:
+            median = upper_half.top()
+        else:
+            median = lower_half.top()
 
 
 def endswith(s1, s2):
