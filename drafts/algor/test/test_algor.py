@@ -500,3 +500,24 @@ def test_point_inside_polygon(point):
     res = algor.point_inside_polygon(POLY, point)
     exp = _point_inside_polygon(POLY, point)
     assert res == exp
+
+
+def _closest_pair(points):
+    a, b, d = None, None, None
+    for i, pt_i in enumerate(points):
+        for j, pt_j in enumerate(points):
+            if i == j:
+                continue
+            d_ij = algor.point_distance_square(pt_i, pt_j)
+            if d is None or d_ij < d:
+                a, b, d = i, j, d_ij
+    return a, b, d
+
+
+@pytest.mark.parametrize(
+    "points", [_random_ngon(n) for n in range(20) for _ in range(10)]
+)
+def test_closest_pair(points):
+    ra, rb, rd = algor.closest_pair(points)
+    ea, eb, ed = _closest_pair(points)
+    assert rd == ed and ((ra, rb) == (ea, eb)) or ((ra, rb) == (eb, ea))

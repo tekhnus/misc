@@ -1420,3 +1420,61 @@ def point_inside_polygon(poly, pt, winding_counter=WindingCounter):
         w.send(vert)
     num = w.close_curve()
     return num != 0
+
+
+def closest_pair(pts):
+    pts = sorted((pt, i) for i, pt in enumerate(pts))
+    return _closest_pair(pts, 0, len(pts))
+
+
+def _closest_pair(pts, left, right):
+    if right - left < 2:
+        return None, None, None
+    median = (left + right + 1) // 2
+    la, lb, ld = _closest_pair(pts, left, median)
+    ra, rb, rd = _closest_pair(pts, median, right)
+    if ld is None or (rd is not None and rd < ld):
+        a, b, d = ra, rb, rd
+    else:
+        a, b, d = la, lb, ld
+    s = _stripe(pts, left, right, median, d)
+    s = sorted(s, key=lambda pt: pt[0][1])
+
+    sa, sb, sd = _closest_pair_in_stripe(s, d)
+    if sd is None or (d is not None and d < sd):
+        return a, b, d
+    return sa, sb, sd
+
+
+def _closest_pair_in_stripe(s, max_d):
+    max_flg = max_d is not None
+    sa, sb, sd = None, None, None
+    for i, (pt_i, id_i) in enumerate(s):
+        for j in range(i + 1, len(s)):
+            pt_j, id_j = s[j]
+            if max_flg and (pt_j[1] - pt_i[1]) ** 2 >= max_d:
+                break
+            d_ij = point_distance_square(pt_i, pt_j)
+            if sd is None or d_ij < sd:
+                sa, sb, sd = id_i, id_j, d_ij
+    return sa, sb, sd
+
+
+def point_distance_square(a, b):
+    ax, ay = a
+    bx, by = b
+    return (ax - bx) ** 2 + (ay - by) ** 2
+
+
+def _stripe(pts, left, right, mid, d):
+    if d is None:
+        return pts[left:right]
+
+    result = []
+    (x_mid, _), _ = pts[mid]
+    for i in range(left, right):
+        (x_i, _), _ = pts[i]
+        if abs(x_i - x_mid) ** 2 < d:
+            result.append(pts[i])
+
+    return result
