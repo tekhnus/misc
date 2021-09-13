@@ -1520,3 +1520,90 @@ def _stripe(pts, left, right, mid, d):
             result.append(pts[i])
 
     return result
+
+
+class SillySortedDict:
+    def __init__(self):
+        self._d = {}
+
+    def __setitem__(self, k, v):
+        self._d[k] = v
+
+    def lower_bound(self, min_k, default):
+        return min([(k, v) for k, v in self._d.items() if k >= min_k], default=default)
+
+    def upper_bound(self, max_k, default):
+        return max([(k, v) for k, v in self._d.items() if k <= max_k], default=default)
+
+    def remove(self, the_v):
+        for k, v in self._d.items():
+            if v == the_v:
+                del self._d[k]
+                return
+
+
+def find_intersecting_figures(figs, d_cls=SillySortedDict):
+    start_pt = {i: fig.minimal_point_for_x() for i, fig in enumerate(figs)}
+    end_pt = {i: fig.maximal_point_for_x() for i, fig in enumerate(figs)}
+
+    events = [("start", i) for i in range(len(figs))] + [
+        ("end", i) for i in range(len(figs))
+    ]
+
+    def keyfunc(evt):
+        kind, idx = evt
+        if kind == "start":
+            x, _ = start_pt[idx]
+            return (x, 0)
+        x, _ = end_pt[idx]
+        return (x, 1)
+
+    events = sorted(events, key=keyfunc)
+    # print(events)
+    d = d_cls()
+    for kind, idx in events:
+        # print(d._d)
+        _, k = start_pt[idx]
+        if kind == "start":
+            _, next_idx = d.lower_bound(k, (None, None))
+            if next_idx is not None and figs[idx].intersects(figs[next_idx]):
+                return idx, next_idx
+            _, prev_idx = d.upper_bound(k, (None, None))
+            if prev_idx is not None and figs[idx].intersects(figs[prev_idx]):
+                return idx, prev_idx
+            d[k] = idx
+        else:
+            d.remove(idx)
+            _, next_idx = d.lower_bound(k, (None, None))
+            _, prev_idx = d.upper_bound(k, (None, None))
+            if (
+                next_idx is not None
+                and prev_idx is not None
+                and figs[next_idx].intersects(figs[prev_idx])
+            ):
+                return prev_idx, next_idx
+    return None
+
+
+class Segment:
+    def __init__(self, p, v):
+        self._p = p
+        self._v = v
+
+    def intersects(self, seg):
+        t, _ = segment_intersection((self._p, self._v), (seg._p, seg._v))
+        return t == INTERSECT or t == OVERLAP
+
+    def minimal_point_for_x(self):
+        px, _ = p = self._p
+        qx, _ = q = point_add(p, self._v)
+        if px > qx:
+            return q
+        return p
+
+    def maximal_point_for_x(self):
+        px, _ = p = self._p
+        qx, _ = q = point_add(p, self._v)
+        if px > qx:
+            return p
+        return q

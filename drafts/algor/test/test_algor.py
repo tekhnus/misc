@@ -549,3 +549,24 @@ def test_online_median(xs):
 
     for x in xs:
         assert res.send(x) == exp.send(x)
+
+
+def _random_segment():
+    return algor.Segment(*_random_line())
+
+
+@pytest.mark.parametrize(
+    "figs",
+    [[_random_segment() for _1 in range(n)] for n in range(5) for _2 in range(50)],
+)
+def test_find_intersecting_figures(figs):
+    res = algor.find_intersecting_figures(figs)
+    if res is None:
+        for i, a in enumerate(figs):
+            for j, b in enumerate(figs):
+                if i == j:
+                    continue
+                assert not a.intersects(b)
+    else:
+        a, b = res
+        assert figs[a].intersects(figs[b])
