@@ -1478,6 +1478,8 @@ def _closest_pair(pts, left, right):
     else:
         a, b, d = la, lb, ld
     s = _stripe(pts, left, right, median, d)
+    # TODO: можно обойтись без копирования и сортировки,
+    # "встроив" пересортировку по y слиянием (см. e-maxx).
     s = sorted(s, key=lambda pt: pt[0][1])
 
     sa, sb, sd = _closest_pair_in_stripe(s, d)
