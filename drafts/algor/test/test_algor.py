@@ -205,6 +205,18 @@ def test_quicksort(xs):
 @pytest.mark.parametrize(
     "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
 )
+def test_quicksort_partial(xs):
+    xs = xs[:]
+    exp = sorted(xs)
+    for k in range(len(xs)):
+        xs_copy = xs[:]
+        algor.quicksort_partial(xs_copy, k)
+        assert xs_copy[k] == exp[k]
+
+
+@pytest.mark.parametrize(
+    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
+)
 @pytest.mark.parametrize("f", [algor.mergesort_top_down, algor.mergesort_bottom_up])
 def test_mergesort(xs, f):
     xs = xs[:]

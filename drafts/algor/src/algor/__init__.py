@@ -583,6 +583,33 @@ def quicksort(xs, rng=None):
     _quicksort(xs, bounds, rng)
 
 
+def quicksort_partial(xs, k, rng=None):
+    if rng is None:
+        rng = random
+    bounds = (0, len(xs))
+    if not (0 <= k < len(xs)):
+        raise ValueError("k is out of bounds")
+    return _quicksort_partial(xs, bounds, k, rng)
+
+
+def _quicksort_partial(xs, bounds, k, rng):
+    left, right = bounds
+    assert left <= k < right
+    if right - left == 1:
+        # assert k == 0
+        return xs[left]
+    if right - left == 0:
+        return None
+        raise ValueError(k)
+    pivot_value = xs[rng.randrange(left, right)]
+    m1, m2 = partition(xs, bounds, pivot_value)
+    if m1 <= k < m2:
+        return pivot_value
+    if k < m1:
+        return _quicksort_partial(xs, (left, m1), k, rng)
+    return _quicksort_partial(xs, (m2, right), k, rng)
+
+
 def mergesort_top_down(xs):
     bounds = (0, len(xs))
     xs2 = [x for x in xs]
