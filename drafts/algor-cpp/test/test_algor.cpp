@@ -15,7 +15,7 @@ int main() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
   for (;;) {
     auto [ev, v, eid] = d();
-    if (ev == DFSEvent::DFS_END) {
+    if (ev == DFSEvent::END) {
       break;
     }
     cout << static_cast<std::underlying_type<DFSEvent>::type>(ev) << " " << eid

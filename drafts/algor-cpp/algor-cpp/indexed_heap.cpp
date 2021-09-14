@@ -45,7 +45,7 @@ private:
 
 template <typename V, typename E> class Graph {
 public:
-  typedef typename list<tuple<E, V>>::reverse_iterator reverse_iterator;
+  typedef typename list<tuple<V, E>>::reverse_iterator reverse_iterator;
 
   template <typename VI> void vs_extend(VI begin, VI end) {
     vs.insert(begin, end);
@@ -55,32 +55,24 @@ public:
     for (EI it = begin; it != end; ++it) {
       auto [eid, u, v] = *it;
       es[eid] = {u, v};
-      ix[u].push_back({eid, v});
+      ix[u].push_back({v, eid});
     }
   }
 
-  list<tuple<E, V>> outbound_edges(V u) {
-    list<tuple<E, V>> res;
-    for (auto &[eid, v] : ix[u]) {
-      res.push_back({eid, v});
-    }
-    return res;
-  }
+  reverse_iterator vertices_rbegin(V u) { return ix[u].rbegin(); }
 
-  reverse_iterator outbound_edges_rbegin(V u) { return ix[u].rbegin(); }
-
-  reverse_iterator outbound_edges_rend(V u) { return ix[u].rend(); }
+  reverse_iterator vertices_rend(V u) { return ix[u].rend(); }
 
 private:
   unordered_set<V> vs;
   unordered_map<E, tuple<V, V>> es;
-  unordered_map<V, list<tuple<E, V>>> ix;
+  unordered_map<V, list<tuple<V, E>>> ix;
 };
 
 enum class DFSEvent {
-  DFS_END,
-  DFS_ENTER,
-  DFS_EXIT,
+  END,
+  ENTER,
+  EXIT,
 };
 
 template <typename V, typename E, typename VI>
@@ -88,31 +80,35 @@ auto dfs(VI begin, VI end, Graph<V, E> &g) {
   unordered_set<V> visited;
   stack<tuple<DFSEvent, V, E>> s;
 
-  auto it = begin;
   return [=]() mutable -> tuple<DFSEvent, V, E> {
-    for (; !s.empty() || it != end;) {
-      if (s.empty()) {
-        s.push({DFSEvent::DFS_ENTER, *it++, {}});
+    tuple<DFSEvent, V, E> item;
+    bool cont = true;
+    while (cont) {
+      if (s.empty() && begin == end) {
+        item = tuple<DFSEvent, V, E>{DFSEvent::END};
+        cont = false;
+      } else if (s.empty()) {
+        item = tuple<DFSEvent, V, E>{DFSEvent::ENTER, *begin++, {}};
+        cont = false;
+      } else {
+        item = s.top();
+        s.pop();
+        cont = get<DFSEvent>(item) == DFSEvent::ENTER &&
+               visited.find(get<V>(item)) != visited.end();
       }
-      auto [cmd, u, eid] = s.top();
-      s.pop();
-
-      if (cmd == DFSEvent::DFS_EXIT) {
-        return {DFSEvent::DFS_EXIT, u, {}};
-      }
-      if (visited.find(u) != visited.end()) {
-        continue;
-      }
-      visited.insert(u);
-      s.push({DFSEvent::DFS_EXIT, u, {}});
-      for (auto eit = g.outbound_edges_rbegin(u);
-           eit != g.outbound_edges_rend(u); ++eit) {
-        auto [eid2, v] = *eit;
-        s.push({DFSEvent::DFS_ENTER, v, eid2});
-      }
-      return {DFSEvent::DFS_ENTER, u, eid};
     }
-    return {DFSEvent::DFS_END, {}, {}};
+    if (get<DFSEvent>(item) == DFSEvent::ENTER) {
+      auto u = get<V>(item);
+
+      visited.insert(u);
+      s.push({DFSEvent::EXIT, u, {}});
+
+      for (auto i = g.vertices_rbegin(u); i != g.vertices_rend(u); ++i) {
+        auto [v, e] = *i;
+        s.push({DFSEvent::ENTER, v, e});
+      }
+    }
+    return item;
   };
 }
 
