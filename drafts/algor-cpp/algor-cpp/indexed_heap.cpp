@@ -45,6 +45,8 @@ private:
 
 template <typename V, typename E> class Graph {
 public:
+  typedef typename list<tuple<E, V>>::reverse_iterator reverse_iterator;
+
   template <typename VI> void vs_extend(VI begin, VI end) {
     vs.insert(begin, end);
   }
@@ -53,25 +55,30 @@ public:
     for (EI it = begin; it != end; ++it) {
       auto [eid, u, v] = *it;
       es[eid] = {u, v};
-      ix[u].push_back(eid);
+      ix[u].push_back({eid, v});
     }
   }
 
   list<tuple<E, V>> outbound_edges(V u) {
     list<tuple<E, V>> res;
-    for (auto &eid : ix[u]) {
-      res.push_back({eid, get<1>(es[eid])});
+    for (auto &[eid, v] : ix[u]) {
+      res.push_back({eid, v});
     }
     return res;
   }
 
+  reverse_iterator outbound_edges_rbegin(V u) { return ix[u].rbegin(); }
+
+  reverse_iterator outbound_edges_rend(V u) { return ix[u].rend(); }
+
 private:
   unordered_set<V> vs;
   unordered_map<E, tuple<V, V>> es;
-  unordered_map<V, list<E>> ix;
+  unordered_map<V, list<tuple<E, V>>> ix;
 };
 
 enum class DFSEvent {
+  DFS_END,
   DFS_ENTER,
   DFS_EXIT,
 };
@@ -79,34 +86,33 @@ enum class DFSEvent {
 template <typename V, typename E, typename VI>
 auto dfs(VI begin, VI end, Graph<V, E> &g) {
   unordered_set<V> visited;
-  stack<tuple<DFSEvent, E, V>> s;
+  stack<tuple<DFSEvent, V, E>> s;
 
-  for (auto it = begin; it != end; ++it) {
-    s.push({DFSEvent::DFS_ENTER, {}, *it});
-  }
-
-  return [=]() mutable {
-    for (; !s.empty();) {
-      auto item = s.top();
+  auto it = begin;
+  return [=]() mutable -> tuple<DFSEvent, V, E> {
+    for (; !s.empty() || it != end;) {
+      if (s.empty()) {
+        s.push({DFSEvent::DFS_ENTER, *it++, {}});
+      }
+      auto [cmd, u, eid] = s.top();
       s.pop();
-      auto [cmd, eid, u] = item;
 
       if (cmd == DFSEvent::DFS_EXIT) {
-        return tuple<bool, DFSEvent, E, V>{true, DFSEvent::DFS_EXIT, eid, u};
+        return {DFSEvent::DFS_EXIT, u, {}};
       }
       if (visited.find(u) != visited.end()) {
         continue;
       }
       visited.insert(u);
-      s.push({DFSEvent::DFS_EXIT, {}, u});
-      auto edges = g.outbound_edges(u);
-      for (auto eit = edges.rbegin(); eit != edges.rend(); ++eit) {
+      s.push({DFSEvent::DFS_EXIT, u, {}});
+      for (auto eit = g.outbound_edges_rbegin(u);
+           eit != g.outbound_edges_rend(u); ++eit) {
         auto [eid2, v] = *eit;
-        s.push({DFSEvent::DFS_ENTER, eid2, v});
+        s.push({DFSEvent::DFS_ENTER, v, eid2});
       }
-      return tuple<bool, DFSEvent, E, V>{true, DFSEvent::DFS_ENTER, eid, u};
+      return {DFSEvent::DFS_ENTER, u, eid};
     }
-    return tuple<bool, DFSEvent, E, V>{false, {}, {}, {}};
+    return {DFSEvent::DFS_END, {}, {}};
   };
 }
 
