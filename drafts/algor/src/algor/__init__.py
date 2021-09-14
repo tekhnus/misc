@@ -10,6 +10,7 @@ import math
 import heapq
 import operator
 import dataclasses
+import typing
 import random
 
 
@@ -1590,9 +1591,8 @@ class Segment:
         self._p = p
         self._v = v
 
-    def intersects(self, seg):
-        t, _ = segment_intersection((self._p, self._v), (seg._p, seg._v))
-        return t == INTERSECT or t == OVERLAP
+    def intersects(self, fig):
+        return intersects(self, fig)
 
     def minimal_point_for_x(self):
         px, _ = p = self._p
@@ -1607,3 +1607,31 @@ class Segment:
         if px > qx:
             return p
         return q
+
+
+class DoubleDispatch:
+    def __init__(self, fn):
+        self._default = fn
+        self._overloads = {}
+
+    def register(self, ta, tb):
+        def wrap(fn):
+            self._overloads[ta, tb] = fn
+            return fn
+
+        return wrap
+
+    def __call__(self, a, b):
+        fn = self._overloads[type(a), type(b)]
+        return fn(a, b)
+
+
+@DoubleDispatch
+def intersects(a, b):
+    raise NotImplementedError("Not implemented")
+
+
+@intersects.register(Segment, Segment)
+def _(a, b):
+    t, _ = segment_intersection((a._p, a._v), (b._p, b._v))
+    return t == INTERSECT or t == OVERLAP
