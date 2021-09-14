@@ -86,16 +86,14 @@ auto dfs(VI begin, VI end, Graph<V, E> &g) {
     while (cont) {
       if (s.empty() && begin == end) {
         item = tuple<DFSEvent, V, E>{DFSEvent::END};
-        cont = false;
       } else if (s.empty()) {
         item = tuple<DFSEvent, V, E>{DFSEvent::ENTER, *begin++, {}};
-        cont = false;
       } else {
         item = s.top();
         s.pop();
-        cont = get<DFSEvent>(item) == DFSEvent::ENTER &&
-               visited.find(get<V>(item)) != visited.end();
       }
+      cont = get<DFSEvent>(item) == DFSEvent::ENTER &&
+             visited.find(get<V>(item)) != visited.end();
     }
     if (get<DFSEvent>(item) == DFSEvent::ENTER) {
       auto u = get<V>(item);
@@ -110,6 +108,20 @@ auto dfs(VI begin, VI end, Graph<V, E> &g) {
     }
     return item;
   };
+}
+
+template <typename V, typename E, typename VI, typename VO>
+void topo_sort(VO outp, VI begin, VI end, Graph<V, E> &g) {
+  auto d = dfs(begin, end, g);
+  for (;;) {
+    auto evt = d();
+    if (get<DFSEvent>(evt) == DFSEvent::END) {
+      break;
+    }
+    if (get<DFSEvent>(evt) == DFSEvent::EXIT) {
+      *outp++ = get<V>(evt);
+    }
+  }
 }
 
 /*
