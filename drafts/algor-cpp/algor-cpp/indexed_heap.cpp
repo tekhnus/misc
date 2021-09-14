@@ -82,19 +82,17 @@ auto dfs(VI begin, VI end, Graph<V, E> &g) {
 
   return [=]() mutable -> tuple<DFSEvent, V, E> {
     tuple<DFSEvent, V, E> item;
-    bool cont = true;
-    while (cont) {
-      if (s.empty() && begin == end) {
-        item = tuple<DFSEvent, V, E>{DFSEvent::END};
-      } else if (s.empty()) {
-        item = tuple<DFSEvent, V, E>{DFSEvent::ENTER, *begin++, {}};
-      } else {
+    do {
+      if (!s.empty()) {
         item = s.top();
         s.pop();
+      } else if (begin != end) {
+        item = {DFSEvent::ENTER, *begin++, {}};
+      } else {
+        item = {DFSEvent::END, {}, {}};
       }
-      cont = get<DFSEvent>(item) == DFSEvent::ENTER &&
-             visited.find(get<V>(item)) != visited.end();
-    }
+    } while (get<DFSEvent>(item) == DFSEvent::ENTER &&
+             visited.find(get<V>(item)) != visited.end());
     if (get<DFSEvent>(item) == DFSEvent::ENTER) {
       auto u = get<V>(item);
 
