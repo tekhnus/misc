@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <variant>
 
 void test_dfs() {
   vector<int> vs{1, 2, 3, 4};
@@ -64,6 +65,12 @@ void test_strong_components() {
   cout << "----------" << endl;
 }
 
+string val_of(string *s) {
+  if (s == nullptr) {
+    return "(null string)";
+  }
+  return *s;
+}
 void test_ford_bellman() {
   vector<int> vs{1, 2, 3, 4};
   vector<pair<string, pair<int, int>>> es{
@@ -76,7 +83,7 @@ void test_ford_bellman() {
   g.vs_extend(vs.begin(), vs.end());
   g.es_extend(es.begin(), es.end());
   map<int, int> best;
-  map<int, optional<string>> pred;
+  map<int, variant<string, Root, Unreachable>> pred;
   map<string, int> w = {
       {"a", 3},
       {"b", 1},
@@ -85,7 +92,8 @@ void test_ford_bellman() {
   };
   ford_bellman(best, pred, 1, g, w);
   for (auto &v : vs) {
-    cout << v << " " << best[v] << " " << pred[v].value_or("X") << endl;
+    cout << v << " " << best[v] << " " << val_of(get_if<string>(&pred[v]))
+         << endl;
   }
   cout << "----------" << endl;
 }
