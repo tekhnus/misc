@@ -181,29 +181,26 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
 }
 
 template <typename V, typename E, typename WS, typename DS, typename PS>
-void ford_bellman(DS &dist, PS &path, V const &v, Graph<V, E> const &g, WS const &w) {
+void ford_bellman(DS &dist, PS &path, V const &v, Graph<V, E> const &g,
+                  WS const &w) {
   using W = typename WS::mapped_type;
-
-  W infty = 1;
-  for (auto &[_, x] : w) {
-    if (x > 0) {
-      infty += x;
-    }
-  }
   V null_v{};
 
   for (auto it = g.vertices_begin(); it != g.vertices_end(); ++it) {
-    dist[*it] = infty;
     path[*it] = null_v;
   }
+  path[v] = v;
   dist[v] = 0;
 
   auto relax = [&](pair<E, pair<V, V>> const &edge) -> bool {
     auto [e, uv] = edge;
     auto [u, v] = uv;
 
+    if (path[u] == null_v) {
+      return false;
+    }
     W relaxed = dist[u] + w.at(e);
-    if (dist[v] > relaxed) {
+    if (path[v] == null_v || dist[v] > relaxed) {
       dist[v] = relaxed;
       path[v] = u;
       return true;
