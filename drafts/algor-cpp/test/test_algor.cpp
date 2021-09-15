@@ -1,13 +1,15 @@
 #include <algor-cpp/indexed_heap.cpp>
 #include <iostream>
+#include <iterator>
+#include <map>
 
 void test_dfs() {
   vector<int> vs{1, 2, 3, 4};
-  vector<tuple<string, int, int>> es{
-      {"a", 1, 2},
-      {"b", 1, 3},
-      {"c", 2, 3},
-      {"d", 3, 4},
+  vector<pair<string, pair<int, int>>> es{
+      {"a", {1, 2}},
+      {"b", {1, 3}},
+      {"c", {2, 3}},
+      {"d", {3, 4}},
   };
   Graph<int, string> g;
   g.vs_extend(vs.begin(), vs.end());
@@ -26,11 +28,11 @@ void test_dfs() {
 
 void test_topo_sort() {
   vector<int> vs{1, 2, 3, 4};
-  vector<tuple<string, int, int>> es{
-      {"a", 1, 2},
-      {"b", 1, 3},
-      {"c", 2, 3},
-      {"d", 3, 4},
+  vector<pair<string, pair<int, int>>> es{
+      {"a", {1, 2}},
+      {"b", {1, 3}},
+      {"c", {2, 3}},
+      {"d", {3, 4}},
   };
   vector<int> res;
   Graph<int, string> g;
@@ -43,8 +45,29 @@ void test_topo_sort() {
   cout << "----------" << endl;
 }
 
+
+void test_strong_components() {
+  vector<int> vs{1, 2, 3, 4};
+  vector<pair<string, pair<int, int>>> es{
+      {"a", {1, 2}},
+      {"b", {1, 3}},
+      {"c", {2, 3}},
+      {"d", {3, 4}},
+  };
+  map<int, int> res;
+  Graph<int, string> g;
+  g.vs_extend(vs.begin(), vs.end());
+  g.es_extend(es.begin(), es.end());
+  strong_components(inserter(res, res.end()), vs.begin(), vs.end(), g);
+  for (auto &[c, v] : res) {
+    cout << c << " " << v << endl;
+  }
+  cout << "----------" << endl;
+}
+
 int main() {
   test_dfs();
   test_topo_sort();
+  test_strong_components();
   return EXIT_SUCCESS;
 }

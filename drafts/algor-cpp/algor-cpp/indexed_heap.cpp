@@ -6,6 +6,7 @@
 #include <stack>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -45,7 +46,9 @@ private:
 
 template <typename V, typename E> class Graph {
 public:
-  typedef typename list<tuple<V, E>>::reverse_iterator reverse_iterator;
+  typedef typename unordered_set<V>::iterator v_iterator;
+  typedef typename unordered_map<E, pair<V, V>>::iterator e_iterator;
+  typedef typename list<tuple<V, E>>::reverse_iterator reverse_local_v_iterator;
 
   template <typename VI> void vs_extend(VI begin, VI end) {
     vs.insert(begin, end);
@@ -53,21 +56,46 @@ public:
 
   template <typename EI> void es_extend(EI begin, EI end) {
     for (EI it = begin; it != end; ++it) {
-      auto [eid, u, v] = *it;
+      
+      auto [eid, uv] = *it;
+      auto [u, v] = uv;
       es[eid] = {u, v};
       ix[u].push_back({v, eid});
     }
   }
 
-  reverse_iterator vertices_rbegin(V u) { return ix[u].rbegin(); }
+  v_iterator vertices_begin() { return vs.begin(); }
 
-  reverse_iterator vertices_rend(V u) { return ix[u].rend(); }
+  v_iterator vertices_end() { return vs.end(); }
+
+  e_iterator edges_begin() { return es.begin(); }
+
+  e_iterator edges_end() { return es.end(); }
+
+  reverse_local_v_iterator vertices_rbegin(V u) { return ix[u].rbegin(); }
+
+  reverse_local_v_iterator vertices_rend(V u) { return ix[u].rend(); }
 
 private:
   unordered_set<V> vs;
-  unordered_map<E, tuple<V, V>> es;
+  unordered_map<E, pair<V, V>> es;
   unordered_map<V, list<tuple<V, E>>> ix;
 };
+
+template <typename V, typename E>
+Graph<V, E> graph_reverse(Graph<V, E> &g) {
+  Graph<V, E> res;
+  res.vs_extend(g.vertices_begin(), g.vertices_end());
+  vector<pair<E, pair<V, V>>> es;
+  transform(g.edges_begin(), g.edges_end(), back_inserter(es),
+            [](auto e) -> pair<E, pair<V, V>> {
+              auto [ei, uv] = e;
+	      auto [u, v] = uv;
+              return {ei, {v, u}};
+            });
+  res.es_extend(es.begin(), es.end());
+  return res;
+}
 
 enum class DFSEvent {
   END,
@@ -118,6 +146,27 @@ void topo_sort(VO outp, VI begin, VI end, Graph<V, E> &g) {
     }
     if (get<DFSEvent>(evt) == DFSEvent::EXIT) {
       *outp++ = get<V>(evt);
+    }
+  }
+}
+
+template <typename V, typename E, typename VI, typename VO>
+void strong_components(VO outp, VI begin, VI end, Graph<V, E> &g) {
+  vector<V> vs;
+  topo_sort(back_inserter(vs), begin, end, g);
+  auto h = graph_reverse(g);
+  auto d = dfs(vs.begin(), vs.end(), h);
+  int component = 0;
+  for (;;) {
+    auto [evt, v, e] = d();
+    if (evt == DFSEvent::END) {
+      break;
+    }
+    if (evt == DFSEvent::ENTER) {
+      if (e == E{}) {
+        ++component;
+      }
+      *outp++ = pair<V, int>{v, component};
     }
   }
 }
