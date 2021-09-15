@@ -48,10 +48,13 @@ template <typename V, typename E> class Graph {
 public:
   typedef typename unordered_set<V>::iterator v_iterator;
   typedef typename unordered_map<E, pair<V, V>>::iterator e_iterator;
-  typedef typename list<tuple<V, E>>::reverse_iterator reverse_local_v_iterator;
+  typedef typename list<tuple<V, E>>::const_reverse_iterator reverse_local_v_iterator;
 
   template <typename VI> void vs_extend(VI begin, VI end) {
     vs.insert(begin, end);
+    for (auto it = begin; it != end; ++it) {
+      ix[*it]; // instantiates default
+    }
   }
 
   template <typename EI> void es_extend(EI begin, EI end) {
@@ -72,9 +75,9 @@ public:
 
   e_iterator edges_end() { return es.end(); }
 
-  reverse_local_v_iterator vertices_rbegin(V u) { return ix[u].rbegin(); }
+  reverse_local_v_iterator vertices_rbegin(V u) const { return ix.at(u).crbegin(); }
 
-  reverse_local_v_iterator vertices_rend(V u) { return ix[u].rend(); }
+  reverse_local_v_iterator vertices_rend(V u) const { return ix.at(u).crend(); }
 
 private:
   unordered_set<V> vs;
@@ -104,7 +107,7 @@ enum class DFSEvent {
 };
 
 template <typename V, typename E, typename VI>
-auto dfs(VI begin, VI end, Graph<V, E> &g) {
+auto dfs(VI begin, VI end, Graph<V, E> const &g) {
   unordered_set<V> visited;
   stack<tuple<DFSEvent, V, E>> s;
 
@@ -154,8 +157,7 @@ template <typename V, typename E, typename VI, typename VO>
 void strong_components(VO outp, VI begin, VI end, Graph<V, E> &g) {
   vector<V> vs;
   topo_sort(back_inserter(vs), begin, end, g);
-  auto h = graph_reverse(g);
-  auto d = dfs(vs.begin(), vs.end(), h);
+  auto d = dfs(vs.begin(), vs.end(), graph_reverse(g));
   int component = 0;
   for (;;) {
     auto [evt, v, e] = d();
