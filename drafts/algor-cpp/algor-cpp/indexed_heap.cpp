@@ -184,10 +184,9 @@ template <typename V, typename E, typename WS, typename DS, typename PS>
 void ford_bellman(DS &dist, PS &path, V const &v, Graph<V, E> const &g,
                   WS const &w) {
   using W = typename WS::mapped_type;
-  E null_e{};
 
   for (auto it = g.vertices_begin(); it != g.vertices_end(); ++it) {
-    path[*it] = null_e;
+    path[*it] = {};
   }
   path[v] = E{1}; // TODO: fixme
   dist[v] = 0;
@@ -196,11 +195,11 @@ void ford_bellman(DS &dist, PS &path, V const &v, Graph<V, E> const &g,
     auto [e, uv] = edge;
     auto [u, t] = uv;
 
-    if (path[u] == null_e) {
+    if (!path[u].has_value()) {
       return false;
     }
     W relaxed = dist[u] + w.at(e);
-    if (path[t] == null_e || dist[t] > relaxed) {
+    if (!path[t].has_value() || dist[t] > relaxed) {
       dist[t] = relaxed;
       path[t] = e;
       return true;

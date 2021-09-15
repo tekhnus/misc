@@ -76,7 +76,7 @@ void test_ford_bellman() {
   g.vs_extend(vs.begin(), vs.end());
   g.es_extend(es.begin(), es.end());
   map<int, int> best;
-  map<int, string> pred;
+  map<int, optional<string>> pred;
   map<string, int> w = {
       {"a", 3},
       {"b", 1},
@@ -85,7 +85,7 @@ void test_ford_bellman() {
   };
   ford_bellman(best, pred, 1, g, w);
   for (auto &v : vs) {
-    cout << v << " " << best[v] << " " << pred[v] << endl;
+    cout << v << " " << best[v] << " " << pred[v].value_or("X") << endl;
   }
   cout << "----------" << endl;
 }
