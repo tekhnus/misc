@@ -76,7 +76,7 @@ void test_ford_bellman() {
   g.vs_extend(vs.begin(), vs.end());
   g.es_extend(es.begin(), es.end());
   map<int, int> best;
-  map<int, int> pred;
+  map<int, string> pred;
   map<string, int> w = {
       {"a", 3},
       {"b", 1},
