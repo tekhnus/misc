@@ -46,8 +46,8 @@ private:
 
 template <typename V, typename E> class Graph {
 public:
-  typedef typename unordered_set<V>::iterator v_iterator;
-  typedef typename unordered_map<E, pair<V, V>>::iterator e_iterator;
+  typedef typename unordered_set<V>::const_iterator v_iterator;
+  typedef typename unordered_map<E, pair<V, V>>::const_iterator e_iterator;
   typedef typename list<tuple<V, E>>::const_reverse_iterator reverse_local_v_iterator;
 
   template <typename VI> void vs_extend(VI begin, VI end) {
@@ -67,13 +67,13 @@ public:
     }
   }
 
-  v_iterator vertices_begin() { return vs.begin(); }
+  v_iterator vertices_begin() const { return vs.cbegin(); }
 
-  v_iterator vertices_end() { return vs.end(); }
+  v_iterator vertices_end() const { return vs.cend(); }
 
-  e_iterator edges_begin() { return es.begin(); }
+  e_iterator edges_begin() const { return es.cbegin(); }
 
-  e_iterator edges_end() { return es.end(); }
+  e_iterator edges_end() const { return es.cend(); }
 
   reverse_local_v_iterator vertices_rbegin(V u) const { return ix.at(u).crbegin(); }
 
@@ -86,7 +86,7 @@ private:
 };
 
 template <typename V, typename E>
-Graph<V, E> graph_reverse(Graph<V, E> &g) {
+Graph<V, E> graph_reverse(Graph<V, E> const &g) {
   Graph<V, E> res;
   res.vs_extend(g.vertices_begin(), g.vertices_end());
   vector<pair<E, pair<V, V>>> es;
@@ -140,7 +140,7 @@ auto dfs(VI begin, VI end, Graph<V, E> const &g) {
 }
 
 template <typename V, typename E, typename VI, typename VO>
-void topo_sort(VO outp, VI begin, VI end, Graph<V, E> &g) {
+void topo_sort(VO outp, VI begin, VI end, Graph<V, E> const &g) {
   auto d = dfs(begin, end, g);
   for (;;) {
     auto evt = d();
@@ -154,7 +154,7 @@ void topo_sort(VO outp, VI begin, VI end, Graph<V, E> &g) {
 }
 
 template <typename V, typename E, typename VI, typename VO>
-void strong_components(VO outp, VI begin, VI end, Graph<V, E> &g) {
+void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
   vector<V> vs;
   topo_sort(back_inserter(vs), begin, end, g);
   auto d = dfs(vs.begin(), vs.end(), graph_reverse(g));
@@ -172,6 +172,8 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> &g) {
     }
   }
 }
+
+// void ford_bellman(V init, Graph<V, E> &g
 
 /*
 template <typename V, typename E>
