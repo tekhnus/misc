@@ -6,9 +6,9 @@
 #include <stack>
 #include <string>
 #include <tuple>
-#include <utility>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -48,7 +48,8 @@ template <typename V, typename E> class Graph {
 public:
   typedef typename unordered_set<V>::const_iterator v_iterator;
   typedef typename unordered_map<E, pair<V, V>>::const_iterator e_iterator;
-  typedef typename list<tuple<V, E>>::const_reverse_iterator reverse_local_v_iterator;
+  typedef typename list<tuple<V, E>>::const_reverse_iterator
+      reverse_local_v_iterator;
 
   template <typename VI> void vs_extend(VI begin, VI end) {
     vs.insert(begin, end);
@@ -59,7 +60,7 @@ public:
 
   template <typename EI> void es_extend(EI begin, EI end) {
     for (EI it = begin; it != end; ++it) {
-      
+
       auto [eid, uv] = *it;
       auto [u, v] = uv;
       es[eid] = {u, v};
@@ -75,7 +76,9 @@ public:
 
   e_iterator edges_end() const { return es.cend(); }
 
-  reverse_local_v_iterator vertices_rbegin(V u) const { return ix.at(u).crbegin(); }
+  reverse_local_v_iterator vertices_rbegin(V u) const {
+    return ix.at(u).crbegin();
+  }
 
   reverse_local_v_iterator vertices_rend(V u) const { return ix.at(u).crend(); }
 
@@ -93,7 +96,7 @@ Graph<V, E> graph_reverse(Graph<V, E> const &g) {
   transform(g.edges_begin(), g.edges_end(), back_inserter(es),
             [](auto e) -> pair<E, pair<V, V>> {
               auto [ei, uv] = e;
-	      auto [u, v] = uv;
+              auto [u, v] = uv;
               return {ei, {v, u}};
             });
   res.es_extend(es.begin(), es.end());
@@ -173,7 +176,50 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
   }
 }
 
-// void ford_bellman(V init, Graph<V, E> &g
+template <typename W, typename V, typename E, typename M, typename WO,
+          typename GO>
+void ford_bellman(WO &best, GO &pred, V v, Graph<V, E> const &g, M w) {
+  W infty = 1;
+  for (auto &[_, x] : w) {
+    if (x > 0) {
+      infty += x;
+    }
+  }
+  for (auto it = g.vertices_begin(); it != g.vertices_end(); ++it) {
+    best[*it] = infty;
+  }
+  best[v] = W{};
+
+  auto upd = [&](auto &ed) -> bool {
+    auto [ei, uv] = ed;
+    auto [u, v] = uv;
+    W cand = best[u] + w[ei];
+    if (best[v] > cand) {
+      best[v] = cand;
+      pred[v] = u;
+      return true;
+    }
+    return false;
+  };
+  auto n = distance(g.vertices_begin(), g.vertices_end());
+  bool brk = false;
+  for (int i = 0; i < n - 1 && !brk; ++i) {
+    brk = true;
+    for (auto it = g.edges_begin(); it != g.edges_end(); ++it) {
+      if (upd(*it)) {
+        brk = false;
+      }
+    }
+  }
+  if (!brk) {
+    brk = true;
+    for (auto it = g.edges_begin(); it != g.edges_end(); ++it) {
+      if (upd(*it)) {
+        throw runtime_error("graph contains a negative cycle");
+      }
+    }
+  }
+}
 
 /*
 template <typename V, typename E>

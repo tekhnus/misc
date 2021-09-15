@@ -45,7 +45,6 @@ void test_topo_sort() {
   cout << "----------" << endl;
 }
 
-
 void test_strong_components() {
   vector<int> vs{1, 2, 3, 4};
   vector<pair<string, pair<int, int>>> es{
@@ -65,9 +64,36 @@ void test_strong_components() {
   cout << "----------" << endl;
 }
 
+void test_ford_bellman() {
+  vector<int> vs{1, 2, 3, 4};
+  vector<pair<string, pair<int, int>>> es{
+      {"a", {1, 2}},
+      {"b", {1, 3}},
+      {"c", {2, 3}},
+      {"d", {3, 4}},
+  };
+  Graph<int, string> g;
+  g.vs_extend(vs.begin(), vs.end());
+  g.es_extend(es.begin(), es.end());
+  map<int, int> best;
+  map<int, int> pred;
+  map<string, int> w = {
+      {"a", 3},
+      {"b", 1},
+      {"c", 7},
+      {"d", 5},
+  };
+  ford_bellman<int>(best, pred, 1, g, w);
+  for (auto &v : vs) {
+    cout << v << " " << best[v] << " " << pred[v] << endl;
+  }
+  cout << "----------" << endl;
+}
+
 int main() {
   test_dfs();
   test_topo_sort();
   test_strong_components();
+  test_ford_bellman();
   return EXIT_SUCCESS;
 }
