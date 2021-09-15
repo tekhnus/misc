@@ -183,16 +183,19 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
 enum class Root { value };
 enum class Unreachable { value };
 
-template <typename V, typename E, typename WS, typename DS, typename PS>
-void ford_bellman(DS &dist, PS &path, V const &v, Graph<V, E> const &g,
+template <typename V, typename VI, typename E, typename WS, typename DS,
+          typename PS>
+void ford_bellman(DS &dist, PS &path, VI begin, VI end, Graph<V, E> const &g,
                   WS const &w) {
   using W = typename WS::mapped_type;
 
-  for (auto it = g.vertices_begin(); it != g.vertices_end(); ++it) {
-    path[*it] = Unreachable::value;
+  for (auto i = g.vertices_begin(); i != g.vertices_end(); ++i) {
+    path[*i] = Unreachable::value;
   }
-  path[v] = Root::value;
-  dist[v] = 0;
+  for (auto i = begin; i != end; ++i) {
+    path[*i] = Root::value;
+    dist[*i] = 0;
+  }
 
   auto relax = [&](pair<E, pair<V, V>> const &edge) -> bool {
     auto [e, uv] = edge;

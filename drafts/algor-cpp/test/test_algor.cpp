@@ -90,7 +90,8 @@ void test_ford_bellman() {
       {"c", 7},
       {"d", 5},
   };
-  ford_bellman(best, pred, 1, g, w);
+  vector<int> start {1};
+  ford_bellman(best, pred, start.begin(), start.end(), g, w);
   for (auto &v : vs) {
     cout << v << " " << best[v] << " " << val_of(get_if<string>(&pred[v]))
          << endl;
