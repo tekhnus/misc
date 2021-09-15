@@ -76,6 +76,10 @@ public:
 
   e_iterator edges_end() const { return es.cend(); }
 
+  size_t vertices_size() const {
+    return distance(vertices_begin(), vertices_end());
+  }
+
   reverse_local_v_iterator vertices_rbegin(V u) const {
     return ix.at(u).crbegin();
   }
@@ -176,61 +180,51 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
   }
 }
 
-template <typename W, typename V, typename E, typename M, typename WO,
-          typename GO>
-void ford_bellman(WO &best, GO &pred, V v, Graph<V, E> const &g, M w) {
+template <typename V, typename E, typename WS, typename DS, typename PS>
+void ford_bellman(DS &dist, PS &path, V const &v, Graph<V, E> const &g, WS const &w) {
+  using W = typename WS::mapped_type;
+
   W infty = 1;
   for (auto &[_, x] : w) {
     if (x > 0) {
       infty += x;
     }
   }
-  for (auto it = g.vertices_begin(); it != g.vertices_end(); ++it) {
-    best[*it] = infty;
-  }
-  best[v] = W{};
+  V null_v{};
 
-  auto upd = [&](auto &ed) -> bool {
-    auto [ei, uv] = ed;
+  for (auto it = g.vertices_begin(); it != g.vertices_end(); ++it) {
+    dist[*it] = infty;
+    path[*it] = null_v;
+  }
+  dist[v] = 0;
+
+  auto relax = [&](pair<E, pair<V, V>> const &edge) -> bool {
+    auto [e, uv] = edge;
     auto [u, v] = uv;
-    W cand = best[u] + w[ei];
-    if (best[v] > cand) {
-      best[v] = cand;
-      pred[v] = u;
+
+    W relaxed = dist[u] + w.at(e);
+    if (dist[v] > relaxed) {
+      dist[v] = relaxed;
+      path[v] = u;
       return true;
     }
     return false;
   };
-  auto n = distance(g.vertices_begin(), g.vertices_end());
-  bool brk = false;
-  for (int i = 0; i < n - 1 && !brk; ++i) {
-    brk = true;
-    for (auto it = g.edges_begin(); it != g.edges_end(); ++it) {
-      if (upd(*it)) {
-        brk = false;
+
+  bool break_ = false;
+  for (size_t i = 1; i < g.vertices_size() && !break_; ++i) {
+    break_ = true;
+    for (auto i = g.edges_begin(); i != g.edges_end(); ++i) {
+      if (relax(*i)) {
+        break_ = false;
       }
     }
   }
-  if (!brk) {
-    brk = true;
-    for (auto it = g.edges_begin(); it != g.edges_end(); ++it) {
-      if (upd(*it)) {
+  if (!break_) {
+    for (auto i = g.edges_begin(); i != g.edges_end(); ++i) {
+      if (relax(*i)) {
         throw runtime_error("graph contains a negative cycle");
       }
     }
   }
 }
-
-/*
-template <typename V, typename E>
-class DFS {
-public:
-  template <typename VI>
-  DFS(VI begin, VI end, Graph<V, E> g) {}
-private:
-};
-*/
-
-vector<tuple<int, int>> v;
-indexed_heap<int, int> h{v.begin(), v.end()};
-Graph<int, int> g;

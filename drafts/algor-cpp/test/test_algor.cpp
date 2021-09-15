@@ -83,7 +83,7 @@ void test_ford_bellman() {
       {"c", 7},
       {"d", 5},
   };
-  ford_bellman<int>(best, pred, 1, g, w);
+  ford_bellman(best, pred, 1, g, w);
   for (auto &v : vs) {
     cout << v << " " << best[v] << " " << pred[v] << endl;
   }
