@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 using namespace std;
@@ -180,8 +181,8 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
   }
 }
 
-enum class Root { value };
-enum class Unreachable { value };
+class Root : public monostate {};
+class Unreachable : public monostate {};
 
 template <typename V, typename VI, typename E, typename WS, typename DS,
           typename PS>
@@ -190,10 +191,10 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, Graph<V, E> const &g,
   using W = typename WS::mapped_type;
 
   for (auto i = g.vertices_begin(); i != g.vertices_end(); ++i) {
-    path[*i] = Unreachable::value;
+    path[*i] = Unreachable{};
   }
   for (auto i = begin; i != end; ++i) {
-    path[*i] = Root::value;
+    path[*i] = Root{};
     dist[*i] = 0;
   }
 
