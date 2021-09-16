@@ -1,0 +1,9 @@
+Goal:
+Design a multi-purpose, non-semantic, target-agnostic text markup language.
+
+Technologies to keep in mind:
+- XML
+- HTML
+- edn
+- TeX
+- RTF
