@@ -16,9 +16,19 @@ using namespace std;
 
 template <typename A, typename B> A fst(tuple<A, B> t) { return get<0>(t); }
 
+template <typename CompareFirst, typename... T> class compare_first {
+public:
+  bool operator()(const tuple<T...> &a, const tuple<T...> &b) {
+    return cmp(get<0>(a), get<0>(b));
+  }
+
+private:
+  CompareFirst cmp;
+};
+
 template <typename K, typename V, typename Compare> class indexed_heap {
 public:
-  indexed_heap(): q{}, s{} {}
+  indexed_heap() : q{}, s{} {}
 
   template <typename I> indexed_heap(I begin, I end) : q{begin, end}, s{} {
     transform(begin, end, inserter(s, s.end()), fst<V, K>);
@@ -44,7 +54,8 @@ public:
   }
 
 private:
-  priority_queue<tuple<V, K>, vector<tuple<V, K>>, Compare> q;
+  priority_queue<tuple<V, K>, vector<tuple<V, K>>, compare_first<Compare, V, K>>
+      q;
   unordered_set<K> s;
 };
 
@@ -240,7 +251,7 @@ auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
   using W = int;
 
   unordered_set<V> visited;
-  indexed_heap<V, tuple<W, E>, greater<tuple<tuple<W, E>, V>>> q;
+  indexed_heap<V, tuple<W, E>, greater<tuple<W, E>>> q;
 
   for (auto i = begin; i != end; ++i) {
     q.push_or_update(*i, {0, E{}});

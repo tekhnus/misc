@@ -90,7 +90,7 @@ void test_ford_bellman() {
       {"c", 7},
       {"d", 5},
   };
-  vector<int> start {1};
+  vector<int> start{1};
   ford_bellman(best, pred, start.begin(), start.end(), g, w);
   for (auto &v : vs) {
     cout << v << " " << best[v] << " " << val_of(get_if<string>(&pred[v]))
@@ -124,8 +124,7 @@ void test_dijkstra() {
     }
     auto [v, we] = item.value();
     auto [w, e] = we;
-    cout << v << " " << w
-         << " " << e << endl;
+    cout << v << " " << w << " " << e << endl;
   }
   cout << "----------" << endl;
 }
