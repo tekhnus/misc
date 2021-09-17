@@ -99,10 +99,42 @@ void test_ford_bellman() {
   cout << "----------" << endl;
 }
 
+void test_dijkstra() {
+  vector<int> vs{1, 2, 3, 4};
+  vector<pair<string, pair<int, int>>> es{
+      {"a", {1, 2}},
+      {"b", {1, 3}},
+      {"c", {2, 3}},
+      {"d", {3, 4}},
+  };
+  Graph<int, string> g;
+  g.vs_extend(vs.begin(), vs.end());
+  g.es_extend(es.begin(), es.end());
+  map<string, int> w = {
+      {"a", 3},
+      {"b", 1},
+      {"c", 7},
+      {"d", 5},
+  };
+  auto d = dijkstra(vs.begin(), vs.begin() + 1, g, w);
+  for (;;) {
+    auto item = d();
+    if (!item.has_value()) {
+      break;
+    }
+    auto [v, we] = item.value();
+    auto [w, e] = we;
+    cout << v << " " << w
+         << " " << e << endl;
+  }
+  cout << "----------" << endl;
+}
+
 int main() {
   test_dfs();
   test_topo_sort();
   test_strong_components();
   test_ford_bellman();
+  test_dijkstra();
   return EXIT_SUCCESS;
 }

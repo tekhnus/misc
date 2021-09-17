@@ -16,8 +16,10 @@ using namespace std;
 
 template <typename A, typename B> A fst(tuple<A, B> t) { return get<0>(t); }
 
-template <typename K, typename V> class indexed_heap {
+template <typename K, typename V, typename Compare> class indexed_heap {
 public:
+  indexed_heap(): q{}, s{} {}
+
   template <typename I> indexed_heap(I begin, I end) : q{begin, end}, s{} {
     transform(begin, end, inserter(s, s.end()), fst<V, K>);
   }
@@ -26,7 +28,8 @@ public:
 
   tuple<K, V> pop() {
     for (;;) {
-      auto [v, k] = q.pop();
+      auto [v, k] = q.top();
+      q.pop();
       auto it = s.find(k);
       if (it != s.end()) {
         s.erase(it);
@@ -41,7 +44,7 @@ public:
   }
 
 private:
-  priority_queue<tuple<V, K>> q;
+  priority_queue<tuple<V, K>, vector<tuple<V, K>>, Compare> q;
   unordered_set<K> s;
 };
 
@@ -230,4 +233,44 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, Graph<V, E> const &g,
       }
     }
   }
+}
+
+template <typename V, typename E, typename VI, typename F>
+auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
+  using W = int;
+
+  unordered_set<V> visited;
+  indexed_heap<V, tuple<W, E>, greater<tuple<tuple<W, E>, V>>> q;
+
+  for (auto i = begin; i != end; ++i) {
+    q.push_or_update(*i, {0, E{}});
+  }
+
+  return [=]() mutable -> optional<tuple<V, tuple<W, E>>> {
+    if (q.empty()) {
+      return {};
+    }
+    auto nxt = q.pop();
+    auto [v, we] = nxt;
+    auto [weight, _] = we;
+    visited.insert(v);
+    for (auto i = g.vertices_rbegin(v); i != g.vertices_rend(v); ++i) {
+      auto [v2, e] = *i;
+      if (visited.find(v2) != visited.end()) {
+        continue;
+      }
+      W x = f(e, weight);
+      q.push_or_update(v2, {x, e});
+    }
+    return nxt;
+  };
+}
+
+template <typename V, typename E, typename WS, typename VI>
+auto dijkstra(VI begin, VI end, Graph<V, E> const &g, WS const &ws) {
+  using W = typename WS::mapped_type;
+
+  auto f = [&](E e, W w) { return w + ws.at(e); };
+
+  return greedy_tree(begin, end, g, f);
 }
