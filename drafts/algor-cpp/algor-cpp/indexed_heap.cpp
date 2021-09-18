@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <list>
+#include <map>
 #include <queue>
 #include <stack>
 #include <string>
@@ -284,4 +285,125 @@ auto dijkstra(VI begin, VI end, Graph<V, E> const &g, WS const &ws) {
   auto f = [&](E e, W w) { return w + ws.at(e); };
 
   return greedy_tree(begin, end, g, f);
+}
+
+template <typename R, typename I> class Matrix {
+public:
+  using T = typename R::value_type;
+  using K = typename I::value_type;
+
+  Matrix(I begin, I end) : begin{begin}, end{end}, m{} {
+    for (auto i = begin; i != end; ++i) {
+      for (auto j = begin; j != end; ++j) {
+        m[{*i, *j}] = ring.zero;
+      }
+    }
+  }
+
+  T &operator[](tuple<K, K> const &ij) { return m.at(ij); }
+
+  T const &operator[](tuple<K, K> const &ij) const { return m.at(ij); }
+
+  Matrix<R, I> operator*(Matrix<R, I> const &m) const {
+    auto res = Matrix<R, I>{begin, end};
+    for (auto i = begin; i != end; ++i) {
+      for (auto k = begin; k != end; ++k) {
+        auto v = ring.zero;
+        for (auto j = begin; j != end; ++j) {
+          v = ring.sum(v, ring.prod((*this)[{*i, *j}], m[{*j, *k}]));
+        }
+        res[{*i, *k}] = v;
+      }
+    }
+    return res;
+  }
+
+  bool operator==(Matrix<R, I> const &m) const {
+    for (auto i = begin; i != end; ++i) {
+      for (auto j = begin; j != end; ++j) {
+        if ((*this)[{*i, *j}] != m[{*i, *j}]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+private:
+  R ring;
+  I begin, end;
+  map<tuple<K, K>, T> m;
+};
+
+template <typename R, typename I> Matrix<R, I> make_matrix(I begin, I end) {
+  return {begin, end};
+}
+
+template <typename T> class comparison_ring {
+public:
+  using value_type = optional<T>;
+
+  optional<T> zero;
+  optional<T> sum(optional<T> a, optional<T> b) const {
+    if (!a.has_value()) {
+      return b;
+    }
+    if (!b.has_value()) {
+      return a;
+    }
+    return min(a.value(), b.value());
+  }
+  optional<T> prod(optional<T> a, optional<T> b) const {
+    if (!a.has_value() || !b.has_value()) {
+      return zero;
+    }
+    return a.value() + b.value();
+  }
+};
+
+template <typename V, typename E, typename WS>
+auto weight_matrix(Graph<V, E> const &g, WS const &ws) {
+  using W = typename WS::mapped_type;
+
+  auto m =
+      make_matrix<comparison_ring<W>>(g.vertices_begin(), g.vertices_end());
+  for (auto v = g.vertices_begin(); v != g.vertices_end(); ++v) {
+    m[{*v, *v}] = 0;
+  }
+  for (auto i = g.edges_begin(); i != g.edges_end(); ++i) {
+    auto [e, uv] = *i;
+    auto [u, v] = uv;
+    auto weight = ws.at(e);
+    if (!m[{u, v}].has_value() || m[{u, v}].value() > weight) {
+      m[{u, v}] = weight;
+    }
+  }
+
+  return m;
+}
+
+template <typename T> auto fast_pow(T const &x, int n) {
+  if (n == 0) {
+    throw runtime_error("not implemented");
+  }
+  if (n == 1) {
+    return x;
+  }
+  auto mhalfk = fast_pow(x, n / 2);
+  auto mlamostk = mhalfk * mhalfk;
+  if (n % 2 == 1) {
+    mlamostk = mlamostk * x;
+  }
+  return mlamostk;
+}
+
+template <typename V, typename E, typename WS>
+auto pairwise_distances(Graph<V, E> const &g, WS const &ws) {
+  auto m = weight_matrix(g, ws);
+  auto d = fast_pow(m, g.vertices_size() - 1);
+  auto chk = d * m;
+  if (chk != d) {
+    throw runtime_error("graph contains a negative cycle");
+  }
+  return d;
 }
