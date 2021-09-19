@@ -19,15 +19,32 @@ map<string, int> w = {
     {"c", 7},
     {"d", 5},
 };
-// map<pair<int, int>, tuple<
+map<pair<int, int>, tuple<int, optional<string>>> exp_dist = {
+    {{1, 1}, {0, {}}},   {{1, 2}, {3, "a"}}, {{1, 3}, {1, "b"}},
+    {{1, 4}, {6, "d"}},  {{2, 2}, {0, {}}},  {{2, 3}, {7, "c"}},
+    {{2, 4}, {12, "d"}}, {{3, 3}, {0, {}}},  {{3, 4}, {5, "d"}},
+    {{4, 4}, {0, {}}},
+};
 
-template <typename T> void assert_equal(T const &a, T const &b) {
+template <typename T, typename dummy = void>
+void assert_equal(T const &a, T const &b) {
   if (a != b) {
     stringstream s;
-    s << a << " != " << b;
+    s << &a << " != " << &b;
     throw runtime_error(s.str());
   }
 }
+
+// template <typename T,
+//           typename std::enable_if_t<std::is_same_v<
+//               decltype(std::cout << std::declval<T>()), std::ostream &>>>
+// void assert_equal(T const &a, T const &b) {
+//   if (a == b) {
+//     stringstream s;
+//     s << a << " != " << b;
+//     throw runtime_error(s.str());
+//   }
+// }
 
 void test_dfs() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
@@ -98,7 +115,9 @@ void test_pairwise_distances() {
   for (auto &v : vs) {
     for (auto &u : vs) {
       if (d[{v, u}].has_value()) {
-        cout << v << " " << u << " " << d[{v, u}].value() << endl;
+        assert_equal(d[{v, u}].value(), get<0>(exp_dist[{v, u}]));
+      } else {
+        assert_equal(exp_dist.find({v, u}), exp_dist.end());
       }
     }
   }
@@ -110,9 +129,13 @@ void test_floyd_warshall() {
   auto [d, pred] = floyd_warshall(g, w);
   for (auto &v : vs) {
     for (auto &u : vs) {
-      if (d[{v, u}].has_value()) {
-        cout << v << " " << u << " " << d[{v, u}].value() << " "
-             << get<1>(pred[{v, u}]) << endl;
+      if (exp_dist.find({v, u}) != exp_dist.end()) {
+        assert_equal(d[{v, u}].value(), get<0>(exp_dist[{v, u}]));
+        if (get<1>(exp_dist[{v, u}]).has_value()) {
+          assert_equal({get<1>(pred[{v, u}])}, get<1>(exp_dist[{v, u}]));
+        }
+      } else {
+        assert_equal(exp_dist.find({v, u}), exp_dist.end());
       }
     }
   }
