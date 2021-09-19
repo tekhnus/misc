@@ -160,6 +160,37 @@ void test_pairwise_distances() {
   cout << "----------" << endl;
 }
 
+void test_floyd_warshall() {
+  vector<int> vs{1, 2, 3, 4};
+  vector<pair<string, pair<int, int>>> es{
+      {"a", {1, 2}},
+      {"b", {1, 3}},
+      {"c", {2, 3}},
+      {"d", {3, 4}},
+  };
+  Graph<int, string> g;
+  g.vs_extend(vs.begin(), vs.end());
+  g.es_extend(es.begin(), es.end());
+  map<int, int> best;
+  map<string, int> w = {
+      {"a", 3},
+      {"b", 1},
+      {"c", 7},
+      {"d", 5},
+  };
+  vector<int> start{1};
+  auto [d, pred] = floyd_warshall(g, w);
+  for (auto &v : vs) {
+    for (auto &u : vs) {
+      if (d[{v, u}].has_value()) {
+        cout << v << " " << u << " " << d[{v, u}].value() << " "
+             << get<1>(pred[{v, u}]) << endl;
+      }
+    }
+  }
+  cout << "----------" << endl;
+}
+
 int main() {
   test_dfs();
   test_topo_sort();
@@ -167,5 +198,6 @@ int main() {
   test_ford_bellman();
   test_dijkstra();
   test_pairwise_distances();
+  test_floyd_warshall();
   return EXIT_SUCCESS;
 }

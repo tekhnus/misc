@@ -367,6 +367,7 @@ auto weight_matrix(Graph<V, E> const &g, WS const &ws) {
 
   auto m =
       make_matrix<comparison_ring<W>>(g.vertices_begin(), g.vertices_end());
+  map<pair<V, V>, pair<V, E>> pred;
   for (auto v = g.vertices_begin(); v != g.vertices_end(); ++v) {
     m[{*v, *v}] = 0;
   }
@@ -376,10 +377,11 @@ auto weight_matrix(Graph<V, E> const &g, WS const &ws) {
     auto weight = ws.at(e);
     if (!m[{u, v}].has_value() || m[{u, v}].value() > weight) {
       m[{u, v}] = weight;
+      pred[{u, v}] = {u, e};
     }
   }
 
-  return m;
+  return make_tuple(m, pred);
 }
 
 template <typename T> auto fast_pow(T const &x, int n) {
@@ -399,11 +401,34 @@ template <typename T> auto fast_pow(T const &x, int n) {
 
 template <typename V, typename E, typename WS>
 auto pairwise_distances(Graph<V, E> const &g, WS const &ws) {
-  auto m = weight_matrix(g, ws);
+  auto [m, _] = weight_matrix(g, ws);
   auto d = fast_pow(m, g.vertices_size() - 1);
   auto chk = d * m;
   if (chk != d) {
     throw runtime_error("graph contains a negative cycle");
   }
   return d;
+}
+
+template <typename V, typename E, typename WS>
+auto floyd_warshall(Graph<V, E> const &g, WS const &ws) {
+  auto [m, pred] = weight_matrix(g, ws);
+  for (auto v = g.vertices_begin(); v != g.vertices_end(); ++v) {
+    for (auto i = g.vertices_begin(); i != g.vertices_end(); ++i) {
+      if (!m[{*i, *v}].has_value()) {
+        continue;
+      }
+      for (auto j = g.vertices_begin(); j != g.vertices_end(); ++j) {
+        if (!m[{*v, *j}].has_value()) {
+          continue;
+        }
+        auto through_v = m[{*i, *v}].value() + m[{*v, *j}].value();
+        if (!m[{*i, *j}].has_value() || m[{*i, *j}].value() > through_v) {
+          m[{*i, *j}] = through_v;
+          pred[{*i, *j}] = pred[{*v, *j}];
+        }
+      }
+    }
+  }
+  return make_tuple(m, pred);
 }
