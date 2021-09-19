@@ -50,29 +50,27 @@ void test_dfs() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
   vector<tuple<DFSEvent, int, string>> res;
   generate_n(back_inserter(res), 9, ref(d));
-  for (auto [ev, v, eid] : res) {
-    cout << static_cast<std::underlying_type<DFSEvent>::type>(ev) << " " << eid
-         << " " << v << endl;
-  }
-  cout << "----------" << endl;
+  assert_equal(res, {{DFSEvent::ENTER, 1, ""},
+                     {DFSEvent::ENTER, 2, "a"},
+                     {DFSEvent::ENTER, 3, "c"},
+                     {DFSEvent::ENTER, 4, "d"},
+                     {DFSEvent::EXIT, 4, ""},
+                     {DFSEvent::EXIT, 3, ""},
+                     {DFSEvent::EXIT, 2, ""},
+                     {DFSEvent::EXIT, 1, ""},
+                     {DFSEvent::END, 0, ""}});
 }
 
 void test_topo_sort() {
   vector<int> res;
   topo_sort(back_inserter(res), vs.begin(), vs.end(), g);
-  for (auto &v : res) {
-    cout << v << endl;
-  }
-  cout << "----------" << endl;
+  assert_equal(res, {4, 3, 2, 1});
 }
 
 void test_strong_components() {
   map<int, int> res;
   strong_components(inserter(res, res.end()), vs.begin(), vs.end(), g);
-  for (auto &[c, v] : res) {
-    cout << c << " " << v << endl;
-  }
-  cout << "----------" << endl;
+  assert_equal(res, {{1, 1}, {2, 1}, {3, 1}, {4, 1}});
 }
 
 string val_of(string *s) {
@@ -87,11 +85,17 @@ void test_ford_bellman() {
   map<int, variant<string, Root, Unreachable>> pred;
   vector<int> start{1};
   ford_bellman(best, pred, start.begin(), start.end(), g, w);
-  for (auto &v : vs) {
-    cout << v << " " << best[v] << " " << val_of(get_if<string>(&pred[v]))
-         << endl;
+
+  for (auto &u : vs) {
+    if (exp_dist.find({1, u}) != exp_dist.end() && 1 != u) {
+      assert_equal(best[u], get<0>(exp_dist[{1, u}]));
+      if (get<1>(exp_dist[{1, u}]).has_value()) {
+        // assert_equal({get<1>(pred[{v, u}])}, get<1>(exp_dist[{v, u}]));
+      }
+    } else {
+      // assert_equal(exp_dist.find({v, u}), exp_dist.end());
+    }
   }
-  cout << "----------" << endl;
 }
 
 void test_dijkstra() {
@@ -104,9 +108,10 @@ void test_dijkstra() {
     }
     auto [v, we] = item.value();
     auto [w, e] = we;
-    cout << v << " " << w << " " << e << endl;
+    if (e != "") {
+      assert_equal(exp_dist[{1, v}], tuple<int, optional<string>>{w, e});
+    }
   }
-  cout << "----------" << endl;
 }
 
 void test_pairwise_distances() {
@@ -121,7 +126,6 @@ void test_pairwise_distances() {
       }
     }
   }
-  cout << "----------" << endl;
 }
 
 void test_floyd_warshall() {
@@ -139,20 +143,29 @@ void test_floyd_warshall() {
       }
     }
   }
-  cout << "----------" << endl;
+}
+
+void run_test(string name, void (*test)()) {
+  try {
+    test();
+  } catch (...) {
+    cout << "FAIL " << name << endl;
+    return;
+  }
+  cout << "OK   " << name << endl;
 }
 
 int main() {
   g.vs_extend(vs.begin(), vs.end());
   g.es_extend(es.begin(), es.end());
 
-  test_dfs();
-  test_topo_sort();
-  test_strong_components();
-  test_ford_bellman();
-  test_dijkstra();
-  test_pairwise_distances();
-  test_floyd_warshall();
+  run_test("dfs", test_dfs);
+  run_test("topo_sort", test_topo_sort);
+  run_test("strong_components", test_strong_components);
+  run_test("ford_bellman", test_ford_bellman);
+  run_test("dijkstra", test_dijkstra);
+  run_test("pairwise_distances", test_pairwise_distances);
+  run_test("floyd_warshall", test_floyd_warshall);
 
   return EXIT_SUCCESS;
 }
