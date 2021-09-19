@@ -2,6 +2,7 @@
 #include <iostream>
 #include <iterator>
 #include <map>
+#include <sstream>
 #include <variant>
 
 vector<int> vs{1, 2, 3, 4};
@@ -18,14 +19,21 @@ map<string, int> w = {
     {"c", 7},
     {"d", 5},
 };
+// map<pair<int, int>, tuple<
+
+template <typename T> void assert_equal(T const &a, T const &b) {
+  if (a != b) {
+    stringstream s;
+    s << a << " != " << b;
+    throw runtime_error(s.str());
+  }
+}
 
 void test_dfs() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
-  for (;;) {
-    auto [ev, v, eid] = d();
-    if (ev == DFSEvent::END) {
-      break;
-    }
+  vector<tuple<DFSEvent, int, string>> res;
+  generate_n(back_inserter(res), 9, ref(d));
+  for (auto [ev, v, eid] : res) {
     cout << static_cast<std::underlying_type<DFSEvent>::type>(ev) << " " << eid
          << " " << v << endl;
   }
@@ -71,10 +79,11 @@ void test_ford_bellman() {
 
 void test_dijkstra() {
   auto d = dijkstra(vs.begin(), vs.begin() + 1, g, w);
-  for (;;) {
-    auto item = d();
+  vector<optional<pair<int, pair<int, string>>>> res;
+  generate_n(back_inserter(res), 5, ref(d));
+  for (auto item : res) {
     if (!item.has_value()) {
-      break;
+      continue;
     }
     auto [v, we] = item.value();
     auto [w, e] = we;
