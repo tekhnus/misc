@@ -75,66 +75,67 @@ private:
   unordered_set<K> s;
 };
 
-template <typename V, typename E> class Graph {
+template <typename V, typename E> class graph {
 public:
-  typedef typename unordered_set<V>::const_iterator v_iterator;
-  typedef typename unordered_map<E, pair<V, V>>::const_iterator e_iterator;
+  typedef typename unordered_set<V>::const_iterator vertex_iterator;
+  typedef typename unordered_map<E, pair<V, V>>::const_iterator edge_iterator;
   typedef typename list<tuple<V, E>>::const_reverse_iterator
-      reverse_local_v_iterator;
+      reverse_local_vertex_iterator;
 
-  template <typename VI> void vs_extend(VI begin, VI end) {
-    vs.insert(begin, end);
+  template <typename I> void vertices_insert(I begin, I end) {
+    vertices.insert(begin, end);
     for (auto it = begin; it != end; ++it) {
-      ix[*it]; // instantiates default
+      successors[*it]; // instantiates default
     }
   }
 
-  template <typename EI> void es_extend(EI begin, EI end) {
-    for (EI it = begin; it != end; ++it) {
-
-      auto [eid, uv] = *it;
+  template <typename I> void edges_insert(I begin, I end) {
+    edges.insert(begin, end);
+    for (I it = begin; it != end; ++it) {
+      auto [e, uv] = *it;
       auto [u, v] = uv;
-      es[eid] = {u, v};
-      ix[u].push_back({v, eid});
+      successors[u].push_back({v, e});
     }
   }
 
-  v_iterator vertices_begin() const { return vs.cbegin(); }
+  vertex_iterator vertices_cbegin() const { return vertices.cbegin(); }
 
-  v_iterator vertices_end() const { return vs.cend(); }
+  vertex_iterator vertices_cend() const { return vertices.cend(); }
 
-  e_iterator edges_begin() const { return es.cbegin(); }
+  edge_iterator edges_cbegin() const { return edges.cbegin(); }
 
-  e_iterator edges_end() const { return es.cend(); }
+  edge_iterator edges_cend() const { return edges.cend(); }
 
   size_t vertices_size() const {
-    return distance(vertices_begin(), vertices_end());
+    return distance(vertices_cbegin(), vertices_cend());
   }
 
-  reverse_local_v_iterator vertices_rbegin(V u) const {
-    return ix.at(u).crbegin();
+  reverse_local_vertex_iterator vertices_crbegin(V u) const {
+    return successors.at(u).crbegin();
   }
 
-  reverse_local_v_iterator vertices_rend(V u) const { return ix.at(u).crend(); }
+  reverse_local_vertex_iterator vertices_crend(V u) const {
+    return successors.at(u).crend();
+  }
 
 private:
-  unordered_set<V> vs;
-  unordered_map<E, pair<V, V>> es;
-  unordered_map<V, list<tuple<V, E>>> ix;
+  unordered_set<V> vertices;
+  unordered_map<E, pair<V, V>> edges;
+  unordered_map<V, list<tuple<V, E>>> successors;
 };
 
 template <typename V, typename E>
-Graph<V, E> graph_reverse(Graph<V, E> const &g) {
-  Graph<V, E> res;
-  res.vs_extend(g.vertices_begin(), g.vertices_end());
+graph<V, E> graph_reverse(graph<V, E> const &g) {
+  graph<V, E> res;
+  res.vertices_insert(g.vertices_cbegin(), g.vertices_cend());
   vector<pair<E, pair<V, V>>> es;
-  transform(g.edges_begin(), g.edges_end(), back_inserter(es),
+  transform(g.edges_cbegin(), g.edges_cend(), back_inserter(es),
             [](auto e) -> pair<E, pair<V, V>> {
               auto [ei, uv] = e;
               auto [u, v] = uv;
               return {ei, {v, u}};
             });
-  res.es_extend(es.begin(), es.end());
+  res.edges_insert(es.begin(), es.end());
   return res;
 }
 
@@ -145,7 +146,7 @@ enum class DFSEvent {
 };
 
 template <typename V, typename E, typename VI>
-auto dfs(VI begin, VI end, Graph<V, E> const &g) {
+auto dfs(VI begin, VI end, graph<V, E> const &g) {
   unordered_set<V> visited;
   stack<tuple<DFSEvent, V, optional<E>>> s;
 
@@ -168,7 +169,7 @@ auto dfs(VI begin, VI end, Graph<V, E> const &g) {
       visited.insert(u);
       s.push({DFSEvent::EXIT, u, {}});
 
-      for (auto i = g.vertices_rbegin(u); i != g.vertices_rend(u); ++i) {
+      for (auto i = g.vertices_crbegin(u); i != g.vertices_crend(u); ++i) {
         auto [v, e] = *i;
         s.push({DFSEvent::ENTER, v, e});
       }
@@ -178,7 +179,7 @@ auto dfs(VI begin, VI end, Graph<V, E> const &g) {
 }
 
 template <typename V, typename E, typename VI, typename VO>
-void topo_sort(VO outp, VI begin, VI end, Graph<V, E> const &g) {
+void topo_sort(VO outp, VI begin, VI end, graph<V, E> const &g) {
   auto d = dfs(begin, end, g);
   for (;;) {
     auto evt = d();
@@ -192,7 +193,7 @@ void topo_sort(VO outp, VI begin, VI end, Graph<V, E> const &g) {
 }
 
 template <typename V, typename E, typename VI, typename VO>
-void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
+void strong_components(VO outp, VI begin, VI end, graph<V, E> const &g) {
   vector<V> vs;
   topo_sort(back_inserter(vs), begin, end, g);
   auto d = dfs(vs.begin(), vs.end(), graph_reverse(g));
@@ -216,11 +217,11 @@ class Unreachable : public monostate {};
 
 template <typename V, typename VI, typename E, typename WS, typename DS,
           typename PS>
-void ford_bellman(DS &dist, PS &path, VI begin, VI end, Graph<V, E> const &g,
+void ford_bellman(DS &dist, PS &path, VI begin, VI end, graph<V, E> const &g,
                   WS const &w) {
   using W = typename WS::mapped_type;
 
-  for (auto i = g.vertices_begin(); i != g.vertices_end(); ++i) {
+  for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
     path[*i] = Unreachable{};
   }
   for (auto i = begin; i != end; ++i) {
@@ -247,14 +248,14 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, Graph<V, E> const &g,
   bool break_ = false;
   for (size_t i = 1; i < g.vertices_size() && !break_; ++i) {
     break_ = true;
-    for (auto i = g.edges_begin(); i != g.edges_end(); ++i) {
+    for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
       if (relax(*i)) {
         break_ = false;
       }
     }
   }
   if (!break_) {
-    for (auto i = g.edges_begin(); i != g.edges_end(); ++i) {
+    for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
       if (relax(*i)) {
         throw runtime_error("graph contains a negative cycle");
       }
@@ -263,14 +264,14 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, Graph<V, E> const &g,
 }
 
 template <typename V, typename E, typename VI, typename F>
-auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
+auto greedy_tree(VI begin, VI end, graph<V, E> const &g, F f) {
   using W = int;
 
   unordered_set<V> visited{begin, end};
   keyed_heap<V, tuple<W, E>, greater<tuple<W, E>>> q;
 
   for (auto i = begin; i != end; ++i) {
-    for (auto j = g.vertices_rbegin(*i); j != g.vertices_rend(*i); ++j) {
+    for (auto j = g.vertices_crbegin(*i); j != g.vertices_crend(*i); ++j) {
       auto [v2, e] = *j;
       W x = f(e, 0);
       q.push_or_update(v2, {x, e});
@@ -286,7 +287,7 @@ auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
     auto [v, we] = nxt;
     auto [weight, _] = we;
     visited.insert(v);
-    for (auto i = g.vertices_rbegin(v); i != g.vertices_rend(v); ++i) {
+    for (auto i = g.vertices_crbegin(v); i != g.vertices_crend(v); ++i) {
       auto [v2, e] = *i;
       if (visited.find(v2) != visited.end()) {
         continue;
@@ -299,7 +300,7 @@ auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
 }
 
 template <typename V, typename E, typename WS, typename VI>
-auto dijkstra(VI begin, VI end, Graph<V, E> const &g, WS const &ws) {
+auto dijkstra(VI begin, VI end, graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
   auto f = [&](E e, W w) { return w + ws.at(e); };
@@ -382,16 +383,16 @@ public:
 };
 
 template <typename V, typename E, typename WS>
-auto weight_matrix(Graph<V, E> const &g, WS const &ws) {
+auto weight_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
   auto m =
-      make_matrix<comparison_ring<W>>(g.vertices_begin(), g.vertices_end());
+      make_matrix<comparison_ring<W>>(g.vertices_cbegin(), g.vertices_cend());
   map<pair<V, V>, pair<V, E>> pred;
-  for (auto v = g.vertices_begin(); v != g.vertices_end(); ++v) {
+  for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     m[{*v, *v}] = 0;
   }
-  for (auto i = g.edges_begin(); i != g.edges_end(); ++i) {
+  for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
     auto [e, uv] = *i;
     auto [u, v] = uv;
     auto weight = ws.at(e);
@@ -420,7 +421,7 @@ template <typename T> auto fast_pow(T const &x, int n) {
 }
 
 template <typename V, typename E, typename WS>
-auto pairwise_distances(Graph<V, E> const &g, WS const &ws) {
+auto pairwise_distances(graph<V, E> const &g, WS const &ws) {
   auto [m, _] = weight_matrix(g, ws);
   auto d = fast_pow(m, g.vertices_size() - 1);
   auto chk = d * m;
@@ -431,14 +432,14 @@ auto pairwise_distances(Graph<V, E> const &g, WS const &ws) {
 }
 
 template <typename V, typename E, typename WS>
-auto floyd_warshall(Graph<V, E> const &g, WS const &ws) {
+auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
   auto [m, pred] = weight_matrix(g, ws);
-  for (auto v = g.vertices_begin(); v != g.vertices_end(); ++v) {
-    for (auto i = g.vertices_begin(); i != g.vertices_end(); ++i) {
+  for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
+    for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
       if (!m[{*i, *v}].has_value()) {
         continue;
       }
-      for (auto j = g.vertices_begin(); j != g.vertices_end(); ++j) {
+      for (auto j = g.vertices_cbegin(); j != g.vertices_cend(); ++j) {
         if (!m[{*v, *j}].has_value()) {
           continue;
         }

@@ -12,7 +12,7 @@ vector<pair<string, pair<int, int>>> es{
     {"c", {2, 3}},
     {"d", {3, 4}},
 };
-Graph<int, string> g;
+graph<int, string> g;
 map<string, int> w = {
     {"a", 3},
     {"b", 1},
@@ -156,8 +156,8 @@ void run_test(string name, void (*test)()) {
 }
 
 int main() {
-  g.vs_extend(vs.begin(), vs.end());
-  g.es_extend(es.begin(), es.end());
+  g.vertices_insert(vs.begin(), vs.end());
+  g.edges_insert(es.begin(), es.end());
 
   run_test("dfs", test_dfs);
   run_test("topo_sort", test_topo_sort);
