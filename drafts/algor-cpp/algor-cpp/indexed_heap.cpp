@@ -82,6 +82,10 @@ public:
   typedef typename list<tuple<V, E>>::const_reverse_iterator
       reverse_local_vertex_iterator;
 
+  graph() = default;
+
+  template <typename I> graph(I begin, I end) { vertices_insert(begin, end); }
+
   template <typename I> void vertices_insert(I begin, I end) {
     vertices.insert(begin, end);
     for (auto it = begin; it != end; ++it) {
@@ -125,17 +129,19 @@ private:
 };
 
 template <typename V, typename E>
+pair<E, pair<V, V>> edge_reverse(pair<E, pair<V, V>> edge) {
+  auto [e, uv] = edge;
+  auto [u, v] = uv;
+  return {e, {v, u}};
+}
+
+template <typename V, typename E>
 graph<V, E> graph_reverse(graph<V, E> const &g) {
-  graph<V, E> res;
-  res.vertices_insert(g.vertices_cbegin(), g.vertices_cend());
-  vector<pair<E, pair<V, V>>> es;
-  transform(g.edges_cbegin(), g.edges_cend(), back_inserter(es),
-            [](auto e) -> pair<E, pair<V, V>> {
-              auto [ei, uv] = e;
-              auto [u, v] = uv;
-              return {ei, {v, u}};
-            });
-  res.edges_insert(es.begin(), es.end());
+  graph<V, E> res(g.vertices_cbegin(), g.vertices_cend());
+  vector<pair<E, pair<V, V>>> reversed_edges;
+  transform(g.edges_cbegin(), g.edges_cend(), back_inserter(reversed_edges),
+            edge_reverse<V, E>);
+  res.edges_insert(reversed_edges.begin(), reversed_edges.end());
   return res;
 }
 
@@ -145,8 +151,8 @@ enum class DFSEvent {
   EXIT,
 };
 
-template <typename V, typename E, typename VI>
-auto dfs(VI begin, VI end, graph<V, E> const &g) {
+template <typename V, typename E, typename I>
+auto dfs(I begin, I end, graph<V, E> const &g) {
   unordered_set<V> visited;
   stack<tuple<DFSEvent, V, optional<E>>> s;
 
