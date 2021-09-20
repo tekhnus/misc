@@ -15,47 +15,62 @@
 
 using namespace std;
 
-template <typename A, typename B> A fst(tuple<A, B> t) { return get<0>(t); }
-
-template <typename CompareFirst, typename... T> class compare_first {
+template <typename CompareSecond, typename... T> class compare_second {
 public:
   bool operator()(const tuple<T...> &a, const tuple<T...> &b) {
-    return cmp(get<0>(a), get<0>(b));
+    return cmp(get<1>(a), get<1>(b));
   }
 
 private:
-  CompareFirst cmp;
+  CompareSecond cmp;
 };
 
-template <typename K, typename V, typename Compare> class indexed_heap {
+template <typename K, typename V, typename Compare> class keyed_heap {
 public:
-  indexed_heap() : q{}, s{} {}
+  keyed_heap() : q{}, s{} {}
 
-  template <typename I> indexed_heap(I begin, I end) : q{begin, end}, s{} {
-    transform(begin, end, inserter(s, s.end()), fst<V, K>);
+  template <typename I> keyed_heap(I begin, I end) : q{begin, end}, s{} {}
+
+  bool empty() {
+    pop_while_removed();
+    return q.empty();
   }
 
-  bool empty() { return s.empty(); }
+  tuple<K, V> const &top() {
+    pop_while_removed();
+    return q.top();
+  }
 
-  tuple<K, V> pop() {
-    for (;;) {
-      auto [v, k] = q.top();
-      q.pop();
-      auto it = s.find(k);
-      if (it != s.end()) {
-        s.erase(it);
-        return {k, v};
-      }
+  void pop() {
+    pop_while_removed();
+    K const &k = get<0>(q.top());
+    s.erase(k);
+    q.pop();
+  }
+
+  void push_or_update(K const &key, V const &val) {
+    if (s.find(key) != s.end()) {
+      throw runtime_error("readding the removed elements is not supported yet");
     }
-  }
-
-  void push_or_update(K key, V val) {
-    q.push({val, key});
-    s.insert(key);
+    q.push({key, val});
   }
 
 private:
-  priority_queue<tuple<V, K>, vector<tuple<V, K>>, compare_first<Compare, V, K>>
+  void pop_while_removed() {
+    for (;;) {
+      if (q.empty()) {
+        return;
+      }
+      auto [k, v] = q.top();
+      auto it = s.find(k);
+      if (it == s.end()) {
+        return;
+      }
+      q.pop();
+    }
+  }
+  priority_queue<tuple<K, V>, vector<tuple<K, V>>,
+                 compare_second<Compare, K, V>>
       q;
   unordered_set<K> s;
 };
@@ -252,7 +267,7 @@ auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
   using W = int;
 
   unordered_set<V> visited{begin, end};
-  indexed_heap<V, tuple<W, E>, greater<tuple<W, E>>> q;
+  keyed_heap<V, tuple<W, E>, greater<tuple<W, E>>> q;
 
   for (auto i = begin; i != end; ++i) {
     for (auto j = g.vertices_rbegin(*i); j != g.vertices_rend(*i); ++j) {
@@ -266,7 +281,8 @@ auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
     if (q.empty()) {
       return {};
     }
-    auto nxt = q.pop();
+    auto nxt = q.top();
+    q.pop();
     auto [v, we] = nxt;
     auto [weight, _] = we;
     visited.insert(v);
