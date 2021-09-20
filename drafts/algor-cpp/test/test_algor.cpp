@@ -87,13 +87,15 @@ void test_ford_bellman() {
   ford_bellman(best, pred, start.begin(), start.end(), g, w);
 
   for (auto &u : vs) {
-    if (exp_dist.find({1, u}) != exp_dist.end() && 1 != u) {
+    if (exp_dist.find({1, u}) != exp_dist.end()) {
       assert_equal(best[u], get<0>(exp_dist[{1, u}]));
       if (get<1>(exp_dist[{1, u}]).has_value()) {
-        // assert_equal({get<1>(pred[{v, u}])}, get<1>(exp_dist[{v, u}]));
+        assert_equal(get<0>(pred[u]), get<1>(exp_dist[{1, u}]).value());
+      } else {
+	assert_equal(holds_alternative<Root>(pred[u]), true);
       }
     } else {
-      // assert_equal(exp_dist.find({v, u}), exp_dist.end());
+      assert_equal(holds_alternative<Unreachable>(pred[u]), true);
     }
   }
 }
