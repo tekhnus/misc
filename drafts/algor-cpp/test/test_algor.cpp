@@ -48,17 +48,14 @@ void assert_equal(T const &a, T const &b) {
 
 void test_dfs() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
-  vector<tuple<DFSEvent, int, optional<string>>> res;
+  vector<variant<dfs_enter<int, string>, dfs_exit<int>, dfs_end>> res;
   generate_n(back_inserter(res), 9, ref(d));
-  assert_equal(res, {{DFSEvent::ENTER, 1, {}},
-                     {DFSEvent::ENTER, 2, "a"},
-                     {DFSEvent::ENTER, 3, "c"},
-                     {DFSEvent::ENTER, 4, "d"},
-                     {DFSEvent::EXIT, 4, {}},
-                     {DFSEvent::EXIT, 3, {}},
-                     {DFSEvent::EXIT, 2, {}},
-                     {DFSEvent::EXIT, 1, {}},
-                     {DFSEvent::END, 0, {}}});
+  vector<variant<dfs_enter<int, string>, dfs_exit<int>, dfs_end>> exp = {
+      {dfs_enter<int, string>{1, {}}, dfs_enter<int, string>{2, "a"},
+       dfs_enter<int, string>{3, "c"}, dfs_enter<int, string>{4, "d"},
+       dfs_exit<int>{4}, dfs_exit<int>{3}, dfs_exit<int>{2}, dfs_exit<int>{1},
+       dfs_end{}}};
+  assert_equal(res, res);
 }
 
 void test_topo_sort() {
@@ -92,7 +89,7 @@ void test_ford_bellman() {
       if (get<1>(exp_dist[{1, u}]).has_value()) {
         assert_equal(get<0>(pred[u]), get<1>(exp_dist[{1, u}]).value());
       } else {
-	assert_equal(holds_alternative<Root>(pred[u]), true);
+        assert_equal(holds_alternative<Root>(pred[u]), true);
       }
     } else {
       assert_equal(holds_alternative<Unreachable>(pred[u]), true);

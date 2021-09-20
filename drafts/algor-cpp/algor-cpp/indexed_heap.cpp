@@ -145,39 +145,44 @@ graph<V, E> graph_reverse(graph<V, E> const &g) {
   return res;
 }
 
-enum class DFSEvent {
-  END,
-  ENTER,
-  EXIT,
+template <typename V, typename E> struct dfs_enter {
+  V v;
+  optional<E> e;
+  bool operator==(dfs_enter const &x) const = default;
 };
+template <typename V> struct dfs_exit {
+  V v;
+  bool operator==(dfs_exit const &x) const = default;
+};
+struct dfs_end : public monostate {};
 
 template <typename V, typename E, typename I>
 auto dfs(I begin, I end, graph<V, E> const &g) {
   unordered_set<V> visited;
-  stack<tuple<DFSEvent, V, optional<E>>> s;
+  stack<variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end>> s;
 
-  return [=]() mutable -> tuple<DFSEvent, V, optional<E>> {
-    tuple<DFSEvent, V, optional<E>> item;
+  return [=]() mutable -> variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> {
+    variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> item;
     do {
       if (!s.empty()) {
         item = s.top();
         s.pop();
       } else if (begin != end) {
-        item = {DFSEvent::ENTER, *begin++, {}};
+        item = dfs_enter<V, E>{*begin++, {}};
       } else {
-        item = {DFSEvent::END, {}, {}};
+        item = dfs_end{};
       }
-    } while (get<DFSEvent>(item) == DFSEvent::ENTER &&
-             visited.find(get<V>(item)) != visited.end());
-    if (get<DFSEvent>(item) == DFSEvent::ENTER) {
-      auto u = get<V>(item);
+    } while (holds_alternative<dfs_enter<V, E>>(item) &&
+             visited.find(get<dfs_enter<V, E>>(item).v) != visited.end());
+    if (holds_alternative<dfs_enter<V, E>>(item)) {
+      auto u = get<dfs_enter<V, E>>(item).v;
 
       visited.insert(u);
-      s.push({DFSEvent::EXIT, u, {}});
+      s.push(dfs_exit<V>{u});
 
       for (auto i = g.vertices_crbegin(u); i != g.vertices_crend(u); ++i) {
         auto [v, e] = *i;
-        s.push({DFSEvent::ENTER, v, e});
+        s.push(dfs_enter<V, E>{v, e});
       }
     }
     return item;
@@ -189,11 +194,11 @@ void topo_sort(VO outp, VI begin, VI end, graph<V, E> const &g) {
   auto d = dfs(begin, end, g);
   for (;;) {
     auto evt = d();
-    if (get<DFSEvent>(evt) == DFSEvent::END) {
+    if (holds_alternative<dfs_end>(evt)) {
       break;
     }
-    if (get<DFSEvent>(evt) == DFSEvent::EXIT) {
-      *outp++ = get<V>(evt);
+    if (holds_alternative<dfs_exit<V>>(evt)) {
+      *outp++ = get<dfs_exit<V>>(evt).v;
     }
   }
 }
@@ -205,15 +210,15 @@ void strong_components(VO outp, VI begin, VI end, graph<V, E> const &g) {
   auto d = dfs(vs.begin(), vs.end(), graph_reverse(g));
   int component = 0;
   for (;;) {
-    auto [evt, v, e] = d();
-    if (evt == DFSEvent::END) {
+    auto evt = d();
+    if (holds_alternative<dfs_end>(evt)) {
       break;
     }
-    if (evt == DFSEvent::ENTER) {
-      if (!e.has_value()) {
+    if (holds_alternative<dfs_enter<V, E>>(evt)) {
+      if (!get<dfs_enter<V, E>>(evt).e.has_value()) {
         ++component;
       }
-      *outp++ = pair<V, int>{v, component};
+      *outp++ = pair<V, int>{get<dfs_enter<V, E>>(evt).v, component};
     }
   }
 }
