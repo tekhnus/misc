@@ -48,17 +48,17 @@ void assert_equal(T const &a, T const &b) {
 
 void test_dfs() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
-  vector<tuple<DFSEvent, int, string>> res;
+  vector<tuple<DFSEvent, int, optional<string>>> res;
   generate_n(back_inserter(res), 9, ref(d));
-  assert_equal(res, {{DFSEvent::ENTER, 1, ""},
+  assert_equal(res, {{DFSEvent::ENTER, 1, {}},
                      {DFSEvent::ENTER, 2, "a"},
                      {DFSEvent::ENTER, 3, "c"},
                      {DFSEvent::ENTER, 4, "d"},
-                     {DFSEvent::EXIT, 4, ""},
-                     {DFSEvent::EXIT, 3, ""},
-                     {DFSEvent::EXIT, 2, ""},
-                     {DFSEvent::EXIT, 1, ""},
-                     {DFSEvent::END, 0, ""}});
+                     {DFSEvent::EXIT, 4, {}},
+                     {DFSEvent::EXIT, 3, {}},
+                     {DFSEvent::EXIT, 2, {}},
+                     {DFSEvent::EXIT, 1, {}},
+                     {DFSEvent::END, 0, {}}});
 }
 
 void test_topo_sort() {

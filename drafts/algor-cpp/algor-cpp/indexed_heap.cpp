@@ -132,10 +132,10 @@ enum class DFSEvent {
 template <typename V, typename E, typename VI>
 auto dfs(VI begin, VI end, Graph<V, E> const &g) {
   unordered_set<V> visited;
-  stack<tuple<DFSEvent, V, E>> s;
+  stack<tuple<DFSEvent, V, optional<E>>> s;
 
-  return [=]() mutable -> tuple<DFSEvent, V, E> {
-    tuple<DFSEvent, V, E> item;
+  return [=]() mutable -> tuple<DFSEvent, V, optional<E>> {
+    tuple<DFSEvent, V, optional<E>> item;
     do {
       if (!s.empty()) {
         item = s.top();
@@ -188,7 +188,7 @@ void strong_components(VO outp, VI begin, VI end, Graph<V, E> const &g) {
       break;
     }
     if (evt == DFSEvent::ENTER) {
-      if (e == E{}) {
+      if (!e.has_value()) {
         ++component;
       }
       *outp++ = pair<V, int>{v, component};
