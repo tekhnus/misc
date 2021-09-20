@@ -110,9 +110,7 @@ void test_dijkstra() {
     }
     auto [v, we] = item.value();
     auto [w, e] = we;
-    if (e != "") {
-      assert_equal(exp_dist[{1, v}], tuple<int, optional<string>>{w, e});
-    }
+    assert_equal(exp_dist[{1, v}], tuple<int, optional<string>>{w, e});
   }
 }
 

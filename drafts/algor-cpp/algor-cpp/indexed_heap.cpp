@@ -251,11 +251,15 @@ template <typename V, typename E, typename VI, typename F>
 auto greedy_tree(VI begin, VI end, Graph<V, E> const &g, F f) {
   using W = int;
 
-  unordered_set<V> visited;
+  unordered_set<V> visited{begin, end};
   indexed_heap<V, tuple<W, E>, greater<tuple<W, E>>> q;
 
   for (auto i = begin; i != end; ++i) {
-    q.push_or_update(*i, {0, E{}});
+    for (auto j = g.vertices_rbegin(*i); j != g.vertices_rend(*i); ++j) {
+      auto [v2, e] = *j;
+      W x = f(e, 0);
+      q.push_or_update(v2, {x, e});
+    }
   }
 
   return [=]() mutable -> optional<tuple<V, tuple<W, E>>> {
