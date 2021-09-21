@@ -79,7 +79,7 @@ string val_of(string *s) {
 
 void test_ford_bellman() {
   map<int, int> best;
-  map<int, variant<string, Root, Unreachable>> pred;
+  map<int, variant<string, root, unreachable>> pred;
   vector<int> start{1};
   ford_bellman(best, pred, start.begin(), start.end(), g, w);
 
@@ -89,10 +89,10 @@ void test_ford_bellman() {
       if (get<1>(exp_dist[{1, u}]).has_value()) {
         assert_equal(get<0>(pred[u]), get<1>(exp_dist[{1, u}]).value());
       } else {
-        assert_equal(holds_alternative<Root>(pred[u]), true);
+        assert_equal(holds_alternative<root>(pred[u]), true);
       }
     } else {
-      assert_equal(holds_alternative<Unreachable>(pred[u]), true);
+      assert_equal(holds_alternative<unreachable>(pred[u]), true);
     }
   }
 }

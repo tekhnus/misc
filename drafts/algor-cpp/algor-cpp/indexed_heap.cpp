@@ -223,8 +223,8 @@ void strong_components(VO outp, VI begin, VI end, graph<V, E> const &g) {
   }
 }
 
-class Root : public monostate {};
-class Unreachable : public monostate {};
+class root : public monostate {};
+class unreachable : public monostate {};
 
 template <typename V, typename VI, typename E, typename WS, typename DS,
           typename PS>
@@ -233,10 +233,10 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, graph<V, E> const &g,
   using W = typename WS::mapped_type;
 
   for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
-    path[*i] = Unreachable{};
+    path[*i] = unreachable{};
   }
   for (auto i = begin; i != end; ++i) {
-    path[*i] = Root{};
+    path[*i] = root{};
     dist[*i] = 0;
   }
 
@@ -244,11 +244,11 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, graph<V, E> const &g,
     auto [e, uv] = edge;
     auto [u, t] = uv;
 
-    if (holds_alternative<Unreachable>(path[u])) {
+    if (holds_alternative<unreachable>(path[u])) {
       return false;
     }
     W relaxed = dist[u] + w.at(e);
-    if (holds_alternative<Unreachable>(path[t]) || dist[t] > relaxed) {
+    if (holds_alternative<unreachable>(path[t]) || dist[t] > relaxed) {
       dist[t] = relaxed;
       path[t] = e;
       return true;
@@ -319,12 +319,12 @@ auto dijkstra(VI begin, VI end, graph<V, E> const &g, WS const &ws) {
   return greedy_tree(begin, end, g, f);
 }
 
-template <typename R, typename I> class Matrix {
+template <typename R, typename I> class matrix {
 public:
   using T = typename R::value_type;
   using K = typename I::value_type;
 
-  Matrix(I begin, I end) : begin{begin}, end{end}, m{} {
+  matrix(I begin, I end) : begin{begin}, end{end}, m{} {
     for (auto i = begin; i != end; ++i) {
       for (auto j = begin; j != end; ++j) {
         m[{*i, *j}] = ring.zero;
@@ -336,13 +336,13 @@ public:
 
   T const &operator[](tuple<K, K> const &ij) const { return m.at(ij); }
 
-  Matrix<R, I> operator*(Matrix<R, I> const &m) const {
-    auto res = Matrix<R, I>{begin, end};
+  matrix<R, I> operator*(matrix<R, I> const &m) const {
+    auto res = matrix<R, I>{begin, end};
     for (auto i = begin; i != end; ++i) {
       for (auto k = begin; k != end; ++k) {
         auto v = ring.zero;
         for (auto j = begin; j != end; ++j) {
-          v = ring.sum(v, ring.prod((*this)[{*i, *j}], m[{*j, *k}]));
+          v = ring.sum(v, ring.product((*this)[{*i, *j}], m[{*j, *k}]));
         }
         res[{*i, *k}] = v;
       }
@@ -350,7 +350,7 @@ public:
     return res;
   }
 
-  bool operator==(Matrix<R, I> const &m) const {
+  bool operator==(matrix<R, I> const &m) const {
     for (auto i = begin; i != end; ++i) {
       for (auto j = begin; j != end; ++j) {
         if ((*this)[{*i, *j}] != m[{*i, *j}]) {
@@ -367,11 +367,11 @@ private:
   map<tuple<K, K>, T> m;
 };
 
-template <typename R, typename I> Matrix<R, I> make_matrix(I begin, I end) {
+template <typename R, typename I> matrix<R, I> make_matrix(I begin, I end) {
   return {begin, end};
 }
 
-template <typename T> class comparison_ring {
+template <typename T> class min_sum_semiring {
 public:
   using value_type = optional<T>;
 
@@ -385,7 +385,7 @@ public:
     }
     return min(a.value(), b.value());
   }
-  optional<T> prod(optional<T> a, optional<T> b) const {
+  optional<T> product(optional<T> a, optional<T> b) const {
     if (!a.has_value() || !b.has_value()) {
       return zero;
     }
@@ -398,7 +398,7 @@ auto weight_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
   auto m =
-      make_matrix<comparison_ring<W>>(g.vertices_cbegin(), g.vertices_cend());
+      make_matrix<min_sum_semiring<W>>(g.vertices_cbegin(), g.vertices_cend());
   map<pair<V, V>, pair<V, E>> pred;
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     m[{*v, *v}] = 0;
@@ -416,27 +416,27 @@ auto weight_matrix(graph<V, E> const &g, WS const &ws) {
   return make_tuple(m, pred);
 }
 
-template <typename T> auto fast_pow(T const &x, int n) {
+template <typename T> auto generic_pow(T const &x, int n) {
   if (n == 0) {
     throw runtime_error("not implemented");
   }
   if (n == 1) {
     return x;
   }
-  auto mhalfk = fast_pow(x, n / 2);
-  auto mlamostk = mhalfk * mhalfk;
+  auto res = generic_pow(x, n / 2);
+  res = res * res;
   if (n % 2 == 1) {
-    mlamostk = mlamostk * x;
+    res = res * x;
   }
-  return mlamostk;
+  return res;
 }
 
 template <typename V, typename E, typename WS>
 auto pairwise_distances(graph<V, E> const &g, WS const &ws) {
   auto [m, _] = weight_matrix(g, ws);
-  auto d = fast_pow(m, g.vertices_size() - 1);
-  auto chk = d * m;
-  if (chk != d) {
+  auto d = generic_pow(m, g.vertices_size() - 1);
+  auto check = d * m;
+  if (check != d) {
     throw runtime_error("graph contains a negative cycle");
   }
   return d;
