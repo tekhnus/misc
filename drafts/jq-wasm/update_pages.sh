@@ -1,4 +1,4 @@
-dir=../../pages/jq-wasm
+dir=../../docs/jq-wasm
 mkdir -p $dir/{build,examples}
 
 cp build/jq.js $dir/build
