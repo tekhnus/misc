@@ -6,4 +6,3 @@ To run the Node.js example: `node examples/from-node.js`.
 To run the in-browser example, start your favourite HTTP
 server, for example, `python3 -m http.server`,
 then open the `examples/from-browser.html`.
-The output can be found in the javascript console.

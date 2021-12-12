@@ -1,9 +1,25 @@
 require('../build/jq.js')().then((jq) => {
-  var s = jq.jq_init();
-  var st = jq.jq_compile(s, ".x");
-  console.log("jq_compile=", st);
-  var p = jq.jv_parse("{\"x\": [33, 77]}");
-  jq.jq_start(s, p, 0);
-  var v = jq.jq_next(s);
-  console.log("test=", jq.jv_dump_string_trunc(v, 1024));
+    var query = ".x";
+    var inputs = [`{"x": [3, 14, 15]}`, `{"x": "hello"}`];
+
+    var state = jq.jq_init();
+    var result = jq.jq_compile(state, query);
+    if (result != 1) {
+        console.log("could not compile");
+        return;
+    }
+
+    for (var input of inputs) {
+        var inp = jq.jv_parse(input);
+        if (jq.jv_get_kind(inp) == 0) {
+            console.log("invalid input");
+            return;
+        }
+
+        jq.jq_start(state, inp, 0);
+        var output;
+        while (output = jq.jq_next(state), jq.jv_get_kind(output) != 0) {
+            console.log(jq.jv_dump_string_trunc(output, 1024));
+        }
+    }
 });
