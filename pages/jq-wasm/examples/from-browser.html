@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+  <head>
+    <title>jq test</title>
+    <script type="text/javascript" src="../build/jq.js"></script>
+    <script type="text/javascript">
+      printLine = function(text) {
+          var outp = document.createElement("li")
+          outp.appendChild(document.createTextNode(text))
+          document.getElementById("output").appendChild(outp);
+      }
+
+      var jq = null;
+
+      create_jq().then(function(jq_) {
+          jq = jq_;
+          upd();
+      });
+
+      upd = function() {
+          document.getElementById("output").replaceChildren();
+          var query = document.getElementById("query").value;
+          var inputs = [document.getElementById("input").value];
+
+          var state = jq.jq_init();
+          var result = jq.jq_compile(state, query);
+          if (result != 1) {
+              printLine("could not compile");
+              return;
+          }
+
+          for (var input of inputs) {
+              var inp = jq.jv_parse(input);
+              if (jq.jv_get_kind(inp) == 0) {
+                  printLine("invalid input");
+                  return;
+              }
+
+              jq.jq_start(state, inp, 0);
+              var output;
+              while (output = jq.jq_next(state), jq.jv_get_kind(output) != 0) {
+                  printLine(jq.jv_dump_string_trunc(output, 1024));
+              }
+          }
+      }
+    </script>
+  </head>
+  <body>
+    <form>
+      <label for="query">query:</label><br>
+      <input type="text" id="query" name="query" value=".x" oninput="upd()"><br>
+      <label for="input">input:</label><br>
+      <input type="text" id="input" name="input" value='{"x": [3, 14, 15]}' oninput="upd()">
+    </form>
+    <ul id="output">
+    </ul>
+  </body>
+</html>
