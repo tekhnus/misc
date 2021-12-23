@@ -72,10 +72,10 @@ def test_ford_bellman(v, gr, ws, exp):
 
 
 @pytest.mark.parametrize(
-    "v,gr,ws,exp", [(1, g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
+    "vs,gr,ws,exp", [([1], g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
 )
-def test_dijkstra(v, gr, ws, exp):
-    assert list(algor.dijkstra(v, gr, ws)) == exp
+def test_dijkstra(vs, gr, ws, exp):
+    assert list(algor.dijkstra(vs, gr, ws)) == exp
 
 
 @pytest.mark.parametrize(
@@ -162,7 +162,7 @@ def test_kruscal(gr, ws, exp):
     ],
 )
 def test_prim(gr, ws, exp):
-    assert algor.prim(1, gr, ws) == exp
+    assert algor.prim([1], gr, ws) == exp
 
 
 @pytest.mark.parametrize(

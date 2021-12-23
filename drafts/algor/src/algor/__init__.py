@@ -345,8 +345,8 @@ def ford_bellman(v, g, wg):
     return best, pred
 
 
-def greedy_tree(v, g, pri):
-    q = IndexedHeap([(v, (0, None))])
+def greedy_tree(vs, g, pri):
+    q = IndexedHeap([(v, (0, None)) for v in vs])
     reached = set()
     while q:
         vert, (dist, prd) = q.pop()
@@ -359,13 +359,14 @@ def greedy_tree(v, g, pri):
             q.push_or_update(ver, (x, vert))
 
 
-def dijkstra(v, g, wg):
+def dijkstra(vs, g, wg):
     best = {}
     pred = {}
-    for vert, (dist, prd) in greedy_tree(v, g, lambda edg, dist: dist + wg[edg]):
+    for vert, (dist, prd) in greedy_tree(vs, g, lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
-    del pred[v]
+    for v in vs:
+        del pred[v]
     return best, pred
 
 
@@ -458,13 +459,14 @@ def kruskal(g, wg):
     return weight, tree
 
 
-def prim(v, g, wg):
+def prim(vs, g, wg):
     weight = 0
     pred = {}
-    for vert, (dist, prd) in greedy_tree(v, g, lambda edg, _: wg[edg]):
+    for vert, (dist, prd) in greedy_tree(vs, g, lambda edg, _: wg[edg]):
         weight += dist
         pred[vert] = prd
-    del pred[v]
+    for v in vs:
+        del pred[v]
     return weight, pred
 
 
