@@ -1392,8 +1392,14 @@ fdatum_t builtin_eq(datum_t *x, datum_t *y) {
     }
     return fdatum_make_ok(f);
   }
+  if (datum_is_bytestring(x) && datum_is_bytestring(y)) {
+    if (!strcmp(x->bytestring_value, y->bytestring_value)) {
+      return fdatum_make_ok(t);
+    }
+    return fdatum_make_ok(f);
+  }
 
-  return fdatum_make_panic("eq can't compare those things");
+  return fdatum_make_ok(f);
 }
 
 fdatum_t builtin_annotate(datum_t *arg_value) {
