@@ -16,7 +16,19 @@
   7)
 
 
-
+!(#test
+  (progn
+    !(#defun fib ()
+       (yield 3)
+       (yield 5)
+       (yield 8)
+       (yield 13))
+    !(#def2 x fib (fib))
+    !(#def2 y fib (fib))
+    !(#def2 z fib (fib))
+    !(#def2 t fib (fib))
+    (list x y z t))
+  '(3 5 8 13))
 
 !(#defun print-all (xs)
    (return

@@ -1,18 +1,4 @@
 
-!(#defun fib ()
-   (yield 3)
-   (yield 5)
-   (yield 8)
-   (yield 13))
-
-!(#def2 x fib (fib))
-(print x)
-!(#def2 x fib (fib))
-(print x)
-!(#def2 x fib (fib))
-(print x)
-!(#def2 x fib (fib))
-(print x)
 
 !(#defun far-fib ()
    (^yield 3)
