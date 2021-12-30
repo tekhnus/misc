@@ -1377,28 +1377,43 @@ fdatum_t builtin_repr(datum_t *v) {
   return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
 }
 
-fdatum_t builtin_eq(datum_t *x, datum_t *y) {
-  datum_t *t = datum_make_list_1(datum_make_nil());
-  datum_t *f = datum_make_nil();
+bool datum_eq(datum_t *x, datum_t *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
-      return fdatum_make_ok(t);
+      return true;
     }
-    return fdatum_make_ok(f);
+    return false;
   }
   if (datum_is_integer(x) && datum_is_integer(y)) {
     if (x->integer_value == y->integer_value) {
-      return fdatum_make_ok(t);
+      return true;
     }
-    return fdatum_make_ok(f);
+    return false;
   }
   if (datum_is_bytestring(x) && datum_is_bytestring(y)) {
     if (!strcmp(x->bytestring_value, y->bytestring_value)) {
-      return fdatum_make_ok(t);
+      return true;
     }
-    return fdatum_make_ok(f);
+    return false;
   }
+  if (datum_is_list(x) && datum_is_list(y)) {
+    if (datum_is_nil(x) && datum_is_nil(y)) {
+      return true;
+    }
+    if (datum_is_nil(x) || datum_is_nil(y)) {
+      return false;
+    }
+    return datum_eq(x->list_head, y->list_head) && datum_eq(x->list_tail, y->list_tail);
+  }
+  return false;
+}
 
+fdatum_t builtin_eq(datum_t *x, datum_t *y) {
+  datum_t *t = datum_make_list_1(datum_make_nil());
+  datum_t *f = datum_make_nil();
+  if (datum_eq(x, y)) {
+    return fdatum_make_ok(t);
+  }
   return fdatum_make_ok(f);
 }
 
