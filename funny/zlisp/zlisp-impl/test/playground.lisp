@@ -1,4 +1,3 @@
-(print "hello, world!")
 
 !(#defun fib ()
    (yield 3)

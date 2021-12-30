@@ -11,3 +11,5 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD 11
 				 C_STANDARD_REQUIRED YES
 				 C_EXTENSIONS YES)
+add_test(NAME tests
+         COMMAND ../zlisp-cli-bootstrap/zlisp-run ../../zlisp-impl/test/tests.lisp)

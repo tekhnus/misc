@@ -10,5 +10,6 @@ To build and run the REPL:
 ```
 cmake -S . -B build
 cmake --build build
+cmake --build build --target test ARGS=-V
 build/zlisp-cli-bootstrap/zlisp-run module/cli/main.lisp
 ```
