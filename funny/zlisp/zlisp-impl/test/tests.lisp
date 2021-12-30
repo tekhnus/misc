@@ -16,6 +16,40 @@
   7)
 
 !(#test
+  (second '(1 2))
+  2)
+
+!(#test
+  (eq :foo :bar)
+  '())
+
+!(#test
+  (progn
+    (def bar :foo)
+    (eq :foo bar))
+  '(()))
+
+!(#test
+  (append 5 '(1 2 3 4))
+  '(1 2 3 4 5))
+
+!(#test
+  (list 1 2 (+ 1 2))
+  '(1 2 3))
+
+!(#test
+  (progn
+    !(#defun twice (arg) (return (+ arg arg)))
+    (twice 35))
+  70)
+
+!(#test
+  (progn
+    !(#defun adder (n) (return !(#fn (m) (return (+ n m)))))
+    ((adder 3) 4))
+  7)
+
+!(#test
   (progn
     !(#defun fib ()
        (yield 3)
@@ -47,6 +81,18 @@
     !(#def2 t more-far-fib (^more-far-fib))
     (list x y z t))
   '(3 5 8 13))
+
+!(#test
+  (progn
+    !(#def-or-panica printfptr
+       (extern-pointer libc "printf"
+		       '((string pointer) sizet)))
+    (def hostsfile (fopen "/etc/hosts" "r"))
+    (def buffer (malloc 2048))
+    (ignore (fread buffer 1 1024 hostsfile))
+    (ignore (printfptr "%.2048s" buffer))
+    42)
+  42)
 
 
 
