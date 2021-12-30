@@ -1,24 +1,5 @@
 
 
-!(#defun far-fib ()
-   (^yield 3)
-   (^yield 5)
-   (return 8))
-
-!(#defun more-far-fib ()
-   (def x (far-fib))
-   (^yield x)
-   (^yield 13))
-
-!(#def2 x more-far-fib (^more-far-fib))
-(print x)
-!(#def2 x more-far-fib (^more-far-fib))
-(print x)
-!(#def2 x more-far-fib (^more-far-fib))
-(print x)
-!(#def2 x more-far-fib (^more-far-fib))
-(print x)
-
 (def args (list :p :q :r))
 
 !(#defun twice (arg) (return (+ arg arg)))
