@@ -8,7 +8,8 @@ calling functions from them is also possible.
 
 To build and run the REPL:
 ```
-cmake -S . -B build
+cmake -B build -S .
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 cmake --build build
 cmake --build build --target test ARGS=-V
 build/zlisp-cli-bootstrap/zlisp-run module/cli/main.lisp
