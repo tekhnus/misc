@@ -97,6 +97,12 @@ static fdatum_t file_source(char *fname) {
     *resend = datum_make_list(val.ok_value, datum_make_nil());
     resend = &((*resend)->list_tail);
   }
+  if (read_result_is_panic(rr)) {
+    return fdatum_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr)) {
+    return fdatum_make_panic("unmatched right paren");
+  }
   return fdatum_make_ok(res);
 }
 
