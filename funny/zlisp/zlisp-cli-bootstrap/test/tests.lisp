@@ -94,6 +94,12 @@
     42)
   42)
 
+!(#test
+  (progn
+    (require "../zlisp-cli-bootstrap/test/imported")
+    some-variable)
+  42)
+
 
 
 !(#defun print-all (xs)
