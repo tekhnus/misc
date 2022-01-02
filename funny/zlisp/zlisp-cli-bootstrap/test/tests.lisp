@@ -1,4 +1,5 @@
 (require "zlisp")
+!(require "testing")
 
 
 !(#def-or-panica prelude_ (prelude))
