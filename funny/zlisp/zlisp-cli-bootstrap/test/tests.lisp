@@ -94,11 +94,6 @@
     42)
   42)
 
-!(#test
-  (progn
-    (require "../zlisp-cli-bootstrap/test/imported")
-    some-variable)
-  42)
 
 
 

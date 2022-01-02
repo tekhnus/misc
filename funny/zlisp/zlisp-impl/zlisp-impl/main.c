@@ -24,41 +24,28 @@ void state_module_end(prog_t **begin) {
   *begin = prog_make();
 }
 
-char *state_extend(prog_t **begin, datum_t *stmt);
+char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module));
 
 static fdatum_t datum_expand(datum_t *e, state_t *ctxt);
 
-char *state_require_stream(prog_t **begin, FILE *stre, bool with_prelude);
-
-char *prog_init_from_stream(prog_t *s, FILE *stream, bool with_prelude) {
-  if (with_prelude) {
-    char *err = state_require_stream(&s, fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r"), false);
-    if (err != NULL) {
-      return err;
-    }
-  }
+char *prog_init_from_source(prog_t *s, datum_t *source, fdatum_t (*module_source)(char *module)) {
   fstate_t prelude = fstate_make_prelude();
   if (fstate_is_panic(prelude)) {
     return prelude.panic_message;
   }
-  read_result_t rr;
-  for (; read_result_is_ok(rr = datum_read(stream));) {
-    fdatum_t exp = datum_expand(rr.ok_value, prelude.ok_value);
+  for (datum_t *rest = source; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum_t *stmt = rest->list_head;
+    fdatum_t exp = datum_expand(stmt, prelude.ok_value);
     if (fdatum_is_panic(exp)) {
       return exp.panic_message;
     }
-    char *err = state_extend(&s, exp.ok_value);
+    char *err = state_extend(&s, exp.ok_value, module_source);
     if (err != NULL) {
       return err;
     }
   }
   state_module_end(&s);
   return NULL;
-}
-
-char *prog_init_from_file(prog_t *s, char *filename, bool with_prelude) {
-  FILE *stream = fopen(filename, "r");
-  return prog_init_from_stream(s, stream, with_prelude);
 }
 
 routine_t routine_make(prog_t *s, state_t *ctxt) {
@@ -188,19 +175,23 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
 
 fstate_t special_fn(datum_t *args, state_t *ctxt);
 
-char *state_extend_backquoted(prog_t **begin, datum_t *stmt);
+char *state_extend_backquoted(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module));
 
 static state_t *state_make_builtins();
 
-char *state_require_stream(prog_t **begin, FILE *stre, bool with_prelude) {
+char *state_require_source(prog_t **begin, datum_t *src, fdatum_t (*module_source)(char *module)) {
   prog_t *pr = prog_make();
   prog_t *pr2 = pr;
 
-  char *err = prog_init_from_stream(pr2, stre, with_prelude);
+  char *err = prog_init_from_source(pr2, src, module_source);
   if (err != NULL) {
     return err;
   }
-  state_t *s = state_make_builtins();
+  fstate_t prd = fstate_make_prelude();
+  if (fstate_is_panic(prd)) {
+    return prd.panic_message;
+  }
+  state_t *s = prd.ok_value;
   datum_t *r = datum_make_routine(pr, s);
   state_put_const(begin, r);
   state_args(begin);
@@ -208,7 +199,7 @@ char *state_require_stream(prog_t **begin, FILE *stre, bool with_prelude) {
   return NULL;
 }
 
-char *state_extend(prog_t **begin, datum_t *stmt) {
+char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -227,7 +218,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
       return "if should have three args";
     }
     char *err;
-    err = state_extend(begin, stmt->list_tail->list_head);
+    err = state_extend(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -236,12 +227,12 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     prog_t *true_end = prog_make(), *false_end = prog_make();
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
-    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head);
+    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
     err = state_extend(&false_end,
-                       stmt->list_tail->list_tail->list_tail->list_head);
+                       stmt->list_tail->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -255,7 +246,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
          rest = rest->list_tail) {
       state_pop(begin, NULL);
       datum_t *step = rest->list_head;
-      char *err = state_extend(begin, step);
+      char *err = state_extend(begin, step, module_source);
       if (err != NULL) {
         return err;
       }
@@ -273,7 +264,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (list_length(stmt->list_tail) != 2) {
       return "def should have two args";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_tail->list_head);
+    char *err = state_extend(begin, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -306,25 +297,14 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
       return "require should have a single string arg";
     }
     char *pkg = stmt->list_tail->list_head->bytestring_value;
-    char fname[1024] = {};
-    char *zlisp_home = getenv("ZLISP");
-    if (zlisp_home == NULL) {
-      return "ZLISP variable not defined";
+    if (module_source == NULL) {
+      return "require was used in a context where it's not supported";
     }
-    strcat(fname, zlisp_home);
-    strcat(fname, "/");
-    strcat(fname, pkg);
-    strcat(fname, "/main.lisp");
-
-    FILE *stre = fopen(fname, "r");
-    if (stre == NULL) {
-      char *err = malloc(1024);
-      err[0] = 0;
-      strcat(err, "Module not found: ");
-      strcat(err, fname);
-      return err;
+    fdatum_t pkg_src = module_source(pkg);
+    if (fdatum_is_panic(pkg_src)) {
+      return pkg_src.panic_message;
     }
-    return state_require_stream(begin, stre, true);
+    return state_require_source(begin, pkg_src.ok_value, module_source);
   }
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
@@ -332,7 +312,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (list_length(stmt->list_tail) != 1) {
       return "return should have a single arg";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_head);
+    char *err = state_extend(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -345,7 +325,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_head);
+    char *err = state_extend(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -356,7 +336,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (list_length(stmt->list_tail) != 1) {
       return "backquote should have a single arg";
     }
-    return state_extend_backquoted(begin, stmt->list_tail->list_head);
+    return state_extend_backquoted(begin, stmt->list_tail->list_head, module_source);
   }
 
   datum_t *fn = stmt->list_head;
@@ -374,7 +354,7 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
       break;
     }
   }
-  state_extend(begin, fn);
+  state_extend(begin, fn, module_source);
   state_args(begin);
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
@@ -382,14 +362,14 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     if (hash) {
       state_put_const(begin, arg);
     } else {
-      state_extend(begin, arg);
+      state_extend(begin, arg, module_source);
     }
   }
   state_call(begin, hat);
   return NULL;
 }
 
-char *state_extend_backquoted(prog_t **begin, datum_t *stmt) {
+char *state_extend_backquoted(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
     state_put_const(begin, stmt);
     return NULL;
@@ -402,9 +382,9 @@ char *state_extend_backquoted(prog_t **begin, datum_t *stmt) {
     char *err;
     if (datum_is_list(elem) && list_length(elem) == 2 &&
         datum_is_the_symbol(elem->list_head, "tilde")) {
-      err = state_extend(begin, elem->list_tail->list_head);
+      err = state_extend(begin, elem->list_tail->list_head, module_source);
     } else {
-      err = state_extend_backquoted(begin, elem);
+      err = state_extend_backquoted(begin, elem, module_source);
     }
     if (err != NULL) {
       return err;
@@ -414,11 +394,11 @@ char *state_extend_backquoted(prog_t **begin, datum_t *stmt) {
   return NULL;
 }
 
-char *state_init(prog_t *s, datum_t *stmt) { return state_extend(&s, stmt); }
+char *state_init(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module)) { return state_extend(&s, stmt, module_source); }
 
 char *state_init_fn_body(prog_t *s, datum_t *stmt) {
   state_pop(&s, datum_make_symbol("args"));
-  return state_extend(&s, stmt);
+  return state_extend(&s, stmt, NULL);
 }
 
 fstate_t special_fn(datum_t *args, state_t *ctxt) {
@@ -1229,7 +1209,7 @@ fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt) {
 
 fstate_t datum_eval(datum_t *e, state_t *ctxt) {
   prog_t *s = prog_make();
-  char *err = state_init(s, e);
+  char *err = state_init(s, e, NULL);
   if (err != NULL) {
     return fstate_make_panic(err);
   }
@@ -1328,7 +1308,7 @@ static fstate_t stream_eval(FILE *stream, state_t *ctxt) {
     }
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     prog_t *s = prog_make();
-    state_init(s, exp.ok_value);
+    state_init(s, exp.ok_value, NULL);
     fstate_t val = state_eval(routine_make(s, ctxt));
     if (fstate_is_panic(val)) {
       return val;

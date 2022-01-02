@@ -251,7 +251,7 @@ routine_t routine_make(prog_t *s, state_t *ctxt);
 
 prog_t *prog_make();
 
-char *prog_init_from_file(prog_t *s, char *filename, bool with_prelude);
+char *prog_init_from_source(prog_t *s, datum_t *source, fdatum_t (*module_source)(char *module));
 
 extern unsigned char zlisp_impl_prelude_lisp[];
 
