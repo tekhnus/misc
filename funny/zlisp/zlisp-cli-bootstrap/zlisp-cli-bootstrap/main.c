@@ -81,6 +81,10 @@ static fdatum_t file_source(char *fname) {
     if (fdatum_is_panic(exp)) {
       return exp;
     }
+    if (datum_is_void(exp.ok_value)) {
+      // to support things like !(def x 42)
+      continue;
+    }
     *resend = datum_make_list(exp.ok_value, datum_make_nil());
     resend = &((*resend)->list_tail);
   }
