@@ -84,20 +84,9 @@
     (list x y z t))
   '(3 5 8 13))
 
-!(#test
-  (progn
-    !(#def-or-panica printfptr
-       (extern-pointer libc "printf"
-		       '((string pointer) sizet)))
-    (def hostsfile (fopen "/etc/hosts" "r"))
-    (def buffer (malloc 2048))
-    (ignore (fread buffer 1 1024 hostsfile))
-    (ignore (printfptr "%.2048s" buffer))
-    42)
-  42)
 
 
-
+(require "libc")
 
 !(#defun print-all (xs)
    (return
