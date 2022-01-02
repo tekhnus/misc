@@ -243,7 +243,7 @@ fdatum_t state_stack_peek(state_t *ns);
 
 state_t *state_stack_pop(state_t *ns);
 
-fstate_t datum_eval(datum_t *e, state_t *ctxt);
+fstate_t datum_eval(datum_t *e, state_t *ctxt, fdatum_t (*module_source)(char *module));
 
 fstate_t fstate_make_prelude();
 

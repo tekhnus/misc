@@ -1201,10 +1201,10 @@ fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-fstate_t datum_eval(datum_t *e, state_t *ctxt) {
+fstate_t datum_eval(datum_t *e, state_t *ctxt, fdatum_t (*module_source)(char *module)) {
   prog_t *s = prog_make();
   prog_t *pe = s;
-  char *err = state_extend(&pe, e, NULL);
+  char *err = state_extend(&pe, e, module_source);
   if (err != NULL) {
     return fstate_make_panic(err);
   }
@@ -1227,7 +1227,7 @@ static fdatum_t datum_expand(datum_t *e, state_t *ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  fstate_t ev = datum_eval(exp.ok_value, ctxt);
+  fstate_t ev = datum_eval(exp.ok_value, ctxt, NULL);
   if (fstate_is_panic(ev)) {
     return fdatum_make_panic(ev.panic_message);
   }

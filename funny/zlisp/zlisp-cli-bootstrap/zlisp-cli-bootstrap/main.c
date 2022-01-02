@@ -102,7 +102,7 @@ static fdatum_t datum_expand(datum_t *e, state_t *ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  fstate_t ev = datum_eval(exp.ok_value, ctxt);
+  fstate_t ev = datum_eval(exp.ok_value, ctxt, module_source);
   if (fstate_is_panic(ev)) {
     return fdatum_make_panic(ev.panic_message);
   }

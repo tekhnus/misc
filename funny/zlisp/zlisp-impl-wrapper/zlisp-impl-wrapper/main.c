@@ -28,7 +28,7 @@ fdatum_t read(datum_t *sptr) {
 
 fdatum_t eval(datum_t *v, datum_t *nsp) {
   state_t *ns = *(state_t **)nsp->pointer_value;
-  fstate_t r = datum_eval(v, ns);
+  fstate_t r = datum_eval(v, ns, NULL);
   if (fstate_is_panic(r)) {
     return fdatum_make_ok(datum_make_list_2(
         datum_make_symbol(":err"), datum_make_bytestring(r.panic_message)));
