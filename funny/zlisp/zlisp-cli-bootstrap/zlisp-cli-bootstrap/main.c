@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-static fdatum_t datum_expand(datum_t *e, state_t *ctxt);
+static fstate_t datum_expand(datum_t *e, state_t *ctxt);
 
 fdatum_t module_source(char *module) {
   char fname[1024] = {};
@@ -73,46 +73,76 @@ static fdatum_t file_source(char *fname) {
   if (fstate_is_panic(prelude)) {
     return fdatum_make_panic(prelude.panic_message);
   }
+  state_t *expander_state = prelude.ok_value;
   read_result_t rr;
   datum_t *res = datum_make_nil();
   datum_t **resend = &res;
   for (; read_result_is_ok(rr = datum_read(stre));) {
-    fdatum_t exp = datum_expand(rr.ok_value, prelude.ok_value);
-    if (fdatum_is_panic(exp)) {
-      return exp;
+
+    fstate_t exp = datum_expand(rr.ok_value, expander_state);
+    if (fstate_is_panic(exp)) {
+      return fdatum_make_panic(exp.panic_message);
     }
-    if (datum_is_void(exp.ok_value)) {
+    expander_state = exp.ok_value;
+    fdatum_t val = state_stack_peek(expander_state);
+    if (fdatum_is_panic(val)) {
+      return val;
+    }
+
+    expander_state = state_stack_pop(expander_state);
+    if (datum_is_void(val.ok_value)) {
       // to support things like !(def x 42)
       continue;
     }
-    *resend = datum_make_list(exp.ok_value, datum_make_nil());
+    *resend = datum_make_list(val.ok_value, datum_make_nil());
     resend = &((*resend)->list_tail);
   }
   return fdatum_make_ok(res);
 }
 
-static fdatum_t datum_expand(datum_t *e, state_t *ctxt) {
+static fstate_t datum_expand(datum_t *e, state_t *ctxt) {
+
   if (!datum_is_list(e) || datum_is_nil(e)) {
-    return fdatum_make_ok(e);
+    ctxt = state_stack_put(ctxt, e);
+    return fstate_make_ok(ctxt);
   }
   if (!datum_is_symbol(e->list_head) ||
       strcmp(e->list_head->symbol_value, "bang")) {
-    return list_map(datum_expand, e, ctxt);
+    int n = 0;
+    for (datum_t *rest = e; !datum_is_nil(rest); rest=rest->list_tail) {
+      datum_t *x = rest->list_head;
+      fstate_t nxt = datum_expand(x, ctxt);
+      if (fstate_is_panic(nxt)) {
+        return nxt;
+      }
+      ctxt = nxt.ok_value;
+      ++n;
+    }
+    datum_t *res = datum_make_nil();
+    for (int i = 0; i < n; i++) {
+      fdatum_t y = state_stack_peek(ctxt);
+      if (fdatum_is_panic(y)) {
+        return fstate_make_panic("suddenly the stack is too little");
+      }
+      ctxt = state_stack_pop(ctxt);
+      res = datum_make_list(y.ok_value, res);
+    }
+    ctxt = state_stack_put(ctxt, res);
+    return fstate_make_ok(ctxt);
   }
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
-    return fdatum_make_panic("! should be used with a single arg");
+    return fstate_make_panic("! should be used with a single arg");
   }
-  fdatum_t exp = datum_expand(e->list_tail->list_head, ctxt);
-  if (fdatum_is_panic(exp)) {
+  fstate_t exp = datum_expand(e->list_tail->list_head, ctxt);
+  if (fstate_is_panic(exp)) {
     return exp;
   }
-  fstate_t ev = datum_eval(exp.ok_value, ctxt, module_source);
-  if (fstate_is_panic(ev)) {
-    return fdatum_make_panic(ev.panic_message);
+  ctxt = exp.ok_value;
+  fdatum_t preext = state_stack_peek(ctxt);
+  if (fdatum_is_panic(preext)) {
+    return fstate_make_panic("suddenly the stack is empty");
   }
-  fdatum_t res = state_stack_peek(ev.ok_value);
-  if (fdatum_is_panic(res)) {
-    return res;
-  }
-  return fdatum_make_ok(res.ok_value);
+  ctxt = state_stack_pop(ctxt);
+  fstate_t ev = datum_eval(preext.ok_value, ctxt, module_source);
+  return ev;
 }
