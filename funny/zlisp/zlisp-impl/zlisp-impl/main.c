@@ -390,8 +390,6 @@ char *state_extend_backquoted(prog_t **begin, datum_t *stmt, fdatum_t (*module_s
   return NULL;
 }
 
-char *state_init(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module)) { return state_extend(&s, stmt, module_source); }
-
 char *state_init_fn_body(prog_t *s, datum_t *stmt) {
   state_pop(&s, datum_make_symbol("args"));
   return state_extend(&s, stmt, NULL);
@@ -1205,7 +1203,8 @@ fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt) {
 
 fstate_t datum_eval(datum_t *e, state_t *ctxt) {
   prog_t *s = prog_make();
-  char *err = state_init(s, e, NULL);
+  prog_t *pe = s;
+  char *err = state_extend(&pe, e, NULL);
   if (err != NULL) {
     return fstate_make_panic(err);
   }
@@ -1304,7 +1303,8 @@ static fstate_t stream_eval(FILE *stream, state_t *ctxt) {
     }
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     prog_t *s = prog_make();
-    state_init(s, exp.ok_value, NULL);
+    prog_t *s2 = s;
+    state_extend(&s2, exp.ok_value, NULL);
     fstate_t val = state_eval(routine_make(s, ctxt));
     if (fstate_is_panic(val)) {
       return val;
