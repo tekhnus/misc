@@ -35,11 +35,7 @@ char *prog_init_from_source(prog_t *s, datum_t *source, fdatum_t (*module_source
   }
   for (datum_t *rest = source; !datum_is_nil(rest); rest=rest->list_tail) {
     datum_t *stmt = rest->list_head;
-    fdatum_t exp = datum_expand(stmt, prelude.ok_value);
-    if (fdatum_is_panic(exp)) {
-      return exp.panic_message;
-    }
-    char *err = state_extend(&s, exp.ok_value, module_source);
+    char *err = state_extend(&s, stmt, module_source);
     if (err != NULL) {
       return err;
     }
