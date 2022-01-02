@@ -317,6 +317,13 @@ char *state_extend(prog_t **begin, datum_t *stmt) {
     strcat(fname, "/main.lisp");
 
     FILE *stre = fopen(fname, "r");
+    if (stre == NULL) {
+      char *err = malloc(1024);
+      err[0] = 0;
+      strcat(err, "Module not found: ");
+      strcat(err, fname);
+      return err;
+    }
     return state_require_stream(begin, stre, true);
   }
   if (datum_is_the_symbol(op, "return") ||
