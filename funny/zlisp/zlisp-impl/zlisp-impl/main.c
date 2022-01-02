@@ -199,14 +199,20 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
-  if (!datum_is_list(stmt)) {
+  if (datum_is_symbol(stmt)) {
     state_put_var(begin, stmt);
     return NULL;
+  }
+  if (datum_is_bytestring(stmt) || datum_is_integer(stmt)){
+    state_put_const(begin, stmt);
+    return NULL;
+  }
+  if (!datum_is_list(stmt)) {
+    return "this datum cannot be a statement";
   }
   if (datum_is_nil(stmt)) {
     return "an empty list is not a statement";
   }
-
   datum_t *op = stmt->list_head;
 
   if (datum_is_the_symbol(op, "if")) {
@@ -350,7 +356,10 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
       break;
     }
   }
-  state_extend(begin, fn, module_source);
+  char *err = state_extend(begin, fn, module_source);
+  if (err != NULL) {
+    return err;
+  }
   state_args(begin);
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
@@ -358,7 +367,10 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
     if (hash) {
       state_put_const(begin, arg);
     } else {
-      state_extend(begin, arg, module_source);
+      char *err = state_extend(begin, arg, module_source);
+      if (err != NULL) {
+        return err;
+      }
     }
   }
   state_call(begin, hat);
@@ -967,7 +979,7 @@ state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
   prog_t *s = prog_make();
   char *err = state_init_fn_body(s, value);
   if (err != NULL) {
-    fprintf(stderr, "bad function def\n");
+    fprintf(stderr, "bad function def %s %s\n", err, datum_repr(value));
     exit(EXIT_FAILURE);
   }
   datum_t *fn = datum_make_routine(s, NULL);
@@ -1304,7 +1316,10 @@ static fstate_t stream_eval(FILE *stream, state_t *ctxt) {
     // printf("expanded to %s\n", datum_repr(exp.ok_value));
     prog_t *s = prog_make();
     prog_t *s2 = s;
-    state_extend(&s2, exp.ok_value, NULL);
+    char *err = state_extend(&s2, exp.ok_value, NULL);
+    if (err != NULL) {
+      return fstate_make_panic(err);
+    }
     fstate_t val = state_eval(routine_make(s, ctxt));
     if (fstate_is_panic(val)) {
       return val;
