@@ -29,10 +29,6 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
 
 char *prog_init_module(prog_t *s, datum_t *source,
                             fdatum_t (*module_source)(char *module)) {
-  fstate_t prelude = fstate_make_prelude();
-  if (fstate_is_panic(prelude)) {
-    return prelude.panic_message;
-  }
   for (datum_t *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum_t *stmt = rest->list_head;
     char *err = prog_append_statement(&s, stmt, module_source);
