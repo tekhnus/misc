@@ -1,3 +1,4 @@
+!(require "stdmacro")
 (require "libc")
 
 !(#def-or-panica printfptr

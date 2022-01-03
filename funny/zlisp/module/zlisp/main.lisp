@@ -1,3 +1,5 @@
+!(require "stdmacro")
+
 !(#def-or-panica zlisp-zlisp
   (shared-library "libzlisp-impl-wrapper.so")
   (shared-library "libzlisp-impl-wrapper.dylib"))

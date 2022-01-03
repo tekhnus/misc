@@ -1,3 +1,4 @@
+!(require "stdmacro")
 
 !(#def-or-panica libc
   (shared-library "libc.so.6")
