@@ -21,3 +21,5 @@
       `(progn
 	 ~(def-or-panic-tmp-fn (tail args))
 	 (def ~(head args) (second tmp))))))
+
+!(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))

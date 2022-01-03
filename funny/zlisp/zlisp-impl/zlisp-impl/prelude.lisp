@@ -122,8 +122,6 @@
 
 (def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
 
-!(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))
-
 !(#defun third args (return (head (tail (tail (head args))))))
 
 !(#defun append (x xs)

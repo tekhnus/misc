@@ -1,3 +1,5 @@
+!(require "stdmacro")
+
 !(#defun test (expr expect)
    (return `(progn
               (def resu (eval '~expr prelude_))
