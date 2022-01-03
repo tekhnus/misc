@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  char *err = prog_init_from_source(p, src.ok_value, module_source);
+  char *err = prog_init_module(p, src.ok_value, module_source);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   state_t *s = prelude.ok_value;
-  fstate_t ns = state_eval(routine_make(p, s));
+  fstate_t ns = routine_run(routine_make(p, s));
   if (fstate_is_panic(ns)) {
     fprintf(stderr, "runtime error: %s\n", ns.panic_message);
     return EXIT_FAILURE;

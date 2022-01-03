@@ -19,15 +19,15 @@ prog_t *prog_make() {
   return res;
 }
 
-void state_module_end(prog_t **begin) {
+void prog_append_module_end(prog_t **begin) {
   (*begin)->type = PROG_MODULE_END;
   *begin = prog_make();
 }
 
-char *state_extend(prog_t **begin, datum_t *stmt,
+char *prog_append_statement(prog_t **begin, datum_t *stmt,
                    fdatum_t (*module_source)(char *module));
 
-char *prog_init_from_source(prog_t *s, datum_t *source,
+char *prog_init_module(prog_t *s, datum_t *source,
                             fdatum_t (*module_source)(char *module)) {
   fstate_t prelude = fstate_make_prelude();
   if (fstate_is_panic(prelude)) {
@@ -35,12 +35,12 @@ char *prog_init_from_source(prog_t *s, datum_t *source,
   }
   for (datum_t *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum_t *stmt = rest->list_head;
-    char *err = state_extend(&s, stmt, module_source);
+    char *err = prog_append_statement(&s, stmt, module_source);
     if (err != NULL) {
       return err;
     }
   }
-  state_module_end(&s);
+  prog_append_module_end(&s);
   return NULL;
 }
 
@@ -63,7 +63,7 @@ routine_t state_get_parent(state_t *ns, bool hat) {
   return ns->parent;
 }
 
-state_t *namespace_change_parent(state_t *ns, routine_t new_parent, bool hat) {
+state_t *state_change_parent(state_t *ns, routine_t new_parent, bool hat) {
   if (hat) {
     return state_make(ns->vars, ns->stack, ns->parent, new_parent);
   }
@@ -90,7 +90,7 @@ static bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
          datum_is_the_symbol(d->list_tail->list_head, val2);
 }
 
-void state_join(prog_t *a, prog_t *b, prog_t *e) {
+void prog_join(prog_t *a, prog_t *b, prog_t *e) {
   if (a->type != PROG_END || b->type != PROG_END) {
     fprintf(stderr, "wrong usage\n");
     exit(1);
@@ -101,41 +101,41 @@ void state_join(prog_t *a, prog_t *b, prog_t *e) {
   b->nop_next = e;
 }
 
-void state_put_const(prog_t **begin, datum_t *val) {
+void prog_append_put_const(prog_t **begin, datum_t *val) {
   (*begin)->type = PROG_PUT_CONST;
   (*begin)->put_const_value = val;
   (*begin)->put_const_next = prog_make();
   *begin = (*begin)->put_const_next;
 }
 
-void state_put_var(prog_t **begin, datum_t *val) {
+void prog_append_put_var(prog_t **begin, datum_t *val) {
   (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
   (*begin)->put_var_next = prog_make();
   *begin = (*begin)->put_var_next;
 }
 
-void state_args(prog_t **begin) {
+void prog_append_args(prog_t **begin) {
   (*begin)->type = PROG_ARGS;
   (*begin)->args_next = prog_make();
   *begin = (*begin)->args_next;
 }
 
-void state_call(prog_t **begin, bool hat) {
+void prog_append_call(prog_t **begin, bool hat) {
   (*begin)->type = PROG_CALL;
   (*begin)->call_hat = hat;
   (*begin)->call_next = prog_make();
   *begin = (*begin)->call_next;
 }
 
-void state_pop(prog_t **begin, datum_t *var) {
+void prog_append_pop(prog_t **begin, datum_t *var) {
   (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
   (*begin)->pop_next = prog_make();
   *begin = (*begin)->pop_next;
 }
 
-void state_call_special(prog_t **begin,
+void prog_append_call_special(prog_t **begin,
                         fstate_t (*call_special_func)(datum_t *, state_t *)) {
   (*begin)->type = PROG_CALL_SPECIAL;
   (*begin)->call_special_func = call_special_func;
@@ -143,13 +143,13 @@ void state_call_special(prog_t **begin,
   *begin = (*begin)->call_special_next;
 }
 
-void state_return(prog_t **begin, bool hat) {
+void prog_append_return(prog_t **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
   *begin = prog_make();
 }
 
-void state_yield(prog_t **begin, bool hat) {
+void prog_append_yield(prog_t **begin, bool hat) {
   (*begin)->type = PROG_YIELD;
   (*begin)->yield_hat = hat;
   (*begin)->yield_next = prog_make();
@@ -171,17 +171,17 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
 
 fstate_t special_fn(datum_t *args, state_t *ctxt);
 
-char *state_extend_backquoted(prog_t **begin, datum_t *stmt,
+char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
                               fdatum_t (*module_source)(char *module));
 
 static state_t *state_make_builtins();
 
-char *state_require_source(prog_t **begin, datum_t *src,
+char *prog_append_require(prog_t **begin, datum_t *src,
                            fdatum_t (*module_source)(char *module)) {
   prog_t *pr = prog_make();
   prog_t *pr2 = pr;
 
-  char *err = prog_init_from_source(pr2, src, module_source);
+  char *err = prog_init_module(pr2, src, module_source);
   if (err != NULL) {
     return err;
   }
@@ -191,23 +191,23 @@ char *state_require_source(prog_t **begin, datum_t *src,
   }
   state_t *s = prd.ok_value;
   datum_t *r = datum_make_routine(pr, s);
-  state_put_const(begin, r);
-  state_args(begin);
-  state_call(begin, false); // TODO(harius): bare call
+  prog_append_put_const(begin, r);
+  prog_append_args(begin);
+  prog_append_call(begin, false); // TODO(harius): bare call
   return NULL;
 }
 
-char *state_extend(prog_t **begin, datum_t *stmt,
+char *prog_append_statement(prog_t **begin, datum_t *stmt,
                    fdatum_t (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
   if (datum_is_symbol(stmt)) {
-    state_put_var(begin, stmt);
+    prog_append_put_var(begin, stmt);
     return NULL;
   }
   if (datum_is_bytestring(stmt) || datum_is_integer(stmt)) {
-    state_put_const(begin, stmt);
+    prog_append_put_const(begin, stmt);
     return NULL;
   }
   if (!datum_is_list(stmt)) {
@@ -223,7 +223,7 @@ char *state_extend(prog_t **begin, datum_t *stmt,
       return "if should have three args";
     }
     char *err;
-    err = state_extend(begin, stmt->list_tail->list_head, module_source);
+    err = prog_append_statement(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -232,28 +232,28 @@ char *state_extend(prog_t **begin, datum_t *stmt,
     prog_t *true_end = prog_make(), *false_end = prog_make();
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
-    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head,
+    err = prog_append_statement(&true_end, stmt->list_tail->list_tail->list_head,
                        module_source);
     if (err != NULL) {
       return err;
     }
-    err = state_extend(&false_end,
+    err = prog_append_statement(&false_end,
                        stmt->list_tail->list_tail->list_tail->list_head,
                        module_source);
     if (err != NULL) {
       return err;
     }
     *begin = prog_make();
-    state_join(true_end, false_end, *begin);
+    prog_join(true_end, false_end, *begin);
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    state_put_const(begin, datum_make_void());
+    prog_append_put_const(begin, datum_make_void());
     for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
          rest = rest->list_tail) {
-      state_pop(begin, NULL);
+      prog_append_pop(begin, NULL);
       datum_t *step = rest->list_head;
-      char *err = state_extend(begin, step, module_source);
+      char *err = prog_append_statement(begin, step, module_source);
       if (err != NULL) {
         return err;
       }
@@ -264,39 +264,39 @@ char *state_extend(prog_t **begin, datum_t *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "quote should have a single arg";
     }
-    state_put_const(begin, stmt->list_tail->list_head);
+    prog_append_put_const(begin, stmt->list_tail->list_head);
     return NULL;
   }
   if (datum_is_the_symbol(op, "def")) {
     if (list_length(stmt->list_tail) != 2) {
       return "def should have two args";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_tail->list_head,
+    char *err = prog_append_statement(begin, stmt->list_tail->list_tail->list_head,
                              module_source);
     if (err != NULL) {
       return err;
     }
-    state_pop(begin, stmt->list_tail->list_head);
-    state_put_const(begin, datum_make_void());
+    prog_append_pop(begin, stmt->list_tail->list_head);
+    prog_append_put_const(begin, datum_make_void());
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defn")) {
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
-    state_args(begin);
-    state_put_const(begin, stmt->list_tail->list_head);
-    state_put_const(begin, stmt->list_tail->list_tail->list_head);
-    state_call_special(begin, special_defn);
+    prog_append_args(begin);
+    prog_append_put_const(begin, stmt->list_tail->list_head);
+    prog_append_put_const(begin, stmt->list_tail->list_tail->list_head);
+    prog_append_call_special(begin, special_defn);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn")) {
     if (list_length(stmt->list_tail) != 1) {
       return "fn should have one arg";
     }
-    state_args(begin);
-    state_put_const(begin, stmt->list_tail->list_head);
-    state_call_special(begin, special_fn);
+    prog_append_args(begin);
+    prog_append_put_const(begin, stmt->list_tail->list_head);
+    prog_append_call_special(begin, special_fn);
     return NULL;
   }
   if (datum_is_the_symbol(op, "require")) {
@@ -312,7 +312,7 @@ char *state_extend(prog_t **begin, datum_t *stmt,
     if (fdatum_is_panic(pkg_src)) {
       return pkg_src.panic_message;
     }
-    return state_require_source(begin, pkg_src.ok_value, module_source);
+    return prog_append_require(begin, pkg_src.ok_value, module_source);
   }
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
@@ -320,11 +320,11 @@ char *state_extend(prog_t **begin, datum_t *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "return should have a single arg";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_head, module_source);
+    char *err = prog_append_statement(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
-    state_return(begin, hat);
+    prog_append_return(begin, hat);
     return NULL;
   }
   if (datum_is_the_symbol(op, "yield") ||
@@ -333,18 +333,18 @@ char *state_extend(prog_t **begin, datum_t *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_head, module_source);
+    char *err = prog_append_statement(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
-    state_yield(begin, hat);
+    prog_append_yield(begin, hat);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt->list_tail) != 1) {
       return "backquote should have a single arg";
     }
-    return state_extend_backquoted(begin, stmt->list_tail->list_head,
+    return prog_append_backquoted_statement(begin, stmt->list_tail->list_head,
                                    module_source);
   }
 
@@ -363,56 +363,56 @@ char *state_extend(prog_t **begin, datum_t *stmt,
       break;
     }
   }
-  char *err = state_extend(begin, fn, module_source);
+  char *err = prog_append_statement(begin, fn, module_source);
   if (err != NULL) {
     return err;
   }
-  state_args(begin);
+  prog_append_args(begin);
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
     datum_t *arg = rest_args->list_head;
     if (hash) {
-      state_put_const(begin, arg);
+      prog_append_put_const(begin, arg);
     } else {
-      char *err = state_extend(begin, arg, module_source);
+      char *err = prog_append_statement(begin, arg, module_source);
       if (err != NULL) {
         return err;
       }
     }
   }
-  state_call(begin, hat);
+  prog_append_call(begin, hat);
   return NULL;
 }
 
-char *state_extend_backquoted(prog_t **begin, datum_t *stmt,
+char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
                               fdatum_t (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
-    state_put_const(begin, stmt);
+    prog_append_put_const(begin, stmt);
     return NULL;
   }
-  state_put_var(begin, datum_make_symbol("list"));
-  state_args(begin);
+  prog_append_put_var(begin, datum_make_symbol("list"));
+  prog_append_args(begin);
   for (datum_t *rest_elems = stmt; !datum_is_nil(rest_elems);
        rest_elems = rest_elems->list_tail) {
     datum_t *elem = rest_elems->list_head;
     char *err;
     if (datum_is_list(elem) && list_length(elem) == 2 &&
         datum_is_the_symbol(elem->list_head, "tilde")) {
-      err = state_extend(begin, elem->list_tail->list_head, module_source);
+      err = prog_append_statement(begin, elem->list_tail->list_head, module_source);
     } else {
-      err = state_extend_backquoted(begin, elem, module_source);
+      err = prog_append_backquoted_statement(begin, elem, module_source);
     }
     if (err != NULL) {
       return err;
     }
   }
-  state_call(begin, false);
+  prog_append_call(begin, false);
   return NULL;
 }
 
-char *state_init_fn_body(prog_t *s, datum_t *stmt) {
-  state_pop(&s, datum_make_symbol("args"));
-  return state_extend(&s, stmt, NULL);
+char *prog_init_routine(prog_t *s, datum_t *stmt) {
+  prog_append_pop(&s, datum_make_symbol("args"));
+  return prog_append_statement(&s, stmt, NULL);
 }
 
 fstate_t special_fn(datum_t *args, state_t *ctxt) {
@@ -420,7 +420,7 @@ fstate_t special_fn(datum_t *args, state_t *ctxt) {
     return fstate_make_panic("fn expects a single argument");
   }
   prog_t *s = prog_make();
-  char *err = state_init_fn_body(s, args->list_head);
+  char *err = prog_init_routine(s, args->list_head);
   if (err != NULL) {
     return fstate_make_panic(err);
   }
@@ -450,7 +450,7 @@ void switch_context(routine_t *c, routine_t b, datum_t *v) {
   c->state = state_stack_put(c->state, v);
 }
 
-fstate_t state_eval(routine_t c) {
+fstate_t routine_run(routine_t c) {
   for (;;) {
     // printf("%d\n", c.prog->type);
     switch (c.prog->type) {
@@ -529,13 +529,13 @@ fstate_t state_eval(routine_t c) {
           return fstate_make_panic(
               "attempt to call routine with existing parent");
         }
-        c.state = namespace_change_parent(c.state, parent_cont, hat);
+        c.state = state_change_parent(c.state, parent_cont, hat);
         if (!hat) {
           if (!routine_is_null(state_get_parent(c.state, true))) {
             return fstate_make_panic(
                 "attempt to call routine with existing hat-parent");
           }
-          c.state = namespace_change_parent(
+          c.state = state_change_parent(
               c.state, parent_cont.state->hat_parent, true);
         }
       } else if (datum_is_pointer(fn.ok_value)) {
@@ -584,7 +584,7 @@ fstate_t state_eval(routine_t c) {
       if (routine_is_null(yield_to)) {
         return fstate_make_panic("bad yield");
       }
-      c.state = namespace_change_parent(c.state, routine_make_null(), hat);
+      c.state = state_change_parent(c.state, routine_make_null(), hat);
       fdatum_t res = state_stack_peek(c.state);
       if (fdatum_is_panic(res)) {
         return fstate_make_panic(res.panic_message);
@@ -984,7 +984,7 @@ state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value) {
 
 state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
   prog_t *s = prog_make();
-  char *err = state_init_fn_body(s, value);
+  char *err = prog_init_routine(s, value);
   if (err != NULL) {
     fprintf(stderr, "bad function def %s %s\n", err, datum_repr(value));
     exit(EXIT_FAILURE);
@@ -1223,12 +1223,12 @@ fstate_t datum_eval(datum_t *e, state_t *ctxt,
                     fdatum_t (*module_source)(char *module)) {
   prog_t *s = prog_make();
   prog_t *pe = s;
-  char *err = state_extend(&pe, e, module_source);
+  char *err = prog_append_statement(&pe, e, module_source);
   if (err != NULL) {
     return fstate_make_panic(err);
   }
   routine_t c = routine_make(s, ctxt);
-  return state_eval(c);
+  return routine_run(c);
 }
 
 fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
