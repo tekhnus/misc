@@ -1,3 +1,6 @@
+(def second
+     (builtin.fn
+      (return (head (tail (head args))))))
 
 (builtin.defn last
 	      
