@@ -173,14 +173,11 @@ char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
 char *prog_append_require(prog_t **begin, datum_t *src,
                            fdatum_t (*module_source)(char *module)) {
   prog_t *pr = prog_make();
-  prog_t *pr2 = pr;
-
-  char *err = prog_init_module(pr2, src, module_source);
+  char *err = prog_init_module(pr, src, module_source);
   if (err != NULL) {
     return err;
   }
-  state_t *s = state_make_builtins();
-  datum_t *r = datum_make_routine(pr, s);
+  datum_t *r = datum_make_routine(pr, state_make_builtins());
   prog_append_put_const(begin, r);
   prog_append_args(begin);
   prog_append_call(begin, false); // TODO(harius): bare call

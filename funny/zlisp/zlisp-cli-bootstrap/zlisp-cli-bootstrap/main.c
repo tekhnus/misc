@@ -17,20 +17,19 @@ int main(int argc, char **argv) {
     strcat(filename_copy, "/");
   }
   strcat(filename_copy, argv[1]);
-  prog_t *p = prog_make();
   fdatum_t src = file_source(filename_copy);
   if (fdatum_is_panic(src)) {
     fprintf(stderr, "file error: %s\n", src.panic_message);
     return EXIT_FAILURE;
   }
-
+  prog_t *p = prog_make();
   char *err = prog_init_module(p, src.ok_value, module_source);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  state_t *s = state_make_builtins();
-  fstate_t ns = routine_run(routine_make(p, s));
+  routine_t r = routine_make(p, state_make_builtins());
+  fstate_t ns = routine_run(r);
   if (fstate_is_panic(ns)) {
     fprintf(stderr, "runtime error: %s\n", ns.panic_message);
     return EXIT_FAILURE;
