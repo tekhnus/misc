@@ -29,12 +29,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  fstate_t prelude = fstate_make_prelude();
-  if (fstate_is_panic(prelude)) {
-    fprintf(stderr, "prelude error: %s\n", prelude.panic_message);
-    return EXIT_FAILURE;
-  }
-  state_t *s = prelude.ok_value;
+  state_t *s = state_make_builtins();
   fstate_t ns = routine_run(routine_make(p, s));
   if (fstate_is_panic(ns)) {
     fprintf(stderr, "runtime error: %s\n", ns.panic_message);
@@ -69,11 +64,7 @@ static fdatum_t file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  fstate_t prelude = fstate_make_prelude();
-  if (fstate_is_panic(prelude)) {
-    return fdatum_make_panic(prelude.panic_message);
-  }
-  state_t *expander_state = prelude.ok_value;
+  state_t *expander_state = state_make_builtins();
   read_result_t rr;
   datum_t *res = datum_make_nil();
   datum_t **resend = &res;

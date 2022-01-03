@@ -245,7 +245,7 @@ state_t *state_stack_pop(state_t *ns);
 
 fstate_t datum_eval(datum_t *e, state_t *ctxt, fdatum_t (*module_source)(char *module));
 
-fstate_t fstate_make_prelude();
+state_t *state_make_builtins();
 
 routine_t routine_make(prog_t *s, state_t *ctxt);
 

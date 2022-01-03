@@ -170,8 +170,6 @@ fstate_t special_fn(datum_t *args, state_t *ctxt);
 char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
                               fdatum_t (*module_source)(char *module));
 
-static state_t *state_make_builtins();
-
 char *prog_append_require(prog_t **begin, datum_t *src,
                            fdatum_t (*module_source)(char *module)) {
   prog_t *pr = prog_make();
@@ -181,11 +179,7 @@ char *prog_append_require(prog_t **begin, datum_t *src,
   if (err != NULL) {
     return err;
   }
-  fstate_t prd = fstate_make_prelude();
-  if (fstate_is_panic(prd)) {
-    return prd.panic_message;
-  }
-  state_t *s = prd.ok_value;
+  state_t *s = state_make_builtins();
   datum_t *r = datum_make_routine(pr, s);
   prog_append_put_const(begin, r);
   prog_append_args(begin);
@@ -1410,7 +1404,7 @@ void namespace_def_extern_fn(state_t **ctxt, char *name, fdatum_t (*fn)(),
   *ctxt = state_set_var(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-static state_t *state_make_builtins() {
+state_t *state_make_builtins() {
   state_t *ns = state_make_fresh();
 
   namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
@@ -1428,9 +1422,4 @@ static state_t *state_make_builtins() {
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
 
   return ns;
-}
-
-fstate_t fstate_make_prelude() {
-  state_t *ns = state_make_builtins();
-  return fstate_make_ok(ns);
 }

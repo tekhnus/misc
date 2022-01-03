@@ -44,14 +44,9 @@ fdatum_t eval(datum_t *v, datum_t *nsp) {
 }
 
 fdatum_t prelude() {
-  fstate_t prelude = fstate_make_prelude();
-  if (fstate_is_panic(prelude)) {
-    return fdatum_make_ok(
-        datum_make_list_2(datum_make_symbol(":err"),
-                          datum_make_bytestring(prelude.panic_message)));
-  }
-  void **prelude_p = malloc(sizeof(void **));
-  *prelude_p = prelude.ok_value;
+  state_t *builtins = state_make_builtins();
+  void **builtins_p = malloc(sizeof(void **));
+  *builtins_p = builtins;
   return fdatum_make_ok(datum_make_list_2(
-      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(prelude_p)));
+      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(builtins_p)));
 }
