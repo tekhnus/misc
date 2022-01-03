@@ -1,3 +1,6 @@
+!(require "defun")
+(require "defun")
+
 (def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
 
 !(#defun def2 (left right val)

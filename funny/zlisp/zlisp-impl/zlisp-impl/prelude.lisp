@@ -118,7 +118,5 @@
 
 (def progn- (builtin.fn (return (cons 'progn (head args)))))
 
-(def defun (builtin.fn (return `(builtin.defn ~(head args) ~(switch-fun `(~(tail args)))))))
-
 (builtin.defn third (return (head (tail (tail (head args))))))
 

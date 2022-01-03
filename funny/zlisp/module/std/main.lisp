@@ -1,3 +1,5 @@
+!(require "defun")
+
 !(#defun append (x xs)
   (if xs
       (return (cons
