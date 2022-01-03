@@ -19,18 +19,18 @@
   (+ 4 3)
   7)
 
-!(#test
-  (second '(1 2))
+!(#fntest
+  (return (second '(1 2)))
   2)
 
-!(#test
-  (eq :foo :bar)
+!(#fntest
+  (return (eq :foo :bar))
   '())
 
-!(#test
+!(#fntest
   (progn
     (def bar :foo)
-    (eq :foo bar))
+    (return (eq :foo bar)))
   '(()))
 
 !(#fntest
@@ -38,23 +38,23 @@
     (return (append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#test
-  (list 1 2 (+ 1 2))
+!(#fntest
+  (return (list 1 2 (+ 1 2)))
   '(1 2 3))
 
-!(#test
+!(#fntest
   (progn
     !(#defun twice (arg) (return (+ arg arg)))
-    (twice 35))
+    (return (twice 35)))
   70)
 
-!(#test
+!(#fntest
   (progn
     !(#defun adder (n) (return !(#fn (m) (return (+ n m)))))
-    ((adder 3) 4))
+    (return ((adder 3) 4)))
   7)
 
-!(#test
+!(#fntest
   (progn
     !(#defun fib ()
        (yield 3)
@@ -65,10 +65,10 @@
     !(#def2 y fib (fib))
     !(#def2 z fib (fib))
     !(#def2 t fib (fib))
-    (list x y z t))
+    (return (list x y z t)))
   '(3 5 8 13))
 
-!(#test
+!(#fntest
   (progn
     !(#defun far-fib ()
        (^yield 3)
@@ -84,7 +84,7 @@
     !(#def2 y more-far-fib (^more-far-fib))
     !(#def2 z more-far-fib (^more-far-fib))
     !(#def2 t more-far-fib (^more-far-fib))
-    (list x y z t))
+    (return (list x y z t)))
   '(3 5 8 13))
 
 
