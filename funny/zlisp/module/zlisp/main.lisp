@@ -11,5 +11,5 @@
 !(#def-or-panica eval
      (extern-pointer zlisp-zlisp "eval" '((datum datum) val)))
 
-!(#def-or-panica prelude
-  (extern-pointer zlisp-zlisp "prelude" '(() val)))
+!(#def-or-panica builtins
+  (extern-pointer zlisp-zlisp "builtins" '(() val)))

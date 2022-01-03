@@ -43,7 +43,7 @@ fdatum_t eval(datum_t *v, datum_t *nsp) {
                                        datum_make_pointer_to_pointer(new_nsp)));
 }
 
-fdatum_t prelude() {
+fdatum_t builtins() {
   state_t *builtins = state_make_builtins();
   void **builtins_p = malloc(sizeof(void **));
   *builtins_p = builtins;

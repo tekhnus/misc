@@ -23,5 +23,5 @@
 	   !(#ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (return (repl nsp)))))
 
-!(#def-or-panica prelude_ (prelude))
-!(#ignore (repl prelude_))
+!(#def-or-panica builtins_ (builtins))
+!(#ignore (repl builtins_))

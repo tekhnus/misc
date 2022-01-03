@@ -1,9 +1,6 @@
-(require "zlisp")
 (require "std")
 !(require "testing")
 !(require "stdmacro")
-
-!(#def-or-panica prelude_ (prelude))
 
 (def panics '())
 
