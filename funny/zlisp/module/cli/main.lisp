@@ -1,9 +1,9 @@
 !(require "stdmacro")
 (require "std")
+(require "libc")
+(require "zlisp")
 
 (def readme "A basic REPL for zlisp.")
-
-(require "zlisp")
 
 !(#defun repl
   (nsp)
