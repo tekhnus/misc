@@ -6,3 +6,4 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD 11
 				 C_STANDARD_REQUIRED YES
 				 C_EXTENSIONS YES)
+target_compile_options(zlisp-impl PRIVATE -Wall -Wextra)

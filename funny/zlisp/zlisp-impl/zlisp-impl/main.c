@@ -433,7 +433,7 @@ fdatum_t datum_eval_primitive(datum_t *e, state_t *ctxt) {
   return fdatum_make_panic("not a primitive");
 }
 
-fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt);
+fdatum_t pointer_call(datum_t *f, datum_t *args);
 
 void switch_context(routine_t *c, routine_t b, datum_t *v) {
   *c = b;
@@ -532,7 +532,7 @@ fstate_t state_eval(routine_t c) {
         if (c.prog->call_hat) {
           return fstate_make_panic("hat-call makes no sense for native calls");
         }
-        fdatum_t res = pointer_call(fn.ok_value, args, c.state);
+        fdatum_t res = pointer_call(fn.ok_value, args);
         if (fdatum_is_panic(res)) {
           return fstate_make_panic(res.panic_message);
         }
@@ -962,7 +962,6 @@ state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent,
 }
 
 state_t *state_make_fresh() {
-  prog_t *s = prog_make();
   routine_t zero = routine_make_null();
   return state_make(datum_make_nil(), datum_make_nil(), zero, zero);
 }
@@ -988,7 +987,6 @@ state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
 
 datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
   datum_t *raw_value = cell->list_tail->list_head;
-  datum_t *keyval;
   if (!strcmp(cell->list_head->symbol_value, ":value")) {
     return raw_value;
   } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
@@ -1196,7 +1194,7 @@ fdatum_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
   return fdatum_make_panic("unknown return type for extern func");
 }
 
-fdatum_t pointer_call(datum_t *f, datum_t *args, state_t *ctxt) {
+fdatum_t pointer_call(datum_t *f, datum_t *args) {
   ffi_cif cif;
   char *err = NULL;
   err = pointer_ffi_init_cif(f, &cif);
