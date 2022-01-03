@@ -24,14 +24,16 @@ void state_module_end(prog_t **begin) {
   *begin = prog_make();
 }
 
-char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module));
+char *state_extend(prog_t **begin, datum_t *stmt,
+                   fdatum_t (*module_source)(char *module));
 
-char *prog_init_from_source(prog_t *s, datum_t *source, fdatum_t (*module_source)(char *module)) {
+char *prog_init_from_source(prog_t *s, datum_t *source,
+                            fdatum_t (*module_source)(char *module)) {
   fstate_t prelude = fstate_make_prelude();
   if (fstate_is_panic(prelude)) {
     return prelude.panic_message;
   }
-  for (datum_t *rest = source; !datum_is_nil(rest); rest=rest->list_tail) {
+  for (datum_t *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum_t *stmt = rest->list_head;
     char *err = state_extend(&s, stmt, module_source);
     if (err != NULL) {
@@ -73,8 +75,8 @@ int list_length(datum_t *seq) {
     return -1;
   }
   int res;
-  for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res)
-    {}
+  for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
+  }
   return res;
 }
 
@@ -169,11 +171,13 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
 
 fstate_t special_fn(datum_t *args, state_t *ctxt);
 
-char *state_extend_backquoted(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module));
+char *state_extend_backquoted(prog_t **begin, datum_t *stmt,
+                              fdatum_t (*module_source)(char *module));
 
 static state_t *state_make_builtins();
 
-char *state_require_source(prog_t **begin, datum_t *src, fdatum_t (*module_source)(char *module)) {
+char *state_require_source(prog_t **begin, datum_t *src,
+                           fdatum_t (*module_source)(char *module)) {
   prog_t *pr = prog_make();
   prog_t *pr2 = pr;
 
@@ -189,11 +193,12 @@ char *state_require_source(prog_t **begin, datum_t *src, fdatum_t (*module_sourc
   datum_t *r = datum_make_routine(pr, s);
   state_put_const(begin, r);
   state_args(begin);
-  state_call(begin, false);  // TODO(harius): bare call
+  state_call(begin, false); // TODO(harius): bare call
   return NULL;
 }
 
-char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module)) {
+char *state_extend(prog_t **begin, datum_t *stmt,
+                   fdatum_t (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -201,7 +206,7 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
     state_put_var(begin, stmt);
     return NULL;
   }
-  if (datum_is_bytestring(stmt) || datum_is_integer(stmt)){
+  if (datum_is_bytestring(stmt) || datum_is_integer(stmt)) {
     state_put_const(begin, stmt);
     return NULL;
   }
@@ -227,12 +232,14 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
     prog_t *true_end = prog_make(), *false_end = prog_make();
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
-    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head, module_source);
+    err = state_extend(&true_end, stmt->list_tail->list_tail->list_head,
+                       module_source);
     if (err != NULL) {
       return err;
     }
     err = state_extend(&false_end,
-                       stmt->list_tail->list_tail->list_tail->list_head, module_source);
+                       stmt->list_tail->list_tail->list_tail->list_head,
+                       module_source);
     if (err != NULL) {
       return err;
     }
@@ -264,7 +271,8 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
     if (list_length(stmt->list_tail) != 2) {
       return "def should have two args";
     }
-    char *err = state_extend(begin, stmt->list_tail->list_tail->list_head, module_source);
+    char *err = state_extend(begin, stmt->list_tail->list_tail->list_head,
+                             module_source);
     if (err != NULL) {
       return err;
     }
@@ -336,7 +344,8 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
     if (list_length(stmt->list_tail) != 1) {
       return "backquote should have a single arg";
     }
-    return state_extend_backquoted(begin, stmt->list_tail->list_head, module_source);
+    return state_extend_backquoted(begin, stmt->list_tail->list_head,
+                                   module_source);
   }
 
   datum_t *fn = stmt->list_head;
@@ -375,7 +384,8 @@ char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char
   return NULL;
 }
 
-char *state_extend_backquoted(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module)) {
+char *state_extend_backquoted(prog_t **begin, datum_t *stmt,
+                              fdatum_t (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
     state_put_const(begin, stmt);
     return NULL;
@@ -795,8 +805,8 @@ bool consume_control_sequence(char c, datum_t **form) {
 
 read_result_t datum_read(FILE *strm) {
   char c;
-  for (; !feof(strm) && is_whitespace(c = getc(strm));)
-    {}
+  for (; !feof(strm) && is_whitespace(c = getc(strm));) {
+  }
   if (feof(strm)) {
     return read_result_make_eof();
   }
@@ -849,8 +859,8 @@ read_result_t datum_read(FILE *strm) {
     int i;
     char x;
     for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));
-         nm[i++] = x)
-      {}
+         nm[i++] = x) {
+    }
     if (!feof(strm)) {
       ungetc(x, strm);
     }
@@ -1209,7 +1219,8 @@ fdatum_t pointer_call(datum_t *f, datum_t *args) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-fstate_t datum_eval(datum_t *e, state_t *ctxt, fdatum_t (*module_source)(char *module)) {
+fstate_t datum_eval(datum_t *e, state_t *ctxt,
+                    fdatum_t (*module_source)(char *module)) {
   prog_t *s = prog_make();
   prog_t *pe = s;
   char *err = state_extend(&pe, e, module_source);
@@ -1341,7 +1352,8 @@ bool datum_eq(datum_t *x, datum_t *y) {
     if (datum_is_nil(x) || datum_is_nil(y)) {
       return false;
     }
-    return datum_eq(x->list_head, y->list_head) && datum_eq(x->list_tail, y->list_tail);
+    return datum_eq(x->list_head, y->list_head) &&
+           datum_eq(x->list_tail, y->list_tail);
   }
   return false;
 }
