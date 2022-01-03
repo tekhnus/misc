@@ -120,7 +120,5 @@
 
 (def defun (builtin.fn (return `(builtin.defn ~(head args) ~(switch-fun `(~(tail args)))))))
 
-(def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
-
-!(#defun third args (return (head (tail (tail (head args))))))
+(builtin.defn third (return (head (tail (tail (head args))))))
 
