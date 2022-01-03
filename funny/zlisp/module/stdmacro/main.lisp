@@ -1,5 +1,6 @@
 !(require "defun")
 (require "defun")
+(require "std")
 
 (def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
 

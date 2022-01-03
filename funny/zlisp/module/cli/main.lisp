@@ -1,4 +1,5 @@
 !(require "stdmacro")
+(require "std")
 
 (def readme "A basic REPL for zlisp.")
 

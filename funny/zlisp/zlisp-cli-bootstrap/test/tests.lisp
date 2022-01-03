@@ -11,12 +11,12 @@
 
 
 
-!(#test
- "hello, world!"
+!(#fntest
+ (return "hello, world!")
  "hello, world!")
 
-!(#test
-  (+ 4 3)
+!(#fntest
+  (return (+ 4 3))
   7)
 
 !(#fntest

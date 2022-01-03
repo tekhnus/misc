@@ -14,6 +14,34 @@
 				 ~rest))))
 		(return '(panic "nothing matched"))))
 
+
+(builtin.defn decons-pat
+	      (progn
+		(def pat (head args))
+		(def val (second args))
+		(if (is-constant pat)
+		    (if (eq pat val)
+			(return '(:ok ()))
+		      (return '(:err)))
+		  (if (eq (type pat) :symbol)
+		      (return (list :ok (list val)))
+		    (if (eq (type pat) :list)
+			(if pat
+			    (if val
+				(progn
+				  (def first-decons (decons-pat (head pat) (head val)))
+				  (def rest-decons (decons-pat (tail pat) (tail val)))
+				  (if (eq :err (head rest-decons))
+				      (return '(:err))
+				    (if (eq :err (head first-decons))
+					(return '(:err))
+				      (return (list :ok (concat (second first-decons) (second rest-decons)))))))
+			      (return '(:err)))
+			  (if val
+			      (return '(:err))
+			    (return '(:ok ()))))
+		      (panic "decons-pat met an unsupported type"))))))
+
 (builtin.defn decons-vars
      (if (is-constant (head args))
 	(return '())

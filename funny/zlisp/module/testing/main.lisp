@@ -1,4 +1,5 @@
 !(require "stdmacro")
+(require "std")
 
 !(#defun test (expr expect)
    (return `(progn
