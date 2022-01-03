@@ -1484,12 +1484,5 @@ static state_t *state_make_builtins() {
 
 fstate_t fstate_make_prelude() {
   state_t *ns = state_make_builtins();
-
-  FILE *prelude =
-      fmemopen(zlisp_impl_prelude_lisp, zlisp_impl_prelude_lisp_len, "r");
-  if (prelude == NULL) {
-    return fstate_make_panic("error while reading the prelude source");
-  }
-
-  return stream_eval(prelude, ns);
+  return fstate_make_ok(ns);
 }
