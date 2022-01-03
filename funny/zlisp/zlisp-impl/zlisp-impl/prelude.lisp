@@ -105,9 +105,6 @@
 		(return '(panic "nothing matched"))))
 
 
-(builtin.defn switch-fun
-    (return (swtchone (map switch-clause (head args)))))
-
 (def list (builtin.fn (return args)))
 
 (def ignore-fn (builtin.fn (return `(def throwaway ~(head args)))))
