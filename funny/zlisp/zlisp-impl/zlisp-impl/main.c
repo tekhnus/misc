@@ -26,8 +26,6 @@ void state_module_end(prog_t **begin) {
 
 char *state_extend(prog_t **begin, datum_t *stmt, fdatum_t (*module_source)(char *module));
 
-static fdatum_t datum_expand(datum_t *e, state_t *ctxt);
-
 char *prog_init_from_source(prog_t *s, datum_t *source, fdatum_t (*module_source)(char *module)) {
   fstate_t prelude = fstate_make_prelude();
   if (fstate_is_panic(prelude)) {
@@ -1224,32 +1222,6 @@ fstate_t datum_eval(datum_t *e, state_t *ctxt, fdatum_t (*module_source)(char *m
   return state_eval(c);
 }
 
-static fdatum_t datum_expand(datum_t *e, state_t *ctxt) {
-  if (!datum_is_list(e) || datum_is_nil(e)) {
-    return fdatum_make_ok(e);
-  }
-  if (!datum_is_symbol(e->list_head) ||
-      strcmp(e->list_head->symbol_value, "bang")) {
-    return list_map(datum_expand, e, ctxt);
-  }
-  if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
-    return fdatum_make_panic("! should be used with a single arg");
-  }
-  fdatum_t exp = datum_expand(e->list_tail->list_head, ctxt);
-  if (fdatum_is_panic(exp)) {
-    return exp;
-  }
-  fstate_t ev = datum_eval(exp.ok_value, ctxt, NULL);
-  if (fstate_is_panic(ev)) {
-    return fdatum_make_panic(ev.panic_message);
-  }
-  fdatum_t res = state_stack_peek(ev.ok_value);
-  if (fdatum_is_panic(res)) {
-    return res;
-  }
-  return fdatum_make_ok(res.ok_value);
-}
-
 fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return fdatum_make_panic("expected integers");
@@ -1303,36 +1275,6 @@ datum_t *state_list_vars(state_t *ns) {
     nil = &((*nil)->list_tail);
   }
   return result;
-}
-
-static fstate_t stream_eval(FILE *stream, state_t *ctxt) {
-  read_result_t rr;
-  for (; read_result_is_ok(rr = datum_read(stream));) {
-    // printf("running %s\n", datum_repr(rr.ok_value));
-    fdatum_t exp = datum_expand(rr.ok_value, ctxt);
-    if (fdatum_is_panic(exp)) {
-      return fstate_make_panic(exp.panic_message);
-    }
-    // printf("expanded to %s\n", datum_repr(exp.ok_value));
-    prog_t *s = prog_make();
-    prog_t *s2 = s;
-    char *err = state_extend(&s2, exp.ok_value, NULL);
-    if (err != NULL) {
-      return fstate_make_panic(err);
-    }
-    fstate_t val = state_eval(routine_make(s, ctxt));
-    if (fstate_is_panic(val)) {
-      return val;
-    }
-    ctxt = val.ok_value;
-  }
-  if (read_result_is_panic(rr)) {
-    return fstate_make_panic(rr.panic_message);
-  }
-  if (read_result_is_right_paren(rr)) {
-    return fstate_make_panic("unmatched right paren");
-  }
-  return fstate_make_ok(ctxt);
 }
 
 fdatum_t builtin_shared_library(datum_t *library_name) {
