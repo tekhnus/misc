@@ -74,7 +74,7 @@ int list_length(datum_t *seq) {
   }
   int res;
   for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res)
-    ;
+    {}
   return res;
 }
 
@@ -189,7 +189,7 @@ char *state_require_source(prog_t **begin, datum_t *src, fdatum_t (*module_sourc
   datum_t *r = datum_make_routine(pr, s);
   state_put_const(begin, r);
   state_args(begin);
-  state_call(begin, false); // TODO: bare call
+  state_call(begin, false);  // TODO(harius): bare call
   return NULL;
 }
 
@@ -796,7 +796,7 @@ bool consume_control_sequence(char c, datum_t **form) {
 read_result_t datum_read(FILE *strm) {
   char c;
   for (; !feof(strm) && is_whitespace(c = getc(strm));)
-    ;
+    {}
   if (feof(strm)) {
     return read_result_make_eof();
   }
@@ -850,7 +850,7 @@ read_result_t datum_read(FILE *strm) {
     char x;
     for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));
          nm[i++] = x)
-      ;
+      {}
     if (!feof(strm)) {
       ungetc(x, strm);
     }
