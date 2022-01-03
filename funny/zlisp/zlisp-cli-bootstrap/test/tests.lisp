@@ -1,4 +1,5 @@
 (require "zlisp")
+(require "std")
 !(require "testing")
 !(require "stdmacro")
 
@@ -32,8 +33,9 @@
     (eq :foo bar))
   '(()))
 
-!(#test
-  (append 5 '(1 2 3 4))
+!(#fntest
+  (progn
+    (return (append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
 !(#test
