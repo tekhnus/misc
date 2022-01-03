@@ -1,4 +1,5 @@
 !(require "defun")
+(require "std-pre-defun")
 
 !(#defun append (x xs)
   (if xs
