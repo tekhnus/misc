@@ -253,10 +253,6 @@ prog_t *prog_make();
 
 char *prog_init_module(prog_t *s, datum_t *source, fdatum_t (*module_source)(char *module));
 
-extern unsigned char zlisp_impl_prelude_lisp[];
-
-extern unsigned int zlisp_impl_prelude_lisp_len;
-
 fstate_t routine_run(routine_t c);
 
 fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,
