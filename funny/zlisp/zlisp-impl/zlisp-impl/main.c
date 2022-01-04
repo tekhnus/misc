@@ -167,6 +167,8 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
 
 fstate_t special_fn(datum_t *args, state_t *ctxt);
 
+char *prog_init_routine(prog_t *s, datum_t *stmt);
+
 char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
                               fdatum_t (*module_source)(char *module));
 
@@ -281,8 +283,16 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "fn should have one arg";
     }
+
+    prog_t *s = prog_make();
+    char *err = prog_init_routine(s, stmt->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    datum_t *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
+
     prog_append_args(begin);
-    prog_append_put_const(begin, stmt->list_tail->list_head);
+    prog_append_put_const(begin, f);
     prog_append_call_special(begin, special_fn);
     return NULL;
   }
@@ -406,14 +416,13 @@ fstate_t special_fn(datum_t *args, state_t *ctxt) {
   if (list_length(args) != 1) {
     return fstate_make_panic("fn expects a single argument");
   }
-  prog_t *s = prog_make();
-  char *err = prog_init_routine(s, args->list_head);
-  if (err != NULL) {
-    return fstate_make_panic(err);
+  if (!datum_is_routine(args->list_head)) {
+    return fstate_make_panic("a routine was expected");
   }
-  state_t *routine_ctxt = state_make(ctxt->vars, datum_make_nil(),
-                                     routine_make_null(), routine_make_null());
-  ctxt = state_stack_put(ctxt, datum_make_routine(s, routine_ctxt));
+  routine_t r = args->list_head->routine_value;
+  r.state = state_make(ctxt->vars, datum_make_nil(),
+                       routine_make_null(), routine_make_null());
+  ctxt = state_stack_put(ctxt, datum_make_routine(r.prog, r.state));
   return fstate_make_ok(ctxt);
 }
 
