@@ -138,14 +138,6 @@ void prog_append_pop(prog_t **begin, datum_t *var) {
   *begin = (*begin)->pop_next;
 }
 
-void prog_append_call_special(prog_t **begin,
-                        fstate_t (*call_special_func)(datum_t *, state_t *)) {
-  (*begin)->type = PROG_CALL_SPECIAL;
-  (*begin)->call_special_func = call_special_func;
-  (*begin)->call_special_next = prog_make();
-  *begin = (*begin)->call_special_next;
-}
-
 void prog_append_pop_prog(prog_t **begin, datum_t *var) {
   (*begin)->type = PROG_POP_PROG;
   (*begin)->pop_prog_var = var;
@@ -165,24 +157,6 @@ void prog_append_yield(prog_t **begin, bool hat) {
   (*begin)->yield_next = prog_make();
   *begin = (*begin)->yield_next;
 }
-
-fstate_t special_defn(datum_t *args, state_t *ctxt) {
-  if (datum_is_nil(args) || datum_is_nil(args->list_tail) ||
-      !datum_is_nil(args->list_tail->list_tail)) {
-    return fstate_make_panic("defun expects exactly two arguments");
-  }
-  if (!datum_is_symbol(args->list_head)) {
-    return fstate_make_panic("defun requires a symbol as a first argument");
-  }
-  if (!datum_is_routine(args->list_tail->list_head)) {
-    return fstate_make_panic("defun expected a routine as a second argument");
-  }
-  ctxt = state_set_fn(ctxt, args->list_head, args->list_tail->list_head);
-  ctxt = state_stack_put(ctxt, datum_make_void());
-  return fstate_make_ok(ctxt);
-}
-
-fstate_t special_fn(datum_t *args, state_t *ctxt);
 
 char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module));
 
@@ -431,20 +405,6 @@ char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char
   return prog_append_statement(&s, stmt, module_source);
 }
 
-fstate_t special_fn(datum_t *args, state_t *ctxt) {
-  if (list_length(args) != 1) {
-    return fstate_make_panic("fn expects a single argument");
-  }
-  if (!datum_is_routine(args->list_head)) {
-    return fstate_make_panic("a routine was expected");
-  }
-  routine_t r = args->list_head->routine_value;
-  r.state = state_make(ctxt->vars, datum_make_nil(),
-                       routine_make_null(), routine_make_null());
-  ctxt = state_stack_put(ctxt, datum_make_routine(r.prog, r.state));
-  return fstate_make_ok(ctxt);
-}
-
 fdatum_t datum_eval_primitive(datum_t *e, state_t *ctxt) {
   if (datum_is_integer(e) || datum_is_bytestring(e)) {
     return fdatum_make_ok(e);
@@ -653,22 +613,6 @@ fstate_t routine_run(routine_t c) {
 
         c.state = state_set_var(c.state, sym, val);
       }
-    } break;
-    case PROG_CALL_SPECIAL: {
-      datum_t *sargs = datum_make_nil();
-      fdatum_t sarg;
-      while (sarg = state_stack_peek(c.state),
-             c.state = state_stack_pop(c.state),
-             !(fdatum_is_ok(sarg) && datum_is_symbol(sarg.ok_value) &&
-               !strcmp(sarg.ok_value->symbol_value, "__function_call"))) {
-        sargs = datum_make_list(sarg.ok_value, sargs);
-      }
-      fstate_t sres = c.prog->call_special_func(sargs, c.state);
-      if (fstate_is_panic(sres)) {
-        return sres;
-      }
-      c.state = sres.ok_value;
-      c.prog = c.prog->call_special_next;
     } break;
     default: {
       return fstate_make_panic("unhandled state type");
