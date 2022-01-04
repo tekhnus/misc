@@ -160,6 +160,9 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
   if (!datum_is_symbol(args->list_head)) {
     return fstate_make_panic("defun requires a symbol as a first argument");
   }
+  if (!datum_is_routine(args->list_tail->list_head)) {
+    return fstate_make_panic("defun expected a routine as a second argument");
+  }
   ctxt = state_set_fn(ctxt, args->list_head, args->list_tail->list_head);
   ctxt = state_stack_put(ctxt, datum_make_void());
   return fstate_make_ok(ctxt);
@@ -273,9 +276,15 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
+    prog_t *s = prog_make();
+    char *err = prog_init_routine(s, stmt->list_tail->list_tail->list_head);
+    if (err != NULL) {
+      return err;
+    }
+    datum_t *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
     prog_append_args(begin);
     prog_append_put_const(begin, stmt->list_tail->list_head);
-    prog_append_put_const(begin, stmt->list_tail->list_tail->list_head);
+    prog_append_put_const(begin, f);
     prog_append_call_special(begin, special_defn);
     return NULL;
   }
@@ -979,14 +988,7 @@ state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value) {
 }
 
 state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
-  prog_t *s = prog_make();
-  char *err = prog_init_routine(s, value);
-  if (err != NULL) {
-    fprintf(stderr, "bad function def %s %s\n", err, datum_repr(value));
-    exit(EXIT_FAILURE);
-  }
-  datum_t *fn = datum_make_routine(s, NULL);
-  datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), fn);
+  datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), value);
   return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
                     ns->hat_parent);
 }
