@@ -83,6 +83,12 @@
     (return (list x y z t)))
   '(3 5 8 13))
 
+!(#fntest
+  (progn
+    (require "std")
+    (return 42))
+  42)
+
 
 
 (require "libc")

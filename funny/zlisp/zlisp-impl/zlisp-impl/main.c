@@ -170,7 +170,7 @@ fstate_t special_defn(datum_t *args, state_t *ctxt) {
 
 fstate_t special_fn(datum_t *args, state_t *ctxt);
 
-char *prog_init_routine(prog_t *s, datum_t *stmt);
+char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module));
 
 char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
                               fdatum_t (*module_source)(char *module));
@@ -277,7 +277,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
       return "defn should have two args";
     }
     prog_t *s = prog_make();
-    char *err = prog_init_routine(s, stmt->list_tail->list_tail->list_head);
+    char *err = prog_init_routine(s, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -294,7 +294,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
     }
 
     prog_t *s = prog_make();
-    char *err = prog_init_routine(s, stmt->list_tail->list_head);
+    char *err = prog_init_routine(s, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -416,9 +416,9 @@ char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
   return NULL;
 }
 
-char *prog_init_routine(prog_t *s, datum_t *stmt) {
+char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module)) {
   prog_append_pop(&s, datum_make_symbol("args"));
-  return prog_append_statement(&s, stmt, NULL);
+  return prog_append_statement(&s, stmt, module_source);
 }
 
 fstate_t special_fn(datum_t *args, state_t *ctxt) {
