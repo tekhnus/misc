@@ -105,6 +105,7 @@ enum prog_type {
   PROG_CALL,
   PROG_POP,
   PROG_CALL_SPECIAL,
+  PROG_POP_PROG,
   PROG_RETURN,
   PROG_YIELD,
   PROG_MODULE_END,
@@ -140,6 +141,10 @@ struct prog {
     struct {
       fstate_t (*call_special_func)(datum_t *, state_t *);
       prog_t *call_special_next;
+    };
+    struct {
+      datum_t *pop_prog_var;
+      prog_t *pop_prog_next;
     };
     bool return_hat;
     struct {

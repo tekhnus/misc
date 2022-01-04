@@ -139,6 +139,13 @@ void prog_append_call_special(prog_t **begin,
   *begin = (*begin)->call_special_next;
 }
 
+void prog_append_pop_prog(prog_t **begin, datum_t *var) {
+  (*begin)->type = PROG_POP_PROG;
+  (*begin)->pop_prog_var = var;
+  (*begin)->pop_prog_next = prog_make();
+  *begin = (*begin)->pop_prog_next;
+}
+
 void prog_append_return(prog_t **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
@@ -282,10 +289,9 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
       return err;
     }
     datum_t *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
-    prog_append_args(begin);
-    prog_append_put_const(begin, stmt->list_tail->list_head);
     prog_append_put_const(begin, f);
-    prog_append_call_special(begin, special_defn);
+    prog_append_pop_prog(begin, stmt->list_tail->list_head);
+    prog_append_put_const(begin, datum_make_void());
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn")) {
@@ -502,6 +508,17 @@ fstate_t routine_run(routine_t c) {
         c.state = state_set_var(c.state, c.prog->pop_var, v.ok_value);
       }
       c.prog = c.prog->pop_next;
+    } break;
+    case PROG_POP_PROG: {
+      fdatum_t v = state_stack_peek(c.state);
+      if (fdatum_is_panic(v)) {
+        return fstate_make_panic(v.panic_message);
+      }
+      c.state = state_stack_pop(c.state);
+      if (c.prog->pop_prog_var != NULL) {
+        c.state = state_set_fn(c.state, c.prog->pop_prog_var, v.ok_value);
+      }
+      c.prog = c.prog->pop_prog_next;
     } break;
     case PROG_ARGS: {
       c.state = state_stack_put(c.state, datum_make_symbol("__function_call"));
