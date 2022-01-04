@@ -100,6 +100,7 @@ enum prog_type {
   PROG_IF,
   PROG_NOP,
   PROG_PUT_CONST,
+  PROG_PUT_ROUTINE,
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
@@ -124,6 +125,10 @@ struct prog {
     struct {
       datum_t *put_const_value;
       prog_t *put_const_next;
+    };
+    struct {
+      datum_t *put_routine_value;
+      prog_t *put_routine_next;
     };
     struct {
       datum_t *put_var_value;

@@ -104,6 +104,13 @@ void prog_append_put_const(prog_t **begin, datum_t *val) {
   *begin = (*begin)->put_const_next;
 }
 
+void prog_append_put_routine(prog_t **begin, datum_t *val) {
+  (*begin)->type = PROG_PUT_ROUTINE;
+  (*begin)->put_routine_value = val;
+  (*begin)->put_routine_next = prog_make();
+  *begin = (*begin)->put_routine_next;
+}
+
 void prog_append_put_var(prog_t **begin, datum_t *val) {
   (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
@@ -305,10 +312,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
       return err;
     }
     datum_t *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
-
-    prog_append_args(begin);
-    prog_append_put_const(begin, f);
-    prog_append_call_special(begin, special_fn);
+    prog_append_put_routine(begin, f);
     return NULL;
   }
   if (datum_is_the_symbol(op, "require")) {
@@ -489,6 +493,19 @@ fstate_t routine_run(routine_t c) {
     case PROG_PUT_CONST: {
       c.state = state_stack_put(c.state, c.prog->put_const_value);
       c.prog = c.prog->put_const_next;
+    } break;
+    case PROG_PUT_ROUTINE: {
+      if (!datum_is_routine(c.prog->put_routine_value)) {
+        return fstate_make_panic("a routine was expected");
+      }
+      routine_t r = c.prog->put_routine_value->routine_value;
+      if (r.state != NULL) {
+        return fstate_make_panic("the routine context was expected to be null");
+      }
+      r.state = state_make(c.state->vars, datum_make_nil(),
+                       routine_make_null(), routine_make_null());
+      c.state = state_stack_put(c.state, datum_make_routine(r.prog, r.state));
+      c.prog = c.prog->put_routine_next;
     } break;
     case PROG_PUT_VAR: {
       fdatum_t er = datum_eval_primitive(c.prog->put_var_value, c.state);
