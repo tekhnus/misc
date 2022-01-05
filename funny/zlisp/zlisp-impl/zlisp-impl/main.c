@@ -18,9 +18,9 @@ static bool datum_is_the_symbol(datum_t *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-static state_t *state_stack_put(state_t *ns, datum_t *value) {
-  return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent,
-                    ns->hat_parent);
+static void state_stack_put(state_t **ns, datum_t *value) {
+  *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack), (*ns)->parent,
+                    (*ns)->hat_parent);
 }
 
 static datum_t *state_stack_pop(state_t **s) {
@@ -30,7 +30,7 @@ static datum_t *state_stack_pop(state_t **s) {
 }
 
 static void state_stack_new(state_t **s) {
-  *s = state_stack_put(*s, datum_make_symbol("__function_call"));
+  state_stack_put(s, datum_make_symbol("__function_call"));
 }
 
 static datum_t *state_stack_collect(state_t **s) {
@@ -457,7 +457,7 @@ fdatum_t pointer_call(datum_t *f, datum_t *args);
 
 void switch_context(routine_t *c, routine_t b, datum_t *v) {
   *c = b;
-  c->state = state_stack_put(c->state, v);
+  state_stack_put(&c->state, v);
 }
 
 fstate_t routine_run(routine_t c) {
@@ -482,7 +482,7 @@ fstate_t routine_run(routine_t c) {
       }
     } break;
     case PROG_PUT_CONST: {
-      c.state = state_stack_put(c.state, c.prog->put_const_value);
+      state_stack_put(&c.state, c.prog->put_const_value);
       c.prog = c.prog->put_const_next;
     } break;
     case PROG_PUT_ROUTINE: {
@@ -495,7 +495,7 @@ fstate_t routine_run(routine_t c) {
       }
       r.state = state_make(c.state->vars, datum_make_nil(),
                        routine_make_null(), routine_make_null());
-      c.state = state_stack_put(c.state, datum_make_routine(r.prog, r.state));
+      state_stack_put(&c.state, datum_make_routine(r.prog, r.state));
       c.prog = c.prog->put_routine_next;
     } break;
     case PROG_PUT_VAR: {
@@ -503,7 +503,7 @@ fstate_t routine_run(routine_t c) {
       if (fdatum_is_panic(er)) {
         return fstate_make_panic(er.panic_message);
       }
-      c.state = state_stack_put(c.state, er.ok_value);
+      state_stack_put(&c.state, er.ok_value);
       c.prog = c.prog->put_var_next;
     } break;
     case PROG_POP: {
@@ -556,7 +556,7 @@ fstate_t routine_run(routine_t c) {
         if (fdatum_is_panic(res)) {
           return fstate_make_panic(res.panic_message);
         }
-        c.state = state_stack_put(c.state, res.ok_value);
+        state_stack_put(&c.state, res.ok_value);
         c.prog = c.prog->call_next;
       } else {
         return fstate_make_panic("non-callable datum");
@@ -564,7 +564,7 @@ fstate_t routine_run(routine_t c) {
     } break;
     case PROG_COLLECT: {
       datum_t *form = state_stack_collect(&c.state);
-      c.state = state_stack_put(c.state, form);
+      state_stack_put(&c.state, form);
       c.prog = c.prog->collect_next;
     } break;
     case PROG_RETURN: {
@@ -1198,7 +1198,7 @@ char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(cha
 }
 
 void state_value_put(state_t **ctxt, datum_t *v) {
-  *ctxt = state_stack_put(*ctxt, v);
+  state_stack_put(ctxt, v);
 }
 
 datum_t *state_value_pop(state_t **ctxt) {
