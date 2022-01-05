@@ -125,6 +125,9 @@ static fstate_t datum_expand(datum_t *e, state_t *ctxt) {
   }
   ctxt = exp.ok_value;
   datum_t *preext = state_value_pop(&ctxt);
-  fstate_t ev = datum_eval(preext, ctxt, module_source);
-  return ev;
+  char *err = state_value_eval(&ctxt, preext, module_source);
+  if (err != NULL) {
+    return fstate_make_panic(err);
+  }
+  return fstate_make_ok(ctxt);
 }

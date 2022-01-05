@@ -28,18 +28,15 @@ fdatum_t read(datum_t *sptr) {
 
 fdatum_t eval(datum_t *v, datum_t *nsp) {
   state_t *ns = *(state_t **)nsp->pointer_value;
-  fstate_t r = datum_eval(v, ns, NULL);
-  if (fstate_is_panic(r)) {
+  char *err = state_value_eval(&ns, v, NULL);
+  if (err != NULL) {
     return fdatum_make_ok(datum_make_list_2(
-        datum_make_symbol(":err"), datum_make_bytestring(r.panic_message)));
+        datum_make_symbol(":err"), datum_make_bytestring(err)));
   }
-  fdatum_t val = state_stack_peek(r.ok_value);
-  if (fdatum_is_panic(val)) {
-    return fdatum_make_panic(val.panic_message);
-  }
+  datum_t *val = state_value_pop(&ns);
   void **new_nsp = malloc(sizeof(void **));
-  *new_nsp = r.ok_value;
-  return fdatum_make_ok(datum_make_list_3(datum_make_symbol(":ok"), val.ok_value,
+  *new_nsp = ns;
+  return fdatum_make_ok(datum_make_list_3(datum_make_symbol(":ok"), val,
                                        datum_make_pointer_to_pointer(new_nsp)));
 }
 
