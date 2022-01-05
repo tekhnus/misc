@@ -23,26 +23,26 @@ enum fstate_type {
   FSTATE_PANIC,
 };
 
-static bool datum_is_the_symbol(datum_t *d, char *val) {
+LOCAL bool datum_is_the_symbol(datum_t *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-static void state_stack_put(state_t **ns, datum_t *value) {
+LOCAL void state_stack_put(state_t **ns, datum_t *value) {
   *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack), (*ns)->parent,
                     (*ns)->hat_parent);
 }
 
-static datum_t *state_stack_pop(state_t **s) {
+LOCAL datum_t *state_stack_pop(state_t **s) {
   datum_t *res = (*s)->stack->list_head;
   *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent, (*s)->hat_parent);
   return res;
 }
 
-static void state_stack_new(state_t **s) {
+LOCAL void state_stack_new(state_t **s) {
   state_stack_put(s, datum_make_symbol("__function_call"));
 }
 
-static datum_t *state_stack_collect(state_t **s) {
+LOCAL datum_t *state_stack_collect(state_t **s) {
   datum_t *form = datum_make_nil();
   for (;;) {
     datum_t *arg = state_stack_pop(s);
@@ -64,9 +64,6 @@ void prog_append_module_end(prog_t **begin) {
   (*begin)->type = PROG_MODULE_END;
   *begin = prog_make();
 }
-
-char *prog_append_statement(prog_t **begin, datum_t *stmt,
-                   fdatum_t (*module_source)(char *module));
 
 char *prog_init_module(prog_t *s, datum_t *source,
                             fdatum_t (*module_source)(char *module)) {
@@ -117,7 +114,7 @@ int list_length(datum_t *seq) {
   return res;
 }
 
-static bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
+LOCAL bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
   return datum_is_list(d) && list_length(d) == 2 &&
          datum_is_the_symbol(d->list_head, val1) &&
          datum_is_the_symbol(d->list_tail->list_head, val2);
@@ -448,8 +445,6 @@ char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char
   prog_append_pop(&s, datum_make_symbol("args"));
   return prog_append_statement(&s, stmt, module_source);
 }
-
-fdatum_t pointer_call(datum_t *f, datum_t *args);
 
 void switch_context(routine_t *c, routine_t b, datum_t *v) {
   *c = b;
