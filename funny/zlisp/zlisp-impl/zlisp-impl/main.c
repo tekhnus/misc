@@ -1208,7 +1208,14 @@ fstate_t datum_eval(datum_t *e, state_t *ctxt,
 }
 
 char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(char *module)) {
-  fstate_t res = datum_eval(v, *ctxt, module_source);
+  prog_t *s = prog_make();
+  prog_t *pe = s;
+  char *err = prog_append_statement(&pe, v, module_source);
+  if (err != NULL) {
+    return err;
+  }
+  routine_t c = routine_make(s, *ctxt);
+  fstate_t res = routine_run(c);
   if (fstate_is_panic(res)) {
     return res.panic_message;
   }
