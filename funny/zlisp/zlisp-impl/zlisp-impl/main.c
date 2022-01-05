@@ -1195,18 +1195,6 @@ fdatum_t pointer_call(datum_t *f, datum_t *args) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-fstate_t datum_eval(datum_t *e, state_t *ctxt,
-                    fdatum_t (*module_source)(char *module)) {
-  prog_t *s = prog_make();
-  prog_t *pe = s;
-  char *err = prog_append_statement(&pe, e, module_source);
-  if (err != NULL) {
-    return fstate_make_panic(err);
-  }
-  routine_t c = routine_make(s, ctxt);
-  return routine_run(c);
-}
-
 char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(char *module)) {
   prog_t *s = prog_make();
   prog_t *pe = s;
