@@ -212,12 +212,17 @@ char *prog_append_require(prog_t **begin, datum_t *src,
   return NULL;
 }
 
+static bool datum_is_constant(datum_t *d) {
+  return (datum_is_integer(d) || datum_is_bytestring(d) ||
+          (datum_is_symbol(d) && d->symbol_value[0] == ':'));
+}
+
 char *prog_append_statement(prog_t **begin, datum_t *stmt,
                    fdatum_t (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
-  if (datum_is_bytestring(stmt) || datum_is_integer(stmt) || (datum_is_symbol(stmt) && stmt->symbol_value[0] == ':')) {
+  if (datum_is_constant(stmt)) {
     prog_append_put_const(begin, stmt);
     return NULL;
   }
@@ -1349,8 +1354,7 @@ fdatum_t builtin_annotate(datum_t *arg_value) {
 }
 
 fdatum_t builtin_is_constant(datum_t *arg_value) {
-  if (datum_is_integer(arg_value) || datum_is_bytestring(arg_value) ||
-      (datum_is_symbol(arg_value) && arg_value->symbol_value[0] == ':')) {
+  if (datum_is_constant(arg_value)) {
     return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
   return fdatum_make_ok(datum_make_nil());
