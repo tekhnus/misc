@@ -13,6 +13,27 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+static state_t *state_stack_put(state_t *ns, datum_t *value) {
+  return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent,
+                    ns->hat_parent);
+}
+
+static fdatum_t state_stack_peek(state_t *ns) {
+  if (datum_is_nil(ns->stack)) {
+    return fdatum_make_panic("peek failed");
+  }
+  return fdatum_make_ok(ns->stack->list_head);
+}
+
+static state_t *state_stack_pop(state_t *ns) {
+  if (datum_is_nil(ns->stack)) {
+    fprintf(stderr, "cannot pop from an empty stack\n");
+    exit(EXIT_FAILURE);
+  }
+  return state_make(ns->vars, ns->stack->list_tail, ns->parent, ns->hat_parent);
+}
+
 prog_t *prog_make() {
   prog_t *res = malloc(sizeof(prog_t));
   res->type = PROG_END;
@@ -1000,26 +1021,6 @@ fdatum_t state_get_var(state_t *ns, datum_t *symbol) {
   char *msg = malloc(1024);
   sprintf(msg, "unbound symbol: %s", symbol->symbol_value);
   return fdatum_make_panic(msg);
-}
-
-state_t *state_stack_put(state_t *ns, datum_t *value) {
-  return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent,
-                    ns->hat_parent);
-}
-
-fdatum_t state_stack_peek(state_t *ns) {
-  if (datum_is_nil(ns->stack)) {
-    return fdatum_make_panic("peek failed");
-  }
-  return fdatum_make_ok(ns->stack->list_head);
-}
-
-state_t *state_stack_pop(state_t *ns) {
-  if (datum_is_nil(ns->stack)) {
-    fprintf(stderr, "cannot pop from an empty stack\n");
-    exit(EXIT_FAILURE);
-  }
-  return state_make(ns->vars, ns->stack->list_tail, ns->parent, ns->hat_parent);
 }
 
 fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,

@@ -242,12 +242,6 @@ state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value);
 
 datum_t *state_list_vars(state_t *ns);
 
-state_t *state_stack_put(state_t *ns, datum_t *value);
-
-fdatum_t state_stack_peek(state_t *ns);
-
-state_t *state_stack_pop(state_t *ns);
-
 char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(char *module));
 
 void state_value_put(state_t **ctxt, datum_t *v);
