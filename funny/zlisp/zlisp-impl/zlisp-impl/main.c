@@ -14,6 +14,10 @@
 #include <string.h>
 
 
+static bool datum_is_the_symbol(datum_t *d, char *val) {
+  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
+}
+
 static state_t *state_stack_put(state_t *ns, datum_t *value) {
   return state_make(ns->vars, datum_make_list(value, ns->stack), ns->parent,
                     ns->hat_parent);
@@ -23,6 +27,22 @@ static datum_t *state_stack_pop(state_t **s) {
   datum_t *res = (*s)->stack->list_head;
   *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent, (*s)->hat_parent);
   return res;
+}
+
+static void state_stack_new(state_t **s) {
+  *s = state_stack_put(*s, datum_make_symbol("__function_call"));
+}
+
+static datum_t *state_stack_collect(state_t **s) {
+  datum_t *form = datum_make_nil();
+  for (;;) {
+    datum_t *arg = state_stack_pop(s);
+    if (datum_is_the_symbol(arg, "__function_call")) {
+      break;
+    }
+    form = datum_make_list(arg, form);
+  }
+  return form;
 }
 
 prog_t *prog_make() {
@@ -86,10 +106,6 @@ int list_length(datum_t *seq) {
   for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
   }
   return res;
-}
-
-static bool datum_is_the_symbol(datum_t *d, char *val) {
-  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
 static bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
@@ -498,18 +514,11 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->pop_prog_next;
     } break;
     case PROG_ARGS: {
-      c.state = state_stack_put(c.state, datum_make_symbol("__function_call"));
+      state_stack_new(&c.state);
       c.prog = c.prog->args_next;
     } break;
     case PROG_CALL: {
-      datum_t *form = datum_make_nil();
-      for (;;) {
-        datum_t *arg = state_stack_pop(&c.state);
-        if (datum_is_the_symbol(arg, "__function_call")) {
-          break;
-        }
-        form = datum_make_list(arg, form);
-      }
+      datum_t *form = state_stack_collect(&c.state);
       if (datum_is_nil(form)) {
         return fstate_make_panic("a call instruction with empty form");
       }
