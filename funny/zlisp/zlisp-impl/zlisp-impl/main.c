@@ -207,6 +207,7 @@ char *prog_append_require(prog_t **begin, datum_t *src,
   datum_t *r = datum_make_routine(pr, state_make_builtins());
   prog_append_args(begin);
   prog_append_put_const(begin, r);
+  prog_append_collect(begin);
   prog_append_call(begin, false); // TODO(harius): bare call
   return NULL;
 }
@@ -404,6 +405,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
       }
     }
   }
+  prog_append_collect(begin);
   prog_append_call(begin, hat);
   return NULL;
 }
@@ -523,7 +525,7 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->args_next;
     } break;
     case PROG_CALL: {
-      datum_t *form = state_stack_collect(&c.state);
+      datum_t *form = state_stack_pop(&c.state);
       if (datum_is_nil(form)) {
         return fstate_make_panic("a call instruction with empty form");
       }
