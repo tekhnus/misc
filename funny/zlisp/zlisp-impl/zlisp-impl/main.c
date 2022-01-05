@@ -217,12 +217,12 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
-  if (datum_is_symbol(stmt)) {
-    prog_append_put_var(begin, stmt);
+  if (datum_is_bytestring(stmt) || datum_is_integer(stmt) || (datum_is_symbol(stmt) && stmt->symbol_value[0] == ':')) {
+    prog_append_put_const(begin, stmt);
     return NULL;
   }
-  if (datum_is_bytestring(stmt) || datum_is_integer(stmt)) {
-    prog_append_put_const(begin, stmt);
+  if (datum_is_symbol(stmt)) {
+    prog_append_put_var(begin, stmt);
     return NULL;
   }
   if (!datum_is_list(stmt)) {
@@ -440,19 +440,6 @@ char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char
   return prog_append_statement(&s, stmt, module_source);
 }
 
-fdatum_t datum_eval_primitive(datum_t *e, state_t *ctxt) {
-  if (datum_is_integer(e) || datum_is_bytestring(e)) {
-    return fdatum_make_ok(e);
-  }
-  if (datum_is_symbol(e)) {
-    if (e->symbol_value[0] == ':') {
-      return fdatum_make_ok(e);
-    }
-    return state_get_var(ctxt, e);
-  }
-  return fdatum_make_panic("not a primitive");
-}
-
 fdatum_t pointer_call(datum_t *f, datum_t *args);
 
 void switch_context(routine_t *c, routine_t b, datum_t *v) {
@@ -499,7 +486,7 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->put_routine_next;
     } break;
     case PROG_PUT_VAR: {
-      fdatum_t er = datum_eval_primitive(c.prog->put_var_value, c.state);
+      fdatum_t er = state_get_var(c.state, c.prog->put_var_value);
       if (fdatum_is_panic(er)) {
         return fstate_make_panic(er.panic_message);
       }
