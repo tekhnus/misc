@@ -201,11 +201,6 @@ void prog_append_yield(prog_t **begin, bool hat) {
   *begin = (*begin)->yield_next;
 }
 
-char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module));
-
-char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
-                              fdatum_t (*module_source)(char *module));
-
 char *prog_append_require(prog_t **begin, datum_t *src,
                            fdatum_t (*module_source)(char *module)) {
   prog_t *pr = prog_make();
@@ -219,11 +214,6 @@ char *prog_append_require(prog_t **begin, datum_t *src,
   prog_append_collect(begin);
   prog_append_call(begin, false); // TODO(harius): bare call
   return NULL;
-}
-
-static bool datum_is_constant(datum_t *d) {
-  return (datum_is_integer(d) || datum_is_bytestring(d) ||
-          (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
 char *prog_append_statement(prog_t **begin, datum_t *stmt,
@@ -422,6 +412,11 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
   prog_append_collect(begin);
   prog_append_call(begin, hat);
   return NULL;
+}
+
+LOCAL bool datum_is_constant(datum_t *d) {
+  return (datum_is_integer(d) || datum_is_bytestring(d) ||
+          (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
 char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
