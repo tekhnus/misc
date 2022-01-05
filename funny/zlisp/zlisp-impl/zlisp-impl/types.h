@@ -16,6 +16,13 @@ typedef struct fstate fstate_t;
 typedef struct prog prog_t;
 typedef struct state state_t;
 typedef struct routine routine_t;
+typedef struct read_result read_result;
+typedef struct datum datum;
+typedef struct fdatum fdatum;
+typedef struct fstate fstate;
+typedef struct prog prog;
+typedef struct state state;
+typedef struct routine routine;
 
 enum datum_type {
   DATUM_NIL,
@@ -37,8 +44,8 @@ struct datum {
   enum datum_type type;
   union {
     struct {
-      struct datum *list_head;
-      struct datum *list_tail;
+      datum *list_head;
+      datum *list_tail;
     };
     char *symbol_value;
     char *bytestring_value;
@@ -46,7 +53,7 @@ struct datum {
     routine_t routine_value;
     struct {
       void *pointer_value;
-      struct datum *pointer_descriptor;
+      datum *pointer_descriptor;
     };
   };
 };
@@ -106,42 +113,42 @@ struct prog {
   enum prog_type type;
   union {
     struct {
-      struct prog *if_true;
-      struct prog *if_false;
+      prog *if_true;
+      prog *if_false;
     };
     struct {
-      struct prog *nop_next;
+      prog *nop_next;
     };
     struct {
       datum *put_const_value;
-      struct prog *put_const_next;
+      prog *put_const_next;
     };
     struct {
       datum *put_routine_value;
-      struct prog *put_routine_next;
+      prog *put_routine_next;
     };
     struct {
       datum *put_var_value;
-      struct prog *put_var_next;
+      prog *put_var_next;
     };
     struct prog *args_next;
     struct {
       bool call_hat;
-      struct prog *call_next;
+      prog *call_next;
     };
     struct prog *collect_next;
     struct {
       datum *pop_var;
-      struct prog *pop_next;
+      prog *pop_next;
     };
     struct {
       datum *pop_prog_var;
-      struct prog *pop_prog_next;
+      prog *pop_prog_next;
     };
     bool return_hat;
     struct {
       bool yield_hat;
-      struct prog *yield_next;
+      prog *yield_next;
     };
   };
 };
