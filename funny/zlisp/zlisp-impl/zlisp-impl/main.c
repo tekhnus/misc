@@ -19,19 +19,10 @@ static state_t *state_stack_put(state_t *ns, datum_t *value) {
                     ns->hat_parent);
 }
 
-static fdatum_t state_stack_peek(state_t *ns) {
-  if (datum_is_nil(ns->stack)) {
-    return fdatum_make_panic("peek failed");
-  }
-  return fdatum_make_ok(ns->stack->list_head);
-}
-
-static state_t *state_stack_pop(state_t *ns) {
-  if (datum_is_nil(ns->stack)) {
-    fprintf(stderr, "cannot pop from an empty stack\n");
-    exit(EXIT_FAILURE);
-  }
-  return state_make(ns->vars, ns->stack->list_tail, ns->parent, ns->hat_parent);
+static datum_t *state_stack_pop(state_t **s) {
+  datum_t *res = (*s)->stack->list_head;
+  *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent, (*s)->hat_parent);
+  return res;
 }
 
 prog_t *prog_make() {
@@ -460,12 +451,8 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->nop_next;
     } break;
     case PROG_IF: {
-      fdatum_t v = state_stack_peek(c.state);
-      c.state = state_stack_pop(c.state);
-      if (fdatum_is_panic(v)) {
-        return fstate_make_panic(v.panic_message);
-      }
-      if (!datum_is_nil(v.ok_value)) {
+      datum_t *v = state_stack_pop(&c.state);
+      if (!datum_is_nil(v)) {
         c.prog = c.prog->if_true;
       } else {
         c.prog = c.prog->if_false;
@@ -497,24 +484,16 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->put_var_next;
     } break;
     case PROG_POP: {
-      fdatum_t v = state_stack_peek(c.state);
-      if (fdatum_is_panic(v)) {
-        return fstate_make_panic(v.panic_message);
-      }
-      c.state = state_stack_pop(c.state);
+      datum_t *v = state_stack_pop(&c.state);
       if (c.prog->pop_var != NULL) {
-        c.state = state_set_var(c.state, c.prog->pop_var, v.ok_value);
+        c.state = state_set_var(c.state, c.prog->pop_var, v);
       }
       c.prog = c.prog->pop_next;
     } break;
     case PROG_POP_PROG: {
-      fdatum_t v = state_stack_peek(c.state);
-      if (fdatum_is_panic(v)) {
-        return fstate_make_panic(v.panic_message);
-      }
-      c.state = state_stack_pop(c.state);
+      datum_t *v = state_stack_pop(&c.state);
       if (c.prog->pop_prog_var != NULL) {
-        c.state = state_set_fn(c.state, c.prog->pop_prog_var, v.ok_value);
+        c.state = state_set_fn(c.state, c.prog->pop_prog_var, v);
       }
       c.prog = c.prog->pop_prog_next;
     } break;
@@ -524,17 +503,12 @@ fstate_t routine_run(routine_t c) {
     } break;
     case PROG_CALL: {
       datum_t *form = datum_make_nil();
-      fdatum_t arg;
       for (;;) {
-        arg = state_stack_peek(c.state);
-        c.state = state_stack_pop(c.state);
-        if (fdatum_is_panic(arg)) {
-          return fstate_make_panic(arg.panic_message);
-        }
-        if (datum_is_the_symbol(arg.ok_value, "__function_call")) {
+        datum_t *arg = state_stack_pop(&c.state);
+        if (datum_is_the_symbol(arg, "__function_call")) {
           break;
         }
-        form = datum_make_list(arg.ok_value, form);
+        form = datum_make_list(arg, form);
       }
       if (datum_is_nil(form)) {
         return fstate_make_panic("a call instruction with empty form");
@@ -583,12 +557,8 @@ fstate_t routine_run(routine_t c) {
       if (routine_is_null(return_to)) {
         return fstate_make_panic("bad return");
       }
-      fdatum_t res = state_stack_peek(c.state);
-      if (fdatum_is_panic(res)) {
-        return fstate_make_panic(res.panic_message);
-      }
-      c.state = state_stack_pop(c.state);
-      switch_context(&c, return_to, res.ok_value);
+      datum_t *res = state_stack_pop(&c.state);
+      switch_context(&c, return_to, res);
       c.state->hat_parent =
           hat_par; /* Because the caller hat parent might be out-of-date.*/
     } break;
@@ -606,13 +576,9 @@ fstate_t routine_run(routine_t c) {
         return fstate_make_panic("bad yield");
       }
       c.state = state_change_parent(c.state, routine_make_null(), hat);
-      fdatum_t res = state_stack_peek(c.state);
-      if (fdatum_is_panic(res)) {
-        return fstate_make_panic(res.panic_message);
-      }
-      c.state = state_stack_pop(c.state);
+      datum_t *res = state_stack_pop(&c.state);
       datum_t *resume = datum_make_routine(c.prog->yield_next, c.state);
-      datum_t *r = datum_make_list_2(res.ok_value, resume);
+      datum_t *r = datum_make_list_2(res, resume);
       switch_context(&c, yield_to, r);
     } break;
     case PROG_MODULE_END: {
@@ -621,11 +587,7 @@ fstate_t routine_run(routine_t c) {
       if (routine_is_null(return_to)) {
         return fstate_make_ok(c.state);
       }
-      fdatum_t res = state_stack_peek(c.state);
-      if (fdatum_is_panic(res)) {
-        return fstate_make_panic(res.panic_message);
-      }
-      c.state = state_stack_pop(c.state);
+      state_stack_pop(&c.state);
       switch_context(&c, return_to, datum_make_void());
 
       datum_t *imported_bindings = state_list_vars(module_state);
@@ -1219,13 +1181,7 @@ void state_value_put(state_t **ctxt, datum_t *v) {
 }
 
 datum_t *state_value_pop(state_t **ctxt) {
-  fdatum_t res = state_stack_peek(*ctxt);
-  if (fdatum_is_panic(res)) {
-    fprintf(stderr, "state_value_pop was called but there's nothing on stack");
-    exit(EXIT_FAILURE);
-  }
-  state_stack_pop(*ctxt);
-  return res.ok_value;
+  return state_stack_pop(ctxt);
 }
 
 fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
