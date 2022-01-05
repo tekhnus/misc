@@ -587,6 +587,7 @@ fstate_t routine_run(routine_t c) {
       if (fdatum_is_panic(res)) {
         return fstate_make_panic(res.panic_message);
       }
+      c.state = state_stack_pop(c.state);
       switch_context(&c, return_to, res.ok_value);
       c.state->hat_parent =
           hat_par; /* Because the caller hat parent might be out-of-date.*/
@@ -624,6 +625,7 @@ fstate_t routine_run(routine_t c) {
       if (fdatum_is_panic(res)) {
         return fstate_make_panic(res.panic_message);
       }
+      c.state = state_stack_pop(c.state);
       switch_context(&c, return_to, datum_make_void());
 
       datum_t *imported_bindings = state_list_vars(module_state);
