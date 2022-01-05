@@ -171,8 +171,8 @@ char *prog_append_require(prog_t **begin, datum_t *src,
     return err;
   }
   datum_t *r = datum_make_routine(pr, state_make_builtins());
-  prog_append_put_const(begin, r);
   prog_append_args(begin);
+  prog_append_put_const(begin, r);
   prog_append_call(begin, false); // TODO(harius): bare call
   return NULL;
 }
@@ -353,11 +353,11 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
       break;
     }
   }
+  prog_append_args(begin);
   char *err = prog_append_statement(begin, fn, module_source);
   if (err != NULL) {
     return err;
   }
-  prog_append_args(begin);
   for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
     datum_t *arg = rest_args->list_head;
@@ -380,8 +380,8 @@ char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
     prog_append_put_const(begin, stmt);
     return NULL;
   }
-  prog_append_put_var(begin, datum_make_symbol("list"));
   prog_append_args(begin);
+  prog_append_put_var(begin, datum_make_symbol("list"));
   for (datum_t *rest_elems = stmt; !datum_is_nil(rest_elems);
        rest_elems = rest_elems->list_tail) {
     datum_t *elem = rest_elems->list_head;
@@ -502,7 +502,7 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->args_next;
     } break;
     case PROG_CALL: {
-      datum_t *args = datum_make_nil();
+      datum_t *form = datum_make_nil();
       fdatum_t arg;
       for (;;) {
         arg = state_stack_peek(c.state);
@@ -513,17 +513,17 @@ fstate_t routine_run(routine_t c) {
         if (datum_is_the_symbol(arg.ok_value, "__function_call")) {
           break;
         }
-        args = datum_make_list(arg.ok_value, args);
+        form = datum_make_list(arg.ok_value, form);
       }
-      fdatum_t fn = state_stack_peek(c.state);
-      c.state = state_stack_pop(c.state);
-      if (fdatum_is_panic(fn)) {
-        return fstate_make_panic(fn.panic_message);
+      if (datum_is_nil(form)) {
+        return fstate_make_panic("a call instruction with empty form");
       }
-      if (datum_is_routine(fn.ok_value)) {
+      datum_t *fn = form->list_head;
+      datum_t *args = form->list_tail;
+      if (datum_is_routine(fn)) {
         bool hat = c.prog->call_hat;
         routine_t parent_cont = routine_make(c.prog->call_next, c.state);
-        switch_context(&c, fn.ok_value->routine_value, args);
+        switch_context(&c, fn->routine_value, args);
         if (!routine_is_null(state_get_parent(c.state, hat))) {
           return fstate_make_panic(
               "attempt to call routine with existing parent");
@@ -537,11 +537,11 @@ fstate_t routine_run(routine_t c) {
           c.state = state_change_parent(
               c.state, parent_cont.state->hat_parent, true);
         }
-      } else if (datum_is_pointer(fn.ok_value)) {
+      } else if (datum_is_pointer(fn)) {
         if (c.prog->call_hat) {
           return fstate_make_panic("hat-call makes no sense for native calls");
         }
-        fdatum_t res = pointer_call(fn.ok_value, args);
+        fdatum_t res = pointer_call(fn, args);
         if (fdatum_is_panic(res)) {
           return fstate_make_panic(res.panic_message);
         }
