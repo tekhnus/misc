@@ -159,6 +159,12 @@ void prog_append_call(prog_t **begin, bool hat) {
   *begin = (*begin)->call_next;
 }
 
+void prog_append_collect(prog_t **begin) {
+  (*begin)->type = PROG_COLLECT;
+  (*begin)->collect_next = prog_make();
+  *begin = (*begin)->collect_next;
+}
+
 void prog_append_pop(prog_t **begin, datum_t *var) {
   (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
@@ -409,7 +415,6 @@ char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
     return NULL;
   }
   prog_append_args(begin);
-  prog_append_put_var(begin, datum_make_symbol("list"));
   for (datum_t *rest_elems = stmt; !datum_is_nil(rest_elems);
        rest_elems = rest_elems->list_tail) {
     datum_t *elem = rest_elems->list_head;
@@ -424,7 +429,7 @@ char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
       return err;
     }
   }
-  prog_append_call(begin, false);
+  prog_append_collect(begin);
   return NULL;
 }
 
@@ -554,6 +559,11 @@ fstate_t routine_run(routine_t c) {
       } else {
         return fstate_make_panic("non-callable datum");
       }
+    } break;
+    case PROG_COLLECT: {
+      datum_t *form = state_stack_collect(&c.state);
+      c.state = state_stack_put(c.state, form);
+      c.prog = c.prog->collect_next;
     } break;
     case PROG_RETURN: {
       routine_t hat_par = c.state->hat_parent;
