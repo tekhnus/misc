@@ -13,6 +13,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+enum fdatum_type {
+  FDATUM_OK,
+  FDATUM_PANIC,
+};
+
+enum fstate_type {
+  FSTATE_OK,
+  FSTATE_PANIC,
+};
 
 static bool datum_is_the_symbol(datum_t *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
