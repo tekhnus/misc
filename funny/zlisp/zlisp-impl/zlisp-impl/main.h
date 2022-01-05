@@ -248,7 +248,14 @@ fdatum_t state_stack_peek(state_t *ns);
 
 state_t *state_stack_pop(state_t *ns);
 
-fstate_t datum_eval(datum_t *e, state_t *ctxt, fdatum_t (*module_source)(char *module));
+fstate_t datum_eval(datum_t *e, state_t *ctxt,
+                    fdatum_t (*module_source)(char *module));
+
+char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(char *module));
+
+void state_value_put(state_t **ctxt, datum_t *v);
+
+datum_t *state_value_pop(state_t **ctxt);
 
 state_t *state_make_builtins();
 

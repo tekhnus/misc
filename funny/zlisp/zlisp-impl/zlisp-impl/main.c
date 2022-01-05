@@ -1207,6 +1207,29 @@ fstate_t datum_eval(datum_t *e, state_t *ctxt,
   return routine_run(c);
 }
 
+char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(char *module)) {
+  fstate_t res = datum_eval(v, *ctxt, module_source);
+  if (fstate_is_panic(res)) {
+    return res.panic_message;
+  }
+  *ctxt = res.ok_value;
+  return NULL;
+}
+
+void state_value_put(state_t **ctxt, datum_t *v) {
+  *ctxt = state_stack_put(*ctxt, v);
+}
+
+datum_t *state_value_pop(state_t **ctxt) {
+  fdatum_t res = state_stack_peek(*ctxt);
+  if (fdatum_is_panic(res)) {
+    fprintf(stderr, "state_value_pop was called but there's nothing on stack");
+    exit(EXIT_FAILURE);
+  }
+  state_stack_pop(*ctxt);
+  return res.ok_value;
+}
+
 fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return fdatum_make_panic("expected integers");
