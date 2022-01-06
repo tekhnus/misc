@@ -1,6 +1,7 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 typedef struct prog prog;
+prog *prog_make();
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -23,6 +24,49 @@ enum prog_type {
 };
 typedef enum prog_type prog_type;
 typedef struct datum datum;
+struct prog {
+  enum prog_type type;
+  union {
+    struct {
+      struct prog *if_true;
+      struct prog *if_false;
+    };
+    struct {
+      struct prog *nop_next;
+    };
+    struct {
+      struct datum *put_const_value;
+      struct prog *put_const_next;
+    };
+    struct {
+      struct datum *put_routine_value;
+      struct prog *put_routine_next;
+    };
+    struct {
+      struct datum *put_var_value;
+      struct prog *put_var_next;
+    };
+    struct prog *args_next;
+    struct {
+      bool call_hat;
+      struct prog *call_next;
+    };
+    struct prog *collect_next;
+    struct {
+      struct datum *pop_var;
+      struct prog *pop_next;
+    };
+    struct {
+      struct datum *pop_prog_var;
+      struct prog *pop_prog_next;
+    };
+    bool return_hat;
+    struct {
+      bool yield_hat;
+      struct prog *yield_next;
+    };
+  };
+};
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
@@ -36,74 +80,30 @@ enum datum_type {
 typedef enum datum_type datum_type;
 typedef struct routine routine;
 typedef struct state state;
-struct state {
-  datum *vars;
-  datum *stack;
-  routine parent;
-  routine hat_parent;
-};
 struct routine {
-  prog *prog_;
-  state *state_;
+  struct prog *prog_;
+  struct state *state_;
 };
 struct datum {
   enum datum_type type;
   union {
     struct {
-      datum *list_head;
-      datum *list_tail;
+      struct datum *list_head;
+      struct datum *list_tail;
     };
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    routine routine_value;
+    struct routine routine_value;
     struct {
       void *pointer_value;
-      datum *pointer_descriptor;
+      struct datum *pointer_descriptor;
     };
   };
 };
-struct prog {
-  enum prog_type type;
-  union {
-    struct {
-      prog *if_true;
-      prog *if_false;
-    };
-    struct {
-      prog *nop_next;
-    };
-    struct {
-      datum *put_const_value;
-      prog *put_const_next;
-    };
-    struct {
-      datum *put_routine_value;
-      prog *put_routine_next;
-    };
-    struct {
-      datum *put_var_value;
-      prog *put_var_next;
-    };
-    struct prog *args_next;
-    struct {
-      bool call_hat;
-      prog *call_next;
-    };
-    struct prog *collect_next;
-    struct {
-      datum *pop_var;
-      prog *pop_next;
-    };
-    struct {
-      datum *pop_prog_var;
-      prog *pop_prog_next;
-    };
-    bool return_hat;
-    struct {
-      bool yield_hat;
-      prog *yield_next;
-    };
-  };
+struct state {
+  struct datum *vars;
+  struct datum *stack;
+  struct routine parent;
+  struct routine hat_parent;
 };
-prog *prog_make();
