@@ -1,6 +1,8 @@
 // a small library which wraps zlisp interpreter implementation
 // so that it can be used from within zlisp itself.
 #include <zlisp-impl/main.h>
+#include <stdlib.h>
+#include <string.h>
 
 fdatum read(datum *sptr) {
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||

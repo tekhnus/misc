@@ -1,5 +1,7 @@
 // a basic CLI for zlisp interpreter.
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 #include <zlisp-impl/main.h>
 
 static fdatum module_source(char *module);
