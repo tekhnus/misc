@@ -83,11 +83,13 @@ datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_1(datum *head);
 bool datum_is_void(datum *e);
 datum *state_list_vars(state *ns);
+datum *datum_make_void();
 datum *datum_make_list_2(datum *head,datum *second);
 fdatum pointer_call(datum *f,datum *args);
 bool datum_is_pointer(datum *e);
 state *state_set_fn(state *ns,datum *symbol,datum *value);
 state *state_set_var(state *ns,datum *symbol,datum *value);
+bool fdatum_is_panic(fdatum result);
 fdatum state_get_var(state *ns,datum *symbol);
 bool datum_is_routine(datum *e);
 fstate fstate_make_ok(state *v);
@@ -100,29 +102,29 @@ struct routine {
 };
 fstate routine_run(routine c);
 void switch_context(routine *c,routine b,datum *v);
-bool datum_is_integer(datum *e);
-char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-bool fdatum_is_panic(fdatum result);
-bool datum_is_bytestring(datum *e);
 char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
-datum *datum_make_void();
-#define LOCAL static
-LOCAL bool datum_is_constant(datum *d);
+char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+bool datum_is_bytestring(datum *e);
+bool datum_is_integer(datum *e);
+bool datum_is_constant(datum *d);
+void prog_append_call(prog **begin,int hat);
 state *state_make_builtins();
 datum *datum_make_routine(prog *s,state *lexical_bindings);
+char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
 char *prog_append_require(prog **begin,datum *src,fdatum(*module_source)(char *module));
 void prog_append_yield(prog **begin,bool hat);
 void prog_append_return(prog **begin,bool hat);
 void prog_append_pop_prog(prog **begin,datum *var);
 void prog_append_pop(prog **begin,datum *var);
 void prog_append_collect(prog **begin);
-void prog_append_call(prog **begin,bool hat);
 void prog_append_args(prog **begin);
 void prog_append_put_var(prog **begin,datum *val);
 void prog_append_put_routine(prog **begin,datum *val);
 void prog_append_put_const(prog **begin,datum *val);
 void prog_join(prog *a,prog *b,prog *e);
-LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
+bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
+bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
@@ -130,9 +132,6 @@ routine state_get_parent(state *ns,bool hat);
 bool routine_is_null(routine r);
 routine routine_make_null();
 routine routine_make(prog *s,state *ctxt);
-char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-bool datum_is_nil(datum *e);
-char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
 prog *prog_make();
 enum prog_type {
   PROG_END,
@@ -196,6 +195,7 @@ struct prog {
 };
 void prog_append_module_end(prog **begin);
 datum *datum_make_nil();
+#define LOCAL static
 LOCAL datum *state_stack_collect(state **s);
 datum *datum_make_symbol(char *name);
 LOCAL void state_stack_new(state **s);
@@ -238,4 +238,4 @@ struct datum {
     };
   };
 };
-LOCAL bool datum_is_the_symbol(datum *d,char *val);
+bool datum_is_the_symbol(datum *d,char *val);
