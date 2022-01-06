@@ -10,15 +10,11 @@ To build and run the REPL:
 ```
 cmake -B build
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+cmake --build build --target codegen
 cmake --build build
 cmake --build build --target test ARGS=-V
 build/zlisp-cli-bootstrap/zlisp-run module/cli/main.lisp
 
 # To use clang from homebrew (WIP):
 cmake -B build -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_C_FLAGS='-I/usr/local/opt/llvm/include -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib' -DCMAKE_OSX_SYSROOT=/ -DCMAKE_OSX_DEPLOYMENT_TARGET=''
-```
-
-Header updating is manual ATM.
-```
-makeheaders zlisp-impl/zlisp-impl/{types.h,main.c}
 ```
