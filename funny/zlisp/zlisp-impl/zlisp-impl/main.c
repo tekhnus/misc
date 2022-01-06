@@ -51,12 +51,6 @@ LOCAL datum *state_stack_collect(state **s) {
   return form;
 }
 
-prog *prog_make() {
-  prog *res = malloc(sizeof(prog));
-  res->type = PROG_END;
-  return res;
-}
-
 void prog_append_module_end(prog **begin) {
   (*begin)->type = PROG_MODULE_END;
   *begin = prog_make();
