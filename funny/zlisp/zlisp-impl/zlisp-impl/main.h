@@ -1,13 +1,26 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 typedef struct state state;
-state *state_make_builtins();
-typedef struct fdatum fdatum;
+typedef struct routine routine;
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
+typedef struct prog prog;
+struct routine {
+  struct prog *prog_;
+  struct state *state_;
+};
+#define bool _Bool
+state *state_change_parent(state *ns,routine new_parent,bool hat);
+routine state_get_parent(state *ns,bool hat);
 typedef struct datum datum;
+datum *state_stack_collect(state **s);
+void state_stack_new(state **s);
+datum *state_stack_pop(state **s);
+void state_stack_put(state **ns,datum *value);
+state *state_make_builtins();
+typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -15,7 +28,6 @@ struct fdatum {
 };
 void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
 fdatum builtin_panic(datum *arg_value);
-#define bool _Bool
 bool datum_is_constant(datum *d);
 fdatum builtin_is_constant(datum *arg_value);
 fdatum builtin_annotate(datum *arg_value);
@@ -24,34 +36,37 @@ bool datum_eq(datum *x,datum *y);
 fdatum builtin_repr(datum *v);
 fdatum builtin_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
 fdatum builtin_shared_library(datum *library_name);
+datum *state_list_vars(state *ns);
 fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);
 fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_concat_bytestrings(datum *x,datum *y);
-datum *state_value_pop(state **ctxt);
-void state_value_put(state **ctxt,datum *v);
-typedef struct prog prog;
-char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
-prog *prog_make();
-char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
+fdatum pointer_call(datum *f,datum *args);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
 char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
 fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
+fdatum state_get_var(state *ns,datum *symbol);
 datum *namespace_cell_get_value(datum *cell,state *ns);
+state *state_set_fn(state *ns,datum *symbol,datum *value);
+state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
+state *state_make(datum *vars,datum *stack,routine parent,routine hat_parent);
 typedef struct fstate fstate;
 struct fstate {
   int type;
   struct state *ok_value;
   char *panic_message;
 };
+fstate fstate_make_panic(char *message);
+fstate fstate_make_ok(state *v);
 bool fstate_is_panic(fstate result);
 bool fstate_is_ok(fstate result);
 fdatum fdatum_make_panic(char *message);
 fdatum fdatum_make_ok(datum *v);
+bool fdatum_is_panic(fdatum result);
 bool fdatum_is_ok(fdatum result);
 char *datum_repr(datum *e);
 typedef struct read_result read_result;
@@ -81,42 +96,34 @@ bool read_result_is_right_paren(read_result x);
 bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
+datum *datum_make_void();
 datum *datum_make_pointer_to_pointer(void **ptr);
 datum *datum_make_pointer(void *data,datum *signature);
+datum *datum_make_routine(prog *s,state *lexical_bindings);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
+datum *datum_make_symbol(char *name);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
+datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
+datum *datum_make_list(datum *head,datum *tail);
+datum *datum_make_nil();
 bool datum_is_void(datum *e);
+bool datum_is_pointer(datum *e);
+bool datum_is_routine(datum *e);
 bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
-datum *state_list_vars(state *ns);
-datum *datum_make_void();
-datum *datum_make_list_2(datum *head,datum *second);
-fdatum pointer_call(datum *f,datum *args);
-bool datum_is_pointer(datum *e);
-state *state_set_fn(state *ns,datum *symbol,datum *value);
-state *state_set_var(state *ns,datum *symbol,datum *value);
-bool fdatum_is_panic(fdatum result);
-fdatum state_get_var(state *ns,datum *symbol);
-datum *datum_make_routine(prog *s,state *lexical_bindings);
-bool datum_is_routine(datum *e);
-fstate fstate_make_ok(state *v);
-fstate fstate_make_panic(char *message);
-typedef struct routine routine;
-struct routine {
-  struct prog *prog_;
-  struct state *state_;
-};
-fstate routine_run(routine c);
-void switch_context(routine *c,routine b,datum *v);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
-state *state_change_parent(state *ns,routine new_parent,bool hat);
-routine state_get_parent(state *ns,bool hat);
 bool routine_is_null(routine r);
 routine routine_make_null();
+struct state {
+  struct datum *vars;
+  struct datum *stack;
+  struct routine parent;
+  struct routine hat_parent;
+};
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -178,21 +185,6 @@ struct prog {
   };
 };
 routine routine_make(prog *s,state *ctxt);
-datum *datum_make_nil();
-#define LOCAL static
-LOCAL datum *state_stack_collect(state **s);
-datum *datum_make_symbol(char *name);
-LOCAL void state_stack_new(state **s);
-LOCAL datum *state_stack_pop(state **s);
-datum *datum_make_list(datum *head,datum *tail);
-state *state_make(datum *vars,datum *stack,routine parent,routine hat_parent);
-struct state {
-  struct datum *vars;
-  struct datum *stack;
-  struct routine parent;
-  struct routine hat_parent;
-};
-LOCAL void state_stack_put(state **ns,datum *value);
 bool datum_is_symbol(datum *e);
 enum datum_type {
   DATUM_NIL,

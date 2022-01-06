@@ -15,17 +15,7 @@ struct routine {
 routine routine_make(prog *s,state *ctxt);
 routine routine_make_null();
 bool routine_is_null(routine r);
-routine state_get_parent(state *ns,bool hat);
-state *state_change_parent(state *ns,routine new_parent,bool hat);
 int list_length(datum *seq);
-void switch_context(routine *c,routine b,datum *v);
-typedef struct fstate fstate;
-struct fstate {
-  int type;
-  struct state *ok_value;
-  char *panic_message;
-};
-fstate routine_run(routine c);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 bool datum_is_symbol(datum *e);
@@ -84,6 +74,12 @@ bool fdatum_is_ok(fdatum result);
 bool fdatum_is_panic(fdatum result);
 fdatum fdatum_make_ok(datum *v);
 fdatum fdatum_make_panic(char *message);
+typedef struct fstate fstate;
+struct fstate {
+  int type;
+  struct state *ok_value;
+  char *panic_message;
+};
 bool fstate_is_ok(fstate result);
 bool fstate_is_panic(fstate result);
 fstate fstate_make_ok(state *v);
@@ -100,9 +96,6 @@ char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 fdatum pointer_call(datum *f,datum *args);
-char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
-void state_value_put(state **ctxt,datum *v);
-datum *state_value_pop(state **ctxt);
 fdatum builtin_concat_bytestrings(datum *x,datum *y);
 fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);
@@ -120,8 +113,18 @@ fdatum builtin_panic(datum *arg_value);
 void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
 state *state_make_builtins();
 bool datum_is_constant(datum *d);
+void state_stack_put(state **ns,datum *value);
+datum *state_stack_pop(state **s);
+void state_stack_new(state **s);
+datum *state_stack_collect(state **s);
+routine state_get_parent(state *ns,bool hat);
+state *state_change_parent(state *ns,routine new_parent,bool hat);
 prog *prog_make();
 char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
+char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
+void state_value_put(state **ctxt,datum *v);
+datum *state_value_pop(state **ctxt);
+fstate routine_run(routine c);
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
