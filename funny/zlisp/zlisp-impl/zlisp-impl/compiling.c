@@ -224,7 +224,7 @@ char *prog_append_statement(prog **begin, datum *stmt,
   return NULL;
 }
 
-void prog_append_call(prog **begin, bool hat) {
+LOCAL void prog_append_call(prog **begin, bool hat) {
   (*begin)->type = PROG_CALL;
   (*begin)->call_hat = hat;
   (*begin)->call_next = prog_make();
@@ -232,7 +232,7 @@ void prog_append_call(prog **begin, bool hat) {
 }
 
 
-void prog_join(prog *a, prog *b, prog *e) {
+LOCAL void prog_join(prog *a, prog *b, prog *e) {
   if (a->type != PROG_END || b->type != PROG_END) {
     fprintf(stderr, "wrong usage\n");
     exit(1);
@@ -243,67 +243,67 @@ void prog_join(prog *a, prog *b, prog *e) {
   b->nop_next = e;
 }
 
-void prog_append_put_const(prog **begin, datum *val) {
+LOCAL void prog_append_put_const(prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_CONST;
   (*begin)->put_const_value = val;
   (*begin)->put_const_next = prog_make();
   *begin = (*begin)->put_const_next;
 }
 
-void prog_append_put_routine(prog **begin, datum *val) {
+LOCAL void prog_append_put_routine(prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_ROUTINE;
   (*begin)->put_routine_value = val;
   (*begin)->put_routine_next = prog_make();
   *begin = (*begin)->put_routine_next;
 }
 
-void prog_append_put_var(prog **begin, datum *val) {
+LOCAL void prog_append_put_var(prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
   (*begin)->put_var_next = prog_make();
   *begin = (*begin)->put_var_next;
 }
 
-void prog_append_args(prog **begin) {
+LOCAL void prog_append_args(prog **begin) {
   (*begin)->type = PROG_ARGS;
   (*begin)->args_next = prog_make();
   *begin = (*begin)->args_next;
 }
 
-void prog_append_collect(prog **begin) {
+LOCAL void prog_append_collect(prog **begin) {
   (*begin)->type = PROG_COLLECT;
   (*begin)->collect_next = prog_make();
   *begin = (*begin)->collect_next;
 }
 
-void prog_append_pop(prog **begin, datum *var) {
+LOCAL void prog_append_pop(prog **begin, datum *var) {
   (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
   (*begin)->pop_next = prog_make();
   *begin = (*begin)->pop_next;
 }
 
-void prog_append_pop_prog(prog **begin, datum *var) {
+LOCAL void prog_append_pop_prog(prog **begin, datum *var) {
   (*begin)->type = PROG_POP_PROG;
   (*begin)->pop_prog_var = var;
   (*begin)->pop_prog_next = prog_make();
   *begin = (*begin)->pop_prog_next;
 }
 
-void prog_append_return(prog **begin, bool hat) {
+LOCAL void prog_append_return(prog **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
   *begin = prog_make();
 }
 
-void prog_append_yield(prog **begin, bool hat) {
+LOCAL void prog_append_yield(prog **begin, bool hat) {
   (*begin)->type = PROG_YIELD;
   (*begin)->yield_hat = hat;
   (*begin)->yield_next = prog_make();
   *begin = (*begin)->yield_next;
 }
 
-char *prog_append_require(prog **begin, datum *src,
+LOCAL char *prog_append_require(prog **begin, datum *src,
                            fdatum (*module_source)(char *module)) {
   prog *pr = prog_make();
   char *err = prog_init_module(pr, src, module_source);
@@ -318,13 +318,7 @@ char *prog_append_require(prog **begin, datum *src,
   return NULL;
 }
 
-
-bool datum_is_constant(datum *d) {
-  return (datum_is_integer(d) || datum_is_bytestring(d) ||
-          (datum_is_symbol(d) && d->symbol_value[0] == ':'));
-}
-
-char *prog_append_backquoted_statement(prog **begin, datum *stmt,
+LOCAL char *prog_append_backquoted_statement(prog **begin, datum *stmt,
                               fdatum (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(begin, stmt);
@@ -349,7 +343,19 @@ char *prog_append_backquoted_statement(prog **begin, datum *stmt,
   return NULL;
 }
 
-char *prog_init_routine(prog *s, datum *stmt, fdatum (*module_source)(char *module)) {
+LOCAL char *prog_init_routine(prog *s, datum *stmt, fdatum (*module_source)(char *module)) {
   prog_append_pop(&s, datum_make_symbol("args"));
   return prog_append_statement(&s, stmt, module_source);
+}
+
+
+LOCAL void prog_append_module_end(prog **begin) {
+  (*begin)->type = PROG_MODULE_END;
+  *begin = prog_make();
+}
+
+LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
+  return datum_is_list(d) && list_length(d) == 2 &&
+         datum_is_the_symbol(d->list_head, val1) &&
+         datum_is_the_symbol(d->list_tail->list_head, val2);
 }

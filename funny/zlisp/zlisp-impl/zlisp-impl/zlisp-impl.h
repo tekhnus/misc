@@ -1,13 +1,12 @@
 #define bool _Bool
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
-typedef struct prog prog;
-void prog_append_module_end(prog **begin);
 typedef struct routine routine;
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
+typedef struct prog prog;
 typedef struct state state;
 struct routine {
   struct prog *prog_;
@@ -19,7 +18,6 @@ bool routine_is_null(routine r);
 routine state_get_parent(state *ns,bool hat);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 int list_length(datum *seq);
-bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 void switch_context(routine *c,routine b,datum *v);
 typedef struct fstate fstate;
 struct fstate {
@@ -121,24 +119,10 @@ fdatum builtin_is_constant(datum *arg_value);
 fdatum builtin_panic(datum *arg_value);
 void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
 state *state_make_builtins();
+bool datum_is_constant(datum *d);
 prog *prog_make();
 char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
 char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-void prog_append_call(prog **begin,bool hat);
-void prog_join(prog *a,prog *b,prog *e);
-void prog_append_put_const(prog **begin,datum *val);
-void prog_append_put_routine(prog **begin,datum *val);
-void prog_append_put_var(prog **begin,datum *val);
-void prog_append_args(prog **begin);
-void prog_append_collect(prog **begin);
-void prog_append_pop(prog **begin,datum *var);
-void prog_append_pop_prog(prog **begin,datum *var);
-void prog_append_return(prog **begin,bool hat);
-void prog_append_yield(prog **begin,bool hat);
-char *prog_append_require(prog **begin,datum *src,fdatum(*module_source)(char *module));
-bool datum_is_constant(datum *d);
-char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

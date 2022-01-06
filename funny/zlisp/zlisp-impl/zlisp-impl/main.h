@@ -33,6 +33,7 @@ datum *state_value_pop(state **ctxt);
 void state_value_put(state **ctxt,datum *v);
 typedef struct prog prog;
 char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+prog *prog_make();
 char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
@@ -109,7 +110,6 @@ struct routine {
 };
 fstate routine_run(routine c);
 void switch_context(routine *c,routine b,datum *v);
-bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
@@ -117,8 +117,6 @@ state *state_change_parent(state *ns,routine new_parent,bool hat);
 routine state_get_parent(state *ns,bool hat);
 bool routine_is_null(routine r);
 routine routine_make_null();
-routine routine_make(prog *s,state *ctxt);
-prog *prog_make();
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -179,7 +177,7 @@ struct prog {
     };
   };
 };
-void prog_append_module_end(prog **begin);
+routine routine_make(prog *s,state *ctxt);
 datum *datum_make_nil();
 #define LOCAL static
 LOCAL datum *state_stack_collect(state **s);

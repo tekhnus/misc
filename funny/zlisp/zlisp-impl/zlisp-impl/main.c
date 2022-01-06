@@ -51,11 +51,6 @@ LOCAL datum *state_stack_collect(state **s) {
   return form;
 }
 
-void prog_append_module_end(prog **begin) {
-  (*begin)->type = PROG_MODULE_END;
-  *begin = prog_make();
-}
-
 routine routine_make(prog *s, state *ctxt) {
   routine res = {.prog_ = s, .state_ = ctxt};
   return res;
@@ -90,12 +85,6 @@ int list_length(datum *seq) {
   for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
   }
   return res;
-}
-
-bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
-  return datum_is_list(d) && list_length(d) == 2 &&
-         datum_is_the_symbol(d->list_head, val1) &&
-         datum_is_the_symbol(d->list_tail->list_head, val2);
 }
 
 void switch_context(routine *c, routine b, datum *v) {
@@ -1048,4 +1037,9 @@ state *state_make_builtins() {
   namespace_def_extern_fn(&ns, "+", builtin_add, 2);
 
   return ns;
+}
+
+bool datum_is_constant(datum *d) {
+  return (datum_is_integer(d) || datum_is_bytestring(d) ||
+          (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }

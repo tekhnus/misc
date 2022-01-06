@@ -2,14 +2,14 @@
 #undef INTERFACE
 typedef struct datum datum;
 datum *datum_make_symbol(char *name);
-#define bool _Bool
-bool datum_is_integer(datum *e);
 typedef struct state state;
 state *state_make_builtins();
+#define LOCAL static
 typedef struct prog prog;
-void prog_append_call(prog **begin,bool hat);
-void prog_append_collect(prog **begin);
-void prog_append_args(prog **begin);
+#define bool _Bool
+LOCAL void prog_append_call(prog **begin,bool hat);
+LOCAL void prog_append_collect(prog **begin);
+LOCAL void prog_append_args(prog **begin);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdbool.h>
@@ -20,28 +20,28 @@ struct fdatum {
   struct datum *ok_value;
   char *panic_message;
 };
-char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-void prog_append_yield(prog **begin,bool hat);
-void prog_append_return(prog **begin,bool hat);
-bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
-char *prog_append_require(prog **begin,datum *src,fdatum(*module_source)(char *module));
+LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+LOCAL void prog_append_yield(prog **begin,bool hat);
+LOCAL void prog_append_return(prog **begin,bool hat);
+LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
+LOCAL char *prog_append_require(prog **begin,datum *src,fdatum(*module_source)(char *module));
 bool fdatum_is_panic(fdatum result);
 bool datum_is_bytestring(datum *e);
-void prog_append_put_routine(prog **begin,datum *val);
-void prog_append_pop_prog(prog **begin,datum *var);
+LOCAL void prog_append_put_routine(prog **begin,datum *val);
+LOCAL void prog_append_pop_prog(prog **begin,datum *var);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
-char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
-void prog_append_pop(prog **begin,datum *var);
+LOCAL char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
+LOCAL void prog_append_pop(prog **begin,datum *var);
 datum *datum_make_void();
-void prog_join(prog *a,prog *b,prog *e);
+LOCAL void prog_join(prog *a,prog *b,prog *e);
 int list_length(datum *seq);
 bool datum_is_the_symbol(datum *d,char *val);
 bool datum_is_list(datum *e);
-void prog_append_put_var(prog **begin,datum *val);
+LOCAL void prog_append_put_var(prog **begin,datum *val);
 bool datum_is_symbol(datum *e);
-void prog_append_put_const(prog **begin,datum *val);
+LOCAL void prog_append_put_const(prog **begin,datum *val);
 bool datum_is_constant(datum *d);
-void prog_append_module_end(prog **begin);
+LOCAL void prog_append_module_end(prog **begin);
 char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
 bool datum_is_nil(datum *e);
 enum datum_type {
