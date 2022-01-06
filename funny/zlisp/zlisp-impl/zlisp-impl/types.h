@@ -9,13 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct read_result read_result_t;
-typedef struct datum datum_t;
-typedef struct fdatum fdatum_t;
-typedef struct fstate fstate_t;
-typedef struct prog prog_t;
-typedef struct state state_t;
-typedef struct routine routine_t;
 typedef struct read_result read_result;
 typedef struct datum datum;
 typedef struct fdatum fdatum;
@@ -50,7 +43,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    routine_t routine_value;
+    routine routine_value;
     struct {
       void *pointer_value;
       datum *pointer_descriptor;
@@ -59,10 +52,10 @@ struct datum {
 };
 
 struct state {
-  datum_t *vars;
-  datum_t *stack;
-  routine_t parent;
-  routine_t hat_parent;
+  datum *vars;
+  datum *stack;
+  routine parent;
+  routine hat_parent;
 };
 
 enum read_result_type {
@@ -75,20 +68,20 @@ enum read_result_type {
 struct read_result {
   enum read_result_type type;
   union {
-    datum_t *ok_value;
+    datum *ok_value;
     char *panic_message;
   };
 };
 
 struct fdatum {
   int type;
-  datum_t *ok_value;
+  datum *ok_value;
   char *panic_message;
 };
 
 struct fstate {
   int type;
-  state_t *ok_value;
+  state *ok_value;
   char *panic_message;
 };
 

@@ -2,12 +2,12 @@
 // so that it can be used from within zlisp itself.
 #include <zlisp-impl/main.h>
 
-fdatum_t read(datum_t *sptr) {
+fdatum read(datum *sptr) {
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||
       strcmp(sptr->pointer_descriptor->symbol_value, "pointer")) {
     return fdatum_make_panic("read expects a pointer argument");
   }
-  read_result_t r = datum_read(*(FILE **)sptr->pointer_value);
+  read_result r = datum_read(*(FILE **)sptr->pointer_value);
   if (read_result_is_eof(r)) {
     return fdatum_make_ok(datum_make_list_1(datum_make_symbol(":eof")));
   }
@@ -18,30 +18,30 @@ fdatum_t read(datum_t *sptr) {
     } else {
       err_message = "unknown read error";
     }
-    datum_t *err = datum_make_list_2(datum_make_symbol(":err"),
+    datum *err = datum_make_list_2(datum_make_symbol(":err"),
                                      datum_make_bytestring(err_message));
     return fdatum_make_ok(err);
   }
-  datum_t *ok = datum_make_list_2(datum_make_symbol(":ok"), r.ok_value);
+  datum *ok = datum_make_list_2(datum_make_symbol(":ok"), r.ok_value);
   return fdatum_make_ok(ok);
 }
 
-fdatum_t eval(datum_t *v, datum_t *nsp) {
-  state_t *ns = *(state_t **)nsp->pointer_value;
+fdatum eval(datum *v, datum *nsp) {
+  state *ns = *(state **)nsp->pointer_value;
   char *err = state_value_eval(&ns, v, NULL);
   if (err != NULL) {
     return fdatum_make_ok(datum_make_list_2(
         datum_make_symbol(":err"), datum_make_bytestring(err)));
   }
-  datum_t *val = state_value_pop(&ns);
+  datum *val = state_value_pop(&ns);
   void **new_nsp = malloc(sizeof(void **));
   *new_nsp = ns;
   return fdatum_make_ok(datum_make_list_3(datum_make_symbol(":ok"), val,
                                        datum_make_pointer_to_pointer(new_nsp)));
 }
 
-fdatum_t builtins() {
-  state_t *builtins = state_make_builtins();
+fdatum builtins() {
+  state *builtins = state_make_builtins();
   void **builtins_p = malloc(sizeof(void **));
   *builtins_p = builtins;
   return fdatum_make_ok(datum_make_list_2(

@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum fdatum_type {
+enum fdatumype {
   FDATUM_OK,
   FDATUM_PANIC,
 };
@@ -23,29 +23,29 @@ enum fstate_type {
   FSTATE_PANIC,
 };
 
-LOCAL bool datum_is_the_symbol(datum_t *d, char *val) {
+LOCAL bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-LOCAL void state_stack_put(state_t **ns, datum_t *value) {
+LOCAL void state_stack_put(state **ns, datum *value) {
   *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack), (*ns)->parent,
                     (*ns)->hat_parent);
 }
 
-LOCAL datum_t *state_stack_pop(state_t **s) {
-  datum_t *res = (*s)->stack->list_head;
+LOCAL datum *state_stack_pop(state **s) {
+  datum *res = (*s)->stack->list_head;
   *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent, (*s)->hat_parent);
   return res;
 }
 
-LOCAL void state_stack_new(state_t **s) {
+LOCAL void state_stack_new(state **s) {
   state_stack_put(s, datum_make_symbol("__function_call"));
 }
 
-LOCAL datum_t *state_stack_collect(state_t **s) {
-  datum_t *form = datum_make_nil();
+LOCAL datum *state_stack_collect(state **s) {
+  datum *form = datum_make_nil();
   for (;;) {
-    datum_t *arg = state_stack_pop(s);
+    datum *arg = state_stack_pop(s);
     if (datum_is_the_symbol(arg, "__function_call")) {
       break;
     }
@@ -54,21 +54,21 @@ LOCAL datum_t *state_stack_collect(state_t **s) {
   return form;
 }
 
-prog_t *prog_make() {
-  prog_t *res = malloc(sizeof(prog_t));
+prog *prog_make() {
+  prog *res = malloc(sizeof(prog));
   res->type = PROG_END;
   return res;
 }
 
-void prog_append_module_end(prog_t **begin) {
+void prog_append_module_end(prog **begin) {
   (*begin)->type = PROG_MODULE_END;
   *begin = prog_make();
 }
 
-char *prog_init_module(prog_t *s, datum_t *source,
-                            fdatum_t (*module_source)(char *module)) {
-  for (datum_t *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    datum_t *stmt = rest->list_head;
+char *prog_init_module(prog *s, datum *source,
+                            fdatum (*module_source)(char *module)) {
+  for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
+    datum *stmt = rest->list_head;
     char *err = prog_append_statement(&s, stmt, module_source);
     if (err != NULL) {
       return err;
@@ -78,33 +78,33 @@ char *prog_init_module(prog_t *s, datum_t *source,
   return NULL;
 }
 
-routine_t routine_make(prog_t *s, state_t *ctxt) {
-  routine_t res = {.prog = s, .state = ctxt};
+routine routine_make(prog *s, state *ctxt) {
+  routine res = {.prog = s, .state = ctxt};
   return res;
 }
 
-routine_t routine_make_null() {
-  routine_t res = {};
+routine routine_make_null() {
+  routine res = {};
   return res;
 }
 
-bool routine_is_null(routine_t r) { return r.prog == NULL && r.state == NULL; }
+bool routine_is_null(routine r) { return r.prog == NULL && r.state == NULL; }
 
-routine_t state_get_parent(state_t *ns, bool hat) {
+routine state_get_parent(state *ns, bool hat) {
   if (hat) {
     return ns->hat_parent;
   }
   return ns->parent;
 }
 
-state_t *state_change_parent(state_t *ns, routine_t new_parent, bool hat) {
+state *state_change_parent(state *ns, routine new_parent, bool hat) {
   if (hat) {
     return state_make(ns->vars, ns->stack, ns->parent, new_parent);
   }
   return state_make(ns->vars, ns->stack, new_parent, ns->hat_parent);
 }
 
-int list_length(datum_t *seq) {
+int list_length(datum *seq) {
   if (!datum_is_list(seq)) {
     return -1;
   }
@@ -114,13 +114,13 @@ int list_length(datum_t *seq) {
   return res;
 }
 
-LOCAL bool datum_is_the_symbol_pair(datum_t *d, char *val1, char *val2) {
+LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
   return datum_is_list(d) && list_length(d) == 2 &&
          datum_is_the_symbol(d->list_head, val1) &&
          datum_is_the_symbol(d->list_tail->list_head, val2);
 }
 
-void prog_join(prog_t *a, prog_t *b, prog_t *e) {
+void prog_join(prog *a, prog *b, prog *e) {
   if (a->type != PROG_END || b->type != PROG_END) {
     fprintf(stderr, "wrong usage\n");
     exit(1);
@@ -131,81 +131,81 @@ void prog_join(prog_t *a, prog_t *b, prog_t *e) {
   b->nop_next = e;
 }
 
-void prog_append_put_const(prog_t **begin, datum_t *val) {
+void prog_append_put_const(prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_CONST;
   (*begin)->put_const_value = val;
   (*begin)->put_const_next = prog_make();
   *begin = (*begin)->put_const_next;
 }
 
-void prog_append_put_routine(prog_t **begin, datum_t *val) {
+void prog_append_put_routine(prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_ROUTINE;
   (*begin)->put_routine_value = val;
   (*begin)->put_routine_next = prog_make();
   *begin = (*begin)->put_routine_next;
 }
 
-void prog_append_put_var(prog_t **begin, datum_t *val) {
+void prog_append_put_var(prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
   (*begin)->put_var_next = prog_make();
   *begin = (*begin)->put_var_next;
 }
 
-void prog_append_args(prog_t **begin) {
+void prog_append_args(prog **begin) {
   (*begin)->type = PROG_ARGS;
   (*begin)->args_next = prog_make();
   *begin = (*begin)->args_next;
 }
 
-void prog_append_call(prog_t **begin, bool hat) {
+void prog_append_call(prog **begin, bool hat) {
   (*begin)->type = PROG_CALL;
   (*begin)->call_hat = hat;
   (*begin)->call_next = prog_make();
   *begin = (*begin)->call_next;
 }
 
-void prog_append_collect(prog_t **begin) {
+void prog_append_collect(prog **begin) {
   (*begin)->type = PROG_COLLECT;
   (*begin)->collect_next = prog_make();
   *begin = (*begin)->collect_next;
 }
 
-void prog_append_pop(prog_t **begin, datum_t *var) {
+void prog_append_pop(prog **begin, datum *var) {
   (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
   (*begin)->pop_next = prog_make();
   *begin = (*begin)->pop_next;
 }
 
-void prog_append_pop_prog(prog_t **begin, datum_t *var) {
+void prog_append_pop_prog(prog **begin, datum *var) {
   (*begin)->type = PROG_POP_PROG;
   (*begin)->pop_prog_var = var;
   (*begin)->pop_prog_next = prog_make();
   *begin = (*begin)->pop_prog_next;
 }
 
-void prog_append_return(prog_t **begin, bool hat) {
+void prog_append_return(prog **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
   *begin = prog_make();
 }
 
-void prog_append_yield(prog_t **begin, bool hat) {
+void prog_append_yield(prog **begin, bool hat) {
   (*begin)->type = PROG_YIELD;
   (*begin)->yield_hat = hat;
   (*begin)->yield_next = prog_make();
   *begin = (*begin)->yield_next;
 }
 
-char *prog_append_require(prog_t **begin, datum_t *src,
-                           fdatum_t (*module_source)(char *module)) {
-  prog_t *pr = prog_make();
+char *prog_append_require(prog **begin, datum *src,
+                           fdatum (*module_source)(char *module)) {
+  prog *pr = prog_make();
   char *err = prog_init_module(pr, src, module_source);
   if (err != NULL) {
     return err;
   }
-  datum_t *r = datum_make_routine(pr, state_make_builtins());
+  datum *r = datum_make_routine(pr, state_make_builtins());
   prog_append_args(begin);
   prog_append_put_const(begin, r);
   prog_append_collect(begin);
@@ -213,8 +213,8 @@ char *prog_append_require(prog_t **begin, datum_t *src,
   return NULL;
 }
 
-char *prog_append_statement(prog_t **begin, datum_t *stmt,
-                   fdatum_t (*module_source)(char *module)) {
+char *prog_append_statement(prog **begin, datum *stmt,
+                   fdatum (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -232,7 +232,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
   if (datum_is_nil(stmt)) {
     return "an empty list is not a statement";
   }
-  datum_t *op = stmt->list_head;
+  datum *op = stmt->list_head;
 
   if (datum_is_the_symbol(op, "if")) {
     if (list_length(stmt->list_tail) != 3) {
@@ -245,7 +245,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
     }
     (*begin)->type = PROG_IF;
 
-    prog_t *true_end = prog_make(), *false_end = prog_make();
+    prog *true_end = prog_make(), *false_end = prog_make();
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
     err = prog_append_statement(&true_end, stmt->list_tail->list_tail->list_head,
@@ -265,10 +265,10 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
   }
   if (datum_is_the_symbol(op, "progn")) {
     prog_append_put_const(begin, datum_make_void());
-    for (datum_t *rest = stmt->list_tail; !datum_is_nil(rest);
+    for (datum *rest = stmt->list_tail; !datum_is_nil(rest);
          rest = rest->list_tail) {
       prog_append_pop(begin, NULL);
-      datum_t *step = rest->list_head;
+      datum *step = rest->list_head;
       char *err = prog_append_statement(begin, step, module_source);
       if (err != NULL) {
         return err;
@@ -300,12 +300,12 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
-    prog_t *s = prog_make();
+    prog *s = prog_make();
     char *err = prog_init_routine(s, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
-    datum_t *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
+    datum *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
     prog_append_put_const(begin, f);
     prog_append_pop_prog(begin, stmt->list_tail->list_head);
     prog_append_put_const(begin, datum_make_void());
@@ -316,12 +316,12 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
       return "fn should have one arg";
     }
 
-    prog_t *s = prog_make();
+    prog *s = prog_make();
     char *err = prog_init_routine(s, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
-    datum_t *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
+    datum *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
     prog_append_put_routine(begin, f);
     return NULL;
   }
@@ -334,7 +334,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
     if (module_source == NULL) {
       return "require was used in a context where it's not supported";
     }
-    fdatum_t pkg_src = module_source(pkg);
+    fdatum pkg_src = module_source(pkg);
     if (fdatum_is_panic(pkg_src)) {
       return pkg_src.panic_message;
     }
@@ -374,7 +374,7 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
                                    module_source);
   }
 
-  datum_t *fn = stmt->list_head;
+  datum *fn = stmt->list_head;
   bool hash = false;
   bool hat = false;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
@@ -394,9 +394,9 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
   if (err != NULL) {
     return err;
   }
-  for (datum_t *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
+  for (datum *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
-    datum_t *arg = rest_args->list_head;
+    datum *arg = rest_args->list_head;
     if (hash) {
       prog_append_put_const(begin, arg);
     } else {
@@ -411,21 +411,21 @@ char *prog_append_statement(prog_t **begin, datum_t *stmt,
   return NULL;
 }
 
-LOCAL bool datum_is_constant(datum_t *d) {
+LOCAL bool datum_is_constant(datum *d) {
   return (datum_is_integer(d) || datum_is_bytestring(d) ||
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
-char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
-                              fdatum_t (*module_source)(char *module)) {
+char *prog_append_backquoted_statement(prog **begin, datum *stmt,
+                              fdatum (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(begin, stmt);
     return NULL;
   }
   prog_append_args(begin);
-  for (datum_t *rest_elems = stmt; !datum_is_nil(rest_elems);
+  for (datum *rest_elems = stmt; !datum_is_nil(rest_elems);
        rest_elems = rest_elems->list_tail) {
-    datum_t *elem = rest_elems->list_head;
+    datum *elem = rest_elems->list_head;
     char *err;
     if (datum_is_list(elem) && list_length(elem) == 2 &&
         datum_is_the_symbol(elem->list_head, "tilde")) {
@@ -441,17 +441,17 @@ char *prog_append_backquoted_statement(prog_t **begin, datum_t *stmt,
   return NULL;
 }
 
-char *prog_init_routine(prog_t *s, datum_t *stmt, fdatum_t (*module_source)(char *module)) {
+char *prog_init_routine(prog *s, datum *stmt, fdatum (*module_source)(char *module)) {
   prog_append_pop(&s, datum_make_symbol("args"));
   return prog_append_statement(&s, stmt, module_source);
 }
 
-void switch_context(routine_t *c, routine_t b, datum_t *v) {
+void switch_context(routine *c, routine b, datum *v) {
   *c = b;
   state_stack_put(&c->state, v);
 }
 
-fstate_t routine_run(routine_t c) {
+fstate routine_run(routine c) {
   for (;;) {
     // printf("%d\n", c.prog->type);
     switch (c.prog->type) {
@@ -465,7 +465,7 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->nop_next;
     } break;
     case PROG_IF: {
-      datum_t *v = state_stack_pop(&c.state);
+      datum *v = state_stack_pop(&c.state);
       if (!datum_is_nil(v)) {
         c.prog = c.prog->if_true;
       } else {
@@ -480,7 +480,7 @@ fstate_t routine_run(routine_t c) {
       if (!datum_is_routine(c.prog->put_routine_value)) {
         return fstate_make_panic("a routine was expected");
       }
-      routine_t r = c.prog->put_routine_value->routine_value;
+      routine r = c.prog->put_routine_value->routine_value;
       if (r.state != NULL) {
         return fstate_make_panic("the routine context was expected to be null");
       }
@@ -490,7 +490,7 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->put_routine_next;
     } break;
     case PROG_PUT_VAR: {
-      fdatum_t er = state_get_var(c.state, c.prog->put_var_value);
+      fdatum er = state_get_var(c.state, c.prog->put_var_value);
       if (fdatum_is_panic(er)) {
         return fstate_make_panic(er.panic_message);
       }
@@ -498,14 +498,14 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->put_var_next;
     } break;
     case PROG_POP: {
-      datum_t *v = state_stack_pop(&c.state);
+      datum *v = state_stack_pop(&c.state);
       if (c.prog->pop_var != NULL) {
         c.state = state_set_var(c.state, c.prog->pop_var, v);
       }
       c.prog = c.prog->pop_next;
     } break;
     case PROG_POP_PROG: {
-      datum_t *v = state_stack_pop(&c.state);
+      datum *v = state_stack_pop(&c.state);
       if (c.prog->pop_prog_var != NULL) {
         c.state = state_set_fn(c.state, c.prog->pop_prog_var, v);
       }
@@ -516,15 +516,15 @@ fstate_t routine_run(routine_t c) {
       c.prog = c.prog->args_next;
     } break;
     case PROG_CALL: {
-      datum_t *form = state_stack_pop(&c.state);
+      datum *form = state_stack_pop(&c.state);
       if (datum_is_nil(form)) {
         return fstate_make_panic("a call instruction with empty form");
       }
-      datum_t *fn = form->list_head;
-      datum_t *args = form->list_tail;
+      datum *fn = form->list_head;
+      datum *args = form->list_tail;
       if (datum_is_routine(fn)) {
         bool hat = c.prog->call_hat;
-        routine_t parent_cont = routine_make(c.prog->call_next, c.state);
+        routine parent_cont = routine_make(c.prog->call_next, c.state);
         switch_context(&c, fn->routine_value, args);
         if (!routine_is_null(state_get_parent(c.state, hat))) {
           return fstate_make_panic(
@@ -543,7 +543,7 @@ fstate_t routine_run(routine_t c) {
         if (c.prog->call_hat) {
           return fstate_make_panic("hat-call makes no sense for native calls");
         }
-        fdatum_t res = pointer_call(fn, args);
+        fdatum res = pointer_call(fn, args);
         if (fdatum_is_panic(res)) {
           return fstate_make_panic(res.panic_message);
         }
@@ -554,13 +554,13 @@ fstate_t routine_run(routine_t c) {
       }
     } break;
     case PROG_COLLECT: {
-      datum_t *form = state_stack_collect(&c.state);
+      datum *form = state_stack_collect(&c.state);
       state_stack_put(&c.state, form);
       c.prog = c.prog->collect_next;
     } break;
     case PROG_RETURN: {
-      routine_t hat_par = c.state->hat_parent;
-      routine_t return_to;
+      routine hat_par = c.state->hat_parent;
+      routine return_to;
       if (c.prog->return_hat) {
         return fstate_make_panic("^return not implemented yet");
       } else {
@@ -569,14 +569,14 @@ fstate_t routine_run(routine_t c) {
       if (routine_is_null(return_to)) {
         return fstate_make_panic("bad return");
       }
-      datum_t *res = state_stack_pop(&c.state);
+      datum *res = state_stack_pop(&c.state);
       switch_context(&c, return_to, res);
       c.state->hat_parent =
           hat_par; /* Because the caller hat parent might be out-of-date.*/
     } break;
     case PROG_YIELD: {
       bool hat;
-      routine_t yield_to;
+      routine yield_to;
       if (c.prog->yield_hat) {
         hat = true;
         yield_to = c.state->hat_parent;
@@ -588,25 +588,25 @@ fstate_t routine_run(routine_t c) {
         return fstate_make_panic("bad yield");
       }
       c.state = state_change_parent(c.state, routine_make_null(), hat);
-      datum_t *res = state_stack_pop(&c.state);
-      datum_t *resume = datum_make_routine(c.prog->yield_next, c.state);
-      datum_t *r = datum_make_list_2(res, resume);
+      datum *res = state_stack_pop(&c.state);
+      datum *resume = datum_make_routine(c.prog->yield_next, c.state);
+      datum *r = datum_make_list_2(res, resume);
       switch_context(&c, yield_to, r);
     } break;
     case PROG_MODULE_END: {
-      state_t *module_state = c.state;
-      routine_t return_to = c.state->parent;
+      state *module_state = c.state;
+      routine return_to = c.state->parent;
       if (routine_is_null(return_to)) {
         return fstate_make_ok(c.state);
       }
       state_stack_pop(&c.state);
       switch_context(&c, return_to, datum_make_void());
 
-      datum_t *imported_bindings = state_list_vars(module_state);
+      datum *imported_bindings = state_list_vars(module_state);
       for (; !datum_is_nil(imported_bindings);
            imported_bindings = imported_bindings->list_tail) {
-        datum_t *sym = imported_bindings->list_head->list_head;
-        datum_t *val = imported_bindings->list_head->list_tail->list_head;
+        datum *sym = imported_bindings->list_head->list_head;
+        datum *val = imported_bindings->list_head->list_tail->list_head;
 
         c.state = state_set_var(c.state, sym, val);
       }
@@ -618,52 +618,52 @@ fstate_t routine_run(routine_t c) {
   }
 }
 
-bool datum_is_nil(datum_t *e) { return e->type == DATUM_NIL; }
+bool datum_is_nil(datum *e) { return e->type == DATUM_NIL; }
 
-bool datum_is_list(datum_t *e) {
+bool datum_is_list(datum *e) {
   return e->type == DATUM_NIL || e->type == DATUM_LIST;
 }
 
-bool datum_is_symbol(datum_t *e) { return e->type == DATUM_SYMBOL; }
+bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
 
-bool datum_is_integer(datum_t *e) { return e->type == DATUM_INTEGER; }
+bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
 
-bool datum_is_bytestring(datum_t *e) { return e->type == DATUM_BYTESTRING; }
+bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
 
-bool datum_is_routine(datum_t *e) { return e->type == DATUM_ROUTINE; }
+bool datum_is_routine(datum *e) { return e->type == DATUM_ROUTINE; }
 
-bool datum_is_pointer(datum_t *e) { return e->type == DATUM_POINTER; }
+bool datum_is_pointer(datum *e) { return e->type == DATUM_POINTER; }
 
-bool datum_is_void(datum_t *e) { return e->type == DATUM_VOID; }
+bool datum_is_void(datum *e) { return e->type == DATUM_VOID; }
 
-datum_t *datum_make_nil() {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_nil() {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_NIL;
   return e;
 }
 
-datum_t *datum_make_list(datum_t *head, datum_t *tail) {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_list(datum *head, datum *tail) {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_LIST;
   e->list_head = head;
   e->list_tail = tail;
   return e;
 }
 
-datum_t *datum_make_list_1(datum_t *head) {
+datum *datum_make_list_1(datum *head) {
   return datum_make_list(head, datum_make_nil());
 }
 
-datum_t *datum_make_list_2(datum_t *head, datum_t *second) {
+datum *datum_make_list_2(datum *head, datum *second) {
   return datum_make_list(head, datum_make_list_1(second));
 }
 
-datum_t *datum_make_list_3(datum_t *head, datum_t *second, datum_t *third) {
+datum *datum_make_list_3(datum *head, datum *second, datum *third) {
   return datum_make_list(head, datum_make_list_2(second, third));
 }
 
-datum_t *datum_make_symbol(char *name) {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_symbol(char *name) {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_SYMBOL;
   size_t length = strlen(name);
   e->symbol_value = malloc((length + 1) * sizeof(char));
@@ -673,8 +673,8 @@ datum_t *datum_make_symbol(char *name) {
   return e;
 }
 
-datum_t *datum_make_bytestring(char *text) {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_bytestring(char *text) {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_BYTESTRING;
   size_t length = strlen(text);
   e->bytestring_value = malloc((length + 1) * sizeof(char));
@@ -684,68 +684,68 @@ datum_t *datum_make_bytestring(char *text) {
   return e;
 }
 
-datum_t *datum_make_int(int64_t value) {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_int(int64_t value) {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_INTEGER;
   e->integer_value = value;
   return e;
 }
 
-datum_t *datum_make_routine(prog_t *s, state_t *lexical_bindings) {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_routine(prog *s, state *lexical_bindings) {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_ROUTINE;
   e->routine_value.prog = s;
   e->routine_value.state = lexical_bindings;
   return e;
 }
 
-datum_t *datum_make_pointer(void *data, datum_t *signature) {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_pointer(void *data, datum *signature) {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_POINTER;
   e->pointer_descriptor = signature;
   e->pointer_value = data;
   return e;
 }
 
-datum_t *datum_make_pointer_to_pointer(void **ptr) {
+datum *datum_make_pointer_to_pointer(void **ptr) {
   return datum_make_pointer(ptr, datum_make_symbol("pointer"));
 }
 
-datum_t *datum_make_void() {
-  datum_t *e = malloc(sizeof(datum_t));
+datum *datum_make_void() {
+  datum *e = malloc(sizeof(datum));
   e->type = DATUM_VOID;
   return e;
 }
 
-bool read_result_is_ok(read_result_t x) { return x.type == READ_RESULT_OK; }
+bool read_result_is_ok(read_result x) { return x.type == READ_RESULT_OK; }
 
-bool read_result_is_panic(read_result_t x) {
+bool read_result_is_panic(read_result x) {
   return x.type == READ_RESULT_PANIC;
 }
 
-bool read_result_is_eof(read_result_t x) { return x.type == READ_RESULT_EOF; }
+bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
 
-bool read_result_is_right_paren(read_result_t x) {
+bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
 }
 
-read_result_t read_result_make_ok(datum_t *e) {
-  read_result_t result = {.type = READ_RESULT_OK, .ok_value = e};
+read_result read_result_make_ok(datum *e) {
+  read_result result = {.type = READ_RESULT_OK, .ok_value = e};
   return result;
 }
 
-read_result_t read_result_make_panic(char *message) {
-  read_result_t result = {.type = READ_RESULT_PANIC, .panic_message = message};
+read_result read_result_make_panic(char *message) {
+  read_result result = {.type = READ_RESULT_PANIC, .panic_message = message};
   return result;
 }
 
-read_result_t read_result_make_eof(void) {
-  read_result_t result = {.type = READ_RESULT_EOF};
+read_result read_result_make_eof(void) {
+  read_result result = {.type = READ_RESULT_EOF};
   return result;
 }
 
-read_result_t read_result_make_right_paren(void) {
-  read_result_t result = {.type = READ_RESULT_RIGHT_PAREN};
+read_result read_result_make_right_paren(void) {
+  read_result result = {.type = READ_RESULT_RIGHT_PAREN};
   return result;
 }
 
@@ -755,7 +755,7 @@ bool is_allowed_inside_symbol(char c) {
   return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' || c == '+';
 }
 
-bool consume_control_sequence(char c, datum_t **form) {
+bool consume_control_sequence(char c, datum **form) {
   if (c == '\'') {
     *form = datum_make_symbol("quote");
     return true;
@@ -783,7 +783,7 @@ bool consume_control_sequence(char c, datum_t **form) {
   return false;
 }
 
-read_result_t datum_read(FILE *strm) {
+read_result datum_read(FILE *strm) {
   char c;
   for (; !feof(strm) && is_whitespace(c = getc(strm));) {
   }
@@ -794,9 +794,9 @@ read_result_t datum_read(FILE *strm) {
     return read_result_make_right_paren();
   }
   if (c == '(') {
-    read_result_t elem;
-    datum_t *list = datum_make_nil();
-    datum_t **end_marker = &list;
+    read_result elem;
+    datum *list = datum_make_nil();
+    datum **end_marker = &list;
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
         *end_marker = datum_make_list_1(elem.ok_value);
@@ -845,7 +845,7 @@ read_result_t datum_read(FILE *strm) {
       ungetc(x, strm);
     }
     nm[i] = '\0';
-    datum_t *sym = datum_make_symbol(nm);
+    datum *sym = datum_make_symbol(nm);
     return read_result_make_ok(sym);
   }
   if (c == '"') {
@@ -866,9 +866,9 @@ read_result_t datum_read(FILE *strm) {
     literal[i] = '\0';
     return read_result_make_ok(datum_make_bytestring(literal));
   }
-  datum_t *form;
+  datum *form;
   if (consume_control_sequence(c, &form)) {
-    read_result_t v = datum_read(strm);
+    read_result v = datum_read(strm);
     if (read_result_is_panic(v)) {
       return v;
     }
@@ -876,7 +876,7 @@ read_result_t datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum_t *res = datum_make_list_1(form);
+    datum *res = datum_make_list_1(form);
     res->list_tail = datum_make_list_1(v.ok_value);
     return read_result_make_ok(res);
   }
@@ -885,14 +885,14 @@ read_result_t datum_read(FILE *strm) {
   return read_result_make_panic(err);
 }
 
-char *datum_repr(datum_t *e) {
+char *datum_repr(datum *e) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (datum_is_integer(e)) {
     sprintf(buf, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     end += sprintf(end, "(");
-    for (datum_t *item = e; !datum_is_nil(item); item = item->list_tail) {
+    for (datum *item = e; !datum_is_nil(item); item = item->list_tail) {
       end += sprintf(end, "%s ", datum_repr(item->list_head));
     }
     end += sprintf(end, ")");
@@ -913,37 +913,37 @@ char *datum_repr(datum_t *e) {
   return buf;
 }
 
-bool fdatum_is_ok(fdatum_t result) { return result.type == FDATUM_OK; }
+bool fdatum_is_ok(fdatum result) { return result.type == FDATUM_OK; }
 
-bool fdatum_is_panic(fdatum_t result) { return result.type == FDATUM_PANIC; }
+bool fdatum_is_panic(fdatum result) { return result.type == FDATUM_PANIC; }
 
-fdatum_t fdatum_make_ok(datum_t *v) {
-  fdatum_t result = {.type = FDATUM_OK, .ok_value = v};
+fdatum fdatum_make_ok(datum *v) {
+  fdatum result = {.type = FDATUM_OK, .ok_value = v};
   return result;
 }
 
-fdatum_t fdatum_make_panic(char *message) {
-  fdatum_t result = {.type = FDATUM_PANIC, .panic_message = message};
+fdatum fdatum_make_panic(char *message) {
+  fdatum result = {.type = FDATUM_PANIC, .panic_message = message};
   return result;
 }
 
-bool fstate_is_ok(fstate_t result) { return result.type == FSTATE_OK; }
+bool fstate_is_ok(fstate result) { return result.type == FSTATE_OK; }
 
-bool fstate_is_panic(fstate_t result) { return result.type == FSTATE_PANIC; }
+bool fstate_is_panic(fstate result) { return result.type == FSTATE_PANIC; }
 
-fstate_t fstate_make_ok(state_t *v) {
-  fstate_t result = {.type = FSTATE_OK, .ok_value = v};
+fstate fstate_make_ok(state *v) {
+  fstate result = {.type = FSTATE_OK, .ok_value = v};
   return result;
 }
 
-fstate_t fstate_make_panic(char *message) {
-  fstate_t result = {.type = FSTATE_PANIC, .panic_message = message};
+fstate fstate_make_panic(char *message) {
+  fstate result = {.type = FSTATE_PANIC, .panic_message = message};
   return result;
 }
 
-state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent,
-                    routine_t hat_parent) {
-  state_t *res = malloc(sizeof(state_t));
+state *state_make(datum *vars, datum *stack, routine parent,
+                    routine hat_parent) {
+  state *res = malloc(sizeof(state));
   res->vars = vars;
   res->stack = stack;
   res->parent = parent;
@@ -951,25 +951,25 @@ state_t *state_make(datum_t *vars, datum_t *stack, routine_t parent,
   return res;
 }
 
-state_t *state_make_fresh() {
-  routine_t zero = routine_make_null();
+state *state_make_fresh() {
+  routine zero = routine_make_null();
   return state_make(datum_make_nil(), datum_make_nil(), zero, zero);
 }
 
-state_t *state_set_var(state_t *ns, datum_t *symbol, datum_t *value) {
-  datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
+state *state_set_var(state *ns, datum *symbol, datum *value) {
+  datum *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
   return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
                     ns->hat_parent);
 }
 
-state_t *state_set_fn(state_t *ns, datum_t *symbol, datum_t *value) {
-  datum_t *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), value);
+state *state_set_fn(state *ns, datum *symbol, datum *value) {
+  datum *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), value);
   return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
                     ns->hat_parent);
 }
 
-datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
-  datum_t *raw_value = cell->list_tail->list_head;
+datum *namespace_cell_get_value(datum *cell, state *ns) {
+  datum *raw_value = cell->list_tail->list_head;
   if (!strcmp(cell->list_head->symbol_value, ":value")) {
     return raw_value;
   } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
@@ -977,7 +977,7 @@ datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
       fprintf(stderr, "namespace implementation error");
       exit(EXIT_FAILURE);
     }
-    state_t *routine_ns = state_make(ns->vars, datum_make_nil(),
+    state *routine_ns = state_make(ns->vars, datum_make_nil(),
                                      routine_make_null(), routine_make_null());
     return datum_make_routine(raw_value->routine_value.prog, routine_ns);
   } else {
@@ -986,11 +986,11 @@ datum_t *namespace_cell_get_value(datum_t *cell, state_t *ns) {
   }
 }
 
-fdatum_t state_get_var(state_t *ns, datum_t *symbol) {
-  for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum_t *entry = cur->list_head;
+fdatum state_get_var(state *ns, datum *symbol) {
+  for (datum *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
+    datum *entry = cur->list_head;
     if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
-      datum_t *cell = entry->list_tail;
+      datum *cell = entry->list_tail;
       return fdatum_make_ok(namespace_cell_get_value(cell, ns));
     }
   }
@@ -999,15 +999,15 @@ fdatum_t state_get_var(state_t *ns, datum_t *symbol) {
   return fdatum_make_panic(msg);
 }
 
-fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,
-                  state_t *ctxt) {
+fdatum list_map(fdatum (*fn)(datum *, state *), datum *items,
+                  state *ctxt) {
   if (!datum_is_list(items)) {
     return fdatum_make_panic("expected a list");
   }
-  datum_t *evaled_items = datum_make_nil();
-  datum_t **tail = &evaled_items;
-  for (datum_t *arg = items; !datum_is_nil(arg); arg = arg->list_tail) {
-    fdatum_t evaled_arg = fn(arg->list_head, ctxt);
+  datum *evaled_items = datum_make_nil();
+  datum **tail = &evaled_items;
+  for (datum *arg = items; !datum_is_nil(arg); arg = arg->list_tail) {
+    fdatum evaled_arg = fn(arg->list_head, ctxt);
     if (fdatum_is_panic(evaled_arg)) {
       return evaled_arg;
     }
@@ -1017,7 +1017,7 @@ fdatum_t list_map(fdatum_t (*fn)(datum_t *, state_t *), datum_t *items,
   return fdatum_make_ok(evaled_items);
 }
 
-bool ffi_type_init(ffi_type **type, datum_t *definition) {
+bool ffi_type_init(ffi_type **type, datum *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
   }
@@ -1058,8 +1058,8 @@ bool ffi_type_init(ffi_type **type, datum_t *definition) {
   return false;
 }
 
-char *pointer_ffi_init_cif(datum_t *f, ffi_cif *cif) {
-  datum_t *sig = f->pointer_descriptor;
+char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
+  datum *sig = f->pointer_descriptor;
   if (!datum_is_list(sig) || datum_is_nil(sig) ||
       datum_is_nil(sig->list_tail) ||
       !datum_is_nil(sig->list_tail->list_tail)) {
@@ -1067,7 +1067,7 @@ char *pointer_ffi_init_cif(datum_t *f, ffi_cif *cif) {
   }
   ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
   int arg_count = 0;
-  datum_t *arg_def;
+  datum *arg_def;
   for (arg_def = f->pointer_descriptor->list_head; !datum_is_nil(arg_def);
        arg_def = arg_def->list_tail) {
     if (!ffi_type_init(arg_types + arg_count, arg_def->list_head)) {
@@ -1087,10 +1087,10 @@ char *pointer_ffi_init_cif(datum_t *f, ffi_cif *cif) {
   return NULL;
 }
 
-char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
+char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
   int arg_cnt = 0;
-  datum_t *arg = args;
-  for (datum_t *argt = f->pointer_descriptor->list_head; !datum_is_nil(argt);
+  datum *arg = args;
+  for (datum *argt = f->pointer_descriptor->list_head; !datum_is_nil(argt);
        argt = argt->list_tail) {
     if (datum_is_nil(arg)) {
       return "too few arguments";
@@ -1106,7 +1106,7 @@ char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
       }
       cargs[arg_cnt] = &arg->list_head->integer_value;
     } else if (!strcmp(argt->list_head->symbol_value, "pointer")) {
-      datum_t *sig;
+      datum *sig;
       if (!datum_is_pointer(arg->list_head) ||
           !datum_is_symbol(sig = arg->list_head->pointer_descriptor) ||
           strcmp(sig->symbol_value, "pointer")) {
@@ -1127,7 +1127,7 @@ char *pointer_ffi_serialize_args(datum_t *f, datum_t *args, void **cargs) {
   return NULL;
 }
 
-fdatum_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
+fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
   void (*fn_ptr)(void) = __extension__(void (*)(void))(f->pointer_value);
   char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
 
@@ -1147,7 +1147,7 @@ fdatum_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
     return fdatum_make_ok(datum_make_int(*(int64_t *)res));
   }
   if (!strcmp(rettype, "val")) {
-    fdatum_t res;
+    fdatum res;
     ffi_call(cif, fn_ptr, &res, cargs);
     if (fdatum_is_panic(res)) {
       return fdatum_make_panic(res.panic_message);
@@ -1157,7 +1157,7 @@ fdatum_t pointer_ffi_call(datum_t *f, ffi_cif *cif, void **cargs) {
   return fdatum_make_panic("unknown return type for extern func");
 }
 
-fdatum_t pointer_call(datum_t *f, datum_t *args) {
+fdatum pointer_call(datum *f, datum *args) {
   ffi_cif cif;
   char *err = NULL;
   err = pointer_ffi_init_cif(f, &cif);
@@ -1172,15 +1172,15 @@ fdatum_t pointer_call(datum_t *f, datum_t *args) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(char *module)) {
-  prog_t *s = prog_make();
-  prog_t *pe = s;
+char* state_value_eval(state **ctxt, datum *v, fdatum (*module_source)(char *module)) {
+  prog *s = prog_make();
+  prog *pe = s;
   char *err = prog_append_statement(&pe, v, module_source);
   if (err != NULL) {
     return err;
   }
-  routine_t c = routine_make(s, *ctxt);
-  fstate_t res = routine_run(c);
+  routine c = routine_make(s, *ctxt);
+  fstate res = routine_run(c);
   if (fstate_is_panic(res)) {
     return res.panic_message;
   }
@@ -1188,15 +1188,15 @@ char* state_value_eval(state_t **ctxt, datum_t *v, fdatum_t (*module_source)(cha
   return NULL;
 }
 
-void state_value_put(state_t **ctxt, datum_t *v) {
+void state_value_put(state **ctxt, datum *v) {
   state_stack_put(ctxt, v);
 }
 
-datum_t *state_value_pop(state_t **ctxt) {
+datum *state_value_pop(state **ctxt) {
   return state_stack_pop(ctxt);
 }
 
-fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
+fdatum builtin_concat_bytestrings(datum *x, datum *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return fdatum_make_panic("expected integers");
   }
@@ -1208,50 +1208,50 @@ fdatum_t builtin_concat_bytestrings(datum_t *x, datum_t *y) {
   return fdatum_make_ok(datum_make_bytestring(buf));
 }
 
-fdatum_t builtin_add(datum_t *x, datum_t *y) {
+fdatum builtin_add(datum *x, datum *y) {
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
     return fdatum_make_panic("expected integers");
   }
   return fdatum_make_ok(datum_make_int(x->integer_value + y->integer_value));
 }
 
-fdatum_t builtin_cons(datum_t *head, datum_t *tail) {
+fdatum builtin_cons(datum *head, datum *tail) {
   if (!datum_is_list(tail)) {
     return fdatum_make_panic("cons requires a list as a second argument");
   }
   return fdatum_make_ok(datum_make_list(head, tail));
 }
 
-fdatum_t builtin_head(datum_t *list) {
+fdatum builtin_head(datum *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("car expects a nonempty list");
   }
   return fdatum_make_ok(list->list_head);
 }
 
-fdatum_t builtin_tail(datum_t *list) {
+fdatum builtin_tail(datum *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("cdr expects a nonempty list");
   }
   return fdatum_make_ok(list->list_tail);
 }
 
-datum_t *state_list_vars(state_t *ns) {
-  datum_t *result = datum_make_nil();
-  datum_t **nil = &result;
-  for (datum_t *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum_t *entry = cur->list_head;
-    datum_t *key = entry->list_head;
-    datum_t *cell = entry->list_tail;
-    datum_t *val = namespace_cell_get_value(cell, ns);
-    datum_t *keyval = datum_make_list_2(key, val);
+datum *state_list_vars(state *ns) {
+  datum *result = datum_make_nil();
+  datum **nil = &result;
+  for (datum *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
+    datum *entry = cur->list_head;
+    datum *key = entry->list_head;
+    datum *cell = entry->list_tail;
+    datum *val = namespace_cell_get_value(cell, ns);
+    datum *keyval = datum_make_list_2(key, val);
     *nil = datum_make_list_1(keyval);
     nil = &((*nil)->list_tail);
   }
   return result;
 }
 
-fdatum_t builtin_shared_library(datum_t *library_name) {
+fdatum builtin_shared_library(datum *library_name) {
   if (!datum_is_bytestring(library_name)) {
     return fdatum_make_panic("load-shared-library expects a bytestring");
   }
@@ -1266,8 +1266,8 @@ fdatum_t builtin_shared_library(datum_t *library_name) {
       datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
 }
 
-fdatum_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
-                                datum_t *descriptor) {
+fdatum builtin_extern_pointer(datum *shared_library, datum *name,
+                                datum *descriptor) {
   if (!datum_is_pointer(shared_library) ||
       !datum_is_symbol(shared_library->pointer_descriptor) ||
       strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
@@ -1287,11 +1287,11 @@ fdatum_t builtin_extern_pointer(datum_t *shared_library, datum_t *name,
       datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
 }
 
-fdatum_t builtin_repr(datum_t *v) {
+fdatum builtin_repr(datum *v) {
   return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
 }
 
-bool datum_eq(datum_t *x, datum_t *y) {
+bool datum_eq(datum *x, datum *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
       return true;
@@ -1323,16 +1323,16 @@ bool datum_eq(datum_t *x, datum_t *y) {
   return false;
 }
 
-fdatum_t builtin_eq(datum_t *x, datum_t *y) {
-  datum_t *t = datum_make_list_1(datum_make_nil());
-  datum_t *f = datum_make_nil();
+fdatum builtin_eq(datum *x, datum *y) {
+  datum *t = datum_make_list_1(datum_make_nil());
+  datum *f = datum_make_nil();
   if (datum_eq(x, y)) {
     return fdatum_make_ok(t);
   }
   return fdatum_make_ok(f);
 }
 
-fdatum_t builtin_annotate(datum_t *arg_value) {
+fdatum builtin_annotate(datum *arg_value) {
   char *type;
   if (datum_is_list(arg_value)) {
     type = ":list";
@@ -1352,34 +1352,34 @@ fdatum_t builtin_annotate(datum_t *arg_value) {
   return fdatum_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
 }
 
-fdatum_t builtin_is_constant(datum_t *arg_value) {
+fdatum builtin_is_constant(datum *arg_value) {
   if (datum_is_constant(arg_value)) {
     return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
   return fdatum_make_ok(datum_make_nil());
 }
 
-fdatum_t builtin_panic(datum_t *arg_value) {
+fdatum builtin_panic(datum *arg_value) {
   if (!datum_is_bytestring(arg_value)) {
     return fdatum_make_panic("panic expects a bytestring");
   }
   return fdatum_make_panic(arg_value->bytestring_value);
 }
 
-void namespace_def_extern_fn(state_t **ctxt, char *name, fdatum_t (*fn)(),
+void namespace_def_extern_fn(state **ctxt, char *name, fdatum (*fn)(),
                              int cnt) {
-  datum_t *sig = datum_make_nil();
+  datum *sig = datum_make_nil();
   for (int i = 0; i < cnt; ++i) {
     sig = datum_make_list(datum_make_symbol("datum"), sig);
   }
-  datum_t *wrapped_fn =
+  datum *wrapped_fn =
       datum_make_pointer(__extension__(void *) fn,
                          datum_make_list_2(sig, datum_make_symbol("val")));
   *ctxt = state_set_var(*ctxt, datum_make_symbol(name), wrapped_fn);
 }
 
-state_t *state_make_builtins() {
-  state_t *ns = state_make_fresh();
+state *state_make_builtins() {
+  state *ns = state_make_fresh();
 
   namespace_def_extern_fn(&ns, "panic", builtin_panic, 1);
   namespace_def_extern_fn(&ns, "shared-library", builtin_shared_library, 1);
