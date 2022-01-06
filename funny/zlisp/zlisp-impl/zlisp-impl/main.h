@@ -1,6 +1,7 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 typedef struct state state;
+state *state_make_builtins();
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdbool.h>
@@ -14,6 +15,8 @@ struct fdatum {
 };
 void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
 fdatum builtin_panic(datum *arg_value);
+#define bool _Bool
+bool datum_is_constant(datum *d);
 fdatum builtin_is_constant(datum *arg_value);
 fdatum builtin_annotate(datum *arg_value);
 fdatum builtin_eq(datum *x,datum *y);
@@ -28,6 +31,8 @@ fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_concat_bytestrings(datum *x,datum *y);
 datum *state_value_pop(state **ctxt);
 void state_value_put(state **ctxt,datum *v);
+typedef struct prog prog;
+char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
 char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
@@ -82,6 +87,8 @@ datum *datum_make_bytestring(char *text);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_1(datum *head);
 bool datum_is_void(datum *e);
+bool datum_is_bytestring(datum *e);
+bool datum_is_integer(datum *e);
 datum *state_list_vars(state *ns);
 datum *datum_make_void();
 datum *datum_make_list_2(datum *head,datum *second);
@@ -91,38 +98,17 @@ state *state_set_fn(state *ns,datum *symbol,datum *value);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 bool fdatum_is_panic(fdatum result);
 fdatum state_get_var(state *ns,datum *symbol);
+datum *datum_make_routine(prog *s,state *lexical_bindings);
 bool datum_is_routine(datum *e);
 fstate fstate_make_ok(state *v);
 fstate fstate_make_panic(char *message);
 typedef struct routine routine;
-typedef struct prog prog;
 struct routine {
   struct prog *prog_;
   struct state *state_;
 };
 fstate routine_run(routine c);
 void switch_context(routine *c,routine b,datum *v);
-char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
-char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
-bool datum_is_bytestring(datum *e);
-bool datum_is_integer(datum *e);
-bool datum_is_constant(datum *d);
-void prog_append_call(prog **begin,int hat);
-state *state_make_builtins();
-datum *datum_make_routine(prog *s,state *lexical_bindings);
-char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
-char *prog_append_require(prog **begin,datum *src,fdatum(*module_source)(char *module));
-void prog_append_yield(prog **begin,bool hat);
-void prog_append_return(prog **begin,bool hat);
-void prog_append_pop_prog(prog **begin,datum *var);
-void prog_append_pop(prog **begin,datum *var);
-void prog_append_collect(prog **begin);
-void prog_append_args(prog **begin);
-void prog_append_put_var(prog **begin,datum *val);
-void prog_append_put_routine(prog **begin,datum *val);
-void prog_append_put_const(prog **begin,datum *val);
-void prog_join(prog *a,prog *b,prog *e);
 bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);

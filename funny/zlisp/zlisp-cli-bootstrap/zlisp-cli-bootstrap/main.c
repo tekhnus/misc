@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/main.h>
+#include <zlisp-impl/zlisp-impl.h>
 
 static fdatum module_source(char *module);
 static fdatum file_source(char *file);

@@ -1,6 +1,6 @@
 // a small library which wraps zlisp interpreter implementation
 // so that it can be used from within zlisp itself.
-#include <zlisp-impl/main.h>
+#include <zlisp-impl/zlisp-impl.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -1,10 +1,15 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
+typedef struct datum datum;
+datum *datum_make_symbol(char *name);
+#define bool _Bool
+bool datum_is_integer(datum *e);
+typedef struct state state;
+state *state_make_builtins();
 typedef struct prog prog;
-void prog_append_call(prog **begin,int hat);
+void prog_append_call(prog **begin,bool hat);
 void prog_append_collect(prog **begin);
 void prog_append_args(prog **begin);
-typedef struct datum datum;
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdbool.h>
@@ -24,7 +29,6 @@ bool fdatum_is_panic(fdatum result);
 bool datum_is_bytestring(datum *e);
 void prog_append_put_routine(prog **begin,datum *val);
 void prog_append_pop_prog(prog **begin,datum *var);
-typedef struct state state;
 datum *datum_make_routine(prog *s,state *lexical_bindings);
 char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
 void prog_append_pop(prog **begin,datum *var);
@@ -135,6 +139,7 @@ struct prog {
     };
   };
 };
+#define INTERFACE 0
 struct state {
   struct datum *vars;
   struct datum *stack;
