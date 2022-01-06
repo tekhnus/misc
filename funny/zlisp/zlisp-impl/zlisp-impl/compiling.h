@@ -42,7 +42,7 @@ bool datum_is_symbol(datum *e);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 bool datum_is_constant(datum *d);
 LOCAL void prog_append_module_end(prog **begin);
-char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+LOCAL char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
 bool datum_is_nil(datum *e);
 enum datum_type {
   DATUM_NIL,

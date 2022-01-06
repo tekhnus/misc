@@ -815,8 +815,7 @@ fdatum pointer_call(datum *f, datum *args) {
 
 char* state_value_eval(state **ctxt, datum *v, fdatum (*module_source)(char *module)) {
   prog *s = prog_make();
-  prog *pe = s;
-  char *err = prog_append_statement(&pe, v, module_source);
+  char *err = prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
   if (err != NULL) {
     return err;
   }

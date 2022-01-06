@@ -26,7 +26,7 @@ char *prog_init_module(prog *s, datum *source,
   return NULL;
 }
 
-char *prog_append_statement(prog **begin, datum *stmt,
+LOCAL char *prog_append_statement(prog **begin, datum *stmt,
                    fdatum (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";

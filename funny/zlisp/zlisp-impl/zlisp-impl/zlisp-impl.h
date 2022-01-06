@@ -122,7 +122,6 @@ state *state_make_builtins();
 bool datum_is_constant(datum *d);
 prog *prog_make();
 char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
-char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

@@ -32,7 +32,7 @@ fdatum builtin_concat_bytestrings(datum *x,datum *y);
 datum *state_value_pop(state **ctxt);
 void state_value_put(state **ctxt,datum *v);
 typedef struct prog prog;
-char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
 prog *prog_make();
 char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
