@@ -155,8 +155,8 @@ struct prog {
   };
 };
 struct routine {
-  prog *prog;
-  state *state;
+  prog *prog_;
+  state *state_;
 };
 struct state {
   datum *vars;

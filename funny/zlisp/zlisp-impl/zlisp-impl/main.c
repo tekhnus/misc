@@ -213,7 +213,7 @@ char *prog_init_module(prog *s, datum *source,
 }
 
 routine routine_make(prog *s, state *ctxt) {
-  routine res = {.prog = s, .state = ctxt};
+  routine res = {.prog_ = s, .state_ = ctxt};
   return res;
 }
 
@@ -222,7 +222,7 @@ routine routine_make_null() {
   return res;
 }
 
-bool routine_is_null(routine r) { return r.prog == NULL && r.state == NULL; }
+bool routine_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
 
 routine state_get_parent(state *ns, bool hat) {
   if (hat) {
@@ -582,158 +582,158 @@ char *prog_init_routine(prog *s, datum *stmt, fdatum (*module_source)(char *modu
 
 void switch_context(routine *c, routine b, datum *v) {
   *c = b;
-  state_stack_put(&c->state, v);
+  state_stack_put(&c->state_, v);
 }
 
 fstate routine_run(routine c) {
   for (;;) {
     // printf("%d\n", c.prog->type);
-    switch (c.prog->type) {
+    switch (c.prog_->type) {
     case PROG_END: {
-      if (!routine_is_null(c.state->parent)) {
+      if (!routine_is_null(c.state_->parent)) {
         return fstate_make_panic("reached the end state in a subroutine");
       }
-      return fstate_make_ok(c.state);
+      return fstate_make_ok(c.state_);
     } break;
     case PROG_NOP: {
-      c.prog = c.prog->nop_next;
+      c.prog_ = c.prog_->nop_next;
     } break;
     case PROG_IF: {
-      datum *v = state_stack_pop(&c.state);
+      datum *v = state_stack_pop(&c.state_);
       if (!datum_is_nil(v)) {
-        c.prog = c.prog->if_true;
+        c.prog_ = c.prog_->if_true;
       } else {
-        c.prog = c.prog->if_false;
+        c.prog_ = c.prog_->if_false;
       }
     } break;
     case PROG_PUT_CONST: {
-      state_stack_put(&c.state, c.prog->put_const_value);
-      c.prog = c.prog->put_const_next;
+      state_stack_put(&c.state_, c.prog_->put_const_value);
+      c.prog_ = c.prog_->put_const_next;
     } break;
     case PROG_PUT_ROUTINE: {
-      if (!datum_is_routine(c.prog->put_routine_value)) {
+      if (!datum_is_routine(c.prog_->put_routine_value)) {
         return fstate_make_panic("a routine was expected");
       }
-      routine r = c.prog->put_routine_value->routine_value;
-      if (r.state != NULL) {
+      routine r = c.prog_->put_routine_value->routine_value;
+      if (r.state_ != NULL) {
         return fstate_make_panic("the routine context was expected to be null");
       }
-      r.state = state_make(c.state->vars, datum_make_nil(),
+      r.state_ = state_make(c.state_->vars, datum_make_nil(),
                        routine_make_null(), routine_make_null());
-      state_stack_put(&c.state, datum_make_routine(r.prog, r.state));
-      c.prog = c.prog->put_routine_next;
+      state_stack_put(&c.state_, datum_make_routine(r.prog_, r.state_));
+      c.prog_ = c.prog_->put_routine_next;
     } break;
     case PROG_PUT_VAR: {
-      fdatum er = state_get_var(c.state, c.prog->put_var_value);
+      fdatum er = state_get_var(c.state_, c.prog_->put_var_value);
       if (fdatum_is_panic(er)) {
         return fstate_make_panic(er.panic_message);
       }
-      state_stack_put(&c.state, er.ok_value);
-      c.prog = c.prog->put_var_next;
+      state_stack_put(&c.state_, er.ok_value);
+      c.prog_ = c.prog_->put_var_next;
     } break;
     case PROG_POP: {
-      datum *v = state_stack_pop(&c.state);
-      if (c.prog->pop_var != NULL) {
-        c.state = state_set_var(c.state, c.prog->pop_var, v);
+      datum *v = state_stack_pop(&c.state_);
+      if (c.prog_->pop_var != NULL) {
+        c.state_ = state_set_var(c.state_, c.prog_->pop_var, v);
       }
-      c.prog = c.prog->pop_next;
+      c.prog_ = c.prog_->pop_next;
     } break;
     case PROG_POP_PROG: {
-      datum *v = state_stack_pop(&c.state);
-      if (c.prog->pop_prog_var != NULL) {
-        c.state = state_set_fn(c.state, c.prog->pop_prog_var, v);
+      datum *v = state_stack_pop(&c.state_);
+      if (c.prog_->pop_prog_var != NULL) {
+        c.state_ = state_set_fn(c.state_, c.prog_->pop_prog_var, v);
       }
-      c.prog = c.prog->pop_prog_next;
+      c.prog_ = c.prog_->pop_prog_next;
     } break;
     case PROG_ARGS: {
-      state_stack_new(&c.state);
-      c.prog = c.prog->args_next;
+      state_stack_new(&c.state_);
+      c.prog_ = c.prog_->args_next;
     } break;
     case PROG_CALL: {
-      datum *form = state_stack_pop(&c.state);
+      datum *form = state_stack_pop(&c.state_);
       if (datum_is_nil(form)) {
         return fstate_make_panic("a call instruction with empty form");
       }
       datum *fn = form->list_head;
       datum *args = form->list_tail;
       if (datum_is_routine(fn)) {
-        bool hat = c.prog->call_hat;
-        routine parent_cont = routine_make(c.prog->call_next, c.state);
+        bool hat = c.prog_->call_hat;
+        routine parent_cont = routine_make(c.prog_->call_next, c.state_);
         switch_context(&c, fn->routine_value, args);
-        if (!routine_is_null(state_get_parent(c.state, hat))) {
+        if (!routine_is_null(state_get_parent(c.state_, hat))) {
           return fstate_make_panic(
               "attempt to call routine with existing parent");
         }
-        c.state = state_change_parent(c.state, parent_cont, hat);
+        c.state_ = state_change_parent(c.state_, parent_cont, hat);
         if (!hat) {
-          if (!routine_is_null(state_get_parent(c.state, true))) {
+          if (!routine_is_null(state_get_parent(c.state_, true))) {
             return fstate_make_panic(
                 "attempt to call routine with existing hat-parent");
           }
-          c.state = state_change_parent(
-              c.state, parent_cont.state->hat_parent, true);
+          c.state_ = state_change_parent(
+              c.state_, parent_cont.state_->hat_parent, true);
         }
       } else if (datum_is_pointer(fn)) {
-        if (c.prog->call_hat) {
+        if (c.prog_->call_hat) {
           return fstate_make_panic("hat-call makes no sense for native calls");
         }
         fdatum res = pointer_call(fn, args);
         if (fdatum_is_panic(res)) {
           return fstate_make_panic(res.panic_message);
         }
-        state_stack_put(&c.state, res.ok_value);
-        c.prog = c.prog->call_next;
+        state_stack_put(&c.state_, res.ok_value);
+        c.prog_ = c.prog_->call_next;
       } else {
         return fstate_make_panic("non-callable datum");
       }
     } break;
     case PROG_COLLECT: {
-      datum *form = state_stack_collect(&c.state);
-      state_stack_put(&c.state, form);
-      c.prog = c.prog->collect_next;
+      datum *form = state_stack_collect(&c.state_);
+      state_stack_put(&c.state_, form);
+      c.prog_ = c.prog_->collect_next;
     } break;
     case PROG_RETURN: {
-      routine hat_par = c.state->hat_parent;
+      routine hat_par = c.state_->hat_parent;
       routine return_to;
-      if (c.prog->return_hat) {
+      if (c.prog_->return_hat) {
         return fstate_make_panic("^return not implemented yet");
       } else {
-        return_to = c.state->parent;
+        return_to = c.state_->parent;
       }
       if (routine_is_null(return_to)) {
         return fstate_make_panic("bad return");
       }
-      datum *res = state_stack_pop(&c.state);
+      datum *res = state_stack_pop(&c.state_);
       switch_context(&c, return_to, res);
-      c.state->hat_parent =
+      c.state_->hat_parent =
           hat_par; /* Because the caller hat parent might be out-of-date.*/
     } break;
     case PROG_YIELD: {
       bool hat;
       routine yield_to;
-      if (c.prog->yield_hat) {
+      if (c.prog_->yield_hat) {
         hat = true;
-        yield_to = c.state->hat_parent;
+        yield_to = c.state_->hat_parent;
       } else {
         hat = false;
-        yield_to = c.state->parent;
+        yield_to = c.state_->parent;
       }
       if (routine_is_null(yield_to)) {
         return fstate_make_panic("bad yield");
       }
-      c.state = state_change_parent(c.state, routine_make_null(), hat);
-      datum *res = state_stack_pop(&c.state);
-      datum *resume = datum_make_routine(c.prog->yield_next, c.state);
+      c.state_ = state_change_parent(c.state_, routine_make_null(), hat);
+      datum *res = state_stack_pop(&c.state_);
+      datum *resume = datum_make_routine(c.prog_->yield_next, c.state_);
       datum *r = datum_make_list_2(res, resume);
       switch_context(&c, yield_to, r);
     } break;
     case PROG_MODULE_END: {
-      state *module_state = c.state;
-      routine return_to = c.state->parent;
+      state *module_state = c.state_;
+      routine return_to = c.state_->parent;
       if (routine_is_null(return_to)) {
-        return fstate_make_ok(c.state);
+        return fstate_make_ok(c.state_);
       }
-      state_stack_pop(&c.state);
+      state_stack_pop(&c.state_);
       switch_context(&c, return_to, datum_make_void());
 
       datum *imported_bindings = state_list_vars(module_state);
@@ -742,7 +742,7 @@ fstate routine_run(routine c) {
         datum *sym = imported_bindings->list_head->list_head;
         datum *val = imported_bindings->list_head->list_tail->list_head;
 
-        c.state = state_set_var(c.state, sym, val);
+        c.state_ = state_set_var(c.state_, sym, val);
       }
     } break;
     default: {
@@ -828,8 +828,8 @@ datum *datum_make_int(int64_t value) {
 datum *datum_make_routine(prog *s, state *lexical_bindings) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_ROUTINE;
-  e->routine_value.prog = s;
-  e->routine_value.state = lexical_bindings;
+  e->routine_value.prog_ = s;
+  e->routine_value.state_ = lexical_bindings;
   return e;
 }
 
@@ -1113,7 +1113,7 @@ datum *namespace_cell_get_value(datum *cell, state *ns) {
     }
     state *routine_ns = state_make(ns->vars, datum_make_nil(),
                                      routine_make_null(), routine_make_null());
-    return datum_make_routine(raw_value->routine_value.prog, routine_ns);
+    return datum_make_routine(raw_value->routine_value.prog_, routine_ns);
   } else {
     fprintf(stderr, "namespace implementation error");
     exit(EXIT_FAILURE);
