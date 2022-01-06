@@ -94,75 +94,9 @@ fstate fstate_make_ok(state *v);
 fstate fstate_make_panic(char *message);
 typedef struct routine routine;
 typedef struct prog prog;
-enum prog_type {
-  PROG_END,
-  PROG_IF,
-  PROG_NOP,
-  PROG_PUT_CONST,
-  PROG_PUT_ROUTINE,
-  PROG_PUT_VAR,
-  PROG_ARGS,
-  PROG_CALL,
-  PROG_COLLECT,
-  PROG_POP,
-  PROG_POP_PROG,
-  PROG_RETURN,
-  PROG_YIELD,
-  PROG_MODULE_END,
-};
-typedef enum prog_type prog_type;
-struct prog {
-  enum prog_type type;
-  union {
-    struct {
-      prog *if_true;
-      prog *if_false;
-    };
-    struct {
-      prog *nop_next;
-    };
-    struct {
-      datum *put_const_value;
-      prog *put_const_next;
-    };
-    struct {
-      datum *put_routine_value;
-      prog *put_routine_next;
-    };
-    struct {
-      datum *put_var_value;
-      prog *put_var_next;
-    };
-    struct prog *args_next;
-    struct {
-      bool call_hat;
-      prog *call_next;
-    };
-    struct prog *collect_next;
-    struct {
-      datum *pop_var;
-      prog *pop_next;
-    };
-    struct {
-      datum *pop_prog_var;
-      prog *pop_prog_next;
-    };
-    bool return_hat;
-    struct {
-      bool yield_hat;
-      prog *yield_next;
-    };
-  };
-};
 struct routine {
   prog *prog_;
   state *state_;
-};
-struct state {
-  datum *vars;
-  datum *stack;
-  routine parent;
-  routine hat_parent;
 };
 fstate routine_run(routine c);
 void switch_context(routine *c,routine b,datum *v);
@@ -211,6 +145,23 @@ state *state_make(datum *vars,datum *stack,routine parent,routine hat_parent);
 LOCAL void state_stack_put(state **ns,datum *value);
 bool datum_is_symbol(datum *e);
 LOCAL bool datum_is_the_symbol(datum *d,char *val);
+enum prog_type {
+  PROG_END,
+  PROG_IF,
+  PROG_NOP,
+  PROG_PUT_CONST,
+  PROG_PUT_ROUTINE,
+  PROG_PUT_VAR,
+  PROG_ARGS,
+  PROG_CALL,
+  PROG_COLLECT,
+  PROG_POP,
+  PROG_POP_PROG,
+  PROG_RETURN,
+  PROG_YIELD,
+  PROG_MODULE_END,
+};
+typedef enum prog_type prog_type;
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
@@ -236,6 +187,55 @@ struct datum {
     struct {
       void *pointer_value;
       datum *pointer_descriptor;
+    };
+  };
+};
+struct state {
+  datum *vars;
+  datum *stack;
+  routine parent;
+  routine hat_parent;
+};
+struct prog {
+  enum prog_type type;
+  union {
+    struct {
+      prog *if_true;
+      prog *if_false;
+    };
+    struct {
+      prog *nop_next;
+    };
+    struct {
+      datum *put_const_value;
+      prog *put_const_next;
+    };
+    struct {
+      datum *put_routine_value;
+      prog *put_routine_next;
+    };
+    struct {
+      datum *put_var_value;
+      prog *put_var_next;
+    };
+    struct prog *args_next;
+    struct {
+      bool call_hat;
+      prog *call_next;
+    };
+    struct prog *collect_next;
+    struct {
+      datum *pop_var;
+      prog *pop_next;
+    };
+    struct {
+      datum *pop_prog_var;
+      prog *pop_prog_next;
+    };
+    bool return_hat;
+    struct {
+      bool yield_hat;
+      prog *yield_next;
     };
   };
 };

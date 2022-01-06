@@ -39,8 +39,8 @@ enum datum_type {
 };
 
 struct routine {
-  prog *prog;
-  state *state;
+  prog *prog_;
+  state *state_;
 };
 
 struct datum {
