@@ -14,7 +14,7 @@ prog *prog_make() {
 }
 
 char *prog_init_module(prog *s, datum *source,
-                       prog *(*module_source)(char *)) {
+                       routine (*module_source)(char *)) {
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     char *err = prog_append_statement(&s, stmt, module_source);
@@ -27,7 +27,7 @@ char *prog_init_module(prog *s, datum *source,
 }
 
 LOCAL char *prog_append_statement(prog **begin, datum *stmt,
-                                  prog *(*module_source)(char *)) {
+                                  routine (*module_source)(char *)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -151,8 +151,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (module_source == NULL) {
       return "require was used in a context where it's not supported";
     }
-    prog *pkg_src = module_source(pkg);
-    if (pkg_src == NULL) {
+    routine pkg_src = module_source(pkg);
+    if (routine_is_null(pkg_src)) {
       return "a required module was not provided";
     }
     return prog_append_require(begin, pkg_src);
@@ -331,8 +331,8 @@ LOCAL void prog_append_yield(prog **begin, bool hat) {
   *begin = (*begin)->yield_next;
 }
 
-LOCAL char *prog_append_require(prog **begin, prog *pr) {
-  datum *r = datum_make_routine(pr, state_make_builtins());
+LOCAL char *prog_append_require(prog **begin, routine rt) {
+  datum *r = datum_make_routine(rt.prog_, rt.state_);
   prog_append_args(begin);
   prog_append_put_const(begin, r);
   prog_append_collect(begin);
@@ -342,7 +342,7 @@ LOCAL char *prog_append_require(prog **begin, prog *pr) {
 
 LOCAL char *
 prog_append_backquoted_statement(prog **begin, datum *stmt,
-                                 prog *(*module_source)(char *module)) {
+                                 routine (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(begin, stmt);
     return NULL;
@@ -368,7 +368,7 @@ prog_append_backquoted_statement(prog **begin, datum *stmt,
 }
 
 LOCAL char *prog_init_routine(prog *s, datum *stmt,
-                              prog *(*module_source)(char *)) {
+                              routine (*module_source)(char *)) {
   prog_append_pop(&s, datum_make_symbol("args"));
   return prog_append_statement(&s, stmt, module_source);
 }

@@ -121,9 +121,9 @@ datum *state_stack_collect(state **s);
 routine state_get_parent(state *ns,bool hat);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 prog *prog_make();
-char *prog_init_module(prog *s,datum *source,prog *(*module_source)(char *));
+char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
 fstate routine_run(routine c);
-fdatum state_run_prog(state **ctxt,datum *v,prog *(*module_source)(char *));
+fdatum state_run_prog(state **ctxt,datum *v,routine(*module_source)(char *));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

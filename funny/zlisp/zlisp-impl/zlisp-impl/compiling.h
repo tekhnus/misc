@@ -2,8 +2,6 @@
 #undef INTERFACE
 typedef struct datum datum;
 datum *datum_make_symbol(char *name);
-typedef struct state state;
-state *state_make_builtins();
 #define LOCAL static
 typedef struct prog prog;
 #define bool _Bool
@@ -11,16 +9,27 @@ LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_pointer_call(prog **begin);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
-LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,prog *(*module_source)(char *module));
+typedef struct routine routine;
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <ffi.h>
+typedef struct state state;
+struct routine {
+  struct prog *prog_;
+  struct state *state_;
+};
+LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine(*module_source)(char *module));
 LOCAL void prog_append_yield(prog **begin,bool hat);
 LOCAL void prog_append_return(prog **begin,bool hat);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
-LOCAL char *prog_append_require(prog **begin,prog *pr);
+LOCAL char *prog_append_require(prog **begin,routine rt);
+bool routine_is_null(routine r);
 bool datum_is_bytestring(datum *e);
 LOCAL void prog_append_put_routine(prog **begin,datum *val);
 LOCAL void prog_append_pop_prog(prog **begin,datum *var);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
-LOCAL char *prog_init_routine(prog *s,datum *stmt,prog *(*module_source)(char *));
+LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
 LOCAL void prog_append_pop(prog **begin,datum *var);
 datum *datum_make_void();
 LOCAL void prog_join(prog *a,prog *b,prog *e);
@@ -32,12 +41,8 @@ bool datum_is_symbol(datum *e);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 bool datum_is_constant(datum *d);
 LOCAL void prog_append_module_end(prog **begin);
-LOCAL char *prog_append_statement(prog **begin,datum *stmt,prog *(*module_source)(char *));
+LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine(*module_source)(char *));
 bool datum_is_nil(datum *e);
-#include <inttypes.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <ffi.h>
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
@@ -49,11 +54,6 @@ enum datum_type {
   DATUM_VOID,
 };
 typedef enum datum_type datum_type;
-typedef struct routine routine;
-struct routine {
-  struct prog *prog_;
-  struct state *state_;
-};
 struct datum {
   enum datum_type type;
   union {
@@ -71,7 +71,7 @@ struct datum {
     };
   };
 };
-char *prog_init_module(prog *s,datum *source,prog *(*module_source)(char *));
+char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
 prog *prog_make();
 enum prog_type {
   PROG_END,

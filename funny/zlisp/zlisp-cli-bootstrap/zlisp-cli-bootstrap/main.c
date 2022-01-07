@@ -7,6 +7,7 @@
 static fdatum module_source(char *module);
 static fdatum file_source(char *file);
 static prog *module_prog(char *module);
+static routine module_routine(char *module);
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -26,7 +27,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog *p = prog_make();
-  char *err = prog_init_module(p, src.ok_value, module_prog);
+  char *err = prog_init_module(p, src.ok_value, module_routine);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -42,13 +43,22 @@ int main(int argc, char **argv) {
 
 static fdatum datum_expand(datum *e, state **ctxt);
 
+static routine module_routine(char *module) {
+  routine r = routine_make_null();
+  prog *p = module_prog(module);
+  if (p == NULL) {
+    return routine_make_null();
+  }
+  return routine_make(p, state_make_builtins());
+}
+
 static prog *module_prog(char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
     return NULL;
   }
   prog *p = prog_make();
-  char *err = prog_init_module(p, src.ok_value, module_prog);
+  char *err = prog_init_module(p, src.ok_value, module_routine);
   if (err != NULL) {
     fprintf(stderr, "error in required module: %s\n", err);
     return NULL;
@@ -133,6 +143,6 @@ static fdatum datum_expand(datum *e, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  fdatum res = state_run_prog(ctxt, exp.ok_value, module_prog);
+  fdatum res = state_run_prog(ctxt, exp.ok_value, module_routine);
   return res;
 }
