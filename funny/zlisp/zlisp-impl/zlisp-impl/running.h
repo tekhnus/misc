@@ -48,6 +48,9 @@ struct fstate {
 fstate fstate_make_ok(state *v);
 fstate fstate_make_panic(char *message);
 bool routine_is_null(routine r);
+fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_panic(char *message);
+fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 datum *state_stack_pop(state **s);
 datum *state_value_pop(state **ctxt);
 void state_stack_put(state **ns,datum *value);

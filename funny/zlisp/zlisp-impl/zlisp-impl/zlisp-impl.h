@@ -124,6 +124,7 @@ char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module
 char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 void state_value_put(state **ctxt,datum *v);
 datum *state_value_pop(state **ctxt);
+fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 fstate routine_run(routine c);
 enum datum_type {
   DATUM_NIL,

@@ -30,15 +30,14 @@ fdatum read(datum *sptr) {
 
 fdatum eval(datum *v, datum *nsp) {
   state *ns = *(state **)nsp->pointer_value;
-  char *err = state_value_eval(&ns, v, NULL);
-  if (err != NULL) {
+  fdatum val = state_run_prog(&ns, v, NULL);
+  if (fdatum_is_panic(val)) {
     return fdatum_make_ok(datum_make_list_2(
-        datum_make_symbol(":err"), datum_make_bytestring(err)));
+        datum_make_symbol(":err"), datum_make_bytestring(val.panic_message)));
   }
-  datum *val = state_value_pop(&ns);
   void **new_nsp = malloc(sizeof(void **));
   *new_nsp = ns;
-  return fdatum_make_ok(datum_make_list_3(datum_make_symbol(":ok"), val,
+  return fdatum_make_ok(datum_make_list_3(datum_make_symbol(":ok"), val.ok_value,
                                        datum_make_pointer_to_pointer(new_nsp)));
 }
 

@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-static fstate datum_expand(datum *e, state *ctxt);
+static fdatum datum_expand(datum *e, state **ctxt);
 
 fdatum module_source(char *module) {
   char fname[1024] = {};
@@ -70,19 +70,16 @@ static fdatum file_source(char *fname) {
   datum *res = datum_make_nil();
   datum **resend = &res;
   for (; read_result_is_ok(rr = datum_read(stre));) {
-
-    fstate exp = datum_expand(rr.ok_value, expander_state);
-    if (fstate_is_panic(exp)) {
-      return fdatum_make_panic(exp.panic_message);
+    fdatum val = datum_expand(rr.ok_value, &expander_state);
+    if (fdatum_is_panic(val)) {
+      return val;
     }
-    expander_state = exp.ok_value;
-    datum *val = state_value_pop(&expander_state);
 
-    if (datum_is_void(val)) {
+    if (datum_is_void(val.ok_value)) {
       // to support things like !(def x 42)
       continue;
     }
-    *resend = datum_make_list(val, datum_make_nil());
+    *resend = datum_make_list(val.ok_value, datum_make_nil());
     resend = &((*resend)->list_tail);
   }
   if (read_result_is_panic(rr)) {
@@ -94,10 +91,9 @@ static fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-static fstate datum_expand(datum *e, state *ctxt) {
+static fdatum datum_expand(datum *e, state **ctxt) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
-    state_value_put(&ctxt, e);
-    return fstate_make_ok(ctxt);
+    return fdatum_make_ok(e);
   }
   if (!datum_is_symbol(e->list_head) ||
       strcmp(e->list_head->symbol_value, "bang")) {
@@ -106,30 +102,22 @@ static fstate datum_expand(datum *e, state *ctxt) {
 
     for (datum *rest = e; !datum_is_nil(rest); rest=rest->list_tail) {
       datum *x = rest->list_head;
-      fstate nxt = datum_expand(x, ctxt);
-      if (fstate_is_panic(nxt)) {
+      fdatum nxt = datum_expand(x, ctxt);
+      if (fdatum_is_panic(nxt)) {
         return nxt;
       }
-      ctxt = nxt.ok_value;
-      datum *y = state_value_pop(&ctxt);
-      *end = datum_make_list(y, datum_make_nil());
+      *end = datum_make_list(nxt.ok_value, datum_make_nil());
       end = &((*end)->list_tail);
     }
-    state_value_put(&ctxt, res);
-    return fstate_make_ok(ctxt);
+    return fdatum_make_ok(res);
   }
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
-    return fstate_make_panic("! should be used with a single arg");
+    return fdatum_make_panic("! should be used with a single arg");
   }
-  fstate exp = datum_expand(e->list_tail->list_head, ctxt);
-  if (fstate_is_panic(exp)) {
+  fdatum exp = datum_expand(e->list_tail->list_head, ctxt);
+  if (fdatum_is_panic(exp)) {
     return exp;
   }
-  ctxt = exp.ok_value;
-  datum *preext = state_value_pop(&ctxt);
-  char *err = state_value_eval(&ctxt, preext, module_source);
-  if (err != NULL) {
-    return fstate_make_panic(err);
-  }
-  return fstate_make_ok(ctxt);
+  fdatum res = state_run_prog(ctxt, exp.ok_value, module_source);
+  return res;
 }
