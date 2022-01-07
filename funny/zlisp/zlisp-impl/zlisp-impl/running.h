@@ -25,7 +25,7 @@ bool fstate_is_panic(fstate result);
 fdatum fdatum_make_panic(char *message);
 datum *datum_make_list(datum *head,datum *tail);
 typedef struct prog prog;
-char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
+char *prog_init_module(prog *s,datum *source,prog *(*module_source)(char *));
 prog *prog_make();
 enum prog_type {
   PROG_END,
@@ -89,7 +89,7 @@ struct prog {
     };
   };
 };
-fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
+fdatum state_run_prog(state **ctxt,datum *v,prog *(*module_source)(char *));
 datum *state_list_vars(state *ns);
 datum *datum_make_void();
 typedef struct routine routine;

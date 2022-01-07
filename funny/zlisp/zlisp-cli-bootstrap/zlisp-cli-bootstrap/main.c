@@ -6,6 +6,7 @@
 
 static fdatum module_source(char *module);
 static fdatum file_source(char *file);
+static prog *module_prog(char *module);
 
 int main(int argc, char **argv) {
   if (argc != 2) {
@@ -25,7 +26,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog *p = prog_make();
-  char *err = prog_init_module(p, src.ok_value, module_source);
+  char *err = prog_init_module(p, src.ok_value, module_prog);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -40,6 +41,20 @@ int main(int argc, char **argv) {
 }
 
 static fdatum datum_expand(datum *e, state **ctxt);
+
+static prog *module_prog(char *module) {
+  fdatum src = module_source(module);
+  if (fdatum_is_panic(src)) {
+    return NULL;
+  }
+  prog *p = prog_make();
+  char *err = prog_init_module(p, src.ok_value, module_prog);
+  if (err != NULL) {
+    fprintf(stderr, "error in required module: %s\n", err);
+    return NULL;
+  }
+  return p;
+}
 
 fdatum module_source(char *module) {
   char fname[1024] = {};
@@ -118,6 +133,6 @@ static fdatum datum_expand(datum *e, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  fdatum res = state_run_prog(ctxt, exp.ok_value, module_source);
+  fdatum res = state_run_prog(ctxt, exp.ok_value, module_prog);
   return res;
 }

@@ -25,7 +25,7 @@ struct fdatum {
   struct datum *ok_value;
   char *panic_message;
 };
-fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
+fdatum state_run_prog(state **ctxt,datum *v,prog *(*module_source)(char *));
 state *state_make_builtins();
 void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
 fdatum builtin_panic(datum *arg_value);

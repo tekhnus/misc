@@ -11,27 +11,16 @@ LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_pointer_call(prog **begin);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
-typedef struct fdatum fdatum;
-#include <inttypes.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <ffi.h>
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,prog *(*module_source)(char *module));
 LOCAL void prog_append_yield(prog **begin,bool hat);
 LOCAL void prog_append_return(prog **begin,bool hat);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
-LOCAL char *prog_append_require(prog **begin,datum *src,fdatum(*module_source)(char *module));
-bool fdatum_is_panic(fdatum result);
+LOCAL char *prog_append_require(prog **begin,prog *pr);
 bool datum_is_bytestring(datum *e);
 LOCAL void prog_append_put_routine(prog **begin,datum *val);
 LOCAL void prog_append_pop_prog(prog **begin,datum *var);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
-LOCAL char *prog_init_routine(prog *s,datum *stmt,fdatum(*module_source)(char *module));
+LOCAL char *prog_init_routine(prog *s,datum *stmt,prog *(*module_source)(char *));
 LOCAL void prog_append_pop(prog **begin,datum *var);
 datum *datum_make_void();
 LOCAL void prog_join(prog *a,prog *b,prog *e);
@@ -43,8 +32,12 @@ bool datum_is_symbol(datum *e);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 bool datum_is_constant(datum *d);
 LOCAL void prog_append_module_end(prog **begin);
-LOCAL char *prog_append_statement(prog **begin,datum *stmt,fdatum(*module_source)(char *module));
+LOCAL char *prog_append_statement(prog **begin,datum *stmt,prog *(*module_source)(char *));
 bool datum_is_nil(datum *e);
+#include <inttypes.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <ffi.h>
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
@@ -78,7 +71,7 @@ struct datum {
     };
   };
 };
-char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
+char *prog_init_module(prog *s,datum *source,prog *(*module_source)(char *));
 prog *prog_make();
 enum prog_type {
   PROG_END,

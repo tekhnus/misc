@@ -171,7 +171,7 @@ fstate routine_run(routine c) {
 }
 
 fdatum state_run_prog(state **ctxt, datum *v,
-                      fdatum (*module_source)(char *module)) {
+                      prog *(*module_source)(char *)) {
   prog *s = prog_make();
   char *err =
       prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
