@@ -121,11 +121,8 @@ routine state_get_parent(state *ns,bool hat);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 prog *prog_make();
 char *prog_init_module(prog *s,datum *source,fdatum(*module_source)(char *module));
-char *state_value_eval(state **ctxt,datum *v,fdatum(*module_source)(char *module));
-void state_value_put(state **ctxt,datum *v);
-datum *state_value_pop(state **ctxt);
-fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 fstate routine_run(routine c);
+fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

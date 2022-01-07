@@ -1,41 +1,5 @@
 #include <zlisp-impl/running.h>
 
-char* state_value_eval(state **ctxt, datum *v, fdatum (*module_source)(char *module)) {
-  prog *s = prog_make();
-  char *err = prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
-  if (err != NULL) {
-    return err;
-  }
-  routine c = routine_make(s, *ctxt);
-  fstate res = routine_run(c);
-  if (fstate_is_panic(res)) {
-    return res.panic_message;
-  }
-  *ctxt = res.ok_value;
-  return NULL;
-}
-
-void state_value_put(state **ctxt, datum *v) {
-  state_stack_put(ctxt, v);
-}
-
-datum *state_value_pop(state **ctxt) { return state_stack_pop(ctxt); }
-
-fdatum state_run_prog(state **ctxt, datum *v, fdatum (*module_source)(char *module)) {
-  prog *s = prog_make();
-  char *err = prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
-  routine c = routine_make(s, *ctxt);
-  fstate res = routine_run(c);
-  if (fstate_is_panic(res)) {
-    return fdatum_make_panic(res.panic_message);
-  }
-  *ctxt = res.ok_value;
-  return fdatum_make_ok(state_stack_pop(ctxt));
-}
-
 fstate routine_run(routine c) {
   for (;;) {
     // printf("%d\n", c.prog->type);
@@ -201,6 +165,21 @@ fstate routine_run(routine c) {
     } break;
     }
   }
+}
+
+fdatum state_run_prog(state **ctxt, datum *v, fdatum (*module_source)(char *module)) {
+  prog *s = prog_make();
+  char *err = prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
+  if (err != NULL) {
+    return fdatum_make_panic(err);
+  }
+  routine c = routine_make(s, *ctxt);
+  fstate res = routine_run(c);
+  if (fstate_is_panic(res)) {
+    return fdatum_make_panic(res.panic_message);
+  }
+  *ctxt = res.ok_value;
+  return fdatum_make_ok(state_stack_pop(ctxt));
 }
 
 LOCAL void switch_context(routine *c, routine b, datum *v) {
