@@ -1,5 +1,6 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
+#include <stdint.h>
 typedef struct datum datum;
 datum *datum_make_symbol(char *name);
 #define LOCAL static

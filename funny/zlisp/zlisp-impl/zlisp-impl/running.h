@@ -1,21 +1,51 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
+#include <stdint.h>
+typedef struct datum datum;
+datum *datum_make_int(int64_t value);
+char *datum_repr(datum *e);
+datum *datum_make_pointer(void *data,datum *signature);
+datum *datum_make_pointer_to_pointer(void **ptr);
+datum *datum_make_bytestring(char *text);
+#define bool _Bool
+bool datum_is_constant(datum *d);
+datum *datum_make_symbol(char *name);
+bool datum_is_pointer(datum *e);
+bool datum_is_integer(datum *e);
+bool datum_is_bytestring(datum *e);
+bool datum_is_symbol(datum *e);
+bool datum_eq(datum *x,datum *y);
+datum *datum_make_list_1(datum *head);
 #define LOCAL static
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
-typedef struct datum datum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
-fdatum fdatum_make_ok(datum *v);
-#define bool _Bool
-typedef struct fstate fstate;
+fdatum datum_read_all(FILE *stre);
+LOCAL fdatum builtin_add(datum *x,datum *y);
+LOCAL fdatum builtin_concat_bytestrings(datum *x,datum *y);
+LOCAL fdatum builtin_repr(datum *v);
+LOCAL fdatum builtin_is_constant(datum *arg_value);
+LOCAL fdatum builtin_annotate(datum *arg_value);
+LOCAL fdatum builtin_eq(datum *x,datum *y);
+LOCAL fdatum builtin_tail(datum *list);
+LOCAL fdatum builtin_head(datum *list);
+LOCAL fdatum builtin_cons(datum *head,datum *tail);
+LOCAL fdatum builtin_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
+LOCAL fdatum builtin_shared_library(datum *library_name);
+LOCAL fdatum builtin_panic(datum *arg_value);
 typedef struct state state;
+LOCAL void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
+state *state_make_fresh();
+state *state_make_builtins();
+fdatum fdatum_make_ok(datum *v);
+typedef struct fstate fstate;
 struct fstate {
   int type;
   struct state *ok_value;

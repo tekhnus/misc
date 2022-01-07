@@ -1,3 +1,4 @@
+#include <stdint.h>
 #define bool _Bool
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
@@ -97,22 +98,8 @@ char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 fdatum pointer_call(datum *f,datum *args);
-fdatum builtin_concat_bytestrings(datum *x,datum *y);
-fdatum builtin_add(datum *x,datum *y);
-fdatum builtin_cons(datum *head,datum *tail);
-fdatum builtin_head(datum *list);
-fdatum builtin_tail(datum *list);
 datum *state_list_vars(state *ns);
-fdatum builtin_shared_library(datum *library_name);
-fdatum builtin_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
-fdatum builtin_repr(datum *v);
 bool datum_eq(datum *x,datum *y);
-fdatum builtin_eq(datum *x,datum *y);
-fdatum builtin_annotate(datum *arg_value);
-fdatum builtin_is_constant(datum *arg_value);
-fdatum builtin_panic(datum *arg_value);
-void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
-state *state_make_builtins();
 bool datum_is_constant(datum *d);
 void state_stack_put(state **ns,datum *value);
 datum *state_stack_pop(state **s);
@@ -124,6 +111,7 @@ prog *prog_make();
 char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
 fstate routine_run(routine c);
 fdatum state_run_prog(state **ctxt,datum *v,routine(*module_source)(char *));
+state *state_make_builtins();
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

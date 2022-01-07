@@ -1,5 +1,6 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
+#include <stdint.h>
 typedef struct state state;
 typedef struct routine routine;
 #include <inttypes.h>
@@ -19,30 +20,15 @@ datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
 datum *state_stack_pop(state **s);
 void state_stack_put(state **ns,datum *value);
+bool datum_is_constant(datum *d);
+bool datum_eq(datum *x,datum *y);
+datum *state_list_vars(state *ns);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
-fdatum state_run_prog(state **ctxt,datum *v,routine(*module_source)(char *));
-state *state_make_builtins();
-void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
-fdatum builtin_panic(datum *arg_value);
-bool datum_is_constant(datum *d);
-fdatum builtin_is_constant(datum *arg_value);
-fdatum builtin_annotate(datum *arg_value);
-fdatum builtin_eq(datum *x,datum *y);
-bool datum_eq(datum *x,datum *y);
-fdatum builtin_repr(datum *v);
-fdatum builtin_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
-fdatum builtin_shared_library(datum *library_name);
-datum *state_list_vars(state *ns);
-fdatum builtin_tail(datum *list);
-fdatum builtin_head(datum *list);
-fdatum builtin_cons(datum *head,datum *tail);
-fdatum builtin_add(datum *x,datum *y);
-fdatum builtin_concat_bytestrings(datum *x,datum *y);
 fdatum pointer_call(datum *f,datum *args);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
@@ -219,3 +205,4 @@ struct datum {
   };
 };
 bool datum_is_the_symbol(datum *d,char *val);
+#define INTERFACE 0
