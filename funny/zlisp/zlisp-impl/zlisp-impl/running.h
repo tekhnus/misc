@@ -105,11 +105,9 @@ struct state {
 };
 datum *datum_make_list_2(datum *head,datum *second);
 datum *state_stack_collect(state **s);
+fdatum pointer_call(datum *f,datum *args);
 int list_length(datum *seq);
 bool datum_is_list(datum *e);
-fdatum pointer_call(datum *f,datum *args);
-char *datum_repr(datum *e);
-bool datum_is_pointer(datum *e);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 routine state_get_parent(state *ns,bool hat);
 LOCAL void switch_context(routine *c,routine b,datum *v);

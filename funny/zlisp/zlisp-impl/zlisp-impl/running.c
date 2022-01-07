@@ -71,36 +71,24 @@ fstate routine_run(routine c) {
       }
       datum *fn = form->list_head;
       datum *args = form->list_tail;
-      if (datum_is_routine(fn)) {
-        bool hat = c.prog_->call_hat;
-        routine parent_cont = routine_make(c.prog_->call_next, c.state_);
-        switch_context(&c, fn->routine_value, args);
-        if (!routine_is_null(state_get_parent(c.state_, hat))) {
+      if (!datum_is_routine(fn)) {
+        return fstate_make_panic("tried to call a non-routine");
+      }
+      bool hat = c.prog_->call_hat;
+      routine parent_cont = routine_make(c.prog_->call_next, c.state_);
+      switch_context(&c, fn->routine_value, args);
+      if (!routine_is_null(state_get_parent(c.state_, hat))) {
+        return fstate_make_panic(
+                                 "attempt to call routine with existing parent");
+      }
+      c.state_ = state_change_parent(c.state_, parent_cont, hat);
+      if (!hat) {
+        if (!routine_is_null(state_get_parent(c.state_, true))) {
           return fstate_make_panic(
-              "attempt to call routine with existing parent");
+                                   "attempt to call routine with existing hat-parent");
         }
-        c.state_ = state_change_parent(c.state_, parent_cont, hat);
-        if (!hat) {
-          if (!routine_is_null(state_get_parent(c.state_, true))) {
-            return fstate_make_panic(
-                "attempt to call routine with existing hat-parent");
-          }
-          c.state_ = state_change_parent(
-              c.state_, parent_cont.state_->hat_parent, true);
-        }
-      } else if (datum_is_pointer(fn)) {
-        fprintf(stderr, "warning: pointer call %s\n", datum_repr(fn));
-        if (c.prog_->call_hat) {
-          return fstate_make_panic("hat-call makes no sense for native calls");
-        }
-        fdatum res = pointer_call(fn, args);
-        if (fdatum_is_panic(res)) {
-          return fstate_make_panic(res.panic_message);
-        }
-        state_stack_put(&c.state_, res.ok_value);
-        c.prog_ = c.prog_->call_next;
-      } else {
-        return fstate_make_panic("non-callable datum");
+        c.state_ = state_change_parent(
+                                       c.state_, parent_cont.state_->hat_parent, true);
       }
     } break;
     case PROG_POINTER_CALL: {
