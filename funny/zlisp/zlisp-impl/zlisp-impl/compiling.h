@@ -1,18 +1,17 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 #include <stdint.h>
+#include <stdbool.h>
 typedef struct datum datum;
 datum *datum_make_symbol(char *name);
 #define LOCAL static
 typedef struct prog prog;
-#define bool _Bool
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_pointer_call(prog **begin);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
 typedef struct routine routine;
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
 typedef struct state state;
@@ -136,7 +135,6 @@ struct prog {
     };
   };
 };
-#define INTERFACE 0
 struct state {
   struct datum *vars;
   struct datum *stack;

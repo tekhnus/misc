@@ -1,13 +1,13 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 #include <stdint.h>
+#include <stdbool.h>
 typedef struct datum datum;
 datum *datum_make_int(int64_t value);
 char *datum_repr(datum *e);
 datum *datum_make_pointer(void *data,datum *signature);
 datum *datum_make_pointer_to_pointer(void **ptr);
 datum *datum_make_bytestring(char *text);
-#define bool _Bool
 bool datum_is_constant(datum *d);
 datum *datum_make_symbol(char *name);
 bool datum_is_pointer(datum *e);
@@ -19,7 +19,6 @@ datum *datum_make_list_1(datum *head);
 #define LOCAL static
 typedef struct fdatum fdatum;
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
 struct fdatum {

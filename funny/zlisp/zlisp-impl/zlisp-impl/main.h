@@ -1,10 +1,10 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 #include <stdint.h>
+#include <stdbool.h>
 typedef struct state state;
 typedef struct routine routine;
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
 typedef struct prog prog;
@@ -12,7 +12,6 @@ struct routine {
   struct prog *prog_;
   struct state *state_;
 };
-#define bool _Bool
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 routine state_get_parent(state *ns,bool hat);
 typedef struct datum datum;

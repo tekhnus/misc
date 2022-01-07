@@ -3,10 +3,6 @@
 #include <string.h>
 #include <zlisp-impl/compiling.h>
 
-#if INTERFACE
-#define bool _Bool
-#endif
-
 prog *prog_make() {
   prog *res = malloc(sizeof(prog));
   res->type = PROG_END;

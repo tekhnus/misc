@@ -1,10 +1,9 @@
 #include <stdint.h>
-#define bool _Bool
+#include <stdbool.h>
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
 typedef struct routine routine;
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
 typedef struct prog prog;

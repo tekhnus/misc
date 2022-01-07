@@ -8,6 +8,7 @@
 #include <stddef.h>
 #if INTERFACE
 #include <stdint.h>
+#include <stdbool.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
