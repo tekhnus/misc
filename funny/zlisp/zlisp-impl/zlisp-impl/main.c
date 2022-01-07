@@ -147,9 +147,7 @@ datum *datum_make_void() {
 
 bool read_result_is_ok(read_result x) { return x.type == READ_RESULT_OK; }
 
-bool read_result_is_panic(read_result x) {
-  return x.type == READ_RESULT_PANIC;
-}
+bool read_result_is_panic(read_result x) { return x.type == READ_RESULT_PANIC; }
 
 bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
 
@@ -313,7 +311,7 @@ read_result datum_read(FILE *strm) {
   return read_result_make_panic(err);
 }
 
-fdatum datum_read_all(FILE* stre) {
+fdatum datum_read_all(FILE *stre) {
   read_result rr;
   datum *res = datum_make_nil();
   datum **resend = &res;
@@ -387,7 +385,7 @@ fstate fstate_make_panic(char *message) {
 }
 
 state *state_make(datum *vars, datum *stack, routine parent,
-                    routine hat_parent) {
+                  routine hat_parent) {
   state *res = malloc(sizeof(state));
   res->vars = vars;
   res->stack = stack;
@@ -423,7 +421,7 @@ datum *namespace_cell_get_value(datum *cell, state *ns) {
       exit(EXIT_FAILURE);
     }
     state *routine_ns = state_make(ns->vars, datum_make_nil(),
-                                     routine_make_null(), routine_make_null());
+                                   routine_make_null(), routine_make_null());
     return datum_make_routine(raw_value->routine_value.prog_, routine_ns);
   } else {
     fprintf(stderr, "namespace implementation error");
@@ -444,8 +442,7 @@ fdatum state_get_var(state *ns, datum *symbol) {
   return fdatum_make_panic(msg);
 }
 
-fdatum list_map(fdatum (*fn)(datum *, state *), datum *items,
-                  state *ctxt) {
+fdatum list_map(fdatum (*fn)(datum *, state *), datum *items, state *ctxt) {
   if (!datum_is_list(items)) {
     return fdatum_make_panic("expected a list");
   }
@@ -691,7 +688,7 @@ fdatum builtin_shared_library(datum *library_name) {
 }
 
 fdatum builtin_extern_pointer(datum *shared_library, datum *name,
-                                datum *descriptor) {
+                              datum *descriptor) {
   if (!datum_is_pointer(shared_library) ||
       !datum_is_symbol(shared_library->pointer_descriptor) ||
       strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
@@ -815,30 +812,34 @@ state *state_make_builtins() {
   namespace_def_extern_fn(&ns, "annotate--", builtin_annotate, 1);
   namespace_def_extern_fn(&ns, "is-constant--", builtin_is_constant, 1);
   namespace_def_extern_fn(&ns, "repr--", builtin_repr, 1);
-  namespace_def_extern_fn(&ns, "concat-bytestrings--", builtin_concat_bytestrings,
-                          2);
+  namespace_def_extern_fn(&ns, "concat-bytestrings--",
+                          builtin_concat_bytestrings, 2);
   namespace_def_extern_fn(&ns, "+--", builtin_add, 2);
 
   char *prelude_src =
-    "(builtin.defn panic (return (pointer-call panic-- args)))"
-    "(builtin.defn shared-library (return (pointer-call shared-library-- args)))"
-    "(builtin.defn extern-pointer (return (pointer-call extern-pointer-- args)))"
-    "(builtin.defn cons (return (pointer-call cons-- args)))"
-    "(builtin.defn head (return (pointer-call head-- args)))"
-    "(builtin.defn tail (return (pointer-call tail-- args)))"
-    "(builtin.defn eq (return (pointer-call eq-- args)))"
-    "(builtin.defn annotate (return (pointer-call annotate-- args)))"
-    "(builtin.defn is-constant (return (pointer-call is-constant-- args)))"
-    "(builtin.defn repr (return (pointer-call repr-- args)))"
-    "(builtin.defn concat-bytestrings (return (pointer-call concat-bytestrings-- args)))"
-    "(builtin.defn + (return (pointer-call +-- args)))";
+      "(builtin.defn panic (return (pointer-call panic-- args)))"
+      "(builtin.defn shared-library (return (pointer-call shared-library-- "
+      "args)))"
+      "(builtin.defn extern-pointer (return (pointer-call extern-pointer-- "
+      "args)))"
+      "(builtin.defn cons (return (pointer-call cons-- args)))"
+      "(builtin.defn head (return (pointer-call head-- args)))"
+      "(builtin.defn tail (return (pointer-call tail-- args)))"
+      "(builtin.defn eq (return (pointer-call eq-- args)))"
+      "(builtin.defn annotate (return (pointer-call annotate-- args)))"
+      "(builtin.defn is-constant (return (pointer-call is-constant-- args)))"
+      "(builtin.defn repr (return (pointer-call repr-- args)))"
+      "(builtin.defn concat-bytestrings (return (pointer-call "
+      "concat-bytestrings-- args)))"
+      "(builtin.defn + (return (pointer-call +-- args)))";
   FILE *prelude_f = fmemopen(prelude_src, strlen(prelude_src), "r");
   fdatum prelude_d = datum_read_all(prelude_f);
   if (fdatum_is_panic(prelude_d)) {
     fprintf(stderr, "prelude syntax: %s", prelude_d.panic_message);
     exit(EXIT_FAILURE);
   }
-  for (datum *rest = prelude_d.ok_value; !datum_is_nil(rest); rest=rest->list_tail) {
+  for (datum *rest = prelude_d.ok_value; !datum_is_nil(rest);
+       rest = rest->list_tail) {
     fdatum err = state_run_prog(&ns, rest->list_head, NULL);
     if (fdatum_is_panic(err)) {
       fprintf(stderr, "prelude compilation: %s", err.panic_message);
@@ -853,15 +854,15 @@ bool datum_is_constant(datum *d) {
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
-
 void state_stack_put(state **ns, datum *value) {
-  *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack), (*ns)->parent,
-                    (*ns)->hat_parent);
+  *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack),
+                   (*ns)->parent, (*ns)->hat_parent);
 }
 
 datum *state_stack_pop(state **s) {
   datum *res = (*s)->stack->list_head;
-  *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent, (*s)->hat_parent);
+  *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent,
+                  (*s)->hat_parent);
   return res;
 }
 
@@ -894,4 +895,3 @@ state *state_change_parent(state *ns, routine new_parent, bool hat) {
   }
   return state_make(ns->vars, ns->stack, new_parent, ns->hat_parent);
 }
-

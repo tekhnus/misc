@@ -34,7 +34,7 @@ fstate routine_run(routine c) {
         return fstate_make_panic("the routine context was expected to be null");
       }
       r.state_ = state_make(c.state_->vars, datum_make_nil(),
-                       routine_make_null(), routine_make_null());
+                            routine_make_null(), routine_make_null());
       state_stack_put(&c.state_, datum_make_routine(r.prog_, r.state_));
       c.prog_ = c.prog_->put_routine_next;
     } break;
@@ -79,16 +79,16 @@ fstate routine_run(routine c) {
       switch_context(&c, fn->routine_value, args);
       if (!routine_is_null(state_get_parent(c.state_, hat))) {
         return fstate_make_panic(
-                                 "attempt to call routine with existing parent");
+            "attempt to call routine with existing parent");
       }
       c.state_ = state_change_parent(c.state_, parent_cont, hat);
       if (!hat) {
         if (!routine_is_null(state_get_parent(c.state_, true))) {
           return fstate_make_panic(
-                                   "attempt to call routine with existing hat-parent");
+              "attempt to call routine with existing hat-parent");
         }
-        c.state_ = state_change_parent(
-                                       c.state_, parent_cont.state_->hat_parent, true);
+        c.state_ =
+            state_change_parent(c.state_, parent_cont.state_->hat_parent, true);
       }
     } break;
     case PROG_POINTER_CALL: {
@@ -170,9 +170,11 @@ fstate routine_run(routine c) {
   }
 }
 
-fdatum state_run_prog(state **ctxt, datum *v, fdatum (*module_source)(char *module)) {
+fdatum state_run_prog(state **ctxt, datum *v,
+                      fdatum (*module_source)(char *module)) {
   prog *s = prog_make();
-  char *err = prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
+  char *err =
+      prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }

@@ -1,7 +1,7 @@
-#include <zlisp-impl/compiling.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
+#include <zlisp-impl/compiling.h>
 
 #if INTERFACE
 #define bool _Bool
@@ -14,7 +14,7 @@ prog *prog_make() {
 }
 
 char *prog_init_module(prog *s, datum *source,
-                            fdatum (*module_source)(char *module)) {
+                       fdatum (*module_source)(char *module)) {
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     char *err = prog_append_statement(&s, stmt, module_source);
@@ -27,7 +27,7 @@ char *prog_init_module(prog *s, datum *source,
 }
 
 LOCAL char *prog_append_statement(prog **begin, datum *stmt,
-                   fdatum (*module_source)(char *module)) {
+                                  fdatum (*module_source)(char *module)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -52,7 +52,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err = prog_append_statement(begin, stmt->list_tail->list_head, module_source);
+    err =
+        prog_append_statement(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -61,14 +62,14 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     prog *true_end = prog_make(), *false_end = prog_make();
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
-    err = prog_append_statement(&true_end, stmt->list_tail->list_tail->list_head,
-                       module_source);
+    err = prog_append_statement(
+        &true_end, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
-    err = prog_append_statement(&false_end,
-                       stmt->list_tail->list_tail->list_tail->list_head,
-                       module_source);
+    err = prog_append_statement(
+        &false_end, stmt->list_tail->list_tail->list_tail->list_head,
+        module_source);
     if (err != NULL) {
       return err;
     }
@@ -100,8 +101,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (list_length(stmt->list_tail) != 2) {
       return "def should have two args";
     }
-    char *err = prog_append_statement(begin, stmt->list_tail->list_tail->list_head,
-                             module_source);
+    char *err = prog_append_statement(
+        begin, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -114,11 +115,13 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
       return "defn should have two args";
     }
     prog *s = prog_make();
-    char *err = prog_init_routine(s, stmt->list_tail->list_tail->list_head, module_source);
+    char *err = prog_init_routine(s, stmt->list_tail->list_tail->list_head,
+                                  module_source);
     if (err != NULL) {
       return err;
     }
-    datum *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
+    datum *f = datum_make_routine(
+        s, NULL); // The null state will be overriden at runtime.
     prog_append_put_const(begin, f);
     prog_append_pop_prog(begin, stmt->list_tail->list_head);
     prog_append_put_const(begin, datum_make_void());
@@ -134,7 +137,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (err != NULL) {
       return err;
     }
-    datum *f = datum_make_routine(s, NULL); // The null state will be overriden at runtime.
+    datum *f = datum_make_routine(
+        s, NULL); // The null state will be overriden at runtime.
     prog_append_put_routine(begin, f);
     return NULL;
   }
@@ -159,7 +163,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "return should have a single arg";
     }
-    char *err = prog_append_statement(begin, stmt->list_tail->list_head, module_source);
+    char *err =
+        prog_append_statement(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -172,7 +177,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
-    char *err = prog_append_statement(begin, stmt->list_tail->list_head, module_source);
+    char *err =
+        prog_append_statement(begin, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -184,7 +190,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
       return "backquote should have a single arg";
     }
     return prog_append_backquoted_statement(begin, stmt->list_tail->list_head,
-                                   module_source);
+                                            module_source);
   }
   if (datum_is_the_symbol(op, "pointer-call")) {
     if (list_length(stmt->list_tail) != 2) {
@@ -326,7 +332,7 @@ LOCAL void prog_append_yield(prog **begin, bool hat) {
 }
 
 LOCAL char *prog_append_require(prog **begin, datum *src,
-                           fdatum (*module_source)(char *module)) {
+                                fdatum (*module_source)(char *module)) {
   prog *pr = prog_make();
   char *err = prog_init_module(pr, src, module_source);
   if (err != NULL) {
@@ -340,8 +346,9 @@ LOCAL char *prog_append_require(prog **begin, datum *src,
   return NULL;
 }
 
-LOCAL char *prog_append_backquoted_statement(prog **begin, datum *stmt,
-                              fdatum (*module_source)(char *module)) {
+LOCAL char *
+prog_append_backquoted_statement(prog **begin, datum *stmt,
+                                 fdatum (*module_source)(char *module)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(begin, stmt);
     return NULL;
@@ -353,7 +360,8 @@ LOCAL char *prog_append_backquoted_statement(prog **begin, datum *stmt,
     char *err;
     if (datum_is_list(elem) && list_length(elem) == 2 &&
         datum_is_the_symbol(elem->list_head, "tilde")) {
-      err = prog_append_statement(begin, elem->list_tail->list_head, module_source);
+      err = prog_append_statement(begin, elem->list_tail->list_head,
+                                  module_source);
     } else {
       err = prog_append_backquoted_statement(begin, elem, module_source);
     }
@@ -365,11 +373,11 @@ LOCAL char *prog_append_backquoted_statement(prog **begin, datum *stmt,
   return NULL;
 }
 
-LOCAL char *prog_init_routine(prog *s, datum *stmt, fdatum (*module_source)(char *module)) {
+LOCAL char *prog_init_routine(prog *s, datum *stmt,
+                              fdatum (*module_source)(char *module)) {
   prog_append_pop(&s, datum_make_symbol("args"));
   return prog_append_statement(&s, stmt, module_source);
 }
-
 
 LOCAL void prog_append_module_end(prog **begin) {
   (*begin)->type = PROG_MODULE_END;
