@@ -1,3 +1,16 @@
+(builtin.defn panic (return (pointer-call panic-- args)))
+(builtin.defn shared-library (return (pointer-call shared-library-- args)))
+(builtin.defn extern-pointer (return (pointer-call extern-pointer-- args)))
+(builtin.defn cons (return (pointer-call cons-- args)))
+(builtin.defn head (return (pointer-call head-- args)))
+(builtin.defn tail (return (pointer-call tail-- args)))
+(builtin.defn eq (return (pointer-call eq-- args)))
+(builtin.defn annotate (return (pointer-call annotate-- args)))
+(builtin.defn is-constant (return (pointer-call is-constant-- args)))
+(builtin.defn repr (return (pointer-call repr-- args)))
+(builtin.defn concat-bytestrings (return (pointer-call concat-bytestrings-- args)))
+(builtin.defn + (return (pointer-call +-- args)))
+
 (def second
      (builtin.fn
       (return (head (tail (head args))))))
