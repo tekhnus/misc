@@ -8,6 +8,7 @@ state *state_make_builtins();
 typedef struct prog prog;
 #define bool _Bool
 LOCAL void prog_append_call(prog **begin,bool hat);
+LOCAL void prog_append_pointer_call(prog **begin);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
 typedef struct fdatum fdatum;
@@ -88,6 +89,7 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
+  PROG_POINTER_CALL,
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
@@ -123,6 +125,7 @@ struct prog {
       bool call_hat;
       struct prog *call_next;
     };
+    struct prog *pointer_call_next;
     struct prog *collect_next;
     struct {
       struct datum *pop_var;

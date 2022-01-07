@@ -133,6 +133,7 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
+  PROG_POINTER_CALL,
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
@@ -168,6 +169,7 @@ struct prog {
       bool call_hat;
       struct prog *call_next;
     };
+    struct prog *pointer_call_next;
     struct prog *collect_next;
     struct {
       struct datum *pop_var;

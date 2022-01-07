@@ -1,4 +1,5 @@
 (require "std")
+(require "libc")
 !(require "testing")
 !(require "stdmacro")
 
@@ -89,9 +90,14 @@
     (return 42))
   42)
 
+!(#fntest
+  (progn
+    (pointer-call fprintf stderr "hello")
+    (return 42))
+  42)
 
 
-(require "libc")
+
 
 !(#defun print-all (xs)
    (return

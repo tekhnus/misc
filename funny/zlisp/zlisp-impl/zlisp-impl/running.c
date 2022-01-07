@@ -102,6 +102,20 @@ fstate routine_run(routine c) {
         return fstate_make_panic("non-callable datum");
       }
     } break;
+    case PROG_POINTER_CALL: {
+      datum *form = state_stack_pop(&c.state_);
+      if (datum_is_nil(form)) {
+        return fstate_make_panic("a call instruction with empty form");
+      }
+      datum *fn = form->list_head;
+      datum *args = form->list_tail;
+      fdatum res = pointer_call(fn, args);
+      if (fdatum_is_panic(res)) {
+        return fstate_make_panic(res.panic_message);
+      }
+      state_stack_put(&c.state_, res.ok_value);
+      c.prog_ = c.prog_->pointer_call_next;
+    } break;
     case PROG_COLLECT: {
       datum *form = state_stack_collect(&c.state_);
       state_stack_put(&c.state_, form);
