@@ -10,25 +10,30 @@
 		     '((sizet) pointer)))
 !(#wrap-fn-pointer malloc malloc-)
 
-!(#def-or-panica fopen
+!(#def-or-panica fopen-
      (extern-pointer libc "fopen"
 		     '((string string) pointer)))
+!(#wrap-fn-pointer fopen fopen-)
 
-!(#def-or-panica fread
+!(#def-or-panica fread-
      (extern-pointer libc "fread"
 		     '((pointer sizet sizet pointer) sizet)))
+!(#wrap-fn-pointer fread fread-)
 
-!(#def-or-panica feof
+!(#def-or-panica feof-
      (extern-pointer libc "feof"
 		     '((pointer) int)))
+!(#wrap-fn-pointer feof feof-)
 
-!(#def-or-panica fprintf
+!(#def-or-panica fprintf-
      (extern-pointer libc "fprintf"
 		     '((pointer string) sizet)))
+!(#wrap-fn-pointer fprintf fprintf-)
 
-!(#def-or-panica fprintf-bytestring
+!(#def-or-panica fprintf-bytestring-
      (extern-pointer libc "fprintf"
 		     '((pointer string string) sizet)))
+!(#wrap-fn-pointer fprintf-bytestring fprintf-bytestring-)
 
 !(#def-or-panica stdin
   (extern-pointer libc "stdin" 'pointer)

@@ -92,7 +92,7 @@
 
 !(#fntest
   (progn
-    (pointer-call fprintf (list stderr "hello"))
+    (fprintf stderr "hello")
     (return 42))
   42)
 

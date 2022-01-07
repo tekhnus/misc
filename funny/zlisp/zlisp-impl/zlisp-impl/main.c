@@ -603,6 +603,9 @@ fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
 }
 
 fdatum pointer_call(datum *f, datum *args) {
+  if (!datum_is_pointer(f)) {
+    return fdatum_make_panic("pointer_call expects a pointer");
+  }
   ffi_cif cif;
   char *err = NULL;
   err = pointer_ffi_init_cif(f, &cif);
