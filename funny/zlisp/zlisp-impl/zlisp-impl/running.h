@@ -105,6 +105,8 @@ struct state {
 };
 datum *datum_make_list_2(datum *head,datum *second);
 datum *state_stack_collect(state **s);
+int list_length(datum *seq);
+bool datum_is_list(datum *e);
 fdatum pointer_call(datum *f,datum *args);
 bool datum_is_pointer(datum *e);
 state *state_change_parent(state *ns,routine new_parent,bool hat);

@@ -104,11 +104,11 @@ fstate routine_run(routine c) {
     } break;
     case PROG_POINTER_CALL: {
       datum *form = state_stack_pop(&c.state_);
-      if (datum_is_nil(form)) {
-        return fstate_make_panic("a call instruction with empty form");
+      if (!datum_is_list(form) || list_length(form) != 2) {
+        return fstate_make_panic("pointer-call expected a pair on stack");
       }
       datum *fn = form->list_head;
-      datum *args = form->list_tail;
+      datum *args = form->list_tail->list_head;
       fdatum res = pointer_call(fn, args);
       if (fdatum_is_panic(res)) {
         return fstate_make_panic(res.panic_message);

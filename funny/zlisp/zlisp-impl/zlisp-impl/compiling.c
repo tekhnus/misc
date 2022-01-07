@@ -187,6 +187,9 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
                                    module_source);
   }
   if (datum_is_the_symbol(op, "pointer-call")) {
+    if (list_length(stmt->list_tail) != 2) {
+      return "pointer-call should have exactly two args";
+    }
     prog_append_args(begin);
     for (datum *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
          rest_args = rest_args->list_tail) {
