@@ -89,6 +89,7 @@ fstate routine_run(routine c) {
               c.state_, parent_cont.state_->hat_parent, true);
         }
       } else if (datum_is_pointer(fn)) {
+        fprintf(stderr, "warning: pointer call %s\n", datum_repr(fn));
         if (c.prog_->call_hat) {
           return fstate_make_panic("hat-call makes no sense for native calls");
         }

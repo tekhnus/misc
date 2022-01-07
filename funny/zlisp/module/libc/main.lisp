@@ -5,9 +5,10 @@
   (shared-library "libc.so.6")
   (shared-library "libSystem.B.dylib"))
 
-!(#def-or-panica malloc
+!(#def-or-panica malloc-
      (extern-pointer libc "malloc"
 		     '((sizet) pointer)))
+!(#wrap-fn-pointer malloc malloc-)
 
 !(#def-or-panica fopen
      (extern-pointer libc "fopen"

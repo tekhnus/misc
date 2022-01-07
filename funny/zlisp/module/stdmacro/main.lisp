@@ -27,4 +27,6 @@
 	 ~(def-or-panic-tmp-fn (tail args))
 	 (def ~(head args) (second tmp))))))
 
+!(#defun wrap-fn-pointer (fnname ptrname) (return `(def ~fnname (builtin.fn (return (pointer-call ~ptrname args))))))
+
 !(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))
