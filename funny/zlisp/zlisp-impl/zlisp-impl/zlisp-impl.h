@@ -63,13 +63,14 @@ bool is_whitespace(char c);
 bool is_allowed_inside_symbol(char c);
 bool consume_control_sequence(char c,datum **form);
 read_result datum_read(FILE *strm);
-char *datum_repr(datum *e);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
+fdatum datum_read_all(FILE *stre);
+char *datum_repr(datum *e);
 bool fdatum_is_ok(fdatum result);
 bool fdatum_is_panic(fdatum result);
 fdatum fdatum_make_ok(datum *v);

@@ -313,6 +313,23 @@ read_result datum_read(FILE *strm) {
   return read_result_make_panic(err);
 }
 
+fdatum datum_read_all(FILE* stre) {
+  read_result rr;
+  datum *res = datum_make_nil();
+  datum **resend = &res;
+  for (; read_result_is_ok(rr = datum_read(stre));) {
+    *resend = datum_make_list(rr.ok_value, datum_make_nil());
+    resend = &((*resend)->list_tail);
+  }
+  if (read_result_is_panic(rr)) {
+    return fdatum_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr)) {
+    return fdatum_make_panic("unmatched right paren");
+  }
+  return fdatum_make_ok(res);
+}
+
 char *datum_repr(datum *e) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
@@ -798,6 +815,33 @@ state *state_make_builtins() {
   namespace_def_extern_fn(&ns, "concat-bytestrings--", builtin_concat_bytestrings,
                           2);
   namespace_def_extern_fn(&ns, "+--", builtin_add, 2);
+
+  char *prelude_src =
+    "(builtin.defn panic (return (pointer-call panic-- args)))"
+    "(builtin.defn shared-library (return (pointer-call shared-library-- args)))"
+    "(builtin.defn extern-pointer (return (pointer-call extern-pointer-- args)))"
+    "(builtin.defn cons (return (pointer-call cons-- args)))"
+    "(builtin.defn head (return (pointer-call head-- args)))"
+    "(builtin.defn tail (return (pointer-call tail-- args)))"
+    "(builtin.defn eq (return (pointer-call eq-- args)))"
+    "(builtin.defn annotate (return (pointer-call annotate-- args)))"
+    "(builtin.defn is-constant (return (pointer-call is-constant-- args)))"
+    "(builtin.defn repr (return (pointer-call repr-- args)))"
+    "(builtin.defn concat-bytestrings (return (pointer-call concat-bytestrings-- args)))"
+    "(builtin.defn + (return (pointer-call +-- args)))";
+  FILE *prelude_f = fmemopen(prelude_src, strlen(prelude_src), "r");
+  fdatum prelude_d = datum_read_all(prelude_f);
+  if (fdatum_is_panic(prelude_d)) {
+    fprintf(stderr, "prelude syntax: %s", prelude_d.panic_message);
+    exit(EXIT_FAILURE);
+  }
+  for (datum *rest = prelude_d.ok_value; !datum_is_nil(rest); rest=rest->list_tail) {
+    fdatum err = state_run_prog(&ns, rest->list_head, NULL);
+    if (fdatum_is_panic(err)) {
+      fprintf(stderr, "prelude compilation: %s", err.panic_message);
+      exit(EXIT_FAILURE);
+    }
+  }
   return ns;
 }
 

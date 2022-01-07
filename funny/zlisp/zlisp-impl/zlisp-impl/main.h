@@ -19,13 +19,14 @@ datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
 datum *state_stack_pop(state **s);
 void state_stack_put(state **ns,datum *value);
-state *state_make_builtins();
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
+fdatum state_run_prog(state **ctxt,datum *v,fdatum(*module_source)(char *module));
+state *state_make_builtins();
 void namespace_def_extern_fn(state **ctxt,char *name,fdatum(*fn)(),int cnt);
 fdatum builtin_panic(datum *arg_value);
 bool datum_is_constant(datum *d);
@@ -64,11 +65,12 @@ fstate fstate_make_panic(char *message);
 fstate fstate_make_ok(state *v);
 bool fstate_is_panic(fstate result);
 bool fstate_is_ok(fstate result);
-fdatum fdatum_make_panic(char *message);
-fdatum fdatum_make_ok(datum *v);
 bool fdatum_is_panic(fdatum result);
 bool fdatum_is_ok(fdatum result);
 char *datum_repr(datum *e);
+fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_panic(char *message);
+fdatum datum_read_all(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,
