@@ -49,42 +49,6 @@ LOCAL fdatum builtin_panic(datum *arg_value) {
   return fdatum_make_panic(arg_value->bytestring_value);
 }
 
-LOCAL fdatum builtin_shared_library(datum *library_name) {
-  if (!datum_is_bytestring(library_name)) {
-    return fdatum_make_panic("load-shared-library expects a bytestring");
-  }
-  void **handle = malloc(sizeof(void *));
-  *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
-  char *err = dlerror();
-  if (!*handle) {
-    return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
-                                            datum_make_bytestring(err)));
-  }
-  return fdatum_make_ok(datum_make_list_2(
-      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
-}
-
-LOCAL fdatum builtin_extern_pointer(datum *shared_library, datum *name,
-                              datum *descriptor) {
-  if (!datum_is_pointer(shared_library) ||
-      !datum_is_symbol(shared_library->pointer_descriptor) ||
-      strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
-    return fdatum_make_panic("wrong externcdata usage");
-  }
-  void *handle = *(void **)shared_library->pointer_value;
-  if (!datum_is_bytestring(name)) {
-    return fdatum_make_panic("externcdata expected a string");
-  }
-  void *call_ptr = dlsym(handle, name->bytestring_value);
-  char *err = dlerror();
-  if (err != NULL) {
-    return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
-                                            datum_make_bytestring(err)));
-  }
-  return fdatum_make_ok(datum_make_list_2(
-      datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
-}
-
 LOCAL fdatum builtin_repr(datum *v) {
   return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
 }
