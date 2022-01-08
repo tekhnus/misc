@@ -6,7 +6,7 @@
 
 prog *compile_prog(datum *source);
 
-LOCAL fdatum builtin_eq(datum *x, datum *y) {
+fdatum builtin_eq(datum *x, datum *y) {
   datum *t = datum_make_list_1(datum_make_nil());
   datum *f = datum_make_nil();
   if (datum_eq(x, y)) {
@@ -15,7 +15,7 @@ LOCAL fdatum builtin_eq(datum *x, datum *y) {
   return fdatum_make_ok(f);
 }
 
-LOCAL fdatum builtin_annotate(datum *arg_value) {
+fdatum builtin_annotate(datum *arg_value) {
   char *type;
   if (datum_is_list(arg_value)) {
     type = ":list";
@@ -35,26 +35,26 @@ LOCAL fdatum builtin_annotate(datum *arg_value) {
   return fdatum_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
 }
 
-LOCAL fdatum builtin_is_constant(datum *arg_value) {
+fdatum builtin_is_constant(datum *arg_value) {
   if (datum_is_constant(arg_value)) {
     return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
   return fdatum_make_ok(datum_make_nil());
 }
 
-LOCAL fdatum builtin_panic(datum *arg_value) {
+fdatum builtin_panic(datum *arg_value) {
   if (!datum_is_bytestring(arg_value)) {
     return fdatum_make_panic("panic expects a bytestring");
   }
   return fdatum_make_panic(arg_value->bytestring_value);
 }
 
-LOCAL fdatum builtin_repr(datum *v) {
+fdatum builtin_repr(datum *v) {
   return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
 }
 
 
-LOCAL fdatum builtin_concat_bytestrings(datum *x, datum *y) {
+fdatum builtin_concat_bytestrings(datum *x, datum *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return fdatum_make_panic("expected integers");
   }
@@ -66,7 +66,7 @@ LOCAL fdatum builtin_concat_bytestrings(datum *x, datum *y) {
   return fdatum_make_ok(datum_make_bytestring(buf));
 }
 
-LOCAL fdatum builtin_add(datum *x, datum *y) {
+fdatum builtin_add(datum *x, datum *y) {
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
     return fdatum_make_panic("expected integers");
   }
@@ -80,14 +80,14 @@ fdatum builtin_cons(datum *head, datum *tail) {
   return fdatum_make_ok(datum_make_list(head, tail));
 }
 
-LOCAL fdatum builtin_head(datum *list) {
+fdatum builtin_head(datum *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("car expects a nonempty list");
   }
   return fdatum_make_ok(list->list_head);
 }
 
-LOCAL fdatum builtin_tail(datum *list) {
+fdatum builtin_tail(datum *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("cdr expects a nonempty list");
   }
@@ -110,17 +110,6 @@ LOCAL void namespace_def_extern_fn(state **ctxt, char *name, fdatum (*fn)(),
 state *state_make_builtins() {
   state *ns = state_make_fresh();
 
-  namespace_def_extern_fn(&ns, "panic--", builtin_panic, 1);
-  namespace_def_extern_fn(&ns, "cons--", builtin_cons, 2);
-  namespace_def_extern_fn(&ns, "head--", builtin_head, 1);
-  namespace_def_extern_fn(&ns, "tail--", builtin_tail, 1);
-  namespace_def_extern_fn(&ns, "eq--", builtin_eq, 2);
-  namespace_def_extern_fn(&ns, "annotate--", builtin_annotate, 1);
-  namespace_def_extern_fn(&ns, "is-constant--", builtin_is_constant, 1);
-  namespace_def_extern_fn(&ns, "repr--", builtin_repr, 1);
-  namespace_def_extern_fn(&ns, "concat-bytestrings--",
-                          builtin_concat_bytestrings, 2);
-  namespace_def_extern_fn(&ns, "+--", builtin_add, 2);
 
   char *prelude_src =
       "(def lowlevel-shared-library-- (builtin-pointer \"lowlevel-shared-library\"))"
@@ -136,7 +125,16 @@ state *state_make_builtins() {
       "(def shared-library-- (builtin-pointer \"shared-library\"))"
       "(builtin.defn shared-library (return (pointer-call shared-library-- "
       "args)))"
+      "(def panic-- (lowlevel-extern-pointer selflib \"builtin_panic\" '((datum) val)))"
       "(def cons-- (lowlevel-extern-pointer selflib \"builtin_cons\" '((datum datum) val)))"
+      "(def head-- (lowlevel-extern-pointer selflib \"builtin_head\" '((datum) val)))"
+      "(def tail-- (lowlevel-extern-pointer selflib \"builtin_tail\" '((datum) val)))"
+      "(def eq-- (lowlevel-extern-pointer selflib \"builtin_eq\" '((datum datum) val)))"
+      "(def annotate-- (lowlevel-extern-pointer selflib \"builtin_annotate\" '((datum) val)))"
+      "(def is-constant-- (lowlevel-extern-pointer selflib \"builtin_is_constant\" '((datum) val)))"
+      "(def repr-- (lowlevel-extern-pointer selflib \"builtin_repr\" '((datum) val)))"
+      "(def concat-bytestrings-- (lowlevel-extern-pointer selflib \"builtin_concat_bytestrings\" '((datum datum) val)))"
+      "(def +-- (lowlevel-extern-pointer selflib \"builtin_add\" '((datum datum) val)))"
       "(builtin.defn panic (return (pointer-call panic-- args)))"
       "(builtin.defn cons (return (pointer-call cons-- args)))"
       "(builtin.defn head (return (pointer-call head-- args)))"
