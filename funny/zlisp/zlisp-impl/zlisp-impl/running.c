@@ -174,6 +174,16 @@ fstate routine_run(routine c) {
   }
 }
 
+fdatum routine_run_and_get_value(state **ctxt, prog *p) {
+  routine r = routine_make(p, *ctxt);
+  fstate s = routine_run(r);
+  if (fstate_is_panic(s)) {
+    return fdatum_make_panic(s.panic_message);
+  }
+  *ctxt = s.ok_value;
+  return fdatum_make_ok(state_stack_pop(ctxt));
+}
+
 fdatum state_run_prog(state **ctxt, datum *v,
                       routine (*module_source)(char *)) {
   prog *s = prog_make();

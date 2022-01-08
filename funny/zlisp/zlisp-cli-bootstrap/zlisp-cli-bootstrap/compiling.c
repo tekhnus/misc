@@ -19,7 +19,6 @@ prog *compile_prog(datum *source) {
   return p;
 }
 
-
 static fdatum datum_expand(datum *e, state **ctxt);
 
 routine module_routine(char *module) {

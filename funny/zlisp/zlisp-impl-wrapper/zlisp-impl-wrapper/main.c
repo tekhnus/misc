@@ -5,6 +5,7 @@
 #include <string.h>
 
 state *state_make_builtins();
+prog *compile_prog(datum *source);
 
 fdatum read(datum *sptr) {
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||
@@ -32,7 +33,12 @@ fdatum read(datum *sptr) {
 
 fdatum eval(datum *v, datum *nsp) {
   state *ns = *(state **)nsp->pointer_value;
-  fdatum val = state_run_prog(&ns, v, NULL);
+  prog *p = compile_prog(datum_make_list(v, datum_make_nil()));
+  if (p == NULL) {
+    return fdatum_make_ok(datum_make_list_2(
+        datum_make_symbol(":err"), datum_make_bytestring("error while compiling the statement to eval")));
+  }
+  fdatum val = routine_run_and_get_value(&ns, p);
   if (fdatum_is_panic(val)) {
     return fdatum_make_ok(datum_make_list_2(
         datum_make_symbol(":err"), datum_make_bytestring(val.panic_message)));

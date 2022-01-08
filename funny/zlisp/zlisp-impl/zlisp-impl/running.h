@@ -3,35 +3,36 @@
 #define LOCAL static
 #include <stdint.h>
 #include <stdbool.h>
-typedef struct fdatum fdatum;
-#include <inttypes.h>
-#include <stdio.h>
-#include <ffi.h>
 typedef struct datum datum;
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-fdatum fdatum_make_ok(datum *v);
-typedef struct fstate fstate;
-typedef struct state state;
-struct fstate {
-  int type;
-  struct state *ok_value;
-  char *panic_message;
-};
-bool fstate_is_panic(fstate result);
-fdatum fdatum_make_panic(char *message);
 datum *datum_make_list(datum *head,datum *tail);
 typedef struct prog prog;
 typedef struct routine routine;
+#include <inttypes.h>
+#include <stdio.h>
+#include <ffi.h>
+typedef struct state state;
 struct routine {
   struct prog *prog_;
   struct state *state_;
 };
 char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
 prog *prog_make();
+typedef struct fdatum fdatum;
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
+fdatum state_run_prog(state **ctxt,datum *v,routine(*module_source)(char *));
+fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_panic(char *message);
+typedef struct fstate fstate;
+struct fstate {
+  int type;
+  struct state *ok_value;
+  char *panic_message;
+};
+bool fstate_is_panic(fstate result);
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -94,7 +95,7 @@ struct prog {
     };
   };
 };
-fdatum state_run_prog(state **ctxt,datum *v,routine(*module_source)(char *));
+fdatum routine_run_and_get_value(state **ctxt,prog *p);
 datum *state_list_vars(state *ns);
 datum *datum_make_void();
 struct state {
