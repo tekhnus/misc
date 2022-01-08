@@ -184,23 +184,6 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p) {
   return fdatum_make_ok(state_stack_pop(ctxt));
 }
 
-fdatum state_run_prog(state **ctxt, datum *v,
-                      routine (*module_source)(char *)) {
-  prog *s = prog_make();
-  char *err =
-      prog_init_module(s, datum_make_list(v, datum_make_nil()), module_source);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
-  routine c = routine_make(s, *ctxt);
-  fstate res = routine_run(c);
-  if (fstate_is_panic(res)) {
-    return fdatum_make_panic(res.panic_message);
-  }
-  *ctxt = res.ok_value;
-  return fdatum_make_ok(state_stack_pop(ctxt));
-}
-
 LOCAL void switch_context(routine *c, routine b, datum *v) {
   *c = b;
   state_stack_put(&c->state_, v);

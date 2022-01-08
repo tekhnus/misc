@@ -121,7 +121,10 @@ static fdatum datum_expand(datum *e, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  fdatum res = state_run_prog(ctxt, exp.ok_value, module_routine);
-  return res;
+  prog *p = compile_prog(datum_make_list(exp.ok_value, datum_make_nil()));
+  if (p == NULL) {
+    return fdatum_make_panic("error while compiling a macro");
+  }
+  return routine_run_and_get_value(ctxt, p);
 }
 

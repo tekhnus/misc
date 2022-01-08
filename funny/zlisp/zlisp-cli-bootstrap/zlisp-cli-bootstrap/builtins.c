@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <dlfcn.h>
 
+prog *compile_prog(datum *source);
+
 LOCAL fdatum builtin_eq(datum *x, datum *y) {
   datum *t = datum_make_list_1(datum_make_nil());
   datum *f = datum_make_nil();
@@ -180,13 +182,15 @@ state *state_make_builtins() {
     fprintf(stderr, "prelude syntax: %s", prelude_d.panic_message);
     exit(EXIT_FAILURE);
   }
-  for (datum *rest = prelude_d.ok_value; !datum_is_nil(rest);
-       rest = rest->list_tail) {
-    fdatum err = state_run_prog(&ns, rest->list_head, NULL);
-    if (fdatum_is_panic(err)) {
-      fprintf(stderr, "prelude compilation: %s", err.panic_message);
+  prog *prelude_p = compile_prog(prelude_d.ok_value);
+  if (prelude_p == NULL) {
+      fprintf(stderr, "prelude compilation failure");
       exit(EXIT_FAILURE);
-    }
+  }
+  fdatum err = routine_run_and_get_value(&ns, prelude_p);
+  if (fdatum_is_panic(err)) {
+    fprintf(stderr, "prelude evaluation failure: %s", err.panic_message);
+    exit(EXIT_FAILURE);
   }
   return ns;
 }
