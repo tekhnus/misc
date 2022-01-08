@@ -94,19 +94,6 @@ fdatum builtin_tail(datum *list) {
   return fdatum_make_ok(list->list_tail);
 }
 
-LOCAL void namespace_def_extern_fn(state **ctxt, char *name, fdatum (*fn)(),
-                             int cnt) {
-  datum *sig = datum_make_nil();
-  for (int i = 0; i < cnt; ++i) {
-    sig = datum_make_list(datum_make_symbol("datum"), sig);
-  }
-  datum *wrapped_fn =
-      datum_make_pointer(__extension__(void *) fn,
-                         datum_make_list_2(sig, datum_make_symbol("val")));
-  *ctxt = state_set_var(*ctxt, datum_make_symbol(name), wrapped_fn);
-}
-
-
 state *state_make_builtins() {
   state *ns = state_make_fresh();
 
