@@ -7,6 +7,7 @@ datum *datum_make_symbol(char *name);
 #define LOCAL static
 typedef struct prog prog;
 LOCAL void prog_append_call(prog **begin,bool hat);
+LOCAL void prog_append_builtin_pointer(prog **begin,datum *name);
 LOCAL void prog_append_pointer_call(prog **begin);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
@@ -83,6 +84,7 @@ enum prog_type {
   PROG_ARGS,
   PROG_CALL,
   PROG_POINTER_CALL,
+  PROG_BUILTIN_POINTER,
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
@@ -119,6 +121,10 @@ struct prog {
       struct prog *call_next;
     };
     struct prog *pointer_call_next;
+    struct {
+      struct datum *builtin_pointer_name;
+      struct prog *builtin_pointer_next;
+    };
     struct prog *collect_next;
     struct {
       struct datum *pop_var;

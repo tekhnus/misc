@@ -109,6 +109,19 @@ fstate routine_run(routine c) {
       state_stack_put(&c.state_, res.ok_value);
       c.prog_ = c.prog_->pointer_call_next;
     } break;
+    case PROG_BUILTIN_POINTER: {
+      datum *name = c.prog_->builtin_pointer_name;
+      if (!datum_is_bytestring(name)) {
+        return fstate_make_panic("builtin-pointer name should be a string");
+      }
+      if (!strcmp(name->bytestring_value, "shared-library")) {
+        datum *res = datum_make_pointer((void *)builtin_ptr_shared_library, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+        state_stack_put(&c.state_, res);
+      } else {
+        return fstate_make_panic("unknown builtin-pointer");
+      }
+      c.prog_ = c.prog_->builtin_pointer_next;
+    } break;
     case PROG_COLLECT: {
       datum *form = state_stack_collect(&c.state_);
       state_stack_put(&c.state_, form);
@@ -187,4 +200,19 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p) {
 LOCAL void switch_context(routine *c, routine b, datum *v) {
   *c = b;
   state_stack_put(&c->state_, v);
+}
+
+LOCAL fdatum builtin_ptr_shared_library(datum *library_name) {
+  if (!datum_is_bytestring(library_name)) {
+    return fdatum_make_panic("load-shared-library expects a bytestring");
+  }
+  void **handle = malloc(sizeof(void *));
+  *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
+  char *err = dlerror();
+  if (!*handle) {
+    return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
+                                            datum_make_bytestring(err)));
+  }
+  return fdatum_make_ok(datum_make_list_2(
+      datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
 }

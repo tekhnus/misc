@@ -147,7 +147,6 @@ state *state_make_builtins() {
   state *ns = state_make_fresh();
 
   namespace_def_extern_fn(&ns, "panic--", builtin_panic, 1);
-  namespace_def_extern_fn(&ns, "shared-library--", builtin_shared_library, 1);
   namespace_def_extern_fn(&ns, "extern-pointer--", builtin_extern_pointer, 3);
   namespace_def_extern_fn(&ns, "cons--", builtin_cons, 2);
   namespace_def_extern_fn(&ns, "head--", builtin_head, 1);
@@ -161,6 +160,7 @@ state *state_make_builtins() {
   namespace_def_extern_fn(&ns, "+--", builtin_add, 2);
 
   char *prelude_src =
+      "(def shared-library-- (builtin-pointer \"shared-library\"))"
       "(builtin.defn panic (return (pointer-call panic-- args)))"
       "(builtin.defn shared-library (return (pointer-call shared-library-- "
       "args)))"

@@ -205,6 +205,13 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     prog_append_pointer_call(begin);
     return NULL;
   }
+  if (datum_is_the_symbol(op, "builtin-pointer")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "builtin-pointer should have exactly one arg";
+    }
+    prog_append_builtin_pointer(begin, stmt->list_tail->list_head);
+    return NULL;
+  }
 
   datum *fn = stmt->list_head;
   bool hash = false;
@@ -254,6 +261,13 @@ LOCAL void prog_append_pointer_call(prog **begin) {
   (*begin)->type = PROG_POINTER_CALL;
   (*begin)->pointer_call_next = prog_make();
   *begin = (*begin)->pointer_call_next;
+}
+
+LOCAL void prog_append_builtin_pointer(prog **begin, datum *name) {
+  (*begin)->type = PROG_BUILTIN_POINTER;
+  (*begin)->builtin_pointer_name = name;
+  (*begin)->builtin_pointer_next = prog_make();
+  *begin = (*begin)->builtin_pointer_next;
 }
 
 LOCAL void prog_join(prog *a, prog *b, prog *e) {

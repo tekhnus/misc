@@ -1,13 +1,15 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
-#define LOCAL static
 #include <stdint.h>
 #include <stdbool.h>
+typedef struct datum datum;
+datum *datum_make_pointer_to_pointer(void **ptr);
+datum *datum_make_bytestring(char *text);
+#define LOCAL static
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
 #include <ffi.h>
-typedef struct datum datum;
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -34,6 +36,7 @@ enum prog_type {
   PROG_ARGS,
   PROG_CALL,
   PROG_POINTER_CALL,
+  PROG_BUILTIN_POINTER,
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
@@ -70,6 +73,10 @@ struct prog {
       struct prog *call_next;
     };
     struct prog *pointer_call_next;
+    struct {
+      struct datum *builtin_pointer_name;
+      struct prog *builtin_pointer_next;
+    };
     struct prog *collect_next;
     struct {
       struct datum *pop_var;
@@ -100,8 +107,13 @@ struct state {
   struct routine parent;
   struct routine hat_parent;
 };
-datum *datum_make_list_2(datum *head,datum *second);
 datum *state_stack_collect(state **s);
+datum *datum_make_symbol(char *name);
+datum *datum_make_list_1(datum *head);
+datum *datum_make_list_2(datum *head,datum *second);
+LOCAL fdatum builtin_ptr_shared_library(datum *library_name);
+datum *datum_make_pointer(void *data,datum *signature);
+bool datum_is_bytestring(datum *e);
 fdatum pointer_call(datum *f,datum *args);
 int list_length(datum *seq);
 bool datum_is_list(datum *e);
