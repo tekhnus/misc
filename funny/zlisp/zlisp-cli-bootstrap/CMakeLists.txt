@@ -7,4 +7,4 @@ add_test(NAME tests
 add_test(NAME print-file
          COMMAND zlisp-run ${CMAKE_CURRENT_SOURCE_DIR}/test/print-hosts.lisp)
 add_test(NAME run-cli
-         COMMAND sh -c "echo '(+ 33 9)' | ${CMAKE_CURRENT_BINARY_DIR}/zlisp-run ${CMAKE_CURRENT_SOURCE_DIR}/../module/cli/main.lisp")
+         COMMAND sh -c "echo '(+ 33 9)' | LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../zlisp-impl-wrapper ${CMAKE_CURRENT_BINARY_DIR}/zlisp-run ${CMAKE_CURRENT_SOURCE_DIR}/../module/cli/main.lisp")
