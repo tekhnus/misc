@@ -1,6 +1,6 @@
-add_executable(zlisp-run zlisp-cli-bootstrap/main.c zlisp-cli-bootstrap/builtins.c)
+add_executable(zlisp-run zlisp-cli-bootstrap/main.c zlisp-cli-bootstrap/builtins.c zlisp-cli-bootstrap/compiling.c)
 target_link_libraries(zlisp-run PUBLIC zlisp-impl)
-add_library(zlisp-c SHARED zlisp-cli-bootstrap/builtins.c)
+add_library(zlisp-c SHARED zlisp-cli-bootstrap/builtins.c zlisp-cli-bootstrap/compiling.c)
 target_link_libraries(zlisp-c PUBLIC zlisp-impl)
 add_test(NAME tests
          COMMAND zlisp-run ${CMAKE_CURRENT_SOURCE_DIR}/test/tests.lisp)
