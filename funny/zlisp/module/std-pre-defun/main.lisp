@@ -1,3 +1,5 @@
+(require "c-prelude")
+
 (def second
      (builtin.fn
       (return (head (tail (head args))))))

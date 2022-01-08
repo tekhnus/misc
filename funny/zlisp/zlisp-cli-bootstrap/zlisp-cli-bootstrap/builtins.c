@@ -96,58 +96,5 @@ fdatum builtin_tail(datum *list) {
 
 state *state_make_builtins() {
   state *ns = state_make_fresh();
-
-
-  char *prelude_src =
-      "(def lowlevel-shared-library-- (builtin-pointer \"lowlevel-shared-library\"))"
-      "(builtin.defn lowlevel-shared-library (return (pointer-call lowlevel-shared-library-- "
-      "args)))"
-      "(def lowlevel-extern-pointer-- (builtin-pointer \"lowlevel-extern-pointer\"))"
-      "(builtin.defn lowlevel-extern-pointer (return (pointer-call lowlevel-extern-pointer-- "
-      "args)))"
-      "(def extern-pointer-- (builtin-pointer \"extern-pointer\"))"
-      "(builtin.defn extern-pointer (return (pointer-call extern-pointer-- "
-      "args)))"
-      "(def selflib (lowlevel-shared-library \"\"))"
-      "(def shared-library-- (builtin-pointer \"shared-library\"))"
-      "(builtin.defn shared-library (return (pointer-call shared-library-- "
-      "args)))"
-      "(def panic-- (lowlevel-extern-pointer selflib \"builtin_panic\" '((datum) val)))"
-      "(def cons-- (lowlevel-extern-pointer selflib \"builtin_cons\" '((datum datum) val)))"
-      "(def head-- (lowlevel-extern-pointer selflib \"builtin_head\" '((datum) val)))"
-      "(def tail-- (lowlevel-extern-pointer selflib \"builtin_tail\" '((datum) val)))"
-      "(def eq-- (lowlevel-extern-pointer selflib \"builtin_eq\" '((datum datum) val)))"
-      "(def annotate-- (lowlevel-extern-pointer selflib \"builtin_annotate\" '((datum) val)))"
-      "(def is-constant-- (lowlevel-extern-pointer selflib \"builtin_is_constant\" '((datum) val)))"
-      "(def repr-- (lowlevel-extern-pointer selflib \"builtin_repr\" '((datum) val)))"
-      "(def concat-bytestrings-- (lowlevel-extern-pointer selflib \"builtin_concat_bytestrings\" '((datum datum) val)))"
-      "(def +-- (lowlevel-extern-pointer selflib \"builtin_add\" '((datum datum) val)))"
-      "(builtin.defn panic (return (pointer-call panic-- args)))"
-      "(builtin.defn cons (return (pointer-call cons-- args)))"
-      "(builtin.defn head (return (pointer-call head-- args)))"
-      "(builtin.defn tail (return (pointer-call tail-- args)))"
-      "(builtin.defn eq (return (pointer-call eq-- args)))"
-      "(builtin.defn annotate (return (pointer-call annotate-- args)))"
-      "(builtin.defn is-constant (return (pointer-call is-constant-- args)))"
-      "(builtin.defn repr (return (pointer-call repr-- args)))"
-      "(builtin.defn concat-bytestrings (return (pointer-call "
-      "concat-bytestrings-- args)))"
-      "(builtin.defn + (return (pointer-call +-- args)))";
-  FILE *prelude_f = fmemopen(prelude_src, strlen(prelude_src), "r");
-  fdatum prelude_d = datum_read_all(prelude_f);
-  if (fdatum_is_panic(prelude_d)) {
-    fprintf(stderr, "prelude syntax: %s", prelude_d.panic_message);
-    exit(EXIT_FAILURE);
-  }
-  prog *prelude_p = compile_prog(prelude_d.ok_value);
-  if (prelude_p == NULL) {
-      fprintf(stderr, "prelude compilation failure");
-      exit(EXIT_FAILURE);
-  }
-  fdatum err = routine_run_and_get_value(&ns, prelude_p);
-  if (fdatum_is_panic(err)) {
-    fprintf(stderr, "prelude evaluation failure: %s", err.panic_message);
-    exit(EXIT_FAILURE);
-  }
   return ns;
 }
