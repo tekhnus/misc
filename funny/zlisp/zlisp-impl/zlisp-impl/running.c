@@ -117,8 +117,12 @@ fstate routine_run(routine c) {
       datum *res;
       if (!strcmp(name->bytestring_value, "shared-library")) {
         res = datum_make_pointer((void *)builtin_ptr_shared_library, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+      } else if (!strcmp(name->bytestring_value, "lowlevel-shared-library")) {
+        res = datum_make_pointer((void *)builtin_ptr_lowlevel_shared_library, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "extern-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
+      } else if (!strcmp(name->bytestring_value, "lowlevel-extern-pointer")) {
+        res = datum_make_pointer((void *)builtin_ptr_lowlevel_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
       } else {
         return fstate_make_panic("unknown builtin-pointer");
       }
@@ -205,6 +209,24 @@ LOCAL void switch_context(routine *c, routine b, datum *v) {
   state_stack_put(&c->state_, v);
 }
 
+LOCAL fdatum builtin_ptr_lowlevel_shared_library(datum *library_name) {
+  if (!datum_is_bytestring(library_name)) {
+    return fdatum_make_panic("load-shared-library expects a bytestring");
+  }
+  void **handle = malloc(sizeof(void *));
+  if (strlen(library_name->bytestring_value) == 0) {
+    *handle = RTLD_DEFAULT;
+  } else {
+    *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
+  }
+  char *err = dlerror();
+  if (!*handle) {
+    return fdatum_make_panic(err);
+  }
+  
+  return fdatum_make_ok(datum_make_pointer_to_pointer(handle));
+}
+
 LOCAL fdatum builtin_ptr_shared_library(datum *library_name) {
   if (!datum_is_bytestring(library_name)) {
     return fdatum_make_panic("load-shared-library expects a bytestring");
@@ -218,6 +240,25 @@ LOCAL fdatum builtin_ptr_shared_library(datum *library_name) {
   }
   return fdatum_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
+}
+
+LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library, datum *name,
+                              datum *descriptor) {
+  if (!datum_is_pointer(shared_library) ||
+      !datum_is_symbol(shared_library->pointer_descriptor) ||
+      strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
+    return fdatum_make_panic("wrong externcdata usage");
+  }
+  void *handle = *(void **)shared_library->pointer_value;
+  if (!datum_is_bytestring(name)) {
+    return fdatum_make_panic("externcdata expected a string");
+  }
+  void *call_ptr = dlsym(handle, name->bytestring_value);
+  char *err = dlerror();
+  if (err != NULL) {
+    return fdatum_make_panic(err);
+  }
+  return fdatum_make_ok(datum_make_pointer(call_ptr, descriptor));
 }
 
 LOCAL fdatum builtin_ptr_extern_pointer(datum *shared_library, datum *name,

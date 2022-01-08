@@ -73,7 +73,7 @@ LOCAL fdatum builtin_add(datum *x, datum *y) {
   return fdatum_make_ok(datum_make_int(x->integer_value + y->integer_value));
 }
 
-LOCAL fdatum builtin_cons(datum *head, datum *tail) {
+fdatum builtin_cons(datum *head, datum *tail) {
   if (!datum_is_list(tail)) {
     return fdatum_make_panic("cons requires a list as a second argument");
   }
@@ -123,13 +123,21 @@ state *state_make_builtins() {
   namespace_def_extern_fn(&ns, "+--", builtin_add, 2);
 
   char *prelude_src =
-      "(def shared-library-- (builtin-pointer \"shared-library\"))"
-      "(def extern-pointer-- (builtin-pointer \"extern-pointer\"))"
-      "(builtin.defn panic (return (pointer-call panic-- args)))"
-      "(builtin.defn shared-library (return (pointer-call shared-library-- "
+      "(def lowlevel-shared-library-- (builtin-pointer \"lowlevel-shared-library\"))"
+      "(builtin.defn lowlevel-shared-library (return (pointer-call lowlevel-shared-library-- "
       "args)))"
+      "(def lowlevel-extern-pointer-- (builtin-pointer \"lowlevel-extern-pointer\"))"
+      "(builtin.defn lowlevel-extern-pointer (return (pointer-call lowlevel-extern-pointer-- "
+      "args)))"
+      "(def extern-pointer-- (builtin-pointer \"extern-pointer\"))"
       "(builtin.defn extern-pointer (return (pointer-call extern-pointer-- "
       "args)))"
+      "(def selflib (lowlevel-shared-library \"\"))"
+      "(def shared-library-- (builtin-pointer \"shared-library\"))"
+      "(builtin.defn shared-library (return (pointer-call shared-library-- "
+      "args)))"
+      "(def cons-- (lowlevel-extern-pointer selflib \"builtin_cons\" '((datum datum) val)))"
+      "(builtin.defn panic (return (pointer-call panic-- args)))"
       "(builtin.defn cons (return (pointer-call cons-- args)))"
       "(builtin.defn head (return (pointer-call head-- args)))"
       "(builtin.defn tail (return (pointer-call tail-- args)))"
