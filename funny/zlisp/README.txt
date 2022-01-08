@@ -40,3 +40,7 @@ go:
 - (go-call sym args)
 типы:
 - go-value
+
+tis tiny lisp
+lit little lisp
+interlisp
