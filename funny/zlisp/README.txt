@@ -18,3 +18,25 @@ build/zlisp-cli-bootstrap/zlisp-run module/cli/main.lisp
 # To use clang from homebrew (WIP):
 cmake -B build -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_C_FLAGS='-I/usr/local/opt/llvm/include -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib' -DCMAKE_OSX_SYSROOT=/ -DCMAKE_OSX_DEPLOYMENT_TARGET=''
 ```
+
+специальные формы:
+- (shared-library name)
+- (extern-pointer lib name)
+- (call-pointer ptr-to-fn args)
+типы:
+- pointer
+
+специальные формы:
+- (dlopen)
+- (dlerror)
+- (dlsym)
+- (call-pointer ptr-to-fn args)
+типы:
+- pointer
+
+go:
+специальные формы:
+- (go-symbol "package" "symname")
+- (go-call sym args)
+типы:
+- go-value

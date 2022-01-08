@@ -4,6 +4,8 @@
 #include <string.h>
 #include <zlisp-impl/zlisp-impl.h>
 
+state *state_make_builtins();
+
 static fdatum module_source(char *module);
 static fdatum file_source(char *file);
 static prog *module_prog(char *module);

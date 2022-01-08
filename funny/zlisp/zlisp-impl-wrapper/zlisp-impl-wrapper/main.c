@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+state *state_make_builtins();
+
 fdatum read(datum *sptr) {
   if (!datum_is_pointer(sptr) || !datum_is_symbol(sptr->pointer_descriptor) ||
       strcmp(sptr->pointer_descriptor->symbol_value, "pointer")) {

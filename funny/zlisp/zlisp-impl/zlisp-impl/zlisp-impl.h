@@ -110,7 +110,6 @@ prog *prog_make();
 char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
 fstate routine_run(routine c);
 fdatum state_run_prog(state **ctxt,datum *v,routine(*module_source)(char *));
-state *state_make_builtins();
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
