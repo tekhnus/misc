@@ -114,12 +114,15 @@ fstate routine_run(routine c) {
       if (!datum_is_bytestring(name)) {
         return fstate_make_panic("builtin-pointer name should be a string");
       }
+      datum *res;
       if (!strcmp(name->bytestring_value, "shared-library")) {
-        datum *res = datum_make_pointer((void *)builtin_ptr_shared_library, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
-        state_stack_put(&c.state_, res);
+        res = datum_make_pointer((void *)builtin_ptr_shared_library, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+      } else if (!strcmp(name->bytestring_value, "extern-pointer")) {
+        res = datum_make_pointer((void *)builtin_ptr_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
       } else {
         return fstate_make_panic("unknown builtin-pointer");
       }
+      state_stack_put(&c.state_, res);
       c.prog_ = c.prog_->builtin_pointer_next;
     } break;
     case PROG_COLLECT: {
@@ -215,4 +218,25 @@ LOCAL fdatum builtin_ptr_shared_library(datum *library_name) {
   }
   return fdatum_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer_to_pointer(handle)));
+}
+
+LOCAL fdatum builtin_ptr_extern_pointer(datum *shared_library, datum *name,
+                              datum *descriptor) {
+  if (!datum_is_pointer(shared_library) ||
+      !datum_is_symbol(shared_library->pointer_descriptor) ||
+      strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
+    return fdatum_make_panic("wrong externcdata usage");
+  }
+  void *handle = *(void **)shared_library->pointer_value;
+  if (!datum_is_bytestring(name)) {
+    return fdatum_make_panic("externcdata expected a string");
+  }
+  void *call_ptr = dlsym(handle, name->bytestring_value);
+  char *err = dlerror();
+  if (err != NULL) {
+    return fdatum_make_ok(datum_make_list_2(datum_make_symbol(":err"),
+                                            datum_make_bytestring(err)));
+  }
+  return fdatum_make_ok(datum_make_list_2(
+      datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
 }

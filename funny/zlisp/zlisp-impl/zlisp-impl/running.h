@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 typedef struct datum datum;
+bool datum_is_symbol(datum *e);
+bool datum_is_pointer(datum *e);
 datum *datum_make_pointer_to_pointer(void **ptr);
 datum *datum_make_bytestring(char *text);
 #define LOCAL static
@@ -108,6 +110,8 @@ struct state {
   struct routine hat_parent;
 };
 datum *state_stack_collect(state **s);
+datum *datum_make_list_3(datum *head,datum *second,datum *third);
+LOCAL fdatum builtin_ptr_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
 datum *datum_make_symbol(char *name);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list_2(datum *head,datum *second);
