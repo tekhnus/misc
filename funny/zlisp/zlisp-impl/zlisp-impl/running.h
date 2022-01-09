@@ -5,7 +5,6 @@
 typedef struct datum datum;
 bool datum_is_symbol(datum *e);
 bool datum_is_pointer(datum *e);
-datum *datum_make_bytestring(char *text);
 datum *datum_make_pointer_to_pointer(void **ptr);
 #define LOCAL static
 typedef struct fdatum fdatum;
@@ -111,14 +110,12 @@ struct state {
 };
 datum *state_stack_collect(state **s);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
-LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
-LOCAL fdatum builtin_ptr_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
-LOCAL fdatum builtin_ptr_lowlevel_shared_library(datum *library_name);
+LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
 datum *datum_make_symbol(char *name);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list_2(datum *head,datum *second);
-LOCAL fdatum builtin_ptr_shared_library(datum *library_name);
+LOCAL fdatum builtin_ptr_lowlevel_shared_library(datum *library_name);
 datum *datum_make_pointer(void *data,datum *signature);
 bool datum_is_bytestring(datum *e);
 fdatum pointer_call(datum *f,datum *args);
