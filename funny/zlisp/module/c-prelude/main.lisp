@@ -1,13 +1,13 @@
-(def dlopen-pointer (builtin-pointer "dlopen"))
-(builtin.defn dlopen (return (pointer-call dlopen-pointer args)))
+(def dlopen-pointer (host "dlopen" '()))
+(builtin.defn dlopen (return (host "pointer-call" `(~dlopen-pointer ~args))))
 
-(def dlsym-pointer (builtin-pointer "dlsym"))
+(def dlsym-pointer (host "dlsym" '()))
 (builtin.defn dlsym (return (pointer-call dlsym-pointer args)))
 
-(def dereference-and-cast-pointer (builtin-pointer "dereference-and-cast"))
+(def dereference-and-cast-pointer (host "dereference-and-cast" '()))
 (builtin.defn dereference-and-cast (return (pointer-call dereference-and-cast-pointer args)))
 
-(def not-null-pointer-ptr (builtin-pointer "not-null-pointer"))
+(def not-null-pointer-ptr (host "not-null-pointer" '()))
 (builtin.defn not-null-pointer (return (pointer-call not-null-pointer-ptr args)))
 
 (def selflib (dlopen ""))

@@ -27,9 +27,9 @@ cmake -B build -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_C_FLAGS=
 - pointer
 
 специальные формы:
-- (dlopen)
-- (dlerror)
-- (dlsym)
+- (builtin "dlopen")
+- (builtin "dlsym")
+- (builtin "dlerror")
 - (call-pointer ptr-to-fn args)
 типы:
 - pointer

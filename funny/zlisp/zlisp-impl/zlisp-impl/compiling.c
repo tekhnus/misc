@@ -205,11 +205,14 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     prog_append_pointer_call(begin);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin-pointer")) {
-    if (list_length(stmt->list_tail) != 1) {
-      return "builtin-pointer should have exactly one arg";
+  if (datum_is_the_symbol(op, "host")) {
+    if (list_length(stmt->list_tail) != 2) {
+      return "host should have exactly two args";
     }
-    prog_append_builtin_pointer(begin, stmt->list_tail->list_head);
+    datum *operation = stmt->list_tail->list_head;
+    datum *arg = stmt->list_tail->list_tail->list_head;
+    prog_append_statement(begin, arg, module_source);
+    prog_append_builtin_pointer(begin, operation);
     return NULL;
   }
 
