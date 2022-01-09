@@ -109,6 +109,7 @@ struct state {
   struct routine hat_parent;
 };
 datum *state_stack_collect(state **s);
+void *simplified_dlopen(char *path);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
 LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library,datum *name,datum *descriptor);

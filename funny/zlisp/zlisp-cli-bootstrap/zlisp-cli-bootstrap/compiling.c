@@ -33,6 +33,7 @@ routine module_routine(char *module) {
 static prog *module_prog(char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
+    fprintf(stderr, "syntax error in required module: %s\n", src.panic_message);
     return NULL;
   }
   prog *p = prog_make();

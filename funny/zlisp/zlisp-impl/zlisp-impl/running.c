@@ -121,6 +121,8 @@ fstate routine_run(routine c) {
         res = datum_make_pointer((void *)builtin_ptr_lowlevel_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+      } else if (!strcmp(name->bytestring_value, "dlopen")) {
+        res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
       } else {
         return fstate_make_panic("unknown builtin-pointer");
       }
@@ -205,6 +207,13 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p) {
 LOCAL void switch_context(routine *c, routine b, datum *v) {
   *c = b;
   state_stack_put(&c->state_, v);
+}
+
+void *simplified_dlopen(char *path) {
+  if (strlen(path) == 0) {
+    return RTLD_DEFAULT;
+  }
+  return dlopen(path, RTLD_LAZY);
 }
 
 LOCAL fdatum builtin_ptr_lowlevel_shared_library(datum *library_name) {
