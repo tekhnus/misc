@@ -32,10 +32,25 @@ The `.envrc` file takes care of that.
 
 History:
 
-In April 2013, I started working on a small lisp implementation,
-but I abandoned it almost immediately.
+April 2013: started working on a small lisp implementation,
+but abandoned it almost immediately.
 
-In June 2021, I started writing a new lisp from scratch.
-The most basic stuff is implemented: functions, macros,
-quasiquotes, etc. Dynamically loading shared libraries and
-calling functions from them is also possible.
+June 2021: started writing a new lisp from scratch.
+The most basic stuff is done: functions, macros,
+quasiquotes, etc. Also, dynamic loading of shared libraries and
+calling functions from them is implemented.
+
+August 2021: coroutines are added.
+In order to achieve that, the evaluation is completely
+redesigned and mostly separated into two phases:
+compilation into a bytecode for a simple stack machine
+and bytecode evaluation.
+Classical macros are replaced by preprocessing.
+
+January 2022: required modules and subroutines
+are now compiled at compile-time instead of run-time;
+thus, bytecode compilation and evaluation are completely separated.
+The frontend (perfming module searching and source code preprocessing)
+is separated from the compiler.
+The base language, the bytecode and the process of compiling
+the former into the latter are now host-agnostic.
