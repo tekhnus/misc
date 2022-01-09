@@ -125,6 +125,8 @@ fstate routine_run(routine c) {
         res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
       } else if (!strcmp(name->bytestring_value, "dlsym")) {
         res = datum_make_pointer((void *)dlsym, datum_make_list_2(datum_make_list_2(datum_make_symbol("pointer"), datum_make_symbol("string")), datum_make_symbol("pointer")));
+      } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
+        res = datum_make_pointer((void *)builtin_ptr_dereference_and_cast, datum_make_list_2(datum_make_list_2(datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
       } else {
         return fstate_make_panic("unknown builtin-pointer");
       }
@@ -265,4 +267,11 @@ LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
     return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
   return fdatum_make_ok(datum_make_nil());
+}
+
+LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
+  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(ptpt->pointer_descriptor, "pointer")) {
+    return fdatum_make_panic("dereference expected a pointer to pointer");
+  }
+  return fdatum_make_ok(datum_make_pointer(*((void **)ptpt->pointer_value), new_descriptor));
 }

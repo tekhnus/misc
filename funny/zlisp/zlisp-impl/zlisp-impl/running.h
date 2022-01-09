@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 typedef struct datum datum;
+bool datum_is_the_symbol(datum *d,char *val);
 bool datum_is_symbol(datum *e);
 bool datum_is_pointer(datum *e);
 datum *datum_make_pointer_to_pointer(void **ptr);
@@ -109,6 +110,7 @@ struct state {
   struct routine hat_parent;
 };
 datum *state_stack_collect(state **s);
+LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
 void *simplified_dlopen(char *path);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);

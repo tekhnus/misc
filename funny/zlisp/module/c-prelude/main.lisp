@@ -4,18 +4,24 @@
 (def dlsym-pointer (builtin-pointer "dlsym"))
 (builtin.defn dlsym (return (pointer-call dlsym-pointer args)))
 
+(def dereference-and-cast-pointer (builtin-pointer "dereference-and-cast"))
+(builtin.defn dereference-and-cast (return (pointer-call dereference-and-cast-pointer args)))
+
 (def lowlevel-shared-library-- (builtin-pointer "lowlevel-shared-library"))
-(builtin.defn lowlevel-shared-library (return (pointer-call lowlevel-shared-library--
+(builtin.defn lowlevel-shared-library (return (pointer-call dlopen-pointer
                                                             args)))
 (def lowlevel-extern-pointer-- (builtin-pointer "lowlevel-extern-pointer"))
 (builtin.defn lowlevel-extern-pointer (return (pointer-call lowlevel-extern-pointer--
                                                             args)))
 
-(def selflib (lowlevel-shared-library ""))
+(def selflib (dlopen ""))
+
+(def head-pointer-pointer (dlsym selflib "builtin_head"))
+(def head-pointer (dereference-and-cast head-pointer-pointer '((datum) val)))
+(builtin.defn head (return (pointer-call head-pointer args)))
 
 (def panic-- (lowlevel-extern-pointer selflib "builtin_panic" '((datum) val)))
 (def cons-- (lowlevel-extern-pointer selflib "builtin_cons" '((datum datum) val)))
-(def head-- (lowlevel-extern-pointer selflib "builtin_head" '((datum) val)))
 (def tail-- (lowlevel-extern-pointer selflib "builtin_tail" '((datum) val)))
 (def eq-- (lowlevel-extern-pointer selflib "builtin_eq" '((datum datum) val)))
 (def annotate-- (lowlevel-extern-pointer selflib "builtin_annotate" '((datum) val)))
@@ -25,7 +31,6 @@
 (def +-- (lowlevel-extern-pointer selflib "builtin_add" '((datum datum) val)))
 (builtin.defn panic (return (pointer-call panic-- args)))
 (builtin.defn cons (return (pointer-call cons-- args)))
-(builtin.defn head (return (pointer-call head-- args)))
 (builtin.defn tail (return (pointer-call tail-- args)))
 (builtin.defn eq (return (pointer-call eq-- args)))
 (builtin.defn annotate (return (pointer-call annotate-- args)))
