@@ -373,6 +373,15 @@ fdatum fdatum_make_panic(char *message) {
   return result;
 }
 
+fdatum fdatum_get_value(fdatum result) {
+  return result;  // A temporary hack for getting the result from lisp :)
+}
+
+char *fdatum_get_panic_message(fdatum result) {
+  // printf("!!!%s\n", result.panic_message);
+  return result.panic_message;
+}
+
 bool fstate_is_ok(fstate result) { return result.type == FSTATE_OK; }
 
 bool fstate_is_panic(fstate result) { return result.type == FSTATE_PANIC; }
@@ -598,6 +607,11 @@ fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
     void *res = malloc(sizeof(int));
     ffi_call(cif, fn_ptr, res, cargs);
     return fdatum_make_ok(datum_make_int(*(int64_t *)res));
+  }
+  if (!strcmp(rettype, "string")) {
+    void *res = malloc(sizeof(char *));
+    ffi_call(cif, fn_ptr, res, cargs);
+    return fdatum_make_ok(datum_make_bytestring(*(char **)res));
   }
   if (!strcmp(rettype, "fdatum")) {
     void *res = malloc(sizeof(fdatum));

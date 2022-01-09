@@ -50,6 +50,8 @@ fstate fstate_make_panic(char *message);
 fstate fstate_make_ok(state *v);
 bool fstate_is_panic(fstate result);
 bool fstate_is_ok(fstate result);
+char *fdatum_get_panic_message(fdatum result);
+fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);
 bool fdatum_is_ok(fdatum result);
 char *datum_repr(datum *e);

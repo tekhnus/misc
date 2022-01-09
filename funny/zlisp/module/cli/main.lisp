@@ -12,7 +12,7 @@
 	  ((:eof)
 	   (return (fprintf stdout "\n")))
 	  ((:ok datum)
-	   !(#switchx (eval datum nsp)
+	   !(#switchx (eval nsp (compile-prog `(~datum)))
 		   ((:ok val ctxt)
 		    !(#ignore (fprintf-bytestring stdout "%s\n" (repr val)))
 		    (return (repl ctxt)))

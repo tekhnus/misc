@@ -75,6 +75,8 @@ bool fdatum_is_ok(fdatum result);
 bool fdatum_is_panic(fdatum result);
 fdatum fdatum_make_ok(datum *v);
 fdatum fdatum_make_panic(char *message);
+fdatum fdatum_get_value(fdatum result);
+char *fdatum_get_panic_message(fdatum result);
 typedef struct fstate fstate;
 struct fstate {
   int type;
