@@ -1,6 +1,9 @@
 (def dlopen-pointer (builtin-pointer "dlopen"))
 (builtin.defn dlopen (return (pointer-call dlopen-pointer args)))
 
+(def dlsym-pointer (builtin-pointer "dlsym"))
+(builtin.defn dlsym (return (pointer-call dlsym-pointer args)))
+
 (def lowlevel-shared-library-- (builtin-pointer "lowlevel-shared-library"))
 (builtin.defn lowlevel-shared-library (return (pointer-call lowlevel-shared-library--
                                                             args)))

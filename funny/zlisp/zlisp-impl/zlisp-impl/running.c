@@ -123,6 +123,8 @@ fstate routine_run(routine c) {
         res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "dlopen")) {
         res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
+      } else if (!strcmp(name->bytestring_value, "dlsym")) {
+        res = datum_make_pointer((void *)dlsym, datum_make_list_2(datum_make_list_2(datum_make_symbol("pointer"), datum_make_symbol("string")), datum_make_symbol("pointer")));
       } else {
         return fstate_make_panic("unknown builtin-pointer");
       }
