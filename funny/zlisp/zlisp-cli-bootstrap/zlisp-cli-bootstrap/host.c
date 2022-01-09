@@ -1,6 +1,7 @@
 #include <zlisp-impl/zlisp-impl.h>
 #include <string.h>
 #include <dlfcn.h>
+#include <stdlib.h>
 
 void *simplified_dlopen(char *path) {
   if (strlen(path) == 0) {
@@ -26,12 +27,23 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor
   return fdatum_make_ok(datum_make_pointer(*((void **)ptpt->pointer_value), new_descriptor));
 }
 
+fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
+  if (!datum_is_pointer(pt)) {
+    return fdatum_make_panic("wrap-ptr-into-ptr expected a pointer");
+  }
+  void **ptpt = malloc(sizeof(void **));
+  *ptpt = pt->pointer_value;
+  return fdatum_make_ok(datum_make_pointer(ptpt, datum_make_symbol("pointer")));
+}
+
 fdatum perform_host_instruction(datum *name, datum *arg) {
 if (!datum_is_bytestring(name)) {
         return fdatum_make_panic("host instruction should be a string");
       }
       datum *res;
-      if (!strcmp(name->bytestring_value, "not-null-pointer")) {
+      if (!strcmp(name->bytestring_value, "wrap-pointer-into-pointer")) {
+        res = datum_make_pointer((void *)builtin_ptr_wrap_ptr_into_ptr, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+      } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "dlopen")) {
         res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));

@@ -13,6 +13,9 @@
      (extern-pointer zlisp-zlisp "eval" '((datum datum) val)))
 !(#wrap-fn-pointer eval eval-)
 
-!(#def-or-panica builtins-
-  (extern-pointer zlisp-zlisp "builtins" '(() val)))
-!(#wrap-fn-pointer builtins builtins-)
+
+(def selflib (dlopen-or-panic ""))
+(def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
+(def compile-prog (c-function-or-panic selflib "compile_prog" '((datum) pointer)))
+!(#defun compile-statement (s) (return (compile-prog `(~s))))
+(def routine-run-and-get-value-c-host (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((pointer pointer) val)))

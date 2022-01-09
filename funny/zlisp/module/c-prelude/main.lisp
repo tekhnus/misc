@@ -10,6 +10,10 @@
 (def not-null-pointer-ptr (host "not-null-pointer" '()))
 (builtin.defn not-null-pointer (return (host "pointer-call" `(~not-null-pointer-ptr ~args))))
 
+(def wrap-pointer-into-pointer-ptr (host "wrap-pointer-into-pointer" '()))
+(builtin.defn wrap-pointer-into-pointer (return (host "pointer-call" `(~wrap-pointer-into-pointer-ptr ~args))))
+
+
 (def selflib (dlopen ""))
 
 (def head-pointer-pointer (dlsym selflib "builtin_head"))
@@ -53,6 +57,26 @@
 (def repr (builtin-function "builtin_repr" '((datum) val)))
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
+
+(builtin.defn dlopen-or-panic (progn
+                               (def res-ptr (dlopen (head args)))
+                               (def res (dereference-and-cast res-ptr 'pointer))
+                               (if (not-null-pointer res)
+                                   (return res-ptr)
+                                 (panic (concat-bytestrings "couln't dlopen library " (head args))))))
+
+(builtin.defn c-function-or-panic
+              (progn
+                (def handle (head args))
+                (def c-name (head (tail args)))
+                (def signature (head (tail (tail args))))
+                (def fn-pointer-pointer (dlsym handle c-name))
+                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
+                (if (not-null-pointer fn-pointer)
+                    ((def fn-routine (builtin.fn (return (host "pointer-call" `(~fn-pointer ~args)))))
+                     (return fn-routine))
+                  (panic (concat-bytestrings "couldn't load C function " c-name)))))
+                  
 
 (builtin.defn shared-library (progn
                                (def res-ptr (dlopen (head args)))
