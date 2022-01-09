@@ -115,9 +115,7 @@ fstate routine_run(routine c) {
         return fstate_make_panic("builtin-pointer name should be a string");
       }
       datum *res;
-      if (!strcmp(name->bytestring_value, "lowlevel-extern-pointer")) {
-        res = datum_make_pointer((void *)builtin_ptr_lowlevel_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
-      } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
+      if (!strcmp(name->bytestring_value, "not-null-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "dlopen")) {
         res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
@@ -216,26 +214,6 @@ void *simplified_dlopen(char *path) {
     return RTLD_DEFAULT;
   }
   return dlopen(path, RTLD_LAZY);
-}
-
-LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library, datum *name,
-                              datum *descriptor) {
-  if (!datum_is_pointer(shared_library) ||
-      !datum_is_symbol(shared_library->pointer_descriptor) ||
-      strcmp(shared_library->pointer_descriptor->symbol_value, "pointer")) {
-    return fdatum_make_panic("wrong externcdata usage");
-  }
-  void *handle = *(void **)shared_library->pointer_value;
-  if (!datum_is_bytestring(name)) {
-    return fdatum_make_panic("externcdata expected a string");
-  }
-  void *call_ptr = dlsym(handle, name->bytestring_value);
-  char *err = dlerror();
-  if (err != NULL) {
-    fprintf(stderr, "WARNING: dlsym failed: %s\n", err);
-    return fdatum_make_ok(datum_make_pointer(NULL, descriptor));
-  }
-  return fdatum_make_ok(datum_make_pointer(call_ptr, descriptor));
 }
 
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {

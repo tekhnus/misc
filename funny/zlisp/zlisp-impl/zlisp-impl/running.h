@@ -4,7 +4,6 @@
 #include <stdbool.h>
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
-bool datum_is_symbol(datum *e);
 bool datum_is_pointer(datum *e);
 #define LOCAL static
 typedef struct fdatum fdatum;
@@ -111,12 +110,10 @@ struct state {
 datum *state_stack_collect(state **s);
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
 void *simplified_dlopen(char *path);
-datum *datum_make_list_1(datum *head);
-LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 datum *datum_make_symbol(char *name);
-datum *datum_make_list_3(datum *head,datum *second,datum *third);
+datum *datum_make_list_1(datum *head);
 datum *datum_make_list_2(datum *head,datum *second);
-LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
+LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 datum *datum_make_pointer(void *data,datum *signature);
 bool datum_is_bytestring(datum *e);
 fdatum pointer_call(datum *f,datum *args);

@@ -20,14 +20,30 @@
 (def tail-pointer (dereference-and-cast tail-pointer-pointer '((datum) val)))
 (builtin.defn tail (return (pointer-call tail-pointer args)))
 
+(builtin.defn c-function-pointer
+            (progn
+              (def handle (head args))
+                (def c-name (head (tail args)))
+                (def signature (head (tail (tail args))))
+                (def fn-pointer-pointer (dlsym handle c-name))
+                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
+                (return fn-pointer)))
+                
+(builtin.defn c-function
+              (progn
+                (def handle (head args))
+                (def c-name (head (tail args)))
+                (def signature (head (tail (tail args))))
+                (def fn-pointer-pointer (dlsym handle c-name))
+                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
+                (def fn-routine (builtin.fn (return (pointer-call fn-pointer args))))
+                (return fn-routine)))
+              
 (builtin.defn builtin-function
               (progn
                 (def c-name (head args))
                 (def signature (head (tail args)))
-                (def fn-pointer-pointer (dlsym selflib c-name))
-                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
-                (def fn-routine (builtin.fn (return (pointer-call fn-pointer args))))
-                (return fn-routine)))
+                (return (c-function selflib c-name signature))))
 
 (def cons (builtin-function "builtin_cons" '((datum datum) val)))
 (def panic (builtin-function "builtin_panic" '((datum) val)))
@@ -38,8 +54,6 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
-(def lowlevel-extern-pointer-- (builtin-pointer "lowlevel-extern-pointer"))
-
 (builtin.defn shared-library (progn
                                (def res-ptr (dlopen (head args)))
                                (def res (dereference-and-cast res-ptr 'pointer))
@@ -48,7 +62,10 @@
                                  (return `(:err "shared-library failed")))))
 
 (builtin.defn extern-pointer (progn
-                               (def res (pointer-call lowlevel-extern-pointer-- args))
+                               (def handle (head args))
+                               (def c-name (head (tail args)))
+                               (def signature (head (tail (tail args))))
+                               (def res (c-function-pointer handle c-name signature))
                                (if (not-null-pointer res)
                                    (return `(:ok ~res))
                                  (return `(:err "extern-pointer failed")))))
