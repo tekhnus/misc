@@ -27,6 +27,9 @@ To (re)generate the compilation database:
 cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 ```
 
+Mind that a correct environment is needed for some of those commands.
+The `.envrc` file takes care of that.
+
 History:
 
 In April 2013, I started working on a small lisp implementation,
