@@ -110,6 +110,7 @@ struct state {
   struct routine hat_parent;
 };
 datum *state_stack_collect(state **s);
+LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library,datum *name,datum *descriptor);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
 LOCAL fdatum builtin_ptr_extern_pointer(datum *shared_library,datum *name,datum *descriptor);

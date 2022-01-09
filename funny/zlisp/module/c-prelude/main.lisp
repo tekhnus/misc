@@ -29,10 +29,17 @@
                                           concat-bytestrings-- args)))
 (builtin.defn + (return (pointer-call +-- args)))
 
-(def shared-library-- (builtin-pointer "shared-library"))
-(builtin.defn shared-library (return (pointer-call shared-library--
-                                                   args)))
+(def not-null-pointer-ptr (builtin-pointer "not-null-pointer"))
+(builtin.defn not-null-pointer (return (pointer-call not-null-pointer-ptr args)))
 
-(def extern-pointer-- (builtin-pointer "extern-pointer"))
-(builtin.defn extern-pointer (return (pointer-call extern-pointer--
-                                                   args)))
+(builtin.defn shared-library (progn
+                               (def res (pointer-call lowlevel-shared-library-- args))
+                               (if (not-null-pointer res)
+                                   (return `(:ok ~res))
+                                 (return `(:err "shared-library failed")))))
+
+(builtin.defn extern-pointer (progn
+                               (def res (pointer-call lowlevel-extern-pointer-- args))
+                               (if (not-null-pointer res)
+                                   (return `(:ok ~res))
+                                 (return `(:err "extern-pointer failed")))))

@@ -123,6 +123,8 @@ fstate routine_run(routine c) {
         res = datum_make_pointer((void *)builtin_ptr_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "lowlevel-extern-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_lowlevel_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
+      } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
+        res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
       } else {
         return fstate_make_panic("unknown builtin-pointer");
       }
@@ -221,9 +223,10 @@ LOCAL fdatum builtin_ptr_lowlevel_shared_library(datum *library_name) {
   }
   char *err = dlerror();
   if (!*handle) {
-    return fdatum_make_panic(err);
+    fprintf(stderr, "WARNING: dlopen failed: %s\n", err);
+    return fdatum_make_ok(datum_make_pointer_to_pointer(NULL));
   }
-  
+
   return fdatum_make_ok(datum_make_pointer_to_pointer(handle));
 }
 
@@ -256,7 +259,8 @@ LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library, datum *n
   void *call_ptr = dlsym(handle, name->bytestring_value);
   char *err = dlerror();
   if (err != NULL) {
-    return fdatum_make_panic(err);
+    fprintf(stderr, "WARNING: dlsym failed: %s\n", err);
+    return fdatum_make_ok(datum_make_pointer(NULL, descriptor));
   }
   return fdatum_make_ok(datum_make_pointer(call_ptr, descriptor));
 }
@@ -280,4 +284,14 @@ LOCAL fdatum builtin_ptr_extern_pointer(datum *shared_library, datum *name,
   }
   return fdatum_make_ok(datum_make_list_2(
       datum_make_symbol(":ok"), datum_make_pointer(call_ptr, descriptor)));
+}
+
+LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
+  if (!datum_is_pointer(pointer)) {
+    return fdatum_make_panic("not-null-pointer expects a pointer");
+  }
+  if (pointer->pointer_value != NULL) {
+    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
+  }
+  return fdatum_make_ok(datum_make_nil());
 }
