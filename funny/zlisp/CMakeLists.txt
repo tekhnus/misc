@@ -5,5 +5,4 @@ enable_testing()
 
 add_subdirectory(zlisp-impl)
 add_subdirectory(zlisp-cli-bootstrap)
-add_subdirectory(zlisp-impl-wrapper)
 add_subdirectory(tools)
