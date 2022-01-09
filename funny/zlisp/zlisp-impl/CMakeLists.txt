@@ -7,7 +7,7 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD_REQUIRED YES
 				 C_EXTENSIONS YES)
 target_compile_options(zlisp-impl PRIVATE -Wall -Wextra)
-add_custom_target(codegen
+add_custom_target(codegen-zlisp-impl
                   COMMAND makeheaders -v zlisp-impl/main.c zlisp-impl/compiling.c zlisp-impl/running.c zlisp-impl/types.h
                   COMMAND makeheaders -v zlisp-impl/main.c zlisp-impl/compiling.c zlisp-impl/running.c zlisp-impl/types.h -h >zlisp-impl/zlisp-impl.h
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

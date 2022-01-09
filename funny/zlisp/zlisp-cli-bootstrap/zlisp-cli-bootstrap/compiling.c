@@ -1,14 +1,10 @@
+#include <zlisp-cli-bootstrap/compiling.h>
+#if INTERFACE
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp-impl/zlisp-impl.h>
-
-static fdatum module_source(char *module);
-fdatum file_source(char *file);
-static prog *module_prog(char *module);
-routine module_routine(char *module);
-state *state_make_builtins();
-fdatum perform_host_instruction(datum *name, datum *arg);
+#endif
 
 prog *compile_prog(datum *source) {
   prog *p = prog_make();
@@ -20,8 +16,6 @@ prog *compile_prog(datum *source) {
   return p;
 }
 
-static fdatum datum_expand(datum *e, state **ctxt);
-
 routine module_routine(char *module) {
   routine r = routine_make_null();
   prog *p = module_prog(module);
@@ -31,7 +25,7 @@ routine module_routine(char *module) {
   return routine_make(p, state_make_builtins());
 }
 
-static prog *module_prog(char *module) {
+LOCAL prog *module_prog(char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
     fprintf(stderr, "syntax error in required module: %s\n", src.panic_message);
@@ -96,7 +90,7 @@ fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-static fdatum datum_expand(datum *e, state **ctxt) {
+LOCAL fdatum datum_expand(datum *e, state **ctxt) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(e);
   }

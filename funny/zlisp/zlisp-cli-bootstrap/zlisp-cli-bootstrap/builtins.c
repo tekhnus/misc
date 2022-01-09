@@ -1,10 +1,11 @@
+#include <zlisp-cli-bootstrap/builtins.h>
+#if INTERFACE
 #include <zlisp-impl/zlisp-impl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <dlfcn.h>
-
-prog *compile_prog(datum *source);
+#endif
 
 fdatum builtin_eq(datum *x, datum *y) {
   datum *t = datum_make_list_1(datum_make_nil());

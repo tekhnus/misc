@@ -1,13 +1,11 @@
 // a basic CLI for zlisp interpreter.
+#include <zlisp-cli-bootstrap/main.h>
+#if INTERFACE
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp-impl/zlisp-impl.h>
-
-state *state_make_builtins();
-fdatum file_source(char *file);
-routine module_routine(char *module);
-fdatum perform_host_instruction(datum *name, datum *arg);
+#endif
 
 int main(int argc, char **argv) {
   if (argc != 2) {
