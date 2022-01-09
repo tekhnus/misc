@@ -1,15 +1,6 @@
 !(require "stdmacro")
 (require "std")
 
-!(#def-or-panica zlisp-zlisp
-  (shared-library "libzlisp-impl-wrapper.so")
-  (shared-library "libzlisp-impl-wrapper.dylib"))
-
-!(#def-or-panica read-
-     (extern-pointer zlisp-zlisp "read" '((datum) val)))
-!(#wrap-fn-pointer read read-)
-
-
 (def selflib (dlopen-or-panic ""))
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def compile-prog (c-function-or-panic selflib "compile_prog" '((datum) pointer)))
@@ -30,3 +21,18 @@
          (def val (fdatum-get-value res))
          (def new-state (dereference-and-cast state-ptr 'pointer))
          (return `(:ok ~val ~new-state))))))
+(def datum-read-one (c-function-or-panic selflib "datum_read_one" '((pointer) fdatum)))
+!(#defun read (strm)
+   (progn
+     (def res (datum-read-one strm))
+     (if (eq (fdatum-is-panic res) 1)
+         (progn
+           (def msg (fdatum-get-panic-message res))
+           (return `(:err ~msg)))
+       (progn
+         (def maybeval (fdatum-get-value res))
+         (if maybeval
+             (progn
+               (def val (head maybeval))
+               (return `(:ok ~val)))
+           (return '(:eof)))))))

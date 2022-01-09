@@ -55,9 +55,10 @@ fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);
 bool fdatum_is_ok(fdatum result);
 char *datum_repr(datum *e);
+fdatum datum_read_all(FILE *stre);
 fdatum fdatum_make_ok(datum *v);
 fdatum fdatum_make_panic(char *message);
-fdatum datum_read_all(FILE *stre);
+fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,

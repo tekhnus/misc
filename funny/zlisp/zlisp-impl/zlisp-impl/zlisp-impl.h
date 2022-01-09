@@ -69,6 +69,7 @@ struct fdatum {
   struct datum *ok_value;
   char *panic_message;
 };
+fdatum datum_read_one(FILE *stre);
 fdatum datum_read_all(FILE *stre);
 char *datum_repr(datum *e);
 bool fdatum_is_ok(fdatum result);

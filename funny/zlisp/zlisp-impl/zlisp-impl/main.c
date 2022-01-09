@@ -314,6 +314,20 @@ read_result datum_read(FILE *strm) {
   return read_result_make_panic(err);
 }
 
+fdatum datum_read_one(FILE *stre) {
+  read_result rr = datum_read(stre);
+  if (read_result_is_panic(rr)) {
+    return fdatum_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr)) {
+    return fdatum_make_panic("unmatched right paren");
+  }
+  if (read_result_is_eof(rr)) {
+    return fdatum_make_ok(datum_make_nil());
+  }
+  return fdatum_make_ok(datum_make_list_1(rr.ok_value));
+}
+
 fdatum datum_read_all(FILE *stre) {
   read_result rr;
   datum *res = datum_make_nil();
