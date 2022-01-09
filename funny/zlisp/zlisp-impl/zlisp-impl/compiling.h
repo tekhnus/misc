@@ -9,7 +9,7 @@ typedef struct prog prog;
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
-LOCAL void prog_append_builtin_pointer(prog **begin,datum *name);
+LOCAL void prog_append_host(prog **begin,datum *name);
 typedef struct routine routine;
 #include <inttypes.h>
 #include <stdio.h>
@@ -82,7 +82,7 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
-  PROG_BUILTIN_POINTER,
+  PROG_HOST,
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
@@ -118,10 +118,9 @@ struct prog {
       bool call_hat;
       struct prog *call_next;
     };
-    struct prog *pointer_call_next;
     struct {
-      struct datum *builtin_pointer_name;
-      struct prog *builtin_pointer_next;
+      struct datum *host_instruction;
+      struct prog *host_next;
     };
     struct prog *collect_next;
     struct {

@@ -195,7 +195,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     datum *operation = stmt->list_tail->list_head;
     datum *arg = stmt->list_tail->list_tail->list_head;
     prog_append_statement(begin, arg, module_source);
-    prog_append_builtin_pointer(begin, operation);
+    prog_append_host(begin, operation);
     return NULL;
   }
 
@@ -243,11 +243,11 @@ LOCAL void prog_append_call(prog **begin, bool hat) {
   *begin = (*begin)->call_next;
 }
 
-LOCAL void prog_append_builtin_pointer(prog **begin, datum *name) {
-  (*begin)->type = PROG_BUILTIN_POINTER;
-  (*begin)->builtin_pointer_name = name;
-  (*begin)->builtin_pointer_next = prog_make();
-  *begin = (*begin)->builtin_pointer_next;
+LOCAL void prog_append_host(prog **begin, datum *name) {
+  (*begin)->type = PROG_HOST;
+  (*begin)->host_instruction = name;
+  (*begin)->host_next = prog_make();
+  *begin = (*begin)->host_next;
 }
 
 LOCAL void prog_join(prog *a, prog *b, prog *e) {

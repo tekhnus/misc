@@ -95,11 +95,11 @@ fstate routine_run(routine c) {
             state_change_parent(c.state_, parent_cont.state_->hat_parent, true);
       }
     } break;
-    case PROG_BUILTIN_POINTER: {
-      datum *name = c.prog_->builtin_pointer_name;
+    case PROG_HOST: {
+      datum *name = c.prog_->host_instruction;
       datum *arg = state_stack_pop(&c.state_);
       if (!datum_is_bytestring(name)) {
-        return fstate_make_panic("builtin-pointer name should be a string");
+        return fstate_make_panic("host instruction should be a string");
       }
       datum *res;
       if (!strcmp(name->bytestring_value, "not-null-pointer")) {
@@ -123,10 +123,10 @@ fstate routine_run(routine c) {
         }
         res = resu.ok_value;
       } else {
-        return fstate_make_panic("unknown builtin-pointer");
+        return fstate_make_panic("unknown host instruction");
       }
       state_stack_put(&c.state_, res);
-      c.prog_ = c.prog_->builtin_pointer_next;
+      c.prog_ = c.prog_->host_next;
     } break;
     case PROG_COLLECT: {
       datum *form = state_stack_collect(&c.state_);
