@@ -20,9 +20,22 @@
 (def head-pointer (dereference-and-cast head-pointer-pointer '((datum) val)))
 (builtin.defn head (return (pointer-call head-pointer args)))
 
+(def tail-pointer-pointer (dlsym selflib "builtin_tail"))
+(def tail-pointer (dereference-and-cast tail-pointer-pointer '((datum) val)))
+(builtin.defn tail (return (pointer-call tail-pointer args)))
+
+(builtin.defn builtin-function
+              (progn
+                (def c-name (head args))
+                (def signature (head (tail args)))
+                (def fn-pointer-pointer (dlsym selflib c-name))
+                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
+                (def fn-routine (builtin.fn (return (pointer-call fn-pointer args))))
+                (return fn-routine)))
+
+(def cons (builtin-function "builtin_cons" '((datum datum) val)))
+
 (def panic-- (lowlevel-extern-pointer selflib "builtin_panic" '((datum) val)))
-(def cons-- (lowlevel-extern-pointer selflib "builtin_cons" '((datum datum) val)))
-(def tail-- (lowlevel-extern-pointer selflib "builtin_tail" '((datum) val)))
 (def eq-- (lowlevel-extern-pointer selflib "builtin_eq" '((datum datum) val)))
 (def annotate-- (lowlevel-extern-pointer selflib "builtin_annotate" '((datum) val)))
 (def is-constant-- (lowlevel-extern-pointer selflib "builtin_is_constant" '((datum) val)))
@@ -30,8 +43,6 @@
 (def concat-bytestrings-- (lowlevel-extern-pointer selflib "builtin_concat_bytestrings" '((datum datum) val)))
 (def +-- (lowlevel-extern-pointer selflib "builtin_add" '((datum datum) val)))
 (builtin.defn panic (return (pointer-call panic-- args)))
-(builtin.defn cons (return (pointer-call cons-- args)))
-(builtin.defn tail (return (pointer-call tail-- args)))
 (builtin.defn eq (return (pointer-call eq-- args)))
 (builtin.defn annotate (return (pointer-call annotate-- args)))
 (builtin.defn is-constant (return (pointer-call is-constant-- args)))
