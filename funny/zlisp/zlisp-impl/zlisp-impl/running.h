@@ -5,10 +5,6 @@
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
 bool datum_is_pointer(datum *e);
-typedef struct state state;
-datum *state_list_vars(state *ns);
-datum *datum_make_void();
-datum *state_stack_collect(state **s);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
@@ -26,10 +22,15 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor)
 void *simplified_dlopen(char *path);
 datum *datum_make_symbol(char *name);
 datum *datum_make_list_1(datum *head);
-datum *datum_make_list_2(datum *head,datum *second);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 datum *datum_make_pointer(void *data,datum *signature);
 bool datum_is_bytestring(datum *e);
+typedef struct state state;
+datum *state_list_vars(state *ns);
+datum *datum_make_void();
+datum *datum_make_list_2(datum *head,datum *second);
+datum *state_stack_collect(state **s);
+LOCAL fdatum perform_host_instruction(datum *name,datum *arg);
 typedef struct routine routine;
 typedef struct prog prog;
 struct routine {
