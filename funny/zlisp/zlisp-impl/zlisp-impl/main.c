@@ -486,7 +486,7 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
     *type = &ffi_type_pointer;
     return true;
   }
-  if (!strcmp(definition->symbol_value, "val")) {
+  if (!strcmp(definition->symbol_value, "val") || !strcmp(definition->symbol_value, "fdatum")) {
     *type = malloc(sizeof(ffi_type));
     (*type)->type = FFI_TYPE_STRUCT;
     (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
@@ -560,6 +560,14 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
       cargs[arg_cnt] = arg->list_head->pointer_value;
     } else if (!strcmp(argt->list_head->symbol_value, "datum")) {
       cargs[arg_cnt] = &arg->list_head;
+    } else if (!strcmp(argt->list_head->symbol_value, "fdatum")) {
+      datum *sig;
+      if (!datum_is_pointer(arg->list_head) ||
+          !datum_is_symbol(sig = arg->list_head->pointer_descriptor) ||
+          strcmp(sig->symbol_value, "fdatum")) {
+        return "fdatum expected, got something else";
+      }
+      cargs[arg_cnt] = arg->list_head->pointer_value;
     } else {
       return "cannot load an argument";
     }
@@ -590,6 +598,11 @@ fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
     void *res = malloc(sizeof(int));
     ffi_call(cif, fn_ptr, res, cargs);
     return fdatum_make_ok(datum_make_int(*(int64_t *)res));
+  }
+  if (!strcmp(rettype, "fdatum")) {
+    void *res = malloc(sizeof(fdatum));
+    ffi_call(cif, fn_ptr, res, cargs);
+    return fdatum_make_ok(datum_make_pointer(res, datum_make_symbol("fdatum")));
   }
   if (!strcmp(rettype, "val")) {
     fdatum res;
