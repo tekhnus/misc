@@ -7,12 +7,8 @@
 (def dereference-and-cast-pointer (builtin-pointer "dereference-and-cast"))
 (builtin.defn dereference-and-cast (return (pointer-call dereference-and-cast-pointer args)))
 
-(def lowlevel-shared-library-- (builtin-pointer "lowlevel-shared-library"))
-(builtin.defn lowlevel-shared-library (return (pointer-call dlopen-pointer
-                                                            args)))
-(def lowlevel-extern-pointer-- (builtin-pointer "lowlevel-extern-pointer"))
-(builtin.defn lowlevel-extern-pointer (return (pointer-call lowlevel-extern-pointer--
-                                                            args)))
+(def not-null-pointer-ptr (builtin-pointer "not-null-pointer"))
+(builtin.defn not-null-pointer (return (pointer-call not-null-pointer-ptr args)))
 
 (def selflib (dlopen ""))
 
@@ -42,14 +38,13 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
-
-(def not-null-pointer-ptr (builtin-pointer "not-null-pointer"))
-(builtin.defn not-null-pointer (return (pointer-call not-null-pointer-ptr args)))
+(def lowlevel-extern-pointer-- (builtin-pointer "lowlevel-extern-pointer"))
 
 (builtin.defn shared-library (progn
-                               (def res (pointer-call lowlevel-shared-library-- args))
+                               (def res-ptr (dlopen (head args)))
+                               (def res (dereference-and-cast res-ptr 'pointer))
                                (if (not-null-pointer res)
-                                   (return `(:ok ~res))
+                                   (return `(:ok ~res-ptr))
                                  (return `(:err "shared-library failed")))))
 
 (builtin.defn extern-pointer (progn

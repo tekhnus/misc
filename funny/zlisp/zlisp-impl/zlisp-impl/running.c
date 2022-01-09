@@ -115,9 +115,7 @@ fstate routine_run(routine c) {
         return fstate_make_panic("builtin-pointer name should be a string");
       }
       datum *res;
-      if (!strcmp(name->bytestring_value, "lowlevel-shared-library")) {
-        res = datum_make_pointer((void *)builtin_ptr_lowlevel_shared_library, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
-      } else if (!strcmp(name->bytestring_value, "lowlevel-extern-pointer")) {
+      if (!strcmp(name->bytestring_value, "lowlevel-extern-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_lowlevel_extern_pointer, datum_make_list_2(datum_make_list_3(datum_make_symbol("datum"), datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
       } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
         res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
@@ -218,25 +216,6 @@ void *simplified_dlopen(char *path) {
     return RTLD_DEFAULT;
   }
   return dlopen(path, RTLD_LAZY);
-}
-
-LOCAL fdatum builtin_ptr_lowlevel_shared_library(datum *library_name) {
-  if (!datum_is_bytestring(library_name)) {
-    return fdatum_make_panic("load-shared-library expects a bytestring");
-  }
-  void **handle = malloc(sizeof(void *));
-  if (strlen(library_name->bytestring_value) == 0) {
-    *handle = RTLD_DEFAULT;
-  } else {
-    *handle = dlopen(library_name->bytestring_value, RTLD_LAZY);
-  }
-  char *err = dlerror();
-  if (!*handle) {
-    fprintf(stderr, "WARNING: dlopen failed: %s\n", err);
-    return fdatum_make_ok(datum_make_pointer_to_pointer(NULL));
-  }
-
-  return fdatum_make_ok(datum_make_pointer_to_pointer(handle));
 }
 
 LOCAL fdatum builtin_ptr_lowlevel_extern_pointer(datum *shared_library, datum *name,
