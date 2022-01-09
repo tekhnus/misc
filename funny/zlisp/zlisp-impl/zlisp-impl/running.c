@@ -95,20 +95,6 @@ fstate routine_run(routine c) {
             state_change_parent(c.state_, parent_cont.state_->hat_parent, true);
       }
     } break;
-    case PROG_POINTER_CALL: {
-      datum *form = state_stack_pop(&c.state_);
-      if (!datum_is_list(form) || list_length(form) != 2) {
-        return fstate_make_panic("pointer-call expected a pair on stack");
-      }
-      datum *fn = form->list_head;
-      datum *args = form->list_tail->list_head;
-      fdatum res = pointer_call(fn, args);
-      if (fdatum_is_panic(res)) {
-        return fstate_make_panic(res.panic_message);
-      }
-      state_stack_put(&c.state_, res.ok_value);
-      c.prog_ = c.prog_->pointer_call_next;
-    } break;
     case PROG_BUILTIN_POINTER: {
       datum *name = c.prog_->builtin_pointer_name;
       datum *arg = state_stack_pop(&c.state_);

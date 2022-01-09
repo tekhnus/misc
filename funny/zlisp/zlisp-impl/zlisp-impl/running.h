@@ -35,7 +35,6 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
-  PROG_POINTER_CALL,
   PROG_BUILTIN_POINTER,
   PROG_COLLECT,
   PROG_POP,
@@ -108,6 +107,9 @@ struct state {
   struct routine hat_parent;
 };
 datum *state_stack_collect(state **s);
+fdatum pointer_call(datum *f,datum *args);
+int list_length(datum *seq);
+bool datum_is_list(datum *e);
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
 void *simplified_dlopen(char *path);
 datum *datum_make_symbol(char *name);
@@ -116,9 +118,6 @@ datum *datum_make_list_2(datum *head,datum *second);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
 datum *datum_make_pointer(void *data,datum *signature);
 bool datum_is_bytestring(datum *e);
-fdatum pointer_call(datum *f,datum *args);
-int list_length(datum *seq);
-bool datum_is_list(datum *e);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 routine state_get_parent(state *ns,bool hat);
 LOCAL void switch_context(routine *c,routine b,datum *v);

@@ -188,23 +188,6 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     return prog_append_backquoted_statement(begin, stmt->list_tail->list_head,
                                             module_source);
   }
-  if (datum_is_the_symbol(op, "pointer-call")) {
-    if (list_length(stmt->list_tail) != 2) {
-      return "pointer-call should have exactly two args";
-    }
-    prog_append_args(begin);
-    for (datum *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
-         rest_args = rest_args->list_tail) {
-      datum *arg = rest_args->list_head;
-      char *err = prog_append_statement(begin, arg, module_source);
-      if (err != NULL) {
-        return err;
-      }
-    }
-    prog_append_collect(begin);
-    prog_append_pointer_call(begin);
-    return NULL;
-  }
   if (datum_is_the_symbol(op, "host")) {
     if (list_length(stmt->list_tail) != 2) {
       return "host should have exactly two args";
@@ -258,12 +241,6 @@ LOCAL void prog_append_call(prog **begin, bool hat) {
   (*begin)->call_hat = hat;
   (*begin)->call_next = prog_make();
   *begin = (*begin)->call_next;
-}
-
-LOCAL void prog_append_pointer_call(prog **begin) {
-  (*begin)->type = PROG_POINTER_CALL;
-  (*begin)->pointer_call_next = prog_make();
-  *begin = (*begin)->pointer_call_next;
 }
 
 LOCAL void prog_append_builtin_pointer(prog **begin, datum *name) {

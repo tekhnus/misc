@@ -7,10 +7,9 @@ datum *datum_make_symbol(char *name);
 #define LOCAL static
 typedef struct prog prog;
 LOCAL void prog_append_call(prog **begin,bool hat);
-LOCAL void prog_append_builtin_pointer(prog **begin,datum *name);
-LOCAL void prog_append_pointer_call(prog **begin);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
+LOCAL void prog_append_builtin_pointer(prog **begin,datum *name);
 typedef struct routine routine;
 #include <inttypes.h>
 #include <stdio.h>
@@ -83,7 +82,6 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
-  PROG_POINTER_CALL,
   PROG_BUILTIN_POINTER,
   PROG_COLLECT,
   PROG_POP,
