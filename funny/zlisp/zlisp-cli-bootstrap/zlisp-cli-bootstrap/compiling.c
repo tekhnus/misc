@@ -8,6 +8,7 @@ fdatum file_source(char *file);
 static prog *module_prog(char *module);
 routine module_routine(char *module);
 state *state_make_builtins();
+fdatum perform_host_instruction(datum *name, datum *arg);
 
 prog *compile_prog(datum *source) {
   prog *p = prog_make();
@@ -126,6 +127,5 @@ static fdatum datum_expand(datum *e, state **ctxt) {
   if (p == NULL) {
     return fdatum_make_panic("error while compiling a macro");
   }
-  return routine_run_and_get_value(ctxt, p);
+  return routine_run_and_get_value(ctxt, p, perform_host_instruction);
 }
-

@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <dlfcn.h>
 
-fdatum routine_run_and_get_value(state **ctxt, prog *p) {
+
+fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
   routine r = routine_make(p, *ctxt);
-  fstate s = routine_run(r);
+  fstate s = routine_run(r, perform_host_instruction);
   if (fstate_is_panic(s)) {
     return fdatum_make_panic(s.panic_message);
   }
@@ -14,7 +14,7 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p) {
   return fdatum_make_ok(state_stack_pop(ctxt));
 }
 
-LOCAL fstate routine_run(routine c) {
+LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, datum *)) {
   for (;;) {
     // printf("%d\n", c.prog->type);
     switch (c.prog_->type) {
@@ -183,59 +183,4 @@ LOCAL fstate routine_run(routine c) {
 LOCAL void switch_context(routine *c, routine b, datum *v) {
   *c = b;
   state_stack_put(&c->state_, v);
-}
-
-LOCAL fdatum perform_host_instruction(datum *name, datum *arg) {
-if (!datum_is_bytestring(name)) {
-        return fdatum_make_panic("host instruction should be a string");
-      }
-      datum *res;
-      if (!strcmp(name->bytestring_value, "not-null-pointer")) {
-        res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
-      } else if (!strcmp(name->bytestring_value, "dlopen")) {
-        res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
-      } else if (!strcmp(name->bytestring_value, "dlsym")) {
-        res = datum_make_pointer((void *)dlsym, datum_make_list_2(datum_make_list_2(datum_make_symbol("pointer"), datum_make_symbol("string")), datum_make_symbol("pointer")));
-      } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
-        res = datum_make_pointer((void *)builtin_ptr_dereference_and_cast, datum_make_list_2(datum_make_list_2(datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
-      } else if (!strcmp(name->bytestring_value, "pointer-call")) {
-        datum *form = arg;
-        if (!datum_is_list(form) || list_length(form) != 2) {
-          return fdatum_make_panic("pointer-call expected a pair on stack");
-        }
-        datum *fn = form->list_head;
-        datum *args = form->list_tail->list_head;
-        fdatum resu = pointer_call(fn, args);
-        if (fdatum_is_panic(resu)) {
-          return fdatum_make_panic(resu.panic_message);
-        }
-        res = resu.ok_value;
-      } else {
-        return fdatum_make_panic("unknown host instruction");
-      }
-      return fdatum_make_ok(res);
-}
-
-void *simplified_dlopen(char *path) {
-  if (strlen(path) == 0) {
-    return RTLD_DEFAULT;
-  }
-  return dlopen(path, RTLD_LAZY);
-}
-
-LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
-  if (!datum_is_pointer(pointer)) {
-    return fdatum_make_panic("not-null-pointer expects a pointer");
-  }
-  if (pointer->pointer_value != NULL) {
-    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
-  }
-  return fdatum_make_ok(datum_make_nil());
-}
-
-LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(ptpt->pointer_descriptor, "pointer")) {
-    return fdatum_make_panic("dereference expected a pointer to pointer");
-  }
-  return fdatum_make_ok(datum_make_pointer(*((void **)ptpt->pointer_value), new_descriptor));
 }
