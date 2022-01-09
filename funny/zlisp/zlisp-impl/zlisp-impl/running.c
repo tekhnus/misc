@@ -4,7 +4,17 @@
 #include <stdint.h>
 #include <dlfcn.h>
 
-fstate routine_run(routine c) {
+fdatum routine_run_and_get_value(state **ctxt, prog *p) {
+  routine r = routine_make(p, *ctxt);
+  fstate s = routine_run(r);
+  if (fstate_is_panic(s)) {
+    return fdatum_make_panic(s.panic_message);
+  }
+  *ctxt = s.ok_value;
+  return fdatum_make_ok(state_stack_pop(ctxt));
+}
+
+LOCAL fstate routine_run(routine c) {
   for (;;) {
     // printf("%d\n", c.prog->type);
     switch (c.prog_->type) {
@@ -191,16 +201,6 @@ fstate routine_run(routine c) {
     } break;
     }
   }
-}
-
-fdatum routine_run_and_get_value(state **ctxt, prog *p) {
-  routine r = routine_make(p, *ctxt);
-  fstate s = routine_run(r);
-  if (fstate_is_panic(s)) {
-    return fdatum_make_panic(s.panic_message);
-  }
-  *ctxt = s.ok_value;
-  return fdatum_make_ok(state_stack_pop(ctxt));
 }
 
 LOCAL void switch_context(routine *c, routine b, datum *v) {

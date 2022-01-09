@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  routine r = routine_make(p, state_make_builtins());
-  fstate ns = routine_run(r);
-  if (fstate_is_panic(ns)) {
-    fprintf(stderr, "runtime error: %s\n", ns.panic_message);
+  state *s = state_make_builtins();
+  fdatum res = routine_run_and_get_value(&s, p);
+  if (fdatum_is_panic(res)) {
+    fprintf(stderr, "runtime error: %s\n", res.panic_message);
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
