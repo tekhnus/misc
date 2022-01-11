@@ -212,17 +212,114 @@ bool consume_control_sequence(char c, datum **form) {
   return false;
 }
 
-read_result datum_read(FILE *strm) {
+enum token_type {
+  TOKEN_DATUM,
+  TOKEN_RIGHT_PAREN,
+  TOKEN_LEFT_PAREN,
+  TOKEN_CONTROL_SEQUENCE,
+  TOKEN_ERROR,
+  TOKEN_EOF,
+};
+
+struct token {
+  enum token_type type;
+  union {
+    datum *datum_value;
+    datum *control_sequence_symbol;
+    char *error_message;
+  };
+};
+
+struct token token_read(FILE *strm) {
   char c;
   for (; !feof(strm) && is_whitespace(c = getc(strm));) {
   }
   if (feof(strm)) {
-    return read_result_make_eof();
+    return (struct token){.type = TOKEN_EOF};
   }
   if (c == ')') {
-    return read_result_make_right_paren();
+    return (struct token){.type = TOKEN_RIGHT_PAREN};
   }
   if (c == '(') {
+    return (struct token){.type = TOKEN_LEFT_PAREN};
+  }
+  if (isdigit(c) || c == '-') {
+    int64_t sign = 1;
+    char h;
+    if (c == '-') {
+      sign = -1;
+      c = getc(strm);
+      if (!isdigit(c)) {
+        return (struct token){.type = TOKEN_ERROR, .error_message = "expected a number after unary minus"};
+      }
+    }
+    int val = c - '0';
+    for (; !feof(strm) && isdigit(h = getc(strm));) {
+      val *= 10;
+      val += h - '0';
+    }
+    if (!feof(strm)) {
+      ungetc(h, strm);
+    }
+    return (struct token){.type = TOKEN_DATUM, .datum_value = datum_make_int(sign * val)};
+  }
+  if (is_allowed_inside_symbol(c)) {
+    char *nm = malloc(128);
+    nm[0] = c;
+    int i;
+    char x;
+    for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));
+         nm[i++] = x) {
+    }
+    if (!feof(strm)) {
+      ungetc(x, strm);
+    }
+    nm[i] = '\0';
+    datum *sym = datum_make_symbol(nm);
+    return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
+  }
+  if (c == '"') {
+    char literal[256];
+    char x;
+    size_t i;
+    for (i = 0; (x = getc(strm)) != '"'; ++i) {
+      if (x == '\\') {
+        x = getc(strm);
+        if (x == 'n') {
+          literal[i] = '\n';
+          continue;
+        }
+        return (struct token){.type = TOKEN_ERROR, .error_message = "unknown escape code"};
+      }
+      literal[i] = x;
+    }
+    literal[i] = '\0';
+    return (struct token){.type = TOKEN_DATUM, .datum_value = datum_make_bytestring(literal)};
+  }
+  datum *form;
+  if (consume_control_sequence(c, &form)) {
+    return (struct token){.type = TOKEN_CONTROL_SEQUENCE, .control_sequence_symbol = form};
+  }
+  char *err = malloc(1024);
+  sprintf(err, "unexpected symbol: 0x%x", c);
+  return (struct token){.type = TOKEN_ERROR, .error_message = err};
+}
+
+read_result datum_read(FILE *strm) {
+  struct token tok = token_read(strm);
+  if (tok.type == TOKEN_ERROR) {
+    return read_result_make_panic(tok.error_message);
+  }
+  if (tok.type == TOKEN_EOF) {
+    return read_result_make_eof();
+  }
+  if (tok.type == TOKEN_DATUM) {
+    return read_result_make_ok(tok.datum_value);
+  }
+  if (tok.type == TOKEN_RIGHT_PAREN) {
+    return read_result_make_right_paren();
+  }
+  if (tok.type == TOKEN_LEFT_PAREN) {
     read_result elem;
     datum *list = datum_make_nil();
     datum **end_marker = &list;
@@ -242,61 +339,7 @@ read_result datum_read(FILE *strm) {
     }
     return elem;
   }
-  if (isdigit(c) || c == '-') {
-    int64_t sign = 1;
-    char h;
-    if (c == '-') {
-      sign = -1;
-      c = getc(strm);
-      if (!isdigit(c)) {
-        return read_result_make_panic("expected a number after unary minus");
-      }
-    }
-    int val = c - '0';
-    for (; !feof(strm) && isdigit(h = getc(strm));) {
-      val *= 10;
-      val += h - '0';
-    }
-    if (!feof(strm)) {
-      ungetc(h, strm);
-    }
-    return read_result_make_ok(datum_make_int(sign * val));
-  }
-  if (is_allowed_inside_symbol(c)) {
-    char *nm = malloc(128);
-    nm[0] = c;
-    int i;
-    char x;
-    for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));
-         nm[i++] = x) {
-    }
-    if (!feof(strm)) {
-      ungetc(x, strm);
-    }
-    nm[i] = '\0';
-    datum *sym = datum_make_symbol(nm);
-    return read_result_make_ok(sym);
-  }
-  if (c == '"') {
-    char literal[256];
-    char x;
-    size_t i;
-    for (i = 0; (x = getc(strm)) != '"'; ++i) {
-      if (x == '\\') {
-        x = getc(strm);
-        if (x == 'n') {
-          literal[i] = '\n';
-          continue;
-        }
-        return read_result_make_panic("unknown escape code");
-      }
-      literal[i] = x;
-    }
-    literal[i] = '\0';
-    return read_result_make_ok(datum_make_bytestring(literal));
-  }
-  datum *form;
-  if (consume_control_sequence(c, &form)) {
+  if (tok.type == TOKEN_CONTROL_SEQUENCE) {
     read_result v = datum_read(strm);
     if (read_result_is_panic(v)) {
       return v;
@@ -305,13 +348,11 @@ read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum *res = datum_make_list_1(form);
+    datum *res = datum_make_list_1(tok.control_sequence_symbol);
     res->list_tail = datum_make_list_1(v.ok_value);
     return read_result_make_ok(res);
   }
-  char *err = malloc(1024);
-  sprintf(err, "unexpected symbol: 0x%x", c);
-  return read_result_make_panic(err);
+  return read_result_make_panic("unhandled token type");
 }
 
 fdatum datum_read_one(FILE *stre) {

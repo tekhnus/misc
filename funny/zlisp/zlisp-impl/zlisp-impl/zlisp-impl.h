@@ -62,6 +62,7 @@ read_result read_result_make_right_paren(void);
 bool is_whitespace(char c);
 bool is_allowed_inside_symbol(char c);
 bool consume_control_sequence(char c,datum **form);
+struct token token_read(FILE *strm);
 read_result datum_read(FILE *strm);
 typedef struct fdatum fdatum;
 struct fdatum {

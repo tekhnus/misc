@@ -75,6 +75,7 @@ struct read_result {
   };
 };
 read_result datum_read(FILE *strm);
+struct token token_read(FILE *strm);
 bool consume_control_sequence(char c,datum **form);
 bool is_allowed_inside_symbol(char c);
 bool is_whitespace(char c);
