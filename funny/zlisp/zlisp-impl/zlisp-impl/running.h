@@ -7,20 +7,23 @@ typedef struct state state;
 datum *state_list_vars(state *ns);
 datum *datum_make_void();
 datum *datum_make_list_2(datum *head,datum *second);
-datum *state_stack_collect(state **s);
+typedef struct prog prog;
+datum *datum_make_routine(prog *s,state *lexical_bindings);
 typedef struct routine routine;
 #include <inttypes.h>
 #include <stdio.h>
 #include <ffi.h>
-typedef struct prog prog;
 struct routine {
   struct prog *prog_;
   struct state *state_;
 };
+routine routine_make_null();
+datum *state_stack_collect(state **s);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 routine state_get_parent(state *ns,bool hat);
 #define LOCAL static
 LOCAL void switch_context(routine *c,routine b,datum *v);
+bool datum_is_routine(datum *e);
 void state_stack_new(state **s);
 state *state_set_fn(state *ns,datum *symbol,datum *value);
 state *state_set_var(state *ns,datum *symbol,datum *value);
@@ -32,11 +35,6 @@ struct fdatum {
 };
 bool fdatum_is_panic(fdatum result);
 fdatum state_get_var(state *ns,datum *symbol);
-datum *datum_make_routine(prog *s,state *lexical_bindings);
-routine routine_make_null();
-datum *datum_make_nil();
-state *state_make(datum *vars,datum *stack,routine parent,routine hat_parent);
-bool datum_is_routine(datum *e);
 void state_stack_put(state **ns,datum *value);
 bool datum_is_nil(datum *e);
 typedef struct fstate fstate;
@@ -87,7 +85,6 @@ enum prog_type {
   PROG_IF,
   PROG_NOP,
   PROG_PUT_CONST,
-  PROG_PUT_ROUTINE,
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
@@ -113,10 +110,6 @@ struct prog {
     struct {
       struct datum *put_const_value;
       struct prog *put_const_next;
-    };
-    struct {
-      struct datum *put_routine_value;
-      struct prog *put_routine_next;
     };
     struct {
       struct datum *put_var_value;

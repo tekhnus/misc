@@ -135,7 +135,9 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     }
     datum *f = datum_make_routine(
         s, NULL); // The null state will be overriden at runtime.
-    prog_append_put_routine(begin, f);
+    prog_append_put_const(begin, f);
+    prog_append_pop_prog(begin, datum_make_symbol("__lambda"));
+    prog_append_put_var(begin, datum_make_symbol("__lambda"));
     return NULL;
   }
   if (datum_is_the_symbol(op, "require")) {
@@ -266,13 +268,6 @@ LOCAL void prog_append_put_const(prog **begin, datum *val) {
   (*begin)->put_const_value = val;
   (*begin)->put_const_next = prog_make();
   *begin = (*begin)->put_const_next;
-}
-
-LOCAL void prog_append_put_routine(prog **begin, datum *val) {
-  (*begin)->type = PROG_PUT_ROUTINE;
-  (*begin)->put_routine_value = val;
-  (*begin)->put_routine_next = prog_make();
-  *begin = (*begin)->put_routine_next;
 }
 
 LOCAL void prog_append_put_var(prog **begin, datum *val) {

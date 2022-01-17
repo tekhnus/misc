@@ -1,17 +1,15 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
-#include <stdint.h>
-#include <stdbool.h>
-typedef struct datum datum;
-datum *datum_make_symbol(char *name);
 #define LOCAL static
 typedef struct prog prog;
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
+typedef struct datum datum;
 LOCAL void prog_append_host(prog **begin,datum *name);
 typedef struct routine routine;
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
 typedef struct state state;
@@ -24,9 +22,10 @@ LOCAL void prog_append_yield(prog **begin,bool hat);
 LOCAL void prog_append_return(prog **begin,bool hat);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL char *prog_append_require(prog **begin,routine rt);
+#include <stdint.h>
 bool routine_is_null(routine r);
 bool datum_is_bytestring(datum *e);
-LOCAL void prog_append_put_routine(prog **begin,datum *val);
+datum *datum_make_symbol(char *name);
 LOCAL void prog_append_pop_prog(prog **begin,datum *var);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
 LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
@@ -78,7 +77,6 @@ enum prog_type {
   PROG_IF,
   PROG_NOP,
   PROG_PUT_CONST,
-  PROG_PUT_ROUTINE,
   PROG_PUT_VAR,
   PROG_ARGS,
   PROG_CALL,
@@ -104,10 +102,6 @@ struct prog {
     struct {
       struct datum *put_const_value;
       struct prog *put_const_next;
-    };
-    struct {
-      struct datum *put_routine_value;
-      struct prog *put_routine_next;
     };
     struct {
       struct datum *put_var_value;

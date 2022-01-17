@@ -39,19 +39,6 @@ LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, 
       state_stack_put(&c.state_, c.prog_->put_const_value);
       c.prog_ = c.prog_->put_const_next;
     } break;
-    case PROG_PUT_ROUTINE: {
-      if (!datum_is_routine(c.prog_->put_routine_value)) {
-        return fstate_make_panic("a routine was expected");
-      }
-      routine r = c.prog_->put_routine_value->routine_value;
-      if (r.state_ != NULL) {
-        return fstate_make_panic("the routine context was expected to be null");
-      }
-      r.state_ = state_make(c.state_->vars, datum_make_nil(),
-                            routine_make_null(), routine_make_null());
-      state_stack_put(&c.state_, datum_make_routine(r.prog_, r.state_));
-      c.prog_ = c.prog_->put_routine_next;
-    } break;
     case PROG_PUT_VAR: {
       fdatum er = state_get_var(c.state_, c.prog_->put_var_value);
       if (fdatum_is_panic(er)) {
