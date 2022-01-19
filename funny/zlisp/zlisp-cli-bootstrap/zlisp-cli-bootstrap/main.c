@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog *p = prog_make();
-  char *err = prog_init_module(p, src.ok_value, module_routine);
+  char *err = prog_init_module_c_host(p, src.ok_value);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
