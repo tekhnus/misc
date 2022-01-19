@@ -19,7 +19,7 @@ LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, 
     // printf("%d\n", c.prog->type);
     switch (c.prog_->type) {
     case PROG_END: {
-      if (!routine_is_null(c.state_->parent)) {
+      if (!routine_is_null(c.state_->parent) || !routine_is_null(c.state_->hat_parent)) {
         return fstate_make_panic("reached the end state in a subroutine");
       }
       return fstate_make_ok(c.state_);
@@ -124,6 +124,7 @@ LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, 
           hat_par; /* Because the caller hat parent might be out-of-date.*/
     } break;
     case PROG_YIELD: {
+      // fprintf(stderr, "YIELD\n");
       bool hat;
       routine yield_to;
       if (c.prog_->yield_hat) {
@@ -136,20 +137,24 @@ LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, 
       if (routine_is_null(yield_to)) {
         return fstate_make_panic("bad yield");
       }
+      // fprintf(stderr, "yield %p %p\n", yield_to.state_, yield_to.prog_);
       c.state_ = state_change_parent(c.state_, routine_make_null(), hat);
       datum *res = state_stack_pop(&c.state_);
       datum *resume = datum_make_routine(c.prog_->yield_next, c.state_);
       datum *r = datum_make_list_2(res, resume);
       switch_context(&c, yield_to, r);
     } break;
-    case PROG_MODULE_END: {
-      state *module_state = c.state_;
-      routine return_to = c.state_->parent;
-      if (routine_is_null(return_to)) {
-        return fstate_make_panic("module end called, but it's not a submodule");
+    case PROG_IMPORT: {
+      // fprintf(stderr, "MODULE_END\n");
+      datum *pair = state_stack_pop(&c.state_);
+      if (!datum_is_list(pair) || list_length(pair) != 2) {
+        return fstate_make_panic("expected a pair after a submodule call");
       }
-      state_stack_pop(&c.state_);
-      switch_context(&c, return_to, datum_make_void());
+      datum *submodule_state = pair->list_tail->list_head;
+      if (!datum_is_routine(submodule_state)) {
+        return fstate_make_panic("expected a routine after a submodule call");
+      }
+      state *module_state = submodule_state->routine_value.state_;
 
       datum *imported_bindings = state_list_vars(module_state);
       for (; !datum_is_nil(imported_bindings);
@@ -159,6 +164,7 @@ LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, 
 
         c.state_ = state_set_var(c.state_, sym, val);
       }
+      c.prog_ = c.prog_->import_next;
     } break;
     default: {
       return fstate_make_panic("unhandled state type");

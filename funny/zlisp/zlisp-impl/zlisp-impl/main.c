@@ -760,6 +760,10 @@ void state_stack_put(state **ns, datum *value) {
 }
 
 datum *state_stack_pop(state **s) {
+  if (datum_is_nil((*s)->stack)) {
+    fprintf(stderr, "popping from an empty stack is an oh no no\n");
+    exit(EXIT_FAILURE);
+  }
   datum *res = (*s)->stack->list_head;
   *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent,
                   (*s)->hat_parent);

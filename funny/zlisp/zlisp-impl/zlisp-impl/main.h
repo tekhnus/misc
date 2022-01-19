@@ -129,7 +129,7 @@ enum prog_type {
   PROG_POP_PROG,
   PROG_RETURN,
   PROG_YIELD,
-  PROG_MODULE_END,
+  PROG_IMPORT,
 };
 typedef enum prog_type prog_type;
 struct prog {
@@ -173,6 +173,7 @@ struct prog {
       bool yield_hat;
       struct prog *yield_next;
     };
+    struct prog *import_next;
   };
 };
 routine routine_make(prog *s,state *ctxt);

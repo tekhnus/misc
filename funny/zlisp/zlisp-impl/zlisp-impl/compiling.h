@@ -2,6 +2,7 @@
 #undef INTERFACE
 #define LOCAL static
 typedef struct prog prog;
+LOCAL void prog_append_import(prog **begin);
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
@@ -18,7 +19,6 @@ struct routine {
   struct state *state_;
 };
 LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine(*module_source)(char *module));
-LOCAL void prog_append_yield(prog **begin,bool hat);
 LOCAL void prog_append_return(prog **begin,bool hat);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL char *prog_append_require(prog **begin,routine rt);
@@ -36,7 +36,7 @@ bool datum_is_list(datum *e);
 LOCAL void prog_append_put_var(prog **begin,datum *val);
 bool datum_is_symbol(datum *e);
 bool datum_is_constant(datum *d);
-LOCAL void prog_append_module_end(prog **begin);
+LOCAL void prog_append_yield(prog **begin,bool hat);
 char *prog_init_submodule(prog *s,datum *source,routine(*module_source)(char *));
 LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine(*module_source)(char *));
 LOCAL void prog_append_pop(prog **begin,datum *var);
@@ -87,7 +87,7 @@ enum prog_type {
   PROG_POP_PROG,
   PROG_RETURN,
   PROG_YIELD,
-  PROG_MODULE_END,
+  PROG_IMPORT,
 };
 typedef enum prog_type prog_type;
 struct prog {
@@ -131,6 +131,7 @@ struct prog {
       bool yield_hat;
       struct prog *yield_next;
     };
+    struct prog *import_next;
   };
 };
 struct state {

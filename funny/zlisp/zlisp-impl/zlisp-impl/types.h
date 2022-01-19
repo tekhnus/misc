@@ -85,7 +85,7 @@ enum prog_type {
   PROG_POP_PROG,
   PROG_RETURN,
   PROG_YIELD,
-  PROG_MODULE_END,
+  PROG_IMPORT,
 };
 
 struct prog {
@@ -129,5 +129,6 @@ struct prog {
       bool yield_hat;
       struct prog *yield_next;
     };
+    struct prog *import_next;
   };
 };

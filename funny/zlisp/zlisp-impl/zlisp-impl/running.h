@@ -5,7 +5,8 @@
 typedef struct datum datum;
 typedef struct state state;
 datum *state_list_vars(state *ns);
-datum *datum_make_void();
+int list_length(datum *seq);
+bool datum_is_list(datum *e);
 datum *datum_make_list_2(datum *head,datum *second);
 typedef struct prog prog;
 datum *datum_make_routine(prog *s,state *lexical_bindings);
@@ -94,7 +95,7 @@ enum prog_type {
   PROG_POP_PROG,
   PROG_RETURN,
   PROG_YIELD,
-  PROG_MODULE_END,
+  PROG_IMPORT,
 };
 typedef enum prog_type prog_type;
 struct prog {
@@ -138,6 +139,7 @@ struct prog {
       bool yield_hat;
       struct prog *yield_next;
     };
+    struct prog *import_next;
   };
 };
 struct state {

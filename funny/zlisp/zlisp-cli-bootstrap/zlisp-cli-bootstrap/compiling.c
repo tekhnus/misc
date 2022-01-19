@@ -66,12 +66,15 @@ fdatum file_source(char *fname) {
   read_result rr;
   datum *res = datum_make_nil();
   datum **resend = &res;
+  // printf("start expanding %s\n", fname);
   for (; read_result_is_ok(rr = datum_read(stre));) {
+    // printf("preparing to expand a statement\n");
     fdatum val = datum_expand(rr.ok_value, &expander_state);
+    // printf("expanded a statement\n");
     if (fdatum_is_panic(val)) {
       return val;
     }
-
+    // printf("%s\n", datum_repr(val.ok_value));
     if (datum_is_void(val.ok_value)) {
       // to support things like !(def x 42)
       continue;
@@ -79,6 +82,7 @@ fdatum file_source(char *fname) {
     *resend = datum_make_list(val.ok_value, datum_make_nil());
     resend = &((*resend)->list_tail);
   }
+  // printf("expanded all statements in %s\n", fname);
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
   }

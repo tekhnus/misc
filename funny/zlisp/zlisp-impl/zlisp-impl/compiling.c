@@ -25,16 +25,16 @@ char *prog_init_module(prog *s, datum *source,
 
 char *prog_init_submodule(prog *s, datum *source,
                        routine (*module_source)(char *)) {
-  prog_append_put_const(&s, datum_make_void());
+  // prog_append_put_const(&s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(&s, NULL);
+    //prog_append_pop(&s, NULL);
     datum *stmt = rest->list_head;
     char *err = prog_append_statement(&s, stmt, module_source);
     if (err != NULL) {
       return err;
     }
   }
-  prog_append_module_end(&s);
+  prog_append_yield(&s, false);
   return NULL;
 }
 
@@ -338,6 +338,8 @@ LOCAL char *prog_append_require(prog **begin, routine rt) {
   prog_append_put_const(begin, r);
   prog_append_collect(begin);
   prog_append_call(begin, false); // TODO(harius): bare call
+  prog_append_import(begin);
+  prog_append_put_const(begin, datum_make_void());
   return NULL;
 }
 
@@ -374,9 +376,10 @@ LOCAL char *prog_init_routine(prog *s, datum *stmt,
   return prog_append_statement(&s, stmt, module_source);
 }
 
-LOCAL void prog_append_module_end(prog **begin) {
-  (*begin)->type = PROG_MODULE_END;
-  *begin = prog_make();
+LOCAL void prog_append_import(prog **begin) {
+  (*begin)->type = PROG_IMPORT;
+  (*begin)->import_next = prog_make();
+  *begin = (*begin)->import_next;
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
