@@ -112,6 +112,7 @@ routine state_get_parent(state *ns,bool hat);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 prog *prog_make();
 char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
+char *prog_init_submodule(prog *s,datum *source,routine(*module_source)(char *));
 fdatum routine_run_and_get_value(state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,

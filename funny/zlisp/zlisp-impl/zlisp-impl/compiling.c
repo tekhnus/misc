@@ -20,6 +20,20 @@ char *prog_init_module(prog *s, datum *source,
       return err;
     }
   }
+  return NULL;
+}
+
+char *prog_init_submodule(prog *s, datum *source,
+                       routine (*module_source)(char *)) {
+  prog_append_put_const(&s, datum_make_void());
+  for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
+    prog_append_pop(&s, NULL);
+    datum *stmt = rest->list_head;
+    char *err = prog_append_statement(&s, stmt, module_source);
+    if (err != NULL) {
+      return err;
+    }
+  }
   prog_append_module_end(&s);
   return NULL;
 }

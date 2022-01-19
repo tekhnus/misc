@@ -37,6 +37,7 @@ LOCAL void prog_append_put_var(prog **begin,datum *val);
 bool datum_is_symbol(datum *e);
 bool datum_is_constant(datum *d);
 LOCAL void prog_append_module_end(prog **begin);
+char *prog_init_submodule(prog *s,datum *source,routine(*module_source)(char *));
 LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine(*module_source)(char *));
 LOCAL void prog_append_pop(prog **begin,datum *var);
 bool datum_is_nil(datum *e);

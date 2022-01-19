@@ -10,6 +10,10 @@ char *prog_init_module_c_host(prog *p, datum *source) {
   return prog_init_module(p, source, module_routine);
 }
 
+char *prog_init_submodule_c_host(prog *p, datum *source) {
+  return prog_init_submodule(p, source, module_routine);
+}
+
 routine module_routine(char *module) {
   routine r = routine_make_null();
   prog *p = module_prog(module);
@@ -26,7 +30,7 @@ LOCAL prog *module_prog(char *module) {
     return NULL;
   }
   prog *p = prog_make();
-  char *err = prog_init_module_c_host(p, src.ok_value);
+  char *err = prog_init_submodule_c_host(p, src.ok_value);
   if (err != NULL) {
     fprintf(stderr, "error in required module: %s\n", err);
     return NULL;

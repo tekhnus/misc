@@ -146,7 +146,7 @@ LOCAL fstate routine_run(routine c, fdatum (*perform_host_instruction)(datum *, 
       state *module_state = c.state_;
       routine return_to = c.state_->parent;
       if (routine_is_null(return_to)) {
-        return fstate_make_ok(c.state_);
+        return fstate_make_panic("module end called, but it's not a submodule");
       }
       state_stack_pop(&c.state_);
       switch_context(&c, return_to, datum_make_void());
