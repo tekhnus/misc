@@ -122,7 +122,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     prog_append_put_const(begin, datum_make_void());
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.defn")) {
+  if (datum_is_the_symbol(op, "builtin.defn") || datum_is_the_symbol_pair(op, "hat", "builtin.defn")) {
+    bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.defn");
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
@@ -135,7 +136,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     datum *f = datum_make_routine(
         s, NULL); // The null state will be overriden at runtime.
     prog_append_put_const(begin, f);
-    prog_append_pop_prog(begin, stmt->list_tail->list_head);
+    prog_append_pop_prog(begin, stmt->list_tail->list_head, hat);
     prog_append_put_const(begin, datum_make_void());
     return NULL;
   }
@@ -152,7 +153,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     datum *f = datum_make_routine(
         s, NULL); // The null state will be overriden at runtime.
     prog_append_put_const(begin, f);
-    prog_append_pop_prog(begin, datum_make_symbol("__lambda"));
+    prog_append_pop_prog(begin, datum_make_symbol("__lambda"), false);
     prog_append_put_var(begin, datum_make_symbol("__lambda"));
     return NULL;
   }
@@ -312,9 +313,10 @@ LOCAL void prog_append_pop(prog **begin, datum *var) {
   *begin = (*begin)->pop_next;
 }
 
-LOCAL void prog_append_pop_prog(prog **begin, datum *var) {
+LOCAL void prog_append_pop_prog(prog **begin, datum *var, bool hat) {
   (*begin)->type = PROG_POP_PROG;
   (*begin)->pop_prog_var = var;
+  (*begin)->pop_prog_hat = hat;
   (*begin)->pop_prog_next = prog_make();
   *begin = (*begin)->pop_prog_next;
 }

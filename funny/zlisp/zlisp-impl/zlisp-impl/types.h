@@ -122,6 +122,7 @@ struct prog {
     };
     struct {
       struct datum *pop_prog_var;
+      bool pop_prog_hat;
       struct prog *pop_prog_next;
     };
     bool return_hat;

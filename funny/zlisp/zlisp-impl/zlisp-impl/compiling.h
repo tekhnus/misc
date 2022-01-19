@@ -20,15 +20,15 @@ struct routine {
 };
 LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine(*module_source)(char *module));
 LOCAL void prog_append_return(prog **begin,bool hat);
-LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL char *prog_append_require(prog **begin,routine rt);
 #include <stdint.h>
 bool routine_is_null(routine r);
 bool datum_is_bytestring(datum *e);
 datum *datum_make_symbol(char *name);
-LOCAL void prog_append_pop_prog(prog **begin,datum *var);
+LOCAL void prog_append_pop_prog(prog **begin,datum *var,bool hat);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
 LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
+LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog *a,prog *b,prog *e);
 int list_length(datum *seq);
 bool datum_is_the_symbol(datum *d,char *val);
@@ -124,6 +124,7 @@ struct prog {
     };
     struct {
       struct datum *pop_prog_var;
+      bool pop_prog_hat;
       struct prog *pop_prog_next;
     };
     bool return_hat;
