@@ -14,5 +14,5 @@ fdatum module_source(char *module);
 state *state_make_builtins();
 LOCAL prog *module_prog(char *module);
 routine module_routine(char *module);
-prog *compile_prog(datum *source);
+char *prog_init_module_c_host(prog *p,datum *source);
 #define INTERFACE 0

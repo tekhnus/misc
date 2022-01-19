@@ -6,14 +6,8 @@
 #include <zlisp-impl/zlisp-impl.h>
 #endif
 
-prog *compile_prog(datum *source) {
-  prog *p = prog_make();
-  char *err = prog_init_module(p, source, module_routine);
-  if (err != NULL) {
-    fprintf(stderr, "error in prog: %s\n", err);
-    return NULL;
-  }
-  return p;
+char *prog_init_module_c_host(prog *p, datum *source) {
+  return prog_init_module(p, source, module_routine);
 }
 
 routine module_routine(char *module) {
@@ -117,9 +111,14 @@ LOCAL fdatum datum_expand(datum *e, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  prog *p = compile_prog(datum_make_list(exp.ok_value, datum_make_nil()));
-  if (p == NULL) {
-    return fdatum_make_panic("error while compiling a macro");
+  prog *p = prog_make();
+  char *err = prog_init_module_c_host(p, datum_make_list(exp.ok_value, datum_make_nil()));
+  if (err != NULL) {
+    char *err2 = malloc(256);
+    err2[0] = 0;
+    strcat(err2, "error while compiling a macro: ");
+    strcat(err2, err);
+    return fdatum_make_panic(err2);
   }
   return routine_run_and_get_value(ctxt, p, perform_host_instruction);
 }

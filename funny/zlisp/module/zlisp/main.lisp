@@ -3,8 +3,15 @@
 
 (def selflib (dlopen-or-panic ""))
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
-(def compile-prog (c-function-or-panic selflib "compile_prog" '((datum) pointer)))
-!(#defun compile-statement (s) (return (compile-prog `(~s))))
+(def prog-make (c-function-or-panic selflib "prog_make" '(() pointer)))
+(def prog-init-module-c-host (c-function-or-panic selflib "prog_init_module_c_host" '((pointer datum) pointer)))
+!(#defun compile-prog (src)
+   (progn
+     (def p (prog-make))
+     (def e (prog-init-module-c-host p src))
+     (if (not-null-pointer e)
+         (return `(:ok ~p))
+       (return `(:err "some compilation error")))))
 (def routine-run-and-get-value-c-host-fdatum (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((pointer pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 (def fdatum-get-value (c-function-or-panic selflib "fdatum_get_value" '((fdatum) val)))
