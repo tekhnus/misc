@@ -29,19 +29,19 @@ datum *datum_make_symbol(char *name);
 LOCAL void prog_append_pop_prog(prog **begin,datum *var);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
 LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
-LOCAL void prog_append_pop(prog **begin,datum *var);
-datum *datum_make_void();
 LOCAL void prog_join(prog *a,prog *b,prog *e);
 int list_length(datum *seq);
 bool datum_is_the_symbol(datum *d,char *val);
 bool datum_is_list(datum *e);
 LOCAL void prog_append_put_var(prog **begin,datum *val);
 bool datum_is_symbol(datum *e);
-LOCAL void prog_append_put_const(prog **begin,datum *val);
 bool datum_is_constant(datum *d);
 LOCAL void prog_append_module_end(prog **begin);
 LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine(*module_source)(char *));
+LOCAL void prog_append_pop(prog **begin,datum *var);
 bool datum_is_nil(datum *e);
+datum *datum_make_void();
+LOCAL void prog_append_put_const(prog **begin,datum *val);
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
