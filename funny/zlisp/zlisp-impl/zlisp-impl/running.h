@@ -6,29 +6,13 @@ typedef struct datum datum;
 typedef struct state state;
 datum *state_list_vars(state *ns);
 int list_length(datum *seq);
-bool datum_is_list(datum *e);
-datum *datum_make_list_2(datum *head,datum *second);
-typedef struct prog prog;
-datum *datum_make_routine(prog *s,state *lexical_bindings);
-typedef struct routine routine;
+datum *state_stack_collect(state **s);
+void state_stack_new(state **s);
+state *state_set_var(state *ns,datum *symbol,datum *value);
+typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
 #include <ffi.h>
-struct routine {
-  struct prog *prog_;
-  struct state *state_;
-};
-routine routine_make_null();
-datum *state_stack_collect(state **s);
-state *state_change_parent(state *ns,routine new_parent,bool hat);
-routine state_get_parent(state *ns,bool hat);
-#define LOCAL static
-LOCAL void switch_context(routine *c,routine b,datum *v);
-bool datum_is_routine(datum *e);
-void state_stack_new(state **s);
-state *state_set_fn(state *ns,datum *symbol,datum *value);
-state *state_set_var(state *ns,datum *symbol,datum *value);
-typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -36,23 +20,40 @@ struct fdatum {
 };
 bool fdatum_is_panic(fdatum result);
 fdatum state_get_var(state *ns,datum *symbol);
-void state_stack_put(state **ns,datum *value);
-bool datum_is_nil(datum *e);
+#define LOCAL static
 typedef struct fstate fstate;
 struct fstate {
   int type;
   struct state *ok_value;
   char *panic_message;
 };
-fstate fstate_make_ok(state *v);
-fstate fstate_make_panic(char *message);
+typedef struct prog prog;
+LOCAL fstate routine_0_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL fstate routine_1_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
+datum *datum_make_list_2(datum *head,datum *second);
+datum *datum_make_routine(prog *s,state *lexical_bindings);
+typedef struct routine routine;
+struct routine {
+  struct prog *prog_;
+  struct state *state_;
+};
+routine routine_make_null();
 bool routine_is_null(routine r);
+state *state_set_fn(state *ns,datum *symbol,datum *value);
+state *state_change_parent(state *ns,routine new_parent,bool hat);
+void state_stack_put(state **ns,datum *value);
+routine routine_make(prog *s,state *ctxt);
+bool datum_is_routine(datum *e);
+fstate fstate_make_panic(char *message);
+bool datum_is_nil(datum *e);
+bool datum_is_list(datum *e);
+LOCAL fstate routine_2_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
+fstate fstate_make_ok(state *v);
 datum *state_stack_pop(state **s);
 fdatum fdatum_make_ok(datum *v);
 fdatum fdatum_make_panic(char *message);
 bool fstate_is_panic(fstate result);
-LOCAL fstate routine_run(routine c,fdatum(*perform_host_instruction)(datum *,datum *));
-routine routine_make(prog *s,state *ctxt);
+LOCAL fstate routine_2_run(prog *p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
