@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   state *s = state_make_builtins();
-  fdatum res = routine_run_and_get_value(&s, p, perform_host_instruction);
+  fdatum res = routine_run_and_get_value_c_host(&s, p);
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "runtime error: %s\n", res.panic_message);
     return EXIT_FAILURE;
