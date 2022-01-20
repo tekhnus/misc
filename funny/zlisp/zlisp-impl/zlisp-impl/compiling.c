@@ -140,7 +140,8 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     prog_append_put_const(begin, datum_make_void());
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.fn")) {
+  if (datum_is_the_symbol(op, "builtin.fn") || datum_is_the_symbol_pair(op, "hat", "builtin.fn")) {
+    bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.fn");
     if (list_length(stmt->list_tail) != 1) {
       return "fn should have one arg";
     }
@@ -153,7 +154,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     datum *f = datum_make_routine(
         s, NULL); // The null state will be overriden at runtime.
     prog_append_put_const(begin, f);
-    prog_append_pop_prog(begin, datum_make_symbol("__lambda"), false);
+    prog_append_pop_prog(begin, datum_make_symbol("__lambda"), hat);
     prog_append_put_var(begin, datum_make_symbol("__lambda"));
     return NULL;
   }
