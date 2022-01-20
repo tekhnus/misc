@@ -148,10 +148,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (err != NULL) {
       return err;
     }
-    datum *f = datum_make_routine(
-        s, NULL); // The null state will be overriden at runtime.
-    prog_append_put_const(begin, f);
-    prog_append_pop_prog(begin, datum_make_symbol("__lambda"), hat);
+    prog_append_set_closures(begin, s, datum_make_symbol("__lambda"), hat);
     prog_append_put_var(begin, datum_make_symbol("__lambda"));
     return NULL;
   }
@@ -309,14 +306,6 @@ LOCAL void prog_append_pop(prog **begin, datum *var) {
   (*begin)->pop_var = var;
   (*begin)->pop_next = prog_make();
   *begin = (*begin)->pop_next;
-}
-
-LOCAL void prog_append_pop_prog(prog **begin, datum *var, bool hat) {
-  (*begin)->type = PROG_POP_PROG;
-  (*begin)->pop_prog_var = var;
-  (*begin)->pop_prog_hat = hat;
-  (*begin)->pop_prog_next = prog_make();
-  *begin = (*begin)->pop_prog_next;
 }
 
 LOCAL void prog_append_set_closures(prog **begin, prog *p, datum *var, bool hat) {

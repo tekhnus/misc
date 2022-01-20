@@ -46,17 +46,6 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     s = state_change_parent(s, parent_cont, true);
     return fstate_make_ok(s);
   } break;
-  case PROG_POP_PROG: {
-    if (!(*p)->pop_prog_hat){
-      break;
-    }
-    datum *v = state_stack_pop(&s);
-    if ((*p)->pop_prog_var != NULL) {
-      s = state_set_fn(s, (*p)->pop_prog_var, v);
-    }
-    *p = (*p)->pop_prog_next;
-    return fstate_make_ok(s);
-  } break;
   case PROG_SET_CLOSURES: {
     if (!(*p)->set_closures_hat){
       break;
@@ -127,17 +116,6 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     s = state_change_parent(s, parent_cont, false);
     s =
       state_change_parent(s, parent_cont.state_->hat_parent, true);
-    return fstate_make_ok(s);
-  } break;
-  case PROG_POP_PROG: {
-    if ((*p)->pop_prog_hat){
-      break;
-    }
-    datum *v = state_stack_pop(&s);
-    if ((*p)->pop_prog_var != NULL) {
-      s = state_set_fn(s, (*p)->pop_prog_var, v);
-    }
-    *p = (*p)->pop_prog_next;
     return fstate_make_ok(s);
   } break;
   case PROG_SET_CLOSURES: {

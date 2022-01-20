@@ -3,17 +3,19 @@
 #define LOCAL static
 typedef struct prog prog;
 LOCAL void prog_append_import(prog **begin);
+#include <stdint.h>
+#include <stdbool.h>
+typedef struct datum datum;
+typedef struct state state;
+datum *datum_make_routine(prog *s,state *lexical_bindings);
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
-typedef struct datum datum;
 LOCAL void prog_append_host(prog **begin,datum *name);
 typedef struct routine routine;
 #include <inttypes.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <ffi.h>
-typedef struct state state;
 struct routine {
   struct prog *prog_;
   struct state *state_;
@@ -21,12 +23,9 @@ struct routine {
 LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine(*module_source)(char *module));
 LOCAL void prog_append_return(prog **begin,bool hat);
 LOCAL char *prog_append_require(prog **begin,routine rt);
-#include <stdint.h>
 bool routine_is_null(routine r);
 bool datum_is_bytestring(datum *e);
 datum *datum_make_symbol(char *name);
-LOCAL void prog_append_pop_prog(prog **begin,datum *var,bool hat);
-datum *datum_make_routine(prog *s,state *lexical_bindings);
 LOCAL void prog_append_set_closures(prog **begin,prog *p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
@@ -85,7 +84,6 @@ enum prog_type {
   PROG_HOST,
   PROG_COLLECT,
   PROG_POP,
-  PROG_POP_PROG,
   PROG_SET_CLOSURES,
   PROG_RETURN,
   PROG_YIELD,
@@ -123,11 +121,6 @@ struct prog {
     struct {
       struct datum *pop_var;
       struct prog *pop_next;
-    };
-    struct {
-      struct datum *pop_prog_var;
-      bool pop_prog_hat;
-      struct prog *pop_prog_next;
     };
     struct {
       struct prog *set_closures_prog;

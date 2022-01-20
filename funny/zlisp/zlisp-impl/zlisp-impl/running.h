@@ -39,7 +39,6 @@ routine routine_make_null();
 bool routine_is_null(routine r);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
-state *state_set_fn(state *ns,datum *symbol,datum *value);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 void state_stack_put(state **ns,datum *value);
 routine routine_make(prog *s,state *ctxt);
@@ -93,7 +92,6 @@ enum prog_type {
   PROG_HOST,
   PROG_COLLECT,
   PROG_POP,
-  PROG_POP_PROG,
   PROG_SET_CLOSURES,
   PROG_RETURN,
   PROG_YIELD,
@@ -131,11 +129,6 @@ struct prog {
     struct {
       struct datum *pop_var;
       struct prog *pop_next;
-    };
-    struct {
-      struct datum *pop_prog_var;
-      bool pop_prog_hat;
-      struct prog *pop_prog_next;
     };
     struct {
       struct prog *set_closures_prog;
