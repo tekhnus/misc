@@ -61,8 +61,6 @@ bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
 
 bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
 
-bool datum_is_routine(datum *e) { return e->type == DATUM_ROUTINE; }
-
 bool datum_is_routine_0(datum *e) { return e->type == DATUM_ROUTINE_0; }
 
 bool datum_is_routine_1(datum *e) { return e->type == DATUM_ROUTINE_1; }
@@ -123,14 +121,6 @@ datum *datum_make_int(int64_t value) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_INTEGER;
   e->integer_value = value;
-  return e;
-}
-
-datum *datum_make_routine(prog *s, state *lexical_bindings) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_ROUTINE;
-  e->routine_value.prog_ = s;
-  e->routine_value.state_ = lexical_bindings;
   return e;
 }
 

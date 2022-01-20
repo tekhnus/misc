@@ -40,8 +40,8 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
       return fstate_make_panic("tried to hat-call a non-routine-1");
     }
     routine parent_cont = routine_make((*p)->call_next, s);
-    *p = fn->routine_value.prog_;
-    s = fn->routine_value.state_;
+    *p = fn->routine_1_value.prog_;
+    s = fn->routine_1_value.state_;
     state_stack_put(&s, args);
     s = state_change_parent(s, parent_cont, true);
     return fstate_make_ok(s);
@@ -52,7 +52,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     }
     datum *clos = datum_make_routine_1((*p)->set_closures_prog, NULL);
     s = state_set_var(s, (*p)->set_closures_name, clos);
-    clos->routine_value.state_ = s;
+    clos->routine_1_value.state_ = s;
     *p = (*p)->set_closures_next;
     return fstate_make_ok(s);
   } break;
@@ -111,8 +111,8 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
       return fstate_make_panic("tried to plain-call a non-routine-0");
     }
     routine parent_cont = routine_make((*p)->call_next, s);
-    *p = fn->routine_value.prog_;
-    s = fn->routine_value.state_;
+    *p = fn->routine_0_value.prog_;
+    s = fn->routine_0_value.state_;
     state_stack_put(&s, args);
     s = state_change_parent(s, parent_cont, false);
     s =
@@ -125,7 +125,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     }
     datum *clos = datum_make_routine_0((*p)->set_closures_prog, NULL);
     s = state_set_var(s, (*p)->set_closures_name, clos);
-    clos->routine_value.state_ = s;
+    clos->routine_0_value.state_ = s;
     *p = (*p)->set_closures_next;
     return fstate_make_ok(s);
   } break;
@@ -245,7 +245,7 @@ LOCAL fstate routine_0_step(prog **p, state *s,
     if (!datum_is_routine_0(submodule_state)) {
       return fstate_make_panic("expected a routine after a submodule call");
     }
-    state *module_state = submodule_state->routine_value.state_;
+    state *module_state = submodule_state->routine_0_value.state_;
 
     datum *imported_bindings = state_list_vars(module_state);
     for (; !datum_is_nil(imported_bindings);
