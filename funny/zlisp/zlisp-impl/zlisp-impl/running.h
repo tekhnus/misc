@@ -8,7 +8,6 @@ datum *state_list_vars(state *ns);
 int list_length(datum *seq);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
-state *state_set_var(state *ns,datum *symbol,datum *value);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
@@ -31,7 +30,6 @@ typedef struct prog prog;
 LOCAL fstate routine_0_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL fstate routine_1_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
 datum *datum_make_list_2(datum *head,datum *second);
-datum *datum_make_routine(prog *s,state *lexical_bindings);
 typedef struct routine routine;
 struct routine {
   struct prog *prog_;
@@ -39,6 +37,8 @@ struct routine {
 };
 routine routine_make_null();
 bool routine_is_null(routine r);
+state *state_set_var(state *ns,datum *symbol,datum *value);
+datum *datum_make_routine(prog *s,state *lexical_bindings);
 state *state_set_fn(state *ns,datum *symbol,datum *value);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 void state_stack_put(state **ns,datum *value);
@@ -94,6 +94,7 @@ enum prog_type {
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
+  PROG_SET_CLOSURES,
   PROG_RETURN,
   PROG_YIELD,
   PROG_IMPORT,
@@ -135,6 +136,12 @@ struct prog {
       struct datum *pop_prog_var;
       bool pop_prog_hat;
       struct prog *pop_prog_next;
+    };
+    struct {
+      struct prog *set_closures_prog;
+      struct datum *set_closures_name;
+      bool set_closures_hat;
+      struct prog *set_closures_next;
     };
     bool return_hat;
     struct {

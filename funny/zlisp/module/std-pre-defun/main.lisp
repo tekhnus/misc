@@ -1,5 +1,7 @@
 (require "c-prelude")
 
+(def list (builtin.fn (return args)))
+
 (def second
      (builtin.fn
       (return (head (tail (head args))))))
@@ -35,8 +37,6 @@
 	(head args)
 	(tail (head (tail args))))))
     (return '())))
-
-(def list (builtin.fn (return args)))
 
 (def ignore-fn (builtin.fn (return `(def throwaway ~(head args)))))
 
@@ -103,6 +103,8 @@
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
+(def switch-defines '((head args) (second args) (third args)))
+
 (builtin.defn switch-clause
     (progn
       (def sig (head (head args)))
@@ -111,8 +113,6 @@
       (def vars (decons-vars sig))
       (def body (cons 'progn (concat (map (builtin.fn (return (cons 'def (head args)))) (zip vars switch-defines)) cmds)))
       (return (list checker body))))
-
-(def switch-defines '((head args) (second args) (third args)))
 
 (builtin.defn switch-fun
     (return (swtchone (map switch-clause (head args)))))

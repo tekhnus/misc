@@ -27,6 +27,7 @@ bool datum_is_bytestring(datum *e);
 datum *datum_make_symbol(char *name);
 LOCAL void prog_append_pop_prog(prog **begin,datum *var,bool hat);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
+LOCAL void prog_append_set_closures(prog **begin,prog *p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog *a,prog *b,prog *e);
@@ -85,6 +86,7 @@ enum prog_type {
   PROG_COLLECT,
   PROG_POP,
   PROG_POP_PROG,
+  PROG_SET_CLOSURES,
   PROG_RETURN,
   PROG_YIELD,
   PROG_IMPORT,
@@ -126,6 +128,12 @@ struct prog {
       struct datum *pop_prog_var;
       bool pop_prog_hat;
       struct prog *pop_prog_next;
+    };
+    struct {
+      struct prog *set_closures_prog;
+      struct datum *set_closures_name;
+      bool set_closures_hat;
+      struct prog *set_closures_next;
     };
     bool return_hat;
     struct {

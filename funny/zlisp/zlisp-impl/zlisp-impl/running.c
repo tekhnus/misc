@@ -50,12 +50,20 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (!(*p)->pop_prog_hat){
       break;
     }
-    //return fstate_make_panic("disabled ATM");
     datum *v = state_stack_pop(&s);
     if ((*p)->pop_prog_var != NULL) {
       s = state_set_fn(s, (*p)->pop_prog_var, v);
     }
     *p = (*p)->pop_prog_next;
+    return fstate_make_ok(s);
+  } break;
+  case PROG_SET_CLOSURES: {
+    if (!(*p)->set_closures_hat){
+      break;
+    }
+    datum *clos = datum_make_routine((*p)->set_closures_prog, NULL);
+    s = state_set_var(s, (*p)->set_closures_name, clos);
+    clos->routine_value.state_ = s;
     return fstate_make_ok(s);
   } break;
   case PROG_RETURN: {
@@ -130,6 +138,16 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
       s = state_set_fn(s, (*p)->pop_prog_var, v);
     }
     *p = (*p)->pop_prog_next;
+    return fstate_make_ok(s);
+  } break;
+  case PROG_SET_CLOSURES: {
+    if ((*p)->set_closures_hat){
+      break;
+    }
+    datum *clos = datum_make_routine((*p)->set_closures_prog, NULL);
+    s = state_set_var(s, (*p)->set_closures_name, clos);
+    clos->routine_value.state_ = s;
+    *p = (*p)->set_closures_next;
     return fstate_make_ok(s);
   } break;
   case PROG_RETURN: {

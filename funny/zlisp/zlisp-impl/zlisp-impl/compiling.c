@@ -133,10 +133,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
     if (err != NULL) {
       return err;
     }
-    datum *f = datum_make_routine(
-        s, NULL); // The null state will be overriden at runtime.
-    prog_append_put_const(begin, f);
-    prog_append_pop_prog(begin, stmt->list_tail->list_head, hat);
+    prog_append_set_closures(begin, s, stmt->list_tail->list_head, hat);
     prog_append_put_const(begin, datum_make_void());
     return NULL;
   }
@@ -320,6 +317,15 @@ LOCAL void prog_append_pop_prog(prog **begin, datum *var, bool hat) {
   (*begin)->pop_prog_hat = hat;
   (*begin)->pop_prog_next = prog_make();
   *begin = (*begin)->pop_prog_next;
+}
+
+LOCAL void prog_append_set_closures(prog **begin, prog *p, datum *var, bool hat) {
+  (*begin)->type = PROG_SET_CLOSURES;
+  (*begin)->set_closures_prog = p;
+  (*begin)->set_closures_name = var;
+  (*begin)->set_closures_hat = hat;
+  (*begin)->set_closures_next = prog_make();
+  *begin = (*begin)->set_closures_next;
 }
 
 LOCAL void prog_append_return(prog **begin, bool hat) {
