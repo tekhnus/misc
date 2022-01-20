@@ -67,15 +67,15 @@
 
 !(#fntest
   (progn
-    !(#defun far-fib ()
+    (builtin.defn far-fib (progn
        (^yield 3)
        (^yield 5)
-       (return 8))
+       (return 8)))
 
-    !(#defun more-far-fib ()
+    (^builtin.defn more-far-fib (progn
        (def x (far-fib))
        (^yield x)
-       (^yield 13))
+       (^yield 13)))
 
     !(#def2 x more-far-fib (^more-far-fib))
     !(#def2 y more-far-fib (^more-far-fib))

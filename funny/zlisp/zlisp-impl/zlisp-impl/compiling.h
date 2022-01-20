@@ -7,7 +7,7 @@ LOCAL void prog_append_import(prog **begin);
 #include <stdbool.h>
 typedef struct datum datum;
 typedef struct state state;
-datum *datum_make_routine(prog *s,state *lexical_bindings);
+datum *datum_make_routine_0(prog *s,state *lexical_bindings);
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
@@ -50,6 +50,8 @@ enum datum_type {
   DATUM_BYTESTRING,
   DATUM_INTEGER,
   DATUM_ROUTINE,
+  DATUM_ROUTINE_0,
+  DATUM_ROUTINE_1,
   DATUM_POINTER,
   DATUM_VOID,
 };
@@ -65,6 +67,8 @@ struct datum {
     char *bytestring_value;
     int64_t integer_value;
     struct routine routine_value;
+    struct routine routine_0_value;
+    struct routine routine_1_value;
     struct {
       void *pointer_value;
       struct datum *pointer_descriptor;

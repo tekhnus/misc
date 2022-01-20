@@ -28,6 +28,8 @@ struct fstate {
 };
 typedef struct prog prog;
 LOCAL fstate routine_0_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
+datum *datum_make_routine_0(prog *s,state *lexical_bindings);
+bool datum_is_routine_0(datum *e);
 LOCAL fstate routine_1_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
 datum *datum_make_list_2(datum *head,datum *second);
 typedef struct routine routine;
@@ -38,11 +40,11 @@ struct routine {
 routine routine_make_null();
 bool routine_is_null(routine r);
 state *state_set_var(state *ns,datum *symbol,datum *value);
-datum *datum_make_routine(prog *s,state *lexical_bindings);
+datum *datum_make_routine_1(prog *s,state *lexical_bindings);
 state *state_change_parent(state *ns,routine new_parent,bool hat);
 void state_stack_put(state **ns,datum *value);
 routine routine_make(prog *s,state *ctxt);
-bool datum_is_routine(datum *e);
+bool datum_is_routine_1(datum *e);
 fstate fstate_make_panic(char *message);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
@@ -60,6 +62,8 @@ enum datum_type {
   DATUM_BYTESTRING,
   DATUM_INTEGER,
   DATUM_ROUTINE,
+  DATUM_ROUTINE_0,
+  DATUM_ROUTINE_1,
   DATUM_POINTER,
   DATUM_VOID,
 };
@@ -75,6 +79,8 @@ struct datum {
     char *bytestring_value;
     int64_t integer_value;
     struct routine routine_value;
+    struct routine routine_0_value;
+    struct routine routine_1_value;
     struct {
       void *pointer_value;
       struct datum *pointer_descriptor;

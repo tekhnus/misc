@@ -21,6 +21,8 @@ enum datum_type {
   DATUM_BYTESTRING,
   DATUM_INTEGER,
   DATUM_ROUTINE,
+  DATUM_ROUTINE_0,
+  DATUM_ROUTINE_1,
   DATUM_POINTER,
   DATUM_VOID,
 };
@@ -43,6 +45,8 @@ struct datum {
     char *bytestring_value;
     int64_t integer_value;
     struct routine routine_value;
+    struct routine routine_0_value;
+    struct routine routine_1_value;
     struct {
       void *pointer_value;
       struct datum *pointer_descriptor;

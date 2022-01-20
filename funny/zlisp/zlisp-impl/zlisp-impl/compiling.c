@@ -331,7 +331,7 @@ LOCAL void prog_append_yield(prog **begin, bool hat) {
 }
 
 LOCAL char *prog_append_require(prog **begin, routine rt) {
-  datum *r = datum_make_routine(rt.prog_, rt.state_);
+  datum *r = datum_make_routine_0(rt.prog_, rt.state_);
   prog_append_args(begin);
   prog_append_put_const(begin, r);
   prog_append_collect(begin);

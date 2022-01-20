@@ -63,6 +63,10 @@ bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
 
 bool datum_is_routine(datum *e) { return e->type == DATUM_ROUTINE; }
 
+bool datum_is_routine_0(datum *e) { return e->type == DATUM_ROUTINE_0; }
+
+bool datum_is_routine_1(datum *e) { return e->type == DATUM_ROUTINE_1; }
+
 bool datum_is_pointer(datum *e) { return e->type == DATUM_POINTER; }
 
 bool datum_is_void(datum *e) { return e->type == DATUM_VOID; }
@@ -127,6 +131,22 @@ datum *datum_make_routine(prog *s, state *lexical_bindings) {
   e->type = DATUM_ROUTINE;
   e->routine_value.prog_ = s;
   e->routine_value.state_ = lexical_bindings;
+  return e;
+}
+
+datum *datum_make_routine_0(prog *s, state *lexical_bindings) {
+  datum *e = malloc(sizeof(datum));
+  e->type = DATUM_ROUTINE_0;
+  e->routine_0_value.prog_ = s;
+  e->routine_0_value.state_ = lexical_bindings;
+  return e;
+}
+
+datum *datum_make_routine_1(prog *s, state *lexical_bindings) {
+  datum *e = malloc(sizeof(datum));
+  e->type = DATUM_ROUTINE_1;
+  e->routine_1_value.prog_ = s;
+  e->routine_1_value.state_ = lexical_bindings;
   return e;
 }
 
@@ -401,7 +421,7 @@ char *datum_repr(datum *e) {
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
-  } else if (datum_is_routine(e)) {
+  } else if (datum_is_routine_0(e) || datum_is_routine_1(e)) {
     end += sprintf(end, "<form>");
   } else if (datum_is_pointer(e)) {
     end += sprintf(end, "<externcdata %p %s>", e->pointer_value,

@@ -88,6 +88,8 @@ bool read_result_is_ok(read_result x);
 datum *datum_make_void();
 datum *datum_make_pointer_to_pointer(void **ptr);
 datum *datum_make_pointer(void *data,datum *signature);
+datum *datum_make_routine_1(prog *s,state *lexical_bindings);
+datum *datum_make_routine_0(prog *s,state *lexical_bindings);
 datum *datum_make_routine(prog *s,state *lexical_bindings);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
@@ -99,6 +101,8 @@ datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
 bool datum_is_void(datum *e);
 bool datum_is_pointer(datum *e);
+bool datum_is_routine_1(datum *e);
+bool datum_is_routine_0(datum *e);
 bool datum_is_routine(datum *e);
 bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
@@ -185,6 +189,8 @@ enum datum_type {
   DATUM_BYTESTRING,
   DATUM_INTEGER,
   DATUM_ROUTINE,
+  DATUM_ROUTINE_0,
+  DATUM_ROUTINE_1,
   DATUM_POINTER,
   DATUM_VOID,
 };
@@ -200,6 +206,8 @@ struct datum {
     char *bytestring_value;
     int64_t integer_value;
     struct routine routine_value;
+    struct routine routine_0_value;
+    struct routine routine_1_value;
     struct {
       void *pointer_value;
       struct datum *pointer_descriptor;
