@@ -92,8 +92,6 @@ fstate fstate_make_panic(char *message);
 state *state_make(datum *vars,datum *stack,routine parent,routine hat_parent);
 state *state_make_fresh();
 state *state_set_var(state *ns,datum *symbol,datum *value);
-state *state_set_fn(state *ns,datum *symbol,datum *value);
-datum *namespace_cell_get_value(datum *cell,state *ns);
 fdatum state_get_var(state *ns,datum *symbol);
 fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
 bool ffi_type_init(ffi_type **type,datum *definition);

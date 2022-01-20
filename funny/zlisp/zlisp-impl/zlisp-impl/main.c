@@ -467,33 +467,9 @@ state *state_make_fresh() {
 }
 
 state *state_set_var(state *ns, datum *symbol, datum *value) {
-  datum *kv = datum_make_list_3(symbol, datum_make_symbol(":value"), value);
+  datum *kv = datum_make_list_2(symbol, value);
   return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
                     ns->hat_parent);
-}
-
-state *state_set_fn(state *ns, datum *symbol, datum *value) {
-  datum *kv = datum_make_list_3(symbol, datum_make_symbol(":fn"), value);
-  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent,
-                    ns->hat_parent);
-}
-
-datum *namespace_cell_get_value(datum *cell, state *ns) {
-  datum *raw_value = cell->list_tail->list_head;
-  if (!strcmp(cell->list_head->symbol_value, ":value")) {
-    return raw_value;
-  } else if (!strcmp(cell->list_head->symbol_value, ":fn")) {
-    if (!datum_is_routine(raw_value)) {
-      fprintf(stderr, "namespace implementation error");
-      exit(EXIT_FAILURE);
-    }
-    state *routine_ns = state_make(ns->vars, datum_make_nil(),
-                                   routine_make_null(), routine_make_null());
-    return datum_make_routine(raw_value->routine_value.prog_, routine_ns);
-  } else {
-    fprintf(stderr, "namespace implementation error");
-    exit(EXIT_FAILURE);
-  }
 }
 
 fdatum state_get_var(state *ns, datum *symbol) {
@@ -501,7 +477,7 @@ fdatum state_get_var(state *ns, datum *symbol) {
     datum *entry = cur->list_head;
     if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
       datum *cell = entry->list_tail;
-      return fdatum_make_ok(namespace_cell_get_value(cell, ns));
+      return fdatum_make_ok(cell->list_head);
     }
   }
   char *msg = malloc(1024);
@@ -706,11 +682,7 @@ datum *state_list_vars(state *ns) {
   datum *result = datum_make_nil();
   datum **nil = &result;
   for (datum *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum *entry = cur->list_head;
-    datum *key = entry->list_head;
-    datum *cell = entry->list_tail;
-    datum *val = namespace_cell_get_value(cell, ns);
-    datum *keyval = datum_make_list_2(key, val);
+    datum *keyval = cur->list_head;
     *nil = datum_make_list_1(keyval);
     nil = &((*nil)->list_tail);
   }
