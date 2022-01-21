@@ -170,74 +170,75 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
   } break;
   default: break;
   }
-  return routine_0_step(p, s, perform_host_instruction);
+  state **st = &s;
+  return routine_0_step(p, st, perform_host_instruction);
 }
 
-LOCAL fstate routine_0_step(prog **p, state *s,
+LOCAL fstate routine_0_step(prog **p, state **st,
                             fdatum (*perform_host_instruction)(datum *,
                                                                datum *)) {
   // routine c = routine_make(*p, s);
   switch ((*p)->type) {
   case PROG_NOP: {
     *p = (*p)->nop_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_IF: {
-    datum *v = state_stack_pop(&s);
+    datum *v = state_stack_pop(st);
     if (!datum_is_nil(v)) {
       *p = (*p)->if_true;
     } else {
       *p = (*p)->if_false;
     }
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_PUT_CONST: {
-    state_stack_put(&s, (*p)->put_const_value);
+    state_stack_put(st, (*p)->put_const_value);
     *p = (*p)->put_const_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_PUT_VAR: {
-    fdatum er = state_get_var(s, (*p)->put_var_value);
+    fdatum er = state_get_var(*st, (*p)->put_var_value);
     if (fdatum_is_panic(er)) {
       return fstate_make_panic(er.panic_message);
     }
-    state_stack_put(&s, er.ok_value);
+    state_stack_put(st, er.ok_value);
     *p = (*p)->put_var_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_POP: {
-    datum *v = state_stack_pop(&s);
+    datum *v = state_stack_pop(st);
     if ((*p)->pop_var != NULL) {
-      s = state_set_var(s, (*p)->pop_var, v);
+      *st = state_set_var(*st, (*p)->pop_var, v);
     }
     *p = (*p)->pop_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_ARGS: {
-    state_stack_new(&s);
+    state_stack_new(st);
     *p = (*p)->args_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_HOST: {
     datum *name = (*p)->host_instruction;
-    datum *arg = state_stack_pop(&s);
+    datum *arg = state_stack_pop(st);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
       return fstate_make_panic(res.panic_message);
     }
-    state_stack_put(&s, res.ok_value);
+    state_stack_put(st, res.ok_value);
     *p = (*p)->host_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_COLLECT: {
-    datum *form = state_stack_collect(&s);
-    state_stack_put(&s, form);
+    datum *form = state_stack_collect(st);
+    state_stack_put(st, form);
     *p = (*p)->collect_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_IMPORT: {
     // fprintf(stderr, "MODULE_END\n");
-    datum *pair = state_stack_pop(&s);
+    datum *pair = state_stack_pop(st);
     if (!datum_is_list(pair) || list_length(pair) != 2) {
       return fstate_make_panic("expected a pair after a submodule call");
     }
@@ -253,10 +254,10 @@ LOCAL fstate routine_0_step(prog **p, state *s,
       datum *sym = imported_bindings->list_head->list_head;
       datum *val = imported_bindings->list_head->list_tail->list_head;
 
-      s = state_set_var(s, sym, val);
+      *st = state_set_var(*st, sym, val);
     }
     *p = (*p)->import_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   default:break;
   }

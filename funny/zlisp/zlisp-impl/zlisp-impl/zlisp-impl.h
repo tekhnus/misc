@@ -21,7 +21,7 @@ struct fdatum {
   struct datum *ok_value;
   char *panic_message;
 };
-LOCAL fstate routine_0_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL fstate routine_0_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL fstate routine_1_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL fstate routine_2_step(prog **p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL fstate routine_2_run(prog *p,state *s,fdatum(*perform_host_instruction)(datum *,datum *));
