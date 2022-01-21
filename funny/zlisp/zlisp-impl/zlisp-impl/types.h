@@ -15,11 +15,6 @@ enum datum_type {
   DATUM_VOID,
 };
 
-struct routine {
-  struct prog *prog_;
-  struct state *state_;
-};
-
 struct routine_0 {
   struct prog *prog_;
   struct state *state_;
@@ -45,8 +40,8 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct routine routine_0_value;
-    struct routine routine_1_value;
+    struct routine_0 routine_0_value;
+    struct routine_1 routine_1_value;
     struct {
       void *pointer_value;
       struct datum *pointer_descriptor;
@@ -57,8 +52,8 @@ struct datum {
 struct state {
   struct datum *vars;
   struct datum *stack;
-  struct routine parent;
-  struct routine hat_parent;
+  struct routine_1 parent;
+  struct routine_2 hat_parent;
 };
 
 enum read_result_type {

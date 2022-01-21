@@ -39,7 +39,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (!datum_is_routine_1(fn)) {
       return fstate_make_panic("tried to hat-call a non-routine-1");
     }
-    routine parent_cont = routine_2_make((*p)->call_next, s);
+    routine_2 parent_cont = routine_2_make((*p)->call_next, s);
     *p = fn->routine_1_value.prog_;
     s = fn->routine_1_value.state_;
     state_stack_put(&s, args);
@@ -61,7 +61,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
       break;
     }
     //return fstate_make_panic("disabled ATM");
-    routine yield_to = s->hat_parent;
+    routine_2 yield_to = s->hat_parent;
     if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
@@ -77,7 +77,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
       break;
     }
     //return fstate_make_panic("disabled ATM");
-    routine yield_to = s->hat_parent;
+    routine_2 yield_to = s->hat_parent;
     if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
@@ -110,7 +110,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (!datum_is_routine_0(fn)) {
       return fstate_make_panic("tried to plain-call a non-routine-0");
     }
-    routine parent_cont = routine_1_make((*p)->call_next, s);
+    routine_1 parent_cont = routine_1_make((*p)->call_next, s);
     *p = fn->routine_0_value.prog_;
     s = fn->routine_0_value.state_;
     state_stack_put(&s, args);
@@ -133,8 +133,8 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if ((*p)->return_hat) {
       break;
     }
-    routine hat_par = s->hat_parent;
-    routine yield_to = s->parent;
+    routine_2 hat_par = s->hat_parent;
+    routine_1 yield_to = s->parent;
     if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
@@ -152,8 +152,8 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if ((*p)->yield_hat) {
       break;
     }
-    routine hat_par = s->hat_parent;
-    routine yield_to = s->parent;
+    routine_2 hat_par = s->hat_parent;
+    routine_1 yield_to = s->parent;
     if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }

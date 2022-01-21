@@ -31,28 +31,38 @@ LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
 LOCAL void prog_append_host(prog **begin,datum *name);
-typedef struct routine routine;
-struct routine {
+typedef struct routine_0 routine_0;
+struct routine_0 {
   struct prog *prog_;
   struct state *state_;
 };
-LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine(*module_source)(char *module));
+LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine_0(*module_source)(char *module));
 LOCAL void prog_append_return(prog **begin,bool hat);
-LOCAL char *prog_append_require(prog **begin,routine rt);
+LOCAL char *prog_append_require(prog **begin,routine_0 rt);
 LOCAL void prog_append_set_closures(prog **begin,prog *p,datum *var,bool hat);
-LOCAL char *prog_init_routine(prog *s,datum *stmt,routine(*module_source)(char *));
+LOCAL char *prog_init_routine(prog *s,datum *stmt,routine_0(*module_source)(char *));
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog *a,prog *b,prog *e);
 LOCAL void prog_append_put_var(prog **begin,datum *val);
 LOCAL void prog_append_yield(prog **begin,bool hat);
-char *prog_init_submodule(prog *s,datum *source,routine(*module_source)(char *));
-LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine(*module_source)(char *));
+char *prog_init_submodule(prog *s,datum *source,routine_0(*module_source)(char *));
+LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine_0(*module_source)(char *));
 LOCAL void prog_append_pop(prog **begin,datum *var);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
-char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
+char *prog_init_module(prog *s,datum *source,routine_0(*module_source)(char *));
 prog *prog_make();
-state *state_change_plain_parent(state *ns,routine new_parent);
-state *state_change_hat_parent(state *ns,routine new_parent);
+typedef struct routine_1 routine_1;
+struct routine_1 {
+  struct prog *prog_;
+  struct state *state_;
+};
+state *state_change_plain_parent(state *ns,routine_1 new_parent);
+typedef struct routine_2 routine_2;
+struct routine_2 {
+  struct prog *prog_;
+  struct state *state_;
+};
+state *state_change_hat_parent(state *ns,routine_2 new_parent);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
 datum *state_stack_pop(state **s);
@@ -69,7 +79,7 @@ fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
 fdatum state_get_var(state *ns,datum *symbol);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
-state *state_make(datum *vars,datum *stack,routine parent,routine hat_parent);
+state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
 fstate fstate_make_panic(char *message);
 fstate fstate_make_ok(state *v);
 bool fstate_is_panic(fstate result);
@@ -133,19 +143,19 @@ bool datum_is_integer(datum *e);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
-bool routine_2_is_null(routine r);
-bool routine_1_is_null(routine r);
-bool routine_0_is_null(routine r);
-routine routine_2_make_null();
-routine routine_1_make_null();
-routine routine_0_make_null();
-routine routine_2_make(prog *s,state *ctxt);
-routine routine_1_make(prog *s,state *ctxt);
+bool routine_2_is_null(routine_2 r);
+bool routine_1_is_null(routine_1 r);
+bool routine_0_is_null(routine_0 r);
+routine_2 routine_2_make_null();
+routine_1 routine_1_make_null();
+routine_0 routine_0_make_null();
+routine_2 routine_2_make(prog *s,state *ctxt);
+routine_1 routine_1_make(prog *s,state *ctxt);
 struct state {
   struct datum *vars;
   struct datum *stack;
-  struct routine parent;
-  struct routine hat_parent;
+  struct routine_1 parent;
+  struct routine_2 hat_parent;
 };
 enum prog_type {
   PROG_END,
@@ -210,7 +220,7 @@ struct prog {
     struct prog *import_next;
   };
 };
-routine routine_0_make(prog *s,state *ctxt);
+routine_0 routine_0_make(prog *s,state *ctxt);
 bool datum_is_symbol(datum *e);
 enum datum_type {
   DATUM_NIL,
@@ -234,8 +244,8 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct routine routine_0_value;
-    struct routine routine_1_value;
+    struct routine_0 routine_0_value;
+    struct routine_1 routine_1_value;
     struct {
       void *pointer_value;
       struct datum *pointer_descriptor;

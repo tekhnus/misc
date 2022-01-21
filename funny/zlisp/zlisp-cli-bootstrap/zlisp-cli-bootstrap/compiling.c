@@ -14,8 +14,8 @@ char *prog_init_submodule_c_host(prog *p, datum *source) {
   return prog_init_submodule(p, source, module_routine);
 }
 
-routine module_routine(char *module) {
-  routine r = routine_0_make_null();
+routine_0 module_routine(char *module) {
+  routine_0 r = routine_0_make_null();
   prog *p = module_prog(module);
   if (p == NULL) {
     return routine_0_make_null();

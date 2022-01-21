@@ -27,39 +27,39 @@ bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-routine routine_0_make(prog *s, state *ctxt) {
-  routine res = {.prog_ = s, .state_ = ctxt};
+routine_0 routine_0_make(prog *s, state *ctxt) {
+  routine_0 res = {.prog_ = s, .state_ = ctxt};
   return res;
 }
 
-routine routine_1_make(prog *s, state *ctxt) {
-  routine res = {.prog_ = s, .state_ = ctxt};
+routine_1 routine_1_make(prog *s, state *ctxt) {
+  routine_1 res = {.prog_ = s, .state_ = ctxt};
   return res;
 }
 
-routine routine_2_make(prog *s, state *ctxt) {
-  routine res = {.prog_ = s, .state_ = ctxt};
+routine_2 routine_2_make(prog *s, state *ctxt) {
+  routine_2 res = {.prog_ = s, .state_ = ctxt};
   return res;
 }
 
-routine routine_0_make_null() {
-  routine res = {};
+routine_0 routine_0_make_null() {
+  routine_0 res = {};
   return res;
 }
 
-routine routine_1_make_null() {
-  routine res = {};
+routine_1 routine_1_make_null() {
+  routine_1 res = {};
   return res;
 }
 
-routine routine_2_make_null() {
-  routine res = {};
+routine_2 routine_2_make_null() {
+  routine_2 res = {};
   return res;
 }
 
-bool routine_0_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
-bool routine_1_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
-bool routine_2_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_0_is_null(routine_0 r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_1_is_null(routine_1 r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_2_is_null(routine_2 r) { return r.prog_ == NULL && r.state_ == NULL; }
 
 int list_length(datum *seq) {
   if (!datum_is_list(seq)) {
@@ -483,8 +483,8 @@ fstate fstate_make_panic(char *message) {
   return result;
 }
 
-state *state_make(datum *vars, datum *stack, routine parent,
-                  routine hat_parent) {
+state *state_make(datum *vars, datum *stack, routine_1 parent,
+                  routine_2 hat_parent) {
   state *res = malloc(sizeof(state));
   res->vars = vars;
   res->stack = stack;
@@ -494,7 +494,7 @@ state *state_make(datum *vars, datum *stack, routine parent,
 }
 
 state *state_make_fresh() {
-  return state_make(datum_make_nil(), datum_make_nil(), routine_1_make_null(), routine_1_make_null());
+  return state_make(datum_make_nil(), datum_make_nil(), routine_1_make_null(), routine_2_make_null());
 }
 
 state *state_set_var(state *ns, datum *symbol, datum *value) {
@@ -789,10 +789,10 @@ datum *state_stack_collect(state **s) {
   return form;
 }
 
-state *state_change_hat_parent(state *ns, routine new_parent) {
+state *state_change_hat_parent(state *ns, routine_2 new_parent) {
   return state_make(ns->vars, ns->stack, ns->parent, new_parent);
 }
 
-state *state_change_plain_parent(state *ns, routine new_parent) {
+state *state_change_plain_parent(state *ns, routine_1 new_parent) {
   return state_make(ns->vars, ns->stack, new_parent, ns->hat_parent);
 }
