@@ -92,16 +92,17 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
   } break;
   default: break;
   }
-  return routine_1_step(p, s, perform_host_instruction);
+  state **st = &s;
+  return routine_1_step(p, st, perform_host_instruction);
 }
 
-LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
   switch ((*p)->type) {
   case PROG_CALL: {
     if ((*p)->call_hat) {
       break;
     }
-    datum *form = state_stack_pop(&s);
+    datum *form = state_stack_pop(st);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return fstate_make_panic("a call instruction with a malformed form");
     }
@@ -110,67 +111,66 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (!datum_is_routine_0(fn)) {
       return fstate_make_panic("tried to plain-call a non-routine-0");
     }
-    routine_1 parent_cont = routine_1_make((*p)->call_next, s);
+    routine_1 parent_cont = routine_1_make((*p)->call_next, *st);
     *p = fn->routine_0_value.prog_;
-    s = fn->routine_0_value.state_;
-    state_stack_put(&s, args);
-    s = state_change_plain_parent(s, parent_cont);
-    s =
-      state_change_hat_parent(s, parent_cont.state_->hat_parent);
-    return fstate_make_ok(s);
+    *st = fn->routine_0_value.state_;
+    state_stack_put(st, args);
+    *st = state_change_plain_parent(*st, parent_cont);
+    *st =
+      state_change_hat_parent(*st, parent_cont.state_->hat_parent);
+    return fstate_make_ok(*st);
   } break;
   case PROG_SET_CLOSURES: {
     if ((*p)->set_closures_hat){
       break;
     }
     datum *clos = datum_make_routine_0((*p)->set_closures_prog, NULL);
-    s = state_set_var(s, (*p)->set_closures_name, clos);
-    clos->routine_0_value.state_ = s;
+    *st = state_set_var(*st, (*p)->set_closures_name, clos);
+    clos->routine_0_value.state_ = *st;
     *p = (*p)->set_closures_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_RETURN: {
     if ((*p)->return_hat) {
       break;
     }
-    routine_2 hat_par = s->hat_parent;
-    routine_1 yield_to = s->parent;
+    routine_2 hat_par = (*st)->hat_parent;
+    routine_1 yield_to = (*st)->parent;
     if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
-    s = state_change_plain_parent(s, routine_1_make_null());
-    datum *result = state_stack_pop(&s);
+    *st = state_change_plain_parent(*st, routine_1_make_null());
+    datum *result = state_stack_pop(st);
     *p = yield_to.prog_;
-    s = yield_to.state_;
-    state_stack_put(&s, result);
-    s->hat_parent =
+    *st = yield_to.state_;
+    state_stack_put(st, result);
+    (*st)->hat_parent =
       hat_par; /* Because the caller hat parent might be out-of-date.*/
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_YIELD: {
     // return fstate_make_panic("disabled ATM");
     if ((*p)->yield_hat) {
       break;
     }
-    routine_2 hat_par = s->hat_parent;
-    routine_1 yield_to = s->parent;
+    routine_2 hat_par = (*st)->hat_parent;
+    routine_1 yield_to = (*st)->parent;
     if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
-    s = state_change_plain_parent(s, routine_1_make_null());
-    datum *val = state_stack_pop(&s);
-    datum *conti = datum_make_routine_0((*p)->yield_next, s);
+    *st = state_change_plain_parent(*st, routine_1_make_null());
+    datum *val = state_stack_pop(st);
+    datum *conti = datum_make_routine_0((*p)->yield_next, *st);
     datum *result = datum_make_list_2(val, conti);
     *p = yield_to.prog_;
-    s = yield_to.state_;
-    state_stack_put(&s, result);
-    s->hat_parent =
+    *st = yield_to.state_;
+    state_stack_put(st, result);
+    (*st)->hat_parent =
       hat_par; /* Because the caller hat parent might be out-of-date.*/
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   default: break;
   }
-  state **st = &s;
   return routine_0_step(p, st, perform_host_instruction);
 }
 
