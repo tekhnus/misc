@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/compiling.h>
+#include <zlisp-impl/zlisp-impl.h>
 
 prog *prog_make() {
   prog *res = malloc(sizeof(prog));
