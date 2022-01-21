@@ -77,12 +77,6 @@ struct fdatum {
   char *panic_message;
 };
 
-struct fstate {
-  int type;
-  struct state *ok_value;
-  char *panic_message;
-};
-
 enum prog_type {
   PROG_END,
   PROG_IF,

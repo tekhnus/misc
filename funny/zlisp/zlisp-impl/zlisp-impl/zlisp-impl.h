@@ -74,16 +74,6 @@ fdatum state_get_var(state *ns,datum *symbol);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
 state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
-typedef struct fstate fstate;
-struct fstate {
-  int type;
-  struct state *ok_value;
-  char *panic_message;
-};
-fstate fstate_make_panic(char *message);
-fstate fstate_make_ok(state *v);
-bool fstate_is_panic(fstate result);
-bool fstate_is_ok(fstate result);
 char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);

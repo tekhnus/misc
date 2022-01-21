@@ -18,11 +18,6 @@ enum fdatumype {
   FDATUM_PANIC,
 };
 
-enum fstate_type {
-  FSTATE_OK,
-  FSTATE_PANIC,
-};
-
 bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
@@ -467,20 +462,6 @@ fdatum fdatum_get_value(fdatum result) {
 char *fdatum_get_panic_message(fdatum result) {
   // printf("!!!%s\n", result.panic_message);
   return result.panic_message;
-}
-
-bool fstate_is_ok(fstate result) { return result.type == FSTATE_OK; }
-
-bool fstate_is_panic(fstate result) { return result.type == FSTATE_PANIC; }
-
-fstate fstate_make_ok(state *v) {
-  fstate result = {.type = FSTATE_OK, .ok_value = v};
-  return result;
-}
-
-fstate fstate_make_panic(char *message) {
-  fstate result = {.type = FSTATE_PANIC, .panic_message = message};
-  return result;
 }
 
 state *state_make(datum *vars, datum *stack, routine_1 parent,
