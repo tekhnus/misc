@@ -62,7 +62,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     }
     //return fstate_make_panic("disabled ATM");
     routine yield_to = s->hat_parent;
-    if (routine_is_null(yield_to)) {
+    if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
     s = state_change_parent(s, routine_2_make_null(), true);
@@ -78,7 +78,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     }
     //return fstate_make_panic("disabled ATM");
     routine yield_to = s->hat_parent;
-    if (routine_is_null(yield_to)) {
+    if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
     s = state_change_parent(s, routine_2_make_null(), true);
@@ -135,7 +135,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     }
     routine hat_par = s->hat_parent;
     routine yield_to = s->parent;
-    if (routine_is_null(yield_to)) {
+    if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
     s = state_change_parent(s, routine_1_make_null(), false);
@@ -154,7 +154,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     }
     routine hat_par = s->hat_parent;
     routine yield_to = s->parent;
-    if (routine_is_null(yield_to)) {
+    if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
     s = state_change_parent(s, routine_1_make_null(), false);

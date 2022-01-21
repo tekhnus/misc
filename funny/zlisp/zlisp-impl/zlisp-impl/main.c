@@ -57,7 +57,9 @@ routine routine_2_make_null() {
   return res;
 }
 
-bool routine_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_0_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_1_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_2_is_null(routine r) { return r.prog_ == NULL && r.state_ == NULL; }
 
 int list_length(datum *seq) {
   if (!datum_is_list(seq)) {

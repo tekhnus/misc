@@ -162,7 +162,7 @@ LOCAL char *prog_append_statement(prog **begin, datum *stmt,
       return "require was used in a context where it's not supported";
     }
     routine pkg_src = module_source(pkg);
-    if (routine_is_null(pkg_src)) {
+    if (routine_0_is_null(pkg_src)) {
       return "a required module was not provided";
     }
     return prog_append_require(begin, pkg_src);
