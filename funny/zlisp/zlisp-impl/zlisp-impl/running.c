@@ -43,7 +43,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     *p = fn->routine_1_value.prog_;
     s = fn->routine_1_value.state_;
     state_stack_put(&s, args);
-    s = state_change_parent(s, parent_cont, true);
+    s = state_change_hat_parent(s, parent_cont);
     return fstate_make_ok(s);
   } break;
   case PROG_SET_CLOSURES: {
@@ -65,7 +65,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
-    s = state_change_parent(s, routine_2_make_null(), true);
+    s = state_change_hat_parent(s, routine_2_make_null());
     datum *result = state_stack_pop(&s);
     *p = yield_to.prog_;
     s = yield_to.state_;
@@ -81,7 +81,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
-    s = state_change_parent(s, routine_2_make_null(), true);
+    s = state_change_hat_parent(s, routine_2_make_null());
     datum *val = state_stack_pop(&s);
     datum *conti = datum_make_routine_1((*p)->yield_next, s);
     datum *result = datum_make_list_2(val, conti);
@@ -114,9 +114,9 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     *p = fn->routine_0_value.prog_;
     s = fn->routine_0_value.state_;
     state_stack_put(&s, args);
-    s = state_change_parent(s, parent_cont, false);
+    s = state_change_plain_parent(s, parent_cont);
     s =
-      state_change_parent(s, parent_cont.state_->hat_parent, true);
+      state_change_hat_parent(s, parent_cont.state_->hat_parent);
     return fstate_make_ok(s);
   } break;
   case PROG_SET_CLOSURES: {
@@ -138,7 +138,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
-    s = state_change_parent(s, routine_1_make_null(), false);
+    s = state_change_plain_parent(s, routine_1_make_null());
     datum *result = state_stack_pop(&s);
     *p = yield_to.prog_;
     s = yield_to.state_;
@@ -157,7 +157,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_1_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
-    s = state_change_parent(s, routine_1_make_null(), false);
+    s = state_change_plain_parent(s, routine_1_make_null());
     datum *val = state_stack_pop(&s);
     datum *conti = datum_make_routine_0((*p)->yield_next, s);
     datum *result = datum_make_list_2(val, conti);
