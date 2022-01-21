@@ -3,27 +3,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 #define LOCAL static
-typedef struct fstate fstate;
+typedef struct prog prog;
+typedef struct state state;
+typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
 #include <ffi.h>
-typedef struct state state;
-struct fstate {
-  int type;
-  struct state *ok_value;
-  char *panic_message;
-};
-typedef struct prog prog;
-typedef struct fdatum fdatum;
 typedef struct datum datum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
-LOCAL fstate routine_0_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL fstate routine_1_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL fstate routine_2_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *routine_0_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *routine_1_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *routine_2_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(prog *p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
 fdatum routine_run_and_get_value(state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog **begin);
@@ -80,6 +74,12 @@ fdatum state_get_var(state *ns,datum *symbol);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
 state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
+typedef struct fstate fstate;
+struct fstate {
+  int type;
+  struct state *ok_value;
+  char *panic_message;
+};
 fstate fstate_make_panic(char *message);
 fstate fstate_make_ok(state *v);
 bool fstate_is_panic(fstate result);

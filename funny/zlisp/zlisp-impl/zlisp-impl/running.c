@@ -16,15 +16,15 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
 LOCAL char *routine_2_run(prog *p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
   for (; p->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
-    fstate err = routine_2_step(&p, st, perform_host_instruction);
-    if (fstate_is_panic(err)) {
-      return err.panic_message;
+    char *err = routine_2_step(&p, st, perform_host_instruction);
+    if (err != NULL) {
+      return err;
     }
   }
   return NULL;
 }
 
-LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_2_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
   switch ((*p)->type) {
   case PROG_CALL: {
     if (!(*p)->call_hat) {
@@ -33,19 +33,19 @@ LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruct
     //return fstate_make_panic("disabled ATM");
     datum *form = state_stack_pop(st);
     if (!datum_is_list(form) || datum_is_nil(form)) {
-      return fstate_make_panic("a call instruction with a malformed form");
+      return ("a call instruction with a malformed form");
     }
     datum *fn = form->list_head;
     datum *args = form->list_tail;
     if (!datum_is_routine_1(fn)) {
-      return fstate_make_panic("tried to hat-call a non-routine-1");
+      return ("tried to hat-call a non-routine-1");
     }
     routine_2 parent_cont = routine_2_make((*p)->call_next, *st);
     *p = fn->routine_1_value.prog_;
     *st = fn->routine_1_value.state_;
     state_stack_put(st, args);
     *st = state_change_hat_parent(*st, parent_cont);
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_SET_CLOSURES: {
     if (!(*p)->set_closures_hat){
@@ -55,7 +55,7 @@ LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruct
     *st = state_set_var(*st, (*p)->set_closures_name, clos);
     clos->routine_1_value.state_ = *st;
     *p = (*p)->set_closures_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_RETURN: {
     if (!(*p)->return_hat) {
@@ -64,14 +64,14 @@ LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruct
     //return fstate_make_panic("disabled ATM");
     routine_2 yield_to = (*st)->hat_parent;
     if (routine_2_is_null(yield_to)) {
-      return fstate_make_panic("bad return");
+      return ("bad return");
     }
     *st = state_change_hat_parent(*st, routine_2_make_null());
     datum *result = state_stack_pop(st);
     *p = yield_to.prog_;
     *st = yield_to.state_;
     state_stack_put(st, result);
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_YIELD: {
     if (!(*p)->yield_hat) {
@@ -80,7 +80,7 @@ LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruct
     //return fstate_make_panic("disabled ATM");
     routine_2 yield_to = (*st)->hat_parent;
     if (routine_2_is_null(yield_to)) {
-      return fstate_make_panic("bad yield");
+      return ("bad yield");
     }
     *st = state_change_hat_parent(*st, routine_2_make_null());
     datum *val = state_stack_pop(st);
@@ -89,14 +89,14 @@ LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruct
     *p = yield_to.prog_;
     *st = yield_to.state_;
     state_stack_put(st, result);
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   default: break;
   }
   return routine_1_step(p, st, perform_host_instruction);
 }
 
-LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_1_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
   switch ((*p)->type) {
   case PROG_CALL: {
     if ((*p)->call_hat) {
@@ -104,12 +104,12 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     }
     datum *form = state_stack_pop(st);
     if (!datum_is_list(form) || datum_is_nil(form)) {
-      return fstate_make_panic("a call instruction with a malformed form");
+      return ("a call instruction with a malformed form");
     }
     datum *fn = form->list_head;
     datum *args = form->list_tail;
     if (!datum_is_routine_0(fn)) {
-      return fstate_make_panic("tried to plain-call a non-routine-0");
+      return ("tried to plain-call a non-routine-0");
     }
     routine_1 parent_cont = routine_1_make((*p)->call_next, *st);
     *p = fn->routine_0_value.prog_;
@@ -118,7 +118,7 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     *st = state_change_plain_parent(*st, parent_cont);
     *st =
       state_change_hat_parent(*st, parent_cont.state_->hat_parent);
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_SET_CLOSURES: {
     if ((*p)->set_closures_hat){
@@ -128,7 +128,7 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     *st = state_set_var(*st, (*p)->set_closures_name, clos);
     clos->routine_0_value.state_ = *st;
     *p = (*p)->set_closures_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_RETURN: {
     if ((*p)->return_hat) {
@@ -137,7 +137,7 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     routine_2 hat_par = (*st)->hat_parent;
     routine_1 yield_to = (*st)->parent;
     if (routine_1_is_null(yield_to)) {
-      return fstate_make_panic("bad return");
+      return ("bad return");
     }
     *st = state_change_plain_parent(*st, routine_1_make_null());
     datum *result = state_stack_pop(st);
@@ -146,7 +146,7 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     state_stack_put(st, result);
     (*st)->hat_parent =
       hat_par; /* Because the caller hat parent might be out-of-date.*/
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_YIELD: {
     // return fstate_make_panic("disabled ATM");
@@ -156,7 +156,7 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     routine_2 hat_par = (*st)->hat_parent;
     routine_1 yield_to = (*st)->parent;
     if (routine_1_is_null(yield_to)) {
-      return fstate_make_panic("bad yield");
+      return ("bad yield");
     }
     *st = state_change_plain_parent(*st, routine_1_make_null());
     datum *val = state_stack_pop(st);
@@ -167,21 +167,21 @@ LOCAL fstate routine_1_step(prog **p, state **st, fdatum (*perform_host_instruct
     state_stack_put(st, result);
     (*st)->hat_parent =
       hat_par; /* Because the caller hat parent might be out-of-date.*/
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   default: break;
   }
   return routine_0_step(p, st, perform_host_instruction);
 }
 
-LOCAL fstate routine_0_step(prog **p, state **st,
+LOCAL char *routine_0_step(prog **p, state **st,
                             fdatum (*perform_host_instruction)(datum *,
                                                                datum *)) {
   // routine c = routine_make(*p, s);
   switch ((*p)->type) {
   case PROG_NOP: {
     *p = (*p)->nop_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_IF: {
     datum *v = state_stack_pop(st);
@@ -190,21 +190,21 @@ LOCAL fstate routine_0_step(prog **p, state **st,
     } else {
       *p = (*p)->if_false;
     }
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_PUT_CONST: {
     state_stack_put(st, (*p)->put_const_value);
     *p = (*p)->put_const_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_PUT_VAR: {
     fdatum er = state_get_var(*st, (*p)->put_var_value);
     if (fdatum_is_panic(er)) {
-      return fstate_make_panic(er.panic_message);
+      return (er.panic_message);
     }
     state_stack_put(st, er.ok_value);
     *p = (*p)->put_var_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_POP: {
     datum *v = state_stack_pop(st);
@@ -212,39 +212,39 @@ LOCAL fstate routine_0_step(prog **p, state **st,
       *st = state_set_var(*st, (*p)->pop_var, v);
     }
     *p = (*p)->pop_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_ARGS: {
     state_stack_new(st);
     *p = (*p)->args_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_HOST: {
     datum *name = (*p)->host_instruction;
     datum *arg = state_stack_pop(st);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
-      return fstate_make_panic(res.panic_message);
+      return (res.panic_message);
     }
     state_stack_put(st, res.ok_value);
     *p = (*p)->host_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_COLLECT: {
     datum *form = state_stack_collect(st);
     state_stack_put(st, form);
     *p = (*p)->collect_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   case PROG_IMPORT: {
     // fprintf(stderr, "MODULE_END\n");
     datum *pair = state_stack_pop(st);
     if (!datum_is_list(pair) || list_length(pair) != 2) {
-      return fstate_make_panic("expected a pair after a submodule call");
+      return ("expected a pair after a submodule call");
     }
     datum *submodule_state = pair->list_tail->list_head;
     if (!datum_is_routine_0(submodule_state)) {
-      return fstate_make_panic("expected a routine after a submodule call");
+      return ("expected a routine after a submodule call");
     }
     state *module_state = submodule_state->routine_0_value.state_;
 
@@ -257,9 +257,9 @@ LOCAL fstate routine_0_step(prog **p, state **st,
       *st = state_set_var(*st, sym, val);
     }
     *p = (*p)->import_next;
-    return fstate_make_ok(*st);
+    return NULL;
   } break;
   default:break;
   }
-  return fstate_make_panic("unhandled state type");
+  return ("unhandled state type");
 }
