@@ -135,6 +135,8 @@ bool datum_is_list(datum *e);
 int list_length(datum *seq);
 bool routine_is_null(routine r);
 routine routine_make_null();
+routine routine_2_make(prog *s,state *ctxt);
+routine routine_1_make(prog *s,state *ctxt);
 struct state {
   struct datum *vars;
   struct datum *stack;
@@ -204,7 +206,7 @@ struct prog {
     struct prog *import_next;
   };
 };
-routine routine_make(prog *s,state *ctxt);
+routine routine_0_make(prog *s,state *ctxt);
 bool datum_is_symbol(datum *e);
 enum datum_type {
   DATUM_NIL,

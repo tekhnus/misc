@@ -27,7 +27,17 @@ bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-routine routine_make(prog *s, state *ctxt) {
+routine routine_0_make(prog *s, state *ctxt) {
+  routine res = {.prog_ = s, .state_ = ctxt};
+  return res;
+}
+
+routine routine_1_make(prog *s, state *ctxt) {
+  routine res = {.prog_ = s, .state_ = ctxt};
+  return res;
+}
+
+routine routine_2_make(prog *s, state *ctxt) {
   routine res = {.prog_ = s, .state_ = ctxt};
   return res;
 }

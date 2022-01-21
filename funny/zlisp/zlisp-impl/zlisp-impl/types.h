@@ -20,6 +20,21 @@ struct routine {
   struct state *state_;
 };
 
+struct routine_0 {
+  struct prog *prog_;
+  struct state *state_;
+};
+
+struct routine_1 {
+  struct prog *prog_;
+  struct state *state_;
+};
+
+struct routine_2 {
+  struct prog *prog_;
+  struct state *state_;
+};
+
 struct datum {
   enum datum_type type;
   union {

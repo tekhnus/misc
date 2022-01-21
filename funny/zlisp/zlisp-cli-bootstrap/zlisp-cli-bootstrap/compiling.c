@@ -20,7 +20,7 @@ routine module_routine(char *module) {
   if (p == NULL) {
     return routine_make_null();
   }
-  return routine_make(p, state_make_builtins());
+  return routine_0_make(p, state_make_builtins());
 }
 
 LOCAL prog *module_prog(char *module) {
