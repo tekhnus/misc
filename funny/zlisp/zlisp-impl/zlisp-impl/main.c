@@ -789,13 +789,6 @@ datum *state_stack_collect(state **s) {
   return form;
 }
 
-routine state_get_parent(state *ns, bool hat) {
-  if (hat) {
-    return ns->hat_parent;
-  }
-  return ns->parent;
-}
-
 state *state_change_parent(state *ns, routine new_parent, bool hat) {
   if (hat) {
     return state_make(ns->vars, ns->stack, ns->parent, new_parent);

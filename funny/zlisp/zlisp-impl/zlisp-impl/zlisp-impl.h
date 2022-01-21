@@ -52,7 +52,6 @@ LOCAL void prog_append_put_const(prog **begin,datum *val);
 char *prog_init_module(prog *s,datum *source,routine(*module_source)(char *));
 prog *prog_make();
 state *state_change_parent(state *ns,routine new_parent,bool hat);
-routine state_get_parent(state *ns,bool hat);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
 datum *state_stack_pop(state **s);
