@@ -42,7 +42,17 @@ routine routine_2_make(prog *s, state *ctxt) {
   return res;
 }
 
-routine routine_make_null() {
+routine routine_0_make_null() {
+  routine res = {};
+  return res;
+}
+
+routine routine_1_make_null() {
+  routine res = {};
+  return res;
+}
+
+routine routine_2_make_null() {
   routine res = {};
   return res;
 }
@@ -482,8 +492,7 @@ state *state_make(datum *vars, datum *stack, routine parent,
 }
 
 state *state_make_fresh() {
-  routine zero = routine_make_null();
-  return state_make(datum_make_nil(), datum_make_nil(), zero, zero);
+  return state_make(datum_make_nil(), datum_make_nil(), routine_1_make_null(), routine_1_make_null());
 }
 
 state *state_set_var(state *ns, datum *symbol, datum *value) {

@@ -15,10 +15,10 @@ char *prog_init_submodule_c_host(prog *p, datum *source) {
 }
 
 routine module_routine(char *module) {
-  routine r = routine_make_null();
+  routine r = routine_0_make_null();
   prog *p = module_prog(module);
   if (p == NULL) {
-    return routine_make_null();
+    return routine_0_make_null();
   }
   return routine_0_make(p, state_make_builtins());
 }

@@ -134,7 +134,9 @@ bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
 bool routine_is_null(routine r);
-routine routine_make_null();
+routine routine_2_make_null();
+routine routine_1_make_null();
+routine routine_0_make_null();
 routine routine_2_make(prog *s,state *ctxt);
 routine routine_1_make(prog *s,state *ctxt);
 struct state {

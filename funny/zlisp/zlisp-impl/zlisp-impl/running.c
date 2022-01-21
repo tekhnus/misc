@@ -65,7 +65,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
-    s = state_change_parent(s, routine_make_null(), true);
+    s = state_change_parent(s, routine_2_make_null(), true);
     datum *result = state_stack_pop(&s);
     *p = yield_to.prog_;
     s = yield_to.state_;
@@ -81,7 +81,7 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
-    s = state_change_parent(s, routine_make_null(), true);
+    s = state_change_parent(s, routine_2_make_null(), true);
     datum *val = state_stack_pop(&s);
     datum *conti = datum_make_routine_1((*p)->yield_next, s);
     datum *result = datum_make_list_2(val, conti);
@@ -138,7 +138,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
-    s = state_change_parent(s, routine_make_null(), false);
+    s = state_change_parent(s, routine_1_make_null(), false);
     datum *result = state_stack_pop(&s);
     *p = yield_to.prog_;
     s = yield_to.state_;
@@ -157,7 +157,7 @@ LOCAL fstate routine_1_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (routine_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
-    s = state_change_parent(s, routine_make_null(), false);
+    s = state_change_parent(s, routine_1_make_null(), false);
     datum *val = state_stack_pop(&s);
     datum *conti = datum_make_routine_0((*p)->yield_next, s);
     datum *result = datum_make_list_2(val, conti);
