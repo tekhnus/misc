@@ -6,24 +6,22 @@
 
 fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
   // routine r = routine_make(p, *ctxt); fstate s = routine_run(r, perform_host_instruction);
-  fstate s = routine_2_run(p, *ctxt, perform_host_instruction);
-  if (fstate_is_panic(s)) {
-    return fdatum_make_panic(s.panic_message);
+  char *s = routine_2_run(p, ctxt, perform_host_instruction);
+  if (s != NULL) {
+    return fdatum_make_panic(s);
   }
-  *ctxt = s.ok_value;
   return fdatum_make_ok(state_stack_pop(ctxt));
 }
 
-LOCAL fstate routine_2_run(prog *p, state *s, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  state **st = &s;
+LOCAL char *routine_2_run(prog *p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
   for (; p->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
     fstate err = routine_2_step(&p, st, perform_host_instruction);
     if (fstate_is_panic(err)) {
-      return err;
+      return err.panic_message;
     }
   }
-  return fstate_make_ok(*st);
+  return NULL;
 }
 
 LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
