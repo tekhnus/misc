@@ -15,22 +15,25 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
 }
 
 LOCAL fstate routine_2_run(prog *p, state *s, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  fstate res = fstate_make_ok(s);
-  for (; p->type != PROG_END && !fstate_is_panic(res); ) {
+  state **st = &s;
+  for (; p->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
-    res = routine_2_step(&p, res.ok_value, perform_host_instruction);
+    fstate err = routine_2_step(&p, st, perform_host_instruction);
+    if (fstate_is_panic(err)) {
+      return err;
+    }
   }
-  return res;
+  return fstate_make_ok(*st);
 }
 
-LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL fstate routine_2_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
   switch ((*p)->type) {
   case PROG_CALL: {
     if (!(*p)->call_hat) {
       break;
     }
     //return fstate_make_panic("disabled ATM");
-    datum *form = state_stack_pop(&s);
+    datum *form = state_stack_pop(st);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return fstate_make_panic("a call instruction with a malformed form");
     }
@@ -39,60 +42,59 @@ LOCAL fstate routine_2_step(prog **p, state *s, fdatum (*perform_host_instructio
     if (!datum_is_routine_1(fn)) {
       return fstate_make_panic("tried to hat-call a non-routine-1");
     }
-    routine_2 parent_cont = routine_2_make((*p)->call_next, s);
+    routine_2 parent_cont = routine_2_make((*p)->call_next, *st);
     *p = fn->routine_1_value.prog_;
-    s = fn->routine_1_value.state_;
-    state_stack_put(&s, args);
-    s = state_change_hat_parent(s, parent_cont);
-    return fstate_make_ok(s);
+    *st = fn->routine_1_value.state_;
+    state_stack_put(st, args);
+    *st = state_change_hat_parent(*st, parent_cont);
+    return fstate_make_ok(*st);
   } break;
   case PROG_SET_CLOSURES: {
     if (!(*p)->set_closures_hat){
       break;
     }
     datum *clos = datum_make_routine_1((*p)->set_closures_prog, NULL);
-    s = state_set_var(s, (*p)->set_closures_name, clos);
-    clos->routine_1_value.state_ = s;
+    *st = state_set_var(*st, (*p)->set_closures_name, clos);
+    clos->routine_1_value.state_ = *st;
     *p = (*p)->set_closures_next;
-    return fstate_make_ok(s);
+    return fstate_make_ok(*st);
   } break;
   case PROG_RETURN: {
     if (!(*p)->return_hat) {
       break;
     }
     //return fstate_make_panic("disabled ATM");
-    routine_2 yield_to = s->hat_parent;
+    routine_2 yield_to = (*st)->hat_parent;
     if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad return");
     }
-    s = state_change_hat_parent(s, routine_2_make_null());
-    datum *result = state_stack_pop(&s);
+    *st = state_change_hat_parent(*st, routine_2_make_null());
+    datum *result = state_stack_pop(st);
     *p = yield_to.prog_;
-    s = yield_to.state_;
-    state_stack_put(&s, result);
-    return fstate_make_ok(s);
+    *st = yield_to.state_;
+    state_stack_put(st, result);
+    return fstate_make_ok(*st);
   } break;
   case PROG_YIELD: {
     if (!(*p)->yield_hat) {
       break;
     }
     //return fstate_make_panic("disabled ATM");
-    routine_2 yield_to = s->hat_parent;
+    routine_2 yield_to = (*st)->hat_parent;
     if (routine_2_is_null(yield_to)) {
       return fstate_make_panic("bad yield");
     }
-    s = state_change_hat_parent(s, routine_2_make_null());
-    datum *val = state_stack_pop(&s);
-    datum *conti = datum_make_routine_1((*p)->yield_next, s);
+    *st = state_change_hat_parent(*st, routine_2_make_null());
+    datum *val = state_stack_pop(st);
+    datum *conti = datum_make_routine_1((*p)->yield_next, *st);
     datum *result = datum_make_list_2(val, conti);
     *p = yield_to.prog_;
-    s = yield_to.state_;
-    state_stack_put(&s, result);
-    return fstate_make_ok(s);
+    *st = yield_to.state_;
+    state_stack_put(st, result);
+    return fstate_make_ok(*st);
   } break;
   default: break;
   }
-  state **st = &s;
   return routine_1_step(p, st, perform_host_instruction);
 }
 
