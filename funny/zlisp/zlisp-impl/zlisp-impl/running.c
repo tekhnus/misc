@@ -161,7 +161,8 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if ((*p)->set_closures_hat){
       break;
     }
-    datum *clos = datum_make_routine_0((*p)->set_closures_prog, NULL);
+    routine_0 closr = {.prog_ = (*p)->set_closures_prog, .state_=NULL};
+    datum *clos = datum_make_routine_0(closr);
     *st = state_set_var(*st, (*p)->set_closures_name, clos);
     clos->routine_0_value.state_ = *st;
     *p = (*p)->set_closures_next;
@@ -184,7 +185,7 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     datum *val = state_stack_pop(st);
     *p = (*p)->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
-    datum *conti = datum_make_routine_0(fr.prog_, fr.state_);
+    datum *conti = datum_make_routine_0(fr);
     datum *result = datum_make_list_2(val, conti);
     state_stack_put(st, result);
     return NULL;

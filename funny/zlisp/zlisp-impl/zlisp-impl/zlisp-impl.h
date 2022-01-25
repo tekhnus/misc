@@ -117,7 +117,7 @@ datum *datum_make_void();
 datum *datum_make_pointer_to_pointer(void **ptr);
 datum *datum_make_pointer(void *data,datum *signature);
 datum *datum_make_routine_1(routine_1 r);
-datum *datum_make_routine_0(prog *s,state *lexical_bindings);
+datum *datum_make_routine_0(routine_0 r);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);

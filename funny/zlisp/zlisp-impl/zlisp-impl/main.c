@@ -141,11 +141,10 @@ datum *datum_make_int(int64_t value) {
   return e;
 }
 
-datum *datum_make_routine_0(prog *s, state *lexical_bindings) {
+datum *datum_make_routine_0(routine_0 r) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_ROUTINE_0;
-  e->routine_0_value.prog_ = s;
-  e->routine_0_value.state_ = lexical_bindings;
+  e->routine_0_value = r;
   return e;
 }
 
