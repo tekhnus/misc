@@ -34,20 +34,18 @@ LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
   routine_2 *cont = malloc(sizeof(routine_2));
   *cont = *r;
   cont->cur.prog_ = cont->cur.prog_->call_next;
-  r->cur.prog_ = sub.prog_;
-  r->cur.state_ = sub.state_;
-  r->cur.state_->hat_parent = *cont;
+  r->cur = sub;
+  r->par = cont;
 }
 
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
-  if (routine_2_is_null(r->cur.state_->hat_parent)) {
+  if (r->par == NULL) {
     fprintf(stderr, "routine_2 has no more frames\n");
     exit(EXIT_FAILURE);
   }
   routine_1 res = {.prog_ = r->cur.prog_, .state_ = r->cur.state_};
-  r->cur.prog_ = r->cur.state_->hat_parent.cur.prog_;
-  r->cur.state_ = r->cur.state_->hat_parent.cur.state_;
-  res.state_->hat_parent = routine_2_make_null();
+  r->cur.prog_ = r->par->cur.prog_;
+  r->cur.state_ = r->par->cur.state_;
   return res;
 }
 
@@ -133,12 +131,10 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  routine_2 hat_par = r->cur.state_->hat_parent;
   routine_1 cr = r->cur;
   char *err = routine_1_step(&cr, perform_host_instruction);
   r->cur.prog_ = cr.prog_;
   r->cur.state_ = cr.state_;
-  r->cur.state_->hat_parent = hat_par;
   return err;
 }
 
