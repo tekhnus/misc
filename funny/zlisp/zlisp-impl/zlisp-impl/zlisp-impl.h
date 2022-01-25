@@ -24,11 +24,12 @@ struct routine_0 {
   struct state *state_;
 };
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
-typedef struct routine_2 routine_2;
 struct routine_1 {
   struct prog *prog_;
   struct state *state_;
 };
+typedef struct routine_2 routine_2;
+LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *routine_2_step(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));

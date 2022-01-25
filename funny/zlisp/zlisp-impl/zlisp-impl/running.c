@@ -38,6 +38,18 @@ LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
   r->state_->hat_parent = *cont;
 }
 
+LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
+  if (routine_2_is_null(r->state_->hat_parent)) {
+    fprintf(stderr, "routine_2 has no more frames\n");
+    exit(EXIT_FAILURE);
+  }
+  routine_1 res = {.prog_ = r->prog_, .state_ = r->state_};
+  r->prog_ = r->state_->hat_parent.prog_;
+  r->state_ = r->state_->hat_parent.state_;
+  res.state_->hat_parent = routine_2_make_null();
+  return res;
+}
+
 LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
   routine_1 *cont = malloc(sizeof(routine_1));
   *cont = *r;
@@ -83,15 +95,8 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     if (!(*p)->return_hat) {
       break;
     }
-    //return fstate_make_panic("disabled ATM");
-    routine_2 yield_to = (*st)->hat_parent;
-    if (routine_2_is_null(yield_to)) {
-      return ("bad return");
-    }
-    *st = state_change_hat_parent(*st, routine_2_make_null());
     datum *result = state_stack_pop(st);
-    *p = yield_to.prog_;
-    *st = yield_to.state_;
+    routine_2_pop_frame(r);
     state_stack_put(st, result);
     return NULL;
   } break;
@@ -99,17 +104,11 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     if (!(*p)->yield_hat) {
       break;
     }
-    //return fstate_make_panic("disabled ATM");
-    routine_2 yield_to = (*st)->hat_parent;
-    if (routine_2_is_null(yield_to)) {
-      return ("bad yield");
-    }
-    *st = state_change_hat_parent(*st, routine_2_make_null());
     datum *val = state_stack_pop(st);
-    datum *conti = datum_make_routine_1((*p)->yield_next, *st);
+    *p = (*p)->yield_next;
+    routine_1 fr = routine_2_pop_frame(r);
+    datum *conti = datum_make_routine_1(fr.prog_, fr.state_);
     datum *result = datum_make_list_2(val, conti);
-    *p = yield_to.prog_;
-    *st = yield_to.state_;
     state_stack_put(st, result);
     return NULL;
   } break;
