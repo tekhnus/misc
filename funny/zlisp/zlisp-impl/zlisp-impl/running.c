@@ -19,11 +19,9 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
 }
 
 LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  prog *p = r->prog_;
-  state **st = &r->state_;
-  for (; p->type != PROG_END; ) {
+  for (; r->prog_->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
-    char *err = routine_2_step(&p, st, perform_host_instruction);
+    char *err = routine_2_step(r, perform_host_instruction);
     if (err != NULL) {
       return err;
     }
@@ -31,7 +29,9 @@ LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum
   return NULL;
 }
 
-LOCAL char *routine_2_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+  prog **p = &r->prog_;
+  state **st = &r->state_;
   switch ((*p)->type) {
   case PROG_CALL: {
     if (!(*p)->call_hat) {

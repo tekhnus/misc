@@ -17,8 +17,8 @@ struct fdatum {
 };
 LOCAL char *routine_0_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_1_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL char *routine_2_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_2 routine_2;
+LOCAL char *routine_2_step(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 fdatum routine_run_and_get_value(state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog **begin);
