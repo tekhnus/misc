@@ -17,21 +17,27 @@ struct fdatum {
 LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct prog prog;
+typedef struct state state;
+struct routine_0 {
+  struct prog *prog_;
+  struct state *state_;
+};
+LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
 typedef struct routine_2 routine_2;
+struct routine_1 {
+  struct prog *prog_;
+  struct state *state_;
+};
+LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *routine_2_step(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct state state;
-typedef struct prog prog;
 fdatum routine_run_and_get_value(state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog **begin);
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
 LOCAL void prog_append_host(prog **begin,datum *name);
-struct routine_0 {
-  struct prog *prog_;
-  struct state *state_;
-};
 LOCAL char *prog_append_backquoted_statement(prog **begin,datum *stmt,routine_0(*module_source)(char *module));
 LOCAL void prog_append_return(prog **begin,bool hat);
 LOCAL char *prog_append_require(prog **begin,routine_0 rt);
@@ -47,10 +53,6 @@ LOCAL void prog_append_pop(prog **begin,datum *var);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 char *prog_init_module(prog *s,datum *source,routine_0(*module_source)(char *));
 prog *prog_make();
-struct routine_1 {
-  struct prog *prog_;
-  struct state *state_;
-};
 state *state_change_plain_parent(state *ns,routine_1 new_parent);
 struct routine_2 {
   struct prog *prog_;

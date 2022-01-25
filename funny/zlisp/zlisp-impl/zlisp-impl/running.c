@@ -29,6 +29,24 @@ LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum
   return NULL;
 }
 
+LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
+  routine_2 *cont = malloc(sizeof(routine_2));
+  *cont = *r;
+  cont->prog_ = cont->prog_->call_next;
+  r->prog_ = sub.prog_;
+  r->state_ = sub.state_;
+  r->state_->hat_parent = *cont;
+}
+
+LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
+  routine_1 *cont = malloc(sizeof(routine_1));
+  *cont = *r;
+  cont->prog_ = cont->prog_->call_next;
+  r->prog_ = sub.prog_;
+  r->state_ = sub.state_;
+  r->state_->parent = *cont;
+}
+
 LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   prog **p = &r->prog_;
   state **st = &r->state_;
@@ -47,11 +65,8 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     if (!datum_is_routine_1(fn)) {
       return ("tried to hat-call a non-routine-1");
     }
-    routine_2 parent_cont = routine_2_make((*p)->call_next, *st);
-    *p = fn->routine_1_value.prog_;
-    *st = fn->routine_1_value.state_;
-    state_stack_put(st, args);
-    *st = state_change_hat_parent(*st, parent_cont);
+    routine_2_push_frame(r, fn->routine_1_value);
+    state_stack_put(&r->state_, args);
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -126,11 +141,8 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if (!datum_is_routine_0(fn)) {
       return ("tried to plain-call a non-routine-0");
     }
-    routine_1 parent_cont = routine_1_make((*p)->call_next, *st);
-    *p = fn->routine_0_value.prog_;
-    *st = fn->routine_0_value.state_;
+    routine_1_push_frame(r, fn->routine_0_value);
     state_stack_put(st, args);
-    *st = state_change_plain_parent(*st, parent_cont);
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
