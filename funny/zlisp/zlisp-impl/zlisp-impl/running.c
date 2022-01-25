@@ -8,15 +8,19 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
   if (!routine_1_is_null((*ctxt)->parent) || !routine_2_is_null((*ctxt)->hat_parent)) {
     return fdatum_make_panic("non-flat states are not supported here");
   }
-  // routine r = routine_make(p, *ctxt); fstate s = routine_run(r, perform_host_instruction);
-  char *s = routine_2_run(p, ctxt, perform_host_instruction);
+  routine_2 r = routine_2_make(p, *ctxt);
+  char *s = routine_2_run(&r, perform_host_instruction);
   if (s != NULL) {
     return fdatum_make_panic(s);
   }
-  return fdatum_make_ok(state_stack_pop(ctxt));
+  datum *d = state_stack_pop(&r.state_);
+  *ctxt = r.state_;
+  return fdatum_make_ok(d);
 }
 
-LOCAL char *routine_2_run(prog *p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+  prog *p = r->prog_;
+  state **st = &r->state_;
   for (; p->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
     char *err = routine_2_step(&p, st, perform_host_instruction);
