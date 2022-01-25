@@ -178,12 +178,18 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  return routine_0_step(p, st, perform_host_instruction);
+  routine_0 cr = routine_0_make(r->prog_, r->state_);
+  char *err = routine_0_step(&cr, perform_host_instruction);
+  r->prog_ = cr.prog_;
+  r->state_ = cr.state_;
+  return err;
 }
 
-LOCAL char *routine_0_step(prog **p, state **st,
+LOCAL char *routine_0_step(routine_0 *r,
                             fdatum (*perform_host_instruction)(datum *,
                                                                datum *)) {
+  prog **p = &r->prog_;
+  state **st = &r->state_;
   // routine c = routine_make(*p, s);
   switch ((*p)->type) {
   case PROG_NOP: {

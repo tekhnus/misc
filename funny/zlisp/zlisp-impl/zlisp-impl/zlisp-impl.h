@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #define LOCAL static
-typedef struct prog prog;
-typedef struct state state;
+typedef struct routine_0 routine_0;
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
@@ -15,19 +14,20 @@ struct fdatum {
   struct datum *ok_value;
   char *panic_message;
 };
-LOCAL char *routine_0_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_2 routine_2;
 LOCAL char *routine_2_step(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct state state;
+typedef struct prog prog;
 fdatum routine_run_and_get_value(state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog **begin);
 LOCAL void prog_append_call(prog **begin,bool hat);
 LOCAL void prog_append_collect(prog **begin);
 LOCAL void prog_append_args(prog **begin);
 LOCAL void prog_append_host(prog **begin,datum *name);
-typedef struct routine_0 routine_0;
 struct routine_0 {
   struct prog *prog_;
   struct state *state_;
