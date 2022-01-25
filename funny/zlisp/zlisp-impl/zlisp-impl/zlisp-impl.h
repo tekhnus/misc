@@ -72,8 +72,8 @@ fdatum state_get_var(state *ns,datum *symbol);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
 struct routine_2 {
-  struct prog *prog_;
-  struct state *state_;
+  struct routine_1 cur;
+  struct routine_2 *par;
 };
 LOCAL state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
 char *fdatum_get_panic_message(fdatum result);

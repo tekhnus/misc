@@ -26,8 +26,8 @@ struct routine_1 {
 };
 
 struct routine_2 {
-  struct prog *prog_;
-  struct state *state_;
+  struct routine_1 cur;
+  struct routine_2 *par;
 };
 
 struct datum {
