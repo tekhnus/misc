@@ -100,10 +100,12 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
+  routine_2 hat_par = r->state_->hat_parent;
   routine_1 cr = routine_1_make(r->prog_, r->state_);
   char *err = routine_1_step(&cr, perform_host_instruction);
   r->prog_ = cr.prog_;
   r->state_ = cr.state_;
+  r->state_->hat_parent = hat_par;
   return err;
 }
 
@@ -129,8 +131,6 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     *st = fn->routine_0_value.state_;
     state_stack_put(st, args);
     *st = state_change_plain_parent(*st, parent_cont);
-    *st =
-      state_change_hat_parent(*st, parent_cont.state_->hat_parent);
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -147,7 +147,6 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if ((*p)->return_hat) {
       break;
     }
-    routine_2 hat_par = (*st)->hat_parent;
     routine_1 yield_to = (*st)->parent;
     if (routine_1_is_null(yield_to)) {
       return ("bad return");
@@ -157,8 +156,6 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     *p = yield_to.prog_;
     *st = yield_to.state_;
     state_stack_put(st, result);
-    (*st)->hat_parent =
-      hat_par; /* Because the caller hat parent might be out-of-date.*/
     return NULL;
   } break;
   case PROG_YIELD: {
@@ -166,7 +163,6 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if ((*p)->yield_hat) {
       break;
     }
-    routine_2 hat_par = (*st)->hat_parent;
     routine_1 yield_to = (*st)->parent;
     if (routine_1_is_null(yield_to)) {
       return ("bad yield");
@@ -178,8 +174,6 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     *p = yield_to.prog_;
     *st = yield_to.state_;
     state_stack_put(st, result);
-    (*st)->hat_parent =
-      hat_par; /* Because the caller hat parent might be out-of-date.*/
     return NULL;
   } break;
   default: break;
