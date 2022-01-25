@@ -19,16 +19,17 @@ typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct prog prog;
 typedef struct state state;
+struct routine_1 {
+  struct prog *prog_;
+  struct state *state_;
+};
+LOCAL routine_1 routine_1_deep_copy(routine_1 r);
 struct routine_0 {
   struct prog *prog_;
   struct state *state_;
 };
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
-struct routine_1 {
-  struct prog *prog_;
-  struct state *state_;
-};
 typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);

@@ -71,6 +71,11 @@ LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
   return res;
 }
 
+LOCAL routine_1 routine_1_deep_copy(routine_1 r) {
+  routine_1 res = {.state_ = r.state_, .prog_ = r.prog_};
+  return res;
+}
+
 LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   prog **p = &r->cur.prog_;
   state **st = &r->cur.state_;
@@ -89,7 +94,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     if (!datum_is_routine_1(fn)) {
       return ("tried to hat-call a non-routine-1");
     }
-    routine_2_push_frame(r, fn->routine_1_value);
+    routine_2_push_frame(r, routine_1_deep_copy(fn->routine_1_value));
     state_stack_put(&r->cur.state_, args);
     return NULL;
   } break;
@@ -97,10 +102,10 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     if (!(*p)->set_closures_hat){
       break;
     }
-    routine_1 closr = {.prog_ = (*p)->set_closures_prog, .state_ = *st};
-    datum *clos = datum_make_routine_1(closr);
+    datum *clos = datum_make_routine_1(routine_1_make_null());
     *st = state_set_var(*st, (*p)->set_closures_name, clos);
-    clos->routine_1_value.state_ = *st;
+    clos->routine_1_value = routine_1_deep_copy((routine_1){.prog_ = *p, .state_ = *st});
+    clos->routine_1_value.prog_ = (*p)->set_closures_prog;
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
@@ -120,7 +125,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     datum *val = state_stack_pop(st);
     *p = (*p)->yield_next;
     routine_1 fr = routine_2_pop_frame(r);
-    datum *conti = datum_make_routine_1(fr);
+    datum *conti = datum_make_routine_1(routine_1_deep_copy(fr));
     datum *result = datum_make_list_2(val, conti);
     state_stack_put(st, result);
     return NULL;
