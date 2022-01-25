@@ -464,7 +464,7 @@ char *fdatum_get_panic_message(fdatum result) {
   return result.panic_message;
 }
 
-state *state_make(datum *vars, datum *stack, routine_1 parent,
+LOCAL state *state_make(datum *vars, datum *stack, routine_1 parent,
                   routine_2 hat_parent) {
   state *res = malloc(sizeof(state));
   res->vars = vars;
@@ -768,12 +768,4 @@ datum *state_stack_collect(state **s) {
     form = datum_make_list(arg, form);
   }
   return form;
-}
-
-state *state_change_hat_parent(state *ns, routine_2 new_parent) {
-  return state_make(ns->vars, ns->stack, ns->parent, new_parent);
-}
-
-state *state_change_plain_parent(state *ns, routine_1 new_parent) {
-  return state_make(ns->vars, ns->stack, new_parent, ns->hat_parent);
 }

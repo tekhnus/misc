@@ -55,12 +55,6 @@ LOCAL void prog_append_pop(prog **begin,datum *var);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 char *prog_init_module(prog *s,datum *source,routine_0(*module_source)(char *));
 prog *prog_make();
-state *state_change_plain_parent(state *ns,routine_1 new_parent);
-struct routine_2 {
-  struct prog *prog_;
-  struct state *state_;
-};
-state *state_change_hat_parent(state *ns,routine_2 new_parent);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
 datum *state_stack_pop(state **s);
@@ -77,7 +71,11 @@ fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
 fdatum state_get_var(state *ns,datum *symbol);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
-state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
+struct routine_2 {
+  struct prog *prog_;
+  struct state *state_;
+};
+LOCAL state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
 char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);
