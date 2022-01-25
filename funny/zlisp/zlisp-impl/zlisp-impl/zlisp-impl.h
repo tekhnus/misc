@@ -23,6 +23,7 @@ struct routine_0 {
   struct prog *prog_;
   struct state *state_;
 };
+LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
 struct routine_1 {
   struct prog *prog_;

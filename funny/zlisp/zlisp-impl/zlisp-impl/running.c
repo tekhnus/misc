@@ -59,6 +59,18 @@ LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
   r->state_->parent = *cont;
 }
 
+LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
+  if (routine_1_is_null(r->state_->parent)) {
+    fprintf(stderr, "routine_1 has no more frames\n");
+    exit(EXIT_FAILURE);
+  }
+  routine_0 res = {.prog_ = r->prog_, .state_ = r->state_};
+  r->prog_ = r->state_->parent.prog_;
+  r->state_ = r->state_->parent.state_;
+  res.state_->parent = routine_1_make_null();
+  return res;
+}
+
 LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   prog **p = &r->prog_;
   state **st = &r->state_;
@@ -158,14 +170,8 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if ((*p)->return_hat) {
       break;
     }
-    routine_1 yield_to = (*st)->parent;
-    if (routine_1_is_null(yield_to)) {
-      return ("bad return");
-    }
-    *st = state_change_plain_parent(*st, routine_1_make_null());
     datum *result = state_stack_pop(st);
-    *p = yield_to.prog_;
-    *st = yield_to.state_;
+    routine_1_pop_frame(r);
     state_stack_put(st, result);
     return NULL;
   } break;
@@ -174,16 +180,11 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if ((*p)->yield_hat) {
       break;
     }
-    routine_1 yield_to = (*st)->parent;
-    if (routine_1_is_null(yield_to)) {
-      return ("bad yield");
-    }
-    *st = state_change_plain_parent(*st, routine_1_make_null());
     datum *val = state_stack_pop(st);
-    datum *conti = datum_make_routine_0((*p)->yield_next, *st);
+    *p = (*p)->yield_next;
+    routine_0 fr = routine_1_pop_frame(r);
+    datum *conti = datum_make_routine_0(fr.prog_, fr.state_);
     datum *result = datum_make_list_2(val, conti);
-    *p = yield_to.prog_;
-    *st = yield_to.state_;
     state_stack_put(st, result);
     return NULL;
   } break;
