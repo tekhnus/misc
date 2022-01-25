@@ -8,7 +8,8 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
   if (!routine_1_is_null((*ctxt)->parent) || !routine_2_is_null((*ctxt)->hat_parent)) {
     return fdatum_make_panic("non-flat states are not supported here");
   }
-  routine_2 r = {.cur = routine_1_make(p, *ctxt), .par = NULL};
+  routine_1 r1 = {.prog_ = p, .state_ = *ctxt};
+  routine_2 r = {.cur = r1, .par = NULL};
   char *s = routine_2_run(&r, perform_host_instruction);
   if (s != NULL) {
     return fdatum_make_panic(s);
@@ -133,7 +134,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   default: break;
   }
   routine_2 hat_par = r->cur.state_->hat_parent;
-  routine_1 cr = routine_1_make(r->cur.prog_, r->cur.state_);
+  routine_1 cr = r->cur;
   char *err = routine_1_step(&cr, perform_host_instruction);
   r->cur.prog_ = cr.prog_;
   r->cur.state_ = cr.state_;
