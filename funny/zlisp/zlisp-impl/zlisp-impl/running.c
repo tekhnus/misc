@@ -5,7 +5,7 @@
 
 
 fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  if (!routine_1_is_null((*ctxt)->parent) || !routine_2_is_null((*ctxt)->hat_parent)) {
+  if (!routine_1_is_null((*ctxt)->parent)) {
     return fdatum_make_panic("non-flat states are not supported here");
   }
   routine_1 r1 = {.prog_ = p, .state_ = *ctxt};

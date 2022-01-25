@@ -72,11 +72,7 @@ fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
 fdatum state_get_var(state *ns,datum *symbol);
 state *state_set_var(state *ns,datum *symbol,datum *value);
 state *state_make_fresh();
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};
-LOCAL state *state_make(datum *vars,datum *stack,routine_1 parent,routine_2 hat_parent);
+LOCAL state *state_make(datum *vars,datum *stack,routine_1 parent);
 char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);
@@ -136,6 +132,10 @@ bool datum_is_integer(datum *e);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
+struct routine_2 {
+  struct routine_1 cur;
+  struct routine_2 *par;
+};
 bool routine_2_is_null(routine_2 r);
 bool routine_1_is_null(routine_1 r);
 bool routine_0_is_null(routine_0 r);
@@ -146,7 +146,6 @@ struct state {
   struct datum *vars;
   struct datum *stack;
   struct routine_1 parent;
-  struct routine_2 hat_parent;
 };
 enum prog_type {
   PROG_END,
