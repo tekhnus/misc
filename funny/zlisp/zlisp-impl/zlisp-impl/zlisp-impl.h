@@ -16,7 +16,8 @@ struct fdatum {
   char *panic_message;
 };
 LOCAL char *routine_0_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL char *routine_1_step(prog **p,state **st,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct routine_1 routine_1;
+LOCAL char *routine_1_step(routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_2 routine_2;
 LOCAL char *routine_2_step(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
@@ -46,7 +47,6 @@ LOCAL void prog_append_pop(prog **begin,datum *var);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 char *prog_init_module(prog *s,datum *source,routine_0(*module_source)(char *));
 prog *prog_make();
-typedef struct routine_1 routine_1;
 struct routine_1 {
   struct prog *prog_;
   struct state *state_;

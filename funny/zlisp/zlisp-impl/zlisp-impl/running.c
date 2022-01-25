@@ -100,10 +100,16 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  return routine_1_step(p, st, perform_host_instruction);
+  routine_1 cr = routine_1_make(r->prog_, r->state_);
+  char *err = routine_1_step(&cr, perform_host_instruction);
+  r->prog_ = cr.prog_;
+  r->state_ = cr.state_;
+  return err;
 }
 
-LOCAL char *routine_1_step(prog **p, state **st, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+  prog **p = &r->prog_;
+  state **st = &r->state_;
   switch ((*p)->type) {
   case PROG_CALL: {
     if ((*p)->call_hat) {
