@@ -32,11 +32,6 @@ routine_1 routine_1_make(prog *s, state *ctxt) {
   return res;
 }
 
-routine_2 routine_2_make(prog *s, state *ctxt) {
-  routine_2 res = {.prog_ = s, .state_ = ctxt};
-  return res;
-}
-
 routine_0 routine_0_make_null() {
   routine_0 res = {};
   return res;

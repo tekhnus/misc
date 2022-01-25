@@ -141,7 +141,6 @@ bool routine_0_is_null(routine_0 r);
 routine_2 routine_2_make_null();
 routine_1 routine_1_make_null();
 routine_0 routine_0_make_null();
-routine_2 routine_2_make(prog *s,state *ctxt);
 routine_1 routine_1_make(prog *s,state *ctxt);
 struct state {
   struct datum *vars;
