@@ -452,21 +452,20 @@ char *fdatum_get_panic_message(fdatum result) {
   return result.panic_message;
 }
 
-LOCAL state *state_make(datum *vars, datum *stack, routine_1 parent) {
+LOCAL state *state_make(datum *vars, datum *stack) {
   state *res = malloc(sizeof(state));
   res->vars = vars;
   res->stack = stack;
-  res->parent = parent;
   return res;
 }
 
 state *state_make_fresh() {
-  return state_make(datum_make_nil(), datum_make_nil(), routine_1_make_null());
+  return state_make(datum_make_nil(), datum_make_nil());
 }
 
 void state_set_var(state **ns, datum *symbol, datum *value) {
   datum *kv = datum_make_list_2(symbol, value);
-  *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack, (*ns)->parent);
+  *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack);
 }
 
 fdatum state_get_var(state *ns, datum *symbol) {
@@ -724,8 +723,7 @@ bool datum_is_constant(datum *d) {
 }
 
 void state_stack_put(state **ns, datum *value) {
-  *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack),
-                   (*ns)->parent);
+  *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack));
 }
 
 datum *state_stack_pop(state **s) {
@@ -734,7 +732,7 @@ datum *state_stack_pop(state **s) {
     exit(EXIT_FAILURE);
   }
   datum *res = (*s)->stack->list_head;
-  *s = state_make((*s)->vars, (*s)->stack->list_tail, (*s)->parent);
+  *s = state_make((*s)->vars, (*s)->stack->list_tail);
   return res;
 }
 

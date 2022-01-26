@@ -52,7 +52,6 @@ struct datum {
 struct state {
   struct datum *vars;
   struct datum *stack;
-  struct routine_1 parent;
 };
 
 enum read_result_type {
