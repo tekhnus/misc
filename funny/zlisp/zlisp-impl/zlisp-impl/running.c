@@ -53,8 +53,7 @@ LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
   routine_1 *cont = malloc(sizeof(routine_1));
   *cont = *r;
   cont->cur.prog_ = cont->cur.prog_->call_next;
-  r->cur.prog_ = sub.prog_;
-  r->cur.state_ = sub.state_;
+  r->cur = sub;
   r->cur.state_->parent = *cont;
 }
 
@@ -64,8 +63,7 @@ LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
     exit(EXIT_FAILURE);
   }
   routine_0 res = {.prog_ = r->cur.prog_, .state_ = r->cur.state_};
-  r->cur.prog_ = r->cur.state_->parent.cur.prog_;
-  r->cur.state_ = r->cur.state_->parent.cur.state_;
+  r->cur = r->cur.state_->parent.cur;
   res.state_->parent = routine_1_make_null();
   return res;
 }
@@ -196,10 +194,7 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  routine_0 cr = routine_0_make(r->cur.prog_, r->cur.state_);
-  char *err = routine_0_step(&cr, perform_host_instruction);
-  r->cur.prog_ = cr.prog_;
-  r->cur.state_ = cr.state_;
+  char *err = routine_0_step(&r->cur, perform_host_instruction);
   return err;
 }
 
