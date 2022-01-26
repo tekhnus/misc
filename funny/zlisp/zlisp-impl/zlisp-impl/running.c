@@ -136,10 +136,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  routine_1 cr = r->cur;
-  char *err = routine_1_step(&cr, perform_host_instruction);
-  r->cur.cur.prog_ = cr.cur.prog_;
-  r->cur.cur.state_ = cr.cur.state_;
+  char *err = routine_1_step(&r->cur, perform_host_instruction);
   return err;
 }
 
