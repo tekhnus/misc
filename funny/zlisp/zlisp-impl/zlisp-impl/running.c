@@ -31,7 +31,6 @@ LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum
 LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
   routine_2 *cont = malloc(sizeof(routine_2));
   *cont = *r;
-  cont->cur.cur.prog_ = cont->cur.cur.prog_->call_next;
   r->cur = sub;
   r->par = cont;
 }
@@ -49,7 +48,6 @@ LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
 LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
   routine_1 *cont = malloc(sizeof(routine_1));
   *cont = *r;
-  cont->cur.prog_ = cont->cur.prog_->call_next;
   r->cur = sub;
   r->par = cont;
 }
@@ -92,6 +90,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     if (!datum_is_routine_1(fn)) {
       return ("tried to hat-call a non-routine-1");
     }
+    r->cur.cur.prog_ = r->cur.cur.prog_->call_next;
     routine_2_push_frame(r, routine_1_deep_copy(fn->routine_1_value));
     state_stack_put(&r->cur.cur.state_, args);
     return NULL;
@@ -151,6 +150,7 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if (!datum_is_routine_0(fn)) {
       return ("tried to plain-call a non-routine-0");
     }
+    r->cur.prog_ = r->cur.prog_->call_next;
     routine_1_push_frame(r, fn->routine_0_value);
     state_stack_put(st, args);
     return NULL;
