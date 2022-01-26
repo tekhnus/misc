@@ -43,9 +43,8 @@ LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
     fprintf(stderr, "routine_2 has no more frames\n");
     exit(EXIT_FAILURE);
   }
-  routine_1 res = {.prog_ = r->cur.prog_, .state_ = r->cur.state_};
-  r->cur.prog_ = r->par->cur.prog_;
-  r->cur.state_ = r->par->cur.state_;
+  routine_1 res = r->cur;
+  r->cur = r->par->cur;
   return res;
 }
 
