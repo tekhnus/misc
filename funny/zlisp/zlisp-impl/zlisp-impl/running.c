@@ -54,17 +54,16 @@ LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
   *cont = *r;
   cont->cur.prog_ = cont->cur.prog_->call_next;
   r->cur = sub;
-  r->cur.state_->parent = *cont;
+  r->par = cont;
 }
 
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
-  if (routine_1_is_null(r->cur.state_->parent)) {
+  if (r->par == NULL) {
     fprintf(stderr, "routine_1 has no more frames\n");
     exit(EXIT_FAILURE);
   }
   routine_0 res = {.prog_ = r->cur.prog_, .state_ = r->cur.state_};
-  r->cur = r->cur.state_->parent.cur;
-  res.state_->parent = routine_1_make_null();
+  *r = *r->par;
   return res;
 }
 
