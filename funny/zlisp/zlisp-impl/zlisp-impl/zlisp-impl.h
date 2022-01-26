@@ -70,7 +70,7 @@ char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
 fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
 fdatum state_get_var(state *ns,datum *symbol);
-state *state_set_var(state *ns,datum *symbol,datum *value);
+void state_set_var(state **ns,datum *symbol,datum *value);
 state *state_make_fresh();
 LOCAL state *state_make(datum *vars,datum *stack,routine_1 parent);
 char *fdatum_get_panic_message(fdatum result);

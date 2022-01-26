@@ -107,7 +107,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
       break;
     }
     datum *clos = datum_make_routine_1(routine_1_make_null());
-    *st = state_set_var(*st, (*p)->set_closures_name, clos);
+    state_set_var(st, (*p)->set_closures_name, clos);
     clos->routine_1_value = routine_1_deep_copy(r->cur);
     clos->routine_1_value.cur.prog_ = (*p)->set_closures_prog;
     *p = (*p)->set_closures_next;
@@ -167,7 +167,7 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     }
     routine_0 closr = {.prog_ = (*p)->set_closures_prog, .state_=NULL};
     datum *clos = datum_make_routine_0(closr);
-    *st = state_set_var(*st, (*p)->set_closures_name, clos);
+    state_set_var(st, (*p)->set_closures_name, clos);
     clos->routine_0_value.state_ = *st;
     *p = (*p)->set_closures_next;
     return NULL;
@@ -240,7 +240,7 @@ LOCAL char *routine_0_step(routine_0 *r,
   case PROG_POP: {
     datum *v = state_stack_pop(st);
     if ((*p)->pop_var != NULL) {
-      *st = state_set_var(*st, (*p)->pop_var, v);
+      state_set_var(st, (*p)->pop_var, v);
     }
     *p = (*p)->pop_next;
     return NULL;
@@ -285,7 +285,7 @@ LOCAL char *routine_0_step(routine_0 *r,
       datum *sym = imported_bindings->list_head->list_head;
       datum *val = imported_bindings->list_head->list_tail->list_head;
 
-      *st = state_set_var(*st, sym, val);
+      state_set_var(st, sym, val);
     }
     *p = (*p)->import_next;
     return NULL;

@@ -464,9 +464,9 @@ state *state_make_fresh() {
   return state_make(datum_make_nil(), datum_make_nil(), routine_1_make_null());
 }
 
-state *state_set_var(state *ns, datum *symbol, datum *value) {
+void state_set_var(state **ns, datum *symbol, datum *value) {
   datum *kv = datum_make_list_2(symbol, value);
-  return state_make(datum_make_list(kv, ns->vars), ns->stack, ns->parent);
+  *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack, (*ns)->parent);
 }
 
 fdatum state_get_var(state *ns, datum *symbol) {
