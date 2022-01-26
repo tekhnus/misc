@@ -43,7 +43,7 @@ routine_2 routine_2_make_null() {
 }
 
 bool routine_0_is_null(routine_0 r) { return r.prog_ == NULL && r.state_ == NULL; }
-bool routine_1_is_null(routine_1 r) { return r.prog_ == NULL && r.state_ == NULL; }
+bool routine_1_is_null(routine_1 r) { return routine_0_is_null(r.cur) && r.par == NULL; }
 bool routine_2_is_null(routine_2 r) { return routine_1_is_null(r.cur) && r.par == NULL; }
 
 int list_length(datum *seq) {

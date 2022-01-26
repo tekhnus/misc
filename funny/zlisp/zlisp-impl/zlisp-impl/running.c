@@ -8,19 +8,20 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
   if (!routine_1_is_null((*ctxt)->parent)) {
     return fdatum_make_panic("non-flat states are not supported here");
   }
-  routine_1 r1 = {.prog_ = p, .state_ = *ctxt};
+  routine_0 r0 = {.prog_ = p, .state_ = *ctxt};
+  routine_1 r1 = {.cur = r0, .par = NULL};
   routine_2 r = {.cur = r1, .par = NULL};
   char *s = routine_2_run(&r, perform_host_instruction);
   if (s != NULL) {
     return fdatum_make_panic(s);
   }
-  datum *d = state_stack_pop(&r.cur.state_);
-  *ctxt = r.cur.state_;
+  datum *d = state_stack_pop(&r.cur.cur.state_);
+  *ctxt = r.cur.cur.state_;
   return fdatum_make_ok(d);
 }
 
 LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  for (; r->cur.prog_->type != PROG_END; ) {
+  for (; r->cur.cur.prog_->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
     char *err = routine_2_step(r, perform_host_instruction);
     if (err != NULL) {
@@ -33,7 +34,7 @@ LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum
 LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
   routine_2 *cont = malloc(sizeof(routine_2));
   *cont = *r;
-  cont->cur.prog_ = cont->cur.prog_->call_next;
+  cont->cur.cur.prog_ = cont->cur.cur.prog_->call_next;
   r->cur = sub;
   r->par = cont;
 }
@@ -51,32 +52,37 @@ LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
 LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
   routine_1 *cont = malloc(sizeof(routine_1));
   *cont = *r;
-  cont->prog_ = cont->prog_->call_next;
-  r->prog_ = sub.prog_;
-  r->state_ = sub.state_;
-  r->state_->parent = *cont;
+  cont->cur.prog_ = cont->cur.prog_->call_next;
+  r->cur.prog_ = sub.prog_;
+  r->cur.state_ = sub.state_;
+  r->cur.state_->parent = *cont;
 }
 
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
-  if (routine_1_is_null(r->state_->parent)) {
+  if (routine_1_is_null(r->cur.state_->parent)) {
     fprintf(stderr, "routine_1 has no more frames\n");
     exit(EXIT_FAILURE);
   }
-  routine_0 res = {.prog_ = r->prog_, .state_ = r->state_};
-  r->prog_ = r->state_->parent.prog_;
-  r->state_ = r->state_->parent.state_;
+  routine_0 res = {.prog_ = r->cur.prog_, .state_ = r->cur.state_};
+  r->cur.prog_ = r->cur.state_->parent.cur.prog_;
+  r->cur.state_ = r->cur.state_->parent.cur.state_;
   res.state_->parent = routine_1_make_null();
   return res;
 }
 
 LOCAL routine_1 routine_1_deep_copy(routine_1 r) {
-  routine_1 res = {.state_ = r.state_, .prog_ = r.prog_};
+  routine_1 res = r;
+  if (res.par != NULL) {
+    routine_1 *new_par = malloc(sizeof(routine_1));
+    *new_par = routine_1_deep_copy(*res.par);
+    res.par = new_par;
+  }
   return res;
 }
 
 LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  prog **p = &r->cur.prog_;
-  state **st = &r->cur.state_;
+  prog **p = &r->cur.cur.prog_;
+  state **st = &r->cur.cur.state_;
   switch ((*p)->type) {
   case PROG_CALL: {
     if (!(*p)->call_hat) {
@@ -93,7 +99,7 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
       return ("tried to hat-call a non-routine-1");
     }
     routine_2_push_frame(r, routine_1_deep_copy(fn->routine_1_value));
-    state_stack_put(&r->cur.state_, args);
+    state_stack_put(&r->cur.cur.state_, args);
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -102,8 +108,8 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
     }
     datum *clos = datum_make_routine_1(routine_1_make_null());
     *st = state_set_var(*st, (*p)->set_closures_name, clos);
-    clos->routine_1_value = routine_1_deep_copy((routine_1){.prog_ = *p, .state_ = *st});
-    clos->routine_1_value.prog_ = (*p)->set_closures_prog;
+    clos->routine_1_value = routine_1_deep_copy(r->cur);
+    clos->routine_1_value.cur.prog_ = (*p)->set_closures_prog;
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
@@ -132,14 +138,14 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   }
   routine_1 cr = r->cur;
   char *err = routine_1_step(&cr, perform_host_instruction);
-  r->cur.prog_ = cr.prog_;
-  r->cur.state_ = cr.state_;
+  r->cur.cur.prog_ = cr.cur.prog_;
+  r->cur.cur.state_ = cr.cur.state_;
   return err;
 }
 
 LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  prog **p = &r->prog_;
-  state **st = &r->state_;
+  prog **p = &r->cur.prog_;
+  state **st = &r->cur.state_;
   switch ((*p)->type) {
   case PROG_CALL: {
     if ((*p)->call_hat) {
@@ -193,10 +199,10 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  routine_0 cr = routine_0_make(r->prog_, r->state_);
+  routine_0 cr = routine_0_make(r->cur.prog_, r->cur.state_);
   char *err = routine_0_step(&cr, perform_host_instruction);
-  r->prog_ = cr.prog_;
-  r->state_ = cr.state_;
+  r->cur.prog_ = cr.prog_;
+  r->cur.state_ = cr.state_;
   return err;
 }
 
