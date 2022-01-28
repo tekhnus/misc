@@ -67,14 +67,14 @@ class Heap:
             break
 
 
-class DLCons:
+class Cell:
     def __init__(self, val, prev, next_):
         self.val = val
         self.prev = prev
         self.next = next_
 
 
-class DLList:
+class LinkedList:
     def __init__(self, seq=()):
         self._head = None
         self._tail = None
@@ -101,7 +101,7 @@ class DLList:
         return (e.val for e in self.iter_forward())
 
     def prepend(self, v):
-        self._head = DLCons(v, None, self._head)
+        self._head = Cell(v, None, self._head)
         if self._head.next is not None:
             self._head.next.prev = self._head
         else:
@@ -109,7 +109,7 @@ class DLList:
         self._len += 1
 
     def append(self, v):
-        self._tail = DLCons(v, self._tail, None)
+        self._tail = Cell(v, self._tail, None)
         if self._tail.prev is not None:
             self._tail.prev.next = self._tail
         else:
@@ -154,7 +154,7 @@ def _(dst: list, src):
 
 
 class EquivalenceRelation:
-    def __init__(self, objects, container=DLList):
+    def __init__(self, objects, container=LinkedList):
         s = {}
 
         for obj in objects:
@@ -737,7 +737,7 @@ class StaticHashTable:
     def __init__(self, bucket_count):
         self._element_count = 0
         self._bucket_count = bucket_count
-        self._buckets = [DLList() for _ in range(self._bucket_count)]
+        self._buckets = [LinkedList() for _ in range(self._bucket_count)]
 
     def update(self, items):
         for k, v in items:
