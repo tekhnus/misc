@@ -7,10 +7,8 @@ import collections
 import itertools
 import functools
 import math
-import heapq
 import operator
 import dataclasses
-import typing
 import random
 
 
@@ -255,7 +253,7 @@ def dfs_recursive(g, vs):
         yield ("enter", v)
         visited.add(v)
         for _, u in g.outbound_edges(v):
-            if not u in visited:
+            if u not in visited:
                 yield from _dfs(u)
         yield ("exit", v)
 
@@ -1158,8 +1156,6 @@ class BinaryTree:
         return self._act_size - 1 + leaf_index
 
     def path_to(self, k):
-        cur = k
-
         p = [k]
         while k != 0:
             k = (k - 1) // 2
@@ -1278,7 +1274,7 @@ def _online_median():
 def endswith(s1, s2):
     if not s2:
         return True
-    return s1[-len(s2) :] == s2
+    return s1[-len(s2):] == s2
 
 
 def _matching_automaton(pattern):
