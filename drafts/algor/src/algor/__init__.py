@@ -226,7 +226,7 @@ class IndexedHeap:
 # BFS: neighbour function + set of initial vertices
 # topo sort: neighbour function + set of target vertices
 # s.c.c.: neighbour function + set of target vertices + reversed neighbour function
-# ford-bellman: a collection of all vertices and a collection of edges
+# ford-bellman: a collection of edges + weight function + a set of initial vertices
 # dijkstra: neighbour function + weight function + set of initial vertices
 # matrix pairwise distance algorithm: a weight matrix
 # floyd-warshall: a weight matrix
