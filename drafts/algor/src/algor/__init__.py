@@ -354,8 +354,8 @@ def strong_components(vs, g):
             current_comp += 1
 
 
-def ford_bellman(v, g, wg):
-    best = {v: 0}
+def ford_bellman(vs, g, wg):
+    best = {v: 0 for v in vs}
     pred = {}
 
     def upd(edgedata):

@@ -66,10 +66,10 @@ def test_strong_components(gr, vs, exp):
 
 
 @pytest.mark.parametrize(
-    "v,gr,ws,exp", [(1, g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
+    "vs,gr,ws,exp", [([1], g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
 )
-def test_ford_bellman(v, gr, ws, exp):
-    assert list(algor.ford_bellman(v, gr, ws)) == exp
+def test_ford_bellman(vs, gr, ws, exp):
+    assert list(algor.ford_bellman(vs, gr, ws)) == exp
 
 
 @pytest.mark.parametrize(
