@@ -2,8 +2,6 @@ import pytest
 import algor
 import random
 import itertools
-import collections
-import re
 import scipy.spatial
 import geometer
 import math
@@ -127,7 +125,7 @@ def test_pairwise_distances(gr, ws, exp):
         )
     ],
 )
-def test_pairwise_distances(gr, ws, exp):
+def test_floyd_warshall(gr, ws, exp):
     assert algor.floyd_warshall(gr, ws) == exp
 
 
@@ -385,7 +383,7 @@ def matchers(request):
 def test_substring_search(pattern, text, matchers):
     aut = matchers[pattern]
     res = list(algor.search(aut, text))
-    exp = list(i for i in range(len(text)) if text[i : i + len(pattern)] == pattern)
+    exp = list(i for i in range(len(text)) if text[i:i + len(pattern)] == pattern)
     assert res == exp
 
 
