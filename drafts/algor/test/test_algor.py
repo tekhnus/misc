@@ -7,6 +7,9 @@ import geometer
 import math
 
 
+trng = random.Random(1234)
+
+
 g1 = algor.Graph(
     [1, 2, 3, 4],
     [
@@ -187,7 +190,7 @@ def test_edmonds_karp(s, t, gr, ws, exp):
     assert algor.edmonds_karp(s, t, gr, ws) == exp
 
 
-short_sequences = [list(seq) for seq in itertools.product(list(range(4)), repeat=4)]
+short_sequences = trng.sample([list(seq) for seq in itertools.product(list(range(4)), repeat=4)], 200)
 
 
 @pytest.mark.parametrize(
@@ -237,9 +240,6 @@ def test_counting_sort(xs, counter):
     res = algor.counting_sort(xs, **args)
     exp = sorted(xs)
     assert res == exp
-
-
-trng = random.Random(1234)
 
 
 @pytest.mark.parametrize(
@@ -369,8 +369,8 @@ def test_segment_tree(actions):
             assert res == exp
 
 
-PATTERNS = ["".join(s) for s in itertools.product("abc", repeat=3)]
-TEXTS = ["".join(s) for s in itertools.product("abc", repeat=5)]
+PATTERNS = trng.sample(["".join(s) for s in itertools.product("abc", repeat=3)], 25)
+TEXTS = trng.sample(["".join(s) for s in itertools.product("abc", repeat=5)], 25)
 
 
 @pytest.fixture(scope="module")
@@ -505,7 +505,7 @@ def _point_inside_polygon(poly, pt):
 POLY = [(0.2, 0.2), (0.8, 0.2), (0.5, 0.5), (0.8, 0.8), (0.2, 0.8)]
 
 
-@pytest.mark.parametrize("point", [_random_point() for _ in range(1000)])
+@pytest.mark.parametrize("point", [_random_point() for _ in range(100)])
 def test_point_inside_polygon(point):
     res = algor.point_inside_polygon(POLY, point)
     exp = _point_inside_polygon(POLY, point)
@@ -548,7 +548,7 @@ def _median(xs):
     return sorted(xs)[m]
 
 
-seqs = [list(seq) for seq in itertools.product(list(range(4)), repeat=4)]
+seqs = random.sample([list(seq) for seq in itertools.product(list(range(4)), repeat=4)], 200)
 
 
 @pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *seqs])
