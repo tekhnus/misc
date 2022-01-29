@@ -154,17 +154,15 @@ def _(dst: list, src):
 
 
 class EquivalenceRelation:
-    def __init__(self, objects, container=LinkedList):
-        s = {}
-
-        for obj in objects:
-            s[obj] = container([obj])
-
-        self._s = s
+    def __init__(self, container=LinkedList):
+        self._container = container
+        self._s = {}
 
     def are_equivalent(self, a, b):
         s = self._s
-        return s[a] is s[b]
+        a_class = s.setdefault(a, self._container([a]))
+        b_class = s.setdefault(b, self._container([b]))
+        return a_class is b_class
 
     def declare_equivalent(self, a, b):
         if self.are_equivalent(a, b):
@@ -222,17 +220,17 @@ class IndexedHeap:
 # as a special case of matrix pairwise distance algorithm
 # with some peculiar matrix multiplication algorithm?
 
-# DFS: neighbour function + set of initial vertices
-# BFS: neighbour function + set of initial vertices
-# topo sort: neighbour function + set of target vertices
-# s.c.c.: neighbour function + set of target vertices + reversed neighbour function
-# ford-bellman: a collection of edges + weight function + a set of initial vertices
-# dijkstra: neighbour function + weight function + set of initial vertices
-# matrix pairwise distance algorithm: a weight matrix
-# floyd-warshall: a weight matrix
-# kruskal: a collection of vertices and a collection of edges
-# prim: neighbour function + set of initial vertices + weight function
-# edmonds-karp: a collection of edges + weight function + a pair of vertices
+# DFS:                         neighbour function + initial vertices
+# BFS:                         neighbour function + initial vertices
+# topo sort:                   neighbour function + initial vertices
+# dijkstra:                    neighbour function + weight function + initial vertices
+# prim:                        neighbour function + weight function + initial vertices
+# s.c.c.:                      neighbour function + reverse function + initial vertices
+# edmonds-karp:                edges + weight function + s/t vertices
+# ford-bellman:                edges + weight function + initial vertices
+# kruskal:                     edges + weight function
+# pairwise distance by matrix: weight matrix
+# floyd-warshall:              weight matrix
 
 
 class Graph:
@@ -482,7 +480,7 @@ def floyd_warshall(g, wg):
 
 
 def kruskal(g, wg):
-    e = EquivalenceRelation(g.vs)
+    e = EquivalenceRelation()
     sorted_edges = sorted((w, eid) for eid, w in wg.items())
     weight = 0
     tree = []

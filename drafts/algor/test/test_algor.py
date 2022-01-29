@@ -145,7 +145,7 @@ def test_floyd_warshall(gr, ws, exp):
         )
     ],
 )
-def test_kruscal(gr, ws, exp):
+def test_kruskal(gr, ws, exp):
     assert algor.kruskal(gr, ws) == exp
 
 
