@@ -355,25 +355,31 @@ def strong_components(vs, g):
 
 
 def ford_bellman(v, g, wg):
-    infty = sum(x for x in wg.values() if x > 0) + 1
-    best = {**{u: infty for u in g.vs}, v: 0}
+    best = {v: 0}
     pred = {}
 
     def upd(edgedata):
         eid, u, v = edgedata
         cand = best[u] + wg[eid]
-        if best[v] > cand:
+        if v not in best:
+            res = 2
+        elif best[v] > cand:
+            res = 1
+        else:
+            res = 0
+        if res > 0:
             best[v], pred[v] = cand, u
-            return True
-        return False
+        return res
 
-    for _ in range(len(g.vs) - 1):
-        if not any(upd(edata) for edata in g.edges):
-            break
-    else:
-        if any(upd(edata) for edata in g.edges):
+    while True:
+        agg_res = max(upd(edata) for edata in g.edges)
+        if agg_res == 0:
+            # No new vertices and no updates.
+            return best, pred
+        if agg_res == 1:
+            # No new vertices, but there are updates.
             raise ValueError("graph contains a nevative cycle")
-    return best, pred
+        # New vertices were found.
 
 
 def greedy_tree(vs, g, pri):
