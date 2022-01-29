@@ -1568,46 +1568,106 @@ class SillySortedDict:
                 return
 
 
-def find_intersecting_figures(figs, d_cls=SillySortedDict):
+BEGIN = -1
+END = -2
+
+
+class SillyTree:
+    def __init__(self):
+        self._t = [(-1, None), (-2, None)]
+        self._next_idx = 0
+
+    def lower_bound(self, f):
+        for node, val in self._t:
+            if node != -1 and (node == -2 or f(val)):
+                return node
+        raise RuntimeError("!!!")
+
+    def pred(self, node):
+        r = reversed(self._t)
+        for n, _ in r:
+            if n == node:
+                break
+        else:
+            raise RuntimeError("!!!")
+        node, _ = next(r)
+        return node
+
+    def succ(self, node):
+        r = iter(self._t)
+        for n, _ in r:
+            if n == node:
+                break
+        else:
+            raise RuntimeError("!!!")
+        node, _ = next(r)
+        return node
+
+    def remove(self, node):
+        for array_idx, (n, _) in enumerate(self._t):
+            if n == node:
+                break
+        else:
+            raise RuntimeError("!!!")
+        del self._t[array_idx]
+
+    def has_value(self, node):
+        return node >= 0
+
+    def get_value(self, node):
+        for n, val in self._t[1:-1]:
+            if n == node:
+                return val
+        raise RuntimeError("!!!")
+
+    def insert_before(self, node, value):
+        idx = self._next_idx
+        self._next_idx += 1
+        for array_idx, (n, _) in enumerate(self._t):
+            if n == node:
+                break
+        else:
+            raise RuntimeError("!!!")
+        self._t.insert(array_idx, (idx, value))
+        return idx
+
+
+def find_intersecting_figures(figs, d_cls=SillyTree):
     start_pt = {i: fig.minimal_point_for_x() for i, fig in enumerate(figs)}
     end_pt = {i: fig.maximal_point_for_x() for i, fig in enumerate(figs)}
 
-    events = [("start", i) for i in range(len(figs))] + [
-        ("end", i) for i in range(len(figs))
+    events = [(start_pt[i][0], -1, i) for i in range(len(figs))] + [
+        (end_pt[i][0], +1, i) for i in range(len(figs))
     ]
 
-    def keyfunc(evt):
-        kind, idx = evt
-        if kind == "start":
-            x, _ = start_pt[idx]
-            return (x, 0)
-        x, _ = end_pt[idx]
-        return (x, 1)
-
-    events = sorted(events, key=keyfunc)
+    events = sorted(events)
     # print(events)
     d = d_cls()
-    for kind, idx in events:
-        # print(d._d)
-        _, k = start_pt[idx]
-        if kind == "start":
-            _, next_idx = d.lower_bound(k, (None, None))
-            if next_idx is not None and figs[idx].intersects(figs[next_idx]):
-                return idx, next_idx
-            _, prev_idx = d.upper_bound(k, (None, None))
-            if prev_idx is not None and figs[idx].intersects(figs[prev_idx]):
-                return idx, prev_idx
-            d[k] = idx
+    figs_to_d = {}
+    for x, kind, idx in events:
+        if kind == -1:  # start
+            keyfn = lambda idx2: (figs[idx2].some_point_at_x(x)[1] >= start_pt[idx][1])
+            upper_neighbour = d.lower_bound(keyfn)
+            if d.has_value(upper_neighbour):
+                upper_idx = d.get_value(upper_neighbour)
+                if figs[idx].intersects(figs[upper_idx]):
+                    return idx, upper_idx
+            if d.has_value(d.pred(upper_neighbour)):
+                lower_idx = d.get_value(d.pred(upper_neighbour))
+                if figs[idx].intersects(figs[lower_idx]):
+                    return idx, lower_idx
+            node = d.insert_before(upper_neighbour, idx)
+            figs_to_d[idx] = node
         else:
-            d.remove(idx)
-            _, next_idx = d.lower_bound(k, (None, None))
-            _, prev_idx = d.upper_bound(k, (None, None))
-            if (
-                next_idx is not None
-                and prev_idx is not None
-                and figs[next_idx].intersects(figs[prev_idx])
-            ):
-                return prev_idx, next_idx
+            node = figs_to_d[idx]
+            if d.has_value(d.pred(node)) and d.has_value(d.succ(node)):
+                prev_idx = d.get_value(d.pred(node))
+                next_idx = d.get_value(d.succ(node))
+                if figs[prev_idx].intersects(figs[next_idx]):
+                    return prev_idx, next_idx
+            d.remove(node)
+            del figs_to_d[idx]
+
     return None
 
 
@@ -1615,6 +1675,9 @@ class Segment:
     def __init__(self, p, v):
         self._p = p
         self._v = v
+
+    def __repr__(self):
+        return f"Segment({self._p}, {self._v})"
 
     def intersects(self, fig):
         return intersects(self, fig)
@@ -1632,6 +1695,12 @@ class Segment:
         if px > qx:
             return p
         return q
+
+    def some_point_at_x(self, x):
+        t, p = line_intersection((self._p, self._v), ((x, 0), (0, 1)))
+        if t != INTERSECT:
+            raise RuntimeError("!!!")
+        return p
 
 
 class DoubleDispatch:

@@ -272,7 +272,7 @@ def try_delete(m, k):
     [
         [],
         [("insert", "a", 42), ("insert", "b", 33), ("delete", "a")],
-        [random_instruction(trng) for _ in range(10_000)],
+        [random_instruction(trng) for _ in range(10_0)],
     ],
 )
 @pytest.mark.parametrize(
