@@ -531,16 +531,25 @@ def reverse(eid):
     return (e, not flg)
 
 
-def double_graph(g):
-    e = [
-        *[(forward(eid), u, v) for eid, u, v in g.edges],
-        *[(backward(eid), v, u) for eid, u, v in g.edges],
-    ]
-    return Graph(g.vs, e)
+class GraphByEdges:
+    def __init__(self, edges):
+        self._idx = {}
+        self.edges_extend(edges)
+
+    def edges_extend(self, edges):
+        idx = self._idx
+        for eid, u, v in edges:
+            idx.setdefault(u, []).append((eid, v))
+
+    def __call__(self, v):
+        return iter(self._idx[v])
 
 
-def edmonds_karp(s, t, g, wg):
-    rest = double_graph(g)
+def edmonds_karp(s, t, edges, wg):
+    rest = GraphByEdges([
+        *[(forward(eid), u, v) for eid, u, v in edges],
+        *[(backward(eid), v, u) for eid, u, v in edges],
+    ])
     rest_wg = {
         **{forward(eid): w for eid, w in wg.items()},
         **{backward(eid): 0 for eid in wg.keys()},
@@ -548,7 +557,7 @@ def edmonds_karp(s, t, g, wg):
     wgh = 0
 
     def outbound_edges_filtered_by_weight(v):
-        for eid, w in rest.outbound_edges(v):
+        for eid, w in rest(v):
             if rest_wg[eid]:
                 yield eid, w
 
