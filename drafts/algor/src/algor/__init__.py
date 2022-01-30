@@ -273,13 +273,13 @@ class GraphFilteredView:
         return [(e, u) for e, u in self._orig_view.outbound_edges(v) if u in self._vset]
 
 
-def dfs_recursive(g, vs):
+def dfs_recursive(gf, vs):
     visited = set()
 
     def _dfs(v):
         yield ("enter", v)
         visited.add(v)
-        for _, u in g.outbound_edges(v):
+        for _, u in gf(v):
             if u not in visited:
                 yield from _dfs(u)
         yield ("exit", v)
@@ -288,7 +288,7 @@ def dfs_recursive(g, vs):
         yield from _dfs(vs.pop())
 
 
-def dfs_iterative(g, vs):
+def dfs_iterative(gf, vs):
     visited = set()
     st = collections.deque([("enter", v) for v in vs])
     while st:
@@ -301,7 +301,7 @@ def dfs_iterative(g, vs):
         yield item
         visited.add(u)
         st.append(("exit", u))
-        st.extend(("enter", w) for _, w in reversed(g.outbound_edges(u)))
+        st.extend(("enter", w) for _, w in reversed(gf(u)))
 
 
 def bfs(g, v):
@@ -317,14 +317,14 @@ def bfs(g, v):
         st.extend((eid, u, w) for eid, w in g.outbound_edges(u))
 
 
-def topo_sort(vs, g):
+def topo_sort(vs, gf):
     """
     Output all vertices of g reachable from any of vs.
 
     When the last element of an s.c.c. is outputted,
     all elements of all successor s.c.c. are already outputted.
     """
-    for label, v in dfs_iterative(g, vs):
+    for label, v in dfs_iterative(gf, vs):
         if label == "exit":
             yield v
 
@@ -335,10 +335,10 @@ def strong_components(vs, g):
 
     The components are outputted in reversed topological order.
     """
-    c = collections.deque(topo_sort(vs, g))
+    c = collections.deque(topo_sort(vs, g.outbound_edges))
     nest = 0
     current_comp = 0
-    for label, v in dfs_iterative(GraphFilteredView(g.reversed(), set(c)), c):
+    for label, v in dfs_iterative(GraphFilteredView(g.reversed(), set(c)).outbound_edges, c):
         if label == "enter":
             nest += 1
             yield current_comp, v
@@ -376,24 +376,24 @@ def ford_bellman(vs, g, wg):
         # New vertices were found.
 
 
-def greedy_tree(vs, g, pri):
+def greedy_tree(vs, gf, pri):
     q = IndexedHeap([(v, (0, None)) for v in vs])
     reached = set()
     while q:
         vert, (dist, prd) = q.pop()
         yield vert, (dist, prd)
         reached.add(vert)
-        for edg, ver in g.outbound_edges(vert):
+        for edg, ver in gf(vert):
             if ver in reached:
                 continue
             x = pri(edg, dist)
             q.push_or_update(ver, (x, vert))
 
 
-def dijkstra(vs, g, wg):
+def dijkstra(vs, gf, wg):
     best = {}
     pred = {}
-    for vert, (dist, prd) in greedy_tree(vs, g, lambda edg, dist: dist + wg[edg]):
+    for vert, (dist, prd) in greedy_tree(vs, gf, lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
     for v in vs:
@@ -490,10 +490,10 @@ def kruskal(g, wg):
     return weight, tree
 
 
-def prim(vs, g, wg):
+def prim(vs, gf, wg):
     weight = 0
     pred = {}
-    for vert, (dist, prd) in greedy_tree(vs, g, lambda edg, _: wg[edg]):
+    for vert, (dist, prd) in greedy_tree(vs, gf, lambda edg, _: wg[edg]):
         weight += dist
         pred[vert] = prd
     for v in vs:

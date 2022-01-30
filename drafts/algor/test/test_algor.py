@@ -47,7 +47,7 @@ ws = {
 )
 @pytest.mark.parametrize("f", [algor.dfs_recursive, algor.dfs_iterative])
 def test_dfs(gr, exp, f):
-    assert list(f(gr, [1])) == exp
+    assert list(f(gr.outbound_edges, [1])) == exp
 
 
 @pytest.mark.parametrize("gr,exp", [(g1, [("a", 1, 2), ("b", 1, 3), ("d", 3, 4)])])
@@ -57,7 +57,7 @@ def test_bfs(gr, exp):
 
 @pytest.mark.parametrize("gr,vs,exp", [(g1, [3, 1, 2, 4], [4, 3, 2, 1])])
 def test_topo_sort(gr, vs, exp):
-    assert list(algor.topo_sort(vs, gr)) == exp
+    assert list(algor.topo_sort(vs, gr.outbound_edges)) == exp
 
 
 @pytest.mark.parametrize("gr,vs,exp", [(g1, [1], [(0, 1), (1, 2), (2, 3), (3, 4)])])
@@ -76,7 +76,7 @@ def test_ford_bellman(vs, gr, ws, exp):
     "vs,gr,ws,exp", [([1], g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
 )
 def test_dijkstra(vs, gr, ws, exp):
-    assert list(algor.dijkstra(vs, gr, ws)) == exp
+    assert list(algor.dijkstra(vs, gr.outbound_edges, ws)) == exp
 
 
 @pytest.mark.parametrize(
@@ -163,7 +163,7 @@ def test_kruskal(gr, ws, exp):
     ],
 )
 def test_prim(gr, ws, exp):
-    assert algor.prim([1], gr, ws) == exp
+    assert algor.prim([1], gr.outbound_edges, ws) == exp
 
 
 @pytest.mark.parametrize(
