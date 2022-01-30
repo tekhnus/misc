@@ -146,7 +146,7 @@ def test_floyd_warshall(gr, ws, exp):
     ],
 )
 def test_kruskal(gr, ws, exp):
-    assert algor.kruskal(gr, ws) == exp
+    assert algor.kruskal(gr.edges, ws) == exp
 
 
 @pytest.mark.parametrize(

@@ -475,13 +475,12 @@ def floyd_warshall(g, wg):
     return (remove_infinity(m, infty), pred)
 
 
-def kruskal(g, wg):
+def kruskal(edges, wg):
     e = EquivalenceRelation()
-    sorted_edges = sorted((w, eid) for eid, w in wg.items())
+    sorted_edges = sorted((wg[eid], eid, u, v) for eid, u, v in edges)
     weight = 0
     tree = []
-    for w, eid in sorted_edges:
-        u, v = g.edge_ends(eid)
+    for w, eid, u, v in sorted_edges:
         if e.are_equivalent(u, v):
             continue
         weight += w
