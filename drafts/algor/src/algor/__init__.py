@@ -518,17 +518,6 @@ def find_path_bfs(s, t, gf):
     return list(reversed(path))
 
 
-class GraphFilteredByEdgeWeight:
-    def __init__(self, g, wg):
-        self._g = g
-        self._wg = wg
-
-    def outbound_edges(self, u):
-        for eid, v in self._g.outbound_edges(u):
-            if self._wg[eid]:
-                yield eid, v
-
-
 def forward(eid):
     return (eid, False)
 
@@ -557,8 +546,13 @@ def edmonds_karp(s, t, g, wg):
         **{backward(eid): 0 for eid in wg.keys()},
     }
     wgh = 0
-    g = GraphFilteredByEdgeWeight(rest, rest_wg)
-    while (path := find_path_bfs(s, t, g.outbound_edges)) is not None:
+
+    def outbound_edges_filtered_by_weight(v):
+        for eid, w in rest.outbound_edges(v):
+            if rest_wg[eid]:
+                yield eid, w
+
+    while (path := find_path_bfs(s, t, outbound_edges_filtered_by_weight)) is not None:
         pathwgh = min(rest_wg[e] for e, _, _ in path)
         wgh += pathwgh
         for e, _, _ in path:
