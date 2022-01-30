@@ -52,7 +52,7 @@ def test_dfs(gr, exp, f):
 
 @pytest.mark.parametrize("gr,exp", [(g1, [("a", 1, 2), ("b", 1, 3), ("d", 3, 4)])])
 def test_bfs(gr, exp):
-    assert list(algor.bfs(gr, 1)) == exp
+    assert list(algor.bfs(gr.outbound_edges, 1)) == exp
 
 
 @pytest.mark.parametrize("gr,vs,exp", [(g1, [3, 1, 2, 4], [4, 3, 2, 1])])

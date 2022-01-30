@@ -304,7 +304,7 @@ def dfs_iterative(gf, vs):
         st.extend(("enter", w) for _, w in reversed(gf(u)))
 
 
-def bfs(g, v):
+def bfs(gf, v):
     visited = set()
     st = collections.deque([(None, None, v)])
     while st:
@@ -314,7 +314,7 @@ def bfs(g, v):
         if pred is not None:
             yield e, pred, u
         visited.add(u)
-        st.extend((eid, u, w) for eid, w in g.outbound_edges(u))
+        st.extend((eid, u, w) for eid, w in gf(u))
 
 
 def topo_sort(vs, gf):
@@ -501,9 +501,9 @@ def prim(vs, gf, wg):
     return weight, pred
 
 
-def find_path_bfs(s, t, g):
+def find_path_bfs(s, t, gf):
     pred = {}
-    for e, u, v in bfs(g, s):
+    for e, u, v in bfs(gf, s):
         pred[v] = (e, u)
         if v == t:
             break
@@ -558,7 +558,7 @@ def edmonds_karp(s, t, g, wg):
     }
     wgh = 0
     g = GraphFilteredByEdgeWeight(rest, rest_wg)
-    while (path := find_path_bfs(s, t, g)) is not None:
+    while (path := find_path_bfs(s, t, g.outbound_edges)) is not None:
         pathwgh = min(rest_wg[e] for e, _, _ in path)
         wgh += pathwgh
         for e, _, _ in path:
