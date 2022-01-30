@@ -348,7 +348,7 @@ def strong_components(vs, g):
             current_comp += 1
 
 
-def ford_bellman(vs, g, wg):
+def ford_bellman(vs, edges, wg):
     best = {v: 0 for v in vs}
     pred = {}
 
@@ -366,7 +366,7 @@ def ford_bellman(vs, g, wg):
         return res
 
     while True:
-        agg_res = max(upd(edata) for edata in g.edges)
+        agg_res = max(upd(edata) for edata in edges)
         if agg_res == 0:
             # No new vertices and no updates.
             return best, pred
