@@ -335,7 +335,10 @@ def strong_components(vs, g):
 
     The components are outputted in reversed topological order.
     """
-    c = collections.deque(topo_sort(vs, g.outbound_edges))
+    c = collections.deque()
+    for label, v in dfs_iterative(g.outbound_edges, vs):
+        if label == "exit":
+            c.append(v)
     nest = 0
     current_comp = 0
     for label, v in dfs_iterative(GraphFilteredView(g.reversed(), set(c)).outbound_edges, c):
