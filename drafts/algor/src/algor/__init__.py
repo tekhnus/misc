@@ -304,22 +304,19 @@ def dfs_iterative(gf, vs):
         st.extend(("enter", w) for _, w in reversed(list(gf(u))))
 
 
-def dfs_iterative_2(gf, v):
+def dfs_iterative_2(gf):
     visited = set()
     st = collections.deque()
-    st.extend(("enter", e, v, w) for e, w in reversed(list(gf(v))))
+    st.extend(("enter", e, None, w) for e, w in reversed(list(gf(None))))
     while st:
         item = label, ed, pr, u = st.pop()
         if label == "exit":
-            if pr is not None:
-                yield item
+            yield item
             continue
         if u in visited:
-            if pr is not None:
-                yield "aux", ed, pr, u
+            yield "aux", ed, pr, u
             continue
-        if pr is not None:
-            yield item
+        yield item
         visited.add(u)
         st.append(("exit", ed, pr, u))
         st.extend(("enter", e, u, w) for e, w in reversed(list(gf(u))))
@@ -374,15 +371,15 @@ def strong_components(vs, gf):
     rev_edges = []
 
     def attached_graph(v):
-        if v == "root":
-            return (("rootedge", v) for v in vs)
+        if v is None:
+            return ((None, v) for v in vs)
         return gf(v)
 
-    for label, e, u, v in dfs_iterative_2(attached_graph, "root"):
+    for label, e, u, v in dfs_iterative_2(attached_graph):
         if label == "exit":
             c.append(v)
         else:
-            if e != "rootedge":
+            if u is not None:
                 rev_edges.append((e, v, u))
     rev = GraphByEdges(rev_edges)
     nest = 0
