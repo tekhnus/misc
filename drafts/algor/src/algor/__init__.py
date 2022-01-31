@@ -382,16 +382,18 @@ def strong_components(vs, gf):
             if u is not None:
                 rev_edges.append((e, v, u))
     rev = GraphByEdges(rev_edges)
-    nest = 0
-    current_comp = 0
-    for label, v in dfs_iterative(rev, c):
+    current_comp = -1
+
+    def reversed_topo(v):
+        if v is None:
+            return ((None, s) for s in reversed(c))
+        return rev(v)
+
+    for label, e, u, v in dfs_iterative_2(reversed_topo):
         if label == "enter":
-            nest += 1
+            if u is None:
+                current_comp += 1
             yield current_comp, v
-        else:
-            nest -= 1
-        if nest == 0:
-            current_comp += 1
 
 
 def ford_bellman(vs, edges, wg):
