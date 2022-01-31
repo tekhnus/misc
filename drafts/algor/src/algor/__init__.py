@@ -343,14 +343,14 @@ def bfs(gf, v):
         st.extend((eid, u, w) for eid, w in gf(u))
 
 
-def topo_sort(vs, gf):
+def topo_sort(gf):
     """
     Output all vertices of g reachable from any of vs.
 
     When the last element of an s.c.c. is outputted,
     all elements of all successor s.c.c. are already outputted.
     """
-    for label, _, _, v in dfs_iterative(traverse(gf, vs)):
+    for label, _, _, v in dfs_iterative(gf):
         if label == "exit":
             yield v
 
