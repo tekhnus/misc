@@ -221,7 +221,7 @@ class IndexedHeap:
 # topo sort:                   neighbour function + initial vertices
 # dijkstra:                    neighbour function + weight function + initial vertices
 # prim:                        neighbour function + weight function + initial vertices
-# s.c.c.:                      neighbour function + reverse function + initial vertices
+# s.c.c.:                      neighbour function + initial vertices
 # edmonds-karp:                edges + weight function + s/t vertices
 # ford-bellman:                edges + weight function + initial vertices
 # kruskal:                     edges + weight function
@@ -301,7 +301,27 @@ def dfs_iterative(gf, vs):
         yield item
         visited.add(u)
         st.append(("exit", u))
-        st.extend(("enter", w) for _, w in reversed(gf(u)))
+        st.extend(("enter", w) for _, w in reversed(list(gf(u))))
+
+
+def dfs_iterative_2(gf, vs):
+    visited = set()
+    st = collections.deque([("enter", None, None, v) for v in vs])
+    while st:
+        item = label, ed, pr, u = st.pop()
+        if label == "exit":
+            if pr is not None:
+                yield item
+            continue
+        if u in visited:
+            if pr is not None:
+                yield "aux", ed, pr, u
+            continue
+        if pr is not None:
+            yield item
+        visited.add(u)
+        st.append(("exit", ed, pr, u))
+        st.extend(("enter", e, u, w) for e, w in reversed(list(gf(u))))
 
 
 def bfs(gf, v):
@@ -329,19 +349,44 @@ def topo_sort(vs, gf):
             yield v
 
 
-def strong_components(vs, g):
+class GraphByEdges:
+    def __init__(self, edges):
+        self._idx = {}
+        self.edges_extend(edges)
+
+    def edges_extend(self, edges):
+        idx = self._idx
+        for eid, u, v in edges:
+            idx.setdefault(u, []).append((eid, v))
+
+    def __call__(self, v):
+        return iter(self._idx.get(v, []))
+
+
+def strong_components(vs, gf):
     """
     Output all vertices of g reachable from any of vs enumerated by strong components.
 
     The components are outputted in reversed topological order.
     """
     c = collections.deque()
-    for label, v in dfs_iterative(g.outbound_edges, vs):
+    rev_edges = []
+
+    def attached_graph(v):
+        if v == "root":
+            return (("rootedge", v) for v in vs)
+        return gf(v)
+
+    for label, e, u, v in dfs_iterative_2(attached_graph, ["root"]):
         if label == "exit":
             c.append(v)
+        else:
+            if e != "rootedge":
+                rev_edges.append((e, v, u))
+    rev = GraphByEdges(rev_edges)
     nest = 0
     current_comp = 0
-    for label, v in dfs_iterative(GraphFilteredView(g.reversed(), set(c)).outbound_edges, c):
+    for label, v in dfs_iterative(rev, c):
         if label == "enter":
             nest += 1
             yield current_comp, v
@@ -531,20 +576,6 @@ def backward(eid):
 def reverse(eid):
     e, flg = eid
     return (e, not flg)
-
-
-class GraphByEdges:
-    def __init__(self, edges):
-        self._idx = {}
-        self.edges_extend(edges)
-
-    def edges_extend(self, edges):
-        idx = self._idx
-        for eid, u, v in edges:
-            idx.setdefault(u, []).append((eid, v))
-
-    def __call__(self, v):
-        return iter(self._idx[v])
 
 
 def edmonds_karp(s, t, edges, wg):

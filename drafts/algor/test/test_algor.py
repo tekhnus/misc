@@ -62,7 +62,7 @@ def test_topo_sort(gr, vs, exp):
 
 @pytest.mark.parametrize("gr,vs,exp", [(g1, [1], [(0, 1), (1, 2), (2, 3), (3, 4)])])
 def test_strong_components(gr, vs, exp):
-    assert list(algor.strong_components(vs, gr)) == exp
+    assert list(algor.strong_components(vs, gr.outbound_edges)) == exp
 
 
 @pytest.mark.parametrize(
