@@ -6,9 +6,7 @@ import scipy.spatial
 import geometer
 import math
 
-
 trng = random.Random(1234)
-
 
 g1 = algor.Graph(
     [1, 2, 3, 4],
@@ -29,21 +27,19 @@ ws = {
 
 @pytest.mark.parametrize(
     "gr,exp",
-    [
-        (
-            g1,
-            [
-                ("enter", 1),
-                ("enter", 2),
-                ("enter", 3),
-                ("enter", 4),
-                ("exit", 4),
-                ("exit", 3),
-                ("exit", 2),
-                ("exit", 1),
-            ],
-        )
-    ],
+    [(
+        g1,
+        [
+            ("enter", 1),
+            ("enter", 2),
+            ("enter", 3),
+            ("enter", 4),
+            ("exit", 4),
+            ("exit", 3),
+            ("exit", 2),
+            ("exit", 1),
+        ],
+    )],
 )
 @pytest.mark.parametrize("f", [algor.dfs_recursive])
 def test_dfs(gr, exp, f):
@@ -52,12 +48,9 @@ def test_dfs(gr, exp, f):
 
 @pytest.mark.parametrize(
     "gr,exp",
-    [
-        (
-            g1,
-            [('enter', None, None, 1), ('enter', 'a', 1, 2), ('enter', 'c', 2, 3), ('enter', 'd', 3, 4), ('exit', 'd', 3, 4), ('exit', 'c', 2, 3), ('exit', 'a', 1, 2), ('aux', 'b', 1, 3), ('exit', None, None, 1)]
-        )
-    ],
+    [(g1, [('enter', None, None, 1), ('enter', 'a', 1, 2), ('enter', 'c', 2, 3),
+           ('enter', 'd', 3, 4), ('exit', 'd', 3, 4), ('exit', 'c', 2, 3), ('exit', 'a', 1, 2),
+           ('aux', 'b', 1, 3), ('exit', None, None, 1)])],
 )
 @pytest.mark.parametrize("f", [algor.dfs_iterative])
 def test_dfs_2(gr, exp, f):
@@ -79,26 +72,63 @@ def test_strong_components(gr, vs, exp):
     assert list(algor.strong_components(algor.traverse(gr.outbound_edges, vs))) == exp
 
 
-@pytest.mark.parametrize(
-    "vs,gr,ws,exp", [([1], g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
-)
+@pytest.mark.parametrize("vs,gr,ws,exp", [([1], g1, ws, [{
+    1: 0,
+    2: 3,
+    3: 1,
+    4: 6
+}, {
+    2: 1,
+    3: 1,
+    4: 3
+}])])
 def test_ford_bellman(vs, gr, ws, exp):
     assert list(algor.ford_bellman(vs, list(gr.edges), ws)) == exp
 
 
-@pytest.mark.parametrize(
-    "vs,gr,ws,exp", [([1], g1, ws, [{1: 0, 2: 3, 3: 1, 4: 6}, {2: 1, 3: 1, 4: 3}])]
-)
+@pytest.mark.parametrize("vs,gr,ws,exp", [([1], g1, ws, [{
+    1: 0,
+    2: 3,
+    3: 1,
+    4: 6
+}, {
+    2: 1,
+    3: 1,
+    4: 3
+}])])
 def test_dijkstra(vs, gr, ws, exp):
     assert list(algor.dijkstra(vs, gr.outbound_edges, ws)) == exp
 
 
 @pytest.mark.parametrize(
     "gr,ws,exp",
-    [
+    [(
+        g1,
+        ws,
+        {
+            (1, 1): 0,
+            (1, 2): 3,
+            (1, 3): 1,
+            (1, 4): 6,
+            (2, 2): 0,
+            (2, 3): 7,
+            (2, 4): 12,
+            (3, 3): 0,
+            (3, 4): 5,
+            (4, 4): 0,
+        },
+    )],
+)
+def test_pairwise_distances(gr, ws, exp):
+    assert algor.pairwise_distances(gr, ws) == exp
+
+
+@pytest.mark.parametrize(
+    "gr,ws,exp",
+    [(
+        g1,
+        ws,
         (
-            g1,
-            ws,
             {
                 (1, 1): 0,
                 (1, 2): 3,
@@ -111,36 +141,16 @@ def test_dijkstra(vs, gr, ws, exp):
                 (3, 4): 5,
                 (4, 4): 0,
             },
-        )
-    ],
-)
-def test_pairwise_distances(gr, ws, exp):
-    assert algor.pairwise_distances(gr, ws) == exp
-
-
-@pytest.mark.parametrize(
-    "gr,ws,exp",
-    [
-        (
-            g1,
-            ws,
-            (
-                {
-                    (1, 1): 0,
-                    (1, 2): 3,
-                    (1, 3): 1,
-                    (1, 4): 6,
-                    (2, 2): 0,
-                    (2, 3): 7,
-                    (2, 4): 12,
-                    (3, 3): 0,
-                    (3, 4): 5,
-                    (4, 4): 0,
-                },
-                {(1, 2): 1, (1, 3): 1, (1, 4): 3, (2, 3): 2, (2, 4): 3, (3, 4): 3},
-            ),
-        )
-    ],
+            {
+                (1, 2): 1,
+                (1, 3): 1,
+                (1, 4): 3,
+                (2, 3): 2,
+                (2, 4): 3,
+                (3, 4): 3
+            },
+        ),
+    )],
 )
 def test_floyd_warshall(gr, ws, exp):
     assert algor.floyd_warshall(gr, ws) == exp
@@ -148,16 +158,14 @@ def test_floyd_warshall(gr, ws, exp):
 
 @pytest.mark.parametrize(
     "gr,ws,exp",
-    [
+    [(
+        g1,
+        ws,
         (
-            g1,
-            ws,
-            (
-                9,
-                ["b", "a", "d"],
-            ),
-        )
-    ],
+            9,
+            ["b", "a", "d"],
+        ),
+    )],
 )
 def test_kruskal(gr, ws, exp):
     assert algor.kruskal(gr.edges, ws) == exp
@@ -165,16 +173,18 @@ def test_kruskal(gr, ws, exp):
 
 @pytest.mark.parametrize(
     "gr,ws,exp",
-    [
+    [(
+        g1,
+        ws,
         (
-            g1,
-            ws,
-            (
-                9,
-                {2: 1, 3: 1, 4: 3},
-            ),
-        )
-    ],
+            9,
+            {
+                2: 1,
+                3: 1,
+                4: 3
+            },
+        ),
+    )],
 )
 def test_prim(gr, ws, exp):
     assert algor.prim([1], gr.outbound_edges, ws) == exp
@@ -182,34 +192,31 @@ def test_prim(gr, ws, exp):
 
 @pytest.mark.parametrize(
     "s, t, gr, ws, exp",
-    [
+    [(
+        1,
+        4,
+        g1,
+        ws,
         (
-            1,
             4,
-            g1,
-            ws,
-            (
-                4,
-                {
-                    "a": 3,
-                    "b": 1,
-                    "c": 3,
-                    "d": 4,
-                },
-            ),
-        )
-    ],
+            {
+                "a": 3,
+                "b": 1,
+                "c": 3,
+                "d": 4,
+            },
+        ),
+    )],
 )
 def test_edmonds_karp(s, t, gr, ws, exp):
     assert algor.edmonds_karp(s, t, gr.edges, ws) == exp
 
 
-short_sequences = trng.sample([list(seq) for seq in itertools.product(list(range(4)), repeat=4)], 200)
+short_sequences = trng.sample([list(seq) for seq in itertools.product(list(range(4)), repeat=4)],
+                              200)
 
 
-@pytest.mark.parametrize(
-    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
-)
+@pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences])
 def test_quicksort(xs):
     xs = xs[:]
     exp = sorted(xs)
@@ -217,9 +224,7 @@ def test_quicksort(xs):
     assert xs == exp
 
 
-@pytest.mark.parametrize(
-    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
-)
+@pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences])
 def test_quicksort_partial(xs):
     xs = xs[:]
     exp = sorted(xs)
@@ -229,9 +234,7 @@ def test_quicksort_partial(xs):
         assert xs_copy[k] == exp[k]
 
 
-@pytest.mark.parametrize(
-    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
-)
+@pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences])
 @pytest.mark.parametrize("f", [algor.mergesort_top_down, algor.mergesort_bottom_up])
 def test_mergesort(xs, f):
     xs = xs[:]
@@ -243,9 +246,7 @@ def test_mergesort(xs, f):
 SKIP = object()
 
 
-@pytest.mark.parametrize(
-    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences]
-)
+@pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], *short_sequences])
 @pytest.mark.parametrize("counter", [lambda: algor.ListSortedCounter(-100, 100), SKIP])
 def test_counting_sort(xs, counter):
     args = {}
@@ -256,9 +257,8 @@ def test_counting_sort(xs, counter):
     assert res == exp
 
 
-@pytest.mark.parametrize(
-    "xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7], trng.choices(range(10000), k=100)]
-)
+@pytest.mark.parametrize("xs", [[3, 1, 2], [5], [], [7, 7], [7, 7, 7],
+                                trng.choices(range(10000), k=100)])
 def test_radix_sort(xs):
     keys = [algor.nth_digit_getter(n) for n in range(10, -1, -1)]
     res = algor.radix_sort(xs, keys=keys)
@@ -304,7 +304,7 @@ def test_hash_table(insertions, cls):
             d[k] = v
             allkeys.add(k)
         elif cmd == "delete":
-            (k,) = args
+            (k, ) = args
             assert (try_delete(h, k) is not None) == (try_delete(d, k) is not None)
         else:
             raise ValueError("wrong test")
@@ -325,22 +325,20 @@ def _dumb_first_matching(pred, xs):
 
 
 def _dumb_equal_range(value, xs):
-    return _dumb_first_matching(lambda x: x >= value, xs), _dumb_first_matching(
-        lambda x: x > value, xs
-    )
+    return _dumb_first_matching(lambda x: x >= value,
+                                xs), _dumb_first_matching(lambda x: x > value, xs)
 
 
 @pytest.mark.parametrize(
     "xs",
-    itertools.chain(
-        *[itertools.combinations_with_replacement([0, 1, 2], n) for n in range(9)]
-    ),
+    itertools.chain(*[itertools.combinations_with_replacement([0, 1, 2], n) for n in range(9)]),
 )
 def test_equal_range(xs):
     assert algor.equal_range(1, xs) == _dumb_equal_range(1, xs)
 
 
 class _DumbSegmentTree:
+
     def __init__(self, size, monoid=algor.addition):
         self._monoid = monoid
         self._data = [monoid.unit for _ in range(size)]
@@ -414,9 +412,7 @@ def _random_ngon(n):
     return [_random_point() for _ in range(n)]
 
 
-@pytest.mark.parametrize(
-    "points", [_random_ngon(n) for n in range(3, 20) for _ in range(10)]
-)
+@pytest.mark.parametrize("points", [_random_ngon(n) for n in range(3, 20) for _ in range(10)])
 def test_convex_hull(points):
     res = algor.convex_hull(points)
     exp = _convex_hull(points)
@@ -430,8 +426,7 @@ def _line_intersection(a, b):
     bp2 = algor.point_add(bp, bv)
     try:
         c = geometer.Line(geometer.Point(*ap), geometer.Point(*ap2)).meet(
-            geometer.Line(geometer.Point(*bp), geometer.Point(*bp2))
-        )
+            geometer.Line(geometer.Point(*bp), geometer.Point(*bp2)))
     except geometer.exceptions.LinearDependenceError:
         return algor.COINCIDE, None
     if c.isinf:
@@ -445,8 +440,7 @@ def _segment_intersection(a, b):
     ap2 = algor.point_add(ap, av)
     bp2 = algor.point_add(bp, bv)
     c = geometer.Segment(geometer.Point(*ap), geometer.Point(*ap2)).intersect(
-        geometer.Segment(geometer.Point(*bp), geometer.Point(*bp2))
-    )
+        geometer.Segment(geometer.Point(*bp), geometer.Point(*bp2)))
     if not c:
         # Also returns EMPTY for the interleaving segments lying on the same line :(
         return algor.EMPTY, None
@@ -501,9 +495,7 @@ def _area(points):
     return geometer.shapes.Polygon(*[geometer.Point(*p) for p in points]).area
 
 
-@pytest.mark.parametrize(
-    "points", [_random_ngon(n) for n in range(3, 20) for _ in range(3, 10)]
-)
+@pytest.mark.parametrize("points", [_random_ngon(n) for n in range(3, 20) for _ in range(3, 10)])
 def test_area(points):
     res = algor.area(points)
     exp = _area(points)
@@ -511,9 +503,8 @@ def test_area(points):
 
 
 def _point_inside_polygon(poly, pt):
-    return geometer.shapes.Polygon(*[geometer.Point(*p) for p in poly]).contains(
-        geometer.Point(*pt)
-    )
+    return geometer.shapes.Polygon(*[geometer.Point(*p)
+                                     for p in poly]).contains(geometer.Point(*pt))
 
 
 POLY = [(0.2, 0.2), (0.8, 0.2), (0.5, 0.5), (0.8, 0.8), (0.2, 0.8)]
@@ -538,9 +529,7 @@ def _closest_pair(points):
     return a, b, d
 
 
-@pytest.mark.parametrize(
-    "points", [_random_ngon(n) for n in range(20) for _ in range(10)]
-)
+@pytest.mark.parametrize("points", [_random_ngon(n) for n in range(20) for _ in range(10)])
 def test_closest_pair(points):
     ra, rb, rd = algor.closest_pair(points)
     ea, eb, ed = _closest_pair(points)

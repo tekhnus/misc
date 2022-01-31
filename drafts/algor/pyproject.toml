@@ -9,3 +9,5 @@ minversion = "6.0"
 testpaths = [
     "test",
 ]
+[tool.yapf]
+column_limit = 100
