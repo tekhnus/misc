@@ -273,6 +273,28 @@ class GraphFilteredView:
         return [(e, u) for e, u in self._orig_view.outbound_edges(v) if u in self._vset]
 
 
+class GraphByEdges:
+    def __init__(self, edges):
+        self._idx = {}
+        self.edges_extend(edges)
+
+    def edges_extend(self, edges):
+        idx = self._idx
+        for eid, u, v in edges:
+            idx.setdefault(u, []).append((eid, v))
+
+    def __call__(self, v):
+        return iter(self._idx.get(v, []))
+
+
+def traverse(gf, vs):
+    def ngf(w):
+        if w is None:
+            return ((None, v) for v in vs)
+        return gf(w)
+    return ngf
+
+
 def dfs_recursive(gf, vs):
     visited = set()
 
@@ -288,23 +310,7 @@ def dfs_recursive(gf, vs):
         yield from _dfs(vs.pop())
 
 
-def dfs_iterative(gf, vs):
-    visited = set()
-    st = collections.deque([("enter", v) for v in vs])
-    while st:
-        item = label, u = st.pop()
-        if label == "exit":
-            yield item
-            continue
-        if u in visited:
-            continue
-        yield item
-        visited.add(u)
-        st.append(("exit", u))
-        st.extend(("enter", w) for _, w in reversed(list(gf(u))))
-
-
-def dfs_iterative_2(gf):
+def dfs_iterative(gf):
     visited = set()
     st = collections.deque()
     st.extend(("enter", e, None, w) for e, w in reversed(list(gf(None))))
@@ -342,31 +348,9 @@ def topo_sort(vs, gf):
     When the last element of an s.c.c. is outputted,
     all elements of all successor s.c.c. are already outputted.
     """
-    for label, v in dfs_iterative(gf, vs):
+    for label, _, _, v in dfs_iterative(traverse(gf, vs)):
         if label == "exit":
             yield v
-
-
-class GraphByEdges:
-    def __init__(self, edges):
-        self._idx = {}
-        self.edges_extend(edges)
-
-    def edges_extend(self, edges):
-        idx = self._idx
-        for eid, u, v in edges:
-            idx.setdefault(u, []).append((eid, v))
-
-    def __call__(self, v):
-        return iter(self._idx.get(v, []))
-
-
-def traverse(gf, vs):
-    def ngf(w):
-        if w is None:
-            return ((None, v) for v in vs)
-        return gf(w)
-    return ngf
 
 
 def strong_components(gf):
@@ -378,7 +362,7 @@ def strong_components(gf):
     c = collections.deque()
     rev_edges = []
 
-    for label, e, u, v in dfs_iterative_2(gf):
+    for label, e, u, v in dfs_iterative(gf):
         if label == "exit":
             c.append(v)
         else:
@@ -387,7 +371,7 @@ def strong_components(gf):
     rev = GraphByEdges(rev_edges)
     current_comp = -1
 
-    for label, e, u, v in dfs_iterative_2(traverse(rev, reversed(c))):
+    for label, e, u, v in dfs_iterative(traverse(rev, reversed(c))):
         if label == "enter":
             if u is None:
                 current_comp += 1
