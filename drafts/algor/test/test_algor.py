@@ -27,32 +27,11 @@ ws = {
 
 @pytest.mark.parametrize(
     "gr,exp",
-    [(
-        g1,
-        [
-            ("enter", 1),
-            ("enter", 2),
-            ("enter", 3),
-            ("enter", 4),
-            ("exit", 4),
-            ("exit", 3),
-            ("exit", 2),
-            ("exit", 1),
-        ],
-    )],
-)
-@pytest.mark.parametrize("f", [algor.dfs_recursive])
-def test_dfs(gr, exp, f):
-    assert list(f(gr.outbound_edges, [1])) == exp
-
-
-@pytest.mark.parametrize(
-    "gr,exp",
     [(g1, [('enter', None, None, 1), ('enter', 'a', 1, 2), ('enter', 'c', 2, 3),
            ('enter', 'd', 3, 4), ('exit', 'd', 3, 4), ('exit', 'c', 2, 3), ('exit', 'a', 1, 2),
            ('aux', 'b', 1, 3), ('exit', None, None, 1)])],
 )
-@pytest.mark.parametrize("f", [algor.dfs_iterative])
+@pytest.mark.parametrize("f", [algor.dfs_recursive, algor.dfs_iterative])
 def test_dfs_2(gr, exp, f):
     assert list(f(algor.traverse(gr.outbound_edges, [1]))) == exp
 
