@@ -219,9 +219,9 @@ class IndexedHeap:
 # DFS:                         neighbour function + initial vertices
 # BFS:                         neighbour function + initial vertices
 # topo sort:                   neighbour function + initial vertices
+# s.c.c.:                      neighbour function + initial vertices
 # dijkstra:                    neighbour function + weight function + initial vertices
 # prim:                        neighbour function + weight function + initial vertices
-# s.c.c.:                      neighbour function + initial vertices
 # edmonds-karp:                edges + weight function + s/t vertices
 # ford-bellman:                edges + weight function + initial vertices
 # kruskal:                     edges + weight function
@@ -304,9 +304,10 @@ def dfs_iterative(gf, vs):
         st.extend(("enter", w) for _, w in reversed(list(gf(u))))
 
 
-def dfs_iterative_2(gf, vs):
+def dfs_iterative_2(gf, v):
     visited = set()
-    st = collections.deque([("enter", None, None, v) for v in vs])
+    st = collections.deque()
+    st.extend(("enter", e, v, w) for e, w in reversed(list(gf(v))))
     while st:
         item = label, ed, pr, u = st.pop()
         if label == "exit":
@@ -377,7 +378,7 @@ def strong_components(vs, gf):
             return (("rootedge", v) for v in vs)
         return gf(v)
 
-    for label, e, u, v in dfs_iterative_2(attached_graph, ["root"]):
+    for label, e, u, v in dfs_iterative_2(attached_graph, "root"):
         if label == "exit":
             c.append(v)
         else:
