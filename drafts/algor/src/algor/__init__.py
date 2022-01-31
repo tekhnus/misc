@@ -361,6 +361,14 @@ class GraphByEdges:
         return iter(self._idx.get(v, []))
 
 
+def traverse(gf, vs):
+    def ngf(w):
+        if w is None:
+            return ((None, v) for v in vs)
+        return gf(w)
+    return ngf
+
+
 def strong_components(vs, gf):
     """
     Output all vertices of g reachable from any of vs enumerated by strong components.
@@ -370,12 +378,7 @@ def strong_components(vs, gf):
     c = collections.deque()
     rev_edges = []
 
-    def attached_graph(v):
-        if v is None:
-            return ((None, v) for v in vs)
-        return gf(v)
-
-    for label, e, u, v in dfs_iterative_2(attached_graph):
+    for label, e, u, v in dfs_iterative_2(traverse(gf, vs)):
         if label == "exit":
             c.append(v)
         else:
@@ -384,12 +387,7 @@ def strong_components(vs, gf):
     rev = GraphByEdges(rev_edges)
     current_comp = -1
 
-    def reversed_topo(v):
-        if v is None:
-            return ((None, s) for s in reversed(c))
-        return rev(v)
-
-    for label, e, u, v in dfs_iterative_2(reversed_topo):
+    for label, e, u, v in dfs_iterative_2(traverse(rev, reversed(c))):
         if label == "enter":
             if u is None:
                 current_comp += 1
