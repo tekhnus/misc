@@ -369,7 +369,7 @@ def traverse(gf, vs):
     return ngf
 
 
-def strong_components(vs, gf):
+def strong_components(gf):
     """
     Output all vertices of g reachable from any of vs enumerated by strong components.
 
@@ -378,7 +378,7 @@ def strong_components(vs, gf):
     c = collections.deque()
     rev_edges = []
 
-    for label, e, u, v in dfs_iterative_2(traverse(gf, vs)):
+    for label, e, u, v in dfs_iterative_2(gf):
         if label == "exit":
             c.append(v)
         else:
