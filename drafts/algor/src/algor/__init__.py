@@ -422,19 +422,19 @@ def greedy_tree(gf, pri):
             q.push_or_update(ver, (x, vert))
 
 
-def dijkstra(vs, gf, wg):
+def dijkstra(gf, wg):
     best = {}
     pred = {}
-    for vert, (dist, prd) in greedy_tree(traverse(gf, vs), lambda edg, dist: dist + wg[edg]):
+    for vert, (dist, prd) in greedy_tree(gf, lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
     return best, pred
 
 
-def prim(vs, gf, wg):
+def prim(gf, wg):
     weight = 0
     pred = {}
-    for vert, (dist, prd) in greedy_tree(traverse(gf, vs), lambda edg, _: wg[edg]):
+    for vert, (dist, prd) in greedy_tree(gf, lambda edg, _: wg[edg]):
         weight += dist
         pred[vert] = prd
     return weight, pred

@@ -77,7 +77,7 @@ def test_ford_bellman(vs, gr, ws, exp):
     1: None,
 }])])
 def test_dijkstra(vs, gr, ws, exp):
-    assert list(algor.dijkstra(vs, gr.outbound_edges, ws)) == exp
+    assert list(algor.dijkstra(algor.traverse(gr.outbound_edges, [1]), ws)) == exp
 
 
 @pytest.mark.parametrize(
@@ -97,7 +97,7 @@ def test_dijkstra(vs, gr, ws, exp):
     )],
 )
 def test_prim(gr, ws, exp):
-    assert algor.prim([1], gr.outbound_edges, ws) == exp
+    assert algor.prim(algor.traverse(gr.outbound_edges, [1]), ws) == exp
 
 
 @pytest.mark.parametrize(
