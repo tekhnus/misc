@@ -264,15 +264,6 @@ class Graph:
         return Graph(self._vs, [(eid, v, u) for eid, (u, v) in self._es.items()])
 
 
-class GraphFilteredView:
-    def __init__(self, gv, vs):
-        self._orig_view = gv
-        self._vset = vs
-
-    def outbound_edges(self, v):
-        return [(e, u) for e, u in self._orig_view.outbound_edges(v) if u in self._vset]
-
-
 class GraphByEdges:
     def __init__(self, edges):
         self._idx = {}
