@@ -428,8 +428,6 @@ def dijkstra(vs, gf, wg):
     for vert, (dist, prd) in greedy_tree(traverse(gf, vs), lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
-    for v in vs:
-        del pred[v]
     return best, pred
 
 
@@ -439,8 +437,6 @@ def prim(vs, gf, wg):
     for vert, (dist, prd) in greedy_tree(traverse(gf, vs), lambda edg, _: wg[edg]):
         weight += dist
         pred[vert] = prd
-    for v in vs:
-        del pred[v]
     return weight, pred
 
 

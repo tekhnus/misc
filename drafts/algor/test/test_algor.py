@@ -73,10 +73,31 @@ def test_ford_bellman(vs, gr, ws, exp):
 }, {
     2: 1,
     3: 1,
-    4: 3
+    4: 3,
+    1: None,
 }])])
 def test_dijkstra(vs, gr, ws, exp):
     assert list(algor.dijkstra(vs, gr.outbound_edges, ws)) == exp
+
+
+@pytest.mark.parametrize(
+    "gr,ws,exp",
+    [(
+        g1,
+        ws,
+        (
+            9,
+            {
+                2: 1,
+                3: 1,
+                4: 3,
+                1: None,
+            },
+        ),
+    )],
+)
+def test_prim(gr, ws, exp):
+    assert algor.prim([1], gr.outbound_edges, ws) == exp
 
 
 @pytest.mark.parametrize(
@@ -148,25 +169,6 @@ def test_floyd_warshall(gr, ws, exp):
 )
 def test_kruskal(gr, ws, exp):
     assert algor.kruskal(gr.edges, ws) == exp
-
-
-@pytest.mark.parametrize(
-    "gr,ws,exp",
-    [(
-        g1,
-        ws,
-        (
-            9,
-            {
-                2: 1,
-                3: 1,
-                4: 3
-            },
-        ),
-    )],
-)
-def test_prim(gr, ws, exp):
-    assert algor.prim([1], gr.outbound_edges, ws) == exp
 
 
 @pytest.mark.parametrize(
