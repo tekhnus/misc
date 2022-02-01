@@ -380,34 +380,6 @@ def strong_components(gf):
             yield current_comp, v
 
 
-def ford_bellman(vs, edges, wg):
-    best = {v: 0 for v in vs}
-    pred = {}
-
-    def upd(edgedata):
-        eid, u, v = edgedata
-        cand = best[u] + wg[eid]
-        if v not in best:
-            res = 2
-        elif best[v] > cand:
-            res = 1
-        else:
-            res = 0
-        if res > 0:
-            best[v], pred[v] = cand, u
-        return res
-
-    while True:
-        agg_res = max(upd(edata) for edata in edges)
-        if agg_res == 0:
-            # No new vertices and no updates.
-            return best, pred
-        if agg_res == 1:
-            # No new vertices, but there are updates.
-            raise ValueError("graph contains a nevative cycle")
-        # New vertices were found.
-
-
 def greedy_tree(gf, pri):
     q = IndexedHeap([(v, (0, None)) for e, v in gf(None)])
     reached = set()
@@ -438,6 +410,104 @@ def prim(gf, wg):
         weight += dist
         pred[vert] = prd
     return weight, pred
+
+
+def kruskal(edges, wg):
+    e = EquivalenceRelation()
+    sorted_edges = sorted((wg[eid], eid, u, v) for eid, u, v in edges)
+    weight = 0
+    tree = []
+    for w, eid, u, v in sorted_edges:
+        if e.are_equivalent(u, v):
+            continue
+        weight += w
+        tree.append(eid)
+        e.declare_equivalent(u, v)
+    return weight, tree
+
+
+def ford_bellman(vs, edges, wg):
+    best = {v: 0 for v in vs}
+    pred = {}
+
+    def upd(edgedata):
+        eid, u, v = edgedata
+        cand = best[u] + wg[eid]
+        if v not in best:
+            res = 2
+        elif best[v] > cand:
+            res = 1
+        else:
+            res = 0
+        if res > 0:
+            best[v], pred[v] = cand, u
+        return res
+
+    while True:
+        agg_res = max(upd(edata) for edata in edges)
+        if agg_res == 0:
+            # No new vertices and no updates.
+            return best, pred
+        if agg_res == 1:
+            # No new vertices, but there are updates.
+            raise ValueError("graph contains a nevative cycle")
+        # New vertices were found.
+
+
+def find_path_bfs(t, gf):
+    pred = {}
+    for e, u, v in bfs(gf):
+        pred[v] = (e, u)
+        if v == t:
+            break
+    else:
+        return None
+    path = []
+    x = t
+    while x in pred:
+        ed, p = pred[x]
+        path.append((ed, p, x))
+        x = p
+    return list(reversed(path))
+
+
+def forward(eid):
+    return (eid, False)
+
+
+def backward(eid):
+    return (eid, True)
+
+
+def reverse(eid):
+    e, flg = eid
+    return (e, not flg)
+
+
+def edmonds_karp(s, t, edges, wg):
+    rest = GraphByEdges([
+        *[(forward(eid), u, v) for eid, u, v in edges],
+        *[(backward(eid), v, u) for eid, u, v in edges],
+    ])
+    rest_wg = {
+        **{forward(eid): w for eid, w in wg.items()},
+        **{backward(eid): 0 for eid in wg.keys()},
+    }
+    wgh = 0
+
+    def outbound_edges_filtered_by_weight(v):
+        for eid, w in rest(v):
+            if rest_wg[eid]:
+                yield eid, w
+
+    while (path := find_path_bfs(t, traverse(outbound_edges_filtered_by_weight, [s]))) is not None:
+        pathwgh = min(rest_wg[e] for e, _, _ in path)
+        wgh += pathwgh
+        for e, _, _ in path:
+            rest_wg[e] -= pathwgh
+            rest_wg[reverse(e)] += pathwgh
+    used_wgh = {e: rest_wg[backward(e)] for e in wg}
+    return wgh, used_wgh
 
 
 @dataclasses.dataclass
@@ -512,76 +582,6 @@ def floyd_warshall(g, wg):
                     m[i, j] = thru_v
                     pred[i, j] = pred[v, j]
     return (remove_infinity(m, infty), pred)
-
-
-def kruskal(edges, wg):
-    e = EquivalenceRelation()
-    sorted_edges = sorted((wg[eid], eid, u, v) for eid, u, v in edges)
-    weight = 0
-    tree = []
-    for w, eid, u, v in sorted_edges:
-        if e.are_equivalent(u, v):
-            continue
-        weight += w
-        tree.append(eid)
-        e.declare_equivalent(u, v)
-    return weight, tree
-
-
-def find_path_bfs(t, gf):
-    pred = {}
-    for e, u, v in bfs(gf):
-        pred[v] = (e, u)
-        if v == t:
-            break
-    else:
-        return None
-    path = []
-    x = t
-    while x in pred:
-        ed, p = pred[x]
-        path.append((ed, p, x))
-        x = p
-    return list(reversed(path))
-
-
-def forward(eid):
-    return (eid, False)
-
-
-def backward(eid):
-    return (eid, True)
-
-
-def reverse(eid):
-    e, flg = eid
-    return (e, not flg)
-
-
-def edmonds_karp(s, t, edges, wg):
-    rest = GraphByEdges([
-        *[(forward(eid), u, v) for eid, u, v in edges],
-        *[(backward(eid), v, u) for eid, u, v in edges],
-    ])
-    rest_wg = {
-        **{forward(eid): w for eid, w in wg.items()},
-        **{backward(eid): 0 for eid in wg.keys()},
-    }
-    wgh = 0
-
-    def outbound_edges_filtered_by_weight(v):
-        for eid, w in rest(v):
-            if rest_wg[eid]:
-                yield eid, w
-
-    while (path := find_path_bfs(t, traverse(outbound_edges_filtered_by_weight, [s]))) is not None:
-        pathwgh = min(rest_wg[e] for e, _, _ in path)
-        wgh += pathwgh
-        for e, _, _ in path:
-            rest_wg[e] -= pathwgh
-            rest_wg[reverse(e)] += pathwgh
-    used_wgh = {e: rest_wg[backward(e)] for e in wg}
-    return wgh, used_wgh
 
 
 def partition(xs, bounds, pivot_value):
