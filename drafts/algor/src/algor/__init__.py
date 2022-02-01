@@ -482,6 +482,11 @@ def is_backward(eid):
     return flg
 
 
+def original_eid(eid):
+    oeid, _ = eid
+    return oeid
+
+
 def reverse(eid):
     e, flg = eid
     return (e, not flg)
@@ -489,33 +494,39 @@ def reverse(eid):
 
 def edmonds_karp(s, t, edges, wg):
     rest_fwd = GraphByEdges([
-        *[(forward(eid), u, v) for eid, u, v in edges],
+        *[(eid, u, v) for eid, u, v in edges],
     ])
     rest_bwd = GraphByEdges([])
-    rest_wg = {
-        **{forward(eid): w for eid, w in wg.items()},
-        **{backward(eid): 0 for eid in wg.keys()},
-    }
+    used_wg = collections.defaultdict(int)
     wgh = 0
+
+    def double_graph_wg(eid):
+        e, flg = eid
+        if flg:
+            return used_wg[e]
+        return wg[e] - used_wg[e]
 
     def outbound_edges_filtered_by_weight(v):
         for eid, w in rest_fwd(v):
-            if rest_wg[eid]:
-                yield eid, w
+            e = forward(eid)
+            if double_graph_wg(e) > 0:
+                yield e, w
         for eid, w in rest_bwd(v):
-            if rest_wg[eid]:
-                yield eid, w
+            e = backward(eid)
+            if double_graph_wg(e) > 0:
+                yield e, w
 
     while (path := find_path_bfs(t, traverse(outbound_edges_filtered_by_weight, [s]))) is not None:
-        pathwgh = min(rest_wg[e] for e, _, _ in path)
+        pathwgh = min(double_graph_wg(e) for e, _, _ in path)
         wgh += pathwgh
         for e, u, v in path:
-            rest_wg[e] -= pathwgh
-            rest_wg[reverse(e)] += pathwgh
+            oe = original_eid(e)
             if not is_backward(e):
-                rest_bwd.edges_update([(reverse(e), v, u)])
-    used_wgh = {e: rest_wg[backward(e)] for e in wg}
-    return wgh, used_wgh
+                used_wg[oe] += pathwgh
+                rest_bwd.edges_update([(original_eid(e), v, u)])
+            else:
+                used_wg[oe] -= pathwgh
+    return wgh, used_wg
 
 
 @dataclasses.dataclass
