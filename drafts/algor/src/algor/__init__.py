@@ -408,8 +408,8 @@ def ford_bellman(vs, edges, wg):
         # New vertices were found.
 
 
-def greedy_tree(vs, gf, pri):
-    q = IndexedHeap([(v, (0, None)) for v in vs])
+def greedy_tree(gf, pri):
+    q = IndexedHeap([(v, (0, None)) for e, v in gf(None)])
     reached = set()
     while q:
         vert, (dist, prd) = q.pop()
@@ -425,12 +425,23 @@ def greedy_tree(vs, gf, pri):
 def dijkstra(vs, gf, wg):
     best = {}
     pred = {}
-    for vert, (dist, prd) in greedy_tree(vs, gf, lambda edg, dist: dist + wg[edg]):
+    for vert, (dist, prd) in greedy_tree(traverse(gf, vs), lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
     for v in vs:
         del pred[v]
     return best, pred
+
+
+def prim(vs, gf, wg):
+    weight = 0
+    pred = {}
+    for vert, (dist, prd) in greedy_tree(traverse(gf, vs), lambda edg, _: wg[edg]):
+        weight += dist
+        pred[vert] = prd
+    for v in vs:
+        del pred[v]
+    return weight, pred
 
 
 @dataclasses.dataclass
@@ -519,17 +530,6 @@ def kruskal(edges, wg):
         tree.append(eid)
         e.declare_equivalent(u, v)
     return weight, tree
-
-
-def prim(vs, gf, wg):
-    weight = 0
-    pred = {}
-    for vert, (dist, prd) in greedy_tree(vs, gf, lambda edg, _: wg[edg]):
-        weight += dist
-        pred[vert] = prd
-    for v in vs:
-        del pred[v]
-    return weight, pred
 
 
 def find_path_bfs(t, gf):
