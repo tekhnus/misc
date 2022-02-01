@@ -492,10 +492,7 @@ def reverse(eid):
     return (e, not flg)
 
 
-def edmonds_karp(s, t, edges, wg):
-    rest_fwd = GraphByEdges([
-        *[(eid, u, v) for eid, u, v in edges],
-    ])
+def edmonds_karp(gf, wg, s, t):
     rest_bwd = GraphByEdges([])
     used_wg = collections.defaultdict(int)
     wgh = 0
@@ -507,7 +504,7 @@ def edmonds_karp(s, t, edges, wg):
         return wg[e] - used_wg[e]
 
     def outbound_edges_filtered_by_weight(v):
-        for eid, w in rest_fwd(v):
+        for eid, w in gf(v):
             e = forward(eid)
             if double_graph_wg(e) > 0:
                 yield e, w

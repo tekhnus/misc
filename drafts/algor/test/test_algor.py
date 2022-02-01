@@ -190,7 +190,7 @@ def test_kruskal(gr, ws, exp):
     )],
 )
 def test_edmonds_karp(s, t, gr, ws, exp):
-    assert algor.edmonds_karp(s, t, gr.edges, ws) == exp
+    assert algor.edmonds_karp(gr.outbound_edges, ws, s, t) == exp
 
 
 short_sequences = trng.sample([list(seq) for seq in itertools.product(list(range(4)), repeat=4)],
