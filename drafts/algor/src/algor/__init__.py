@@ -300,11 +300,11 @@ def dfs_recursive(gf):
         visited.add(u)
         for e, v in gf(u):
             if v in visited:
-                yield ("aux", e, u, v)
+                yield "aux", (e, u, v)
             else:
-                yield ("enter", e, u, v)
+                yield "enter", (e, u, v)
                 yield from _dfs(v)
-                yield ("exit", e, u, v)
+                yield "exit", (e, u, v)
 
     yield from _dfs(None)
 
@@ -319,14 +319,14 @@ def dfs_iterative(gf):
             if st:
                 u, es = st[-1]
                 e, v = es.popleft()
-                yield ("exit", e, u, v)
+                yield "exit", (e, u, v)
             continue
         e, v = es[0]
         if v in visited:
-            yield ("aux", e, u, v)
+            yield "aux", (e, u, v)
             es.popleft()
         else:
-            yield ("enter", e, u, v)
+            yield "enter", (e, u, v)
             visited.add(v)
             st.append((v, collections.deque((gf(v)))))
 
@@ -351,7 +351,7 @@ def topo_sort(gf):
     When the last element of an s.c.c. is outputted,
     all elements of all successor s.c.c. are already outputted.
     """
-    for label, _, _, v in dfs_iterative(gf):
+    for label, (_, _, v) in dfs_iterative(gf):
         if label == "exit":
             yield v
 
@@ -365,7 +365,7 @@ def strong_components(gf):
     c = collections.deque()
     rev_edges = []
 
-    for label, e, u, v in dfs_iterative(gf):
+    for label, (e, u, v) in dfs_iterative(gf):
         if label == "exit":
             c.append(v)
         else:
@@ -374,7 +374,7 @@ def strong_components(gf):
     rev = GraphByEdges(rev_edges)
     current_comp = -1
 
-    for label, e, u, v in dfs_iterative(traverse(rev, reversed(c))):
+    for label, (e, u, v) in dfs_iterative(traverse(rev, reversed(c))):
         if label == "enter":
             if u is None:
                 current_comp += 1

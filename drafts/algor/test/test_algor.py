@@ -33,6 +33,7 @@ ws = {
 )
 @pytest.mark.parametrize("f", [algor.dfs_recursive, algor.dfs_iterative])
 def test_dfs_2(gr, exp, f):
+    exp = [(label, (e, u, v)) for label, e, u, v in exp]
     assert list(f(algor.traverse(gr.outbound_edges, [1]))) == exp
 
 
