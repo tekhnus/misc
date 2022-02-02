@@ -311,23 +311,22 @@ def dfs_recursive(gf):
 
 def dfs_iterative(gf):
     visited = set()
-    st = collections.deque()
-    u = None
-    while True:
-        st.extend(("enter", e, u, w) for e, w in reversed(list(gf(u))))
-        while st:
-            item = label, ed, pr, u = st.pop()
-            if label == "exit":
-                yield item
-            elif u in visited:
-                yield "aux", ed, pr, u
-            else:
-                break
+    st = [collections.deque((e, None, v) for e, v in gf(None))]
+    while st:
+        es = st[-1]
+        if not es:
+            st.pop()
+            if st:
+                yield ("exit", *st[-1].popleft())
+            continue
+        e, u, v = es[0]
+        if v in visited:
+            yield ("aux", e, u, v)
+            es.popleft()
         else:
-            break
-        yield item
-        visited.add(u)
-        st.append(("exit", ed, pr, u))
+            yield ("enter", e, u, v)
+            visited.add(v)
+            st.append(collections.deque((e, v, w) for e, w in gf(v)))
 
 
 def bfs(gf):
