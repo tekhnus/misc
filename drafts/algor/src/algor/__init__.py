@@ -319,22 +319,23 @@ class StackItem:
 def dfs_iterative(gf):
     visited = set()
     st = []
-    st.append(StackItem(u=None, cur=None, rem=collections.deque(gf(None))))
+    st.append(StackItem(u=None, cur=None, rem=iter(gf(None))))
     while st:
         if st[-1].cur is not None:
             e, v = st[-1].cur
             yield "exit", (e, st[-1].u, v)
-        if not st[-1].rem:
+        st[-1].cur = next(st[-1].rem, None)
+        if st[-1].cur is None:
             st.pop()
             continue
-        e, v = st[-1].cur = st[-1].rem.popleft()
+        e, v = st[-1].cur
         if v in visited:
             yield "aux", (e, st[-1].u, v)
             st[-1].cur = None
             continue
         yield "enter", (e, st[-1].u, v)
         visited.add(v)
-        st.append(StackItem(u=v, cur=None, rem=collections.deque((gf(v)))))
+        st.append(StackItem(u=v, cur=None, rem=iter((gf(v)))))
 
 
 def bfs(gf):
