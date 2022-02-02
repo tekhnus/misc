@@ -309,26 +309,32 @@ def dfs_recursive(gf):
     yield from _dfs(None)
 
 
+@dataclasses.dataclass
+class StackItem:
+    u: ...
+    cur: ...
+    rem: ...
+
+
 def dfs_iterative(gf):
     visited = set()
-    st = [(None, collections.deque(gf(None)))]
+    st = []
+    st.append(StackItem(u=None, cur=None, rem=collections.deque(gf(None))))
     while st:
-        u, es = st[-1]
-        if not es:
+        if st[-1].cur is not None:
+            e, v = st[-1].cur
+            yield "exit", (e, st[-1].u, v)
+        if not st[-1].rem:
             st.pop()
-            if st:
-                u, es = st[-1]
-                e, v = es.popleft()
-                yield "exit", (e, u, v)
             continue
-        e, v = es[0]
+        e, v = st[-1].cur = st[-1].rem.popleft()
         if v in visited:
-            yield "aux", (e, u, v)
-            es.popleft()
-        else:
-            yield "enter", (e, u, v)
-            visited.add(v)
-            st.append((v, collections.deque((gf(v)))))
+            yield "aux", (e, st[-1].u, v)
+            st[-1].cur = None
+            continue
+        yield "enter", (e, st[-1].u, v)
+        visited.add(v)
+        st.append(StackItem(u=v, cur=None, rem=collections.deque((gf(v)))))
 
 
 def bfs(gf):
