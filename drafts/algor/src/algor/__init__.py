@@ -296,18 +296,17 @@ def traverse(gf, vs):
 def dfs_recursive(gf):
     visited = set()
 
-    def _dfs(e, u, v):
-        if v in visited:
-            yield ("aux", e, u, v)
-            return
-        yield ("enter", e, u, v)
-        visited.add(v)
-        for ee, w in gf(v):
-            yield from _dfs(ee, v, w)
-        yield ("exit", e, u, v)
+    def _dfs(u):
+        visited.add(u)
+        for e, v in gf(u):
+            if v in visited:
+                yield ("aux", e, u, v)
+            else:
+                yield ("enter", e, u, v)
+                yield from _dfs(v)
+                yield ("exit", e, u, v)
 
-    for e, v in gf(None):
-        yield from _dfs(e, None, v)
+    yield from _dfs(None)
 
 
 def dfs_iterative(gf):
