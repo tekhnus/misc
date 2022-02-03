@@ -552,7 +552,7 @@ def pairwise_distances(g, wg, ring=RING):
     mcheck = matrix_mul(m, m1, ring=ring)
     if mcheck != m:
         raise ValueError("graph contains a negative cycle")
-    return remove_infinity(m, ring=ring)
+    return m
 
 
 def weight_matrix(g, wg, ring):

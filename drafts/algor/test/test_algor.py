@@ -117,6 +117,12 @@ def test_prim(gr, ws, exp):
             (3, 3): 0,
             (3, 4): 5,
             (4, 4): 0,
+            (2, 1): algor.RING.no_score,
+            (3, 1): algor.RING.no_score,
+            (3, 2): algor.RING.no_score,
+            (4, 1): algor.RING.no_score,
+            (4, 2): algor.RING.no_score,
+            (4, 3): algor.RING.no_score,
         },
     )],
 )
