@@ -547,7 +547,7 @@ RING = Ring(no_score=math.inf, concat_scores=operator.add, combine_scores=min)
 
 
 def pairwise_distances(g, wg, ring=RING):
-    m1, _ = weight_matrix(g, wg, ring=ring)
+    m1 = weight_matrix(g, wg, ring=ring)
     m = matrix_power(m1, len(g.vs) - 1, ring=ring)
     mcheck = matrix_mul(m, m1, ring=ring)
     if mcheck != m:
@@ -558,15 +558,13 @@ def pairwise_distances(g, wg, ring=RING):
 def weight_matrix(g, wg, ring):
     infty = ring.no_score
     res = {(u, v): infty for u in g.vs for v in g.vs}
-    pred = {}
     for eid, u, v in g.edges:
         w = wg[eid]
         if res[u, v] > w:
             res[u, v] = w
-            pred[u, v] = u
     for u in g.vs:
         res[u, u] = 0
-    return res, pred
+    return res
 
 
 def matrix_power(m, k, *, ring):
@@ -601,7 +599,8 @@ def remove_infinity(m, ring):
 
 
 def floyd_warshall(g, wg, ring=RING):
-    m, pred = weight_matrix(g, wg, ring=ring)
+    m = weight_matrix(g, wg, ring=ring)
+    pred = {(u, v): u for u in g.vs for v in g.vs}
     for v in g.vs:
         for i in g.vs:
             for j in g.vs:
