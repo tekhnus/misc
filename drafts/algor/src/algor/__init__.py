@@ -593,11 +593,6 @@ def matrix_mul(x, y, *, ring):
     return res
 
 
-def remove_infinity(m, ring):
-    infty = ring.no_score
-    return {k: v for k, v in m.items() if v != infty}
-
-
 def floyd_warshall(g, wg, ring=RING):
     m = weight_matrix(g, wg, ring=ring)
     pred = {(u, v): u for u in g.vs for v in g.vs}
