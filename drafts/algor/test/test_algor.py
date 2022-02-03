@@ -1,3 +1,4 @@
+import collections
 import pytest
 import algor
 import random
@@ -8,7 +9,55 @@ import math
 
 trng = random.Random(1234)
 
-g1 = algor.Graph(
+
+class Graph:
+    def __init__(self, vs, es):
+        self._vs = []
+        self._es = {}
+        self._ix = collections.defaultdict(list)
+
+        self.vs_extend(vs)
+        self.es_extend(es)
+
+    @property
+    def vs(self):
+        return self._vs
+
+    @property
+    def edges(self):
+        return ((eid, u, v) for eid, (u, v) in self._es.items())
+
+    def edge_ends(self, e):
+        return self._es[e]
+
+    def vs_extend(self, vs):
+        self._vs.extend(vs)
+
+    def es_extend(self, es):
+        for eid, u, v in es:
+            self._es[eid] = (u, v)
+            self._ix[u].append(eid)
+
+    def outbound_edges(self, u):
+        return [(eid, self._es[eid][1]) for eid in self._ix[u]]
+
+    def reversed(self):
+        return Graph(self._vs, [(eid, v, u) for eid, (u, v) in self._es.items()])
+
+
+def weight_matrix(g, wg, ring=algor.RING):
+    infty = ring.no_score
+    res = {(u, v): infty for u in g.vs for v in g.vs}
+    for eid, u, v in g.edges:
+        w = wg[eid]
+        if res[u, v] > w:
+            res[u, v] = w
+    for u in g.vs:
+        res[u, u] = 0
+    return res
+
+
+g1 = Graph(
     [1, 2, 3, 4],
     [
         ("a", 1, 2),
@@ -127,7 +176,7 @@ def test_prim(gr, ws, exp):
     )],
 )
 def test_pairwise_distances(gr, ws, exp):
-    assert algor.pairwise_distances(algor.weight_matrix(gr, ws)) == exp
+    assert algor.pairwise_distances(weight_matrix(gr, ws)) == exp
 
 
 @pytest.mark.parametrize(
@@ -176,7 +225,7 @@ def test_pairwise_distances(gr, ws, exp):
     )],
 )
 def test_floyd_warshall(gr, ws, exp):
-    assert algor.floyd_warshall(algor.weight_matrix(gr, ws)) == exp
+    assert algor.floyd_warshall(weight_matrix(gr, ws)) == exp
 
 
 @pytest.mark.parametrize(

@@ -229,41 +229,6 @@ class IndexedHeap:
 # floyd-warshall:              weight matrix
 
 
-class Graph:
-    def __init__(self, vs, es):
-        self._vs = []
-        self._es = {}
-        self._ix = collections.defaultdict(list)
-
-        self.vs_extend(vs)
-        self.es_extend(es)
-
-    @property
-    def vs(self):
-        return self._vs
-
-    @property
-    def edges(self):
-        return ((eid, u, v) for eid, (u, v) in self._es.items())
-
-    def edge_ends(self, e):
-        return self._es[e]
-
-    def vs_extend(self, vs):
-        self._vs.extend(vs)
-
-    def es_extend(self, es):
-        for eid, u, v in es:
-            self._es[eid] = (u, v)
-            self._ix[u].append(eid)
-
-    def outbound_edges(self, u):
-        return [(eid, self._es[eid][1]) for eid in self._ix[u]]
-
-    def reversed(self):
-        return Graph(self._vs, [(eid, v, u) for eid, (u, v) in self._es.items()])
-
-
 class GraphByEdges:
     def __init__(self, edges):
         self._idx = {}
@@ -553,18 +518,6 @@ def pairwise_distances(m1, ring=RING):
     if mcheck != m:
         raise ValueError("graph contains a negative cycle")
     return m
-
-
-def weight_matrix(g, wg, ring=RING):
-    infty = ring.no_score
-    res = {(u, v): infty for u in g.vs for v in g.vs}
-    for eid, u, v in g.edges:
-        w = wg[eid]
-        if res[u, v] > w:
-            res[u, v] = w
-    for u in g.vs:
-        res[u, u] = 0
-    return res
 
 
 def matrix_power(m, k, *, ring):
