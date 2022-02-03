@@ -141,6 +141,12 @@ def test_pairwise_distances(gr, ws, exp):
                 (3, 3): 0,
                 (3, 4): 5,
                 (4, 4): 0,
+                (2, 1): algor.RING.no_score,
+                (3, 1): algor.RING.no_score,
+                (3, 2): algor.RING.no_score,
+                (4, 1): algor.RING.no_score,
+                (4, 2): algor.RING.no_score,
+                (4, 3): algor.RING.no_score,
             },
             {
                 (1, 2): 1,
@@ -148,7 +154,7 @@ def test_pairwise_distances(gr, ws, exp):
                 (1, 4): 3,
                 (2, 3): 2,
                 (2, 4): 3,
-                (3, 4): 3
+                (3, 4): 3,
             },
         ),
     )],

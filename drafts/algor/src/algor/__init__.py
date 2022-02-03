@@ -611,7 +611,7 @@ def floyd_warshall(g, wg, ring=RING):
                     pred[i, j] = pred[v, j]
                 m[i, j] = combined
 
-    return (remove_infinity(m, ring=ring), pred)
+    return (m, pred)
 
 
 def partition(xs, bounds, pivot_value):
