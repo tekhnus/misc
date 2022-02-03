@@ -605,10 +605,12 @@ def floyd_warshall(g, wg, ring=RING):
     for v in g.vs:
         for i in g.vs:
             for j in g.vs:
-                thru_v = m[i, v] + m[v, j]
-                if thru_v < m[i, j]:
-                    m[i, j] = thru_v
+                thru_v = ring.concat_scores(m[i, v], m[v, j])
+                combined = ring.combine_scores(m[i, j], thru_v)
+                if m[i, j] != combined:
                     pred[i, j] = pred[v, j]
+                m[i, j] = combined
+
     return (remove_infinity(m, ring=ring), pred)
 
 
