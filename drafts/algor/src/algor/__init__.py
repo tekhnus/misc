@@ -222,7 +222,7 @@ class IndexedHeap:
 # s.c.c.:                      neighbour function + initial vertices
 # dijkstra:                    neighbour function + weight function + initial vertices
 # prim:                        neighbour function + weight function + initial vertices
-# edmonds-karp:                edges + weight function + s/t vertices
+# edmonds-karp:                neighbour function + weight function + s/t vertices
 # ford-bellman:                edges + weight function + initial vertices
 # kruskal:                     edges + weight function
 # pairwise distance by matrix: weight matrix
