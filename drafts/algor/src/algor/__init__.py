@@ -546,8 +546,7 @@ class Ring:
 RING = Ring(no_score=math.inf, concat_scores=operator.add, combine_scores=min)
 
 
-def pairwise_distances(g, wg, ring=RING):
-    m1 = weight_matrix(g, wg, ring=ring)
+def pairwise_distances(m1, ring=RING):
     ks = list(set(v for v, _ in m1.keys()))
     m = matrix_power(m1, len(ks) - 1, ring=ring)
     mcheck = matrix_mul(m, m1, ring=ring)
@@ -556,7 +555,7 @@ def pairwise_distances(g, wg, ring=RING):
     return m
 
 
-def weight_matrix(g, wg, ring):
+def weight_matrix(g, wg, ring=RING):
     infty = ring.no_score
     res = {(u, v): infty for u in g.vs for v in g.vs}
     for eid, u, v in g.edges:
@@ -594,8 +593,7 @@ def matrix_mul(x, y, *, ring):
     return res
 
 
-def floyd_warshall(g, wg, ring=RING):
-    m = weight_matrix(g, wg, ring=ring)
+def floyd_warshall(m, ring=RING):
     pred = {(u, v): u for u, v in m.keys()}
     ks = list(set(v for v, _ in m.keys()))
     for v in ks:

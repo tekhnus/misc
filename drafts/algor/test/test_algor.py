@@ -127,7 +127,7 @@ def test_prim(gr, ws, exp):
     )],
 )
 def test_pairwise_distances(gr, ws, exp):
-    assert algor.pairwise_distances(gr, ws) == exp
+    assert algor.pairwise_distances(algor.weight_matrix(gr, ws)) == exp
 
 
 @pytest.mark.parametrize(
@@ -176,7 +176,7 @@ def test_pairwise_distances(gr, ws, exp):
     )],
 )
 def test_floyd_warshall(gr, ws, exp):
-    assert algor.floyd_warshall(gr, ws) == exp
+    assert algor.floyd_warshall(algor.weight_matrix(gr, ws)) == exp
 
 
 @pytest.mark.parametrize(
