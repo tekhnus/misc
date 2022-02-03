@@ -538,23 +538,25 @@ def edmonds_karp(gf, wg, s, t):
 
 @dataclasses.dataclass
 class Ring:
-    zero: object
-    sum: object
-    product: object
+    no_score: ...
+    concat_scores: ...
+    combine_scores: ...
 
 
-def pairwise_distances(g, wg):
-    infty = sum(x for x in wg.values() if x > 0) + 1
-    ring = Ring(zero=infty, sum=min, product=operator.add)
-    m1, _ = weight_matrix(g, wg, infty)
+RING = Ring(no_score=math.inf, concat_scores=operator.add, combine_scores=min)
+
+
+def pairwise_distances(g, wg, ring=RING):
+    m1, _ = weight_matrix(g, wg, ring=ring)
     m = matrix_power(m1, len(g.vs) - 1, ring=ring)
     mcheck = matrix_mul(m, m1, ring=ring)
     if mcheck != m:
         raise ValueError("graph contains a negative cycle")
-    return remove_infinity(m, infty)
+    return remove_infinity(m, ring=ring)
 
 
-def weight_matrix(g, wg, infty):
+def weight_matrix(g, wg, ring):
+    infty = ring.no_score
     res = {(u, v): infty for u in g.vs for v in g.vs}
     pred = {}
     for eid, u, v in g.edges:
@@ -586,20 +588,20 @@ def matrix_mul(x, y, *, ring):
     res = {}
     for i in is_:
         for k in ks:
-            v = ring.zero
+            v = ring.no_score
             for j in js:
-                v = ring.sum(v, ring.product(x[i, j], y[j, k]))
+                v = ring.combine_scores(v, ring.concat_scores(x[i, j], y[j, k]))
             res[i, k] = v
     return res
 
 
-def remove_infinity(m, infty):
+def remove_infinity(m, ring):
+    infty = ring.no_score
     return {k: v for k, v in m.items() if v != infty}
 
 
-def floyd_warshall(g, wg):
-    infty = sum(x for x in wg.values() if x > 0) + 1
-    m, pred = weight_matrix(g, wg, infty)
+def floyd_warshall(g, wg, ring=RING):
+    m, pred = weight_matrix(g, wg, ring=ring)
     for v in g.vs:
         for i in g.vs:
             for j in g.vs:
@@ -607,7 +609,7 @@ def floyd_warshall(g, wg):
                 if thru_v < m[i, j]:
                     m[i, j] = thru_v
                     pred[i, j] = pred[v, j]
-    return (remove_infinity(m, infty), pred)
+    return (remove_infinity(m, ring=ring), pred)
 
 
 def partition(xs, bounds, pivot_value):
