@@ -548,7 +548,8 @@ RING = Ring(no_score=math.inf, concat_scores=operator.add, combine_scores=min)
 
 def pairwise_distances(g, wg, ring=RING):
     m1 = weight_matrix(g, wg, ring=ring)
-    m = matrix_power(m1, len(g.vs) - 1, ring=ring)
+    ks = list(set(v for v, _ in m1.keys()))
+    m = matrix_power(m1, len(ks) - 1, ring=ring)
     mcheck = matrix_mul(m, m1, ring=ring)
     if mcheck != m:
         raise ValueError("graph contains a negative cycle")
@@ -595,10 +596,11 @@ def matrix_mul(x, y, *, ring):
 
 def floyd_warshall(g, wg, ring=RING):
     m = weight_matrix(g, wg, ring=ring)
-    pred = {(u, v): u for u in g.vs for v in g.vs}
-    for v in g.vs:
-        for i in g.vs:
-            for j in g.vs:
+    pred = {(u, v): u for u, v in m.keys()}
+    ks = list(set(v for v, _ in m.keys()))
+    for v in ks:
+        for i in ks:
+            for j in ks:
                 thru_v = ring.concat_scores(m[i, v], m[v, j])
                 combined = ring.combine_scores(m[i, j], thru_v)
                 if m[i, j] != combined:
