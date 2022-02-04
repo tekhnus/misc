@@ -277,31 +277,33 @@ def dfs_recursive(gf):
 @dataclasses.dataclass
 class StackItem:
     u: ...
-    cur: ...
-    rem: ...
+    e: ... = None
+    v: ... = None
+    edges: ... = None
 
 
 def dfs_iterative(gf):
     visited = set()
     st = []
-    st.append(StackItem(u=None, cur=None, rem=None))
+    st.append(StackItem(u=None))
+    fwd = True
     while st:
-        if st[-1].rem is None:
-            visited.add(st[-1].u)
-            st[-1].rem = iter(gf(st[-1].u))
+        frm = st[-1]
+        if fwd:
+            visited.add(frm.u)
+            frm.edges = iter(gf(frm.u))
         else:
-            e, v = st[-1].cur
-            yield "exit", (e, st[-1].u, v)
-
-        for e, v in st[-1].rem:
-            st[-1].cur = e, v
-            if v in visited:
-                yield "aux", (e, st[-1].u, v)
+            yield "exit", (frm.e, frm.u, frm.v)
+        fwd = False
+        for frm.e, frm.v in frm.edges:
+            if frm.v in visited:
+                yield "aux", (frm.e, frm.u, frm.v)
             else:
-                yield "enter", (e, st[-1].u, v)
-                st.append(StackItem(u=v, cur=None, rem=None))
+                yield "enter", (frm.e, frm.u, frm.v)
+                st.append(StackItem(u=frm.v))
+                fwd = True
                 break
-        else:
+        if not fwd:
             st.pop()
 
 
