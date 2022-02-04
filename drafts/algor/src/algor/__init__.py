@@ -289,20 +289,20 @@ def dfs_iterative(gf):
         if st[-1].rem is None:
             visited.add(st[-1].u)
             st[-1].rem = iter(gf(st[-1].u))
-        elif st[-1].cur is not None:
+        else:
             e, v = st[-1].cur
             yield "exit", (e, st[-1].u, v)
-        st[-1].cur = next(st[-1].rem, None)
-        if st[-1].cur is None:
+
+        for e, v in st[-1].rem:
+            st[-1].cur = e, v
+            if v in visited:
+                yield "aux", (e, st[-1].u, v)
+            else:
+                yield "enter", (e, st[-1].u, v)
+                st.append(StackItem(u=v, cur=None, rem=None))
+                break
+        else:
             st.pop()
-            continue
-        e, v = st[-1].cur
-        if v in visited:
-            yield "aux", (e, st[-1].u, v)
-            st[-1].cur = None
-            continue
-        yield "enter", (e, st[-1].u, v)
-        st.append(StackItem(u=v, cur=None, rem=None))
 
 
 def bfs(gf):
