@@ -344,15 +344,14 @@ def strong_components(gf):
             yield current_comp, v
 
 
-def bfs(gf):
+def bfs(gf, s):
     visited = set()
-    st = collections.deque([(e, None, v) for e, v in gf(None)])
+    st = collections.deque([(e, s, v) for e, v in gf(s)])
     while st:
         e, pred, u = st.popleft()
         if u in visited:
             continue
-        if pred is not None:
-            yield e, pred, u
+        yield e, pred, u
         visited.add(u)
         st.extend((eid, u, w) for eid, w in gf(u))
 
@@ -431,9 +430,9 @@ def ford_bellman(vs, edges, wg):
         # New vertices were found.
 
 
-def find_path_bfs(t, gf):
+def find_path_bfs(s, t, gf):
     pred = {}
-    for e, u, v in bfs(gf):
+    for e, u, v in bfs(gf, s):
         pred[v] = (e, u)
         if v == t:
             break
@@ -492,7 +491,7 @@ def edmonds_karp(gf, wg, s, t):
             if double_graph_wg(e) > 0:
                 yield e, w
 
-    while (path := find_path_bfs(t, traverse(outbound_edges_filtered_by_weight, [s]))) is not None:
+    while (path := find_path_bfs(s, t, outbound_edges_filtered_by_weight)) is not None:
         pathwgh = min(double_graph_wg(e) for e, _, _ in path)
         wgh += pathwgh
         for e, u, v in path:
