@@ -347,19 +347,17 @@ def strong_components(gf):
 def bfs(gf, s):
     st = collections.deque()
     enqueued_or_reached = {s}
-    for edg, ver in gf(s):
-        if ver in enqueued_or_reached:
-            continue
-        enqueued_or_reached.add(ver)
-        st.append((edg, s, ver))
-    while st:
-        e, pred, u = st.popleft()
-        yield e, pred, u
+    u = s
+    while True:
         for edg, ver in gf(u):
             if ver in enqueued_or_reached:
                 continue
             enqueued_or_reached.add(ver)
             st.append((edg, u, ver))
+        if not st:
+            break
+        e, pred, u = st.popleft()
+        yield e, pred, u
 
 
 def greedy_tree(gf, pri):
