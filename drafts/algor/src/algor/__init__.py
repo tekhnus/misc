@@ -345,15 +345,21 @@ def strong_components(gf):
 
 
 def bfs(gf, s):
-    visited = set()
-    st = collections.deque([(e, s, v) for e, v in gf(s)])
+    st = collections.deque()
+    enqueued_or_reached = {s}
+    for edg, ver in gf(s):
+        if ver in enqueued_or_reached:
+            continue
+        enqueued_or_reached.add(ver)
+        st.append((edg, s, ver))
     while st:
         e, pred, u = st.popleft()
-        if u in visited:
-            continue
         yield e, pred, u
-        visited.add(u)
-        st.extend((eid, u, w) for eid, w in gf(u))
+        for edg, ver in gf(u):
+            if ver in enqueued_or_reached:
+                continue
+            enqueued_or_reached.add(ver)
+            st.append((edg, u, ver))
 
 
 def greedy_tree(gf, pri):

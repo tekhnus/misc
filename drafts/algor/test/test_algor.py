@@ -57,6 +57,10 @@ def weight_matrix(g, wg, ring=algor.RING):
     return res
 
 
+"""
+1 --a--> 2 --c--> 3 --d--> 4
+ --------b--------^
+"""
 g1 = Graph(
     [1, 2, 3, 4],
     [
