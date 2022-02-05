@@ -307,19 +307,6 @@ def dfs_iterative(gf):
             st.pop()
 
 
-def bfs(gf):
-    visited = set()
-    st = collections.deque([(e, None, v) for e, v in gf(None)])
-    while st:
-        e, pred, u = st.popleft()
-        if u in visited:
-            continue
-        if pred is not None:
-            yield e, pred, u
-        visited.add(u)
-        st.extend((eid, u, w) for eid, w in gf(u))
-
-
 def topo_sort(gf):
     """
     Output all vertices of g reachable from any of vs.
@@ -355,6 +342,19 @@ def strong_components(gf):
             if u is None:
                 current_comp += 1
             yield current_comp, v
+
+
+def bfs(gf):
+    visited = set()
+    st = collections.deque([(e, None, v) for e, v in gf(None)])
+    while st:
+        e, pred, u = st.popleft()
+        if u in visited:
+            continue
+        if pred is not None:
+            yield e, pred, u
+        visited.add(u)
+        st.extend((eid, u, w) for eid, w in gf(u))
 
 
 def greedy_tree(gf, pri):
