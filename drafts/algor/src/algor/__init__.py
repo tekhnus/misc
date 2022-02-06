@@ -258,7 +258,7 @@ def traverse(gf, vs):
     return ngf
 
 
-def dfs_recursive(gf):
+def dfs_recursive(gf, s):
     visited = set()
 
     def _dfs(u):
@@ -269,9 +269,9 @@ def dfs_recursive(gf):
             else:
                 yield "enter", (e, u, v)
                 yield from _dfs(v)
-                yield "exit", (e, u, v)
+        yield "exit", (u,)
 
-    yield from _dfs(None)
+    yield from _dfs(s)
 
 
 @dataclasses.dataclass
@@ -282,18 +282,16 @@ class StackItem:
     edges: ... = None
 
 
-def dfs_iterative(gf):
+def dfs_iterative(gf, s):
     visited = set()
     st = []
-    st.append(StackItem(u=None))
+    st.append(StackItem(u=s))
     fwd = True
     while st:
         frm = st[-1]
         if fwd:
             visited.add(frm.u)
             frm.edges = iter(gf(frm.u))
-        else:
-            yield "exit", (frm.e, frm.u, frm.v)
         fwd = False
         for frm.e, frm.v in frm.edges:
             if frm.v in visited:
@@ -304,41 +302,51 @@ def dfs_iterative(gf):
                 fwd = True
                 break
         if not fwd:
+            yield "exit", (frm.u,)
             st.pop()
 
 
-def topo_sort(gf):
+def topo_sort(gf, s):
     """
     Output all vertices of g reachable from any of vs.
 
     When the last element of an s.c.c. is outputted,
     all elements of all successor s.c.c. are already outputted.
     """
-    for label, (_, _, v) in dfs_iterative(gf):
+    for label, data in dfs_iterative(gf, s):
         if label == "exit":
+            v, = data
             yield v
 
 
-def strong_components(gf):
+def strong_components(gf, s):
     """
-    Output all vertices of g reachable from any of vs enumerated by strong components.
+    Output all vertices of g reachable from s enumerated by strong components.
 
     The components are outputted in reversed topological order.
     """
     c = collections.deque()
     rev_edges = []
 
-    for label, (e, u, v) in dfs_iterative(gf):
+    for label, data in dfs_iterative(gf, s):
         if label == "exit":
+            v, = data
             c.append(v)
         else:
+            e, u, v = data
             if u is not None:
                 rev_edges.append((e, v, u))
     rev = GraphByEdges(rev_edges)
     current_comp = -1
 
-    for label, (e, u, v) in dfs_iterative(traverse(rev, reversed(c))):
+    def traverse_reverse_topo(x):
+        if x is None:
+            return ((None, y) for y in reversed(c))
+        return rev(x)
+
+    for label, data in dfs_iterative(traverse_reverse_topo, None):
         if label == "enter":
+            e, u, v = data
             if u is None:
                 current_comp += 1
             yield current_comp, v
