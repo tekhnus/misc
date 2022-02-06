@@ -360,8 +360,8 @@ def bfs(gf, s):
         yield e, pred, u
 
 
-def greedy_tree(gf, pri):
-    q = IndexedHeap([(v, (0, None)) for e, v in gf(None)])
+def greedy_tree(gf, s, pri):
+    q = IndexedHeap([(s, (0, None))])
     reached = set()
     while q:
         vert, (dist, prd) = q.pop()
@@ -374,19 +374,19 @@ def greedy_tree(gf, pri):
             q.push_or_update(ver, (x, vert))
 
 
-def dijkstra(gf, wg):
+def dijkstra(gf, s, wg):
     best = {}
     pred = {}
-    for vert, (dist, prd) in greedy_tree(gf, lambda edg, dist: dist + wg[edg]):
+    for vert, (dist, prd) in greedy_tree(gf, s, lambda edg, dist: dist + wg[edg]):
         best[vert] = dist
         pred[vert] = prd
     return best, pred
 
 
-def prim(gf, wg):
+def prim(gf, s, wg):
     weight = 0
     pred = {}
-    for vert, (dist, prd) in greedy_tree(gf, lambda edg, _: wg[edg]):
+    for vert, (dist, prd) in greedy_tree(gf, s, lambda edg, _: wg[edg]):
         weight += dist
         pred[vert] = prd
     return weight, pred
