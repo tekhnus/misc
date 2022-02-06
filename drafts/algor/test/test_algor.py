@@ -130,19 +130,10 @@ def test_dijkstra(vs, gr, ws, exp):
     [(
         g1,
         ws,
-        (
-            9,
-            {
-                2: 1,
-                3: 1,
-                4: 3,
-                1: None,
-            },
-        ),
-    )],
+        [(None, 1, 0), (1, 3, 1), (1, 2, 3), (3, 4, 5)])]
 )
 def test_prim(gr, ws, exp):
-    assert algor.prim(gr.outbound_edges, 1, ws) == exp
+    assert list(algor.prim(gr.outbound_edges, 1, ws)) == exp
 
 
 @pytest.mark.parametrize(

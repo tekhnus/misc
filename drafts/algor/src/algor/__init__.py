@@ -380,12 +380,8 @@ def dijkstra(gf, s, wg):
 
 
 def prim(gf, s, wg):
-    weight = 0
-    pred = {}
     for vert, (dist, prd) in greedy_tree(gf, s, lambda edg, _: wg[edg]):
-        weight += dist
-        pred[vert] = prd
-    return weight, pred
+        yield prd, vert, dist
 
 
 def kruskal(edges, wg):
