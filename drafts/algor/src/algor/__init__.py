@@ -375,12 +375,8 @@ def greedy_tree(gf, s, pri):
 
 
 def dijkstra(gf, s, wg):
-    best = {}
-    pred = {}
     for vert, (dist, prd) in greedy_tree(gf, s, lambda edg, dist: dist + wg[edg]):
-        best[vert] = dist
-        pred[vert] = prd
-    return best, pred
+        yield prd, vert, dist
 
 
 def prim(gf, s, wg):

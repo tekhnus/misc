@@ -119,17 +119,8 @@ def test_ford_bellman(vs, gr, ws, exp):
     assert list(algor.ford_bellman(vs, list(gr.edges), ws)) == exp
 
 
-@pytest.mark.parametrize("vs,gr,ws,exp", [([1], g1, ws, [{
-    1: 0,
-    2: 3,
-    3: 1,
-    4: 6
-}, {
-    2: 1,
-    3: 1,
-    4: 3,
-    1: None,
-}])])
+@pytest.mark.parametrize("vs,gr,ws,exp", [([1], g1, ws, [
+    (None, 1, 0), (1, 3, 1), (1, 2, 3), (3, 4, 6)])])
 def test_dijkstra(vs, gr, ws, exp):
     assert list(algor.dijkstra(gr.outbound_edges, 1, ws)) == exp
 
