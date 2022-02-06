@@ -388,14 +388,12 @@ def kruskal(edges, wg):
     e = EquivalenceRelation()
     sorted_edges = sorted((wg[eid], eid, u, v) for eid, u, v in edges)
     weight = 0
-    tree = []
     for w, eid, u, v in sorted_edges:
         if e.are_equivalent(u, v):
             continue
         weight += w
-        tree.append(eid)
+        yield u, v, weight
         e.declare_equivalent(u, v)
-    return weight, tree
 
 
 def ford_bellman(vs, edges, wg):

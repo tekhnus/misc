@@ -219,14 +219,11 @@ def test_floyd_warshall(gr, ws, exp):
     [(
         g1,
         ws,
-        (
-            9,
-            ["b", "a", "d"],
-        ),
+        [(1, 3, 1), (1, 2, 4), (3, 4, 9)]
     )],
 )
 def test_kruskal(gr, ws, exp):
-    assert algor.kruskal(gr.edges, ws) == exp
+    assert list(algor.kruskal(gr.edges, ws)) == exp
 
 
 @pytest.mark.parametrize(
