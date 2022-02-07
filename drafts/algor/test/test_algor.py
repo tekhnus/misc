@@ -120,7 +120,7 @@ def test_ford_bellman(vs, gr, ws, exp):
 
 
 @pytest.mark.parametrize("vs,gr,ws,exp", [([1], g1, ws, [
-    (None, 1, 0), (1, 3, 1), (1, 2, 3), (3, 4, 6)])])
+    (1, 3, 1), (1, 2, 3), (3, 4, 6)])])
 def test_dijkstra(vs, gr, ws, exp):
     assert list(algor.dijkstra(gr.outbound_edges, 1, ws)) == exp
 
@@ -130,7 +130,7 @@ def test_dijkstra(vs, gr, ws, exp):
     [(
         g1,
         ws,
-        [(None, 1, 0), (1, 3, 1), (1, 2, 3), (3, 4, 5)])]
+        [(1, 3, 1), (1, 2, 3), (3, 4, 5)])]
 )
 def test_prim(gr, ws, exp):
     assert list(algor.prim(gr.outbound_edges, 1, ws)) == exp

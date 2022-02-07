@@ -369,17 +369,21 @@ def bfs(gf, s):
 
 
 def greedy_tree(gf, s, pri):
-    q = IndexedHeap([(s, (0, None))])
+    q = IndexedHeap([])
     reached = set()
-    while q:
-        vert, (dist, prd) = q.pop()
-        yield vert, (dist, prd)
-        reached.add(vert)
+    vert, dist = s, 0
+    while True:
         for edg, ver in gf(vert):
             if ver in reached:
                 continue
             x = pri(edg, dist)
             q.push_or_update(ver, (x, vert))
+        if not q:
+            break
+        vert, (dist, prd) = q.pop()
+        yield vert, (dist, prd)
+        reached.add(vert)
+
 
 
 def dijkstra(gf, s, wg):
