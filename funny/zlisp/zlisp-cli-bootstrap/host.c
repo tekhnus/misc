@@ -1,4 +1,4 @@
-#include <zlisp-cli-bootstrap/host.h>
+#include <host.h>
 #if INTERFACE
 #include <zlisp-impl/zlisp-impl.h>
 #include <string.h>

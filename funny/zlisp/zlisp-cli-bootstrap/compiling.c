@@ -1,4 +1,4 @@
-#include <zlisp-cli-bootstrap/compiling.h>
+#include <compiling.h>
 #if INTERFACE
 #include <unistd.h>
 #include <stdlib.h>

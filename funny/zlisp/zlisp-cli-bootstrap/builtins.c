@@ -1,4 +1,4 @@
-#include <zlisp-cli-bootstrap/builtins.h>
+#include <builtins.h>
 #if INTERFACE
 #include <zlisp-impl/zlisp-impl.h>
 #include <stdlib.h>

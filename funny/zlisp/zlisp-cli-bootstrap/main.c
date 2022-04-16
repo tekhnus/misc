@@ -1,5 +1,5 @@
 // a basic CLI for zlisp interpreter.
-#include <zlisp-cli-bootstrap/main.h>
+#include <main.h>
 #if INTERFACE
 #include <unistd.h>
 #include <stdlib.h>
