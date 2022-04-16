@@ -71,7 +71,7 @@ bool datum_is_routine_0(datum *e) { return e->type == DATUM_ROUTINE_0; }
 
 bool datum_is_routine_1(datum *e) { return e->type == DATUM_ROUTINE_1; }
 
-bool datum_is_pointer(datum *e) { return e->type == DATUM_POINTER; }
+bool datum_is_pointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "cptr"); }
 
 bool datum_is_void(datum *e) { return e->type == DATUM_VOID; }
 
@@ -145,11 +145,7 @@ datum *datum_make_routine_1(routine_1 r) {
 }
 
 datum *datum_make_pointer(void *data, datum *signature) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_POINTER;
-  e->pointer_descriptor = signature;
-  e->pointer_value = data;
-  return e;
+  return datum_make_list_2(datum_make_symbol("cptr"), datum_make_list_2(datum_make_int((int64_t)data), signature));
 }
 
 datum *datum_make_pointer_to_pointer(void **ptr) {
@@ -161,7 +157,7 @@ void *datum_get_pointer_value(datum *d) {
     fprintf(stderr, "Not a pointer!");
     exit(1);
   }
-  return d->pointer_value;
+  return (void*)d->list_tail->list_head->list_head->integer_value;
 }
 
 datum *datum_get_pointer_descriptor(datum *d) {
@@ -169,7 +165,7 @@ datum *datum_get_pointer_descriptor(datum *d) {
     fprintf(stderr, "Not a pointer!");
     exit(1);
   }
-  return d->pointer_descriptor;
+  return d->list_tail->list_head->list_tail->list_head;
 }
 
 datum *datum_make_void() {
