@@ -63,7 +63,9 @@
                                (def res (dereference-and-cast res-ptr 'pointer))
                                (if (not-null-pointer res)
                                    (return res-ptr)
-                                 (panic (concat-bytestrings "couln't dlopen library " (head args))))))
+                                 (if (eq (head args) "")
+                                     (return res-ptr)
+                                   (panic (concat-bytestrings "couln't dlopen library " (head args)))))))
 
 (builtin.defn c-function-or-panic
               (progn
