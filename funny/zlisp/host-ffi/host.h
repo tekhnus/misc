@@ -21,5 +21,6 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor)
 void *datum_get_pointer_value(datum *d);
 bool datum_is_pointer(datum *e);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);
+void *simplified_dlsym(void *handle,const char *symbol);
 void *simplified_dlopen(char *path);
 #define INTERFACE 0
