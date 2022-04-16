@@ -4,9 +4,9 @@ project(zlisp VERSION 0.1 LANGUAGES C)
 enable_testing()
 
 add_subdirectory(zlisp-impl)
-add_subdirectory(zlisp-cli-bootstrap)
+add_subdirectory(host-ffi)
 add_subdirectory(tools)
 add_subdirectory(test)
 
 add_custom_target(codegen
-                  DEPENDS codegen-zlisp-impl codegen-zlisp-cli-bootstrap)
+                  DEPENDS codegen-zlisp-impl codegen-host-ffi)
