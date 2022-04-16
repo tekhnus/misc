@@ -71,8 +71,6 @@ bool datum_is_routine_0(datum *e) { return e->type == DATUM_ROUTINE_0; }
 
 bool datum_is_routine_1(datum *e) { return e->type == DATUM_ROUTINE_1; }
 
-bool datum_is_pointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "cptr"); }
-
 bool datum_is_void(datum *e) { return e->type == DATUM_VOID; }
 
 datum *datum_make_nil() {
@@ -142,30 +140,6 @@ datum *datum_make_routine_1(routine_1 r) {
   e->type = DATUM_ROUTINE_1;
   e->routine_1_value = r;
   return e;
-}
-
-datum *datum_make_pointer(void *data, datum *signature) {
-  return datum_make_list_2(datum_make_symbol("cptr"), datum_make_list_2(datum_make_int((int64_t)data), signature));
-}
-
-datum *datum_make_pointer_to_pointer(void **ptr) {
-  return datum_make_pointer(ptr, datum_make_symbol("pointer"));
-}
-
-void *datum_get_pointer_value(datum *d) {
-  if (!datum_is_pointer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
-  return (void*)d->list_tail->list_head->list_head->integer_value;
-}
-
-datum *datum_get_pointer_descriptor(datum *d) {
-  if (!datum_is_pointer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
-  return d->list_tail->list_head->list_tail->list_head;
 }
 
 datum *datum_make_void() {
@@ -429,9 +403,6 @@ char *datum_repr(datum *e) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
   } else if (datum_is_routine_0(e) || datum_is_routine_1(e)) {
     end += sprintf(end, "<form>");
-  } else if (datum_is_pointer(e)) {
-    end += sprintf(end, "<externcdata %p %s>", datum_get_pointer_value(e),
-                   datum_repr(datum_get_pointer_descriptor(e)));
   } else if (datum_is_void(e)) {
     end += sprintf(end, "<void>");
   } else {

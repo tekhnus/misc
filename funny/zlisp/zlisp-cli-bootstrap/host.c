@@ -253,3 +253,30 @@ fdatum pointer_call(datum *f, datum *args) {
   }
   return pointer_ffi_call(f, &cif, cargs);
 }
+
+
+datum *datum_make_pointer(void *data, datum *signature) {
+  return datum_make_list_2(datum_make_symbol("cptr"), datum_make_list_2(datum_make_int((int64_t)data), signature));
+}
+
+datum *datum_make_pointer_to_pointer(void **ptr) {
+  return datum_make_pointer(ptr, datum_make_symbol("pointer"));
+}
+
+void *datum_get_pointer_value(datum *d) {
+  if (!datum_is_pointer(d)) {
+    fprintf(stderr, "Not a pointer!");
+    exit(1);
+  }
+  return (void*)d->list_tail->list_head->list_head->integer_value;
+}
+
+datum *datum_get_pointer_descriptor(datum *d) {
+  if (!datum_is_pointer(d)) {
+    fprintf(stderr, "Not a pointer!");
+    exit(1);
+  }
+  return d->list_tail->list_head->list_tail->list_head;
+}
+
+bool datum_is_pointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "cptr"); }
