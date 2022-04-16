@@ -1,7 +1,6 @@
 add_library(zlisp-impl SHARED main.c compiling.c running.c)
-find_path(FFI_INCLUDE_DIRS ffi.h PATH_SUFFIXES ffi)
-target_link_libraries(zlisp-impl ffi dl)
-target_include_directories(zlisp-impl PUBLIC . ${FFI_INCLUDE_DIRS})
+target_link_libraries(zlisp-impl dl)
+target_include_directories(zlisp-impl PUBLIC .)
 set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD 11
 				 C_STANDARD_REQUIRED YES

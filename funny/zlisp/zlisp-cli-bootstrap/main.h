@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <ffi.h>
 fdatum routine_run_and_get_value_c_host(state **ctxt,prog *p);
 #include <stdint.h>
 state *state_make_builtins();

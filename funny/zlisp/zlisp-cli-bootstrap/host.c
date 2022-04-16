@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <ffi.h>
 #endif
 
 void *simplified_dlopen(char *path) {

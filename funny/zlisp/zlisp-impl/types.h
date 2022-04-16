@@ -1,7 +1,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <ffi.h>
 
 enum datum_type {
   DATUM_NIL,

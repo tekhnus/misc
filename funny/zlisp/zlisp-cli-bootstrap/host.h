@@ -4,6 +4,7 @@
 #include <string.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <ffi.h>
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
 char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);

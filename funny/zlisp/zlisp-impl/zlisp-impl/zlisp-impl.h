@@ -7,7 +7,6 @@ typedef struct routine_0 routine_0;
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
-#include <ffi.h>
 typedef struct datum datum;
 struct fdatum {
   int type;
