@@ -1,25 +1,25 @@
-(def dlopen-pointer (host "dlopen" '()))
+(def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
 (builtin.defn dlopen (return (host "pointer-call" `(~dlopen-pointer ~args))))
 
-(def dlsym-pointer (host "dlsym" '()))
+(def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
 (builtin.defn dlsym (return (host "pointer-call" `(~dlsym-pointer ~args))))
 
-(def dereference-and-cast-pointer (host "dereference-and-cast" '()))
+(def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
 (builtin.defn dereference-and-cast (return (host "pointer-call" `(~dereference-and-cast-pointer ~args))))
 
-(def not-null-pointer-ptr (host "not-null-pointer" '()))
+(def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
 (builtin.defn not-null-pointer (return (host "pointer-call" `(~not-null-pointer-ptr ~args))))
 
-(def wrap-pointer-into-pointer-ptr (host "wrap-pointer-into-pointer" '()))
+(def wrap-pointer-into-pointer-ptr `(cptr (~(host "wrap-pointer-into-pointer" '()) ((datum) val))))
 (builtin.defn wrap-pointer-into-pointer (return (host "pointer-call" `(~wrap-pointer-into-pointer-ptr ~args))))
 
-(def panic-pointer (host "panic" '()))
+(def panic-pointer `(cptr (~(host "panic" '()) ((datum) val))))
 (builtin.defn panic (return (host "pointer-call" `(~panic-pointer ~args))))
 
-(def head-pointer (host "head" '()))
+(def head-pointer `(cptr (~(host "head" '()) ((datum) val))))
 (builtin.defn head (return (host "pointer-call" `(~head-pointer ~args))))
 
-(def tail-pointer (host "tail" '()))
+(def tail-pointer `(cptr (~(host "tail" '()) ((datum) val))))
 (builtin.defn tail (return (host "pointer-call" `(~tail-pointer ~args))))
 
 (builtin.defn c-function-pointer

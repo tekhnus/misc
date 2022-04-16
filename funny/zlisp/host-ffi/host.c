@@ -51,21 +51,21 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
   }
   datum *res;
   if (!strcmp(name->bytestring_value, "wrap-pointer-into-pointer")) {
-    res = datum_make_pointer((void *)builtin_ptr_wrap_ptr_into_ptr, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+    res = datum_make_int((int64_t)builtin_ptr_wrap_ptr_into_ptr);
   } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
-    res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+    res = datum_make_int((int64_t)builtin_ptr_not_null_pointer);
   } else if (!strcmp(name->bytestring_value, "panic")) {
-    res = datum_make_pointer((void *)builtin_panic, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+    res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
-    res = datum_make_pointer((void *)builtin_head, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+    res = datum_make_int((int64_t)builtin_head);
   } else if (!strcmp(name->bytestring_value, "tail")) {
-    res = datum_make_pointer((void *)builtin_tail, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+    res = datum_make_int((int64_t)builtin_tail);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
-    res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
+    res = datum_make_int((int64_t)simplified_dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
-    res = datum_make_pointer((void *)simplified_dlsym, datum_make_list_2(datum_make_list_2(datum_make_symbol("pointer"), datum_make_symbol("string")), datum_make_symbol("pointer")));
+    res = datum_make_int((int64_t)simplified_dlsym);
   } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
-    res = datum_make_pointer((void *)builtin_ptr_dereference_and_cast, datum_make_list_2(datum_make_list_2(datum_make_symbol("datum"), datum_make_symbol("datum")), datum_make_symbol("val")));
+    res = datum_make_int((int64_t)builtin_ptr_dereference_and_cast);
   } else if (!strcmp(name->bytestring_value, "pointer-call")) {
     datum *form = arg;
     if (!datum_is_list(form) || list_length(form) != 2) {
