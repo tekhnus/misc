@@ -12,6 +12,10 @@ char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
 fdatum routine_run_and_get_value_c_host(state **ctxt,prog *p);
 fdatum pointer_call(datum *f,datum *args);
+#include <stdint.h>
+fdatum builtin_tail(datum *list);
+fdatum builtin_head(datum *list);
+fdatum builtin_panic(datum *arg_value);
 fdatum perform_host_instruction(datum *name,datum *arg);
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt);
 datum *datum_make_pointer(void *data,datum *signature);

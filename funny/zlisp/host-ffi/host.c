@@ -12,21 +12,11 @@ void *simplified_dlopen(char *path) {
   if (strlen(path) == 0) {
     return RTLD_DEFAULT;
   }
-  void *handle = dlopen(path, RTLD_LAZY);
-  if (!handle) {
-    fprintf(stderr, "cannot dlopen %s", path);
-    exit(EXIT_FAILURE);
-  }
-  return handle;
+  return dlopen(path, RTLD_LAZY);
 }
 
 void *simplified_dlsym(void *handle, const char *symbol) {
-  void *sym = dlsym(handle, symbol);
-  if (!sym) {
-    fprintf(stderr, "cannot dlsym %s", symbol);
-    exit(EXIT_FAILURE);
-  }
-  return sym;
+  return dlsym(handle, symbol);
 }
 
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
@@ -64,6 +54,12 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_pointer((void *)builtin_ptr_wrap_ptr_into_ptr, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
   } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
     res = datum_make_pointer((void *)builtin_ptr_not_null_pointer, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+  } else if (!strcmp(name->bytestring_value, "panic")) {
+    res = datum_make_pointer((void *)builtin_panic, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+  } else if (!strcmp(name->bytestring_value, "head")) {
+    res = datum_make_pointer((void *)builtin_head, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
+  } else if (!strcmp(name->bytestring_value, "tail")) {
+    res = datum_make_pointer((void *)builtin_tail, datum_make_list_2(datum_make_list_1(datum_make_symbol("datum")), datum_make_symbol("val")));
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     res = datum_make_pointer((void *)simplified_dlopen, datum_make_list_2(datum_make_list_1(datum_make_symbol("string")), datum_make_symbol("pointer")));
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
