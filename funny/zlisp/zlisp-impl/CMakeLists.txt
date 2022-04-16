@@ -1,5 +1,4 @@
 add_library(zlisp-impl SHARED main.c compiling.c running.c)
-target_link_libraries(zlisp-impl dl)
 target_include_directories(zlisp-impl PUBLIC .)
 set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD 11

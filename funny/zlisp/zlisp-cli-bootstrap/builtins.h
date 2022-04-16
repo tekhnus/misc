@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <dlfcn.h>
 state *state_make_builtins();
 fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);

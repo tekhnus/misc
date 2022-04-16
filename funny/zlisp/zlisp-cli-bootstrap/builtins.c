@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <dlfcn.h>
 #endif
 
 fdatum builtin_eq(datum *x, datum *y) {

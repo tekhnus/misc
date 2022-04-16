@@ -2,7 +2,6 @@
 #include <zlisp-impl/zlisp-impl.h>
 
 #include <ctype.h>
-#include <dlfcn.h>
 #include <libgen.h>
 
 #include <stddef.h>
