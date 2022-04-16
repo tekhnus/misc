@@ -1,26 +1,26 @@
 (def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
-(builtin.defn dlopen (return (host "pointer-call-old" `(~dlopen-pointer ~args))))
+(builtin.defn dlopen (return `(cptr (~(host "pointer-call" `(~dlopen-pointer ~args)) pointer))))
 
 (def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
-(builtin.defn dlsym (return (host "pointer-call-old" `(~dlsym-pointer ~args))))
+(builtin.defn dlsym (return `(cptr (~(host "pointer-call" `(~dlsym-pointer ~args)) pointer))))
 
 (def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
-(builtin.defn dereference-and-cast (return (host "pointer-call-old" `(~dereference-and-cast-pointer ~args))))
+(builtin.defn dereference-and-cast (return (host "dereference-datum" (host "pointer-call" `(~dereference-and-cast-pointer ~args)))))
 
 (def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
-(builtin.defn not-null-pointer (return (host "pointer-call-old" `(~not-null-pointer-ptr ~args))))
+(builtin.defn not-null-pointer (return (host "dereference-datum" (host "pointer-call" `(~not-null-pointer-ptr ~args)))))
 
 (def wrap-pointer-into-pointer-ptr `(cptr (~(host "wrap-pointer-into-pointer" '()) ((datum) val))))
-(builtin.defn wrap-pointer-into-pointer (return (host "pointer-call-old" `(~wrap-pointer-into-pointer-ptr ~args))))
+(builtin.defn wrap-pointer-into-pointer (return (host "dereference-datum" (host "pointer-call" `(~wrap-pointer-into-pointer-ptr ~args)))))
 
 (def panic-pointer `(cptr (~(host "panic" '()) ((datum) val))))
-(builtin.defn panic (return (host "pointer-call-old" `(~panic-pointer ~args))))
+(builtin.defn panic (return (host "dereference-datum" (host "pointer-call" `(~panic-pointer ~args)))))
 
 (def head-pointer `(cptr (~(host "head" '()) ((datum) val))))
 (builtin.defn head (return (host "dereference-datum" (host "pointer-call" `(~head-pointer ~args)))))
 
 (def tail-pointer `(cptr (~(host "tail" '()) ((datum) val))))
-(builtin.defn tail (return (host "pointer-call-old" `(~tail-pointer ~args))))
+(builtin.defn tail (return (host "dereference-datum" (host "pointer-call" `(~tail-pointer ~args)))))
 
 (builtin.defn c-function-pointer
             (progn
