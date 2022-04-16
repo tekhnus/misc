@@ -47,15 +47,6 @@
                                    (return `(:ok ~res))
                                  (return `(:err "extern-pointer failed")))))
 
-(builtin.defn dlopen-or-panic (progn
-                               (def res-ptr (dlopen (head args)))
-                               (def res (dereference-and-cast res-ptr 'pointer))
-                               (if (not-null-pointer res)
-                                   (return res-ptr)
-                                 (if (eq (head args) "")
-                                     (return res-ptr)
-                                   (panic (concat-bytestrings "couln't dlopen library " (head args)))))))
-
 (builtin.defn c-function-or-panic
               (progn
                 (def handle (head args))
@@ -68,7 +59,7 @@
                      (return fn-routine))
                   (panic (concat-bytestrings "couldn't load C function " c-name)))))
 
-(def selflib (dlopen-or-panic ""))
+(def selflib (dlopen ""))
 
 (builtin.defn builtin-function
               (progn

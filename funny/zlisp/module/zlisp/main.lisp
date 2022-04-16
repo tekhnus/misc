@@ -1,7 +1,6 @@
 !(require "stdmacro")
 (require "std")
 
-(def selflib (dlopen-or-panic ""))
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def prog-make (c-function-or-panic selflib "prog_make" '(() pointer)))
 (def prog-init-module-c-host (c-function-or-panic selflib "prog_init_module_c_host" '((pointer datum) pointer)))
