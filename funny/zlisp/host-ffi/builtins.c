@@ -43,10 +43,7 @@ fdatum builtin_is_constant(datum *arg_value) {
 }
 
 fdatum builtin_panic(datum *arg_value) {
-  if (!datum_is_bytestring(arg_value)) {
-    return fdatum_make_panic("panic expects a bytestring");
-  }
-  return fdatum_make_panic(arg_value->bytestring_value);
+  return fdatum_make_panic(datum_repr(arg_value));
 }
 
 fdatum builtin_repr(datum *v) {

@@ -47,7 +47,12 @@
                                    (return `(:ok ~res))
                                  (return `(:err "extern-pointer failed")))))
 
-(builtin.defn c-function-or-panic
+(builtin.defn pointer-call-and-interpret
+              (progn
+                (def rawres (host "pointer-call" (head args)))
+                (return (host "dereference-datum" rawres))))
+
+(builtin.defn builtin-or-panic
               (progn
                 (def handle (head args))
                 (def c-name (head (tail args)))
@@ -55,7 +60,7 @@
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
                 (if (not-null-pointer fn-pointer)
-                    ((def fn-routine (builtin.fn (return (host "pointer-call-old" `(~fn-pointer ~args)))))
+                    ((def fn-routine (builtin.fn (return (pointer-call-and-interpret `(~fn-pointer ~args)))))
                      (return fn-routine))
                   (panic (concat-bytestrings "couldn't load C function " c-name)))))
 
@@ -65,7 +70,7 @@
               (progn
                 (def c-name (head args))
                 (def signature (head (tail args)))
-                (return (c-function-or-panic selflib c-name signature))))
+                (return (builtin-or-panic selflib c-name signature))))
 
 (def cons (builtin-function "builtin_cons" '((datum datum) val)))
 (def panic (builtin-function "builtin_panic" '((datum) val)))
@@ -76,5 +81,23 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
+(builtin.defn pointer-call-and-deserialize
+              (progn
+                (def oldres (host "pointer-call-old" (head args)))
+                (def rawres (host "pointer-call" (head args)))
+                (def rettype (head (tail (head (tail (head (tail (head (head args)))))))))
+                (return oldres)))
 
-(builtin.defn wrap-fn-pointer (return `(def ~(head args) (builtin.fn (return (host "pointer-call-old" (list ~(head (tail args)) args)))))))
+(builtin.defn c-function-or-panic
+              (progn
+                (def handle (head args))
+                (def c-name (head (tail args)))
+                (def signature (head (tail (tail args))))
+                (def fn-pointer-pointer (dlsym handle c-name))
+                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
+                (if (not-null-pointer fn-pointer)
+                    ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `(~fn-pointer ~args)))))
+                     (return fn-routine))
+                  (panic (concat-bytestrings "couldn't load C function " c-name)))))
+
+(builtin.defn wrap-fn-pointer (return `(def ~(head args) (builtin.fn (return (pointer-call-and-deserialize (list ~(head (tail args)) args)))))))
