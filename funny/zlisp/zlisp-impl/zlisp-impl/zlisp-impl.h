@@ -105,6 +105,7 @@ bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 datum *datum_make_void();
+datum *datum_get_pointer_descriptor(datum *d);
 void *datum_get_pointer_value(datum *d);
 datum *datum_make_pointer_to_pointer(void **ptr);
 datum *datum_make_pointer(void *data,datum *signature);

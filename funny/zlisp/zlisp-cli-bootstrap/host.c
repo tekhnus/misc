@@ -25,7 +25,7 @@ LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
 }
 
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(ptpt->pointer_descriptor, "pointer")) {
+  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(datum_get_pointer_descriptor(ptpt), "pointer")) {
     return fdatum_make_panic("dereference expected a pointer to pointer");
   }
   return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt)), new_descriptor));
@@ -120,7 +120,7 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
 }
 
 char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
-  datum *sig = f->pointer_descriptor;
+  datum *sig = datum_get_pointer_descriptor(f);
   if (!datum_is_list(sig) || datum_is_nil(sig) ||
       datum_is_nil(sig->list_tail) ||
       !datum_is_nil(sig->list_tail->list_tail)) {
@@ -129,7 +129,7 @@ char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
   ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
   int arg_count = 0;
   datum *arg_def;
-  for (arg_def = f->pointer_descriptor->list_head; !datum_is_nil(arg_def);
+  for (arg_def = datum_get_pointer_descriptor(f)->list_head; !datum_is_nil(arg_def);
        arg_def = arg_def->list_tail) {
     if (!ffi_type_init(arg_types + arg_count, arg_def->list_head)) {
       return "something wrong with the argument type signature";
@@ -151,7 +151,7 @@ char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
 char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
   int arg_cnt = 0;
   datum *arg = args;
-  for (datum *argt = f->pointer_descriptor->list_head; !datum_is_nil(argt);
+  for (datum *argt = datum_get_pointer_descriptor(f)->list_head; !datum_is_nil(argt);
        argt = argt->list_tail) {
     if (datum_is_nil(arg)) {
       return "too few arguments";
@@ -169,7 +169,7 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
     } else if (!strcmp(argt->list_head->symbol_value, "pointer")) {
       datum *sig;
       if (!datum_is_pointer(arg->list_head) ||
-          !datum_is_symbol(sig = arg->list_head->pointer_descriptor) ||
+          !datum_is_symbol(sig = datum_get_pointer_descriptor(arg->list_head)) ||
           strcmp(sig->symbol_value, "pointer")) {
         return "pointer expected, got something else";
       }
@@ -179,7 +179,7 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
     } else if (!strcmp(argt->list_head->symbol_value, "fdatum")) {
       datum *sig;
       if (!datum_is_pointer(arg->list_head) ||
-          !datum_is_symbol(sig = arg->list_head->pointer_descriptor) ||
+          !datum_is_symbol(sig = datum_get_pointer_descriptor(arg->list_head)) ||
           strcmp(sig->symbol_value, "fdatum")) {
         return "fdatum expected, got something else";
       }
@@ -198,7 +198,7 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
 
 fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
   void (*fn_ptr)(void) = __extension__(void (*)(void))(datum_get_pointer_value(f));
-  char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
+  char *rettype = datum_get_pointer_descriptor(f)->list_tail->list_head->symbol_value;
 
   if (!strcmp(rettype, "pointer")) {
     void *res = malloc(sizeof(void *));

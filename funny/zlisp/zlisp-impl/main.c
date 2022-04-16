@@ -164,6 +164,14 @@ void *datum_get_pointer_value(datum *d) {
   return d->pointer_value;
 }
 
+datum *datum_get_pointer_descriptor(datum *d) {
+  if (!datum_is_pointer(d)) {
+    fprintf(stderr, "Not a pointer!");
+    exit(1);
+  }
+  return d->pointer_descriptor;
+}
+
 datum *datum_make_void() {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_VOID;
@@ -427,7 +435,7 @@ char *datum_repr(datum *e) {
     end += sprintf(end, "<form>");
   } else if (datum_is_pointer(e)) {
     end += sprintf(end, "<externcdata %p %s>", datum_get_pointer_value(e),
-                   datum_repr(e->pointer_descriptor));
+                   datum_repr(datum_get_pointer_descriptor(e)));
   } else if (datum_is_void(e)) {
     end += sprintf(end, "<void>");
   } else {
