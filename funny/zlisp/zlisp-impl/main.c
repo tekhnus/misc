@@ -156,6 +156,14 @@ datum *datum_make_pointer_to_pointer(void **ptr) {
   return datum_make_pointer(ptr, datum_make_symbol("pointer"));
 }
 
+void *datum_get_pointer_value(datum *d) {
+  if (!datum_is_pointer(d)) {
+    fprintf(stderr, "Not a pointer!");
+    exit(1);
+  }
+  return d->pointer_value;
+}
+
 datum *datum_make_void() {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_VOID;
@@ -418,7 +426,7 @@ char *datum_repr(datum *e) {
   } else if (datum_is_routine_0(e) || datum_is_routine_1(e)) {
     end += sprintf(end, "<form>");
   } else if (datum_is_pointer(e)) {
-    end += sprintf(end, "<externcdata %p %s>", e->pointer_value,
+    end += sprintf(end, "<externcdata %p %s>", datum_get_pointer_value(e),
                    datum_repr(e->pointer_descriptor));
   } else if (datum_is_void(e)) {
     end += sprintf(end, "<void>");

@@ -18,7 +18,7 @@ LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
   if (!datum_is_pointer(pointer)) {
     return fdatum_make_panic("not-null-pointer expects a pointer");
   }
-  if (pointer->pointer_value != NULL) {
+  if (datum_get_pointer_value(pointer) != NULL) {
     return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
   return fdatum_make_ok(datum_make_nil());
@@ -28,7 +28,7 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor
   if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(ptpt->pointer_descriptor, "pointer")) {
     return fdatum_make_panic("dereference expected a pointer to pointer");
   }
-  return fdatum_make_ok(datum_make_pointer(*((void **)ptpt->pointer_value), new_descriptor));
+  return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt)), new_descriptor));
 }
 
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
@@ -36,7 +36,7 @@ fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
     return fdatum_make_panic("wrap-ptr-into-ptr expected a pointer");
   }
   void **ptpt = malloc(sizeof(void **));
-  *ptpt = pt->pointer_value;
+  *ptpt = datum_get_pointer_value(pt);
   return fdatum_make_ok(datum_make_pointer(ptpt, datum_make_symbol("pointer")));
 }
 
@@ -173,7 +173,7 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
           strcmp(sig->symbol_value, "pointer")) {
         return "pointer expected, got something else";
       }
-      cargs[arg_cnt] = arg->list_head->pointer_value;
+      cargs[arg_cnt] = datum_get_pointer_value(arg->list_head);
     } else if (!strcmp(argt->list_head->symbol_value, "datum")) {
       cargs[arg_cnt] = &arg->list_head;
     } else if (!strcmp(argt->list_head->symbol_value, "fdatum")) {
@@ -183,7 +183,7 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
           strcmp(sig->symbol_value, "fdatum")) {
         return "fdatum expected, got something else";
       }
-      cargs[arg_cnt] = arg->list_head->pointer_value;
+      cargs[arg_cnt] = datum_get_pointer_value(arg->list_head);
     } else {
       return "cannot load an argument";
     }
@@ -197,7 +197,7 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
 }
 
 fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
-  void (*fn_ptr)(void) = __extension__(void (*)(void))(f->pointer_value);
+  void (*fn_ptr)(void) = __extension__(void (*)(void))(datum_get_pointer_value(f));
   char *rettype = f->pointer_descriptor->list_tail->list_head->symbol_value;
 
   if (!strcmp(rettype, "pointer")) {
