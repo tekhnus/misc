@@ -83,10 +83,9 @@
 
 (builtin.defn pointer-call-and-deserialize
               (progn
-                (def oldres (host "pointer-call-old" (head args)))
                 (def rawres (host "pointer-call" (head args)))
                 (def rettype (head (tail (head (tail (head (tail (head (head args)))))))))
-                (return oldres)))
+                (return (host "deref" `(~rawres ~rettype)))))
 
 (builtin.defn c-function-or-panic
               (progn

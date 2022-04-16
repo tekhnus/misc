@@ -66,18 +66,6 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)simplified_dlsym);
   } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
     res = datum_make_int((int64_t)builtin_ptr_dereference_and_cast);
-  } else if (!strcmp(name->bytestring_value, "pointer-call-old")) {
-    datum *form = arg;
-    if (!datum_is_list(form) || list_length(form) != 2) {
-      return fdatum_make_panic("pointer-call expected a pair on stack");
-    }
-    datum *fn = form->list_head;
-    datum *args = form->list_tail->list_head;
-    fdatum resu = pointer_call_old(fn, args);
-    if (fdatum_is_panic(resu)) {
-      return fdatum_make_panic(resu.panic_message);
-    }
-    res = resu.ok_value;
   } else if (!strcmp(name->bytestring_value, "pointer-call")) {
     datum *form = arg;
     if (!datum_is_list(form) || list_length(form) != 2) {
@@ -96,6 +84,41 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
       return fdatum_make_panic("dereference-datum expected a pointer");
     }
     return *(fdatum *)arg->integer_value;
+  } else if (!strcmp(name->bytestring_value, "deref")) {
+    datum *form = arg;
+    if (!datum_is_list(form) || list_length(form) != 2) {
+      return fdatum_make_panic("deref expected a pair on stack");
+    }
+    datum *what = form->list_head;
+    datum *how = form->list_tail->list_head;
+    if (!datum_is_integer(what)) {
+      return fdatum_make_panic("deref expected a pointer");
+    }
+    if (!datum_is_symbol(how)) {
+      return fdatum_make_panic("deref expected a symbol");
+    }
+    char *rettype = how->symbol_value;
+    void *wha = (void *)what->integer_value;
+    if (!strcmp(rettype, "pointer")) {
+      return fdatum_make_ok(datum_make_pointer_to_pointer(wha));
+    }
+    else if (!strcmp(rettype, "sizet")) {
+      return fdatum_make_ok(datum_make_int((int64_t)*(size_t *)wha));
+    }
+    else if (!strcmp(rettype, "int")) {
+      return fdatum_make_ok(datum_make_int((int64_t)*(int *)wha));
+    }
+    else if (!strcmp(rettype, "string")) {
+      return fdatum_make_ok(datum_make_bytestring((char *)wha));
+    }
+    else if (!strcmp(rettype, "fdatum")) {
+      return fdatum_make_ok(datum_make_pointer(wha, datum_make_symbol("fdatum")));
+    }
+    else if (!strcmp(rettype, "val")) {
+      return *(fdatum *)wha;
+    } else {
+      return fdatum_make_panic("unknown return type for deref");
+    }
   }
   else {
     return fdatum_make_panic("unknown host instruction");
@@ -226,46 +249,6 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
   return NULL;
 }
 
-fdatum pointer_ffi_call_old(datum *f, ffi_cif *cif, void **cargs) {
-  void (*fn_ptr)(void) = __extension__(void (*)(void))(datum_get_pointer_value(f));
-  char *rettype = datum_get_pointer_descriptor(f)->list_tail->list_head->symbol_value;
-
-  if (!strcmp(rettype, "pointer")) {
-    void *res = malloc(sizeof(void *));
-    ffi_call(cif, fn_ptr, res, cargs);
-    return fdatum_make_ok(datum_make_pointer_to_pointer(res));
-  }
-  if (!strcmp(rettype, "sizet")) {
-    void *res = malloc(sizeof(size_t));
-    ffi_call(cif, fn_ptr, res, cargs);
-    return fdatum_make_ok(datum_make_int(*(int64_t *)res));
-  }
-  if (!strcmp(rettype, "int")) {
-    void *res = malloc(sizeof(int));
-    ffi_call(cif, fn_ptr, res, cargs);
-    return fdatum_make_ok(datum_make_int(*(int64_t *)res));
-  }
-  if (!strcmp(rettype, "string")) {
-    void *res = malloc(sizeof(char *));
-    ffi_call(cif, fn_ptr, res, cargs);
-    return fdatum_make_ok(datum_make_bytestring(*(char **)res));
-  }
-  if (!strcmp(rettype, "fdatum")) {
-    void *res = malloc(sizeof(fdatum));
-    ffi_call(cif, fn_ptr, res, cargs);
-    return fdatum_make_ok(datum_make_pointer(res, datum_make_symbol("fdatum")));
-  }
-  if (!strcmp(rettype, "val")) {
-    fdatum res;
-    ffi_call(cif, fn_ptr, &res, cargs);
-    if (fdatum_is_panic(res)) {
-      return fdatum_make_panic(res.panic_message);
-    }
-    return fdatum_make_ok(res.ok_value);
-  }
-  return fdatum_make_panic("unknown return type for extern func");
-}
-
 fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
   void (*fn_ptr)(void) = __extension__(void (*)(void))(datum_get_pointer_value(f));
   char *rettype = datum_get_pointer_descriptor(f)->list_tail->list_head->symbol_value;
@@ -294,24 +277,6 @@ fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
   ffi_call(cif, fn_ptr, res, cargs);
   return fdatum_make_ok(datum_make_int((int64_t)res));
 
-}
-
-fdatum pointer_call_old(datum *f, datum *args) {
-  if (!datum_is_pointer(f)) {
-    return fdatum_make_panic("pointer_call expects a pointer");
-  }
-  ffi_cif cif;
-  char *err = NULL;
-  err = pointer_ffi_init_cif(f, &cif);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
-  void *cargs[32];
-  err = pointer_ffi_serialize_args(f, args, cargs);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
-  return pointer_ffi_call_old(f, &cif, cargs);
 }
 
 fdatum pointer_call(datum *f, datum *args) {
