@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <host.h>
 #if INTERFACE
 #include <zlisp-impl/zlisp-impl.h>
