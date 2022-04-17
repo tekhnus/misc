@@ -6,14 +6,12 @@
 #include <stdlib.h>
 #include <ffi.h>
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
-char *pointer_ffi_serialize_args_old(datum *f,datum *args,void **cargs);
-char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs);
+char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs,bool datums);
 char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
 fdatum routine_run_and_get_value_c_host(state **ctxt,prog *p);
 datum *datum_make_pointer_to_pointer(void **ptr);
-fdatum pointer_call_old(datum *f,datum *args);
-fdatum pointer_call(datum *f,datum *args);
+fdatum pointer_call(datum *f,datum *args,bool datums);
 fdatum datum_mkptr(datum *d,datum *desc);
 #include <stdint.h>
 fdatum builtin_cons(datum *head,datum *tail);

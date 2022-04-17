@@ -1,14 +1,14 @@
 (def panic-pointer `(cptr (~(host "panic" '()) ((datum) val))))
-(builtin.defn panic (return (host "dereference-datum" (host "pointer-call-old" `(~panic-pointer ~args)))))
+(builtin.defn panic (return (host "dereference-datum" (host "pointer-call-datums" `(~panic-pointer ~args)))))
 
 (def head-pointer `(cptr (~(host "head" '()) ((datum) val))))
-(builtin.defn head (return (host "dereference-datum" (host "pointer-call-old" `(~head-pointer ~args)))))
+(builtin.defn head (return (host "dereference-datum" (host "pointer-call-datums" `(~head-pointer ~args)))))
 
 (def tail-pointer `(cptr (~(host "tail" '()) ((datum) val))))
-(builtin.defn tail (return (host "dereference-datum" (host "pointer-call-old" `(~tail-pointer ~args)))))
+(builtin.defn tail (return (host "dereference-datum" (host "pointer-call-datums" `(~tail-pointer ~args)))))
 
 (def cons-pointer `(cptr (~(host "cons" '()) ((datum datum) val))))
-(builtin.defn cons (return (host "dereference-datum" (host "pointer-call-old" `(~cons-pointer ~args)))))
+(builtin.defn cons (return (host "dereference-datum" (host "pointer-call-datums" `(~cons-pointer ~args)))))
 
 
 (builtin.defn serialize-param
