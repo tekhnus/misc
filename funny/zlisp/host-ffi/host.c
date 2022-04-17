@@ -66,6 +66,14 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)simplified_dlsym);
   } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
     res = datum_make_int((int64_t)builtin_ptr_dereference_and_cast);
+  } else if (!strcmp(name->bytestring_value, "mkptr")) {
+    datum *form = arg;
+    if (!datum_is_list(form) || list_length(form) != 2) {
+      return fdatum_make_panic("mkptr expected a pair on stack");
+    }
+    datum *what = form->list_head;
+    datum *how = form->list_tail->list_head;
+    return datum_mkptr(what, how);
   } else if (!strcmp(name->bytestring_value, "pointer-call")) {
     datum *form = arg;
     if (!datum_is_list(form) || list_length(form) != 2) {
@@ -74,6 +82,18 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     datum *fn = form->list_head;
     datum *args = form->list_tail->list_head;
     fdatum resu = pointer_call(fn, args);
+    if (fdatum_is_panic(resu)) {
+      return fdatum_make_panic(resu.panic_message);
+    }
+    res = resu.ok_value;
+  } else if (!strcmp(name->bytestring_value, "pointer-call-old")) {
+    datum *form = arg;
+    if (!datum_is_list(form) || list_length(form) != 2) {
+      return fdatum_make_panic("pointer-call expected a pair on stack");
+    }
+    datum *fn = form->list_head;
+    datum *args = form->list_tail->list_head;
+    fdatum resu = pointer_call_old(fn, args);
     if (fdatum_is_panic(resu)) {
       return fdatum_make_panic(resu.panic_message);
     }
@@ -209,6 +229,56 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs) {
     if (datum_is_nil(arg)) {
       return "too few arguments";
     }
+    if (!datum_is_integer(arg->list_head)) {
+      return "int pointer expected, got something else";
+    }
+    cargs[arg_cnt] = (void *)arg->list_head->integer_value;
+    arg = arg->list_tail;
+    ++arg_cnt;
+  }
+  if (!datum_is_nil(arg)) {
+    return "too much arguments";
+  }
+  return NULL;
+}
+
+fdatum datum_mkptr(datum *d, datum *desc) {
+  if (!datum_is_symbol(desc)) {
+    return fdatum_make_panic("mkptr expected a symbol");
+  }
+  char *des = desc->symbol_value;
+  if (!strcmp(des, "string")) {
+    if (!datum_is_bytestring(d)) {
+      return fdatum_make_panic("string expected, got something else");
+    }
+    return fdatum_make_ok(datum_make_int((int64_t)&(d->bytestring_value)));
+  } else if (!strcmp(des, "sizet")) {
+    if (!datum_is_integer(d)) {
+      return fdatum_make_panic("int expected, got something else");
+    }
+    return fdatum_make_ok(datum_make_int((int64_t)&(d->integer_value)));
+  } else if (!strcmp(des, "pointer") || !strcmp(des, "fdatum")) {
+    if (!datum_is_pointer(d)) {
+      return fdatum_make_panic("pointer expected, got something else");
+    }
+    return fdatum_make_ok(datum_make_int((int64_t)datum_get_pointer_value(d)));
+  } else if (!strcmp(des, "datum")) {
+    datum **p = malloc(sizeof(datum **));
+    *p = d;
+    return fdatum_make_ok(datum_make_int((int64_t)p));
+  } else {
+    return fdatum_make_panic("cannot load an argument");
+  }
+}
+
+char *pointer_ffi_serialize_args_old(datum *f, datum *args, void **cargs) {
+  int arg_cnt = 0;
+  datum *arg = args;
+  for (datum *argt = datum_get_pointer_descriptor(f)->list_head; !datum_is_nil(argt);
+       argt = argt->list_tail) {
+    if (datum_is_nil(arg)) {
+      return "too few arguments";
+    }
     if (!strcmp(argt->list_head->symbol_value, "string")) {
       if (!datum_is_bytestring(arg->list_head)) {
         return "string expected, got something else";
@@ -291,6 +361,24 @@ fdatum pointer_call(datum *f, datum *args) {
   }
   void *cargs[32];
   err = pointer_ffi_serialize_args(f, args, cargs);
+  if (err != NULL) {
+    return fdatum_make_panic(err);
+  }
+  return pointer_ffi_call(f, &cif, cargs);
+}
+
+fdatum pointer_call_old(datum *f, datum *args) {
+  if (!datum_is_pointer(f)) {
+    return fdatum_make_panic("pointer_call expects a pointer");
+  }
+  ffi_cif cif;
+  char *err = NULL;
+  err = pointer_ffi_init_cif(f, &cif);
+  if (err != NULL) {
+    return fdatum_make_panic(err);
+  }
+  void *cargs[32];
+  err = pointer_ffi_serialize_args_old(f, args, cargs);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }

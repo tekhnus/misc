@@ -1,26 +1,26 @@
 (def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
-(builtin.defn dlopen (return `(cptr (~(host "pointer-call" `(~dlopen-pointer ~args)) pointer))))
+(builtin.defn dlopen (return `(cptr (~(host "pointer-call-old" `(~dlopen-pointer ~args)) pointer))))
 
 (def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
-(builtin.defn dlsym (return `(cptr (~(host "pointer-call" `(~dlsym-pointer ~args)) pointer))))
+(builtin.defn dlsym (return `(cptr (~(host "pointer-call-old" `(~dlsym-pointer ~args)) pointer))))
 
 (def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
-(builtin.defn dereference-and-cast (return (host "dereference-datum" (host "pointer-call" `(~dereference-and-cast-pointer ~args)))))
+(builtin.defn dereference-and-cast (return (host "dereference-datum" (host "pointer-call-old" `(~dereference-and-cast-pointer ~args)))))
 
 (def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
-(builtin.defn not-null-pointer (return (host "dereference-datum" (host "pointer-call" `(~not-null-pointer-ptr ~args)))))
+(builtin.defn not-null-pointer (return (host "dereference-datum" (host "pointer-call-old" `(~not-null-pointer-ptr ~args)))))
 
 (def wrap-pointer-into-pointer-ptr `(cptr (~(host "wrap-pointer-into-pointer" '()) ((datum) val))))
-(builtin.defn wrap-pointer-into-pointer (return (host "dereference-datum" (host "pointer-call" `(~wrap-pointer-into-pointer-ptr ~args)))))
+(builtin.defn wrap-pointer-into-pointer (return (host "dereference-datum" (host "pointer-call-old" `(~wrap-pointer-into-pointer-ptr ~args)))))
 
 (def panic-pointer `(cptr (~(host "panic" '()) ((datum) val))))
-(builtin.defn panic (return (host "dereference-datum" (host "pointer-call" `(~panic-pointer ~args)))))
+(builtin.defn panic (return (host "dereference-datum" (host "pointer-call-old" `(~panic-pointer ~args)))))
 
 (def head-pointer `(cptr (~(host "head" '()) ((datum) val))))
-(builtin.defn head (return (host "dereference-datum" (host "pointer-call" `(~head-pointer ~args)))))
+(builtin.defn head (return (host "dereference-datum" (host "pointer-call-old" `(~head-pointer ~args)))))
 
 (def tail-pointer `(cptr (~(host "tail" '()) ((datum) val))))
-(builtin.defn tail (return (host "dereference-datum" (host "pointer-call" `(~tail-pointer ~args)))))
+(builtin.defn tail (return (host "dereference-datum" (host "pointer-call-old" `(~tail-pointer ~args)))))
 
 (builtin.defn c-function-pointer
             (progn
@@ -49,7 +49,7 @@
 
 (builtin.defn pointer-call-and-interpret
               (progn
-                (def rawres (host "pointer-call" (head args)))
+                (def rawres (host "pointer-call-old" (head args)))
                 (return (host "dereference-datum" rawres))))
 
 (builtin.defn builtin-or-panic
@@ -81,10 +81,32 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
+(builtin.defn serialize-param
+              (progn
+                (def param (head args))
+                (def signature (head (tail args)))
+                (return (host "mkptr" `(~param ~signature)))))
+
+(builtin.defn serialize-params
+              (progn
+                (def params (head args))
+                (def signature (head (tail args)))
+                (if params
+                    (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
+                  (return '()))))
+
 (builtin.defn pointer-call-and-deserialize
               (progn
-                (def rawres (host "pointer-call" (head args)))
-                (def rettype (head (tail (head (tail (head (tail (head (head args)))))))))
+                (def annotated-function-and-params (head args))
+                (def annotated-function (head annotated-function-and-params))
+                (def params (head (tail annotated-function-and-params)))
+                (def annotation (head (tail annotated-function)))
+                (def fn-ptr (head annotation))
+                (def signature (head (tail annotation)))
+                (def fnparamst (head signature))
+                (def rettype (head (tail signature)))
+                (def s (serialize-params params fnparamst))
+                (def rawres (host "pointer-call" `((cptr (~fn-ptr (~fnparamst ~rettype))) ~s)))
                 (return (host "deref" `(~rawres ~rettype)))))
 
 (builtin.defn c-function-or-panic
