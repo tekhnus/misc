@@ -10,7 +10,6 @@
 (def cons-pointer (host "cons" '()))
 (builtin.defn cons (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~cons-pointer  ((datum datum) val)))  ~args)))))
 
-
 (builtin.defn serialize-param
               (progn
                 (def param (head args))
@@ -125,9 +124,6 @@
 (def repr (builtin-function "builtin_repr" '((datum) val)))
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
-
-
-
 
 (builtin.defn c-function-or-panic
               (progn
