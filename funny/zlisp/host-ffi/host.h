@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <ffi.h>
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
-char *pointer_ffi_serialize_args(datum *f,datum *args,void **cargs,bool datums);
+char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs,bool datums);
 char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
 fdatum routine_run_and_get_value_c_host(state **ctxt,prog *p);

@@ -223,11 +223,10 @@ char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
   return NULL;
 }
 
-char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs, bool datums) {
+char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, bool datums) {
   int arg_cnt = 0;
   datum *arg = args;
-  for (datum *argt = datum_get_pointer_descriptor(f)->list_head; !datum_is_nil(argt);
-       argt = argt->list_tail) {
+  for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
     if (datum_is_nil(arg)) {
       return "too few arguments";
     }
@@ -238,14 +237,10 @@ char *pointer_ffi_serialize_args(datum *f, datum *args, void **cargs, bool datum
       }
       cargs[arg_cnt] = (void *)arg->list_head->integer_value;
     } else {
-      if (strcmp(argt->list_head->symbol_value, "datum")) {
-        return "cannot load an argument";
-      }
       cargs[arg_cnt] = &arg->list_head;
     }
     
     arg = arg->list_tail;
-    ++arg_cnt;
   }
   if (!datum_is_nil(arg)) {
     return "too much arguments";
@@ -322,8 +317,9 @@ fdatum pointer_call(datum *f, datum *args, bool datums) {
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
+  int nargs = list_length(datum_get_pointer_descriptor(f)->list_head);
   void *cargs[32];
-  err = pointer_ffi_serialize_args(f, args, cargs, datums);
+  err = pointer_ffi_serialize_args(args, cargs, nargs, datums);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
