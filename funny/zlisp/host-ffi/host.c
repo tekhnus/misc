@@ -60,6 +60,8 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)builtin_head);
   } else if (!strcmp(name->bytestring_value, "tail")) {
     res = datum_make_int((int64_t)builtin_tail);
+  } else if (!strcmp(name->bytestring_value, "cons")) {
+    res = datum_make_int((int64_t)builtin_cons);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     res = datum_make_int((int64_t)simplified_dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
@@ -279,37 +281,10 @@ char *pointer_ffi_serialize_args_old(datum *f, datum *args, void **cargs) {
     if (datum_is_nil(arg)) {
       return "too few arguments";
     }
-    if (!strcmp(argt->list_head->symbol_value, "string")) {
-      if (!datum_is_bytestring(arg->list_head)) {
-        return "string expected, got something else";
-      }
-      cargs[arg_cnt] = &arg->list_head->bytestring_value;
-    } else if (!strcmp(argt->list_head->symbol_value, "sizet")) {
-      if (!datum_is_integer(arg->list_head)) {
-        return "int expected, got something else";
-      }
-      cargs[arg_cnt] = &arg->list_head->integer_value;
-    } else if (!strcmp(argt->list_head->symbol_value, "pointer")) {
-      datum *sig;
-      if (!datum_is_pointer(arg->list_head) ||
-          !datum_is_symbol(sig = datum_get_pointer_descriptor(arg->list_head)) ||
-          strcmp(sig->symbol_value, "pointer")) {
-        return "pointer expected, got something else";
-      }
-      cargs[arg_cnt] = datum_get_pointer_value(arg->list_head);
-    } else if (!strcmp(argt->list_head->symbol_value, "datum")) {
-      cargs[arg_cnt] = &arg->list_head;
-    } else if (!strcmp(argt->list_head->symbol_value, "fdatum")) {
-      datum *sig;
-      if (!datum_is_pointer(arg->list_head) ||
-          !datum_is_symbol(sig = datum_get_pointer_descriptor(arg->list_head)) ||
-          strcmp(sig->symbol_value, "fdatum")) {
-        return "fdatum expected, got something else";
-      }
-      cargs[arg_cnt] = datum_get_pointer_value(arg->list_head);
-    } else {
+    if (strcmp(argt->list_head->symbol_value, "datum")) {
       return "cannot load an argument";
     }
+    cargs[arg_cnt] = &arg->list_head;
     arg = arg->list_tail;
     ++arg_cnt;
   }

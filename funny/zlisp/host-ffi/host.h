@@ -16,6 +16,7 @@ fdatum pointer_call_old(datum *f,datum *args);
 fdatum pointer_call(datum *f,datum *args);
 fdatum datum_mkptr(datum *d,datum *desc);
 #include <stdint.h>
+fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
