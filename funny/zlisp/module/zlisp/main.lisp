@@ -8,9 +8,10 @@
    (progn
      (def p (prog-make))
      (def e (prog-init-module-c-host p src))
-     (if (not-null-pointer e)
-         (return `(:ok ~p))
-       (return `(:err "some compilation error")))))
+     (if (eq 0 e)
+         (return `(:err "some compilation error"))
+       (return `(:ok ~p)))))
+
 (def routine-run-and-get-value-c-host-fdatum (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((pointer pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 (def fdatum-get-value (c-function-or-panic selflib "fdatum_get_value" '((fdatum) val)))

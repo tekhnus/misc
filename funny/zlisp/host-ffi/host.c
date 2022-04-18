@@ -19,16 +19,6 @@ void *simplified_dlsym(void *handle, const char *symbol) {
   return dlsym(handle, symbol);
 }
 
-LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
-  if (!datum_is_integer(pointer)) {
-    return fdatum_make_panic("not-null-pointer expects a pointer");
-  }
-  if (pointer->integer_value != 0) {
-    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
-  }
-  return fdatum_make_ok(datum_make_nil());
-}
-
 LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer) {
   if (!datum_is_fnpointer(pointer)) {
     return fdatum_make_panic("not-null-pointer expects a pointer");
@@ -52,9 +42,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "not-null-pointer")) {
-    res = datum_make_int((int64_t)builtin_ptr_not_null_pointer);
-  } else if (!strcmp(name->bytestring_value, "not-null-fnpointer")) {
+  if (!strcmp(name->bytestring_value, "not-null-fnpointer")) {
     res = datum_make_int((int64_t)builtin_ptr_not_null_fnpointer);
   } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
