@@ -21,11 +21,10 @@ fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
 fdatum perform_host_instruction(datum *name,datum *arg);
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt);
-datum *datum_make_pointer(void *data,datum *signature);
+datum *datum_make_pointer(void *data);
 #define LOCAL static
 LOCAL fdatum builtin_ptr_dereference_and_castdat(datum *ptpt,datum *new_descriptor);
 datum *datum_make_fnpointer(void *data,datum *signature);
-datum *datum_get_pointer_descriptor(datum *d);
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
 void *datum_get_fnpointer_value(datum *d);
 bool datum_is_fnpointer(datum *e);

@@ -40,7 +40,7 @@ LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer) {
 }
 
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(datum_get_pointer_descriptor(ptpt), "pointer")) {
+  if (!datum_is_pointer(ptpt)) {
     fprintf(stderr, "%s %s\n", datum_repr(ptpt), datum_repr(new_descriptor));
     return fdatum_make_panic("dereference expected a pointer to pointer");
   }
@@ -48,10 +48,10 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor
 }
 
 LOCAL fdatum builtin_ptr_dereference_and_castdat(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(datum_get_pointer_descriptor(ptpt), "pointer")) {
+  if (!datum_is_pointer(ptpt)) {
     return fdatum_make_panic("dereferencedat expected a pointer to pointer");
   }
-  return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt)), new_descriptor));
+  return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt))));
 }
 
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
@@ -60,7 +60,7 @@ fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
   }
   void **ptpt = malloc(sizeof(void **));
   *ptpt = datum_get_pointer_value(pt);
-  return fdatum_make_ok(datum_make_pointer(ptpt, datum_make_symbol("pointer")));
+  return fdatum_make_ok(datum_make_pointer(ptpt));
 }
 
 fdatum perform_host_instruction(datum *name, datum *arg) {
@@ -156,7 +156,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
       return fdatum_make_ok(datum_make_bytestring((char *)wha));
     }
     else if (!strcmp(rettype, "fdatum")) {
-      return fdatum_make_ok(datum_make_pointer(wha, datum_make_symbol("fdatum")));
+      return fdatum_make_ok(datum_make_pointer(wha));
     }
     else if (!strcmp(rettype, "val")) {
       return *(fdatum *)wha;
@@ -349,8 +349,8 @@ fdatum pointer_call(datum *f, datum *args, bool datums) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-datum *datum_make_pointer(void *data, datum *signature) {
-  return datum_make_list_2(datum_make_symbol("dptr"), datum_make_list_2(datum_make_int((int64_t)data), signature));
+datum *datum_make_pointer(void *data) {
+  return datum_make_int((int64_t)data);
 }
 
 datum *datum_make_fnpointer(void *data, datum *signature) {
@@ -358,7 +358,7 @@ datum *datum_make_fnpointer(void *data, datum *signature) {
 }
 
 datum *datum_make_pointer_to_pointer(void **ptr) {
-  return datum_make_pointer(ptr, datum_make_symbol("pointer"));
+  return datum_make_pointer(ptr);
 }
 
 void *datum_get_pointer_value(datum *d) {
@@ -366,15 +366,7 @@ void *datum_get_pointer_value(datum *d) {
     fprintf(stderr, "Not a pointer!");
     exit(1);
   }
-  return (void*)d->list_tail->list_head->list_head->integer_value;
-}
-
-datum *datum_get_pointer_descriptor(datum *d) {
-  if (!datum_is_pointer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
-  return d->list_tail->list_head->list_tail->list_head;
+  return (void*)d->integer_value;
 }
 
 void *datum_get_fnpointer_value(datum *d) {
@@ -393,6 +385,6 @@ datum *datum_get_fnpointer_descriptor(datum *d) {
   return d->list_tail->list_head->list_tail->list_head;
 }
 
-bool datum_is_pointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "dptr"); }
+bool datum_is_pointer(datum *e) { return datum_is_integer(e); }
 
 bool datum_is_fnpointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "cptr"); }
