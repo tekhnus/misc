@@ -24,6 +24,7 @@ datum *datum_make_pointer(void *data,datum *signature);
 datum *datum_get_pointer_descriptor(datum *d);
 #define LOCAL static
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
+LOCAL fdatum builtin_nonzero(datum *d);
 void *datum_get_pointer_value(datum *d);
 bool datum_is_pointer(datum *e);
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer);

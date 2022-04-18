@@ -55,6 +55,7 @@
 
 (def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
 (builtin.defn dlopen (return `(cptr (~(ptr-call `(~dlopen-pointer ~args)) pointer))))
+(builtin.defn dlopen-new (return (ptr-call `(~dlopen-pointer ~args))))
 
 (def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
 (builtin.defn dlsym (return `(cptr (~(ptr-call `(~dlsym-pointer ~args)) pointer))))
@@ -64,6 +65,9 @@
 
 (def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
 (builtin.defn not-null-pointer (return (host "dereference-datum" (ptr-call `(~not-null-pointer-ptr ~args)))))
+
+(def nonzero-ptr `(cptr (~(host "nonzero" '()) ((datum) val))))
+(builtin.defn nonzero (return (host "dereference-datum" (ptr-call `(~nonzero-ptr ~args)))))
 
 (def wrap-pointer-into-pointer-ptr `(cptr (~(host "wrap-pointer-into-pointer" '()) ((datum) val))))
 (builtin.defn wrap-pointer-into-pointer (return (host "dereference-datum" (ptr-call `(~wrap-pointer-into-pointer-ptr ~args)))))
@@ -78,10 +82,9 @@
                 (return fn-pointer)))             
 
 (builtin.defn shared-library (progn
-                               (def res-ptr (dlopen (head args)))
-                               (def res (dereference-and-cast res-ptr 'pointer))
-                               (if (not-null-pointer res)
-                                   (return `(:ok ~res-ptr))
+                               (def res-ptr (dlopen-new (head args)))
+                               (if (nonzero res-ptr)
+                                   (return `(:ok (cptr (~res-ptr pointer))))
                                  (return `(:err "shared-library failed")))))
 
 (builtin.defn extern-pointer (progn

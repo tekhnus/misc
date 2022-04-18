@@ -29,6 +29,16 @@ LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
   return fdatum_make_ok(datum_make_nil());
 }
 
+LOCAL fdatum builtin_nonzero(datum *d) {
+  if (!datum_is_integer(d)) {
+    return fdatum_make_panic("nonzero expects an integer");
+  }
+  if (*(void **)d->integer_value != 0) {
+    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
+  }
+  return fdatum_make_ok(datum_make_nil());
+}
+
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
   if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(datum_get_pointer_descriptor(ptpt), "pointer")) {
     return fdatum_make_panic("dereference expected a pointer to pointer");
@@ -54,6 +64,8 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)builtin_ptr_wrap_ptr_into_ptr);
   } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
     res = datum_make_int((int64_t)builtin_ptr_not_null_pointer);
+  } else if (!strcmp(name->bytestring_value, "nonzero")) {
+    res = datum_make_int((int64_t)builtin_nonzero);
   } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
