@@ -46,6 +46,13 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor
   return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt)), new_descriptor));
 }
 
+LOCAL fdatum builtin_ptr_dereference_and_castdat(datum *ptpt, datum *new_descriptor) {
+  if (!datum_is_pointer(ptpt) || !datum_is_the_symbol(datum_get_pointer_descriptor(ptpt), "pointer")) {
+    return fdatum_make_panic("dereference expected a pointer to pointer");
+  }
+  return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt)), new_descriptor));
+}
+
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
   if (!datum_is_pointer(pt)) {
     return fdatum_make_panic("wrap-ptr-into-ptr expected a pointer");
@@ -80,6 +87,8 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)simplified_dlsym);
   } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
     res = datum_make_int((int64_t)builtin_ptr_dereference_and_cast);
+  } else if (!strcmp(name->bytestring_value, "dereference-and-castdat")) {
+    res = datum_make_int((int64_t)builtin_ptr_dereference_and_castdat);
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
     datum *form = arg;
     if (!datum_is_list(form) || list_length(form) != 2) {

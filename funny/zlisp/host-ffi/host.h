@@ -20,9 +20,10 @@ fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
 fdatum perform_host_instruction(datum *name,datum *arg);
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt);
+#define LOCAL static
+LOCAL fdatum builtin_ptr_dereference_and_castdat(datum *ptpt,datum *new_descriptor);
 datum *datum_make_pointer(void *data,datum *signature);
 datum *datum_get_pointer_descriptor(datum *d);
-#define LOCAL static
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
 LOCAL fdatum builtin_nonzero(datum *d);
 void *datum_get_pointer_value(datum *d);

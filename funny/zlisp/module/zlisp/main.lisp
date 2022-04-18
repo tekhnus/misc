@@ -25,7 +25,7 @@
            (return `(:err ~msg)))
        (progn
          (def val (fdatum-get-value res))
-         (def new-state (dereference-and-cast state-ptr 'pointer))
+         (def new-state (dereference-and-castdat state-ptr 'pointer))
          (return `(:ok ~val ~new-state))))))
 (def datum-read-one (c-function-or-panic selflib "datum_read_one" '((pointer) fdatum)))
 !(#defun read (strm)

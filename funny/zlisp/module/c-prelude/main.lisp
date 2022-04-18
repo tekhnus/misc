@@ -63,6 +63,9 @@
 (def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
 (builtin.defn dereference-and-cast (return (host "dereference-datum" (ptr-call `(~dereference-and-cast-pointer ~args)))))
 
+(def dereference-and-castdat-pointer `(cptr (~(host "dereference-and-castdat" '()) ((datum datum) val))))
+(builtin.defn dereference-and-castdat (return (host "dereference-datum" (ptr-call `(~dereference-and-castdat-pointer ~args)))))
+
 (def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
 (builtin.defn not-null-pointer (return (host "dereference-datum" (ptr-call `(~not-null-pointer-ptr ~args)))))
 
