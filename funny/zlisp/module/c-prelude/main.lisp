@@ -59,8 +59,11 @@
 (def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
 (builtin.defn dlsym (return (pointer-call-and-deserialize `(~dlsym-pointer ~args))))
 
-(def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
-(builtin.defn dereference-and-cast (return (host "dereference-datum" (ptr-call `(~dereference-and-cast-pointer ~args)))))
+(builtin.defn dereference-and-cast (progn
+                                     (def d-ptr (head args))
+                                     (def sig (head (tail args)))
+                                     (def der (host "deref" `(~d-ptr int64)))
+                                     (return `(cptr (~der ~sig)))))
 
 (def not-null-fnpointer-ptr `(cptr (~(host "not-null-fnpointer" '()) ((datum) val))))
 (builtin.defn not-null-fnpointer (return (host "dereference-datum" (ptr-call `(~not-null-fnpointer-ptr ~args)))))

@@ -29,14 +29,6 @@ LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer) {
   return fdatum_make_ok(datum_make_nil());
 }
 
-LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_integer(ptpt)) {
-    fprintf(stderr, "%s %s\n", datum_repr(ptpt), datum_repr(new_descriptor));
-    return fdatum_make_panic("dereference expected a pointer to pointer");
-  }
-  return fdatum_make_ok(datum_make_fnpointer(*((void **)(ptpt->integer_value)), new_descriptor));
-}
-
 fdatum perform_host_instruction(datum *name, datum *arg) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
@@ -56,8 +48,6 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)simplified_dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
     res = datum_make_int((int64_t)simplified_dlsym);
-  } else if (!strcmp(name->bytestring_value, "dereference-and-cast")) {
-    res = datum_make_int((int64_t)builtin_ptr_dereference_and_cast);
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
     datum *form = arg;
     if (!datum_is_list(form) || list_length(form) != 2) {

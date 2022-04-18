@@ -5,6 +5,7 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <ffi.h>
+datum *datum_make_fnpointer(void *data,datum *signature);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs,bool datums);
 datum *datum_get_fnpointer_descriptor(datum *d);
@@ -19,11 +20,9 @@ fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
 fdatum perform_host_instruction(datum *name,datum *arg);
-datum *datum_make_fnpointer(void *data,datum *signature);
-#define LOCAL static
-LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
 void *datum_get_fnpointer_value(datum *d);
 bool datum_is_fnpointer(datum *e);
+#define LOCAL static
 LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer);
 void *simplified_dlsym(void *handle,const char *symbol);
 void *simplified_dlopen(char *path);
