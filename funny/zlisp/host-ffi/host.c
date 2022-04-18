@@ -47,23 +47,12 @@ LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor
   return fdatum_make_ok(datum_make_fnpointer(*((void **)(ptpt->integer_value)), new_descriptor));
 }
 
-fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
-  if (!datum_is_integer(pt)) {
-    return fdatum_make_panic("wrap-ptr-into-ptr expected a pointer");
-  }
-  void **ptpt = malloc(sizeof(void **));
-  *ptpt = (void *)(pt->integer_value);
-  return fdatum_make_ok(datum_make_int((int64_t)ptpt));
-}
-
 fdatum perform_host_instruction(datum *name, datum *arg) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "wrap-pointer-into-pointer")) {
-    res = datum_make_int((int64_t)builtin_ptr_wrap_ptr_into_ptr);
-  } else if (!strcmp(name->bytestring_value, "not-null-pointer")) {
+  if (!strcmp(name->bytestring_value, "not-null-pointer")) {
     res = datum_make_int((int64_t)builtin_ptr_not_null_pointer);
   } else if (!strcmp(name->bytestring_value, "not-null-fnpointer")) {
     res = datum_make_int((int64_t)builtin_ptr_not_null_fnpointer);

@@ -68,9 +68,6 @@
 (def not-null-fnpointer-ptr `(cptr (~(host "not-null-fnpointer" '()) ((datum) val))))
 (builtin.defn not-null-fnpointer (return (host "dereference-datum" (ptr-call `(~not-null-fnpointer-ptr ~args)))))
 
-(def wrap-pointer-into-pointer-ptr `(cptr (~(host "wrap-pointer-into-pointer" '()) ((datum) val))))
-(builtin.defn wrap-pointer-into-pointer (return (host "dereference-datum" (ptr-call `(~wrap-pointer-into-pointer-ptr ~args)))))
-
 (builtin.defn c-function-pointer
             (progn
               (def handle (head args))
@@ -147,3 +144,6 @@
                     ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `(~fn-pointer ~args)))))
                      (return fn-routine))
                   (panic (concat-bytestrings "couldn't load C function " c-name)))))
+
+(builtin.defn wrap-pointer-into-pointer (return (host "mkptr" `(~(head args) sizet))))
+

@@ -19,7 +19,6 @@ fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
 fdatum perform_host_instruction(datum *name,datum *arg);
-fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt);
 datum *datum_make_fnpointer(void *data,datum *signature);
 #define LOCAL static
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
