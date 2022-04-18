@@ -62,9 +62,6 @@
 (def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
 (builtin.defn dereference-and-cast (return (host "dereference-datum" (ptr-call `(~dereference-and-cast-pointer ~args)))))
 
-(def dereference-and-castdat-pointer `(cptr (~(host "dereference-and-castdat" '()) ((datum datum) val))))
-(builtin.defn dereference-and-castdat (return (host "dereference-datum" (ptr-call `(~dereference-and-castdat-pointer ~args)))))
-
 (def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
 (builtin.defn not-null-pointer (return (host "dereference-datum" (ptr-call `(~not-null-pointer-ptr ~args)))))
 
@@ -89,12 +86,12 @@
                 (def c-name (head (tail args)))
                 (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-pointer (dereference-and-castdat fn-pointer-pointer signature))
+                (def fn-pointer (host "deref" `(~fn-pointer-pointer int64)))
                 (return fn-pointer)))    
 
 (builtin.defn shared-library (progn
                                (def r (dlopen (head args)))
-                               (if (not-null-pointer (dereference-and-castdat r 'pointer))
+                               (if (not-null-pointer (host "deref" `(~r int64)))
                                    (return `(:ok ~r))
                                  (return `(:err "shared-library failed")))))
 
