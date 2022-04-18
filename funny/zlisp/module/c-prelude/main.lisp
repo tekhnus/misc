@@ -54,11 +54,10 @@
 
 
 (def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
-(builtin.defn dlopen (return `(cptr (~(ptr-call `(~dlopen-pointer ~args)) pointer))))
-(builtin.defn dlopen-new (return (ptr-call `(~dlopen-pointer ~args))))
+(builtin.defn dlopen (return (pointer-call-and-deserialize `(~dlopen-pointer ~args))))
 
 (def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
-(builtin.defn dlsym (return `(cptr (~(ptr-call `(~dlsym-pointer ~args)) pointer))))
+(builtin.defn dlsym (return `(dptr (~(ptr-call `(~dlsym-pointer ~args)) pointer))))
 
 (def dereference-and-cast-pointer `(cptr (~(host "dereference-and-cast" '()) ((datum datum) val))))
 (builtin.defn dereference-and-cast (return (host "dereference-datum" (ptr-call `(~dereference-and-cast-pointer ~args)))))
@@ -68,6 +67,9 @@
 
 (def not-null-pointer-ptr `(cptr (~(host "not-null-pointer" '()) ((datum) val))))
 (builtin.defn not-null-pointer (return (host "dereference-datum" (ptr-call `(~not-null-pointer-ptr ~args)))))
+
+(def not-null-fnpointer-ptr `(cptr (~(host "not-null-fnpointer" '()) ((datum) val))))
+(builtin.defn not-null-fnpointer (return (host "dereference-datum" (ptr-call `(~not-null-fnpointer-ptr ~args)))))
 
 (def nonzero-ptr `(cptr (~(host "nonzero" '()) ((datum) val))))
 (builtin.defn nonzero (return (host "dereference-datum" (ptr-call `(~nonzero-ptr ~args)))))
@@ -85,16 +87,18 @@
                 (return fn-pointer)))             
 
 (builtin.defn shared-library (progn
-                               (def res-ptr (dlopen-new (head args)))
+                               (def r (dlopen (head args)))
+                               (def res-ptr (head (head (tail r))))
                                (if (nonzero res-ptr)
-                                   (return `(:ok (cptr (~res-ptr pointer))))
+                                   (return `(:ok ~r))
                                  (return `(:err "shared-library failed")))))
 
 (builtin.defn extern-pointer (progn
                                (def handle (head args))
                                (def c-name (head (tail args)))
                                (def signature (head (tail (tail args))))
-                               (def res (c-function-pointer handle c-name signature))
+                               (def resxxx (c-function-pointer handle c-name signature))
+                               (def res `(dptr ~(head (tail resxxx))))
                                (if (not-null-pointer res)
                                    (return `(:ok ~res))
                                  (return `(:err "extern-pointer failed")))))
@@ -111,7 +115,7 @@
                 (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
-                (if (not-null-pointer fn-pointer)
+                (if (not-null-fnpointer fn-pointer)
                     ((def fn-routine (builtin.fn (return (pointer-call-and-interpret `(~fn-pointer ~args)))))
                      (return fn-routine))
                   (panic c-name))))
@@ -138,7 +142,7 @@
                 (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
-                (if (not-null-pointer fn-pointer)
+                (if (not-null-fnpointer fn-pointer)
                     ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `(~fn-pointer ~args)))))
                      (return fn-routine))
                   (panic (concat-bytestrings "couldn't load C function " c-name)))))
