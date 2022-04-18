@@ -27,7 +27,6 @@ LOCAL fdatum builtin_ptr_dereference_and_castdat(datum *ptpt,datum *new_descript
 datum *datum_make_fnpointer(void *data,datum *signature);
 datum *datum_get_pointer_descriptor(datum *d);
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt,datum *new_descriptor);
-LOCAL fdatum builtin_nonzero(datum *d);
 void *datum_get_fnpointer_value(datum *d);
 bool datum_is_fnpointer(datum *e);
 LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer);
