@@ -13,9 +13,6 @@ fdatum builtin_concat_bytestrings(datum *x,datum *y);
 fdatum builtin_repr(datum *v);
 fdatum builtin_panic(datum *arg_value);
 fdatum builtin_is_constant(datum *arg_value);
-#include <dlfcn.h>
-#include <ffi.h>
-bool datum_is_pointer(datum *e);
 fdatum builtin_annotate(datum *arg_value);
 fdatum builtin_eq(datum *x,datum *y);
 #define INTERFACE 0

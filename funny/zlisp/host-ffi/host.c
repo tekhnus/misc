@@ -20,10 +20,10 @@ void *simplified_dlsym(void *handle, const char *symbol) {
 }
 
 LOCAL fdatum builtin_ptr_not_null_pointer(datum *pointer) {
-  if (!datum_is_pointer(pointer)) {
+  if (!datum_is_integer(pointer)) {
     return fdatum_make_panic("not-null-pointer expects a pointer");
   }
-  if (datum_get_pointer_value(pointer) != NULL) {
+  if (pointer->integer_value != 0) {
     return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
   }
   return fdatum_make_ok(datum_make_nil());
@@ -40,27 +40,27 @@ LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer) {
 }
 
 LOCAL fdatum builtin_ptr_dereference_and_cast(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_pointer(ptpt)) {
+  if (!datum_is_integer(ptpt)) {
     fprintf(stderr, "%s %s\n", datum_repr(ptpt), datum_repr(new_descriptor));
     return fdatum_make_panic("dereference expected a pointer to pointer");
   }
-  return fdatum_make_ok(datum_make_fnpointer(*((void **)datum_get_pointer_value(ptpt)), new_descriptor));
+  return fdatum_make_ok(datum_make_fnpointer(*((void **)(ptpt->integer_value)), new_descriptor));
 }
 
 LOCAL fdatum builtin_ptr_dereference_and_castdat(datum *ptpt, datum *new_descriptor) {
-  if (!datum_is_pointer(ptpt)) {
+  if (!datum_is_integer(ptpt)) {
     return fdatum_make_panic("dereferencedat expected a pointer to pointer");
   }
-  return fdatum_make_ok(datum_make_pointer(*((void **)datum_get_pointer_value(ptpt))));
+  return fdatum_make_ok(datum_make_int(*((int64_t *)(ptpt->integer_value))));
 }
 
 fdatum builtin_ptr_wrap_ptr_into_ptr(datum *pt) {
-  if (!datum_is_pointer(pt)) {
+  if (!datum_is_integer(pt)) {
     return fdatum_make_panic("wrap-ptr-into-ptr expected a pointer");
   }
   void **ptpt = malloc(sizeof(void **));
-  *ptpt = datum_get_pointer_value(pt);
-  return fdatum_make_ok(datum_make_pointer(ptpt));
+  *ptpt = (void *)(pt->integer_value);
+  return fdatum_make_ok(datum_make_int((int64_t)ptpt));
 }
 
 fdatum perform_host_instruction(datum *name, datum *arg) {
@@ -144,7 +144,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     char *rettype = how->symbol_value;
     void *wha = (void *)what->integer_value;
     if (!strcmp(rettype, "pointer")) {
-      return fdatum_make_ok(datum_make_pointer_to_pointer(wha));
+      return fdatum_make_ok(datum_make_int((int64_t)wha));
     }
     else if (!strcmp(rettype, "sizet")) {
       return fdatum_make_ok(datum_make_int((int64_t)*(size_t *)wha));
@@ -156,7 +156,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
       return fdatum_make_ok(datum_make_bytestring((char *)wha));
     }
     else if (!strcmp(rettype, "fdatum")) {
-      return fdatum_make_ok(datum_make_pointer(wha));
+      return fdatum_make_ok(datum_make_int((int64_t)wha));
     }
     else if (!strcmp(rettype, "val")) {
       return *(fdatum *)wha;
@@ -286,11 +286,11 @@ fdatum datum_mkptr(datum *d, datum *desc) {
     }
     return fdatum_make_ok(datum_make_int((int64_t)&(d->integer_value)));
   } else if (!strcmp(des, "pointer") || !strcmp(des, "fdatum")) {
-    if (!datum_is_pointer(d)) {
+    if (!datum_is_integer(d)) {
       fprintf(stderr, "%s %s\n", datum_repr(d), datum_repr(desc));
       return fdatum_make_panic("pointer expected, got something else");
     }
-    return fdatum_make_ok(datum_make_int((int64_t)datum_get_pointer_value(d)));
+    return fdatum_make_ok(datum_make_int((d->integer_value)));
   } else if (!strcmp(des, "datum")) {
     datum **p = malloc(sizeof(datum **));
     *p = d;
@@ -349,24 +349,8 @@ fdatum pointer_call(datum *f, datum *args, bool datums) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-datum *datum_make_pointer(void *data) {
-  return datum_make_int((int64_t)data);
-}
-
 datum *datum_make_fnpointer(void *data, datum *signature) {
   return datum_make_list_2(datum_make_symbol("cptr"), datum_make_list_2(datum_make_int((int64_t)data), signature));
-}
-
-datum *datum_make_pointer_to_pointer(void **ptr) {
-  return datum_make_pointer(ptr);
-}
-
-void *datum_get_pointer_value(datum *d) {
-  if (!datum_is_pointer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
-  return (void*)d->integer_value;
 }
 
 void *datum_get_fnpointer_value(datum *d) {
@@ -384,7 +368,5 @@ datum *datum_get_fnpointer_descriptor(datum *d) {
   }
   return d->list_tail->list_head->list_tail->list_head;
 }
-
-bool datum_is_pointer(datum *e) { return datum_is_integer(e); }
 
 bool datum_is_fnpointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "cptr"); }
