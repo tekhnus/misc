@@ -45,6 +45,13 @@
                 (def rawres (host "pointer-call" `((cptr (~fn-ptr (~fnparamst ~rettype))) ~s)))
                 (return rawres)))
 
+(builtin.defn derefw
+              (progn
+                (def whathow (head args))
+                (def what (head whathow))
+                (def how (head (tail whathow)))
+                (return (host "deref" whathow))))
+
 (builtin.defn pointer-call-and-deserialize
               (progn
                 (def annotated-function-and-params (head args))
@@ -57,7 +64,7 @@
                 (def rettype (head (tail signature)))
                 (def s (serialize-params params fnparamst))
                 (def rawres (host "pointer-call" `((cptr (~fn-ptr (~fnparamst ~rettype))) ~s)))
-                (return (host "deref" `(~rawres ~rettype)))))
+                (return (derefw `(~rawres ~rettype)))))
 
 
 (def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
@@ -69,7 +76,7 @@
 (builtin.defn dereference-and-cast (progn
                                      (def d-ptr (head args))
                                      (def sig (head (tail args)))
-                                     (def der (host "deref" `(~d-ptr int64)))
+                                     (def der (derefw `(~d-ptr int64)))
                                      (return `(cptr (~der ~sig)))))
 
 (builtin.defn not-null-fnpointer
@@ -96,13 +103,13 @@
                 (def c-name (head (tail args)))
                 (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-pointer (host "deref" `(~fn-pointer-pointer int64)))
+                (def fn-pointer (derefw `(~fn-pointer-pointer int64)))
                 (return fn-pointer)))    
 
 (builtin.defn pointer-call-and-interpret
               (progn
                 (def rawres (ptr-call (head args)))
-                (return (host "deref" `(~rawres val)))))
+                (return (derefw `(~rawres val)))))
 
 (builtin.defn builtin-or-panic
               (progn
@@ -148,7 +155,7 @@
 
 (builtin.defn shared-library (progn
                                (def r (dlopen (head args)))
-                               (if (eq 0 (host "deref" `(~r int64)))
+                               (if (eq 0 (derefw `(~r int64)))
                                    (return `(:err "shared-library failed"))
                                  (return `(:ok ~r)))))
 
