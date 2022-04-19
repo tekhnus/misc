@@ -206,10 +206,7 @@ fdatum datum_deref(datum *arg) {
   }
   char *rettype = how->symbol_value;
   void *wha = (void *)what->integer_value;
-  if (!strcmp(rettype, "pointer")) {
-    return fdatum_make_ok(datum_make_int((int64_t)wha));
-  }
-  else if (!strcmp(rettype, "sizet")) {
+  if (!strcmp(rettype, "sizet")) {
     return fdatum_make_ok(datum_make_int((int64_t)*(size_t *)wha));
   }
   else if (!strcmp(rettype, "int")) {
@@ -220,9 +217,6 @@ fdatum datum_deref(datum *arg) {
   }
   else if (!strcmp(rettype, "string")) {
     return fdatum_make_ok(datum_make_bytestring((char *)wha));
-  }
-  else if (!strcmp(rettype, "fdatum")) {
-    return fdatum_make_ok(datum_make_int((int64_t)wha));
   }
   else if (!strcmp(rettype, "val")) {
     return *(fdatum *)wha;

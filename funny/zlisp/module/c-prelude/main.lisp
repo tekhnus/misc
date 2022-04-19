@@ -50,7 +50,11 @@
                 (def whathow (head args))
                 (def what (head whathow))
                 (def how (head (tail whathow)))
-                (return (host "deref" whathow))))
+                (if (eq how 'pointer)
+                    (return what)
+                  (if (eq how 'fdatum)
+                      (return what)
+                    (return (host "deref" whathow))))))
 
 (builtin.defn pointer-call-and-deserialize
               (progn
