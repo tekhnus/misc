@@ -10,6 +10,9 @@
 (def cons-pointer (host "cons" '()))
 (builtin.defn cons (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~cons-pointer  ((datum datum) val)))  ~args)))))
 
+(def eq-pointer (host "eq" '()))
+(builtin.defn eq (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~eq-pointer  ((datum datum) val)))  ~args)))))
+
 (builtin.defn serialize-param
               (progn
                 (def param (head args))
@@ -65,8 +68,14 @@
                                      (def der (host "deref" `(~d-ptr int64)))
                                      (return `(cptr (~der ~sig)))))
 
-(def not-null-fnpointer-ptr `(cptr (~(host "not-null-fnpointer" '()) ((datum) val))))
-(builtin.defn not-null-fnpointer (return (host "dereference-datum" (ptr-call `(~not-null-fnpointer-ptr ~args)))))
+(builtin.defn not-null-fnpointer
+              (progn
+                (def fnptr (head args))
+                (def wo-cptr (head (tail fnptr)))
+                (def rawptr (head wo-cptr))
+                (if (eq rawptr 0)
+                    (return '())
+                  (return '(())))))
 
 (builtin.defn c-function-pointer
             (progn

@@ -19,24 +19,12 @@ void *simplified_dlsym(void *handle, const char *symbol) {
   return dlsym(handle, symbol);
 }
 
-LOCAL fdatum builtin_ptr_not_null_fnpointer(datum *pointer) {
-  if (!datum_is_fnpointer(pointer)) {
-    return fdatum_make_panic("not-null-pointer expects a pointer");
-  }
-  if (datum_get_fnpointer_value(pointer) != NULL) {
-    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
-  }
-  return fdatum_make_ok(datum_make_nil());
-}
-
 fdatum perform_host_instruction(datum *name, datum *arg) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "not-null-fnpointer")) {
-    res = datum_make_int((int64_t)builtin_ptr_not_null_fnpointer);
-  } else if (!strcmp(name->bytestring_value, "panic")) {
+  if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
     res = datum_make_int((int64_t)builtin_head);
@@ -44,6 +32,8 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)builtin_tail);
   } else if (!strcmp(name->bytestring_value, "cons")) {
     res = datum_make_int((int64_t)builtin_cons);
+  } else if (!strcmp(name->bytestring_value, "eq")) {
+    res = datum_make_int((int64_t)builtin_eq);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     res = datum_make_int((int64_t)simplified_dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
