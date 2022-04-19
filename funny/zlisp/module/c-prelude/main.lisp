@@ -17,7 +17,11 @@
               (progn
                 (def param (head args))
                 (def signature (head (tail args)))
-                (return (host "mkptr" `(~param ~signature)))))
+                (if (eq signature 'pointer)
+                    (return param)
+                  (if (eq signature 'fdatum)
+                      (return param)
+                    (return (host "mkptr" `(~param ~signature)))))))
 
 (builtin.defn serialize-params
               (progn

@@ -182,12 +182,6 @@ fdatum datum_mkptr(datum *arg) {
       return fdatum_make_panic("int expected, got something else");
     }
     return fdatum_make_ok(datum_make_int((int64_t)&(d->integer_value)));
-  } else if (!strcmp(des, "pointer") || !strcmp(des, "fdatum")) {
-    if (!datum_is_integer(d)) {
-      fprintf(stderr, "%s %s\n", datum_repr(d), datum_repr(desc));
-      return fdatum_make_panic("pointer expected, got something else");
-    }
-    return fdatum_make_ok(datum_make_int((d->integer_value)));
   } else if (!strcmp(des, "datum")) {
     datum **p = malloc(sizeof(datum **));
     *p = d;
