@@ -77,43 +77,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     }
     return *(fdatum *)arg->integer_value;
   } else if (!strcmp(name->bytestring_value, "deref")) {
-    datum *form = arg;
-    if (!datum_is_list(form) || list_length(form) != 2) {
-      return fdatum_make_panic("deref expected a pair on stack");
-    }
-    datum *what = form->list_head;
-    datum *how = form->list_tail->list_head;
-    if (!datum_is_integer(what)) {
-      return fdatum_make_panic("deref expected a pointer");
-    }
-    if (!datum_is_symbol(how)) {
-      return fdatum_make_panic("deref expected a symbol");
-    }
-    char *rettype = how->symbol_value;
-    void *wha = (void *)what->integer_value;
-    if (!strcmp(rettype, "pointer")) {
-      return fdatum_make_ok(datum_make_int((int64_t)wha));
-    }
-    else if (!strcmp(rettype, "sizet")) {
-      return fdatum_make_ok(datum_make_int((int64_t)*(size_t *)wha));
-    }
-    else if (!strcmp(rettype, "int")) {
-      return fdatum_make_ok(datum_make_int((int64_t)*(int *)wha));
-    }
-    else if (!strcmp(rettype, "int64")) {
-      return fdatum_make_ok(datum_make_int(*(int64_t *)wha));
-    }
-    else if (!strcmp(rettype, "string")) {
-      return fdatum_make_ok(datum_make_bytestring((char *)wha));
-    }
-    else if (!strcmp(rettype, "fdatum")) {
-      return fdatum_make_ok(datum_make_int((int64_t)wha));
-    }
-    else if (!strcmp(rettype, "val")) {
-      return *(fdatum *)wha;
-    } else {
-      return fdatum_make_panic("unknown return type for deref");
-    }
+    return datum_deref(arg);
   }
   else {
     return fdatum_make_panic("unknown host instruction");
@@ -248,6 +212,46 @@ fdatum datum_mkptr(datum *d, datum *desc) {
     return fdatum_make_ok(datum_make_int((int64_t)p));
   } else {
     return fdatum_make_panic("cannot load an argument");
+  }
+}
+
+fdatum datum_deref(datum *arg) {
+  datum *form = arg;
+  if (!datum_is_list(form) || list_length(form) != 2) {
+    return fdatum_make_panic("deref expected a pair on stack");
+  }
+  datum *what = form->list_head;
+  datum *how = form->list_tail->list_head;
+  if (!datum_is_integer(what)) {
+    return fdatum_make_panic("deref expected a pointer");
+  }
+  if (!datum_is_symbol(how)) {
+    return fdatum_make_panic("deref expected a symbol");
+  }
+  char *rettype = how->symbol_value;
+  void *wha = (void *)what->integer_value;
+  if (!strcmp(rettype, "pointer")) {
+    return fdatum_make_ok(datum_make_int((int64_t)wha));
+  }
+  else if (!strcmp(rettype, "sizet")) {
+    return fdatum_make_ok(datum_make_int((int64_t)*(size_t *)wha));
+  }
+  else if (!strcmp(rettype, "int")) {
+    return fdatum_make_ok(datum_make_int((int64_t)*(int *)wha));
+  }
+  else if (!strcmp(rettype, "int64")) {
+    return fdatum_make_ok(datum_make_int(*(int64_t *)wha));
+  }
+  else if (!strcmp(rettype, "string")) {
+    return fdatum_make_ok(datum_make_bytestring((char *)wha));
+  }
+  else if (!strcmp(rettype, "fdatum")) {
+    return fdatum_make_ok(datum_make_int((int64_t)wha));
+  }
+  else if (!strcmp(rettype, "val")) {
+    return *(fdatum *)wha;
+  } else {
+    return fdatum_make_panic("unknown return type for deref");
   }
 }
 
