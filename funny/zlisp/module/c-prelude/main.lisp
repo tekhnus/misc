@@ -1,17 +1,17 @@
 (def panic-pointer (host "panic" '()))
-(builtin.defn panic (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~panic-pointer  ((datum) val)))  ~args)))))
+(builtin.defn panic (return (host "deref" `(~(host "pointer-call-datums" `((cptr (~panic-pointer  ((datum) val)))  ~args)) val))))
 
 (def head-pointer (host "head" '()))
-(builtin.defn head (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~head-pointer  ((datum) val)))  ~args)))))
+(builtin.defn head (return (host "deref" `(~(host "pointer-call-datums" `((cptr (~head-pointer  ((datum) val)))  ~args)) val))))
 
 (def tail-pointer (host "tail" '()))
-(builtin.defn tail (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~tail-pointer  ((datum) val)))  ~args)))))
+(builtin.defn tail (return (host "deref" `(~(host "pointer-call-datums" `((cptr (~tail-pointer  ((datum) val)))  ~args)) val))))
 
 (def cons-pointer (host "cons" '()))
-(builtin.defn cons (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~cons-pointer  ((datum datum) val)))  ~args)))))
+(builtin.defn cons (return (host "deref" `(~(host "pointer-call-datums" `((cptr (~cons-pointer  ((datum datum) val)))  ~args)) val))))
 
 (def eq-pointer (host "eq" '()))
-(builtin.defn eq (return (host "dereference-datum" (host "pointer-call-datums" `((cptr (~eq-pointer  ((datum datum) val)))  ~args)))))
+(builtin.defn eq (return (host "deref" `(~(host "pointer-call-datums" `((cptr (~eq-pointer  ((datum datum) val)))  ~args)) val))))
 
 (builtin.defn serialize-param
               (progn
@@ -98,7 +98,7 @@
 (builtin.defn pointer-call-and-interpret
               (progn
                 (def rawres (ptr-call (head args)))
-                (return (host "dereference-datum" rawres))))
+                (return (host "deref" `(~rawres val)))))
 
 (builtin.defn builtin-or-panic
               (progn

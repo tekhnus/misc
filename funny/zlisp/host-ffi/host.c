@@ -70,12 +70,6 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
       return fdatum_make_panic(resu.panic_message);
     }
     res = resu.ok_value;
-  } else if (!strcmp(name->bytestring_value, "dereference-datum")){
-    datum *form = arg;
-    if (!datum_is_integer(arg)) {
-      return fdatum_make_panic("dereference-datum expected a pointer");
-    }
-    return *(fdatum *)arg->integer_value;
   } else if (!strcmp(name->bytestring_value, "deref")) {
     return datum_deref(arg);
   }
