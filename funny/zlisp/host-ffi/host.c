@@ -24,7 +24,24 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "panic")) {
+  if (!strcmp(name->bytestring_value, "pointer-call") || !strcmp(name->bytestring_value, "pointer-call-datums")) {
+    datum *form = arg;
+    if (!datum_is_list(form) || list_length(form) != 2) {
+      return fdatum_make_panic("pointer-call expected a pair on stack");
+    }
+    datum *fn = form->list_head;
+    datum *args = form->list_tail->list_head;
+    bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
+    fdatum resu = pointer_call(fn, args, datums);
+    if (fdatum_is_panic(resu)) {
+      return fdatum_make_panic(resu.panic_message);
+    }
+    res = resu.ok_value;
+  } else if (!strcmp(name->bytestring_value, "deref")) {
+    return datum_deref(arg);
+  } else if (!strcmp(name->bytestring_value, "mkptr")) {
+    return datum_mkptr(arg);
+  } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
     res = datum_make_int((int64_t)builtin_head);
@@ -38,42 +55,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     res = datum_make_int((int64_t)simplified_dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
     res = datum_make_int((int64_t)simplified_dlsym);
-  } else if (!strcmp(name->bytestring_value, "mkptr")) {
-    datum *form = arg;
-    if (!datum_is_list(form) || list_length(form) != 2) {
-      return fdatum_make_panic("mkptr expected a pair on stack");
-    }
-    datum *what = form->list_head;
-    datum *how = form->list_tail->list_head;
-    return datum_mkptr(what, how);
-  } else if (!strcmp(name->bytestring_value, "pointer-call")) {
-    datum *form = arg;
-    if (!datum_is_list(form) || list_length(form) != 2) {
-      return fdatum_make_panic("pointer-call expected a pair on stack");
-    }
-    datum *fn = form->list_head;
-    datum *args = form->list_tail->list_head;
-    fdatum resu = pointer_call(fn, args, false);
-    if (fdatum_is_panic(resu)) {
-      return fdatum_make_panic(resu.panic_message);
-    }
-    res = resu.ok_value;
-  } else if (!strcmp(name->bytestring_value, "pointer-call-datums")) {
-    datum *form = arg;
-    if (!datum_is_list(form) || list_length(form) != 2) {
-      return fdatum_make_panic("pointer-call expected a pair on stack");
-    }
-    datum *fn = form->list_head;
-    datum *args = form->list_tail->list_head;
-    fdatum resu = pointer_call(fn, args, true);
-    if (fdatum_is_panic(resu)) {
-      return fdatum_make_panic(resu.panic_message);
-    }
-    res = resu.ok_value;
-  } else if (!strcmp(name->bytestring_value, "deref")) {
-    return datum_deref(arg);
-  }
-  else {
+  } else {
     return fdatum_make_panic("unknown host instruction");
   }
   return fdatum_make_ok(res);
@@ -179,7 +161,13 @@ char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, bool datu
   return NULL;
 }
 
-fdatum datum_mkptr(datum *d, datum *desc) {
+fdatum datum_mkptr(datum *arg) {
+  datum *form = arg;
+  if (!datum_is_list(form) || list_length(form) != 2) {
+    return fdatum_make_panic("mkptr expected a pair on stack");
+  }
+  datum *d = form->list_head;
+  datum *desc = form->list_tail->list_head;
   if (!datum_is_symbol(desc)) {
     return fdatum_make_panic("mkptr expected a symbol");
   }
