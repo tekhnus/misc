@@ -57,6 +57,77 @@ LOCAL void prog_append_pop(prog **begin,datum *var);
 LOCAL void prog_append_put_const(prog **begin,datum *val);
 char *prog_init_module(prog *s,datum *source,routine_0(*module_source)(char *));
 prog *prog_make();
+typedef struct prog_slice prog_slice;
+enum prog_type {
+  PROG_END,
+  PROG_IF,
+  PROG_NOP,
+  PROG_PUT_CONST,
+  PROG_PUT_VAR,
+  PROG_ARGS,
+  PROG_CALL,
+  PROG_HOST,
+  PROG_COLLECT,
+  PROG_POP,
+  PROG_SET_CLOSURES,
+  PROG_RETURN,
+  PROG_YIELD,
+  PROG_IMPORT,
+};
+typedef enum prog_type prog_type;
+struct prog {
+  enum prog_type type;
+  union {
+    struct {
+      struct prog *if_true;
+      struct prog *if_false;
+    };
+    struct {
+      struct prog *nop_next;
+    };
+    struct {
+      struct datum *put_const_value;
+      struct prog *put_const_next;
+    };
+    struct {
+      struct datum *put_var_value;
+      struct prog *put_var_next;
+    };
+    struct prog *args_next;
+    struct {
+      bool call_hat;
+      struct prog *call_next;
+    };
+    struct {
+      struct datum *host_instruction;
+      struct prog *host_next;
+    };
+    struct prog *collect_next;
+    struct {
+      struct datum *pop_var;
+      struct prog *pop_next;
+    };
+    struct {
+      struct prog *set_closures_prog;
+      struct datum *set_closures_name;
+      bool set_closures_hat;
+      struct prog *set_closures_next;
+    };
+    bool return_hat;
+    struct {
+      bool yield_hat;
+      struct prog *yield_next;
+    };
+    struct prog *import_next;
+  };
+};
+prog_slice *prog_slice_append(prog_slice *s,prog i);
+prog_slice *prog_slice_make(size_t capacity);
+struct prog_slice {
+  struct prog *begin;
+  size_t length;
+  size_t capacity;
+};
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
 datum *state_stack_pop(state **s);
@@ -138,69 +209,6 @@ routine_0 routine_0_make_null();
 struct state {
   struct datum *vars;
   struct datum *stack;
-};
-enum prog_type {
-  PROG_END,
-  PROG_IF,
-  PROG_NOP,
-  PROG_PUT_CONST,
-  PROG_PUT_VAR,
-  PROG_ARGS,
-  PROG_CALL,
-  PROG_HOST,
-  PROG_COLLECT,
-  PROG_POP,
-  PROG_SET_CLOSURES,
-  PROG_RETURN,
-  PROG_YIELD,
-  PROG_IMPORT,
-};
-typedef enum prog_type prog_type;
-struct prog {
-  enum prog_type type;
-  union {
-    struct {
-      struct prog *if_true;
-      struct prog *if_false;
-    };
-    struct {
-      struct prog *nop_next;
-    };
-    struct {
-      struct datum *put_const_value;
-      struct prog *put_const_next;
-    };
-    struct {
-      struct datum *put_var_value;
-      struct prog *put_var_next;
-    };
-    struct prog *args_next;
-    struct {
-      bool call_hat;
-      struct prog *call_next;
-    };
-    struct {
-      struct datum *host_instruction;
-      struct prog *host_next;
-    };
-    struct prog *collect_next;
-    struct {
-      struct datum *pop_var;
-      struct prog *pop_next;
-    };
-    struct {
-      struct prog *set_closures_prog;
-      struct datum *set_closures_name;
-      bool set_closures_hat;
-      struct prog *set_closures_next;
-    };
-    bool return_hat;
-    struct {
-      bool yield_hat;
-      struct prog *yield_next;
-    };
-    struct prog *import_next;
-  };
 };
 routine_0 routine_0_make(prog *s,state *ctxt);
 bool datum_is_symbol(datum *e);

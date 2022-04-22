@@ -136,3 +136,9 @@ struct prog {
     struct prog *import_next;
   };
 };
+
+struct prog_slice {
+  struct prog *begin;
+  size_t length;
+  size_t capacity;
+};
