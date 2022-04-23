@@ -10,23 +10,16 @@ char *prog_init_module_c_host(prog *p, datum *source) {
   return prog_init_module(p, source, module_routine);
 }
 
-char *prog_init_submodule_c_host(prog *p, datum *source) {
-  return prog_init_submodule(p, source, module_routine);
+char *prog_init_submodule_c_host(prog_slice *sl, prog *p, datum *source) {
+  return prog_init_submodule(sl, p, source, module_routine);
 }
 
-prog *module_routine(char *module) {
+char *module_routine(prog_slice *sl, prog *p, char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
-    fprintf(stderr, "syntax error in required module: %s\n", src.panic_message);
-    return NULL;
+    return src.panic_message;
   }
-  prog *p = prog_make();
-  char *err = prog_init_submodule_c_host(p, src.ok_value);
-  if (err != NULL) {
-    fprintf(stderr, "error in required module: %s\n", err);
-    return NULL;
-  }
-  return p;
+  return prog_init_submodule_c_host(sl, p, src.ok_value);
 }
 
 fdatum module_source(char *module) {

@@ -13,7 +13,7 @@ LOCAL fdatum datum_expand(datum *e,state **ctxt);
 state *state_make_builtins();
 fdatum file_source(char *fname);
 fdatum module_source(char *module);
-char *prog_init_submodule_c_host(prog *p,datum *source);
-prog *module_routine(char *module);
+char *prog_init_submodule_c_host(prog_slice *sl,prog *p,datum *source);
+char *module_routine(prog_slice *sl,prog *p,char *module);
 char *prog_init_module_c_host(prog *p,datum *source);
 #define INTERFACE 0

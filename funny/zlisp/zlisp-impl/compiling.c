@@ -10,7 +10,7 @@ prog *prog_make() {
 }
 
 char *prog_init_module(prog *s, datum *source,
-                       prog *(*module_source)(char *)) {
+                       char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   prog_slice sl = prog_slice_make(16 * 1024);
   prog_append_put_const(&sl, &s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
@@ -24,19 +24,18 @@ char *prog_init_module(prog *s, datum *source,
   return NULL;
 }
 
-char *prog_init_submodule(prog *s, datum *source,
-                       prog *(*module_source)(char *)) {
-  prog_slice sl = prog_slice_make(16 * 1024);
+char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
+                       char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   // prog_append_put_const(&s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     //prog_append_pop(&s, NULL);
     datum *stmt = rest->list_head;
-    char *err = prog_append_statement(&sl, &s, stmt, module_source);
+    char *err = prog_append_statement(sl, &s, stmt, module_source);
     if (err != NULL) {
       return err;
     }
   }
-  prog_append_yield(&sl, &s, false);
+  prog_append_yield(sl, &s, false);
   return NULL;
 }
 
@@ -45,7 +44,7 @@ char *prog_init_submodule(prog *s, datum *source,
 /* } */
 
 LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
-                                  prog *(*module_source)(char *)) {
+                                  char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -329,16 +328,17 @@ LOCAL void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
   *begin = (*begin)->yield_next;
 }
 
-LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, prog *(*module_source)(char *module)) {
+LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   prog_append_args(sl, begin);
   if (module_source == NULL) {
     return "require was used in a context where it's not supported";
   }
-  prog *pkg_just_src = module_source(pkg);
-  if (pkg_just_src == NULL) {
-    return "a required module was not provided";
+  prog *for_submodule_source = prog_slice_append_new(sl);
+  char *err = module_source(sl, for_submodule_source, pkg);
+  if (err != NULL) {
+    return err;
   }
-  datum *r = datum_make_routine_0(routine_0_make(pkg_just_src, state_make_fresh()));
+  datum *r = datum_make_routine_0(routine_0_make(for_submodule_source, state_make_fresh()));
   prog_append_put_const(sl, begin, r);
   prog_append_collect(sl, begin);
   prog_append_call(sl, begin, false); // TODO(harius): bare call
@@ -349,7 +349,7 @@ LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, prog *(
 
 LOCAL char *
 prog_append_backquoted_statement(prog_slice *sl, prog **begin, datum *stmt,
-                                 prog *(*module_source)(char *module)) {
+                                 char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(sl, begin, stmt);
     return NULL;
@@ -375,7 +375,7 @@ prog_append_backquoted_statement(prog_slice *sl, prog **begin, datum *stmt,
 }
 
 LOCAL char *prog_init_routine(prog_slice *sl, prog *s, datum *stmt,
-                              prog *(*module_source)(char *)) {
+                              char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   prog_append_pop(sl, &s, datum_make_symbol("args"));
   return prog_append_statement(sl, &s, stmt, module_source);
 }
