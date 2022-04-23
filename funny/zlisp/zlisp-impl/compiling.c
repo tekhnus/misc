@@ -40,6 +40,10 @@ char *prog_init_submodule(prog *s, datum *source,
   return NULL;
 }
 
+/* char *append_module_routine(prog_slice *sl, datum *source, char *(*xxx)(prog_slice *, char*)) { */
+
+/* } */
+
 LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
                                   routine_0 (*module_source)(char *)) {
   if ((*begin)->type != PROG_END) {
@@ -160,14 +164,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
       return "require should have a single string arg";
     }
     char *pkg = stmt->list_tail->list_head->bytestring_value;
-    if (module_source == NULL) {
-      return "require was used in a context where it's not supported";
-    }
-    routine_0 pkg_src = module_source(pkg);
-    if (routine_0_is_null(pkg_src)) {
-      return "a required module was not provided";
-    }
-    return prog_append_require(sl, begin, pkg_src);
+    return prog_append_require(sl, begin, pkg, module_source);
   }
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
@@ -332,9 +329,16 @@ LOCAL void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
   *begin = (*begin)->yield_next;
 }
 
-LOCAL char *prog_append_require(prog_slice *sl, prog **begin, routine_0 rt) {
-  datum *r = datum_make_routine_0(rt);
+LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, routine_0 (*module_source)(char *module)) {
   prog_append_args(sl, begin);
+  if (module_source == NULL) {
+    return "require was used in a context where it's not supported";
+  }
+  routine_0 pkg_src = module_source(pkg);
+  if (routine_0_is_null(pkg_src)) {
+    return "a required module was not provided";
+  }
+  datum *r = datum_make_routine_0(pkg_src);
   prog_append_put_const(sl, begin, r);
   prog_append_collect(sl, begin);
   prog_append_call(sl, begin, false); // TODO(harius): bare call

@@ -43,7 +43,7 @@ LOCAL void prog_append_args(prog_slice *sl,prog **begin);
 LOCAL void prog_append_host(prog_slice *sl,prog **begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,prog **begin,datum *stmt,routine_0(*module_source)(char *module));
 LOCAL void prog_append_return(prog_slice *sl,prog **begin,bool hat);
-LOCAL char *prog_append_require(prog_slice *sl,prog **begin,routine_0 rt);
+LOCAL char *prog_append_require(prog_slice *sl,prog **begin,char *pkg,routine_0(*module_source)(char *module));
 LOCAL void prog_append_set_closures(prog_slice *sl,prog **begin,prog *p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,prog *s,datum *stmt,routine_0(*module_source)(char *));
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
