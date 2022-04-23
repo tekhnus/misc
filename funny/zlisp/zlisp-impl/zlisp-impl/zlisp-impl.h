@@ -54,7 +54,7 @@ char *prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_so
 LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 LOCAL void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
-char *prog_init_module(prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
+char *prog_init_module(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 prog *prog_make();
 struct prog_slice {
   struct prog *begin;

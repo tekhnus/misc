@@ -568,7 +568,7 @@ prog_slice prog_slice_make(size_t capacity) {
 
 prog *prog_slice_append_new(prog_slice *s) {
   if (s->length == s->capacity) {
-    fprintf(stderr, "prog slice capacity overflow\n");
+    fprintf(stderr, "prog slice capacity overflow %zu\n", s->capacity);
     exit(EXIT_FAILURE);
   }
   prog *p = s->begin + s->length++;

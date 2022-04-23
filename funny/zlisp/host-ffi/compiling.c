@@ -6,8 +6,8 @@
 #include <zlisp-impl/zlisp-impl.h>
 #endif
 
-char *prog_init_module_c_host(prog *p, datum *source) {
-  return prog_init_module(p, source, module_routine);
+char *prog_init_module_c_host(prog_slice *sl, prog *p, datum *source) {
+  return prog_init_module(sl, p, source, module_routine);
 }
 
 char *prog_init_submodule_c_host(prog_slice *sl, prog *p, datum *source) {
@@ -103,8 +103,9 @@ LOCAL fdatum datum_expand(datum *e, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  prog *p = prog_make();
-  char *err = prog_init_module_c_host(p, datum_make_list(exp.ok_value, datum_make_nil()));
+  prog_slice sl = prog_slice_make(16 * 1024);
+  prog *p = prog_slice_append_new(&sl);
+  char *err = prog_init_module_c_host(&sl, p, datum_make_list(exp.ok_value, datum_make_nil()));
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;

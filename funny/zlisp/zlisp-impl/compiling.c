@@ -9,14 +9,13 @@ prog *prog_make() {
   return res;
 }
 
-char *prog_init_module(prog *s, datum *source,
+char *prog_init_module(prog_slice *sl, prog *s, datum *source,
                        char *(*module_source)(prog_slice *sl, prog *p, char*)) {
-  prog_slice sl = prog_slice_make(16 * 1024);
-  prog_append_put_const(&sl, &s, datum_make_void());
+  prog_append_put_const(sl, &s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(&sl, &s, NULL);
+    prog_append_pop(sl, &s, NULL);
     datum *stmt = rest->list_head;
-    char *err = prog_append_statement(&sl, &s, stmt, module_source);
+    char *err = prog_append_statement(sl, &s, stmt, module_source);
     if (err != NULL) {
       return err;
     }

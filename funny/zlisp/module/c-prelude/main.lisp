@@ -54,7 +54,9 @@
                     (return what)
                   (if (eq how 'fdatum)
                       (return what)
-                    (return (host "deref" whathow))))))
+                    (if (eq how 'progslice)
+                        (return what)
+                      (return (host "deref" whathow)))))))
 
 (builtin.defn pointer-call-and-deserialize
               (progn

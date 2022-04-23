@@ -2,12 +2,14 @@
 (require "std")
 
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
-(def prog-make (c-function-or-panic selflib "prog_make" '(() pointer)))
-(def prog-init-module-c-host (c-function-or-panic selflib "prog_init_module_c_host" '((pointer datum) pointer)))
+(def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
+(def prog-slice-append-new (c-function-or-panic selflib "prog_slice_append_new" '((pointer) pointer)))
+(def prog-init-module-c-host (c-function-or-panic selflib "prog_init_module_c_host" '((pointer pointer datum) pointer)))
 !(#defun compile-prog (src)
    (progn
-     (def p (prog-make))
-     (def e (prog-init-module-c-host p src))
+     (def sl (prog-slice-make 20000))
+     (def p (prog-slice-append-new (wrap-pointer-into-pointer sl)))
+     (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src))
      (if (eq 0 e)
          (return `(:err "some compilation error"))
        (return `(:ok ~p)))))

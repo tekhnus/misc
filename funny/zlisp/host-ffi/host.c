@@ -79,7 +79,7 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
     return true;
   }
   if (!strcmp(definition->symbol_value, "sizet")) {
-    *type = &ffi_type_uint64;
+    *type = &ffi_type_uint64; // danger!
     return true;
   }
   if (!strcmp(definition->symbol_value, "int")) {
@@ -100,6 +100,20 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
     elements[0] = &ffi_type_sint;
     elements[1] = &ffi_type_pointer;
     elements[2] = &ffi_type_pointer;
+    elements[3] = NULL;
+    (*type)->elements = elements;
+    return type;
+  }
+  if (!strcmp(definition->symbol_value, "progslice")) {
+    *type = malloc(sizeof(ffi_type));
+    (*type)->type = FFI_TYPE_STRUCT;
+    (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
+                       // Mac before adding this line.
+    (*type)->alignment = 0;
+    ffi_type **elements = malloc(4 * sizeof(ffi_type *));
+    elements[0] = &ffi_type_pointer;
+    elements[1] = &ffi_type_uint64; // it's actually size_t, danger!
+    elements[2] = &ffi_type_uint64;
     elements[3] = NULL;
     (*type)->elements = elements;
     return type;
@@ -244,6 +258,9 @@ fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
   }
   else if (!strcmp(rettype, "fdatum")) {
     res = malloc(sizeof(fdatum));
+  }
+  else if (!strcmp(rettype, "progslice")) {
+    res = malloc(sizeof(prog_slice));
   }
   else if (!strcmp(rettype, "val")) {
     res = malloc(sizeof(fdatum));
