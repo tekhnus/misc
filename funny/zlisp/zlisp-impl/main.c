@@ -573,3 +573,11 @@ prog *prog_slice_append_new(prog_slice *s) {
   }
   return s->begin + s->length++;
 }
+
+prog *prog_slice_at(prog_slice s, size_t index) {
+  if (index >= s.length) {
+    fprintf(stderr, "prog slice index overflow\n");
+    exit(EXIT_FAILURE);
+  }
+  return s.begin + index;
+}

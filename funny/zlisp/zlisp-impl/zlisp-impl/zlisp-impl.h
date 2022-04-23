@@ -58,12 +58,13 @@ LOCAL void prog_append_put_const(prog **begin,datum *val);
 char *prog_init_module(prog *s,datum *source,routine_0(*module_source)(char *));
 prog *prog_make();
 typedef struct prog_slice prog_slice;
-prog *prog_slice_append_new(prog_slice *s);
 struct prog_slice {
   struct prog *begin;
   size_t length;
   size_t capacity;
 };
+prog *prog_slice_at(prog_slice s,size_t index);
+prog *prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
