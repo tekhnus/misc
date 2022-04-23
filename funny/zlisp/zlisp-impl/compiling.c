@@ -3,12 +3,6 @@
 #include <string.h>
 #include <zlisp-impl/zlisp-impl.h>
 
-prog *prog_make() {
-  prog *res = malloc(sizeof(prog));
-  res->type = PROG_END;
-  return res;
-}
-
 char *prog_init_module(prog_slice *sl, prog *s, datum *source,
                        char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   prog_append_put_const(sl, &s, datum_make_void());
@@ -37,10 +31,6 @@ char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
   prog_append_yield(sl, &s, false);
   return NULL;
 }
-
-/* char *append_module_routine(prog_slice *sl, datum *source, char *(*xxx)(prog_slice *, char*)) { */
-
-/* } */
 
 LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
                                   char *(*module_source)(prog_slice *sl, prog *p, char*)) {
