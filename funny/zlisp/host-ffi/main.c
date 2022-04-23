@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
+  fprintf(stderr, "compiled, %zu instructions\n", prog_slice_length(sl));
   state *s = state_make_builtins();
   fdatum res = routine_run_and_get_value_c_host(&s, p);
   if (fdatum_is_panic(res)) {
