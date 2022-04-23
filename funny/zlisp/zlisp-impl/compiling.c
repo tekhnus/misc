@@ -38,34 +38,6 @@ char *prog_init_submodule(prog *s, datum *source,
   return NULL;
 }
 
-char *prog_init_module_new(prog *s, datum *source,
-                       routine_0 (*module_source)(char *)) {
-  char *err = prog_init_submodule_new(s, "__main__", source, module_source);
-  if (err != NULL) {
-    return err;
-  }
-  err = prog_append_statement(&s, datum_make_list_1(datum_make_symbol("__main__")), module_source);
-  return err;
-}
-
-char *prog_init_submodule_new(prog *s, char *name, datum *source,
-                              routine_0 (*module_source)(char *)) {
-  prog *body = prog_make();
-  prog_append_put_const(&s, datum_make_void());
-  *name = 0;
-  for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(&s, NULL);
-    datum *stmt = rest->list_head;
-    // if statement is require, append the required module to s and append the reference to it to body
-    char *err = prog_append_statement(&body, stmt, module_source);
-    if (err != NULL) {
-      return err;
-    }
-  }
-  // extend s with body
-  return NULL;
-}
-
 LOCAL char *prog_append_statement(prog **begin, datum *stmt,
                                   routine_0 (*module_source)(char *)) {
   if ((*begin)->type != PROG_END) {

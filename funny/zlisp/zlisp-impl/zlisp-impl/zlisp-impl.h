@@ -48,8 +48,6 @@ LOCAL char *prog_init_routine(prog *s,datum *stmt,routine_0(*module_source)(char
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog *a,prog *b,prog *e);
 LOCAL void prog_append_put_var(prog **begin,datum *val);
-char *prog_init_submodule_new(prog *s,char *name,datum *source,routine_0(*module_source)(char *));
-char *prog_init_module_new(prog *s,datum *source,routine_0(*module_source)(char *));
 LOCAL void prog_append_yield(prog **begin,bool hat);
 char *prog_init_submodule(prog *s,datum *source,routine_0(*module_source)(char *));
 LOCAL char *prog_append_statement(prog **begin,datum *stmt,routine_0(*module_source)(char *));
