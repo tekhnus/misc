@@ -14,16 +14,7 @@ char *prog_init_submodule_c_host(prog *p, datum *source) {
   return prog_init_submodule(p, source, module_routine);
 }
 
-routine_0 module_routine(char *module) {
-  routine_0 r = routine_0_make_null();
-  prog *p = module_prog(module);
-  if (p == NULL) {
-    return routine_0_make_null();
-  }
-  return routine_0_make(p, state_make_builtins());
-}
-
-LOCAL prog *module_prog(char *module) {
+prog *module_routine(char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
     fprintf(stderr, "syntax error in required module: %s\n", src.panic_message);
