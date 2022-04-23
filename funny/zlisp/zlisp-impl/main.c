@@ -571,7 +571,9 @@ prog *prog_slice_append_new(prog_slice *s) {
     fprintf(stderr, "prog slice capacity overflow\n");
     exit(EXIT_FAILURE);
   }
-  return s->begin + s->length++;
+  prog *p = s->begin + s->length++;
+  p->type = PROG_END;
+  return p;
 }
 
 prog *prog_slice_at(prog_slice s, size_t index) {
@@ -580,4 +582,12 @@ prog *prog_slice_at(prog_slice s, size_t index) {
     exit(EXIT_FAILURE);
   }
   return s.begin + index;
+}
+
+prog *prog_slice_last(prog_slice s) {
+  return prog_slice_at(s, prog_slice_length(s) - 1);
+}
+
+size_t prog_slice_length(prog_slice s) {
+  return s.length;
 }

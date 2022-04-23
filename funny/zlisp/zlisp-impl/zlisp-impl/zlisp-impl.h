@@ -61,6 +61,8 @@ struct prog_slice {
   size_t length;
   size_t capacity;
 };
+size_t prog_slice_length(prog_slice s);
+prog *prog_slice_last(prog_slice s);
 prog *prog_slice_at(prog_slice s,size_t index);
 prog *prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
