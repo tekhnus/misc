@@ -558,20 +558,18 @@ datum *state_stack_collect(state **s) {
   return form;
 }
 
-prog_slice *prog_slice_make(size_t capacity) {
-  prog_slice *res = malloc(sizeof(prog_slice));
-  res->begin = malloc(capacity * sizeof(prog *));
-  res->length = 0;
-  res->capacity = capacity;
+prog_slice prog_slice_make(size_t capacity) {
+  prog_slice res;
+  res.begin = malloc(capacity * sizeof(prog *));
+  res.length = 0;
+  res.capacity = capacity;
   return res;
 }
 
-prog_slice *prog_slice_append(prog_slice *s, prog i) {
+prog *prog_slice_append_new(prog_slice *s) {
   if (s->length == s->capacity) {
     fprintf(stderr, "prog slice capacity overflow\n");
     exit(EXIT_FAILURE);
   }
-  s->begin[s->length] = i;
-  ++s->length;
-  return s;
+  return s->begin + s->length++;
 }
