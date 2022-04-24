@@ -1,4 +1,4 @@
-(require "c-prelude")
+(require "prelude")
 
 (def list (builtin.fn (return args)))
 

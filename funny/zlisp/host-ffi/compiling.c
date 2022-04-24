@@ -23,17 +23,25 @@ char *module_routine(prog_slice *sl, prog *p, char *module) {
 }
 
 fdatum module_source(char *module) {
-  char fname[1024] = {};
+  if (!strcmp(module, "prelude")) {
+    module = "c-prelude";
+  }
+  char *fname = module_to_filename(module);
+  return file_source(fname);
+}
+
+char *module_to_filename(char *module) {
+  char *fname = malloc(1024);
   char *zlisp_home = getenv("ZLISP");
   if (zlisp_home == NULL) {
-    return fdatum_make_panic("ZLISP variable not defined");
+    fprintf(stderr, "ZLISP variable not defined");
+    exit(EXIT_FAILURE);
   }
   strcat(fname, zlisp_home);
   strcat(fname, "/");
   strcat(fname, module);
   strcat(fname, "/main.lisp");
-
-  return file_source(fname);
+  return fname;
 }
 
 fdatum file_source(char *fname) {

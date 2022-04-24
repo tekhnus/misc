@@ -12,6 +12,7 @@ LOCAL fdatum datum_expand(datum *e,state **ctxt);
 #include <stdint.h>
 state *state_make_builtins();
 fdatum file_source(char *fname);
+char *module_to_filename(char *module);
 fdatum module_source(char *module);
 char *prog_init_submodule_c_host(prog_slice *sl,prog *p,datum *source);
 char *module_routine(prog_slice *sl,prog *p,char *module);
