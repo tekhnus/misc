@@ -99,6 +99,10 @@ datum *datum_make_list_3(datum *head, datum *second, datum *third) {
   return datum_make_list(head, datum_make_list_2(second, third));
 }
 
+datum *datum_make_list_5(datum *head, datum *second, datum *third, datum *fourth, datum *fifth) {
+  return datum_make_list(head, datum_make_list_2(second, datum_make_list_2(third, datum_make_list_2(fourth, fifth))));
+}
+
 datum *datum_make_symbol(char *name) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_SYMBOL;
@@ -590,4 +594,62 @@ prog *prog_slice_last(prog_slice s) {
 
 size_t prog_slice_length(prog_slice s) {
   return s.length;
+}
+
+
+datum *prog_slice_to_datum(prog_slice sl) {
+  datum *res = datum_make_nil();
+  datum **tail = &res;
+  for (size_t i = 0; i < prog_slice_length(sl); ++i) {
+    prog *p = prog_slice_at(sl, i);
+    *tail = datum_make_list_2(prog_to_datum(sl, p), datum_make_nil());
+    tail = &((*tail)->list_tail);
+  }
+  return res;
+}
+
+datum *prog_to_datum(prog_slice sl, prog *p) {
+  switch (p->type) {
+  case PROG_END: {return datum_make_list_1(datum_make_symbol(":end")); } break;
+  case PROG_IF: {return datum_make_list_3(datum_make_symbol(":if"), prog_to_offset(sl, p->if_true), prog_to_offset(sl, p->if_false));} break;
+  case PROG_NOP: {return datum_make_list_2(datum_make_symbol(":nop"), prog_to_offset(sl, p->nop_next));} break;
+  case PROG_PUT_CONST: {return datum_make_list_3(datum_make_symbol(":put-const"), datum_to_asm(sl, p->put_const_value), prog_to_offset(sl, p->put_const_next));} break;
+  case PROG_PUT_VAR: {return datum_make_list_3(datum_make_symbol(":put-var"), datum_to_asm(sl, p->put_var_value), prog_to_offset(sl, p->put_var_next));} break;
+  case PROG_ARGS: {return datum_make_list_2(datum_make_symbol(":args"), prog_to_offset(sl, p->args_next));} break;
+  case PROG_CALL: {return datum_make_list_3(datum_make_symbol(":call"), datum_make_int(p->call_hat), prog_to_offset(sl, p->call_next));} break;
+  case PROG_HOST: {return datum_make_list_3(datum_make_symbol(":host"), p->host_instruction, prog_to_offset(sl, p->host_next));} break;
+  case PROG_COLLECT: {return datum_make_list_2(datum_make_symbol(":collect"), prog_to_offset(sl, p->collect_next));} break;
+  case PROG_POP: {return datum_make_list_3(datum_make_symbol(":pop"), datum_to_asm(sl, p->pop_var), prog_to_offset(sl, p->pop_next));} break;
+  case PROG_SET_CLOSURES: {return datum_make_list_5(datum_make_symbol(":set-closures"), prog_to_offset(sl, p->set_closures_prog), datum_to_asm(sl, p->set_closures_name), datum_make_int(p->set_closures_hat), prog_to_offset(sl, p->set_closures_next));} break;
+  case PROG_RETURN: {return datum_make_list_2(datum_make_symbol(":return"), datum_make_int(p->return_hat));} break;
+  case PROG_YIELD: {return datum_make_list_3(datum_make_symbol(":yield"), datum_make_int(p->yield_hat), prog_to_offset(sl, p->yield_next));} break;
+  case PROG_IMPORT: {return datum_make_list_2(datum_make_symbol(":import"), prog_to_offset(sl, p->import_next));} break;
+  }
+  fprintf(stderr, "prog_to_datum incomplete\n");
+  exit(EXIT_FAILURE);
+}
+
+datum *prog_to_offset(prog_slice sl, prog *p) {
+  if (p < prog_slice_at(sl, 0) || p > prog_slice_at(sl, prog_slice_length(sl) - 1)) {
+    fprintf(stderr, "prog_to_offset received a prog from another slice");
+    exit(EXIT_FAILURE);
+  }
+  return datum_make_int(p - prog_slice_at(sl, 0));
+}
+
+datum *datum_to_asm(prog_slice sl, datum *d) {
+  if (d == NULL) {
+    return datum_make_list_1(datum_make_symbol(":null")); // for pop_var argument
+  }
+  if (datum_is_routine_1(d)) {
+    fprintf(stderr, "datum_to_asm cannot handle routine_1");
+    exit(EXIT_FAILURE);
+  }
+  if (datum_is_routine_0(d)) {
+    return datum_make_list_3(datum_make_symbol(":routine"), prog_to_offset(sl, d->routine_0_value.prog_), datum_make_list_2(d->routine_0_value.state_->vars, d->routine_0_value.state_->stack));
+  }
+  if (datum_is_void(d)) {
+    return datum_make_list_1(datum_make_symbol(":void"));
+  }
+  return datum_make_list_2(datum_make_symbol(":value"), d);
 }

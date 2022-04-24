@@ -60,6 +60,10 @@ struct prog_slice {
   size_t length;
   size_t capacity;
 };
+datum *datum_to_asm(prog_slice sl,datum *d);
+datum *prog_to_offset(prog_slice sl,prog *p);
+datum *prog_to_datum(prog_slice sl,prog *p);
+datum *prog_slice_to_datum(prog_slice sl);
 size_t prog_slice_length(prog_slice s);
 prog *prog_slice_last(prog_slice s);
 prog *prog_slice_at(prog_slice s,size_t index);
@@ -120,6 +124,7 @@ datum *datum_make_routine_0(routine_0 r);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);
+datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
