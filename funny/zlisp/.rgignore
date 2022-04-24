@@ -1,0 +1,3 @@
+zlisp-impl/zlisp-impl/*
+host-ffi/*.h
+tools/
