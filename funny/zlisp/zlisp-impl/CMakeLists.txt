@@ -6,8 +6,9 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_EXTENSIONS YES)
 target_compile_options(zlisp-impl PRIVATE -Wall -Wextra -Wno-unused-function -Werror)
 add_custom_target(codegen-zlisp-impl
-                  COMMAND cat main.c compiling.c running.c >zlisp-impl.c
+                  COMMAND bash -c "cat main.c compiling.c running.c >zlisp-impl.c"
                   COMMAND makeheaders -v zlisp-impl.c types.h
-                  COMMAND mv zlisp-impl.h zlisp-impl/
+                  COMMAND bash -c "echo '#pragma' once | cat - zlisp-impl.h >zlisp-impl/zlisp-impl.h"
                   COMMAND rm zlisp-impl.c
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                  VERBATIM)

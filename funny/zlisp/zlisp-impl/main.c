@@ -1,4 +1,9 @@
 // zlisp interpreter.
+#if INTERFACE
+#ifndef ZLISP_IMPL_H
+#define ZLISP_IMPL_H
+#endif
+#endif
 #include <zlisp-impl/zlisp-impl.h>
 
 #include <ctype.h>

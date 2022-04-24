@@ -11,4 +11,7 @@ target_include_directories(zlisp-c PUBLIC . ${FFI_INCLUDE_DIRS})
 
 add_custom_target(codegen-host-ffi
                   COMMAND makeheaders -v *.[ch]
+                  COMMAND makeheaders -h -v *.[ch] >zlisp/host-ffi.h
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+

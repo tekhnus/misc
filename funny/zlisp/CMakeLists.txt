@@ -5,8 +5,9 @@ enable_testing()
 
 add_subdirectory(zlisp-impl)
 add_subdirectory(host-ffi)
+add_subdirectory(host-python)
 add_subdirectory(tools)
 add_subdirectory(test)
 
 add_custom_target(codegen
-                  DEPENDS codegen-zlisp-impl codegen-host-ffi)
+                  DEPENDS codegen-zlisp-impl codegen-host-ffi codegen-host-python)
