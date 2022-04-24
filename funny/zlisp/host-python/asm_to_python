@@ -1,14 +1,149 @@
 #!/usr/bin/env python
 import sys
+import dataclasses
+import copy
 import sexpdata
+
+
+@dataclasses.dataclass
+class State:
+    varz: dict = dataclasses.field(default_factory=dict)
+    stak: list = dataclasses.field(default_factory=list)
+
+
+def is_true(tagged_value):
+    tag, val = tagged_value
+    if tag != "value":
+        return True
+    return bool(val)
+
+
+def check_is_value(tagged_value):
+    tag, val = tagged_value
+    if tag != ":value":
+        raise RuntimeError(f"check_is_value {tagged_value}")
+    return val
+
+def check_is_routine_0(tagged_value):
+    tag, val = tagged_value
+    if tag != ":routine-0":
+        raise RuntimeError(f"check_is_value {tagged_value}")
+    offset, (varz, stack) = val
+    return offset, (varz, stack)
 
 
 def main():
     bc = sys.stdin.read()
-    par = sexpdata.loads(bc)
-    for ins in par:
-        print(ins)
+    prog = sexpdata.loads(bc)
+    ip = 0
+    pdata = [[State()]]
+    def pop_stack():
+        return pdata[-1][-1].stak.pop()
+    while True:
+        ins = prog[ip]
+        op, args = ins[0], ins[1:]
+        if op == sexpdata.Symbol(":end"):
+            pass
+        elif op == sexpdata.Symbol(":if"):
+            if_true, if_false = args
+            if is_true(pop_stack()):
+                ip = if_true
+            else:
+                ip = if_false
+        elif op == sexpdata.Symbol(":nop"):
+            nex, = args
+            ip = nex
+        elif op == sexpdata.Symbol(":put-const"):
+            value, nex = args
+            pdata[-1][-1].stak.append(value)
+            ip = nex
+        elif op == sexpdata.Symbol(":put-var"):
+            value, nex = args
+            pdata[-1][-1].stak.append(pdata[-1][-1].varz[value])
+            ip = nex
+        elif op == sexpdata.Symbol(":args"):
+            nex, = args
+            pdata[-1][-1].stak.append("__function_call")
+            ip = nex
+        elif op == sexpdata.Symbol(":call"):
+            hat, nex = args
+            if hat:
+                raise RuntimeError("routine-1 call is not supported yet")
+            rout = pop_stack()
+            offset, (varz, stack) = check_is_routine_0(rout)
+            # TODO pass args
+            pdata.append(State(varz=varz, stack=stack))
+            ip = offset
+        elif op == sexpdata.Symbol(":host"):
+            instruction, nex = args
+            raise RuntimeError(f"host not implemented: {instruction}")
+            ip = nex
+        elif op == sexpdata.Symbol(":collect"):
+            nex, = args
+            form = []
+            while True:
+                val = pop_stack()
+                if val == "__function_call":
+                    break
+                form = [val] + form
+            pdata[-1][-1].stak.append([sexpdata.Symbol(":value"), form])
+            ip = nex
+        elif op == sexpdata.Symbol(":pop"):
+            var, nex = args
+            if var == [sexpdata.Symbol(":null")]:
+                pop_stack()
+            else:
+                var = check_is_value(var)
+                var = str(var)
+                pdata[-1][-1].varz[var] = pop_stack()
+            ip = nex
+        elif op == sexpdata.Symbol(":set-closures"):
+            prog, name, hat, nex = args
+            if hat:
+                raise RuntimeError("routine-1 set-closures is not supported yet")
+            name = check_is_value(name)
+            name = str(name)
+            pvarz = copy.deepcopy(pdata[-1][-1].varz)
+            p = [":routine-0", prog, [pvarz, []]]
+            pvarz[name] = p
+            pdata[-1][-1].varz[name] = p
+            ip = nex
+        elif op == sexpdata.Symbol(":return"):
+            hat, = args
+            # TODO
+        elif op == sexpdata.Symbol(":yield"):
+            hat, nex = args
+            # TODO
+        elif op == sexpdata.Symbol(":import"):
+            nex, = args
+            val = pop_stack()
+            val = check_is_value(val)
+            _, rout = val
+            _, (varz, _) = check_is_routine_0(rout)
+            pdata[-1][-1].varz.update(varz)
+            ip = nex
+        else:
+            raise RuntimeError(op)
+
 
 
 if __name__ == "__main__":
     main()
+
+
+"""
+  case PROG_END: {return datum_make_list_1(datum_make_symbol(":end")); } break;
+  case PROG_IF: {return datum_make_list_3(datum_make_symbol(":if"), prog_to_offset(sl, p->if_true), prog_to_offset(sl, p->if_false));} break;
+  case PROG_NOP: {return datum_make_list_2(datum_make_symbol(":nop"), prog_to_offset(sl, p->nop_next));} break;
+  case PROG_PUT_CONST: {return datum_make_list_3(datum_make_symbol(":put-const"), datum_to_asm(sl, p->put_const_value), prog_to_offset(sl, p->put_const_next));} break;
+  case PROG_PUT_VAR: {return datum_make_list_3(datum_make_symbol(":put-var"), datum_to_asm(sl, p->put_var_value), prog_to_offset(sl, p->put_var_next));} break;
+  case PROG_ARGS: {return datum_make_list_2(datum_make_symbol(":args"), prog_to_offset(sl, p->args_next));} break;
+  case PROG_CALL: {return datum_make_list_3(datum_make_symbol(":call"), datum_make_int(p->call_hat), prog_to_offset(sl, p->call_next));} break;
+  case PROG_HOST: {return datum_make_list_3(datum_make_symbol(":host"), p->host_instruction, prog_to_offset(sl, p->host_next));} break;
+  case PROG_COLLECT: {return datum_make_list_2(datum_make_symbol(":collect"), prog_to_offset(sl, p->collect_next));} break;
+  case PROG_POP: {return datum_make_list_3(datum_make_symbol(":pop"), datum_to_asm(sl, p->pop_var), prog_to_offset(sl, p->pop_next));} break;
+  case PROG_SET_CLOSURES: {return datum_make_list_5(datum_make_symbol(":set-closures"), prog_to_offset(sl, p->set_closures_prog), datum_to_asm(sl, p->set_closures_name), datum_make_int(p->set_closures_hat), prog_to_offset(sl, p->set_closures_next));} break;
+  case PROG_RETURN: {return datum_make_list_2(datum_make_symbol(":return"), datum_make_int(p->return_hat));} break;
+  case PROG_YIELD: {return datum_make_list_3(datum_make_symbol(":yield"), datum_make_int(p->yield_hat), prog_to_offset(sl, p->yield_next));} break;
+  case PROG_IMPORT: {return datum_make_list_2(datum_make_symbol(":import"), prog_to_offset(sl, p->import_next));} break;
+"""

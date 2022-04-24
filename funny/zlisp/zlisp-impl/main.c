@@ -607,7 +607,7 @@ datum *prog_slice_to_datum(prog_slice sl) {
   datum **tail = &res;
   for (size_t i = 0; i < prog_slice_length(sl); ++i) {
     prog *p = prog_slice_at(sl, i);
-    *tail = datum_make_list_2(prog_to_datum(sl, p), datum_make_nil());
+    *tail = datum_make_list_1(prog_to_datum(sl, p));
     tail = &((*tail)->list_tail);
   }
   return res;
@@ -651,7 +651,7 @@ datum *datum_to_asm(prog_slice sl, datum *d) {
     exit(EXIT_FAILURE);
   }
   if (datum_is_routine_0(d)) {
-    return datum_make_list_3(datum_make_symbol(":routine"), prog_to_offset(sl, d->routine_0_value.prog_), datum_make_list_2(d->routine_0_value.state_->vars, d->routine_0_value.state_->stack));
+    return datum_make_list_3(datum_make_symbol(":routine-0"), prog_to_offset(sl, d->routine_0_value.prog_), datum_make_list_2(d->routine_0_value.state_->vars, d->routine_0_value.state_->stack));
   }
   if (datum_is_void(d)) {
     return datum_make_list_1(datum_make_symbol(":void"));
