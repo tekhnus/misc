@@ -105,7 +105,7 @@ datum *datum_make_list_3(datum *head, datum *second, datum *third) {
 }
 
 datum *datum_make_list_5(datum *head, datum *second, datum *third, datum *fourth, datum *fifth) {
-  return datum_make_list(head, datum_make_list_2(second, datum_make_list_2(third, datum_make_list_2(fourth, fifth))));
+  return datum_make_list(head, datum_make_list(second, datum_make_list(third, datum_make_list_2(fourth, fifth))));
 }
 
 datum *datum_make_symbol(char *name) {

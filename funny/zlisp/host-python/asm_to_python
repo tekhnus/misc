@@ -7,29 +7,52 @@ import sexpdata
 
 @dataclasses.dataclass
 class State:
-    varz: dict = dataclasses.field(default_factory=dict)
+    varz: list = dataclasses.field(default_factory=list)
     stak: list = dataclasses.field(default_factory=list)
+    ip: int = 0
 
 
 def is_true(tagged_value):
     tag, val = tagged_value
-    if tag != "value":
+    if tag != sexpdata.Symbol(":value"):
         return True
     return bool(val)
 
 
 def check_is_value(tagged_value):
     tag, val = tagged_value
-    if tag != ":value":
+    if tag != sexpdata.Symbol(":value"):
         raise RuntimeError(f"check_is_value {tagged_value}")
     return val
 
 def check_is_routine_0(tagged_value):
-    tag, val = tagged_value
-    if tag != ":routine-0":
+    tag, offset, val = tagged_value
+    if tag != sexpdata.Symbol(":routine-0"):
         raise RuntimeError(f"check_is_value {tagged_value}")
-    offset, (varz, stack) = val
+    (varz, stack) = val
     return offset, (varz, stack)
+
+
+def check_is_cons(tagged_value):
+    tag, val = tagged_value
+    if tag != sexpdata.Symbol(":value"):
+        raise RuntimeError(f"check_is_cons {tagged_value}")
+    return val[0], [sexpdata.Symbol(":value"), val[1:]]
+
+
+def make_list_with_items(*args):
+    return [sexpdata.Symbol(":value"), args]
+
+
+def make_routine_0(ip, varz, stak):
+    return [sexpdata.Symbol(":routine-0"), ip, [varz, stak]]
+
+
+def get_var(d, k):
+    for k_, v in d:
+        if k_ == k:
+            return v
+    raise KeyError(k)
 
 
 def main():
@@ -40,7 +63,9 @@ def main():
     def pop_stack():
         return pdata[-1][-1].stak.pop()
     while True:
+        ip = pdata[-1][-1].ip
         ins = prog[ip]
+        print(ins)
         op, args = ins[0], ins[1:]
         if op == sexpdata.Symbol(":end"):
             pass
@@ -59,7 +84,7 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             value, nex = args
-            pdata[-1][-1].stak.append(pdata[-1][-1].varz[value])
+            pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value))
             ip = nex
         elif op == sexpdata.Symbol(":args"):
             nex, = args
@@ -69,10 +94,14 @@ def main():
             hat, nex = args
             if hat:
                 raise RuntimeError("routine-1 call is not supported yet")
-            rout = pop_stack()
+            fnandargs = pop_stack()
+            rout, args = check_is_cons(fnandargs)
             offset, (varz, stack) = check_is_routine_0(rout)
-            # TODO pass args
-            pdata.append(State(varz=varz, stack=stack))
+            rtvarz = copy.deepcopy(varz)
+            rtstack = copy.deepcopy(stack)
+            rtstack.append(args)
+            pdata[-1][-1].ip = nex
+            pdata[-1].append(State(varz=rtvarz, stak=rtstack, ip=0))  # ip set after endif
             ip = offset
         elif op == sexpdata.Symbol(":host"):
             instruction, nex = args
@@ -93,37 +122,47 @@ def main():
             if var == [sexpdata.Symbol(":null")]:
                 pop_stack()
             else:
-                var = check_is_value(var)
-                var = str(var)
-                pdata[-1][-1].varz[var] = pop_stack()
+                pdata[-1][-1].varz.append((var, pop_stack()))
             ip = nex
         elif op == sexpdata.Symbol(":set-closures"):
-            prog, name, hat, nex = args
+            pr, name, hat, nex = args
             if hat:
                 raise RuntimeError("routine-1 set-closures is not supported yet")
-            name = check_is_value(name)
-            name = str(name)
             pvarz = copy.deepcopy(pdata[-1][-1].varz)
-            p = [":routine-0", prog, [pvarz, []]]
-            pvarz[name] = p
-            pdata[-1][-1].varz[name] = p
+            p = [":routine-0", pr, [pvarz, []]]
+            pvarz.append((name, p))
+            pdata[-1][-1].varz.append((name, p))
             ip = nex
         elif op == sexpdata.Symbol(":return"):
             hat, = args
-            # TODO
+            if hat:
+                raise RuntimeError("routine-1 return is not supported yet")
+            rvalue = pop_stack()
+            pdata[-1].pop()
+            pdata[-1][-1].stak.append(rvalue)
+            ip = pdata[-1][-1].ip
         elif op == sexpdata.Symbol(":yield"):
             hat, nex = args
-            # TODO
+            rvalue = pop_stack()
+
+            contvarz = copy.deepcopy(pdata[-1][-1].varz)
+            contstack = copy.deepcopy(pdata[-1][-1].stak)
+            cont = make_routine_0(varz=contvarz, stak=contstack, ip=nex)
+
+            pdata[-1].pop()
+            pdata[-1][-1].stak.append(make_list_with_items(rvalue, cont))
+            ip = pdata[-1][-1].ip
         elif op == sexpdata.Symbol(":import"):
             nex, = args
             val = pop_stack()
             val = check_is_value(val)
             _, rout = val
             _, (varz, _) = check_is_routine_0(rout)
-            pdata[-1][-1].varz.update(varz)
+            pdata[-1][-1].varz.extend(varz)
             ip = nex
         else:
             raise RuntimeError(op)
+        pdata[-1][-1].ip = ip
 
 
 
