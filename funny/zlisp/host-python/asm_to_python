@@ -64,7 +64,7 @@ def main():
     while True:
         ip = pdata[-1][-1].ip
         ins = prog[ip]
-        print(ins)
+        # print(ins)
         op, args = ins[0], ins[1:]
         if op == sexpdata.Symbol(":end"):
             pass
@@ -104,7 +104,12 @@ def main():
             ip = offset
         elif op == sexpdata.Symbol(":host"):
             instruction, nex = args
-            raise RuntimeError(f"host not implemented: {instruction}")
+            arg = pop_stack()
+            if isinstance(instruction, list) and len(instruction) == 2 and instruction[0] == "eval":
+                res = eval(instruction[1], globals(), {"x": arg})
+                pdata[-1][-1].stak.append(res)
+            else:
+                raise RuntimeError(f"host not implemented: {instruction}")
             ip = nex
         elif op == sexpdata.Symbol(":collect"):
             nex, = args
@@ -128,7 +133,7 @@ def main():
             if hat:
                 raise RuntimeError("routine-1 set-closures is not supported yet")
             pvarz = list(pdata[-1][-1].varz)
-            p = [":routine-0", pr, [pvarz, []]]
+            p = [sexpdata.Symbol(":routine-0"), pr, [pvarz, []]]
             pvarz.append((name, p))
             pdata[-1][-1].varz.append((name, p))
             ip = nex
