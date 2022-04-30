@@ -34,3 +34,10 @@ The frontend (perfming module searching and source code preprocessing)
 is separated from the compiler.
 The base language, the bytecode and the process of compiling
 the former into the latter are now host-agnostic.
+
+April 2022: the pointer type is eliminated in favour of plain integers;
+the FFI-related functions are moved from the base implementation to host implementation
+and are significantly refactored.
+Bytecode generator now writes the whole program onto a linear memory slice.
+Bytecode-to-datum converter is implemented.
+Python interpreter is implemented.
