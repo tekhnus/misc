@@ -569,7 +569,7 @@ datum *state_stack_collect(state **s) {
 
 prog_slice prog_slice_make(size_t capacity) {
   prog_slice res;
-  res.begin = malloc(capacity * sizeof(prog *));
+  res.begin = malloc(capacity * sizeof(prog));
   res.length = 0;
   res.capacity = capacity;
   return res;
