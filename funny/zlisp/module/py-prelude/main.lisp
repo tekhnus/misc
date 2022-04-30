@@ -1,1 +1,1 @@
-(builtin.defn print (host ("eval" "print(x)") args))
+(builtin.defn print (return (host ("eval" "print(x)") args)))
