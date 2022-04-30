@@ -54,6 +54,18 @@ def get_var(d, k):
     raise KeyError(k)
 
 
+def head(args):
+    a1, ar = check_is_cons(args)
+    h, t = check_is_cons(a1)
+    return h
+
+
+def tail(args):
+    a1, ar = check_is_cons(args)
+    h, t = check_is_cons(a1)
+    return t
+
+
 def main():
     bc = sys.stdin.read()
     prog = sexpdata.loads(bc)
