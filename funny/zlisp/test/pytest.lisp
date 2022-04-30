@@ -14,8 +14,13 @@
   (return (tail '(42 5 3)))
   '(5 3))
 
-(print (head (tail '(42 5 3))))
-(print (second '(42 5 3)))
+!(#fntest
+  (return (head (tail '(42 5 3))))
+  5)
+
+!(#fntest
+  (return (second '(42 5 3)))
+  5)
 
 !(#fntest
  (return "hello, world!")
