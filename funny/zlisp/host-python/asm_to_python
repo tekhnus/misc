@@ -66,6 +66,29 @@ def tail(args):
     return t
 
 
+def is_constant(args):
+    a1, ar = check_is_cons(args)
+    v = check_is_value(a1)
+    if isinstance(v, list):
+        return make_list_with_items()
+    if isinstance(v, sexpdata.Symbol) and str(v)[0] != ":":
+        return make_list_with_items()
+    return make_list_with_items(make_list_with_items())
+
+
+def eq(args):
+    a1, ar = check_is_cons(args)
+    a2, arr = check_is_cons(ar)
+    if a1 == a2:
+        return make_list_with_items(make_list_with_items())
+    return make_list_with_items()
+
+
+def panic(args):
+    a1, ar = check_is_cons(args)
+    raise RuntimeError("Panic! {}".format(repr(a1)))
+
+
 def main():
     bc = sys.stdin.read()
     prog = sexpdata.loads(bc)
