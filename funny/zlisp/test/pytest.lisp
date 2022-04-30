@@ -1,11 +1,4 @@
 (require "std")
-(print "hello")
-(print (head '(42 5 3)))
-(print (tail '(42 5 3)))
-(print (head (tail '(42 5 3))))
-(print (second '(42 5 3)))
-(def tst (builtin.fn (return (head (tail (head args))))))
-(print (tst '(42 5 3)))
 
 (require "std")
 !(require "testing")
@@ -13,8 +6,16 @@
 
 (def panics '())
 
+!(#fntest
+  (return (head '(42 5 3)))
+  42)
 
+!(#fntest
+  (return (tail '(42 5 3)))
+  '(5 3))
 
+(print (head (tail '(42 5 3))))
+(print (second '(42 5 3)))
 
 !(#fntest
  (return "hello, world!")
@@ -75,37 +76,9 @@
 
 !(#fntest
   (progn
-    (builtin.defn far-fib (progn
-       (^yield 3)
-       (^yield 5)
-       (return 8)))
-
-    (^builtin.defn more-far-fib (progn
-       (def x (far-fib))
-       (^yield x)
-       (^yield 13)))
-
-    !(#def2 x more-far-fib (^more-far-fib))
-    !(#def2 y more-far-fib (^more-far-fib))
-    !(#def2 z more-far-fib (^more-far-fib))
-    !(#def2 t more-far-fib (^more-far-fib))
-    (return (list x y z t)))
-  '(3 5 8 13))
-
-!(#fntest
-  (progn
     (require "std")
     (return 42))
   42)
-
-!(#fntest
-  (progn
-    (fprintf stderr "hello")
-    (return 42))
-  42)
-
-
-
 
 !(#defun print-all (xs)
    (return

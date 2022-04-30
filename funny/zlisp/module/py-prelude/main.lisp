@@ -11,3 +11,13 @@
 (builtin.defn eq (return (host ("eval" "eq(x)") args)))
 
 (builtin.defn panic (return (host ("eval" "panic(x)") args)))
+
+(builtin.defn annotate (return (host ("eval" "annotate(x)") args)))
+
+(builtin.defn + (return (host ("eval" "add(x)") args)))
+
+(builtin.defn cons (return (host ("eval" "cons(x)") args)))
+
+(builtin.defn concat-bytestrings (return (host ("eval" "concat_bytestrings(x)") args)))
+
+(builtin.defn repr (return (host ("eval" "repre(x)") args)))

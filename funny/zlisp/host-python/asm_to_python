@@ -40,11 +40,15 @@ def check_is_cons(tagged_value):
 
 
 def make_list_with_items(*args):
-    return [sexpdata.Symbol(":value"), args]
+    return [sexpdata.Symbol(":value"), list(args)]
 
 
 def make_routine_0(ip, varz, stak):
     return [sexpdata.Symbol(":routine-0"), ip, [varz, stak]]
+
+
+def make_symbol(s):
+    return [sexpdata.Symbol(":value"), sexpdata.Symbol(s)]
 
 
 def get_var(d, k):
@@ -87,6 +91,57 @@ def eq(args):
 def panic(args):
     a1, ar = check_is_cons(args)
     raise RuntimeError("Panic! {}".format(repr(a1)))
+
+
+def annotate(args):
+    a1, ar = check_is_cons(args)
+    tag, val = a1
+    if tag == sexpdata.Symbol(":routine-0"):
+        r = ":operator"
+    elif tag == sexpdata.Symbol(":value"):
+        if isinstance(val, list):
+            r = ":list"
+        elif isinstance(val, sexpdata.Symbol):
+            r = ":symbol"
+        elif isinstance(val, str):
+            r = ":bytestring"
+        elif isinstance(val, int):
+            r = ":integer"
+        else:
+            raise RuntimeError("cannot annotate {}".format(repr(a1)))
+    else:
+        raise RuntimeError("cannot annotate {}".format(repr(a1)))
+    return make_list_with_items(make_symbol(r), a1)
+
+
+def add(args):
+    a1, ar = check_is_cons(args)
+    a2, arr = check_is_cons(ar)
+    x = check_is_value(a1)
+    y = check_is_value(a2)
+    return [sexpdata.Symbol(":value"), x + y]
+
+
+def cons(args):
+    a1, ar = check_is_cons(args)
+    a2, arr = check_is_cons(ar)
+    if a1 == a2:
+        return make_list_with_items(make_list_with_items())
+    a2items = check_is_value(a2)
+    return make_list_with_items(a1, *a2items)
+
+
+def concat_bytestrings(args):
+    a1, ar = check_is_cons(args)
+    a2, arr = check_is_cons(ar)
+    x = check_is_value(a1)
+    y = check_is_value(a2)
+    return [sexpdata.Symbol(":value"), x + y]
+
+
+def repre(args):
+    a1, ar = check_is_cons(args)
+    return [sexpdata.Symbol(":value"), repr(a1)]
 
 
 def main():
