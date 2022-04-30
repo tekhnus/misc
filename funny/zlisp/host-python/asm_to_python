@@ -48,7 +48,7 @@ def make_routine_0(ip, varz, stak):
 
 
 def get_var(d, k):
-    for k_, v in d:
+    for k_, v in reversed(d):
         if k_ == k:
             return v
     raise KeyError(k)

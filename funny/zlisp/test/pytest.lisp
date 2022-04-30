@@ -2,6 +2,10 @@
 (print "hello")
 (print (head '(42 5 3)))
 (print (tail '(42 5 3)))
+(print (head (tail '(42 5 3))))
+(print (second '(42 5 3)))
+(def tst (builtin.fn (return (head (tail (head args))))))
+(print (tst '(42 5 3)))
 
 (require "std")
 !(require "testing")
