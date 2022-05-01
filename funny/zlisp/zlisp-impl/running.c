@@ -62,16 +62,6 @@ LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
   return res;
 }
 
-LOCAL routine_1 routine_1_deep_copy(routine_1 r) {
-  routine_1 res = r;
-  if (res.par != NULL) {
-    routine_1 *new_par = malloc(sizeof(routine_1));
-    *new_par = routine_1_deep_copy(*res.par);
-    res.par = new_par;
-  }
-  return res;
-}
-
 LOCAL datum *routine_0_to_datum(prog_slice sl, routine_0 r) {
   return datum_make_list_2(prog_to_offset(sl, r.prog_), datum_make_list_2(r.state_->vars, r.state_->stack));
 }
@@ -124,13 +114,9 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     datum *fn = form->list_head;
     datum *args = form->list_tail;
     routine_1 callee;
-    if (datum_is_routine_1(fn)) {
-      callee = routine_1_deep_copy(fn->routine_1_value);
-    } else {
-      char *err = datum_to_routine_1(&callee, sl, fn);
-      if (err != NULL) {
-        return err;
-      }
+    char *err = datum_to_routine_1(&callee, sl, fn);
+    if (err != NULL) {
+      return err;
     }
     r->cur.cur.prog_ = r->cur.cur.prog_->call_next;
     routine_2_push_frame(r, callee);
