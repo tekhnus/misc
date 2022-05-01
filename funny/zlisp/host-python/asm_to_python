@@ -25,11 +25,19 @@ def check_is_value(tagged_value):
     return val
 
 def check_is_routine_0(tagged_value):
-    tag, offset, val = tagged_value
-    if tag != sexpdata.Symbol(":routine-0"):
-        raise RuntimeError(f"check_is_value {tagged_value}")
-    (varz, stack) = val
-    return offset, (varz, stack)
+    if len(tagged_value) == 3:
+        tag, offset, val = tagged_value
+        if tag != sexpdata.Symbol(":routine-0"):
+            raise RuntimeError(f"check_is_value {tagged_value}")
+        (varz, stack) = val
+        return offset, (varz, stack)
+    if len(tagged_value) == 2:
+        offset, varz_and_stack = check_is_value(tagged_value)
+        offset = check_is_value(offset)
+        varz, stack = check_is_value(varz_and_stack)
+        varz = check_is_value(varz)
+        stack = check_is_value(stack)
+        return offset, (varz, stack)
 
 
 def check_is_cons(tagged_value):

@@ -327,7 +327,8 @@ LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, char *(
   if (err != NULL) {
     return err;
   }
-  datum *r = datum_make_routine_0(routine_0_make(for_submodule_source, state_make_fresh()));
+  state *fresh_state = state_make_fresh();
+  datum *r = datum_make_list_2(prog_to_offset(*sl, for_submodule_source), datum_make_list_2(fresh_state->vars, fresh_state->stack));
   prog_append_put_const(sl, begin, r);
   prog_append_collect(sl, begin);
   prog_append_call(sl, begin, false); // TODO(harius): bare call
