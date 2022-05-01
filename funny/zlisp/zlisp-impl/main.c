@@ -72,8 +72,6 @@ bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
 
 bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
 
-bool datum_is_routine_0(datum *e) { return e->type == DATUM_ROUTINE_0; }
-
 bool datum_is_routine_1(datum *e) { return e->type == DATUM_ROUTINE_1; }
 
 datum *datum_make_nil() {
@@ -132,13 +130,6 @@ datum *datum_make_int(int64_t value) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_INTEGER;
   e->integer_value = value;
-  return e;
-}
-
-datum *datum_make_routine_0(routine_0 r) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_ROUTINE_0;
-  e->routine_0_value = r;
   return e;
 }
 
@@ -402,7 +393,7 @@ char *datum_repr(datum *e) {
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
-  } else if (datum_is_routine_0(e) || datum_is_routine_1(e)) {
+  } else if (datum_is_routine_1(e)) {
     end += sprintf(end, "<form>");
   } else {
     sprintf(buf, "<fmt not implemented>");
@@ -636,9 +627,6 @@ datum *datum_to_asm(prog_slice sl, datum *d) {
   if (datum_is_routine_1(d)) {
     fprintf(stderr, "datum_to_asm cannot handle routine_1");
     exit(EXIT_FAILURE);
-  }
-  if (datum_is_routine_0(d)) {
-    return datum_make_list_3(datum_make_symbol(":routine-0"), prog_to_offset(sl, d->routine_0_value.prog_), datum_make_list_2(d->routine_0_value.state_->vars, d->routine_0_value.state_->stack));
   }
   if (datum_is_list(d)) {
     datum *res = datum_make_list_2(datum_make_symbol(":value"), datum_make_nil());

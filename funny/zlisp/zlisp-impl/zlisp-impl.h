@@ -120,7 +120,6 @@ bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 datum *datum_make_routine_1(routine_1 r);
-datum *datum_make_routine_0(routine_0 r);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);
@@ -131,7 +130,6 @@ datum *datum_make_list_1(datum *head);
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
 bool datum_is_routine_1(datum *e);
-bool datum_is_routine_0(datum *e);
 bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_nil(datum *e);
@@ -222,7 +220,6 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
-  DATUM_ROUTINE_0,
   DATUM_ROUTINE_1,
 };
 typedef enum datum_type datum_type;
@@ -236,7 +233,6 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct routine_0 routine_0_value;
     struct routine_1 routine_1_value;
   };
 };

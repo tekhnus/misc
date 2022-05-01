@@ -153,9 +153,6 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
       datum *vars = fn->list_tail->list_head->list_head;
       datum *stack = fn->list_tail->list_head->list_tail->list_head;
       callee = routine_0_make(prog_slice_at(sl, offset), state_make(vars, stack));
-    }
-    else if (datum_is_routine_0(fn)) {
-      callee = fn->routine_0_value;
     } else {
       return ("tried to plain-call a non-routine-0");
     }
@@ -280,8 +277,6 @@ LOCAL char *routine_0_step(routine_0 *r,
     state *module_state;
     if (datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2) {
       module_state = state_make(fn->list_tail->list_head->list_head, fn->list_tail->list_head->list_tail->list_head);
-    } else if (datum_is_routine_0(fn)) {
-      module_state = fn->routine_0_value.state_;
     } else {
       return ("expected a routine after a submodule call");
     }
