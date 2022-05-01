@@ -147,11 +147,20 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
     }
     datum *fn = form->list_head;
     datum *args = form->list_tail;
-    if (!datum_is_routine_0(fn)) {
+    routine_0 callee;
+    if (datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2) {
+      int64_t offset = fn->list_head->integer_value;
+      datum *vars = fn->list_tail->list_head->list_head;
+      datum *stack = fn->list_tail->list_head->list_tail->list_head;
+      callee = routine_0_make(prog_slice_at(sl, offset), state_make(vars, stack));
+    }
+    else if (datum_is_routine_0(fn)) {
+      callee = fn->routine_0_value;
+    } else {
       return ("tried to plain-call a non-routine-0");
     }
     r->cur.prog_ = r->cur.prog_->call_next;
-    routine_1_push_frame(r, fn->routine_0_value);
+    routine_1_push_frame(r, callee);
     state_stack_put(st, args);
     return NULL;
   } break;
@@ -160,11 +169,9 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
       break;
     }
     if (&sl == &sl) {}
-    // datum_make_list_2(prog_to_offset(sl, (*p)->set_closures_prog), datum_make_nil());
-    routine_0 closr = {.prog_ = (*p)->set_closures_prog, .state_=NULL};
-    datum *clos = datum_make_routine_0(closr);
+    datum *clos = datum_make_list_2(prog_to_offset(sl, (*p)->set_closures_prog), datum_make_nil());
     state_set_var(st, (*p)->set_closures_name, clos);
-    clos->routine_0_value.state_ = *st;
+    clos->list_tail->list_head = datum_make_list_2((*st)->vars, (*st)->stack); // modifying a datum because we need to create a circular reference:(
     *p = (*p)->set_closures_next;
     return NULL;
   } break;

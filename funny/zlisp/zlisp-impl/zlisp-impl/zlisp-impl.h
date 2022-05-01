@@ -82,7 +82,7 @@ fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
 fdatum state_get_var(state *ns,datum *symbol);
 void state_set_var(state **ns,datum *symbol,datum *value);
 state *state_make_fresh();
-LOCAL state *state_make(datum *vars,datum *stack);
+state *state_make(datum *vars,datum *stack);
 char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);

@@ -433,7 +433,7 @@ char *fdatum_get_panic_message(fdatum result) {
   return result.panic_message;
 }
 
-LOCAL state *state_make(datum *vars, datum *stack) {
+state *state_make(datum *vars, datum *stack) {
   state *res = malloc(sizeof(state));
   res->vars = vars;
   res->stack = stack;
