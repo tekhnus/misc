@@ -192,7 +192,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
     datum *val = state_stack_pop(st);
     *p = (*p)->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
-    datum *conti = datum_make_routine_0(fr);
+    datum *conti = datum_make_list_2(prog_to_offset(sl, fr.prog_), datum_make_list_2(fr.state_->vars, fr.state_->stack));
     datum *result = datum_make_list_2(val, conti);
     state_stack_put(st, result);
     return NULL;
@@ -276,11 +276,15 @@ LOCAL char *routine_0_step(routine_0 *r,
     if (!datum_is_list(pair) || list_length(pair) != 2) {
       return ("expected a pair after a submodule call");
     }
-    datum *submodule_state = pair->list_tail->list_head;
-    if (!datum_is_routine_0(submodule_state)) {
+    datum *fn = pair->list_tail->list_head;
+    state *module_state;
+    if (datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2) {
+      module_state = state_make(fn->list_tail->list_head->list_head, fn->list_tail->list_head->list_tail->list_head);
+    } else if (datum_is_routine_0(fn)) {
+      module_state = fn->routine_0_value.state_;
+    } else {
       return ("expected a routine after a submodule call");
     }
-    state *module_state = submodule_state->routine_0_value.state_;
 
     datum *imported_bindings = state_list_vars(module_state);
     for (; !datum_is_nil(imported_bindings);
