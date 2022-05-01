@@ -72,6 +72,42 @@ LOCAL routine_1 routine_1_deep_copy(routine_1 r) {
   return res;
 }
 
+LOCAL datum *routine_0_to_datum(prog_slice sl, routine_0 r) {
+  return datum_make_list_2(prog_to_offset(sl, r.prog_), datum_make_list_2(r.state_->vars, r.state_->stack));
+}
+
+LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
+  if (r.par == NULL) {
+    return datum_make_list_1(routine_0_to_datum(sl, r.cur));
+  }
+  return datum_make_list(routine_0_to_datum(sl, r.cur), routine_1_to_datum(sl, *r.par));
+}
+
+LOCAL char *datum_to_routine_0(routine_0 *res, prog_slice sl, datum *fn) {
+  if (!(datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2)) {
+    return "cannot convert datum to routine-0";
+  }
+  res->prog_ = prog_slice_at(sl, fn->list_head->integer_value);
+  res->state_ = state_make(fn->list_tail->list_head->list_head, fn->list_tail->list_head->list_tail->list_head);
+  return NULL;
+}
+
+LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
+  if (!datum_is_list(fns) || datum_is_nil(fns)) {
+    return "cannot convert datum to routine-1";
+  }
+  char *err = datum_to_routine_0(&res->cur, sl, fns->list_head);
+  if (err != NULL) {
+    return err;
+  }
+  if (datum_is_nil(fns->list_tail)) {
+    res->par = NULL;
+    return NULL;
+  }
+  res->par = malloc(sizeof(routine_1));
+  return datum_to_routine_1(res->par, sl, fns->list_tail);
+}
+
 LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   prog **p = &r->cur.cur.prog_;
   state **st = &r->cur.cur.state_;
@@ -99,10 +135,11 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     if (!(*p)->set_closures_hat){
       break;
     }
-    datum *clos = datum_make_routine_1(routine_1_make_null());
+    datum *clos = datum_make_nil();
     state_set_var(st, (*p)->set_closures_name, clos);
-    clos->routine_1_value = routine_1_deep_copy(r->cur);
-    clos->routine_1_value.cur.prog_ = (*p)->set_closures_prog;
+    routine_1 callee = r->cur;
+    callee.cur.prog_ =(*p)->set_closures_prog;
+    *clos = *datum_make_routine_1(routine_1_deep_copy(callee)); // modifying the datum because there is a self-reference:(
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
