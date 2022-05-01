@@ -39,10 +39,6 @@ struct datum {
     int64_t integer_value;
     struct routine_0 routine_0_value;
     struct routine_1 routine_1_value;
-    struct {
-      void *pointer_value;
-      struct datum *pointer_descriptor;
-    };
   };
 };
 
