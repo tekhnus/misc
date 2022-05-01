@@ -564,14 +564,14 @@ datum *prog_to_datum(prog_slice sl, prog *p) {
   case PROG_END: {return datum_make_list_1(datum_make_symbol(":end")); } break;
   case PROG_IF: {return datum_make_list_3(datum_make_symbol(":if"), prog_to_offset(sl, p->if_true), prog_to_offset(sl, p->if_false));} break;
   case PROG_NOP: {return datum_make_list_2(datum_make_symbol(":nop"), prog_to_offset(sl, p->nop_next));} break;
-  case PROG_PUT_CONST: {return datum_make_list_3(datum_make_symbol(":put-const"), datum_to_asm(sl, p->put_const_value), prog_to_offset(sl, p->put_const_next));} break;
-  case PROG_PUT_VAR: {return datum_make_list_3(datum_make_symbol(":put-var"), datum_to_asm(sl, p->put_var_value), prog_to_offset(sl, p->put_var_next));} break;
+  case PROG_PUT_CONST: {return datum_make_list_3(datum_make_symbol(":put-const"), (p->put_const_value), prog_to_offset(sl, p->put_const_next));} break;
+  case PROG_PUT_VAR: {return datum_make_list_3(datum_make_symbol(":put-var"), (p->put_var_value), prog_to_offset(sl, p->put_var_next));} break;
   case PROG_ARGS: {return datum_make_list_2(datum_make_symbol(":args"), prog_to_offset(sl, p->args_next));} break;
   case PROG_CALL: {return datum_make_list_3(datum_make_symbol(":call"), datum_make_int(p->call_hat), prog_to_offset(sl, p->call_next));} break;
   case PROG_HOST: {return datum_make_list_3(datum_make_symbol(":host"), p->host_instruction, prog_to_offset(sl, p->host_next));} break;
   case PROG_COLLECT: {return datum_make_list_2(datum_make_symbol(":collect"), prog_to_offset(sl, p->collect_next));} break;
-  case PROG_POP: {return datum_make_list_3(datum_make_symbol(":pop"), datum_to_asm(sl, p->pop_var), prog_to_offset(sl, p->pop_next));} break;
-  case PROG_SET_CLOSURES: {return datum_make_list_5(datum_make_symbol(":set-closures"), prog_to_offset(sl, p->set_closures_prog), datum_to_asm(sl, p->set_closures_name), datum_make_int(p->set_closures_hat), prog_to_offset(sl, p->set_closures_next));} break;
+  case PROG_POP: {return datum_make_list_3(datum_make_symbol(":pop"), (p->pop_var), prog_to_offset(sl, p->pop_next));} break;
+  case PROG_SET_CLOSURES: {return datum_make_list_5(datum_make_symbol(":set-closures"), prog_to_offset(sl, p->set_closures_prog), p->set_closures_name, datum_make_int(p->set_closures_hat), prog_to_offset(sl, p->set_closures_next));} break;
   case PROG_RETURN: {return datum_make_list_2(datum_make_symbol(":return"), datum_make_int(p->return_hat));} break;
   case PROG_YIELD: {return datum_make_list_3(datum_make_symbol(":yield"), datum_make_int(p->yield_hat), prog_to_offset(sl, p->yield_next));} break;
   case PROG_IMPORT: {return datum_make_list_2(datum_make_symbol(":import"), prog_to_offset(sl, p->import_next));} break;
@@ -586,9 +586,4 @@ datum *prog_to_offset(prog_slice sl, prog *p) {
     exit(EXIT_FAILURE);
   }
   return datum_make_int(p - prog_slice_at(sl, 0));
-}
-
-datum *datum_to_asm(prog_slice sl, datum *d) {
-  if (&sl > 0) {}
-  return d;
 }

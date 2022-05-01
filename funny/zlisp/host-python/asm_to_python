@@ -12,41 +12,29 @@ class State:
 
 
 def is_true(tagged_value):
-    return bool(check_is_value(tagged_value))
-
-
-def check_is_value(tagged_value):
-    return tagged_value
+    return bool((tagged_value))
 
 
 def check_is_routine_0(tagged_value):
-    offset, varz_and_stack = check_is_value(tagged_value)
-    offset = check_is_value(offset)
-    varz, stack = check_is_value(varz_and_stack)
-    varz = check_is_value(varz)
-    stack = check_is_value(stack)
+    offset, varz_and_stack = (tagged_value)
+    varz, stack = (varz_and_stack)
     return offset, (varz, stack)
 
 
-def check_is_cons(tagged_value):
-    val = check_is_value(tagged_value)
-    return val[0], make_value(val[1:])
+def check_is_cons(val):
+    return val[0], (val[1:])
 
 
 def make_list_with_items(*args):
-    return make_value(list(args))
-
-
-def make_value(x):
-    return x
+    return (list(args))
 
 
 def make_routine_0(ip, varz, stak):
-    return make_list_with_items(make_value(ip), make_list_with_items(make_value(varz), make_value(stak)))
+    return make_list_with_items((ip), make_list_with_items((varz), (stak)))
 
 
 def make_symbol(s):
-    return make_value(sexpdata.Symbol(s))
+    return (sexpdata.Symbol(s))
 
 
 def get_var(d, k):
@@ -69,8 +57,7 @@ def tail(args):
 
 
 def is_constant(args):
-    a1, ar = check_is_cons(args)
-    v = check_is_value(a1)
+    v, ar = check_is_cons(args)
     if isinstance(v, list):
         return make_list_with_items()
     if isinstance(v, sexpdata.Symbol) and str(v)[0] != ":":
@@ -92,8 +79,7 @@ def panic(args):
 
 
 def annotate(args):
-    a1, ar = check_is_cons(args)
-    val = check_is_value(a1)
+    val, ar = check_is_cons(args)
     if isinstance(val, list):
         r = ":list"
     elif isinstance(val, sexpdata.Symbol):
@@ -104,15 +90,13 @@ def annotate(args):
         r = ":integer"
     else:
         raise RuntimeError("cannot annotate {}".format(repr(a1)))
-    return make_list_with_items(make_symbol(r), a1)
+    return make_list_with_items(make_symbol(r), val)
 
 
 def add(args):
     a1, ar = check_is_cons(args)
     a2, arr = check_is_cons(ar)
-    x = check_is_value(a1)
-    y = check_is_value(a2)
-    return make_value(x + y)
+    return (a1 + a2)
 
 
 def cons(args):
@@ -120,21 +104,18 @@ def cons(args):
     a2, arr = check_is_cons(ar)
     if a1 == a2:
         return make_list_with_items(make_list_with_items())
-    a2items = check_is_value(a2)
-    return make_list_with_items(a1, *a2items)
+    return make_list_with_items(a1, *a2)
 
 
 def concat_bytestrings(args):
-    a1, ar = check_is_cons(args)
-    a2, arr = check_is_cons(ar)
-    x = check_is_value(a1)
-    y = check_is_value(a2)
-    return make_value(x + y)
+    x, ar = check_is_cons(args)
+    y, arr = check_is_cons(ar)
+    return (x + y)
 
 
 def repre(args):
     a1, ar = check_is_cons(args)
-    return make_value(repr(a1))
+    return (repr(a1))
 
 
 def main():
@@ -204,12 +185,11 @@ def main():
                 if val == "__function_call":
                     break
                 form = [val] + form
-            pdata[-1][-1].stak.append(make_value(form))
+            pdata[-1][-1].stak.append((form))
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
-            varname = check_is_value(var)
-            if varname == sexpdata.Symbol(":void"):
+            if var == sexpdata.Symbol(":void"):
                 pop_stack()
             else:
                 pdata[-1][-1].varz.append((var, pop_stack()))
@@ -245,7 +225,6 @@ def main():
         elif op == sexpdata.Symbol(":import"):
             nex, = args
             val = pop_stack()
-            val = check_is_value(val)
             _, rout = val
             _, (varz, _) = check_is_routine_0(rout)
             pdata[-1][-1].varz.extend(varz)

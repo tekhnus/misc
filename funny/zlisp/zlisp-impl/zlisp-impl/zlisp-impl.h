@@ -76,7 +76,6 @@ LOCAL void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 LOCAL datum *datum_make_void();
 LOCAL void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
 char *prog_init_module(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
-datum *datum_to_asm(prog_slice sl,datum *d);
 datum *prog_to_offset(prog_slice sl,prog *p);
 datum *prog_to_datum(prog_slice sl,prog *p);
 datum *prog_slice_to_datum(prog_slice sl);
