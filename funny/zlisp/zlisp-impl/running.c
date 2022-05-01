@@ -123,11 +123,17 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     }
     datum *fn = form->list_head;
     datum *args = form->list_tail;
-    if (!datum_is_routine_1(fn)) {
-      return ("tried to hat-call a non-routine-1");
+    routine_1 callee;
+    if (datum_is_routine_1(fn)) {
+      callee = routine_1_deep_copy(fn->routine_1_value);
+    } else {
+      char *err = datum_to_routine_1(&callee, sl, fn);
+      if (err != NULL) {
+        return err;
+      }
     }
     r->cur.cur.prog_ = r->cur.cur.prog_->call_next;
-    routine_2_push_frame(r, routine_1_deep_copy(fn->routine_1_value));
+    routine_2_push_frame(r, callee);
     state_stack_put(&r->cur.cur.state_, args);
     return NULL;
   } break;
@@ -139,7 +145,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     state_set_var(st, (*p)->set_closures_name, clos);
     routine_1 callee = r->cur;
     callee.cur.prog_ =(*p)->set_closures_prog;
-    *clos = *datum_make_routine_1(routine_1_deep_copy(callee)); // modifying the datum because there is a self-reference:(
+    *clos = *routine_1_to_datum(sl, callee); // modifying the datum because there is a self-reference:(
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
