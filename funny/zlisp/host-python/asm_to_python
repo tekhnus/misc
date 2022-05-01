@@ -12,10 +12,7 @@ class State:
 
 
 def is_true(tagged_value):
-    tag, val = tagged_value
-    if tag != sexpdata.Symbol(":value"):
-        return True
-    return bool(val)
+    return bool(check_is_value(tagged_value))
 
 
 def check_is_value(tagged_value):
@@ -24,39 +21,35 @@ def check_is_value(tagged_value):
         raise RuntimeError(f"check_is_value {tagged_value}")
     return val
 
+
 def check_is_routine_0(tagged_value):
-    if len(tagged_value) == 3:
-        tag, offset, val = tagged_value
-        if tag != sexpdata.Symbol(":routine-0"):
-            raise RuntimeError(f"check_is_value {tagged_value}")
-        (varz, stack) = val
-        return offset, (varz, stack)
-    if len(tagged_value) == 2:
-        offset, varz_and_stack = check_is_value(tagged_value)
-        offset = check_is_value(offset)
-        varz, stack = check_is_value(varz_and_stack)
-        varz = check_is_value(varz)
-        stack = check_is_value(stack)
-        return offset, (varz, stack)
+    offset, varz_and_stack = check_is_value(tagged_value)
+    offset = check_is_value(offset)
+    varz, stack = check_is_value(varz_and_stack)
+    varz = check_is_value(varz)
+    stack = check_is_value(stack)
+    return offset, (varz, stack)
 
 
 def check_is_cons(tagged_value):
-    tag, val = tagged_value
-    if tag != sexpdata.Symbol(":value"):
-        raise RuntimeError(f"check_is_cons {tagged_value}")
-    return val[0], [sexpdata.Symbol(":value"), val[1:]]
+    val = check_is_value(tagged_value)
+    return val[0], make_value(val[1:])
 
 
 def make_list_with_items(*args):
-    return [sexpdata.Symbol(":value"), list(args)]
+    return make_value(list(args))
+
+
+def make_value(x):
+    return [sexpdata.Symbol(":value"), x]
 
 
 def make_routine_0(ip, varz, stak):
-    return [sexpdata.Symbol(":routine-0"), ip, [varz, stak]]
+    return make_list_with_items(make_value(ip), make_list_with_items(make_value(varz), make_value(stak)))
 
 
 def make_symbol(s):
-    return [sexpdata.Symbol(":value"), sexpdata.Symbol(s)]
+    return make_value(sexpdata.Symbol(s))
 
 
 def get_var(d, k):
@@ -103,20 +96,15 @@ def panic(args):
 
 def annotate(args):
     a1, ar = check_is_cons(args)
-    tag, val = a1
-    if tag == sexpdata.Symbol(":routine-0"):
-        r = ":operator"
-    elif tag == sexpdata.Symbol(":value"):
-        if isinstance(val, list):
-            r = ":list"
-        elif isinstance(val, sexpdata.Symbol):
-            r = ":symbol"
-        elif isinstance(val, str):
-            r = ":bytestring"
-        elif isinstance(val, int):
-            r = ":integer"
-        else:
-            raise RuntimeError("cannot annotate {}".format(repr(a1)))
+    val = check_is_value(a1)
+    if isinstance(val, list):
+        r = ":list"
+    elif isinstance(val, sexpdata.Symbol):
+        r = ":symbol"
+    elif isinstance(val, str):
+        r = ":bytestring"
+    elif isinstance(val, int):
+        r = ":integer"
     else:
         raise RuntimeError("cannot annotate {}".format(repr(a1)))
     return make_list_with_items(make_symbol(r), a1)
@@ -127,7 +115,7 @@ def add(args):
     a2, arr = check_is_cons(ar)
     x = check_is_value(a1)
     y = check_is_value(a2)
-    return [sexpdata.Symbol(":value"), x + y]
+    return make_value(x + y)
 
 
 def cons(args):
@@ -144,12 +132,12 @@ def concat_bytestrings(args):
     a2, arr = check_is_cons(ar)
     x = check_is_value(a1)
     y = check_is_value(a2)
-    return [sexpdata.Symbol(":value"), x + y]
+    return make_value(x + y)
 
 
 def repre(args):
     a1, ar = check_is_cons(args)
-    return [sexpdata.Symbol(":value"), repr(a1)]
+    return make_value(repr(a1))
 
 
 def main():
@@ -219,7 +207,7 @@ def main():
                 if val == "__function_call":
                     break
                 form = [val] + form
-            pdata[-1][-1].stak.append([sexpdata.Symbol(":value"), form])
+            pdata[-1][-1].stak.append(make_value(form))
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
@@ -234,7 +222,7 @@ def main():
             if hat:
                 raise RuntimeError("routine-1 set-closures is not supported yet")
             pvarz = list(pdata[-1][-1].varz)
-            p = [sexpdata.Symbol(":routine-0"), pr, [pvarz, []]]
+            p = make_routine_0(pr, pvarz, [])
             pvarz.append((name, p))
             pdata[-1][-1].varz.append((name, p))
             ip = nex
@@ -273,21 +261,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-"""
-  case PROG_END: {return datum_make_list_1(datum_make_symbol(":end")); } break;
-  case PROG_IF: {return datum_make_list_3(datum_make_symbol(":if"), prog_to_offset(sl, p->if_true), prog_to_offset(sl, p->if_false));} break;
-  case PROG_NOP: {return datum_make_list_2(datum_make_symbol(":nop"), prog_to_offset(sl, p->nop_next));} break;
-  case PROG_PUT_CONST: {return datum_make_list_3(datum_make_symbol(":put-const"), datum_to_asm(sl, p->put_const_value), prog_to_offset(sl, p->put_const_next));} break;
-  case PROG_PUT_VAR: {return datum_make_list_3(datum_make_symbol(":put-var"), datum_to_asm(sl, p->put_var_value), prog_to_offset(sl, p->put_var_next));} break;
-  case PROG_ARGS: {return datum_make_list_2(datum_make_symbol(":args"), prog_to_offset(sl, p->args_next));} break;
-  case PROG_CALL: {return datum_make_list_3(datum_make_symbol(":call"), datum_make_int(p->call_hat), prog_to_offset(sl, p->call_next));} break;
-  case PROG_HOST: {return datum_make_list_3(datum_make_symbol(":host"), p->host_instruction, prog_to_offset(sl, p->host_next));} break;
-  case PROG_COLLECT: {return datum_make_list_2(datum_make_symbol(":collect"), prog_to_offset(sl, p->collect_next));} break;
-  case PROG_POP: {return datum_make_list_3(datum_make_symbol(":pop"), datum_to_asm(sl, p->pop_var), prog_to_offset(sl, p->pop_next));} break;
-  case PROG_SET_CLOSURES: {return datum_make_list_5(datum_make_symbol(":set-closures"), prog_to_offset(sl, p->set_closures_prog), datum_to_asm(sl, p->set_closures_name), datum_make_int(p->set_closures_hat), prog_to_offset(sl, p->set_closures_next));} break;
-  case PROG_RETURN: {return datum_make_list_2(datum_make_symbol(":return"), datum_make_int(p->return_hat));} break;
-  case PROG_YIELD: {return datum_make_list_3(datum_make_symbol(":yield"), datum_make_int(p->yield_hat), prog_to_offset(sl, p->yield_next));} break;
-  case PROG_IMPORT: {return datum_make_list_2(datum_make_symbol(":import"), prog_to_offset(sl, p->import_next));} break;
-"""
