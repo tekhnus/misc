@@ -7,7 +7,7 @@ char *prog_init_module(prog_slice *sl, prog *s, datum *source,
                        char *(*module_source)(prog_slice *sl, prog *p, char*)) {
   prog_append_put_const(sl, &s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(sl, &s, NULL);
+    prog_append_pop(sl, &s, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
     char *err = prog_append_statement(sl, &s, stmt, module_source);
     if (err != NULL) {
@@ -87,7 +87,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     prog_append_put_const(sl, begin, datum_make_void());
     for (datum *rest = stmt->list_tail; !datum_is_nil(rest);
          rest = rest->list_tail) {
-      prog_append_pop(sl, begin, NULL);
+      prog_append_pop(sl, begin, datum_make_symbol(":void"));
       datum *step = rest->list_head;
       char *err = prog_append_statement(sl, begin, step, module_source);
       if (err != NULL) {

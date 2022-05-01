@@ -230,7 +230,10 @@ LOCAL char *routine_0_step(routine_0 *r,
   } break;
   case PROG_POP: {
     datum *v = state_stack_pop(st);
-    if ((*p)->pop_var != NULL) {
+    if (!datum_is_symbol((*p)->pop_var)) {
+      return "inappropriate variable name in POP instruction";
+    }
+    if (!datum_is_the_symbol((*p)->pop_var, ":void")) {
       state_set_var(st, (*p)->pop_var, v);
     }
     *p = (*p)->pop_next;

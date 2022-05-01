@@ -215,7 +215,8 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
-            if var == [sexpdata.Symbol(":null")]:
+            varname = check_is_value(var)
+            if varname == sexpdata.Symbol(":void"):
                 pop_stack()
             else:
                 pdata[-1][-1].varz.append((var, pop_stack()))

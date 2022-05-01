@@ -643,9 +643,6 @@ datum *prog_to_offset(prog_slice sl, prog *p) {
 }
 
 datum *datum_to_asm(prog_slice sl, datum *d) {
-  if (d == NULL) {
-    return datum_make_list_1(datum_make_symbol(":null")); // for pop_var argument
-  }
   if (datum_is_routine_1(d)) {
     fprintf(stderr, "datum_to_asm cannot handle routine_1");
     exit(EXIT_FAILURE);
