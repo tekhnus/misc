@@ -4,11 +4,11 @@
 #include <stdint.h>
 
 
-fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
+fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
   routine_0 r0 = {.prog_ = p, .state_ = *ctxt};
   routine_1 r1 = {.cur = r0, .par = NULL};
   routine_2 r = {.cur = r1, .par = NULL};
-  char *s = routine_2_run(&r, perform_host_instruction);
+  char *s = routine_2_run(sl, &r, perform_host_instruction);
   if (s != NULL) {
     return fdatum_make_panic(s);
   }
@@ -17,10 +17,10 @@ fdatum routine_run_and_get_value(state **ctxt, prog *p, fdatum (*perform_host_in
   return fdatum_make_ok(d);
 }
 
-LOCAL char *routine_2_run(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_2_run(prog_slice sl, routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   for (; r->cur.cur.prog_->type != PROG_END; ) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
-    char *err = routine_2_step(r, perform_host_instruction);
+    char *err = routine_2_step(sl, r, perform_host_instruction);
     if (err != NULL) {
       return err;
     }
@@ -72,7 +72,7 @@ LOCAL routine_1 routine_1_deep_copy(routine_1 r) {
   return res;
 }
 
-LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   prog **p = &r->cur.cur.prog_;
   state **st = &r->cur.cur.state_;
   switch ((*p)->type) {
@@ -129,11 +129,11 @@ LOCAL char *routine_2_step(routine_2 *r, fdatum (*perform_host_instruction)(datu
   } break;
   default: break;
   }
-  char *err = routine_1_step(&r->cur, perform_host_instruction);
+  char *err = routine_1_step(sl, &r->cur, perform_host_instruction);
   return err;
 }
 
-LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
   prog **p = &r->cur.prog_;
   state **st = &r->cur.state_;
   switch ((*p)->type) {
@@ -159,6 +159,8 @@ LOCAL char *routine_1_step(routine_1 *r, fdatum (*perform_host_instruction)(datu
     if ((*p)->set_closures_hat){
       break;
     }
+    if (&sl == &sl) {}
+    // datum_make_list_2(prog_to_offset(sl, (*p)->set_closures_prog), datum_make_nil());
     routine_0 closr = {.prog_ = (*p)->set_closures_prog, .state_=NULL};
     datum *clos = datum_make_routine_0(closr);
     state_set_var(st, (*p)->set_closures_name, clos);

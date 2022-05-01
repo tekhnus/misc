@@ -13,7 +13,7 @@ char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs,bool datums)
 datum *datum_get_fnpointer_descriptor(datum *d);
 char *pointer_ffi_init_cif(datum *f,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
-fdatum routine_run_and_get_value_c_host(state **ctxt,prog *p);
+fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,prog *p);
 #include <stdint.h>
 fdatum builtin_eq(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);

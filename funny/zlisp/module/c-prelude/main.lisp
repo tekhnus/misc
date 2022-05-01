@@ -21,7 +21,9 @@
                     (return param)
                   (if (eq signature 'fdatum)
                       (return param)
-                    (return (host "mkptr" `(~param ~signature)))))))
+                    (if (eq signature 'progslice)
+                        (return param)
+                      (return (host "mkptr" `(~param ~signature))))))))
 
 (builtin.defn serialize-params
               (progn

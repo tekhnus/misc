@@ -121,5 +121,5 @@ LOCAL fdatum datum_expand(datum *e, state **ctxt) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  return routine_run_and_get_value_c_host(ctxt, p);
+  return routine_run_and_get_value_c_host(sl, ctxt, p);
 }

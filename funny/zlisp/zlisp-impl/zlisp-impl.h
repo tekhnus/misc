@@ -14,9 +14,15 @@ struct fdatum {
   char *panic_message;
 };
 LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct routine_1 routine_1;
-LOCAL char *routine_1_step(routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct prog_slice prog_slice;
 typedef struct prog prog;
+struct prog_slice {
+  struct prog *begin;
+  size_t length;
+  size_t capacity;
+};
+typedef struct routine_1 routine_1;
+LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct state state;
 struct routine_0 {
   struct prog *prog_;
@@ -32,10 +38,9 @@ LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
 typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
-LOCAL char *routine_2_step(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL char *routine_2_run(routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-fdatum routine_run_and_get_value(state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct prog_slice prog_slice;
+LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog_slice *sl,prog **begin);
 LOCAL void prog_append_call(prog_slice *sl,prog **begin,bool hat);
 LOCAL void prog_append_collect(prog_slice *sl,prog **begin);
@@ -56,11 +61,6 @@ LOCAL void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 LOCAL datum *datum_make_void();
 LOCAL void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
 char *prog_init_module(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
-struct prog_slice {
-  struct prog *begin;
-  size_t length;
-  size_t capacity;
-};
 datum *datum_to_asm(prog_slice sl,datum *d);
 datum *prog_to_offset(prog_slice sl,prog *p);
 datum *prog_to_datum(prog_slice sl,prog *p);

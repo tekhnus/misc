@@ -5,7 +5,7 @@
 #include <dlfcn.h>
 #include <stdlib.h>
 #include <ffi.h>
-fdatum routine_run_and_get_value_c_host(state **ctxt,prog *p);
+fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,prog *p);
 #define LOCAL static
 #include <unistd.h>
 LOCAL fdatum datum_expand(datum *e,state **ctxt);
