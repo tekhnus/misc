@@ -165,7 +165,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     datum *val = state_stack_pop(st);
     *p = (*p)->yield_next;
     routine_1 fr = routine_2_pop_frame(r);
-    datum *conti = datum_make_routine_1(routine_1_deep_copy(fr));
+    datum *conti = routine_1_to_datum(sl, fr);
     datum *result = datum_make_list_2(val, conti);
     state_stack_put(st, result);
     return NULL;
