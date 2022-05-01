@@ -589,15 +589,6 @@ datum *prog_to_offset(prog_slice sl, prog *p) {
 }
 
 datum *datum_to_asm(prog_slice sl, datum *d) {
-  if (datum_is_list(d)) {
-    datum *res = datum_make_list_2(datum_make_symbol(":value"), datum_make_nil());
-    datum **tail = &(res->list_tail->list_head);
-    for (datum *rest = d; !datum_is_nil(rest); rest=rest->list_tail) {
-      datum *p = rest->list_head;
-      *tail = datum_make_list_1(datum_to_asm(sl, p));
-      tail = &((*tail)->list_tail);
-    }
-    return res;
-  }
-  return datum_make_list_2(datum_make_symbol(":value"), d);
+  if (&sl > 0) {}
+  return d;
 }

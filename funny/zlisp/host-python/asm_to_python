@@ -16,10 +16,7 @@ def is_true(tagged_value):
 
 
 def check_is_value(tagged_value):
-    tag, val = tagged_value
-    if tag != sexpdata.Symbol(":value"):
-        raise RuntimeError(f"check_is_value {tagged_value}")
-    return val
+    return tagged_value
 
 
 def check_is_routine_0(tagged_value):
@@ -41,7 +38,7 @@ def make_list_with_items(*args):
 
 
 def make_value(x):
-    return [sexpdata.Symbol(":value"), x]
+    return x
 
 
 def make_routine_0(ip, varz, stak):
