@@ -25,8 +25,6 @@ fdatum builtin_annotate(datum *arg_value) {
     type = ":bytestring";
   } else if (datum_is_integer(arg_value)) {
     type = ":integer";
-  } else if (datum_is_routine_1(arg_value)) {
-    type = ":operator";
   } else {
     return fdatum_make_panic("incomplete implementation of type");
   }

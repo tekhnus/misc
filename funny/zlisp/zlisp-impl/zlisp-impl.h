@@ -36,7 +36,6 @@ struct routine_1 {
 };
 LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
 LOCAL datum *routine_0_to_datum(prog_slice sl,routine_0 r);
-LOCAL routine_1 routine_1_deep_copy(routine_1 r);
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
 typedef struct routine_2 routine_2;
@@ -123,7 +122,6 @@ bool read_result_is_right_paren(read_result x);
 bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
-datum *datum_make_routine_1(routine_1 r);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);
@@ -133,7 +131,6 @@ datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
-bool datum_is_routine_1(datum *e);
 bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_nil(datum *e);
@@ -224,7 +221,6 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
-  DATUM_ROUTINE_1,
 };
 typedef enum datum_type datum_type;
 struct datum {
@@ -237,7 +233,6 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct routine_1 routine_1_value;
   };
 };
 bool datum_is_the_symbol(datum *d,char *val);
