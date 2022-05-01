@@ -1,8 +1,8 @@
 #include <compiling.h>
 #if INTERFACE
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <zlisp-impl/zlisp-impl.h>
 #endif
 
@@ -94,7 +94,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
     datum *res = datum_make_nil();
     datum **end = &res;
 
-    for (datum *rest = e; !datum_is_nil(rest); rest=rest->list_tail) {
+    for (datum *rest = e; !datum_is_nil(rest); rest = rest->list_tail) {
       datum *x = rest->list_head;
       fdatum nxt = datum_expand(x, sl, ctxt);
       if (fdatum_is_panic(nxt)) {
@@ -113,7 +113,8 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
     return exp;
   }
   prog *p = prog_slice_append_new(sl);
-  char *err = prog_init_module_c_host(sl, p, datum_make_list(exp.ok_value, datum_make_nil()));
+  char *err = prog_init_module_c_host(
+      sl, p, datum_make_list(exp.ok_value, datum_make_nil()));
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;

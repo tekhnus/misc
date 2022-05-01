@@ -1,11 +1,11 @@
 #define _GNU_SOURCE
 #include <host.h>
 #if INTERFACE
-#include <zlisp-impl/zlisp-impl.h>
-#include <string.h>
 #include <dlfcn.h>
-#include <stdlib.h>
 #include <ffi.h>
+#include <stdlib.h>
+#include <string.h>
+#include <zlisp-impl/zlisp-impl.h>
 #endif
 
 void *simplified_dlopen(char *path) {
@@ -24,7 +24,8 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "pointer-call") || !strcmp(name->bytestring_value, "pointer-call-datums")) {
+  if (!strcmp(name->bytestring_value, "pointer-call") ||
+      !strcmp(name->bytestring_value, "pointer-call-datums")) {
     datum *form = arg;
     if (!datum_is_list(form) || list_length(form) != 2) {
       return fdatum_make_panic("pointer-call expected a pair on stack");
@@ -65,7 +66,6 @@ fdatum routine_run_and_get_value_c_host(prog_slice sl, state **ctxt, prog *p) {
   return routine_run_and_get_value(sl, ctxt, p, perform_host_instruction);
 }
 
-
 bool ffi_type_init(ffi_type **type, datum *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
@@ -90,7 +90,8 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
     *type = &ffi_type_pointer;
     return true;
   }
-  if (!strcmp(definition->symbol_value, "val") || !strcmp(definition->symbol_value, "fdatum")) {
+  if (!strcmp(definition->symbol_value, "val") ||
+      !strcmp(definition->symbol_value, "fdatum")) {
     *type = malloc(sizeof(ffi_type));
     (*type)->type = FFI_TYPE_STRUCT;
     (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
@@ -131,8 +132,8 @@ char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
   ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
   int arg_count = 0;
   datum *arg_def;
-  for (arg_def = datum_get_fnpointer_descriptor(f)->list_head; !datum_is_nil(arg_def);
-       arg_def = arg_def->list_tail) {
+  for (arg_def = datum_get_fnpointer_descriptor(f)->list_head;
+       !datum_is_nil(arg_def); arg_def = arg_def->list_tail) {
     if (!ffi_type_init(arg_types + arg_count, arg_def->list_head)) {
       return "something wrong with the argument type signature";
     }
@@ -150,7 +151,8 @@ char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
   return NULL;
 }
 
-char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, bool datums) {
+char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
+                                 bool datums) {
   int arg_cnt = 0;
   datum *arg = args;
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
@@ -166,7 +168,7 @@ char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, bool datu
     } else {
       cargs[arg_cnt] = &arg->list_head;
     }
-    
+
     arg = arg->list_tail;
   }
   if (!datum_is_nil(arg)) {
@@ -190,12 +192,12 @@ fdatum datum_mkptr(datum *arg) {
     if (!datum_is_bytestring(d)) {
       return fdatum_make_panic("string expected, got something else");
     }
-    return fdatum_make_ok(datum_make_int((int64_t)&(d->bytestring_value)));
+    return fdatum_make_ok(datum_make_int((int64_t) & (d->bytestring_value)));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       return fdatum_make_panic("int expected, got something else");
     }
-    return fdatum_make_ok(datum_make_int((int64_t)&(d->integer_value)));
+    return fdatum_make_ok(datum_make_int((int64_t) & (d->integer_value)));
   } else if (!strcmp(des, "datum")) {
     datum **p = malloc(sizeof(datum **));
     *p = d;
@@ -221,18 +223,14 @@ fdatum datum_deref(datum *arg) {
   char *rettype = how->symbol_value;
   void *wha = (void *)what->integer_value;
   if (!strcmp(rettype, "sizet")) {
-    return fdatum_make_ok(datum_make_int((int64_t)*(size_t *)wha));
-  }
-  else if (!strcmp(rettype, "int")) {
-    return fdatum_make_ok(datum_make_int((int64_t)*(int *)wha));
-  }
-  else if (!strcmp(rettype, "int64")) {
+    return fdatum_make_ok(datum_make_int((int64_t) * (size_t *)wha));
+  } else if (!strcmp(rettype, "int")) {
+    return fdatum_make_ok(datum_make_int((int64_t) * (int *)wha));
+  } else if (!strcmp(rettype, "int64")) {
     return fdatum_make_ok(datum_make_int(*(int64_t *)wha));
-  }
-  else if (!strcmp(rettype, "string")) {
+  } else if (!strcmp(rettype, "string")) {
     return fdatum_make_ok(datum_make_bytestring((char *)wha));
-  }
-  else if (!strcmp(rettype, "val")) {
+  } else if (!strcmp(rettype, "val")) {
     return *(fdatum *)wha;
   } else {
     return fdatum_make_panic("unknown return type for deref");
@@ -240,36 +238,31 @@ fdatum datum_deref(datum *arg) {
 }
 
 fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
-  void (*fn_ptr)(void) = __extension__(void (*)(void))(datum_get_fnpointer_value(f));
-  char *rettype = datum_get_fnpointer_descriptor(f)->list_tail->list_head->symbol_value;
+  void (*fn_ptr)(void) =
+      __extension__(void (*)(void))(datum_get_fnpointer_value(f));
+  char *rettype =
+      datum_get_fnpointer_descriptor(f)->list_tail->list_head->symbol_value;
 
   void *res;
   if (!strcmp(rettype, "pointer")) {
     res = malloc(sizeof(void *));
-  }
-  else if (!strcmp(rettype, "sizet")) {
+  } else if (!strcmp(rettype, "sizet")) {
     res = malloc(sizeof(size_t));
-  }
-  else if (!strcmp(rettype, "int")) {
+  } else if (!strcmp(rettype, "int")) {
     res = malloc(sizeof(int));
-  }
-  else if (!strcmp(rettype, "string")) {
+  } else if (!strcmp(rettype, "string")) {
     res = malloc(sizeof(char *));
-  }
-  else if (!strcmp(rettype, "fdatum")) {
+  } else if (!strcmp(rettype, "fdatum")) {
     res = malloc(sizeof(fdatum));
-  }
-  else if (!strcmp(rettype, "progslice")) {
+  } else if (!strcmp(rettype, "progslice")) {
     res = malloc(sizeof(prog_slice));
-  }
-  else if (!strcmp(rettype, "val")) {
+  } else if (!strcmp(rettype, "val")) {
     res = malloc(sizeof(fdatum));
   } else {
     return fdatum_make_panic("unknown return type for extern func");
   }
   ffi_call(cif, fn_ptr, res, cargs);
   return fdatum_make_ok(datum_make_int((int64_t)res));
-
 }
 
 fdatum pointer_call(datum *f, datum *args, bool datums) {
@@ -292,7 +285,9 @@ fdatum pointer_call(datum *f, datum *args, bool datums) {
 }
 
 datum *datum_make_fnpointer(void *data, datum *signature) {
-  return datum_make_list_2(datum_make_symbol("cptr"), datum_make_list_2(datum_make_int((int64_t)data), signature));
+  return datum_make_list_2(
+      datum_make_symbol("cptr"),
+      datum_make_list_2(datum_make_int((int64_t)data), signature));
 }
 
 void *datum_get_fnpointer_value(datum *d) {
@@ -300,7 +295,7 @@ void *datum_get_fnpointer_value(datum *d) {
     fprintf(stderr, "Not a pointer!");
     exit(1);
   }
-  return (void*)d->list_tail->list_head->list_head->integer_value;
+  return (void *)d->list_tail->list_head->list_head->integer_value;
 }
 
 datum *datum_get_fnpointer_descriptor(datum *d) {
@@ -311,4 +306,7 @@ datum *datum_get_fnpointer_descriptor(datum *d) {
   return d->list_tail->list_head->list_tail->list_head;
 }
 
-bool datum_is_fnpointer(datum *e) { return datum_is_list(e) && !datum_is_nil(e) && datum_is_the_symbol(e->list_head, "cptr"); }
+bool datum_is_fnpointer(datum *e) {
+  return datum_is_list(e) && !datum_is_nil(e) &&
+         datum_is_the_symbol(e->list_head, "cptr");
+}

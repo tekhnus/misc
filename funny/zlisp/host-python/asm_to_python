@@ -16,8 +16,8 @@ def is_true(tagged_value):
 
 
 def check_is_routine_0(tagged_value):
-    offset, varz_and_stack = (tagged_value)
-    varz, stack = (varz_and_stack)
+    offset, varz_and_stack = tagged_value
+    varz, stack = varz_and_stack
     return offset, (varz, stack)
 
 
@@ -26,7 +26,7 @@ def check_is_cons(val):
 
 
 def make_list_with_items(*args):
-    return (list(args))
+    return list(args)
 
 
 def make_routine_0(ip, varz, stak):
@@ -34,7 +34,7 @@ def make_routine_0(ip, varz, stak):
 
 
 def make_symbol(s):
-    return (sexpdata.Symbol(s))
+    return sexpdata.Symbol(s)
 
 
 def get_var(d, k):
@@ -96,7 +96,7 @@ def annotate(args):
 def add(args):
     a1, ar = check_is_cons(args)
     a2, arr = check_is_cons(ar)
-    return (a1 + a2)
+    return a1 + a2
 
 
 def cons(args):
@@ -110,12 +110,12 @@ def cons(args):
 def concat_bytestrings(args):
     x, ar = check_is_cons(args)
     y, arr = check_is_cons(ar)
-    return (x + y)
+    return x + y
 
 
 def repre(args):
     a1, ar = check_is_cons(args)
-    return (repr(a1))
+    return repr(a1)
 
 
 def main():
@@ -123,8 +123,10 @@ def main():
     prog = sexpdata.loads(bc)
     ip = 0
     pdata = [[State()]]
+
     def pop_stack():
         return pdata[-1][-1].stak.pop()
+
     while True:
         ip = pdata[-1][-1].ip
         ins = prog[ip]
@@ -141,7 +143,7 @@ def main():
             else:
                 ip = if_false
         elif op == sexpdata.Symbol(":nop"):
-            nex, = args
+            (nex,) = args
             ip = nex
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
@@ -152,7 +154,7 @@ def main():
             pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value))
             ip = nex
         elif op == sexpdata.Symbol(":args"):
-            nex, = args
+            (nex,) = args
             pdata[-1][-1].stak.append("__function_call")
             ip = nex
         elif op == sexpdata.Symbol(":call"):
@@ -166,19 +168,25 @@ def main():
             rtstack = list(stack)
             rtstack.append(args)
             pdata[-1][-1].ip = nex
-            pdata[-1].append(State(varz=rtvarz, stak=rtstack, ip=0))  # ip set after endif
+            pdata[-1].append(
+                State(varz=rtvarz, stak=rtstack, ip=0)
+            )  # ip set after endif
             ip = offset
         elif op == sexpdata.Symbol(":host"):
             instruction, nex = args
             arg = pop_stack()
-            if isinstance(instruction, list) and len(instruction) == 2 and instruction[0] == "eval":
+            if (
+                isinstance(instruction, list)
+                and len(instruction) == 2
+                and instruction[0] == "eval"
+            ):
                 res = eval(instruction[1], globals(), {"x": arg})
                 pdata[-1][-1].stak.append(res)
             else:
                 raise RuntimeError(f"host not implemented: {instruction}")
             ip = nex
         elif op == sexpdata.Symbol(":collect"):
-            nex, = args
+            (nex,) = args
             form = []
             while True:
                 val = pop_stack()
@@ -204,7 +212,7 @@ def main():
             pdata[-1][-1].varz.append((name, p))
             ip = nex
         elif op == sexpdata.Symbol(":return"):
-            hat, = args
+            (hat,) = args
             if hat:
                 raise RuntimeError("routine-1 return is not supported yet")
             rvalue = pop_stack()
@@ -223,7 +231,7 @@ def main():
             pdata[-1][-1].stak.append(make_list_with_items(rvalue, cont))
             ip = pdata[-1][-1].ip
         elif op == sexpdata.Symbol(":import"):
-            nex, = args
+            (nex,) = args
             val = pop_stack()
             _, rout = val
             _, (varz, _) = check_is_routine_0(rout)
@@ -232,7 +240,6 @@ def main():
         else:
             raise RuntimeError(op)
         pdata[-1][-1].ip = ip
-
 
 
 if __name__ == "__main__":

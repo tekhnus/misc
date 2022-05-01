@@ -1,8 +1,8 @@
 #pragma once
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #define LOCAL static
 typedef struct routine_2 routine_2;
 #include <inttypes.h>

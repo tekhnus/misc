@@ -4,7 +4,8 @@
 #include <zlisp-impl/zlisp-impl.h>
 
 char *prog_init_module(prog_slice *sl, prog *s, datum *source,
-                       char *(*module_source)(prog_slice *sl, prog *p, char*)) {
+                       char *(*module_source)(prog_slice *sl, prog *p,
+                                              char *)) {
   prog_append_put_const(sl, &s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     prog_append_pop(sl, &s, datum_make_symbol(":void"));
@@ -18,10 +19,11 @@ char *prog_init_module(prog_slice *sl, prog *s, datum *source,
 }
 
 char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
-                       char *(*module_source)(prog_slice *sl, prog *p, char*)) {
+                          char *(*module_source)(prog_slice *sl, prog *p,
+                                                 char *)) {
   // prog_append_put_const(&s, datum_make_void());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    //prog_append_pop(&s, NULL);
+    // prog_append_pop(&s, NULL);
     datum *stmt = rest->list_head;
     char *err = prog_append_statement(sl, &s, stmt, module_source);
     if (err != NULL) {
@@ -33,7 +35,8 @@ char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
-                                  char *(*module_source)(prog_slice *sl, prog *p, char*)) {
+                                  char *(*module_source)(prog_slice *sl,
+                                                         prog *p, char *)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -58,23 +61,24 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err =
-      prog_append_statement(sl, begin, stmt->list_tail->list_head, module_source);
+    err = prog_append_statement(sl, begin, stmt->list_tail->list_head,
+                                module_source);
     if (err != NULL) {
       return err;
     }
     (*begin)->type = PROG_IF;
 
-    prog *true_end = prog_slice_append_new(sl), *false_end = prog_slice_append_new(sl);
+    prog *true_end = prog_slice_append_new(sl),
+         *false_end = prog_slice_append_new(sl);
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
     err = prog_append_statement(
-                                sl, &true_end, stmt->list_tail->list_tail->list_head, module_source);
+        sl, &true_end, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
     err = prog_append_statement(
-                                sl, &false_end, stmt->list_tail->list_tail->list_tail->list_head,
+        sl, &false_end, stmt->list_tail->list_tail->list_tail->list_head,
         module_source);
     if (err != NULL) {
       return err;
@@ -108,7 +112,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
       return "def should have two args";
     }
     char *err = prog_append_statement(
-                                      sl, begin, stmt->list_tail->list_tail->list_head, module_source);
+        sl, begin, stmt->list_tail->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -116,7 +120,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     prog_append_put_const(sl, begin, datum_make_void());
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.defn") || datum_is_the_symbol_pair(op, "hat", "builtin.defn")) {
+  if (datum_is_the_symbol(op, "builtin.defn") ||
+      datum_is_the_symbol_pair(op, "hat", "builtin.defn")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.defn");
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
@@ -131,14 +136,16 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     prog_append_put_const(sl, begin, datum_make_void());
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.fn") || datum_is_the_symbol_pair(op, "hat", "builtin.fn")) {
+  if (datum_is_the_symbol(op, "builtin.fn") ||
+      datum_is_the_symbol_pair(op, "hat", "builtin.fn")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.fn");
     if (list_length(stmt->list_tail) != 1) {
       return "fn should have one arg";
     }
 
     prog *s = prog_slice_append_new(sl);
-    char *err = prog_init_routine(sl, s, stmt->list_tail->list_head, module_source);
+    char *err =
+        prog_init_routine(sl, s, stmt->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
@@ -160,8 +167,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "return should have a single arg";
     }
-    char *err =
-      prog_append_statement(sl, begin, stmt->list_tail->list_head, module_source);
+    char *err = prog_append_statement(sl, begin, stmt->list_tail->list_head,
+                                      module_source);
     if (err != NULL) {
       return err;
     }
@@ -174,8 +181,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
-    char *err =
-      prog_append_statement(sl, begin, stmt->list_tail->list_head, module_source);
+    char *err = prog_append_statement(sl, begin, stmt->list_tail->list_head,
+                                      module_source);
     if (err != NULL) {
       return err;
     }
@@ -186,8 +193,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     if (list_length(stmt->list_tail) != 1) {
       return "backquote should have a single arg";
     }
-    return prog_append_backquoted_statement(sl, begin, stmt->list_tail->list_head,
-                                            module_source);
+    return prog_append_backquoted_statement(
+        sl, begin, stmt->list_tail->list_head, module_source);
   }
   if (datum_is_the_symbol(op, "host")) {
     if (list_length(stmt->list_tail) != 2) {
@@ -295,7 +302,8 @@ LOCAL void prog_append_pop(prog_slice *sl, prog **begin, datum *var) {
   *begin = (*begin)->pop_next;
 }
 
-LOCAL void prog_append_set_closures(prog_slice *sl, prog **begin, prog *p, datum *var, bool hat) {
+LOCAL void prog_append_set_closures(prog_slice *sl, prog **begin, prog *p,
+                                    datum *var, bool hat) {
   (*begin)->type = PROG_SET_CLOSURES;
   (*begin)->set_closures_prog = p;
   (*begin)->set_closures_name = var;
@@ -317,7 +325,9 @@ LOCAL void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
   *begin = (*begin)->yield_next;
 }
 
-LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, char *(*module_source)(prog_slice *sl, prog *p, char*)) {
+LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg,
+                                char *(*module_source)(prog_slice *sl, prog *p,
+                                                       char *)) {
   prog_append_args(sl, begin);
   if (module_source == NULL) {
     return "require was used in a context where it's not supported";
@@ -328,7 +338,9 @@ LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, char *(
     return err;
   }
   state *fresh_state = state_make_fresh();
-  datum *r = datum_make_list_2(prog_to_offset(*sl, for_submodule_source), datum_make_list_2(fresh_state->vars, fresh_state->stack));
+  datum *r = datum_make_list_2(
+      prog_to_offset(*sl, for_submodule_source),
+      datum_make_list_2(fresh_state->vars, fresh_state->stack));
   prog_append_put_const(sl, begin, r);
   prog_append_collect(sl, begin);
   prog_append_call(sl, begin, false); // TODO(harius): bare call
@@ -337,9 +349,9 @@ LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg, char *(
   return NULL;
 }
 
-LOCAL char *
-prog_append_backquoted_statement(prog_slice *sl, prog **begin, datum *stmt,
-                                 char *(*module_source)(prog_slice *sl, prog *p, char*)) {
+LOCAL char *prog_append_backquoted_statement(
+    prog_slice *sl, prog **begin, datum *stmt,
+    char *(*module_source)(prog_slice *sl, prog *p, char *)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(sl, begin, stmt);
     return NULL;
@@ -365,7 +377,8 @@ prog_append_backquoted_statement(prog_slice *sl, prog **begin, datum *stmt,
 }
 
 LOCAL char *prog_init_routine(prog_slice *sl, prog *s, datum *stmt,
-                              char *(*module_source)(prog_slice *sl, prog *p, char*)) {
+                              char *(*module_source)(prog_slice *sl, prog *p,
+                                                     char *)) {
   prog_append_pop(sl, &s, datum_make_symbol("args"));
   return prog_append_statement(sl, &s, stmt, module_source);
 }
@@ -382,6 +395,4 @@ LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
          datum_is_the_symbol(d->list_tail->list_head, val2);
 }
 
-LOCAL datum *datum_make_void() {
-  return datum_make_symbol(":void-value");
-}
+LOCAL datum *datum_make_void() { return datum_make_symbol(":void-value"); }

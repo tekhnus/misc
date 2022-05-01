@@ -1,9 +1,9 @@
 #include <builtins.h>
 #if INTERFACE
-#include <zlisp-impl/zlisp-impl.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
+#include <zlisp-impl/zlisp-impl.h>
 #endif
 
 fdatum builtin_eq(datum *x, datum *y) {
@@ -45,7 +45,6 @@ fdatum builtin_panic(datum *arg_value) {
 fdatum builtin_repr(datum *v) {
   return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
 }
-
 
 fdatum builtin_concat_bytestrings(datum *x, datum *y) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {

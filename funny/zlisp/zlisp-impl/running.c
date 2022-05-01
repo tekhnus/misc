@@ -1,9 +1,11 @@
-#include <zlisp-impl/zlisp-impl.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
+#include <zlisp-impl/zlisp-impl.h>
 
-fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
+fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
+                                 fdatum (*perform_host_instruction)(datum *,
+                                                                    datum *)) {
   routine_0 r0 = {.prog_ = p, .state_ = *ctxt};
   routine_1 r1 = {.cur = r0, .par = NULL};
   routine_2 r = {.cur = r1, .par = NULL};
@@ -16,8 +18,10 @@ fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p, fdatum (*
   return fdatum_make_ok(d);
 }
 
-LOCAL char *routine_2_run(prog_slice sl, routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
-  for (; r->cur.cur.prog_->type != PROG_END; ) {
+LOCAL char *routine_2_run(prog_slice sl, routine_2 *r,
+                          fdatum (*perform_host_instruction)(datum *,
+                                                             datum *)) {
+  for (; r->cur.cur.prog_->type != PROG_END;) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
     char *err = routine_2_step(sl, r, perform_host_instruction);
     if (err != NULL) {
@@ -62,22 +66,28 @@ LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
 }
 
 LOCAL datum *routine_0_to_datum(prog_slice sl, routine_0 r) {
-  return datum_make_list_2(prog_to_offset(sl, r.prog_), datum_make_list_2(r.state_->vars, r.state_->stack));
+  return datum_make_list_2(prog_to_offset(sl, r.prog_),
+                           datum_make_list_2(r.state_->vars, r.state_->stack));
 }
 
 LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
   if (r.par == NULL) {
     return datum_make_list_1(routine_0_to_datum(sl, r.cur));
   }
-  return datum_make_list(routine_0_to_datum(sl, r.cur), routine_1_to_datum(sl, *r.par));
+  return datum_make_list(routine_0_to_datum(sl, r.cur),
+                         routine_1_to_datum(sl, *r.par));
 }
 
 LOCAL char *datum_to_routine_0(routine_0 *res, prog_slice sl, datum *fn) {
-  if (!(datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2)) {
+  if (!(datum_is_list(fn) && list_length(fn) == 2 &&
+        datum_is_integer(fn->list_head) &&
+        datum_is_list(fn->list_tail->list_head) &&
+        list_length(fn->list_tail->list_head) == 2)) {
     return "cannot convert datum to routine-0";
   }
   res->prog_ = prog_slice_at(sl, fn->list_head->integer_value);
-  res->state_ = state_make(fn->list_tail->list_head->list_head, fn->list_tail->list_head->list_tail->list_head);
+  res->state_ = state_make(fn->list_tail->list_head->list_head,
+                           fn->list_tail->list_head->list_tail->list_head);
   return NULL;
 }
 
@@ -97,7 +107,9 @@ LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
   return datum_to_routine_1(res->par, sl, fns->list_tail);
 }
 
-LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
+                           fdatum (*perform_host_instruction)(datum *,
+                                                              datum *)) {
   prog **p = &r->cur.cur.prog_;
   state **st = &r->cur.cur.state_;
   switch ((*p)->type) {
@@ -105,7 +117,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     if (!(*p)->call_hat) {
       break;
     }
-    //return fstate_make_panic("disabled ATM");
+    // return fstate_make_panic("disabled ATM");
     datum *form = state_stack_pop(st);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return ("a call instruction with a malformed form");
@@ -123,14 +135,15 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
-    if (!(*p)->set_closures_hat){
+    if (!(*p)->set_closures_hat) {
       break;
     }
     datum *clos = datum_make_nil();
     state_set_var(st, (*p)->set_closures_name, clos);
     routine_1 callee = r->cur;
-    callee.cur.prog_ =(*p)->set_closures_prog;
-    *clos = *routine_1_to_datum(sl, callee); // modifying the datum because there is a self-reference:(
+    callee.cur.prog_ = (*p)->set_closures_prog;
+    *clos = *routine_1_to_datum(
+        sl, callee); // modifying the datum because there is a self-reference:(
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
@@ -155,13 +168,16 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r, fdatum (*perform_host_in
     state_stack_put(st, result);
     return NULL;
   } break;
-  default: break;
+  default:
+    break;
   }
   char *err = routine_1_step(sl, &r->cur, perform_host_instruction);
   return err;
 }
 
-LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_instruction)(datum *, datum *)) {
+LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
+                           fdatum (*perform_host_instruction)(datum *,
+                                                              datum *)) {
   prog **p = &r->cur.prog_;
   state **st = &r->cur.state_;
   switch ((*p)->type) {
@@ -176,11 +192,15 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
     datum *fn = form->list_head;
     datum *args = form->list_tail;
     routine_0 callee;
-    if (datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2) {
+    if (datum_is_list(fn) && list_length(fn) == 2 &&
+        datum_is_integer(fn->list_head) &&
+        datum_is_list(fn->list_tail->list_head) &&
+        list_length(fn->list_tail->list_head) == 2) {
       int64_t offset = fn->list_head->integer_value;
       datum *vars = fn->list_tail->list_head->list_head;
       datum *stack = fn->list_tail->list_head->list_tail->list_head;
-      callee = routine_0_make(prog_slice_at(sl, offset), state_make(vars, stack));
+      callee =
+          routine_0_make(prog_slice_at(sl, offset), state_make(vars, stack));
     } else {
       return ("tried to plain-call a non-routine-0");
     }
@@ -190,13 +210,17 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
-    if ((*p)->set_closures_hat){
+    if ((*p)->set_closures_hat) {
       break;
     }
-    if (&sl == &sl) {}
-    datum *clos = datum_make_list_2(prog_to_offset(sl, (*p)->set_closures_prog), datum_make_nil());
+    if (&sl == &sl) {
+    }
+    datum *clos = datum_make_list_2(prog_to_offset(sl, (*p)->set_closures_prog),
+                                    datum_make_nil());
     state_set_var(st, (*p)->set_closures_name, clos);
-    clos->list_tail->list_head = datum_make_list_2((*st)->vars, (*st)->stack); // modifying a datum because we need to create a circular reference:(
+    clos->list_tail->list_head = datum_make_list_2(
+        (*st)->vars, (*st)->stack); // modifying a datum because we need to
+                                    // create a circular reference:(
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
@@ -217,20 +241,23 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r, fdatum (*perform_host_in
     datum *val = state_stack_pop(st);
     *p = (*p)->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
-    datum *conti = datum_make_list_2(prog_to_offset(sl, fr.prog_), datum_make_list_2(fr.state_->vars, fr.state_->stack));
+    datum *conti =
+        datum_make_list_2(prog_to_offset(sl, fr.prog_),
+                          datum_make_list_2(fr.state_->vars, fr.state_->stack));
     datum *result = datum_make_list_2(val, conti);
     state_stack_put(st, result);
     return NULL;
   } break;
-  default: break;
+  default:
+    break;
   }
   char *err = routine_0_step(&r->cur, perform_host_instruction);
   return err;
 }
 
 LOCAL char *routine_0_step(routine_0 *r,
-                            fdatum (*perform_host_instruction)(datum *,
-                                                               datum *)) {
+                           fdatum (*perform_host_instruction)(datum *,
+                                                              datum *)) {
   prog **p = &r->prog_;
   state **st = &r->state_;
   // routine c = routine_make(*p, s);
@@ -303,8 +330,12 @@ LOCAL char *routine_0_step(routine_0 *r,
     }
     datum *fn = pair->list_tail->list_head;
     state *module_state;
-    if (datum_is_list(fn) && list_length(fn) == 2 && datum_is_integer(fn->list_head) && datum_is_list(fn->list_tail->list_head) && list_length(fn->list_tail->list_head) == 2) {
-      module_state = state_make(fn->list_tail->list_head->list_head, fn->list_tail->list_head->list_tail->list_head);
+    if (datum_is_list(fn) && list_length(fn) == 2 &&
+        datum_is_integer(fn->list_head) &&
+        datum_is_list(fn->list_tail->list_head) &&
+        list_length(fn->list_tail->list_head) == 2) {
+      module_state = state_make(fn->list_tail->list_head->list_head,
+                                fn->list_tail->list_head->list_tail->list_head);
     } else {
       return ("expected a routine after a submodule call");
     }
@@ -320,7 +351,8 @@ LOCAL char *routine_0_step(routine_0 *r,
     *p = (*p)->import_next;
     return NULL;
   } break;
-  default:break;
+  default:
+    break;
   }
   return ("unhandled state type");
 }
@@ -345,6 +377,12 @@ LOCAL routine_2 routine_2_make_null() {
   return res;
 }
 
-LOCAL bool routine_0_is_null(routine_0 r) { return r.prog_ == NULL && r.state_ == NULL; }
-LOCAL bool routine_1_is_null(routine_1 r) { return routine_0_is_null(r.cur) && r.par == NULL; }
-LOCAL bool routine_2_is_null(routine_2 r) { return routine_1_is_null(r.cur) && r.par == NULL; }
+LOCAL bool routine_0_is_null(routine_0 r) {
+  return r.prog_ == NULL && r.state_ == NULL;
+}
+LOCAL bool routine_1_is_null(routine_1 r) {
+  return routine_0_is_null(r.cur) && r.par == NULL;
+}
+LOCAL bool routine_2_is_null(routine_2 r) {
+  return routine_1_is_null(r.cur) && r.par == NULL;
+}

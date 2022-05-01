@@ -1,7 +1,7 @@
-#include <zlisp-impl/zlisp-impl.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
+#include <zlisp-impl/zlisp-impl.h>
 fdatum builtin_eq(datum *x,datum *y);
 fdatum builtin_annotate(datum *arg_value);
 fdatum builtin_is_constant(datum *arg_value);
