@@ -626,7 +626,7 @@ datum *prog_to_datum(prog_slice sl, prog *p) {
 
 datum *prog_to_offset(prog_slice sl, prog *p) {
   if (p < prog_slice_at(sl, 0) || p > prog_slice_at(sl, prog_slice_length(sl) - 1)) {
-    fprintf(stderr, "prog_to_offset received a prog from another slice");
+    fprintf(stderr, "prog_to_offset received a prog from another slice. slice: (%p, %p), prog: %p", prog_slice_at(sl, 0), prog_slice_at(sl, prog_slice_length(sl) - 1), p);
     exit(EXIT_FAILURE);
   }
   return datum_make_int(p - prog_slice_at(sl, 0));

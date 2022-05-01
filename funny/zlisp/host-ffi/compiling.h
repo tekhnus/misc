@@ -8,7 +8,7 @@
 fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,prog *p);
 #define LOCAL static
 #include <unistd.h>
-LOCAL fdatum datum_expand(datum *e,state **ctxt);
+LOCAL fdatum datum_expand(datum *e,prog_slice *sl,state **ctxt);
 #include <stdint.h>
 state *state_make_builtins();
 fdatum file_source(char *fname);
