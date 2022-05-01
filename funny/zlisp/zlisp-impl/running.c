@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdint.h>
 
-
 fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p, fdatum (*perform_host_instruction)(datum *, datum *)) {
   routine_0 r0 = {.prog_ = p, .state_ = *ctxt};
   routine_1 r1 = {.cur = r0, .par = NULL};
@@ -325,3 +324,27 @@ LOCAL char *routine_0_step(routine_0 *r,
   }
   return ("unhandled state type");
 }
+
+LOCAL routine_0 routine_0_make(prog *s, state *ctxt) {
+  routine_0 res = {.prog_ = s, .state_ = ctxt};
+  return res;
+}
+
+LOCAL routine_0 routine_0_make_null() {
+  routine_0 res = {};
+  return res;
+}
+
+LOCAL routine_1 routine_1_make_null() {
+  routine_1 res = {};
+  return res;
+}
+
+LOCAL routine_2 routine_2_make_null() {
+  routine_2 res = {};
+  return res;
+}
+
+LOCAL bool routine_0_is_null(routine_0 r) { return r.prog_ == NULL && r.state_ == NULL; }
+LOCAL bool routine_1_is_null(routine_1 r) { return routine_0_is_null(r.cur) && r.par == NULL; }
+LOCAL bool routine_2_is_null(routine_2 r) { return routine_1_is_null(r.cur) && r.par == NULL; }

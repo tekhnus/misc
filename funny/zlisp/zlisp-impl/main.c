@@ -26,30 +26,6 @@ bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-routine_0 routine_0_make(prog *s, state *ctxt) {
-  routine_0 res = {.prog_ = s, .state_ = ctxt};
-  return res;
-}
-
-routine_0 routine_0_make_null() {
-  routine_0 res = {};
-  return res;
-}
-
-routine_1 routine_1_make_null() {
-  routine_1 res = {};
-  return res;
-}
-
-routine_2 routine_2_make_null() {
-  routine_2 res = {};
-  return res;
-}
-
-bool routine_0_is_null(routine_0 r) { return r.prog_ == NULL && r.state_ == NULL; }
-bool routine_1_is_null(routine_1 r) { return routine_0_is_null(r.cur) && r.par == NULL; }
-bool routine_2_is_null(routine_2 r) { return routine_1_is_null(r.cur) && r.par == NULL; }
-
 int list_length(datum *seq) {
   if (!datum_is_list(seq)) {
     return -1;

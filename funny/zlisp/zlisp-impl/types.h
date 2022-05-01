@@ -10,21 +10,6 @@ enum datum_type {
   DATUM_INTEGER,
 };
 
-struct routine_0 {
-  struct prog *prog_;
-  struct state *state_;
-};
-
-struct routine_1 {
-  struct routine_0 cur;
-  struct routine_1 *par;
-};
-
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};
-
 struct datum {
   enum datum_type type;
   union {
@@ -132,4 +117,19 @@ struct prog_slice {
   struct prog *begin;
   size_t length;
   size_t capacity;
+};
+
+struct routine_0 {
+  struct prog *prog_;
+  struct state *state_;
+};
+
+struct routine_1 {
+  struct routine_0 cur;
+  struct routine_1 *par;
+};
+
+struct routine_2 {
+  struct routine_1 cur;
+  struct routine_2 *par;
 };

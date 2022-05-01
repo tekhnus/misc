@@ -3,28 +3,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 #define LOCAL static
-typedef struct routine_0 routine_0;
-typedef struct fdatum fdatum;
+typedef struct routine_2 routine_2;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct datum datum;
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct prog_slice prog_slice;
-typedef struct prog prog;
-struct prog_slice {
-  struct prog *begin;
-  size_t length;
-  size_t capacity;
-};
 typedef struct routine_1 routine_1;
-LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
-LOCAL char *datum_to_routine_0(routine_0 *res,prog_slice sl,datum *fn);
+typedef struct routine_0 routine_0;
+typedef struct prog prog;
 typedef struct state state;
 struct routine_0 {
   struct prog *prog_;
@@ -34,11 +18,38 @@ struct routine_1 {
   struct routine_0 cur;
   struct routine_1 *par;
 };
+struct routine_2 {
+  struct routine_1 cur;
+  struct routine_2 *par;
+};
+LOCAL bool routine_2_is_null(routine_2 r);
+LOCAL bool routine_1_is_null(routine_1 r);
+LOCAL bool routine_0_is_null(routine_0 r);
+LOCAL routine_2 routine_2_make_null();
+LOCAL routine_1 routine_1_make_null();
+LOCAL routine_0 routine_0_make_null();
+typedef struct fdatum fdatum;
+typedef struct datum datum;
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
+LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL routine_0 routine_0_make(prog *s,state *ctxt);
+typedef struct prog_slice prog_slice;
+struct prog_slice {
+  struct prog *begin;
+  size_t length;
+  size_t capacity;
+};
+LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
+LOCAL char *datum_to_routine_0(routine_0 *res,prog_slice sl,datum *fn);
 LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
 LOCAL datum *routine_0_to_datum(prog_slice sl,routine_0 r);
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
-typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
@@ -72,84 +83,6 @@ size_t prog_slice_length(prog_slice s);
 prog *prog_slice_last(prog_slice s);
 prog *prog_slice_at(prog_slice s,size_t index);
 prog *prog_slice_append_new(prog_slice *s);
-prog_slice prog_slice_make(size_t capacity);
-datum *state_stack_collect(state **s);
-void state_stack_new(state **s);
-datum *state_stack_pop(state **s);
-void state_stack_put(state **ns,datum *value);
-bool datum_is_constant(datum *d);
-bool datum_eq(datum *x,datum *y);
-datum *state_list_vars(state *ns);
-fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
-fdatum state_get_var(state *ns,datum *symbol);
-void state_set_var(state **ns,datum *symbol,datum *value);
-state *state_make_fresh();
-state *state_make(datum *vars,datum *stack);
-char *fdatum_get_panic_message(fdatum result);
-fdatum fdatum_get_value(fdatum result);
-bool fdatum_is_panic(fdatum result);
-bool fdatum_is_ok(fdatum result);
-char *datum_repr(datum *e);
-fdatum datum_read_all(FILE *stre);
-fdatum fdatum_make_ok(datum *v);
-fdatum fdatum_make_panic(char *message);
-fdatum datum_read_one(FILE *stre);
-typedef struct read_result read_result;
-enum read_result_type {
-  READ_RESULT_OK,
-  READ_RESULT_PANIC,
-  READ_RESULT_EOF,
-  READ_RESULT_RIGHT_PAREN,
-};
-typedef enum read_result_type read_result_type;
-struct read_result {
-  enum read_result_type type;
-  union {
-    struct datum *ok_value;
-    char *panic_message;
-  };
-};
-read_result datum_read(FILE *strm);
-struct token token_read(FILE *strm);
-bool consume_control_sequence(char c,datum **form);
-bool is_allowed_inside_symbol(char c);
-bool is_whitespace(char c);
-read_result read_result_make_right_paren(void);
-read_result read_result_make_eof(void);
-read_result read_result_make_panic(char *message);
-read_result read_result_make_ok(datum *e);
-bool read_result_is_right_paren(read_result x);
-bool read_result_is_eof(read_result x);
-bool read_result_is_panic(read_result x);
-bool read_result_is_ok(read_result x);
-datum *datum_make_int(int64_t value);
-datum *datum_make_bytestring(char *text);
-datum *datum_make_symbol(char *name);
-datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
-datum *datum_make_list_3(datum *head,datum *second,datum *third);
-datum *datum_make_list_2(datum *head,datum *second);
-datum *datum_make_list_1(datum *head);
-datum *datum_make_list(datum *head,datum *tail);
-datum *datum_make_nil();
-bool datum_is_bytestring(datum *e);
-bool datum_is_integer(datum *e);
-bool datum_is_nil(datum *e);
-bool datum_is_list(datum *e);
-int list_length(datum *seq);
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};
-bool routine_2_is_null(routine_2 r);
-bool routine_1_is_null(routine_1 r);
-bool routine_0_is_null(routine_0 r);
-routine_2 routine_2_make_null();
-routine_1 routine_1_make_null();
-routine_0 routine_0_make_null();
-struct state {
-  struct datum *vars;
-  struct datum *stack;
-};
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -213,7 +146,74 @@ struct prog {
     struct prog *import_next;
   };
 };
-routine_0 routine_0_make(prog *s,state *ctxt);
+prog_slice prog_slice_make(size_t capacity);
+datum *state_stack_collect(state **s);
+void state_stack_new(state **s);
+datum *state_stack_pop(state **s);
+void state_stack_put(state **ns,datum *value);
+bool datum_is_constant(datum *d);
+bool datum_eq(datum *x,datum *y);
+datum *state_list_vars(state *ns);
+fdatum list_map(fdatum(*fn)(datum *,state *),datum *items,state *ctxt);
+fdatum state_get_var(state *ns,datum *symbol);
+void state_set_var(state **ns,datum *symbol,datum *value);
+state *state_make_fresh();
+state *state_make(datum *vars,datum *stack);
+struct state {
+  struct datum *vars;
+  struct datum *stack;
+};
+char *fdatum_get_panic_message(fdatum result);
+fdatum fdatum_get_value(fdatum result);
+bool fdatum_is_panic(fdatum result);
+bool fdatum_is_ok(fdatum result);
+char *datum_repr(datum *e);
+fdatum datum_read_all(FILE *stre);
+fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_panic(char *message);
+fdatum datum_read_one(FILE *stre);
+typedef struct read_result read_result;
+enum read_result_type {
+  READ_RESULT_OK,
+  READ_RESULT_PANIC,
+  READ_RESULT_EOF,
+  READ_RESULT_RIGHT_PAREN,
+};
+typedef enum read_result_type read_result_type;
+struct read_result {
+  enum read_result_type type;
+  union {
+    struct datum *ok_value;
+    char *panic_message;
+  };
+};
+read_result datum_read(FILE *strm);
+struct token token_read(FILE *strm);
+bool consume_control_sequence(char c,datum **form);
+bool is_allowed_inside_symbol(char c);
+bool is_whitespace(char c);
+read_result read_result_make_right_paren(void);
+read_result read_result_make_eof(void);
+read_result read_result_make_panic(char *message);
+read_result read_result_make_ok(datum *e);
+bool read_result_is_right_paren(read_result x);
+bool read_result_is_eof(read_result x);
+bool read_result_is_panic(read_result x);
+bool read_result_is_ok(read_result x);
+datum *datum_make_int(int64_t value);
+datum *datum_make_bytestring(char *text);
+datum *datum_make_symbol(char *name);
+datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
+datum *datum_make_list_3(datum *head,datum *second,datum *third);
+datum *datum_make_list_2(datum *head,datum *second);
+datum *datum_make_list_1(datum *head);
+datum *datum_make_list(datum *head,datum *tail);
+datum *datum_make_nil();
+bool datum_is_bytestring(datum *e);
+bool datum_is_integer(datum *e);
+bool datum_is_nil(datum *e);
+bool datum_is_list(datum *e);
+int list_length(datum *seq);
 bool datum_is_symbol(datum *e);
 enum datum_type {
   DATUM_NIL,
