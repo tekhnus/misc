@@ -54,6 +54,7 @@ LOCAL void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
 char *prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
+LOCAL datum *datum_make_void();
 LOCAL void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
 char *prog_init_module(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 struct prog_slice {
@@ -119,7 +120,6 @@ bool read_result_is_right_paren(read_result x);
 bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
-datum *datum_make_void();
 datum *datum_make_routine_1(routine_1 r);
 datum *datum_make_routine_0(routine_0 r);
 datum *datum_make_int(int64_t value);
@@ -131,7 +131,6 @@ datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
-bool datum_is_void(datum *e);
 bool datum_is_routine_1(datum *e);
 bool datum_is_routine_0(datum *e);
 bool datum_is_bytestring(datum *e);
@@ -226,7 +225,6 @@ enum datum_type {
   DATUM_INTEGER,
   DATUM_ROUTINE_0,
   DATUM_ROUTINE_1,
-  DATUM_VOID,
 };
 typedef enum datum_type datum_type;
 struct datum {

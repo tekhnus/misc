@@ -10,7 +10,6 @@ enum datum_type {
   DATUM_INTEGER,
   DATUM_ROUTINE_0,
   DATUM_ROUTINE_1,
-  DATUM_VOID,
 };
 
 struct routine_0 {

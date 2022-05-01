@@ -67,7 +67,7 @@ fdatum file_source(char *fname) {
       return val;
     }
     // printf("%s\n", datum_repr(val.ok_value));
-    if (datum_is_void(val.ok_value)) {
+    if (datum_is_the_symbol(val.ok_value, ":void-value")) {
       // to support things like !(def x 42)
       continue;
     }

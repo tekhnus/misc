@@ -380,3 +380,7 @@ LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
          datum_is_the_symbol(d->list_head, val1) &&
          datum_is_the_symbol(d->list_tail->list_head, val2);
 }
+
+LOCAL datum *datum_make_void() {
+  return datum_make_symbol(":void-value");
+}

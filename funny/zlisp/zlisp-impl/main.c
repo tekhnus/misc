@@ -76,8 +76,6 @@ bool datum_is_routine_0(datum *e) { return e->type == DATUM_ROUTINE_0; }
 
 bool datum_is_routine_1(datum *e) { return e->type == DATUM_ROUTINE_1; }
 
-bool datum_is_void(datum *e) { return e->type == DATUM_VOID; }
-
 datum *datum_make_nil() {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_NIL;
@@ -148,12 +146,6 @@ datum *datum_make_routine_1(routine_1 r) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_ROUTINE_1;
   e->routine_1_value = r;
-  return e;
-}
-
-datum *datum_make_void() {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_VOID;
   return e;
 }
 
@@ -412,8 +404,6 @@ char *datum_repr(datum *e) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
   } else if (datum_is_routine_0(e) || datum_is_routine_1(e)) {
     end += sprintf(end, "<form>");
-  } else if (datum_is_void(e)) {
-    end += sprintf(end, "<void>");
   } else {
     sprintf(buf, "<fmt not implemented>");
   }
@@ -649,9 +639,6 @@ datum *datum_to_asm(prog_slice sl, datum *d) {
   }
   if (datum_is_routine_0(d)) {
     return datum_make_list_3(datum_make_symbol(":routine-0"), prog_to_offset(sl, d->routine_0_value.prog_), datum_make_list_2(d->routine_0_value.state_->vars, d->routine_0_value.state_->stack));
-  }
-  if (datum_is_void(d)) {
-    return datum_make_list_1(datum_make_symbol(":void"));
   }
   if (datum_is_list(d)) {
     datum *res = datum_make_list_2(datum_make_symbol(":value"), datum_make_nil());
