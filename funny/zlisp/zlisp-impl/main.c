@@ -4,7 +4,7 @@
 #define ZLISP_IMPL_H
 #endif
 #endif
-#include <zlisp-impl.h>
+#include <extern.h>
 
 #include <ctype.h>
 #include <libgen.h>
