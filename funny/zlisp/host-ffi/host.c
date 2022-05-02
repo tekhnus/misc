@@ -122,8 +122,7 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
   return false;
 }
 
-char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
-  datum *sig = datum_get_fnpointer_descriptor(f);
+char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
   if (!datum_is_list(sig) || datum_is_nil(sig) ||
       datum_is_nil(sig->list_tail) ||
       !datum_is_nil(sig->list_tail->list_tail)) {
@@ -132,7 +131,7 @@ char *pointer_ffi_init_cif(datum *f, ffi_cif *cif) {
   ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
   int arg_count = 0;
   datum *arg_def;
-  for (arg_def = datum_get_fnpointer_descriptor(f)->list_head;
+  for (arg_def = sig->list_head;
        !datum_is_nil(arg_def); arg_def = arg_def->list_tail) {
     if (!ffi_type_init(arg_types + arg_count, arg_def->list_head)) {
       return "something wrong with the argument type signature";
@@ -237,12 +236,8 @@ fdatum datum_deref(datum *arg) {
   }
 }
 
-fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
-  void (*fn_ptr)(void) =
-      __extension__(void (*)(void))(datum_get_fnpointer_value(f));
-  char *rettype =
-      datum_get_fnpointer_descriptor(f)->list_tail->list_head->symbol_value;
-
+void *allocate_space_for_return_value(datum *sig) {
+  char *rettype = sig->list_tail->list_head->symbol_value;
   void *res;
   if (!strcmp(rettype, "pointer")) {
     res = malloc(sizeof(void *));
@@ -259,29 +254,36 @@ fdatum pointer_ffi_call(datum *f, ffi_cif *cif, void **cargs) {
   } else if (!strcmp(rettype, "val")) {
     res = malloc(sizeof(fdatum));
   } else {
-    return fdatum_make_panic("unknown return type for extern func");
+    res = NULL;
   }
-  ffi_call(cif, fn_ptr, res, cargs);
-  return fdatum_make_ok(datum_make_int((int64_t)res));
+  return res;
 }
 
 fdatum pointer_call(datum *f, datum *args, bool datums) {
   if (!datum_is_fnpointer(f)) {
     return fdatum_make_panic("pointer_call expects a pointer");
   }
+  datum *sig = datum_get_fnpointer_descriptor(f);
+  void (*fn_ptr)(void) =
+    __extension__(void (*)(void))(datum_get_fnpointer_value(f));
   ffi_cif cif;
   char *err = NULL;
-  err = pointer_ffi_init_cif(f, &cif);
+  err = pointer_ffi_init_cif(sig, &cif);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  int nargs = list_length(datum_get_fnpointer_descriptor(f)->list_head);
+  int nargs = list_length(sig->list_head);
   void *cargs[32];
   err = pointer_ffi_serialize_args(args, cargs, nargs, datums);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  return pointer_ffi_call(f, &cif, cargs);
+  void *res = allocate_space_for_return_value(sig);
+  if (res == NULL) {
+    return fdatum_make_panic("unknown return type for extern func");
+  }
+  ffi_call(&cif, fn_ptr, res, cargs);
+  return fdatum_make_ok(datum_make_int((int64_t)res));
 }
 
 void *datum_get_fnpointer_value(datum *d) {
