@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp-impl.h>
 
 char *prog_init_module(prog_slice *sl, prog *s, datum *source,
                        char *(*module_source)(prog_slice *sl, prog *p,

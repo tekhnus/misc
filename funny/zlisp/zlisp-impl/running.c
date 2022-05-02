@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp-impl.h>
 
 fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
                                  fdatum (*perform_host_instruction)(datum *,
