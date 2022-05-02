@@ -122,18 +122,3 @@ struct prog_slice {
 };
 
 #endif
-
-struct routine_0 {
-  struct prog *prog_;
-  struct state *state_;
-};
-
-struct routine_1 {
-  struct routine_0 cur;
-  struct routine_1 *par;
-};
-
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};

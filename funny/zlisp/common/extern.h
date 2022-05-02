@@ -4,31 +4,17 @@
 #include <stdint.h>
 #define LOCAL static
 typedef struct routine_2 routine_2;
-#include <inttypes.h>
-#include <stdio.h>
-typedef struct routine_1 routine_1;
-typedef struct routine_0 routine_0;
-typedef struct prog prog;
-typedef struct state state;
-struct routine_0 {
-  struct prog *prog_;
-  struct state *state_;
-};
-struct routine_1 {
-  struct routine_0 cur;
-  struct routine_1 *par;
-};
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};
 LOCAL bool routine_2_is_null(routine_2 r);
+typedef struct routine_1 routine_1;
 LOCAL bool routine_1_is_null(routine_1 r);
+typedef struct routine_0 routine_0;
 LOCAL bool routine_0_is_null(routine_0 r);
 LOCAL routine_2 routine_2_make_null();
 LOCAL routine_1 routine_1_make_null();
 LOCAL routine_0 routine_0_make_null();
 typedef struct fdatum fdatum;
+#include <inttypes.h>
+#include <stdio.h>
 typedef struct datum datum;
 struct fdatum {
   int type;
@@ -36,6 +22,8 @@ struct fdatum {
   char *panic_message;
 };
 LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct prog prog;
+typedef struct state state;
 LOCAL routine_0 routine_0_make(prog *s,state *ctxt);
 typedef struct prog_slice prog_slice;
 struct prog_slice {

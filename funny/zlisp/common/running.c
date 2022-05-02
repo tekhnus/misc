@@ -3,6 +3,27 @@
 #include <string.h>
 #include <extern.h>
 
+struct routine_0 {
+  struct prog *prog_;
+  struct state *state_;
+};
+
+struct routine_1 {
+  struct routine_0 cur;
+  struct routine_1 *par;
+};
+
+struct routine_2 {
+  struct routine_1 cur;
+  struct routine_2 *par;
+};
+
+#if INTERFACE
+typedef struct routine_0 routine_0;
+typedef struct routine_1 routine_1;
+typedef struct routine_2 routine_2;
+#endif
+
 EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
