@@ -1,19 +1,12 @@
 // zlisp interpreter.
-#if INTERFACE
-#ifndef ZLISP_IMPL_H
-#define ZLISP_IMPL_H
-#endif
-#endif
 #include <extern.h>
-
-#include <ctype.h>
-#include <libgen.h>
-
-#include <stddef.h>
 #if INTERFACE
 #include <stdbool.h>
 #include <stdint.h>
 #endif
+#include <ctype.h>
+#include <libgen.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -46,7 +39,9 @@ EXPORT bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
 
 EXPORT bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
 
-EXPORT bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
+EXPORT bool datum_is_bytestring(datum *e) {
+  return e->type == DATUM_BYTESTRING;
+}
 
 EXPORT datum *datum_make_nil() {
   datum *e = malloc(sizeof(datum));
@@ -111,9 +106,13 @@ EXPORT datum *datum_make_int(int64_t value) {
   return e;
 }
 
-EXPORT bool read_result_is_ok(read_result x) { return x.type == READ_RESULT_OK; }
+EXPORT bool read_result_is_ok(read_result x) {
+  return x.type == READ_RESULT_OK;
+}
 
-EXPORT bool read_result_is_panic(read_result x) { return x.type == READ_RESULT_PANIC; }
+EXPORT bool read_result_is_panic(read_result x) {
+  return x.type == READ_RESULT_PANIC;
+}
 
 bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
 
@@ -378,7 +377,9 @@ EXPORT char *datum_repr(datum *e) {
 
 bool fdatum_is_ok(fdatum result) { return result.type == FDATUM_OK; }
 
-EXPORT bool fdatum_is_panic(fdatum result) { return result.type == FDATUM_PANIC; }
+EXPORT bool fdatum_is_panic(fdatum result) {
+  return result.type == FDATUM_PANIC;
+}
 
 EXPORT fdatum fdatum_make_ok(datum *v) {
   fdatum result = {.type = FDATUM_OK, .ok_value = v};

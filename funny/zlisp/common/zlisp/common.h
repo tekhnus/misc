@@ -152,18 +152,3 @@ struct prog {
     struct prog *import_next;
   };
 };
-typedef struct routine_0 routine_0;
-struct routine_0 {
-  struct prog *prog_;
-  struct state *state_;
-};
-typedef struct routine_1 routine_1;
-struct routine_1 {
-  struct routine_0 cur;
-  struct routine_1 *par;
-};
-typedef struct routine_2 routine_2;
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};

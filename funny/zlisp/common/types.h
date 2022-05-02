@@ -121,6 +121,8 @@ struct prog_slice {
   size_t capacity;
 };
 
+#endif
+
 struct routine_0 {
   struct prog *prog_;
   struct state *state_;
@@ -135,5 +137,3 @@ struct routine_2 {
   struct routine_1 cur;
   struct routine_2 *par;
 };
-
-#endif
