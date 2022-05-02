@@ -213,8 +213,6 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if ((*p)->set_closures_hat) {
       break;
     }
-    if (&sl == &sl) {
-    }
     datum *clos = datum_make_list_2(prog_to_offset(sl, (*p)->set_closures_prog),
                                     datum_make_nil());
     state_set_var(st, (*p)->set_closures_name, clos);
