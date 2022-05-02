@@ -22,11 +22,11 @@ enum fdatumype {
   FDATUM_PANIC,
 };
 
-bool datum_is_the_symbol(datum *d, char *val) {
+EXPORT bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-int list_length(datum *seq) {
+EXPORT int list_length(datum *seq) {
   if (!datum_is_list(seq)) {
     return -1;
   }
@@ -36,25 +36,25 @@ int list_length(datum *seq) {
   return res;
 }
 
-bool datum_is_nil(datum *e) { return e->type == DATUM_NIL; }
+EXPORT bool datum_is_nil(datum *e) { return e->type == DATUM_NIL; }
 
-bool datum_is_list(datum *e) {
+EXPORT bool datum_is_list(datum *e) {
   return e->type == DATUM_NIL || e->type == DATUM_LIST;
 }
 
-bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
+EXPORT bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
 
-bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
+EXPORT bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
 
-bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
+EXPORT bool datum_is_bytestring(datum *e) { return e->type == DATUM_BYTESTRING; }
 
-datum *datum_make_nil() {
+EXPORT datum *datum_make_nil() {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_NIL;
   return e;
 }
 
-datum *datum_make_list(datum *head, datum *tail) {
+EXPORT datum *datum_make_list(datum *head, datum *tail) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_LIST;
   e->list_head = head;
@@ -62,11 +62,11 @@ datum *datum_make_list(datum *head, datum *tail) {
   return e;
 }
 
-datum *datum_make_list_1(datum *head) {
+EXPORT datum *datum_make_list_1(datum *head) {
   return datum_make_list(head, datum_make_nil());
 }
 
-datum *datum_make_list_2(datum *head, datum *second) {
+EXPORT datum *datum_make_list_2(datum *head, datum *second) {
   return datum_make_list(head, datum_make_list_1(second));
 }
 
@@ -82,7 +82,7 @@ datum *datum_make_list_5(datum *head, datum *second, datum *third,
           second, datum_make_list(third, datum_make_list_2(fourth, fifth))));
 }
 
-datum *datum_make_symbol(char *name) {
+EXPORT datum *datum_make_symbol(char *name) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_SYMBOL;
   size_t length = strlen(name);
@@ -93,7 +93,7 @@ datum *datum_make_symbol(char *name) {
   return e;
 }
 
-datum *datum_make_bytestring(char *text) {
+EXPORT datum *datum_make_bytestring(char *text) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_BYTESTRING;
   size_t length = strlen(text);
@@ -104,20 +104,20 @@ datum *datum_make_bytestring(char *text) {
   return e;
 }
 
-datum *datum_make_int(int64_t value) {
+EXPORT datum *datum_make_int(int64_t value) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_INTEGER;
   e->integer_value = value;
   return e;
 }
 
-bool read_result_is_ok(read_result x) { return x.type == READ_RESULT_OK; }
+EXPORT bool read_result_is_ok(read_result x) { return x.type == READ_RESULT_OK; }
 
-bool read_result_is_panic(read_result x) { return x.type == READ_RESULT_PANIC; }
+EXPORT bool read_result_is_panic(read_result x) { return x.type == READ_RESULT_PANIC; }
 
 bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
 
-bool read_result_is_right_paren(read_result x) {
+EXPORT bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
 }
 
@@ -274,7 +274,7 @@ struct token token_read(FILE *strm) {
   return (struct token){.type = TOKEN_ERROR, .error_message = err};
 }
 
-read_result datum_read(FILE *strm) {
+EXPORT read_result datum_read(FILE *strm) {
   struct token tok = token_read(strm);
   if (tok.type == TOKEN_ERROR) {
     return read_result_make_panic(tok.error_message);
@@ -355,7 +355,7 @@ fdatum datum_read_all(FILE *stre) {
   return fdatum_make_ok(res);
 }
 
-char *datum_repr(datum *e) {
+EXPORT char *datum_repr(datum *e) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (datum_is_integer(e)) {
@@ -378,14 +378,14 @@ char *datum_repr(datum *e) {
 
 bool fdatum_is_ok(fdatum result) { return result.type == FDATUM_OK; }
 
-bool fdatum_is_panic(fdatum result) { return result.type == FDATUM_PANIC; }
+EXPORT bool fdatum_is_panic(fdatum result) { return result.type == FDATUM_PANIC; }
 
-fdatum fdatum_make_ok(datum *v) {
+EXPORT fdatum fdatum_make_ok(datum *v) {
   fdatum result = {.type = FDATUM_OK, .ok_value = v};
   return result;
 }
 
-fdatum fdatum_make_panic(char *message) {
+EXPORT fdatum fdatum_make_panic(char *message) {
   fdatum result = {.type = FDATUM_PANIC, .panic_message = message};
   return result;
 }
@@ -406,7 +406,7 @@ state *state_make(datum *vars, datum *stack) {
   return res;
 }
 
-state *state_make_fresh() {
+EXPORT state *state_make_fresh() {
   return state_make(datum_make_nil(), datum_make_nil());
 }
 
@@ -456,7 +456,7 @@ datum *state_list_vars(state *ns) {
   return result;
 }
 
-bool datum_eq(datum *x, datum *y) {
+EXPORT bool datum_eq(datum *x, datum *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
       return true;
@@ -488,7 +488,7 @@ bool datum_eq(datum *x, datum *y) {
   return false;
 }
 
-bool datum_is_constant(datum *d) {
+EXPORT bool datum_is_constant(datum *d) {
   return (datum_is_integer(d) || datum_is_bytestring(d) ||
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
@@ -523,7 +523,7 @@ datum *state_stack_collect(state **s) {
   return form;
 }
 
-prog_slice prog_slice_make(size_t capacity) {
+EXPORT prog_slice prog_slice_make(size_t capacity) {
   prog_slice res;
   res.begin = malloc(capacity * sizeof(prog));
   res.length = 0;
@@ -531,7 +531,7 @@ prog_slice prog_slice_make(size_t capacity) {
   return res;
 }
 
-prog *prog_slice_append_new(prog_slice *s) {
+EXPORT prog *prog_slice_append_new(prog_slice *s) {
   if (s->length == s->capacity) {
     fprintf(stderr, "prog slice capacity overflow %zu\n", s->capacity);
     exit(EXIT_FAILURE);
@@ -553,9 +553,9 @@ prog *prog_slice_last(prog_slice s) {
   return prog_slice_at(s, prog_slice_length(s) - 1);
 }
 
-size_t prog_slice_length(prog_slice s) { return s.length; }
+EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
 
-datum *prog_slice_to_datum(prog_slice sl) {
+EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   datum *res = datum_make_nil();
   datum **tail = &res;
   for (size_t i = 0; i < prog_slice_length(sl); ++i) {

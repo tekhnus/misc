@@ -3,7 +3,7 @@
 #include <string.h>
 #include <extern.h>
 
-fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
+EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
   routine_0 r0 = {.prog_ = p, .state_ = *ctxt};

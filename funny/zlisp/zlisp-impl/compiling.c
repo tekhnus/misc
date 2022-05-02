@@ -3,7 +3,7 @@
 #include <string.h>
 #include <extern.h>
 
-char *prog_init_module(prog_slice *sl, prog *s, datum *source,
+EXPORT char *prog_init_module(prog_slice *sl, prog *s, datum *source,
                        char *(*module_source)(prog_slice *sl, prog *p,
                                               char *)) {
   prog_append_put_const(sl, &s, datum_make_void());
@@ -18,7 +18,7 @@ char *prog_init_module(prog_slice *sl, prog *s, datum *source,
   return NULL;
 }
 
-char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
+EXPORT char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
                           char *(*module_source)(prog_slice *sl, prog *p,
                                                  char *)) {
   // prog_append_put_const(&s, datum_make_void());

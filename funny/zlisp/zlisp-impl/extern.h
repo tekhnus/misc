@@ -235,6 +235,7 @@ struct datum {
   };
 };
 bool datum_is_the_symbol(datum *d,char *val);
+#define EXPORT
 #if !defined(ZLISP_IMPL_H)
 #define ZLISP_IMPL_H
 #endif

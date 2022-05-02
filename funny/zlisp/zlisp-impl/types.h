@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#if EXPORT_INTERFACE
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
@@ -42,6 +43,7 @@ struct read_result {
     char *panic_message;
   };
 };
+
 
 struct fdatum {
   int type;
@@ -133,3 +135,5 @@ struct routine_2 {
   struct routine_1 cur;
   struct routine_2 *par;
 };
+
+#endif
