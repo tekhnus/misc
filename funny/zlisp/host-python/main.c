@@ -1,6 +1,6 @@
 // a basic CLI for zlisp interpreter.
 #if INTERFACE
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
 #endif
 #include <main.h>

@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp/common.h>
 #endif
 
 char *prog_init_module_c_host(prog_slice *sl, prog *p, datum *source) {

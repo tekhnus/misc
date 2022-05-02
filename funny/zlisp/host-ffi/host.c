@@ -5,7 +5,7 @@
 #include <ffi.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp/common.h>
 #endif
 
 void *simplified_dlopen(char *path) {

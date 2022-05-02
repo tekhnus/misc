@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp/common.h>
 state *state_make_builtins();
 fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);

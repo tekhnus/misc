@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlisp-impl/zlisp-impl.h>
+#include <zlisp/common.h>
 #endif
 
 fdatum builtin_eq(datum *x, datum *y) {
