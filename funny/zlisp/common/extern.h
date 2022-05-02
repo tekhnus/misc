@@ -3,15 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #define LOCAL static
-typedef struct routine_2 routine_2;
-LOCAL bool routine_2_is_null(routine_2 r);
-typedef struct routine_1 routine_1;
-LOCAL bool routine_1_is_null(routine_1 r);
 typedef struct routine_0 routine_0;
-LOCAL bool routine_0_is_null(routine_0 r);
-LOCAL routine_2 routine_2_make_null();
-LOCAL routine_1 routine_1_make_null();
-LOCAL routine_0 routine_0_make_null();
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
@@ -22,15 +14,14 @@ struct fdatum {
   char *panic_message;
 };
 LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct prog prog;
-typedef struct state state;
-LOCAL routine_0 routine_0_make(prog *s,state *ctxt);
 typedef struct prog_slice prog_slice;
+typedef struct prog prog;
 struct prog_slice {
   struct prog *begin;
   size_t length;
   size_t capacity;
 };
+typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
 LOCAL char *datum_to_routine_0(routine_0 *res,prog_slice sl,datum *fn);
@@ -38,10 +29,12 @@ LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
 LOCAL datum *routine_0_to_datum(prog_slice sl,routine_0 r);
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
+typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct state state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog_slice *sl,prog **begin);
 LOCAL void prog_append_call(prog_slice *sl,prog **begin,bool hat);

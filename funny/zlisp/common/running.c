@@ -220,8 +220,8 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       int64_t offset = fn->list_head->integer_value;
       datum *vars = fn->list_tail->list_head->list_head;
       datum *stack = fn->list_tail->list_head->list_tail->list_head;
-      callee =
-          routine_0_make(prog_slice_at(sl, offset), state_make(vars, stack));
+      callee.prog_ = prog_slice_at(sl, offset);
+      callee.state_ = state_make(vars, stack);
     } else {
       return ("tried to plain-call a non-routine-0");
     }
@@ -374,34 +374,4 @@ LOCAL char *routine_0_step(routine_0 *r,
     break;
   }
   return ("unhandled state type");
-}
-
-LOCAL routine_0 routine_0_make(prog *s, state *ctxt) {
-  routine_0 res = {.prog_ = s, .state_ = ctxt};
-  return res;
-}
-
-LOCAL routine_0 routine_0_make_null() {
-  routine_0 res = {};
-  return res;
-}
-
-LOCAL routine_1 routine_1_make_null() {
-  routine_1 res = {};
-  return res;
-}
-
-LOCAL routine_2 routine_2_make_null() {
-  routine_2 res = {};
-  return res;
-}
-
-LOCAL bool routine_0_is_null(routine_0 r) {
-  return r.prog_ == NULL && r.state_ == NULL;
-}
-LOCAL bool routine_1_is_null(routine_1 r) {
-  return routine_0_is_null(r.cur) && r.par == NULL;
-}
-LOCAL bool routine_2_is_null(routine_2 r) {
-  return routine_1_is_null(r.cur) && r.par == NULL;
 }
