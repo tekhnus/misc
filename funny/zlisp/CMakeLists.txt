@@ -5,7 +5,7 @@ enable_testing()
 
 find_package(Python COMPONENTS Interpreter)
 
-add_subdirectory(zlisp-impl)
+add_subdirectory(common)
 add_subdirectory(host-ffi)
 add_subdirectory(host-python)
 add_subdirectory(tools)
