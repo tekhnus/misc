@@ -51,7 +51,7 @@
                 (def annotated-function-and-params (head args))
                 (def annotated-function (head annotated-function-and-params))
                 (def params (head (tail annotated-function-and-params)))
-                (def annotation (head (tail annotated-function)))
+                (def annotation annotated-function)
                 (def fn-ptr (head annotation))
                 (def signature (head (tail annotation)))
                 (def fnparamst (head signature))
@@ -62,16 +62,10 @@
 
 
 (def dlopen-pointer (host "dlopen" '()))
-(builtin.defn dlopen (return (pointer-call-and-deserialize `((cptr (~dlopen-pointer ((string) pointer))) ~args))))
+(builtin.defn dlopen (return (pointer-call-and-deserialize `((~dlopen-pointer ((string) pointer)) ~args))))
 
 (def dlsym-pointer (host "dlsym" '()))
-(builtin.defn dlsym (return (pointer-call-and-deserialize `((cptr (~dlsym-pointer ((pointer string) pointer))) ~args))))
-
-(builtin.defn dereference-and-cast (progn
-                                     (def d-ptr (head args))
-                                     (def sig (head (tail args)))
-                                     (def der (derefw `(~d-ptr int64)))
-                                     (return `(cptr (~der ~sig)))))
+(builtin.defn dlsym (return (pointer-call-and-deserialize `((~dlsym-pointer ((pointer string) pointer)) ~args))))
 
 (builtin.defn c-data-pointer
             (progn
@@ -91,7 +85,7 @@
                 (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
                 (if (eq fn-ptr 0)
                     (panic (concat-bytestrings "couldn't load C function " c-name))
-                  ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `((cptr (~fn-ptr ~signature)) ~args)))))
+                  ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ~args)))))
                    (return fn-routine)))))
 
 
