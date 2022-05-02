@@ -22,6 +22,7 @@ host-ffi/
 host-python/
   main.c            takes a lisp file, writes bytecode to stdout
   asm_to_python     an interpreter supporting Python evaluation
+module/             lisp modules
 tools/
   makeheaders.c     copied from the Fossil project; used to generate header files
 ```
