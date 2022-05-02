@@ -33,20 +33,6 @@
                     (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
                   (return '()))))
 
-(builtin.defn ptr-call
-              (progn
-                (def annotated-function-and-params (head args))
-                (def annotated-function (head annotated-function-and-params))
-                (def params (head (tail annotated-function-and-params)))
-                (def annotation (head (tail annotated-function)))
-                (def fn-ptr (head annotation))
-                (def signature (head (tail annotation)))
-                (def fnparamst (head signature))
-                (def rettype (head (tail signature)))
-                (def s (serialize-params params fnparamst))
-                (def rawres (host "pointer-call" `((cptr (~fn-ptr (~fnparamst ~rettype))) ~s)))
-                (return rawres)))
-
 (builtin.defn derefw
               (progn
                 (def whathow (head args))
@@ -62,7 +48,6 @@
 
 (builtin.defn pointer-call-and-deserialize
               (progn
-                (def rawres (ptr-call (head args)))
                 (def annotated-function-and-params (head args))
                 (def annotated-function (head annotated-function-and-params))
                 (def params (head (tail annotated-function-and-params)))
@@ -71,6 +56,8 @@
                 (def signature (head (tail annotation)))
                 (def fnparamst (head signature))
                 (def rettype (head (tail signature)))
+                (def s (serialize-params params fnparamst))
+                (def rawres (host "pointer-call" `((cptr (~fn-ptr (~fnparamst ~rettype))) ~s)))
                 (return (derefw `(~rawres ~rettype)))))
 
 
@@ -85,15 +72,6 @@
                                      (def sig (head (tail args)))
                                      (def der (derefw `(~d-ptr int64)))
                                      (return `(cptr (~der ~sig)))))
-
-(builtin.defn not-null-fnpointer
-              (progn
-                (def fnptr (head args))
-                (def wo-cptr (head (tail fnptr)))
-                (def rawptr (head wo-cptr))
-                (if (eq rawptr 0)
-                    (return '())
-                  (return '(())))))
 
 (builtin.defn c-data-pointer
             (progn
@@ -110,11 +88,12 @@
                 (def c-name (head (tail args)))
                 (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
-                (if (not-null-fnpointer fn-pointer)
-                    ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `(~fn-pointer ~args)))))
-                     (return fn-routine))
-                  (panic (concat-bytestrings "couldn't load C function " c-name)))))
+                (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
+                (if (eq fn-ptr 0)
+                    (panic (concat-bytestrings "couldn't load C function " c-name))
+                  ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `((cptr (~fn-ptr ~signature)) ~args)))))
+                   (return fn-routine)))))
+
 
 (def selflib (dlopen ""))
 
