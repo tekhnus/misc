@@ -27,13 +27,14 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
   if (!strcmp(name->bytestring_value, "pointer-call") ||
       !strcmp(name->bytestring_value, "pointer-call-datums")) {
     datum *form = arg;
-    if (!datum_is_list(form) || list_length(form) != 2) {
-      return fdatum_make_panic("pointer-call expected a pair on stack");
+    if (!datum_is_list(form) || list_length(form) != 3) {
+      return fdatum_make_panic("pointer-call expected a triple on stack");
     }
     datum *fn = form->list_head;
-    datum *args = form->list_tail->list_head;
+    datum *sig = form->list_tail->list_head;
+    datum *args = form->list_tail->list_tail->list_head;
     bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
-    fdatum resu = pointer_call(datum_get_fnpointer_value(fn), datum_get_fnpointer_descriptor(fn), args, datums);
+    fdatum resu = pointer_call(fn, sig, args, datums);
     if (fdatum_is_panic(resu)) {
       return fdatum_make_panic(resu.panic_message);
     }
@@ -287,25 +288,4 @@ void (*datum_to_function_pointer(datum *d))(void) {
     exit(1);
   }
   return __extension__(void (*)(void))d->integer_value;
-}
-
-datum *datum_get_fnpointer_value(datum *d) {
-  if (!datum_is_fnpointer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
-  return d->list_tail->list_head->list_head;
-}
-
-datum *datum_get_fnpointer_descriptor(datum *d) {
-  if (!datum_is_fnpointer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
-  return d->list_tail->list_head->list_tail->list_head;
-}
-
-bool datum_is_fnpointer(datum *e) {
-  return datum_is_list(e) && !datum_is_nil(e) &&
-         datum_is_the_symbol(e->list_head, "cptr");
 }

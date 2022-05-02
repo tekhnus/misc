@@ -34,9 +34,6 @@ fdatum datum_deref(datum *arg);
 void *allocate_space_for_return_value(datum *sig);
 fdatum pointer_call(datum *fpt,datum *sig,datum *args,bool datums);
 void(*datum_to_function_pointer(datum *d))(void);
-datum *datum_get_fnpointer_value(datum *d);
-datum *datum_get_fnpointer_descriptor(datum *d);
-bool datum_is_fnpointer(datum *e);
 #define INTERFACE 0
 #define EXPORT_INTERFACE 0
 #define LOCAL_INTERFACE 0
