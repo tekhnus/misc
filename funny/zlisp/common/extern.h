@@ -149,7 +149,6 @@ struct state {
   struct datum *stack;
 };
 char *fdatum_get_panic_message(fdatum result);
-fdatum fdatum_get_value(fdatum result);
 bool fdatum_is_panic(fdatum result);
 char *datum_repr(datum *e);
 fdatum fdatum_make_ok(datum *v);

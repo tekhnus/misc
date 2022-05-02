@@ -372,10 +372,6 @@ EXPORT fdatum fdatum_make_panic(char *message) {
   return result;
 }
 
-fdatum fdatum_get_value(fdatum result) { // used in lisp
-  return result;
-}
-
 char *fdatum_get_panic_message(fdatum result) { // used in lisp
   return result.panic_message;
 }
