@@ -33,7 +33,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
     datum *fn = form->list_head;
     datum *args = form->list_tail->list_head;
     bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
-    fdatum resu = pointer_call(fn, args, datums);
+    fdatum resu = pointer_call(datum_get_fnpointer_value(fn), datum_get_fnpointer_descriptor(fn), args, datums);
     if (fdatum_is_panic(resu)) {
       return fdatum_make_panic(resu.panic_message);
     }
@@ -259,13 +259,8 @@ void *allocate_space_for_return_value(datum *sig) {
   return res;
 }
 
-fdatum pointer_call(datum *f, datum *args, bool datums) {
-  if (!datum_is_fnpointer(f)) {
-    return fdatum_make_panic("pointer_call expects a pointer");
-  }
-  datum *sig = datum_get_fnpointer_descriptor(f);
-  void (*fn_ptr)(void) =
-    __extension__(void (*)(void))(datum_get_fnpointer_value(f));
+fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
+  void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
   char *err = NULL;
   err = pointer_ffi_init_cif(sig, &cif);
@@ -286,12 +281,20 @@ fdatum pointer_call(datum *f, datum *args, bool datums) {
   return fdatum_make_ok(datum_make_int((int64_t)res));
 }
 
-void *datum_get_fnpointer_value(datum *d) {
+void (*datum_to_function_pointer(datum *d))(void) {
+  if (!datum_is_integer(d)) {
+    fprintf(stderr, "Not a pointer!");
+    exit(1);
+  }
+  return __extension__(void (*)(void))d->integer_value;
+}
+
+datum *datum_get_fnpointer_value(datum *d) {
   if (!datum_is_fnpointer(d)) {
     fprintf(stderr, "Not a pointer!");
     exit(1);
   }
-  return (void *)d->list_tail->list_head->list_head->integer_value;
+  return d->list_tail->list_head->list_head;
 }
 
 datum *datum_get_fnpointer_descriptor(datum *d) {

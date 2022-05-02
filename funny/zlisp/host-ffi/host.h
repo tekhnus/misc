@@ -5,9 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-void *datum_get_fnpointer_value(datum *d);
-datum *datum_get_fnpointer_descriptor(datum *d);
 bool datum_is_fnpointer(datum *e);
+void(*datum_to_function_pointer(datum *d))(void);
 void *allocate_space_for_return_value(datum *sig);
 char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs,bool datums);
 char *pointer_ffi_init_cif(datum *sig,ffi_cif *cif);
@@ -21,7 +20,9 @@ fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
 fdatum datum_mkptr(datum *arg);
 fdatum datum_deref(datum *arg);
-fdatum pointer_call(datum *f,datum *args,bool datums);
+datum *datum_get_fnpointer_descriptor(datum *d);
+datum *datum_get_fnpointer_value(datum *d);
+fdatum pointer_call(datum *fpt,datum *sig,datum *args,bool datums);
 fdatum perform_host_instruction(datum *name,datum *arg);
 void *simplified_dlsym(void *handle,const char *symbol);
 void *simplified_dlopen(char *path);
