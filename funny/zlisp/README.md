@@ -10,6 +10,22 @@ After this you can run the repl:
 ZLISP=./module ./build/host-ffi/zlisp-run module/cli/main.lisp
 ```
 
+Project structure:
+```
+common/
+  types.h           data types
+  main.c            data manipulation, reading and writing
+  compiling.c       compiling lisp to bytecode
+  running.c         a common interpreter
+host-ffi/
+  main.c            an interpreter supporting dlopen() and FFI function calls
+host-python/
+  main.c            takes a lisp file, writes bytecode to stdout
+  asm_to_python     an interpreter supporting Python evaluation
+tools/
+  makeheaders.c     copied from the Fossil project; used to generate header files
+```
+
 **Open problems and TODOs:**
 1) The bytecode should contain debug info.
 2) Linking is coupled with compilation; diamond dependencies are re-runned:(
