@@ -33,7 +33,6 @@ fdatum datum_mkptr(datum *arg);
 fdatum datum_deref(datum *arg);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
 fdatum pointer_call(datum *f,datum *args,bool datums);
-datum *datum_make_fnpointer(void *data,datum *signature);
 void *datum_get_fnpointer_value(datum *d);
 datum *datum_get_fnpointer_descriptor(datum *d);
 bool datum_is_fnpointer(datum *e);

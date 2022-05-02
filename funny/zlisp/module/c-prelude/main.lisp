@@ -62,6 +62,7 @@
 
 (builtin.defn pointer-call-and-deserialize
               (progn
+                (def rawres (ptr-call (head args)))
                 (def annotated-function-and-params (head args))
                 (def annotated-function (head annotated-function-and-params))
                 (def params (head (tail annotated-function-and-params)))
@@ -70,16 +71,14 @@
                 (def signature (head (tail annotation)))
                 (def fnparamst (head signature))
                 (def rettype (head (tail signature)))
-                (def s (serialize-params params fnparamst))
-                (def rawres (host "pointer-call" `((cptr (~fn-ptr (~fnparamst ~rettype))) ~s)))
                 (return (derefw `(~rawres ~rettype)))))
 
 
-(def dlopen-pointer `(cptr (~(host "dlopen" '()) ((string) pointer))))
-(builtin.defn dlopen (return (pointer-call-and-deserialize `(~dlopen-pointer ~args))))
+(def dlopen-pointer (host "dlopen" '()))
+(builtin.defn dlopen (return (pointer-call-and-deserialize `((cptr (~dlopen-pointer ((string) pointer))) ~args))))
 
-(def dlsym-pointer `(cptr (~(host "dlsym" '()) ((pointer string) pointer))))
-(builtin.defn dlsym (return (pointer-call-and-deserialize `(~dlsym-pointer ~args))))
+(def dlsym-pointer (host "dlsym" '()))
+(builtin.defn dlsym (return (pointer-call-and-deserialize `((cptr (~dlsym-pointer ((pointer string) pointer))) ~args))))
 
 (builtin.defn dereference-and-cast (progn
                                      (def d-ptr (head args))
@@ -96,15 +95,6 @@
                     (return '())
                   (return '(())))))
 
-(builtin.defn c-function-pointer
-            (progn
-              (def handle (head args))
-                (def c-name (head (tail args)))
-                (def signature (head (tail (tail args))))
-                (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
-                (return fn-pointer)))
-
 (builtin.defn c-data-pointer
             (progn
               (def handle (head args))
@@ -113,38 +103,6 @@
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (derefw `(~fn-pointer-pointer int64)))
                 (return fn-pointer)))    
-
-(builtin.defn pointer-call-and-interpret
-              (progn
-                (def rawres (ptr-call (head args)))
-                (return (derefw `(~rawres val)))))
-
-(builtin.defn builtin-or-panic
-              (progn
-                (def handle (head args))
-                (def c-name (head (tail args)))
-                (def signature (head (tail (tail args))))
-                (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-pointer (dereference-and-cast fn-pointer-pointer signature))
-                (if (not-null-fnpointer fn-pointer)
-                    ((def fn-routine (builtin.fn (return (pointer-call-and-interpret `(~fn-pointer ~args)))))
-                     (return fn-routine))
-                  (panic c-name))))
-
-(def selflib (dlopen ""))
-
-(builtin.defn builtin-function
-              (progn
-                (def c-name (head args))
-                (def signature (head (tail args)))
-                (return (builtin-or-panic selflib c-name signature))))
-
-(def eq (builtin-function "builtin_eq" '((datum datum) val)))
-(def annotate (builtin-function "builtin_annotate" '((datum) val)))
-(def is-constant (builtin-function "builtin_is_constant" '((datum) val)))
-(def repr (builtin-function "builtin_repr" '((datum) val)))
-(def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
-(def + (builtin-function "builtin_add" '((datum datum) val)))
 
 (builtin.defn c-function-or-panic
               (progn
@@ -157,6 +115,21 @@
                     ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `(~fn-pointer ~args)))))
                      (return fn-routine))
                   (panic (concat-bytestrings "couldn't load C function " c-name)))))
+
+(def selflib (dlopen ""))
+
+(builtin.defn builtin-function
+              (progn
+                (def c-name (head args))
+                (def signature (head (tail args)))
+                (return (c-function-or-panic selflib c-name signature))))
+
+(def eq (builtin-function "builtin_eq" '((datum datum) val)))
+(def annotate (builtin-function "builtin_annotate" '((datum) val)))
+(def is-constant (builtin-function "builtin_is_constant" '((datum) val)))
+(def repr (builtin-function "builtin_repr" '((datum) val)))
+(def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
+(def + (builtin-function "builtin_add" '((datum datum) val)))
 
 (builtin.defn wrap-pointer-into-pointer (return (host "mkptr" `(~(head args) sizet))))
 

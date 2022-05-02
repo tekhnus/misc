@@ -284,12 +284,6 @@ fdatum pointer_call(datum *f, datum *args, bool datums) {
   return pointer_ffi_call(f, &cif, cargs);
 }
 
-datum *datum_make_fnpointer(void *data, datum *signature) {
-  return datum_make_list_2(
-      datum_make_symbol("cptr"),
-      datum_make_list_2(datum_make_int((int64_t)data), signature));
-}
-
 void *datum_get_fnpointer_value(datum *d) {
   if (!datum_is_fnpointer(d)) {
     fprintf(stderr, "Not a pointer!");

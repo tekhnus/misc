@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-datum *datum_make_fnpointer(void *data,datum *signature);
 bool datum_is_fnpointer(datum *e);
 void *datum_get_fnpointer_value(datum *d);
 fdatum pointer_ffi_call(datum *f,ffi_cif *cif,void **cargs);
