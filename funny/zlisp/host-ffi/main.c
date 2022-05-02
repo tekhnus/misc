@@ -1,11 +1,6 @@
 // a basic CLI for zlisp interpreter.
 #include <main.h>
-#if INTERFACE
-#include <unistd.h>
-#include <stdlib.h>
-#include <string.h>
-#include <zlisp-impl/zlisp-impl.h>
-#endif
+
 
 int main(int argc, char **argv) {
   if (argc != 2) {

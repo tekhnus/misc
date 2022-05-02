@@ -11,4 +11,3 @@ state *state_make_builtins();
 #include <unistd.h>
 char *prog_init_module_c_host(prog_slice *sl,prog *p,datum *source);
 fdatum file_source(char *fname);
-#define INTERFACE 0
