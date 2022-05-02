@@ -8,6 +8,6 @@ add_test(NAME pytests
          COMMAND sh -c "$<TARGET_FILE:zlisp-python-asm> ${CMAKE_CURRENT_SOURCE_DIR}/pytest.lisp | ${PROJECT_SOURCE_DIR}/host-python/asm_to_python")
 
 set_tests_properties(
-        tests print-file run-cli
+        tests print-file run-cli pytests
         PROPERTIES
-        ENVIRONMENT ZLISP=${PROJECT_SOURCE_DIR}/module)
+        ENVIRONMENT "ZLISP=${PROJECT_SOURCE_DIR}/module;PATH=$<TARGET_FILE_DIR:Python::Interpreter>:$ENV{PATH}")

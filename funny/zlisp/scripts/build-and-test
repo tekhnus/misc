@@ -1,5 +1,10 @@
 #!/bin/sh
-cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug \
+if [ ! -d .venv ]; then
+    python3 -m venv .venv
+    .venv/bin/pip install -r requirements.txt
+fi
+
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -DPython_ROOT_DIR=$PWD/.venv \
       && cmake --build build --target codegen \
       && cmake --build build \
       && cmake --build build --target test ARGS=-V

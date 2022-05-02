@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.12)
 
 project(zlisp VERSION 0.1 LANGUAGES C)
 enable_testing()
+
+find_package(Python COMPONENTS Interpreter)
 
 add_subdirectory(zlisp-impl)
 add_subdirectory(host-ffi)
