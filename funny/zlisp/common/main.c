@@ -65,11 +65,11 @@ EXPORT datum *datum_make_list_2(datum *head, datum *second) {
   return datum_make_list(head, datum_make_list_1(second));
 }
 
-datum *datum_make_list_3(datum *head, datum *second, datum *third) {
+LOCAL datum *datum_make_list_3(datum *head, datum *second, datum *third) {
   return datum_make_list(head, datum_make_list_2(second, third));
 }
 
-datum *datum_make_list_5(datum *head, datum *second, datum *third,
+LOCAL datum *datum_make_list_5(datum *head, datum *second, datum *third,
                          datum *fourth, datum *fifth) {
   return datum_make_list(
       head,
@@ -114,39 +114,39 @@ EXPORT bool read_result_is_panic(read_result x) {
   return x.type == READ_RESULT_PANIC;
 }
 
-bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
+LOCAL bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
 
 EXPORT bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
 }
 
-read_result read_result_make_ok(datum *e) {
+LOCAL read_result read_result_make_ok(datum *e) {
   read_result result = {.type = READ_RESULT_OK, .ok_value = e};
   return result;
 }
 
-read_result read_result_make_panic(char *message) {
+LOCAL read_result read_result_make_panic(char *message) {
   read_result result = {.type = READ_RESULT_PANIC, .panic_message = message};
   return result;
 }
 
-read_result read_result_make_eof(void) {
+LOCAL read_result read_result_make_eof(void) {
   read_result result = {.type = READ_RESULT_EOF};
   return result;
 }
 
-read_result read_result_make_right_paren(void) {
+LOCAL read_result read_result_make_right_paren(void) {
   read_result result = {.type = READ_RESULT_RIGHT_PAREN};
   return result;
 }
 
-bool is_whitespace(char c) { return isspace(c) || c == ','; }
+LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
-bool is_allowed_inside_symbol(char c) {
+LOCAL bool is_allowed_inside_symbol(char c) {
   return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' || c == '+';
 }
 
-bool consume_control_sequence(char c, datum **form) {
+LOCAL bool consume_control_sequence(char c, datum **form) {
   if (c == '\'') {
     *form = datum_make_symbol("quote");
     return true;
@@ -192,7 +192,7 @@ struct token {
   };
 };
 
-struct token token_read(FILE *strm) {
+LOCAL struct token token_read(FILE *strm) {
   char c;
   for (; !feof(strm) && is_whitespace(c = getc(strm));) {
   }
@@ -323,7 +323,7 @@ EXPORT read_result datum_read(FILE *strm) {
   return read_result_make_panic("unhandled token type");
 }
 
-fdatum datum_read_one(FILE *stre) {
+fdatum datum_read_one(FILE *stre) { // used in lisp
   read_result rr = datum_read(stre);
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
@@ -335,23 +335,6 @@ fdatum datum_read_one(FILE *stre) {
     return fdatum_make_ok(datum_make_nil());
   }
   return fdatum_make_ok(datum_make_list_1(rr.ok_value));
-}
-
-fdatum datum_read_all(FILE *stre) {
-  read_result rr;
-  datum *res = datum_make_nil();
-  datum **resend = &res;
-  for (; read_result_is_ok(rr = datum_read(stre));) {
-    *resend = datum_make_list(rr.ok_value, datum_make_nil());
-    resend = &((*resend)->list_tail);
-  }
-  if (read_result_is_panic(rr)) {
-    return fdatum_make_panic(rr.panic_message);
-  }
-  if (read_result_is_right_paren(rr)) {
-    return fdatum_make_panic("unmatched right paren");
-  }
-  return fdatum_make_ok(res);
 }
 
 EXPORT char *datum_repr(datum *e) {
@@ -375,8 +358,6 @@ EXPORT char *datum_repr(datum *e) {
   return buf;
 }
 
-bool fdatum_is_ok(fdatum result) { return result.type == FDATUM_OK; }
-
 EXPORT bool fdatum_is_panic(fdatum result) {
   return result.type == FDATUM_PANIC;
 }
@@ -391,12 +372,11 @@ EXPORT fdatum fdatum_make_panic(char *message) {
   return result;
 }
 
-fdatum fdatum_get_value(fdatum result) {
-  return result; // A temporary hack for getting the result from lisp :)
+fdatum fdatum_get_value(fdatum result) { // used in lisp
+  return result;
 }
 
-char *fdatum_get_panic_message(fdatum result) {
-  // printf("!!!%s\n", result.panic_message);
+char *fdatum_get_panic_message(fdatum result) { // used in lisp
   return result.panic_message;
 }
 
@@ -427,23 +407,6 @@ fdatum state_get_var(state *ns, datum *symbol) {
   char *msg = malloc(1024);
   sprintf(msg, "unbound symbol: %s", symbol->symbol_value);
   return fdatum_make_panic(msg);
-}
-
-fdatum list_map(fdatum (*fn)(datum *, state *), datum *items, state *ctxt) {
-  if (!datum_is_list(items)) {
-    return fdatum_make_panic("expected a list");
-  }
-  datum *evaled_items = datum_make_nil();
-  datum **tail = &evaled_items;
-  for (datum *arg = items; !datum_is_nil(arg); arg = arg->list_tail) {
-    fdatum evaled_arg = fn(arg->list_head, ctxt);
-    if (fdatum_is_panic(evaled_arg)) {
-      return evaled_arg;
-    }
-    *tail = datum_make_list_1(evaled_arg.ok_value);
-    tail = &((*tail)->list_tail);
-  }
-  return fdatum_make_ok(evaled_items);
 }
 
 datum *state_list_vars(state *ns) {
@@ -550,10 +513,6 @@ prog *prog_slice_at(prog_slice s, size_t index) {
   return s.begin + index;
 }
 
-prog *prog_slice_last(prog_slice s) {
-  return prog_slice_at(s, prog_slice_length(s) - 1);
-}
-
 EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
 
 EXPORT datum *prog_slice_to_datum(prog_slice sl) {
@@ -567,7 +526,7 @@ EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   return res;
 }
 
-datum *prog_to_datum(prog_slice sl, prog *p) {
+LOCAL datum *prog_to_datum(prog_slice sl, prog *p) {
   switch (p->type) {
   case PROG_END: {
     return datum_make_list_1(datum_make_symbol(":end"));
