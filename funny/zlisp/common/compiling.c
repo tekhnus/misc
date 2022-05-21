@@ -35,6 +35,14 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source,
   if (fdatum_is_panic(res)) {
     return res;
   }
+  datum *re = res.ok_value;
+  if (!datum_is_list(re) || list_length(re) != 2) {
+    return fdatum_make_panic("not gonna happen");
+  }
+  for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
+    datum *dep_var = rest_deps->list_head;
+    prog_append_pop(sl, &s, dep_var);
+  }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     prog_append_pop(sl, &s, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
