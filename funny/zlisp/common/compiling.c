@@ -354,6 +354,14 @@ LOCAL void prog_append_set_closures(prog_slice *sl, prog **begin, prog *p,
   *begin = (*begin)->set_closures_next;
 }
 
+LOCAL void prog_append_put_prog(prog_slice *sl, prog **begin, prog *val, int capture) {
+  (*begin)->type = PROG_PUT_PROG;
+  (*begin)->put_prog_value = val;
+  (*begin)->put_prog_capture = capture;
+  (*begin)->put_prog_next = prog_slice_append_new(sl);
+  *begin = (*begin)->put_prog_next;
+}
+
 LOCAL void prog_append_return(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
@@ -379,11 +387,7 @@ LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg,
   if (err != NULL) {
     return err;
   }
-  state *fresh_state = state_make_fresh();
-  datum *r = datum_make_list_2(
-      prog_to_offset(*sl, for_submodule_source),
-      datum_make_list_2(fresh_state->vars, fresh_state->stack));
-  prog_append_put_const(sl, begin, r);
+  prog_append_put_prog(sl, begin, for_submodule_source, 0);
   prog_append_collect(sl, begin);
   prog_append_call(sl, begin, false); // TODO(harius): bare call
   prog_append_import(sl, begin);

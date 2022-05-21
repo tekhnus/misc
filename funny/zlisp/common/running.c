@@ -168,6 +168,12 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     *p = (*p)->set_closures_next;
     return NULL;
   } break;
+  case PROG_PUT_PROG: {
+    if ((*p)->put_prog_capture != 2){
+      break;
+    }
+    return "put_prog capture=2 not implemented yet";
+  }
   case PROG_RETURN: {
     if (!(*p)->return_hat) {
       break;
@@ -252,6 +258,19 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     state_stack_put(st, result);
     return NULL;
   } break;
+  case PROG_PUT_PROG: {
+    if ((*p)->put_prog_capture != 1 && (*p)->put_prog_capture != 0){
+      break;
+    }
+    if ((*p)->put_prog_capture == 1) {
+      return "put_prog capture=1 not implemented yet";
+    }
+    state *s = state_make_fresh();
+    datum *prog = datum_make_list_2(prog_to_offset(sl, (*p)->put_prog_value), datum_make_list_2(s->vars, s->stack));
+    state_stack_put(st, prog);
+    *p = (*p)->put_prog_next;
+    return NULL;
+  }
   case PROG_YIELD: {
     // return fstate_make_panic("disabled ATM");
     if ((*p)->yield_hat) {

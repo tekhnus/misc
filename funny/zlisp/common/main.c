@@ -69,6 +69,14 @@ LOCAL datum *datum_make_list_3(datum *head, datum *second, datum *third) {
   return datum_make_list(head, datum_make_list_2(second, third));
 }
 
+LOCAL datum *datum_make_list_4(datum *head, datum *second, datum *third,
+                         datum *fourth) {
+  return datum_make_list(
+      head,
+      datum_make_list(
+                      second, datum_make_list_2(third, fourth)));
+}
+
 LOCAL datum *datum_make_list_5(datum *head, datum *second, datum *third,
                          datum *fourth, datum *fifth) {
   return datum_make_list(
@@ -573,6 +581,12 @@ LOCAL datum *prog_to_datum(prog_slice sl, prog *p) {
                              datum_make_int(p->set_closures_hat),
                              prog_to_offset(sl, p->set_closures_next));
   } break;
+  case PROG_PUT_PROG: {
+    return datum_make_list_4(datum_make_symbol(":put-prog"),
+                             prog_to_offset(sl, p->put_prog_value),
+                             datum_make_int(p->put_prog_capture),
+                             prog_to_offset(sl, p->put_prog_next));
+  } break;
   case PROG_RETURN: {
     return datum_make_list_2(datum_make_symbol(":return"),
                              datum_make_int(p->return_hat));
@@ -596,7 +610,7 @@ datum *prog_to_offset(prog_slice sl, prog *p) {
       p > prog_slice_at(sl, prog_slice_length(sl) - 1)) {
     fprintf(stderr,
             "prog_to_offset received a prog from another slice. slice: (%p, "
-            "%p), prog: %p",
+            "%p), prog: %p\n",
             prog_slice_at(sl, 0), prog_slice_at(sl, prog_slice_length(sl) - 1),
             p);
     exit(EXIT_FAILURE);

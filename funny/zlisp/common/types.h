@@ -63,6 +63,7 @@ enum prog_type {
   PROG_COLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
+  PROG_PUT_PROG,
   PROG_RETURN,
   PROG_YIELD,
   PROG_IMPORT,
@@ -99,6 +100,11 @@ struct prog {
     struct {
       struct datum *pop_var;
       struct prog *pop_next;
+    };
+    struct {
+      struct prog *put_prog_value;
+      int put_prog_capture;
+      struct prog *put_prog_next;
     };
     struct {
       struct prog *set_closures_prog;

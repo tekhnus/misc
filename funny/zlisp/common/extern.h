@@ -37,6 +37,7 @@ LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instru
 typedef struct state state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog_slice *sl,prog **begin);
+LOCAL void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
 LOCAL void prog_append_call(prog_slice *sl,prog **begin,bool hat);
 LOCAL void prog_append_collect(prog_slice *sl,prog **begin);
 LOCAL void prog_append_args(prog_slice *sl,prog **begin);
@@ -76,6 +77,7 @@ enum prog_type {
   PROG_COLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
+  PROG_PUT_PROG,
   PROG_RETURN,
   PROG_YIELD,
   PROG_IMPORT,
@@ -112,6 +114,11 @@ struct prog {
     struct {
       struct datum *pop_var;
       struct prog *pop_next;
+    };
+    struct {
+      struct prog *put_prog_value;
+      int put_prog_capture;
+      struct prog *put_prog_next;
     };
     struct {
       struct prog *set_closures_prog;
@@ -181,6 +188,7 @@ datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);
 LOCAL datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
+LOCAL datum *datum_make_list_4(datum *head,datum *second,datum *third,datum *fourth);
 LOCAL datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
