@@ -16,7 +16,7 @@ state *state_make_builtins();
 #include <unistd.h>
 char *prog_init_module_c_host(prog_slice *sl,prog *p,datum *source);
 char *prog_init_one_c_host(prog_slice *sl,prog *p,datum *source);
-char *prog_init_submodule_c_host(prog_slice *sl,prog *p,datum *source);
+fdatum prog_init_submodule_c_host(prog_slice *sl,prog *p,datum *source);
 char *module_routine(prog_slice *sl,prog *p,char *module);
 fdatum module_source(char *module);
 char *module_to_filename(char *module);

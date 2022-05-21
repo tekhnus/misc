@@ -28,24 +28,23 @@ EXPORT char *prog_init_one(prog_slice *sl, prog *s, datum *stmt,
   return prog_append_statement(sl, &s, stmt, module_source);
 }
 
-EXPORT char *prog_init_submodule(prog_slice *sl, prog *s, datum *source,
+EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source,
                           char *(*module_source)(prog_slice *sl, prog *p,
                                                  char *)) {
   fdatum res = prog_read_usages(source->list_head);
   if (fdatum_is_panic(res)) {
-    return res.panic_message;
+    return res;
   }
-  // prog_append_put_const(&s, datum_make_void());
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
-    // prog_append_pop(&s, NULL);
+    prog_append_pop(sl, &s, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
     char *err = prog_append_statement(sl, &s, stmt, module_source);
     if (err != NULL) {
-      return err;
+      return fdatum_make_panic(err);
     }
   }
   prog_append_yield(sl, &s, false);
-  return NULL;
+  return res;
 }
 
 LOCAL fdatum prog_read_usages(datum *spec) {

@@ -14,8 +14,8 @@ char *prog_init_one_c_host(prog_slice *sl, prog *p, datum *source) {
   return prog_init_one(sl, p, source, module_routine);
 }
 
-char *prog_init_submodule_c_host(prog_slice *sl, prog *p, datum *source) {
-  return prog_init_submodule(sl, p, source, module_routine);
+fdatum prog_init_submodule_c_host(prog_slice *sl, prog *p, datum *source) {
+   return prog_init_submodule(sl, p, source, module_routine);
 }
 
 char *module_routine(prog_slice *sl, prog *p, char *module) {
@@ -23,7 +23,11 @@ char *module_routine(prog_slice *sl, prog *p, char *module) {
   if (fdatum_is_panic(src)) {
     return src.panic_message;
   }
-  return prog_init_submodule_c_host(sl, p, src.ok_value);
+  fdatum res = prog_init_submodule_c_host(sl, p, src.ok_value);
+  if (fdatum_is_panic(res)) {
+    return res.panic_message;
+  }
+  return NULL;
 }
 
 fdatum module_source(char *module) {

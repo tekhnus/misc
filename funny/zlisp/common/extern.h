@@ -51,7 +51,7 @@ LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog *a,prog *b,prog *e);
 LOCAL void prog_append_put_var(prog_slice *sl,prog **begin,datum *val);
 LOCAL void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
-char *prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
+fdatum prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 char *prog_init_one(prog_slice *sl,prog *s,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
