@@ -1,3 +1,5 @@
+(req)
+
 (require "std")
 (require "libc")
 !(require "testing")

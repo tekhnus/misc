@@ -1,3 +1,5 @@
+(req)
+
 (builtin.defn print (return (host ("eval" "print(x[1][0])") args)))
 
 (builtin.defn debug-print (return (host ("eval" "print(x[1][0])") args)))

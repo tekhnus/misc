@@ -1,3 +1,5 @@
+(req)
+
 !(require "defun")
 (require "defun")
 (require "std")

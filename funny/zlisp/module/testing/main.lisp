@@ -1,3 +1,5 @@
+(req)
+
 !(require "stdmacro")
 (require "std")
 

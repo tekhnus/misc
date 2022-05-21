@@ -1,3 +1,5 @@
+(req)
+
 (def panic-pointer (host "panic" '()))
 (builtin.defn panic (return (host "deref" `(~(host "pointer-call-datums" `(~panic-pointer  ((datum) val)  ~args)) val))))
 

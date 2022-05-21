@@ -1,3 +1,5 @@
+(req)
+
 (require "prelude")
 
 (def list (builtin.fn (return args)))

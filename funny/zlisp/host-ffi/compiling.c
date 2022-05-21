@@ -10,6 +10,10 @@ char *prog_init_module_c_host(prog_slice *sl, prog *p, datum *source) {
   return prog_init_module(sl, p, source, module_routine);
 }
 
+char *prog_init_one_c_host(prog_slice *sl, prog *p, datum *source) {
+  return prog_init_one(sl, p, source, module_routine);
+}
+
 char *prog_init_submodule_c_host(prog_slice *sl, prog *p, datum *source) {
   return prog_init_submodule(sl, p, source, module_routine);
 }
@@ -113,8 +117,8 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
     return exp;
   }
   prog *p = prog_slice_append_new(sl);
-  char *err = prog_init_module_c_host(
-      sl, p, datum_make_list(exp.ok_value, datum_make_nil()));
+  char *err = prog_init_one_c_host(
+      sl, p, exp.ok_value);
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;

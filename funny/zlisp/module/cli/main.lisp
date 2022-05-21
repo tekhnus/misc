@@ -1,3 +1,5 @@
+(req)
+
 !(require "stdmacro")
 (require "std")
 (require "libc")
@@ -12,7 +14,7 @@
 	  ((:eof)
 	   (return (fprintf stdout "\n")))
 	  ((:ok datum)
-           (def maybe-prog (compile-prog sl `(~datum)))
+           (def maybe-prog (compile-prog sl datum))
            !(#switchx maybe-prog
                       ((:ok prog)
                        !(#switchx (eval sl nsp prog)
