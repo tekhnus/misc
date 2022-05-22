@@ -1,7 +1,9 @@
 (req (std-pre-defun "std-pre-defun"))
 (importall std-pre-defun)
 
-!(require "defun")
+!(req (defunmod "defun"))
+!(importall defunmod)
+
 
 !(#defun append (x xs)
   (if xs

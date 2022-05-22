@@ -1,8 +1,10 @@
 (req (std "std"))
 (importall std)
 
-!(require "testing")
-!(require "stdmacro")
+!(req (testing "testing"))
+!(importall testing)
+!(req (stdmacro "stdmacro"))
+!(importall stdmacro)
 
 (def panics '())
 

@@ -3,8 +3,11 @@
 
 (importall libc)
 
-!(require "testing")
-!(require "stdmacro")
+!(req (testing "testing"))
+!(importall testing)
+!(req (stdmacro "stdmacro"))
+!(importall stdmacro)
+
 
 (def panics '())
 
