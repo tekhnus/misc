@@ -37,16 +37,12 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-LOCAL char *python_module_routine(prog_slice *sl, prog *p, char *module) {
+LOCAL fdatum python_module_routine(prog_slice *sl, prog *p, char *module) {
   fdatum src = python_module_source(module);
   if (fdatum_is_panic(src)) {
-    return src.panic_message;
+    return src;
   }
-  fdatum res = prog_init_submodule_python_host(sl, p, src.ok_value);
-  if (fdatum_is_panic(res)) {
-    return res.panic_message;
-  }
-  return NULL;
+  return prog_init_submodule_python_host(sl, p, src.ok_value);
 }
 
 LOCAL fdatum python_module_source(char *module) {

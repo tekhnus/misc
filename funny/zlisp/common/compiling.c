@@ -3,7 +3,7 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, char *(*module_source)(prog_slice *sl, prog *p, char *)) {
+EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
   prog *run_main = prog_slice_append_new(sl);
   fdatum res = prog_init_submodule(sl, run_main, source, module_source);
   if (fdatum_is_panic(res)) {
@@ -21,13 +21,13 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, char *(
 }
 
 EXPORT char *prog_init_one(prog_slice *sl, prog *s, datum *stmt,
-                       char *(*module_source)(prog_slice *sl, prog *p,
+                       fdatum (*module_source)(prog_slice *sl, prog *p,
                                               char *)) {
   return prog_append_statement(sl, &s, stmt, module_source);
 }
 
 EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source,
-                          char *(*module_source)(prog_slice *sl, prog *p,
+                          fdatum (*module_source)(prog_slice *sl, prog *p,
                                                  char *)) {
   fdatum res = prog_read_usages(source->list_head);
   if (fdatum_is_panic(res)) {
@@ -54,26 +54,24 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source,
   return res;
 }
 
-LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, char *(*module_source)(prog_slice *sl, prog *p, char *)) {
+LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
+  // fprintf(stderr, "!!!!!!!!! building deps %s\n", datum_repr(deps));
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
     if (!datum_is_bytestring(dep)) {
       return "req expects bytestrings";
     }
-    // fprintf(stderr, "!!!!!!!!! building dep %s\n", dep->bytestring_value);
     prog *run_dep = prog_slice_append_new(sl);
-    char *status = module_source(sl, run_dep, dep->bytestring_value);
-    if (status != NULL) {
-      return status;
+    fdatum status = module_source(sl, run_dep, dep->bytestring_value);
+    if (fdatum_is_panic(status)) {
+      return status.panic_message;
     }
     prog_append_args(sl, p);
     prog_append_put_prog(sl, p, run_dep, 0);
-
-    // TODO(zach): support req in required modules
-    // char *err = prog_build_deps(sl, p, <dependent module here>, module_source);
-    /* if (err != NULL) { */
-    /*   return err; */
-    /* } */
+    char *err = prog_build_deps(sl, p, status.ok_value->list_tail->list_head, module_source);
+    if (err != NULL) {
+      return err;
+    }
     prog_append_collect(sl, p);
     prog_append_call(sl, p, false);
   }
@@ -109,7 +107,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
-                                  char *(*module_source)(prog_slice *sl,
+                                  fdatum (*module_source)(prog_slice *sl,
                                                          prog *p, char *)) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
@@ -427,18 +425,19 @@ LOCAL void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
 }
 
 LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg,
-                                char *(*module_source)(prog_slice *sl, prog *p,
+                                fdatum (*module_source)(prog_slice *sl, prog *p,
                                                        char *)) {
   prog_append_args(sl, begin);
   if (module_source == NULL) {
     return "require was used in a context where it's not supported";
   }
   prog *for_submodule_source = prog_slice_append_new(sl);
-  char *err = module_source(sl, for_submodule_source, pkg);
-  if (err != NULL) {
-    return err;
+  fdatum res = module_source(sl, for_submodule_source, pkg);
+  if (fdatum_is_panic(res)) {
+    return res.panic_message;
   }
   prog_append_put_prog(sl, begin, for_submodule_source, 0);
+  prog_build_deps(sl, begin, res.ok_value->list_tail->list_head, module_source);
   prog_append_collect(sl, begin);
   prog_append_call(sl, begin, false); // TODO(harius): bare call
   prog_append_import(sl, begin);
@@ -448,7 +447,7 @@ LOCAL char *prog_append_require(prog_slice *sl, prog **begin, char *pkg,
 
 LOCAL char *prog_append_backquoted_statement(
     prog_slice *sl, prog **begin, datum *stmt,
-    char *(*module_source)(prog_slice *sl, prog *p, char *)) {
+    fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(sl, begin, stmt);
     return NULL;
@@ -474,7 +473,7 @@ LOCAL char *prog_append_backquoted_statement(
 }
 
 LOCAL char *prog_init_routine(prog_slice *sl, prog *s, datum *stmt,
-                              char *(*module_source)(prog_slice *sl, prog *p,
+                              fdatum (*module_source) (prog_slice *sl, prog *p,
                                                      char *)) {
   prog_append_pop(sl, &s, datum_make_symbol("args"));
   return prog_append_statement(sl, &s, stmt, module_source);
