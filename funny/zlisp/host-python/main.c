@@ -54,5 +54,5 @@ LOCAL fdatum python_module_source(char *module) {
 }
 
 LOCAL fdatum prog_init_submodule_python_host(prog_slice *sl, prog *p, datum *source) {
-  return prog_init_submodule(sl, p, source, python_module_routine);
+  return prog_init_submodule(sl, p, source);
 }

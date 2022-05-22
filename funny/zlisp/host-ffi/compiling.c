@@ -11,11 +11,11 @@ char *prog_init_module_c_host(prog_slice *sl, prog *p, datum *source) {
 }
 
 char *prog_init_one_c_host(prog_slice *sl, prog *p, datum *source) {
-  return prog_init_one(sl, p, source, module_routine);
+  return prog_build_one(sl, p, source, module_routine);
 }
 
 fdatum prog_init_submodule_c_host(prog_slice *sl, prog *p, datum *source) {
-   return prog_init_submodule(sl, p, source, module_routine);
+   return prog_init_submodule(sl, p, source);
 }
 
 fdatum module_routine(prog_slice *sl, prog *p, char *module) {
