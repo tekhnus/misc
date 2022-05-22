@@ -1,7 +1,7 @@
-(req)
+(req (std "std"))
+(importall std)
 
 !(require "stdmacro")
-(require "std")
 
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))

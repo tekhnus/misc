@@ -1,8 +1,6 @@
-(req)
+(req (std "std"))
+(importall std)
 
-(require "std")
-
-(require "std")
 !(require "testing")
 !(require "stdmacro")
 
@@ -80,12 +78,6 @@
     !(#def2 t fib (fib))
     (return (list x y z t)))
   '(3 5 8 13))
-
-!(#fntest
-  (progn
-    (require "std")
-    (return 42))
-  42)
 
 !(#defun print-all (xs)
    (return

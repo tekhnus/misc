@@ -1,7 +1,7 @@
-(req)
+(req (std "std"))
+(importall std)
 
 !(require "stdmacro")
-(require "std")
 
 !(#def-or-panica libc
   (shared-library "libc.so.6")

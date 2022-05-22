@@ -86,12 +86,6 @@
 
 !(#fntest
   (progn
-    (require "std")
-    (return 42))
-  42)
-
-!(#fntest
-  (progn
     (fprintf stderr "hello")
     (return 42))
   42)

@@ -1,7 +1,7 @@
-(req)
+(req (std "std"))
+(importall std)
 
 !(require "stdmacro")
-(require "std")
 
 !(#defun fntest (body expect)
    (return `(progn

@@ -1,8 +1,11 @@
-(req)
+(req
+ (defunmod "defun")
+ (std "std"))
+
+(importall defunmod)
+(importall std)
 
 !(require "defun")
-(require "defun")
-(require "std")
 
 (def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
 
