@@ -23,6 +23,22 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum 
 EXPORT char *prog_init_one(prog_slice *sl, prog *s, datum *stmt,
                        fdatum (*module_source)(prog_slice *sl, prog *p,
                                               char *)) {
+  if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "req")) {
+    fdatum res = prog_read_usages(stmt);
+    if (fdatum_is_panic(res)) {
+      return res.panic_message;
+    }
+    char *err = prog_build_deps(sl, &s, res.ok_value->list_tail->list_head, module_source);
+    if (err != NULL) {
+      return err;
+    }
+    for (datum *rest_deps=res.ok_value->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
+      datum *dep_var = rest_deps->list_head;
+      prog_append_pop(sl, &s, dep_var);
+    }
+    prog_append_put_const(sl, &s, datum_make_void());
+    return NULL;
+  }
   return prog_append_statement(sl, &s, stmt, module_source);
 }
 

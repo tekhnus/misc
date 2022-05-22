@@ -374,6 +374,7 @@ LOCAL char *routine_0_step(routine_0 *r,
     // fprintf(stderr, "MODULE_END\n");
     datum *pair = state_stack_pop(st);
     if (!datum_is_list(pair) || list_length(pair) != 2) {
+      // return datum_repr(pair);
       return ("expected a pair after a submodule call");
     }
     datum *fn = pair->list_tail->list_head;

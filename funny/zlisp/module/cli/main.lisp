@@ -3,7 +3,8 @@
  (libc "libc")
  (zlisp "zlisp"))
 
-!(require "stdmacro")
+!(req (stdmacro "stdmacro"))
+!(importall stdmacro)
 
 (importall std)
 (importall libc)
