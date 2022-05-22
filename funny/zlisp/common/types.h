@@ -61,6 +61,7 @@ enum prog_type {
   PROG_CALL,
   PROG_HOST,
   PROG_COLLECT,
+  PROG_UNCOLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
@@ -97,6 +98,7 @@ struct prog {
       struct prog *host_next;
     };
     struct prog *collect_next;
+    struct prog *uncollect_next;
     struct {
       struct datum *pop_var;
       struct prog *pop_next;

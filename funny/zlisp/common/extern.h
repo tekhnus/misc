@@ -37,10 +37,6 @@ LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instru
 typedef struct state state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL void prog_append_import(prog_slice *sl,prog **begin);
-LOCAL void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
-LOCAL void prog_append_call(prog_slice *sl,prog **begin,bool hat);
-LOCAL void prog_append_collect(prog_slice *sl,prog **begin);
-LOCAL void prog_append_args(prog_slice *sl,prog **begin);
 LOCAL void prog_append_host(prog_slice *sl,prog **begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,prog **begin,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL void prog_append_return(prog_slice *sl,prog **begin,bool hat);
@@ -48,17 +44,22 @@ LOCAL char *prog_append_require(prog_slice *sl,prog **begin,char *pkg,char *(*mo
 LOCAL void prog_append_set_closures(prog_slice *sl,prog **begin,prog *p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,prog *s,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
+LOCAL datum *datum_make_void();
 LOCAL void prog_join(prog *a,prog *b,prog *e);
 LOCAL void prog_append_put_var(prog_slice *sl,prog **begin,datum *val);
 LOCAL void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
-fdatum prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
-char *prog_init_one(prog_slice *sl,prog *s,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
-LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 LOCAL void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
-LOCAL datum *datum_make_void();
-LOCAL void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
+LOCAL void prog_append_uncollect(prog_slice *sl,prog **begin);
 LOCAL fdatum prog_read_usages(datum *spec);
-char *prog_init_module(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
+LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
+char *prog_init_one(prog_slice *sl,prog *s,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
+LOCAL void prog_append_call(prog_slice *sl,prog **begin,bool hat);
+LOCAL void prog_append_collect(prog_slice *sl,prog **begin);
+LOCAL void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
+LOCAL void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
+LOCAL void prog_append_args(prog_slice *sl,prog **begin);
+fdatum prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
+char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 datum *prog_to_offset(prog_slice sl,prog *p);
 LOCAL datum *prog_to_datum(prog_slice sl,prog *p);
 datum *prog_slice_to_datum(prog_slice sl);
@@ -75,6 +76,7 @@ enum prog_type {
   PROG_CALL,
   PROG_HOST,
   PROG_COLLECT,
+  PROG_UNCOLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
@@ -111,6 +113,7 @@ struct prog {
       struct prog *host_next;
     };
     struct prog *collect_next;
+    struct prog *uncollect_next;
     struct {
       struct datum *pop_var;
       struct prog *pop_next;

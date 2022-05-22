@@ -570,6 +570,10 @@ LOCAL datum *prog_to_datum(prog_slice sl, prog *p) {
     return datum_make_list_2(datum_make_symbol(":collect"),
                              prog_to_offset(sl, p->collect_next));
   } break;
+  case PROG_UNCOLLECT: {
+    return datum_make_list_2(datum_make_symbol(":uncollect"),
+                             prog_to_offset(sl, p->uncollect_next));
+  } break;
   case PROG_POP: {
     return datum_make_list_3(datum_make_symbol(":pop"), (p->pop_var),
                              prog_to_offset(sl, p->pop_next));

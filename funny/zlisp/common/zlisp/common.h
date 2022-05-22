@@ -62,7 +62,7 @@ prog_slice prog_slice_make(size_t capacity);
 prog *prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
-char *prog_init_module(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
+char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 char *prog_init_one(prog_slice *sl,prog *s,datum *stmt,char *(*module_source)(prog_slice *sl,prog *p,char *));
 fdatum prog_init_submodule(prog_slice *sl,prog *s,datum *source,char *(*module_source)(prog_slice *sl,prog *p,char *));
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
@@ -100,6 +100,7 @@ enum prog_type {
   PROG_CALL,
   PROG_HOST,
   PROG_COLLECT,
+  PROG_UNCOLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
@@ -136,6 +137,7 @@ struct prog {
       struct prog *host_next;
     };
     struct prog *collect_next;
+    struct prog *uncollect_next;
     struct {
       struct datum *pop_var;
       struct prog *pop_next;

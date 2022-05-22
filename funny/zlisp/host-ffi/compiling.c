@@ -7,7 +7,7 @@
 #endif
 
 char *prog_init_module_c_host(prog_slice *sl, prog *p, datum *source) {
-  return prog_init_module(sl, p, source, module_routine);
+  return prog_build(sl, p, source, module_routine);
 }
 
 char *prog_init_one_c_host(prog_slice *sl, prog *p, datum *source) {

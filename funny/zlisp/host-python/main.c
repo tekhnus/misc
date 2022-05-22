@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   }
   prog_slice sl = prog_slice_make(16 * 1024);
   prog *p = prog_slice_append_new(&sl);
-  char *err = prog_init_module(&sl, p, src.ok_value, python_module_routine);
+  char *err = prog_build(&sl, p, src.ok_value, python_module_routine);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;

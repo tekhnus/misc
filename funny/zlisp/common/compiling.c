@@ -3,22 +3,17 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_init_module(prog_slice *sl, prog *s, datum *source,
-                       char *(*module_source)(prog_slice *sl, prog *p,
-                                              char *)) {
-  fdatum res = prog_read_usages(source->list_head);
+EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, char *(*module_source)(prog_slice *sl, prog *p, char *)) {
+  prog *run_main = prog_slice_append_new(sl);
+  fdatum res = prog_init_submodule(sl, run_main, source, module_source);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
-  prog_append_put_const(sl, &s, datum_make_void());
-  for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(sl, &s, datum_make_symbol(":void"));
-    datum *stmt = rest->list_head;
-    char *err = prog_append_statement(sl, &s, stmt, module_source);
-    if (err != NULL) {
-      return err;
-    }
-  }
+  prog_append_args(sl, &entrypoint);
+  prog_append_put_prog(sl, &entrypoint, run_main, 0);
+  prog_append_put_const(sl, &entrypoint, datum_make_nil());
+  prog_append_collect(sl, &entrypoint);
+  prog_append_call(sl, &entrypoint, false);
   return NULL;
 }
 
@@ -41,6 +36,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source,
   }
   for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep_var = rest_deps->list_head;
+    prog_append_uncollect(sl, &s);
     prog_append_pop(sl, &s, dep_var);
   }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
@@ -342,6 +338,12 @@ LOCAL void prog_append_collect(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_COLLECT;
   (*begin)->collect_next = prog_slice_append_new(sl);
   *begin = (*begin)->collect_next;
+}
+
+LOCAL void prog_append_uncollect(prog_slice *sl, prog **begin) {
+  (*begin)->type = PROG_UNCOLLECT;
+  (*begin)->uncollect_next = prog_slice_append_new(sl);
+  *begin = (*begin)->uncollect_next;
 }
 
 LOCAL void prog_append_pop(prog_slice *sl, prog **begin, datum *var) {
