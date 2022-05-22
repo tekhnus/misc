@@ -1,5 +1,6 @@
 // a basic CLI for zlisp interpreter.
 #include <main.h>
+#include <compiling.h>
 
 
 int main(int argc, char **argv) {
@@ -21,7 +22,7 @@ int main(int argc, char **argv) {
   }
   prog_slice sl = prog_slice_make(16 * 1024);
   prog *p = prog_slice_append_new(&sl);
-  char *err = prog_init_module_c_host(&sl, p, src.ok_value);
+  char *err = prog_build_c_host(&sl, p, src.ok_value);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;

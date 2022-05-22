@@ -42,7 +42,7 @@ LOCAL fdatum python_module_routine(prog_slice *sl, prog *p, char *module) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  return prog_init_submodule_python_host(sl, p, src.ok_value);
+  return prog_init_submodule(sl, p, src.ok_value);
 }
 
 LOCAL fdatum python_module_source(char *module) {
@@ -51,8 +51,4 @@ LOCAL fdatum python_module_source(char *module) {
   }
   char *fname = module_to_filename(module);
   return file_source(fname);
-}
-
-LOCAL fdatum prog_init_submodule_python_host(prog_slice *sl, prog *p, datum *source) {
-  return prog_init_submodule(sl, p, source);
 }
