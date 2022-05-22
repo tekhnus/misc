@@ -16,6 +16,7 @@ common/
   types.h           data types
   main.c            data manipulation, reading and writing
   compiling.c       compiling lisp to bytecode
+  building.c        linking modules together
   running.c         a common interpreter
 host-ffi/
   main.c            an interpreter supporting dlopen() and FFI function calls

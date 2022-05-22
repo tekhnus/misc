@@ -3,45 +3,6 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
-  prog *run_main = prog_slice_append_new(sl);
-  fdatum res = prog_init_submodule(sl, run_main, source);
-  if (fdatum_is_panic(res)) {
-    return res.panic_message;
-  }
-  prog_append_args(sl, &entrypoint);
-  prog_append_put_prog(sl, &entrypoint, run_main, 0);
-  char *err = prog_build_deps(sl, &entrypoint, res.ok_value->list_tail->list_head, module_source);
-  if (err != NULL) {
-    return err;
-  }
-  prog_append_collect(sl, &entrypoint);
-  prog_append_call(sl, &entrypoint, false);
-  return NULL;
-}
-
-EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
-                       fdatum (*module_source)(prog_slice *sl, prog *p,
-                                              char *)) {
-  if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "req")) {
-    fdatum res = prog_read_usages(stmt);
-    if (fdatum_is_panic(res)) {
-      return res.panic_message;
-    }
-    char *err = prog_build_deps(sl, &s, res.ok_value->list_tail->list_head, module_source);
-    if (err != NULL) {
-      return err;
-    }
-    for (datum *rest_deps=res.ok_value->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
-      datum *dep_var = rest_deps->list_head;
-      prog_append_pop(sl, &s, dep_var);
-    }
-    prog_append_put_const(sl, &s, datum_make_void());
-    return NULL;
-  }
-  return prog_append_statement(sl, &s, stmt);
-}
-
 EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source) {
   fdatum res = prog_read_usages(source->list_head);
   if (fdatum_is_panic(res)) {
@@ -68,31 +29,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source) {
   return res;
 }
 
-LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
-  // fprintf(stderr, "!!!!!!!!! building deps %s\n", datum_repr(deps));
-  for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
-    datum *dep = rest_deps->list_head;
-    if (!datum_is_bytestring(dep)) {
-      return "req expects bytestrings";
-    }
-    prog *run_dep = prog_slice_append_new(sl);
-    fdatum status = module_source(sl, run_dep, dep->bytestring_value);
-    if (fdatum_is_panic(status)) {
-      return status.panic_message;
-    }
-    prog_append_args(sl, p);
-    prog_append_put_prog(sl, p, run_dep, 0);
-    char *err = prog_build_deps(sl, p, status.ok_value->list_tail->list_head, module_source);
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_collect(sl, p);
-    prog_append_call(sl, p, false);
-  }
-  return NULL;
-}
-
-LOCAL fdatum prog_read_usages(datum *spec) {
+EXPORT fdatum prog_read_usages(datum *spec) {
   if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "req")) {
     return fdatum_make_panic(datum_repr(spec));
     return fdatum_make_panic("wrong usage spec");
@@ -120,7 +57,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   return fdatum_make_ok(datum_make_list_2(vars, specs));
 }
 
-LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
+EXPORT char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
@@ -328,7 +265,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
   return NULL;
 }
 
-LOCAL void prog_append_call(prog_slice *sl, prog **begin, bool hat) {
+EXPORT void prog_append_call(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_CALL;
   (*begin)->call_hat = hat;
   (*begin)->call_next = prog_slice_append_new(sl);
@@ -353,7 +290,7 @@ LOCAL void prog_join(prog *a, prog *b, prog *e) {
   b->nop_next = e;
 }
 
-LOCAL void prog_append_put_const(prog_slice *sl, prog **begin, datum *val) {
+EXPORT void prog_append_put_const(prog_slice *sl, prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_CONST;
   (*begin)->put_const_value = val;
   (*begin)->put_const_next = prog_slice_append_new(sl);
@@ -367,13 +304,13 @@ LOCAL void prog_append_put_var(prog_slice *sl, prog **begin, datum *val) {
   *begin = (*begin)->put_var_next;
 }
 
-LOCAL void prog_append_args(prog_slice *sl, prog **begin) {
+EXPORT void prog_append_args(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_ARGS;
   (*begin)->args_next = prog_slice_append_new(sl);
   *begin = (*begin)->args_next;
 }
 
-LOCAL void prog_append_collect(prog_slice *sl, prog **begin) {
+EXPORT void prog_append_collect(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_COLLECT;
   (*begin)->collect_next = prog_slice_append_new(sl);
   *begin = (*begin)->collect_next;
@@ -385,7 +322,7 @@ LOCAL void prog_append_uncollect(prog_slice *sl, prog **begin) {
   *begin = (*begin)->uncollect_next;
 }
 
-LOCAL void prog_append_pop(prog_slice *sl, prog **begin, datum *var) {
+EXPORT void prog_append_pop(prog_slice *sl, prog **begin, datum *var) {
   (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
   (*begin)->pop_next = prog_slice_append_new(sl);
@@ -402,7 +339,7 @@ LOCAL void prog_append_set_closures(prog_slice *sl, prog **begin, prog *p,
   *begin = (*begin)->set_closures_next;
 }
 
-LOCAL void prog_append_put_prog(prog_slice *sl, prog **begin, prog *val, int capture) {
+EXPORT void prog_append_put_prog(prog_slice *sl, prog **begin, prog *val, int capture) {
   (*begin)->type = PROG_PUT_PROG;
   (*begin)->put_prog_value = val;
   (*begin)->put_prog_capture = capture;
@@ -465,4 +402,4 @@ LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
          datum_is_the_symbol(d->list_tail->list_head, val2);
 }
 
-LOCAL datum *datum_make_void() { return datum_make_symbol(":void-value"); }
+EXPORT datum *datum_make_void() { return datum_make_symbol(":void-value"); }
