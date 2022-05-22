@@ -1,9 +1,13 @@
-(req)
+(req
+ (std "std")
+ (libc "libc")
+ (zlisp "zlisp"))
 
 !(require "stdmacro")
-(require "std")
-(require "libc")
-(require "zlisp")
+
+(importall std)
+(importall libc)
+(importall zlisp)
 
 (def readme "A basic REPL for zlisp.")
 

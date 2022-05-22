@@ -1,7 +1,7 @@
-(req)
+(req (libc "libc"))
+(importall libc)
 
 !(require "stdmacro")
-(require "libc")
 
 (def printfptr (c-function-or-panic libc "printf" '((string pointer) sizet)))
 
