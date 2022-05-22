@@ -1,14 +1,12 @@
-(req)
+(req
+ (libc "libc"))
 
-(require "std")
-(require "libc")
+(importall libc)
+
 !(require "testing")
 !(require "stdmacro")
 
 (def panics '())
-
-
-
 
 !(#fntest
  (return "hello, world!")

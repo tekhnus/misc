@@ -360,6 +360,16 @@ LOCAL char *routine_0_step(routine_0 *r,
     *p = (*p)->collect_next;
     return NULL;
   } break;
+  case PROG_UNCOLLECT: {
+    datum *list = state_stack_pop(st);
+    if (!datum_is_list(list) || datum_is_nil(list)) {
+      return "uncollect expects a non-empty list";
+    }
+    state_stack_put(st, list->list_tail);
+    state_stack_put(st, list->list_head);
+    *p = (*p)->uncollect_next;
+    return NULL;
+  } break;
   case PROG_IMPORT: {
     // fprintf(stderr, "MODULE_END\n");
     datum *pair = state_stack_pop(st);
@@ -392,5 +402,5 @@ LOCAL char *routine_0_step(routine_0 *r,
   default:
     break;
   }
-  return ("unhandled state type");
+  return ("unhandled instruction type");
 }

@@ -11,7 +11,10 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, char *(
   }
   prog_append_args(sl, &entrypoint);
   prog_append_put_prog(sl, &entrypoint, run_main, 0);
-  prog_append_put_const(sl, &entrypoint, datum_make_nil());
+  char *err = prog_build_deps(sl, &entrypoint, res.ok_value->list_tail->list_head, module_source);
+  if (err != NULL) {
+    return err;
+  }
   prog_append_collect(sl, &entrypoint);
   prog_append_call(sl, &entrypoint, false);
   return NULL;
@@ -49,6 +52,32 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source,
   }
   prog_append_yield(sl, &s, false);
   return res;
+}
+
+LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, char *(*module_source)(prog_slice *sl, prog *p, char *)) {
+  for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
+    datum *dep = rest_deps->list_head;
+    if (!datum_is_bytestring(dep)) {
+      return "req expects bytestrings";
+    }
+    // fprintf(stderr, "!!!!!!!!! building dep %s\n", dep->bytestring_value);
+    prog *run_dep = prog_slice_append_new(sl);
+    char *status = module_source(sl, run_dep, dep->bytestring_value);
+    if (status != NULL) {
+      return status;
+    }
+    prog_append_args(sl, p);
+    prog_append_put_prog(sl, p, run_dep, 0);
+
+    // TODO(zach): support req in required modules
+    // char *err = prog_build_deps(sl, p, <dependent module here>, module_source);
+    /* if (err != NULL) { */
+    /*   return err; */
+    /* } */
+    prog_append_collect(sl, p);
+    prog_append_call(sl, p, false);
+  }
+  return NULL;
 }
 
 LOCAL fdatum prog_read_usages(datum *spec) {
@@ -205,6 +234,19 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt,
     }
     char *pkg = stmt->list_tail->list_head->bytestring_value;
     return prog_append_require(sl, begin, pkg, module_source);
+  }
+  if (datum_is_the_symbol(op, "importall")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "importall should have one arg";
+    }
+    char *err = prog_append_statement(
+        sl, begin, stmt->list_tail->list_head, module_source);
+    if (err != NULL) {
+      return err;
+    }
+    prog_append_import(sl, begin);
+    prog_append_put_const(sl, begin, datum_make_void());
+    return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
