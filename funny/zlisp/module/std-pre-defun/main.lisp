@@ -1,6 +1,5 @@
-(req)
-
-(require "prelude")
+(req (prelude "prelude"))
+(importall prelude)
 
 (def list (builtin.fn (return args)))
 

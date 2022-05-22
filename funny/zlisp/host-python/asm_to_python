@@ -195,6 +195,15 @@ def main():
                 form = [val] + form
             pdata[-1][-1].stak.append((form))
             ip = nex
+        elif op == sexpdata.Symbol(":uncollect"):
+            (nex,) = args
+            lis = pdata[-1][-1].stak.pop()
+            if not isinstance(lis, list) or not lis:
+                raise RuntimeError("uncollect expected a non-empty list")
+            hd, *tl = lis
+            pdata[-1][-1].stak.append(tl)
+            pdata[-1][-1].stak.append(hd)
+            ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
             if var == sexpdata.Symbol(":void"):
