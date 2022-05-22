@@ -86,7 +86,7 @@
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
                 (if (eq fn-ptr 0)
-                    (panic (concat-bytestrings "couldn't load C function " c-name))
+                    (panic "couldn't load C function")
                   ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ~args)))))
                    (return fn-routine)))))
 

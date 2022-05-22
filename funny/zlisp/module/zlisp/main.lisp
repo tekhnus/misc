@@ -7,7 +7,7 @@
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new (c-function-or-panic selflib "prog_slice_append_new" '((pointer) pointer)))
-(def prog-init-module-c-host (c-function-or-panic selflib "prog_init_one_c_host" '((pointer pointer datum) pointer)))
+(def prog-init-module-c-host (c-function-or-panic selflib "prog_build_one_c_host" '((pointer pointer datum) pointer)))
 !(#defun compile-prog (sl src)
    (progn
      (def p (prog-slice-append-new (wrap-pointer-into-pointer sl)))
