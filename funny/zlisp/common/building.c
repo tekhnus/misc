@@ -38,13 +38,29 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
-  prog_append_args(sl, &s);
-  char *err = prog_build_deps(sl, &s, res.ok_value->list_tail->list_head, module_source);
+  char *err = prog_build_deps_isolated(sl, &s, res.ok_value->list_tail->list_head, module_source);
   if (err != NULL) {
     return err;
   }
-  prog_append_collect(sl, &s);
   *s = *run_stmt;
+  return NULL;
+}
+
+LOCAL char *prog_build_deps_isolated(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+  prog *bdr = prog_slice_append_new(sl);
+  prog *bdr_end = bdr;
+  prog_append_pop(sl, &bdr_end, datum_make_symbol(":void"));
+  prog_append_args(sl, &bdr_end);
+  char *err = prog_build_deps(sl, &bdr_end, deps, module_source);
+  if (err != NULL) {
+    return err;
+  }
+  prog_append_collect(sl, &bdr_end);
+  prog_append_return(sl, &bdr_end, false);
+  prog_append_args(sl, p);
+  prog_append_put_prog(sl, p, bdr, 0);
+  prog_append_collect(sl, p);
+  prog_append_call(sl, p, false);
   return NULL;
 }
 

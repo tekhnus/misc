@@ -356,7 +356,7 @@ EXPORT void prog_append_put_prog(prog_slice *sl, prog **begin, prog *val, int ca
   *begin = (*begin)->put_prog_next;
 }
 
-LOCAL void prog_append_return(prog_slice *sl, prog **begin, bool hat) {
+EXPORT void prog_append_return(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
   *begin = prog_slice_append_new(sl);

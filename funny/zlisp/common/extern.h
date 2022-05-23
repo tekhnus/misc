@@ -36,6 +36,7 @@ LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instr
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct state state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *prog_build_deps_isolated(prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 char *prog_build_one(prog_slice *sl,prog *s,datum *stmt,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 LOCAL char *prog_build_deps(prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
@@ -46,7 +47,7 @@ void prog_append_args(prog_slice *sl,prog **begin);
 LOCAL void prog_append_host(prog_slice *sl,prog **begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,prog **begin,datum *stmt);
 void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
-LOCAL void prog_append_return(prog_slice *sl,prog **begin,bool hat);
+void prog_append_return(prog_slice *sl,prog **begin,bool hat);
 LOCAL void prog_append_import(prog_slice *sl,prog **begin);
 LOCAL void prog_append_set_closures(prog_slice *sl,prog **begin,prog *p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,prog *s,datum *stmt);

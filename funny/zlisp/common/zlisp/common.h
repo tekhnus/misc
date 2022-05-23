@@ -70,6 +70,7 @@ void prog_append_collect(prog_slice *sl,prog **begin);
 void prog_append_uncollect(prog_slice *sl,prog **begin);
 void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
+void prog_append_return(prog_slice *sl,prog **begin,bool hat);
 void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
 datum *datum_make_void();
 char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
