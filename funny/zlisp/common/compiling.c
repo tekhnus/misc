@@ -66,7 +66,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   return fdatum_make_ok(datum_make_list_2(vars, specs));
 }
 
-EXPORT char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
+LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
   if ((*begin)->type != PROG_END) {
     return "expected an end state";
   }
