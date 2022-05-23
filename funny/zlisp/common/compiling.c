@@ -17,6 +17,8 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
     prog_append_uncollect(sl, s);
     prog_append_pop(sl, s, dep_var);
   }
+  prog_append_pop(sl, s, datum_make_symbol(":void"));
+  prog_append_put_const(sl, s, datum_make_void());
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     prog_append_pop(sl, s, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
@@ -315,7 +317,7 @@ EXPORT void prog_append_collect(prog_slice *sl, prog **begin) {
   *begin = (*begin)->collect_next;
 }
 
-LOCAL void prog_append_uncollect(prog_slice *sl, prog **begin) {
+EXPORT void prog_append_uncollect(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_UNCOLLECT;
   (*begin)->uncollect_next = prog_slice_append_new(sl);
   *begin = (*begin)->uncollect_next;

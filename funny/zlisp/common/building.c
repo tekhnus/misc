@@ -30,14 +30,18 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
+    prog_append_args(sl, &s);
     char *err = prog_build_deps(sl, &s, res.ok_value->list_tail->list_head, module_source);
     if (err != NULL) {
       return err;
     }
+    prog_append_collect(sl, &s);
     for (datum *rest_deps=res.ok_value->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
       datum *dep_var = rest_deps->list_head;
+      prog_append_uncollect(sl, &s);
       prog_append_pop(sl, &s, dep_var);
     }
+    prog_append_pop(sl, &s, datum_make_symbol(":void"));
     prog_append_put_const(sl, &s, datum_make_void());
     return NULL;
   }
