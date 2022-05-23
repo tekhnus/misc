@@ -74,7 +74,7 @@ void prog_append_return(prog_slice *sl,prog **begin,bool hat);
 void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
 datum *datum_make_void();
 char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
-char *prog_build_one(prog_slice *sl,prog *s,datum *stmt,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
+char *prog_build_one(prog_slice *sl,prog *s,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,
