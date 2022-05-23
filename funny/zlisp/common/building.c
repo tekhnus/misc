@@ -10,6 +10,7 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum 
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
+  prog_append_yield(sl, &run_main_end, false);
   prog_append_args(sl, &entrypoint);
   prog_append_put_prog(sl, &entrypoint, run_main, 0);
   char *err = prog_build_deps(sl, &entrypoint, res.ok_value->list_tail->list_head, module_source);
@@ -56,6 +57,7 @@ LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*modu
     if (fdatum_is_panic(status)) {
       return status.panic_message;
     }
+    prog_append_yield(sl, &run_dep_end, false);
     prog_append_args(sl, p);
     prog_append_put_prog(sl, p, run_dep, 0);
     char *err = prog_build_deps(sl, p, status.ok_value->list_tail->list_head, module_source);

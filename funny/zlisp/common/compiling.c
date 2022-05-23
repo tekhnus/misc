@@ -25,7 +25,6 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
       return fdatum_make_panic(err);
     }
   }
-  prog_append_yield(sl, s, false);
   return res;
 }
 
@@ -353,7 +352,7 @@ LOCAL void prog_append_return(prog_slice *sl, prog **begin, bool hat) {
   *begin = prog_slice_append_new(sl);
 }
 
-LOCAL void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
+EXPORT void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_YIELD;
   (*begin)->yield_hat = hat;
   (*begin)->yield_next = prog_slice_append_new(sl);
