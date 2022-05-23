@@ -10,15 +10,11 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum 
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
-  prog_append_yield(sl, &run_main_end, false);
-  prog_append_args(sl, &entrypoint);
-  prog_append_put_prog(sl, &entrypoint, run_main, 0);
-  char *err = prog_build_deps(sl, &entrypoint, res.ok_value->list_tail->list_head, module_source);
+  char *err = prog_build_deps_isolated(sl, &entrypoint, res.ok_value->list_tail->list_head, module_source);
   if (err != NULL) {
     return err;
   }
-  prog_append_collect(sl, &entrypoint);
-  prog_append_call(sl, &entrypoint, false);
+  *entrypoint = *run_main;
   return NULL;
 }
 
