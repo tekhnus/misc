@@ -4,21 +4,10 @@
 #include <extern.h>
 
 EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
-  fdatum res = prog_read_usages(source->list_head);
+  fdatum res = prog_append_usages(sl, s, source->list_head);
   if (fdatum_is_panic(res)) {
     return res;
   }
-  datum *re = res.ok_value;
-  if (!datum_is_list(re) || list_length(re) != 2) {
-    return fdatum_make_panic("not gonna happen");
-  }
-  for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
-    datum *dep_var = rest_deps->list_head;
-    prog_append_uncollect(sl, s);
-    prog_append_pop(sl, s, dep_var);
-  }
-  prog_append_pop(sl, s, datum_make_symbol(":void"));
-  prog_append_put_const(sl, s, datum_make_void());
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     prog_append_pop(sl, s, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
@@ -30,7 +19,26 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
   return res;
 }
 
-EXPORT fdatum prog_read_usages(datum *spec) {
+EXPORT fdatum prog_append_usages(prog_slice *sl, prog **begin, datum *spec) {
+  fdatum res = prog_read_usages(spec);
+  if (fdatum_is_panic(res)) {
+    return res;
+  }
+  datum *re = res.ok_value;
+  if (!datum_is_list(re) || list_length(re) != 2) {
+    return fdatum_make_panic("not gonna happen");
+  }
+  for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
+    datum *dep_var = rest_deps->list_head;
+    prog_append_uncollect(sl, begin);
+    prog_append_pop(sl, begin, dep_var);
+  }
+  prog_append_pop(sl, begin, datum_make_symbol(":void"));
+  prog_append_put_const(sl, begin, datum_make_void());
+  return res;
+}
+
+LOCAL fdatum prog_read_usages(datum *spec) {
   if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "req")) {
     return fdatum_make_panic(datum_repr(spec));
     return fdatum_make_panic("wrong usage spec");

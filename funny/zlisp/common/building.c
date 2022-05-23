@@ -26,7 +26,9 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
                        fdatum (*module_source)(prog_slice *sl, prog **p,
                                               char *)) {
   if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "req")) {
-    fdatum res = prog_read_usages(stmt);
+    prog *run_stmt = prog_slice_append_new(sl);
+    prog *run_stmt_end = run_stmt;
+    fdatum res = prog_append_usages(sl, &run_stmt_end, stmt);
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
@@ -36,13 +38,7 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
       return err;
     }
     prog_append_collect(sl, &s);
-    for (datum *rest_deps=res.ok_value->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
-      datum *dep_var = rest_deps->list_head;
-      prog_append_uncollect(sl, &s);
-      prog_append_pop(sl, &s, dep_var);
-    }
-    prog_append_pop(sl, &s, datum_make_symbol(":void"));
-    prog_append_put_const(sl, &s, datum_make_void());
+    *s = *run_stmt;
     return NULL;
   }
   return prog_append_statement(sl, &s, stmt);

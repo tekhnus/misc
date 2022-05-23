@@ -63,7 +63,7 @@ prog *prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
 fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
-fdatum prog_read_usages(datum *spec);
+fdatum prog_append_usages(prog_slice *sl,prog **begin,datum *spec);
 char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt);
 void prog_append_call(prog_slice *sl,prog **begin,bool hat);
 void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
