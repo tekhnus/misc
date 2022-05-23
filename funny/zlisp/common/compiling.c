@@ -3,7 +3,7 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source) {
+EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
   fdatum res = prog_read_usages(source->list_head);
   if (fdatum_is_panic(res)) {
     return res;
@@ -14,18 +14,18 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog *s, datum *source) {
   }
   for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep_var = rest_deps->list_head;
-    prog_append_uncollect(sl, &s);
-    prog_append_pop(sl, &s, dep_var);
+    prog_append_uncollect(sl, s);
+    prog_append_pop(sl, s, dep_var);
   }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(sl, &s, datum_make_symbol(":void"));
+    prog_append_pop(sl, s, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
-    char *err = prog_append_statement(sl, &s, stmt);
+    char *err = prog_append_statement(sl, s, stmt);
     if (err != NULL) {
       return fdatum_make_panic(err);
     }
   }
-  prog_append_yield(sl, &s, false);
+  prog_append_yield(sl, s, false);
   return res;
 }
 

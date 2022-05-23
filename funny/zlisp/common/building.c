@@ -3,9 +3,10 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
+EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
   prog *run_main = prog_slice_append_new(sl);
-  fdatum res = prog_init_submodule(sl, run_main, source);
+  prog *run_main_end = run_main;
+  fdatum res = prog_init_submodule(sl, &run_main_end, source);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
@@ -21,7 +22,7 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum 
 }
 
 EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
-                       fdatum (*module_source)(prog_slice *sl, prog *p,
+                       fdatum (*module_source)(prog_slice *sl, prog **p,
                                               char *)) {
   if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "req")) {
     fdatum res = prog_read_usages(stmt);
@@ -42,7 +43,7 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
   return prog_append_statement(sl, &s, stmt);
 }
 
-LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog *p, char *)) {
+LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
   // fprintf(stderr, "!!!!!!!!! building deps %s\n", datum_repr(deps));
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
@@ -50,7 +51,8 @@ LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*modu
       return "req expects bytestrings";
     }
     prog *run_dep = prog_slice_append_new(sl);
-    fdatum status = module_source(sl, run_dep, dep->bytestring_value);
+    prog *run_dep_end = run_dep;
+    fdatum status = module_source(sl, &run_dep_end, dep->bytestring_value);
     if (fdatum_is_panic(status)) {
       return status.panic_message;
     }

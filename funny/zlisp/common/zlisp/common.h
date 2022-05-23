@@ -62,7 +62,7 @@ prog_slice prog_slice_make(size_t capacity);
 prog *prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
-fdatum prog_init_submodule(prog_slice *sl,prog *s,datum *source);
+fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
 fdatum prog_read_usages(datum *spec);
 char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt);
 void prog_append_call(prog_slice *sl,prog **begin,bool hat);
@@ -72,8 +72,8 @@ void prog_append_collect(prog_slice *sl,prog **begin);
 void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
 datum *datum_make_void();
-char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,fdatum(*module_source)(prog_slice *sl,prog *p,char *));
-char *prog_build_one(prog_slice *sl,prog *s,datum *stmt,fdatum(*module_source)(prog_slice *sl,prog *p,char *));
+char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
+char *prog_build_one(prog_slice *sl,prog *s,datum *stmt,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,
