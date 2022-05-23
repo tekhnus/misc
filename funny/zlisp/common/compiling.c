@@ -19,7 +19,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
   return res;
 }
 
-EXPORT fdatum prog_append_usages(prog_slice *sl, prog **begin, datum *spec) {
+LOCAL fdatum prog_append_usages(prog_slice *sl, prog **begin, datum *spec) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
     return res;

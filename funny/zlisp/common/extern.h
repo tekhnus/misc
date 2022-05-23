@@ -59,7 +59,7 @@ void prog_append_uncollect(prog_slice *sl,prog **begin);
 LOCAL fdatum prog_read_usages(datum *spec);
 char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt);
 void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
-fdatum prog_append_usages(prog_slice *sl,prog **begin,datum *spec);
+LOCAL fdatum prog_append_usages(prog_slice *sl,prog **begin,datum *spec);
 fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
 datum *prog_to_offset(prog_slice sl,prog *p);
 LOCAL datum *prog_to_datum(prog_slice sl,prog *p);

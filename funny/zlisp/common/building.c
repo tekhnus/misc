@@ -25,23 +25,27 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum 
 EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt,
                        fdatum (*module_source)(prog_slice *sl, prog **p,
                                               char *)) {
+  datum *reqspec = datum_make_list_1(datum_make_symbol("req"));
+  datum *stmts = datum_make_nil();
   if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "req")) {
-    prog *run_stmt = prog_slice_append_new(sl);
-    prog *run_stmt_end = run_stmt;
-    fdatum res = prog_append_usages(sl, &run_stmt_end, stmt);
-    if (fdatum_is_panic(res)) {
-      return res.panic_message;
-    }
-    prog_append_args(sl, &s);
-    char *err = prog_build_deps(sl, &s, res.ok_value->list_tail->list_head, module_source);
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_collect(sl, &s);
-    *s = *run_stmt;
-    return NULL;
+    reqspec = stmt; 
+  } else {
+    stmts = datum_make_list_1(stmt);
   }
-  return prog_append_statement(sl, &s, stmt);
+  prog *run_stmt = prog_slice_append_new(sl);
+  prog *run_stmt_end = run_stmt;
+  fdatum res = prog_init_submodule(sl, &run_stmt_end, datum_make_list(reqspec, stmts));
+  if (fdatum_is_panic(res)) {
+    return res.panic_message;
+  }
+  prog_append_args(sl, &s);
+  char *err = prog_build_deps(sl, &s, res.ok_value->list_tail->list_head, module_source);
+  if (err != NULL) {
+    return err;
+  }
+  prog_append_collect(sl, &s);
+  *s = *run_stmt;
+  return NULL;
 }
 
 LOCAL char *prog_build_deps(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
