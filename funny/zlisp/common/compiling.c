@@ -306,7 +306,7 @@ EXPORT void prog_append_put_const(prog_slice *sl, prog **begin, datum *val) {
   *begin = (*begin)->put_const_next;
 }
 
-LOCAL void prog_append_put_var(prog_slice *sl, prog **begin, datum *val) {
+EXPORT void prog_append_put_var(prog_slice *sl, prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
   (*begin)->put_var_next = prog_slice_append_new(sl);

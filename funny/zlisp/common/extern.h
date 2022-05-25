@@ -36,7 +36,12 @@ LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instr
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct state state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,prog *p,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL char *prog_build_deps(prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
+struct state {
+  struct datum *vars;
+  struct datum *stack;
+};
+LOCAL char *prog_build_dep(datum **state,prog_slice *sl,prog **p,datum *dep,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
+LOCAL char *prog_build_deps(datum **state,prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 char *prog_build_one(prog_slice *sl,prog *s,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 LOCAL char *prog_build_deps_isolated(prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
 char *prog_build(prog_slice *sl,prog *entrypoint,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
@@ -53,7 +58,7 @@ LOCAL void prog_append_set_closures(prog_slice *sl,prog **begin,prog *p,datum *v
 LOCAL char *prog_init_routine(prog_slice *sl,prog *s,datum *stmt);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog *a,prog *b,prog *e);
-LOCAL void prog_append_put_var(prog_slice *sl,prog **begin,datum *val);
+void prog_append_put_var(prog_slice *sl,prog **begin,datum *val);
 datum *datum_make_void();
 void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
 void prog_append_uncollect(prog_slice *sl,prog **begin);
@@ -151,10 +156,6 @@ fdatum state_get_var(state *ns,datum *symbol);
 void state_set_var(state **ns,datum *symbol,datum *value);
 state *state_make_fresh();
 state *state_make(datum *vars,datum *stack);
-struct state {
-  struct datum *vars;
-  struct datum *stack;
-};
 char *fdatum_get_panic_message(fdatum result);
 bool fdatum_is_panic(fdatum result);
 char *datum_repr(datum *e);
