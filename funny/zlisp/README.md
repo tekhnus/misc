@@ -30,12 +30,11 @@ tools/
 
 **Open problems and TODOs:**
 1) The bytecode should contain debug info.
-2) Diamond dependencies should be reused.
-3) As a workaround, functions are represented by self-referential datums in order to support recursion:(
-4) Hosting by a compiled language should be tried.
-5) Hosting by a constrained environment like bare metal or shader should be tried.
-6) The bytecode manages variables by their names, but it could enumerate them; maybe vars and stack can be united.
-7) The base data structure is a linked list, which has little use. Switch to slices?
-8) Compile-time computation syntax feels awkward to use:( Also it might be merged with quasiquotes?
-9) No loops:(
-10) Optional static typing.
+2) As a workaround, functions are represented by self-referential datums in order to support recursion:(
+3) Hosting by a compiled language should be tried.
+4) Hosting by a constrained environment like bare metal or shader should be tried.
+5) The bytecode manages variables by their names, but it could enumerate them; maybe vars and stack can be united.
+6) The base data structure is a linked list, which has little use. Switch to slices?
+7) Compile-time computation syntax feels awkward to use:( Also it might be merged with quasiquotes?
+8) No loops:(
+9) Optional static typing.
