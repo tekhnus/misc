@@ -3,7 +3,7 @@ add_test(NAME tests
 add_test(NAME print-file
          COMMAND zlisp-run ${CMAKE_CURRENT_SOURCE_DIR}/print-hosts.lisp)
 add_test(NAME run-cli
-         COMMAND sh -c "printf '(+ 33 9)\n' | $<TARGET_FILE:zlisp-run> ${PROJECT_SOURCE_DIR}/module/cli/main.lisp")
+         COMMAND sh -c "printf '(req (std \"std\")) (importall std) (+ 33 9)\n' | $<TARGET_FILE:zlisp-run> ${PROJECT_SOURCE_DIR}/module/cli/main.lisp | tee /dev/stderr | grep 42")
 add_test(NAME pytests
          COMMAND sh -c "$<TARGET_FILE:zlisp-python-asm> ${CMAKE_CURRENT_SOURCE_DIR}/pytest.lisp | ${PROJECT_SOURCE_DIR}/host-python/asm_to_python")
 
