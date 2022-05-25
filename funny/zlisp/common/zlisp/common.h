@@ -13,6 +13,7 @@ datum *datum_make_nil();
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list_2(datum *head,datum *second);
+datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_symbol(char *name);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_int(int64_t value);

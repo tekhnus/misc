@@ -6,11 +6,15 @@
 EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
   prog *run_main = prog_slice_append_new(sl);
   prog *run_main_end = run_main;
+  // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   fdatum res = prog_init_submodule(sl, &run_main_end, source);
+  // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (fdatum_is_panic(res)) {
+    // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
     return res.panic_message;
   }
   char *err = prog_build_deps_isolated(sl, &entrypoint, res.ok_value->list_tail->list_head, module_source);
+  // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
     return err;
   }
@@ -32,6 +36,7 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt_or_spec,
 }
 
 LOCAL char *prog_build_deps_isolated(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+  // fprintf(stderr, "!!!!! %s\n", datum_repr(deps));
   prog *bdr = prog_slice_append_new(sl);
   prog *bdr_end = bdr;
   prog_append_pop(sl, &bdr_end, datum_make_symbol(":void"));

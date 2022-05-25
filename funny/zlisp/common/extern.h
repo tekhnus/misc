@@ -195,7 +195,7 @@ datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);
 LOCAL datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
 LOCAL datum *datum_make_list_4(datum *head,datum *second,datum *third,datum *fourth);
-LOCAL datum *datum_make_list_3(datum *head,datum *second,datum *third);
+datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list(datum *head,datum *tail);

@@ -12,9 +12,10 @@
    (progn
      (def p (prog-slice-append-new (wrap-pointer-into-pointer sl)))
      (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src))
-     (if (eq 0 e)
-         (return `(:err "some compilation error"))
-       (return `(:ok ~p)))))
+     (if (eq 0 (derefw `(~e int64)))
+         (return `(:ok ~p))
+       (return `(:err ~(derefw `(~e string)))))))
+
 
 (def routine-run-and-get-value-c-host-fdatum (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((progslice pointer pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
