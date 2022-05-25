@@ -229,7 +229,7 @@ fdatum datum_deref(datum *arg) {
   } else if (!strcmp(rettype, "int64")) {
     return fdatum_make_ok(datum_make_int(*(int64_t *)wha));
   } else if (!strcmp(rettype, "string")) {
-    return fdatum_make_ok(datum_make_bytestring((char *)wha));
+    return fdatum_make_ok(datum_make_bytestring(*(char **)wha));
   } else if (!strcmp(rettype, "val")) {
     return *(fdatum *)wha;
   } else {
