@@ -3,7 +3,8 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+  prog *entrypoint = prog_slice_at(*sl, ep);
   prog *run_main = prog_slice_append_new(sl);
   prog *run_main_end = run_main;
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
@@ -22,7 +23,7 @@ EXPORT char *prog_build(prog_slice *sl, prog *entrypoint, datum *source, fdatum 
   return NULL;
 }
 
-EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt_or_spec,
+EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
                        fdatum (*module_source)(prog_slice *sl, prog **p,
                                               char *)) {
   datum *spec = datum_make_list_1(datum_make_symbol("req"));
@@ -32,7 +33,7 @@ EXPORT char *prog_build_one(prog_slice *sl, prog *s, datum *stmt_or_spec,
   } else {
     stmts = datum_make_list_1(stmt_or_spec);
   }
-  return prog_build(sl, s, datum_make_list(spec, stmts), module_source);
+  return prog_build(sl, ep, datum_make_list(spec, stmts), module_source);
 }
 
 LOCAL char *prog_build_deps_isolated(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {

@@ -6,11 +6,11 @@
 #include <zlisp/common.h>
 #endif
 
-char *prog_build_c_host(prog_slice *sl, prog *p, datum *source) {
+char *prog_build_c_host(prog_slice *sl, size_t p, datum *source) {
   return prog_build(sl, p, source, module_routine);
 }
 
-char *prog_build_one_c_host(prog_slice *sl, prog *p, datum *source) {
+char *prog_build_one_c_host(prog_slice *sl, size_t p, datum *source) {
   return prog_build_one(sl, p, source, module_routine);
 }
 
@@ -112,7 +112,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  prog *p = prog_slice_append_new(sl);
+  size_t p = prog_to_offset_int(*sl, prog_slice_append_new(sl));
   char *err = prog_build_one_c_host(
       sl, p, exp.ok_value);
   if (err != NULL) {
@@ -122,5 +122,5 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  return routine_run_and_get_value_c_host(*sl, ctxt, prog_to_offset_int(*sl, p));
+  return routine_run_and_get_value_c_host(*sl, ctxt, p);
 }

@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog_slice sl = prog_slice_make(16 * 1024);
-  prog *p = prog_slice_append_new(&sl);
+  size_t p = prog_to_offset_int(sl, prog_slice_append_new(&sl));
   char *err = prog_build_c_host(&sl, p, src.ok_value);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   fprintf(stderr, "compiled, %zu instructions\n", prog_slice_length(sl));
   // fprintf(stderr, "%s\n", datum_repr(prog_slice_to_datum(sl)));
   state *s = state_make_builtins();
-  fdatum res = routine_run_and_get_value_c_host(sl, &s, prog_to_offset_int(sl, p));
+  fdatum res = routine_run_and_get_value_c_host(sl, &s, p);
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "runtime error: %s\n", res.panic_message);
     return EXIT_FAILURE;
