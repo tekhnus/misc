@@ -42,7 +42,7 @@ EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
 LOCAL char *routine_2_run(prog_slice sl, routine_2 *r,
                           fdatum (*perform_host_instruction)(datum *,
                                                              datum *)) {
-  for (; datum_to_prog(sl, prog_slice_datum_at(sl, r->cur.cur.offset)).type != PROG_END;) {
+  for (; datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset)).type != PROG_END;) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
     char *err = routine_2_step(sl, r, perform_host_instruction);
     if (err != NULL) {
@@ -131,7 +131,7 @@ LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
 LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog prgx = datum_to_prog(sl, prog_slice_datum_at(sl, r->cur.cur.offset));
+  prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
   prog *prg = &prgx;
   state **st = &r->cur.cur.state_;
   switch (prg->type) {
@@ -163,10 +163,10 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     datum *clos = datum_make_nil();
     state_set_var(st, prg->set_closures_name, clos);
     routine_1 callee = r->cur;
-    callee.cur.offset = prog_to_offset_int(sl, prg->set_closures_prog);
+    callee.cur.offset = prg->set_closures_prog;
     *clos = *routine_1_to_datum(
         sl, callee); // modifying the datum because there is a self-reference:(
-    r->cur.cur.offset = prog_to_offset_int(sl, prg->set_closures_next);
+    r->cur.cur.offset = prg->set_closures_next;
     return NULL;
   } break;
   case PROG_PUT_PROG: {
@@ -189,7 +189,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
       break;
     }
     datum *val = state_stack_pop(st);
-    r->cur.cur.offset = prog_to_offset_int(sl, prg->yield_next);
+    r->cur.cur.offset = prg->yield_next;
     routine_1 fr = routine_2_pop_frame(r);
     datum *conti = routine_1_to_datum(sl, fr);
     datum *result = datum_make_list_2(val, conti);
@@ -206,7 +206,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
 LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog prgx = datum_to_prog(sl, prog_slice_datum_at(sl, r->cur.offset));
+  prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
   prog *prg = &prgx;
   
   state **st = &r->cur.state_;
@@ -243,13 +243,13 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if (prg->set_closures_hat) {
       break;
     }
-    datum *clos = datum_make_list_2(prog_to_offset(sl, prg->set_closures_prog),
+    datum *clos = datum_make_list_2(datum_make_int(prg->set_closures_prog),
                                     datum_make_nil());
     state_set_var(st, prg->set_closures_name, clos);
     clos->list_tail->list_head = datum_make_list_2(
         (*st)->vars, (*st)->stack); // modifying a datum because we need to
                                     // create a circular reference:(
-    r->cur.offset = prog_to_offset_int(sl, prg->set_closures_next);
+    r->cur.offset = prg->set_closures_next;
     return NULL;
   } break;
   case PROG_RETURN: {
@@ -269,9 +269,9 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       return "put_prog capture=1 not implemented yet";
     }
     state *s = state_make_fresh();
-    datum *prog = datum_make_list_2(prog_to_offset(sl, prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
+    datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
     state_stack_put(st, prog);
-    r->cur.offset = prog_to_offset_int(sl, prg->put_prog_next);
+    r->cur.offset = prg->put_prog_next;
     return NULL;
   }
   case PROG_YIELD: {
@@ -280,7 +280,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       break;
     }
     datum *val = state_stack_pop(st);
-    r->cur.offset = prog_to_offset_int(sl, prg->yield_next);
+    r->cur.offset = prg->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),
@@ -299,27 +299,27 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
 LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog prgx = datum_to_prog(sl, prog_slice_datum_at(sl, r->offset));
+  prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->offset));
   prog *prg = &prgx;
   state **st = &r->state_;
   // routine c = routine_make(*p, s);
   switch (prg->type) {
   case PROG_NOP: {
-    r->offset = prog_to_offset_int(sl, prg->nop_next);
+    r->offset = prg->nop_next;
     return NULL;
   } break;
   case PROG_IF: {
     datum *v = state_stack_pop(st);
     if (!datum_is_nil(v)) {
-      r->offset = prog_to_offset_int(sl, prg->if_true);
+      r->offset = prg->if_true;
     } else {
-      r->offset = prog_to_offset_int(sl, prg->if_false);
+      r->offset = prg->if_false;
     }
     return NULL;
   } break;
   case PROG_PUT_CONST: {
     state_stack_put(st, prg->put_const_value);
-    r->offset = prog_to_offset_int(sl, prg->put_const_next);
+    r->offset = prg->put_const_next;
     return NULL;
   } break;
   case PROG_PUT_VAR: {
@@ -328,7 +328,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       return (er.panic_message);
     }
     state_stack_put(st, er.ok_value);
-    r->offset = prog_to_offset_int(sl, prg->put_var_next);
+    r->offset = prg->put_var_next;
     return NULL;
   } break;
   case PROG_POP: {
@@ -339,12 +339,12 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     if (!datum_is_the_symbol(prg->pop_var, ":void")) {
       state_set_var(st, prg->pop_var, v);
     }
-    r->offset = prog_to_offset_int(sl, prg->pop_next);
+    r->offset = prg->pop_next;
     return NULL;
   } break;
   case PROG_ARGS: {
     state_stack_new(st);
-    r->offset = prog_to_offset_int(sl, prg->args_next);
+    r->offset = prg->args_next;
     return NULL;
   } break;
   case PROG_HOST: {
@@ -355,13 +355,13 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       return (res.panic_message);
     }
     state_stack_put(st, res.ok_value);
-    r->offset = prog_to_offset_int(sl, prg->host_next);
+    r->offset = prg->host_next;
     return NULL;
   } break;
   case PROG_COLLECT: {
     datum *form = state_stack_collect(st);
     state_stack_put(st, form);
-    r->offset = prog_to_offset_int(sl, prg->collect_next);
+    r->offset = prg->collect_next;
     return NULL;
   } break;
   case PROG_UNCOLLECT: {
@@ -371,7 +371,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     }
     state_stack_put(st, list->list_tail);
     state_stack_put(st, list->list_head);
-    r->offset = prog_to_offset_int(sl, prg->uncollect_next);
+    r->offset = prg->uncollect_next;
     return NULL;
   } break;
   case PROG_IMPORT: {
@@ -401,7 +401,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
 
       state_set_var(st, sym, val);
     }
-    r->offset = prog_to_offset_int(sl, prg->import_next);
+    r->offset = prg->import_next;
     return NULL;
   } break;
   default:

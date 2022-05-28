@@ -522,7 +522,7 @@ datum *prog_slice_datum_at(prog_slice s, size_t index) {
     fprintf(stderr, "prog slice index overflow\n");
     exit(EXIT_FAILURE);
   }
-  return prog_to_datum(s, s.begin + index);
+  return prog_to_datum(s.begin + index);
 }
 
 EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
@@ -537,32 +537,32 @@ EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   return res;
 }
 
-EXPORT datum *prog_to_datum(prog_slice sl, prog *p) {
+EXPORT datum *prog_to_datum(prog *p) {
   switch (p->type) {
   case PROG_END: {
     return datum_make_list_1(datum_make_symbol(":end"));
   } break;
   case PROG_IF: {
     return datum_make_list_3(datum_make_symbol(":if"),
-                             prog_to_offset(sl, p->if_true),
-                             prog_to_offset(sl, p->if_false));
+                             datum_make_int(p->if_true),
+                             datum_make_int(p->if_false));
   } break;
   case PROG_NOP: {
     return datum_make_list_2(datum_make_symbol(":nop"),
-                             prog_to_offset(sl, p->nop_next));
+                             datum_make_int(p->nop_next));
   } break;
   case PROG_PUT_CONST: {
     return datum_make_list_3(datum_make_symbol(":put-const"),
                              (p->put_const_value),
-                             prog_to_offset(sl, p->put_const_next));
+                             datum_make_int(p->put_const_next));
   } break;
   case PROG_PUT_VAR: {
     return datum_make_list_3(datum_make_symbol(":put-var"), (p->put_var_value),
-                             prog_to_offset(sl, p->put_var_next));
+                             datum_make_int(p->put_var_next));
   } break;
   case PROG_ARGS: {
     return datum_make_list_2(datum_make_symbol(":args"),
-                             prog_to_offset(sl, p->args_next));
+                             datum_make_int(p->args_next));
   } break;
   case PROG_CALL: {
     return datum_make_list_3(datum_make_symbol(":call"),
@@ -571,32 +571,32 @@ EXPORT datum *prog_to_datum(prog_slice sl, prog *p) {
   } break;
   case PROG_HOST: {
     return datum_make_list_3(datum_make_symbol(":host"), p->host_instruction,
-                             prog_to_offset(sl, p->host_next));
+                             datum_make_int(p->host_next));
   } break;
   case PROG_COLLECT: {
     return datum_make_list_2(datum_make_symbol(":collect"),
-                             prog_to_offset(sl, p->collect_next));
+                             datum_make_int(p->collect_next));
   } break;
   case PROG_UNCOLLECT: {
     return datum_make_list_2(datum_make_symbol(":uncollect"),
-                             prog_to_offset(sl, p->uncollect_next));
+                             datum_make_int(p->uncollect_next));
   } break;
   case PROG_POP: {
     return datum_make_list_3(datum_make_symbol(":pop"), (p->pop_var),
-                             prog_to_offset(sl, p->pop_next));
+                             datum_make_int(p->pop_next));
   } break;
   case PROG_SET_CLOSURES: {
     return datum_make_list_5(datum_make_symbol(":set-closures"),
-                             prog_to_offset(sl, p->set_closures_prog),
+                             datum_make_int(p->set_closures_prog),
                              p->set_closures_name,
                              datum_make_int(p->set_closures_hat),
-                             prog_to_offset(sl, p->set_closures_next));
+                             datum_make_int(p->set_closures_next));
   } break;
   case PROG_PUT_PROG: {
     return datum_make_list_4(datum_make_symbol(":put-prog"),
-                             prog_to_offset(sl, p->put_prog_value),
+                             datum_make_int(p->put_prog_value),
                              datum_make_int(p->put_prog_capture),
-                             prog_to_offset(sl, p->put_prog_next));
+                             datum_make_int(p->put_prog_next));
   } break;
   case PROG_RETURN: {
     return datum_make_list_2(datum_make_symbol(":return"),
@@ -605,11 +605,11 @@ EXPORT datum *prog_to_datum(prog_slice sl, prog *p) {
   case PROG_YIELD: {
     return datum_make_list_3(datum_make_symbol(":yield"),
                              datum_make_int(p->yield_hat),
-                             prog_to_offset(sl, p->yield_next));
+                             datum_make_int(p->yield_next));
   } break;
   case PROG_IMPORT: {
     return datum_make_list_2(datum_make_symbol(":import"),
-                             prog_to_offset(sl, p->import_next));
+                             datum_make_int(p->import_next));
   } break;
   }
   fprintf(stderr, "prog_to_datum incomplete\n");
@@ -627,7 +627,7 @@ LOCAL datum *list_at(datum *list, unsigned index) {
   return list_at(list->list_tail, index - 1);
 }
 
-EXPORT prog datum_to_prog(prog_slice sl, datum *d) {
+EXPORT prog datum_to_prog(datum *d) {
   prog res;
   if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(d->list_head)) {
     fprintf(stderr, "datum_to_prog panic\n");
@@ -638,22 +638,22 @@ EXPORT prog datum_to_prog(prog_slice sl, datum *d) {
     res.type = PROG_END;
   } else if (!strcmp(opsym, ":if")) {
     res.type = PROG_IF;
-    res.if_true = prog_slice_at(sl, list_at(d, 1)->integer_value);
-    res.if_false = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.if_true = (list_at(d, 1)->integer_value);
+    res.if_false = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":nop")) {
     res.type = PROG_NOP;
-    res.nop_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.nop_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
     res.put_const_value = list_at(d, 1);
-    res.put_const_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.put_const_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":put-var")) {
     res.type = PROG_PUT_VAR;
     res.put_var_value = list_at(d, 1);
-    res.put_var_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.put_var_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":args")) {
     res.type = PROG_ARGS;
-    res.args_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.args_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_hat = list_at(d, 1)->integer_value;
@@ -661,38 +661,38 @@ EXPORT prog datum_to_prog(prog_slice sl, datum *d) {
   } else if (!strcmp(opsym, ":host")) {
     res.type = PROG_HOST;
     res.host_instruction = list_at(d, 1);
-    res.host_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.host_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
-    res.collect_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.collect_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":uncollect")) {
     res.type = PROG_UNCOLLECT;
-    res.uncollect_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.uncollect_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":pop")) {
     res.type = PROG_POP;
     res.pop_var = list_at(d, 1);
-    res.pop_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.pop_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":set-closures")) {
     res.type = PROG_SET_CLOSURES;
-    res.set_closures_prog = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.set_closures_prog = (list_at(d, 1)->integer_value);
     res.set_closures_name = list_at(d, 2);
     res.set_closures_hat = list_at(d, 3)->integer_value;
-    res.set_closures_next = prog_slice_at(sl, list_at(d, 4)->integer_value);
+    res.set_closures_next = (list_at(d, 4)->integer_value);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
-    res.put_prog_value = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.put_prog_value = (list_at(d, 1)->integer_value);
     res.put_prog_capture = list_at(d, 2)->integer_value;
-    res.put_prog_next = prog_slice_at(sl, list_at(d, 3)->integer_value);
+    res.put_prog_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":return")) {
     res.type = PROG_RETURN;
     res.return_hat = list_at(d, 1)->integer_value;
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_hat = list_at(d, 1)->integer_value;
-    res.yield_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.yield_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":import")) {
     res.type = PROG_IMPORT;
-    res.import_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.import_next = (list_at(d, 1)->integer_value);
   } else {
     fprintf(stderr, "datum_to_prog incomplete\n");
     exit(EXIT_FAILURE);

@@ -74,52 +74,52 @@ struct prog {
   enum prog_type type;
   union {
     struct {
-      struct prog *if_true;
-      struct prog *if_false;
+      ptrdiff_t if_true;
+      ptrdiff_t if_false;
     };
     struct {
-      struct prog *nop_next;
+      ptrdiff_t nop_next;
     };
     struct {
       struct datum *put_const_value;
-      struct prog *put_const_next;
+      ptrdiff_t put_const_next;
     };
     struct {
       struct datum *put_var_value;
-      struct prog *put_var_next;
+      ptrdiff_t put_var_next;
     };
-    struct prog *args_next;
+    ptrdiff_t args_next;
     struct {
       bool call_hat;
       ptrdiff_t call_next;
     };
     struct {
       struct datum *host_instruction;
-      struct prog *host_next;
+      ptrdiff_t host_next;
     };
-    struct prog *collect_next;
-    struct prog *uncollect_next;
+    ptrdiff_t collect_next;
+    ptrdiff_t uncollect_next;
     struct {
       struct datum *pop_var;
-      struct prog *pop_next;
+      ptrdiff_t pop_next;
     };
     struct {
-      struct prog *put_prog_value;
+      ptrdiff_t put_prog_value;
       int put_prog_capture;
-      struct prog *put_prog_next;
+      ptrdiff_t put_prog_next;
     };
     struct {
-      struct prog *set_closures_prog;
+      ptrdiff_t set_closures_prog;
       struct datum *set_closures_name;
       bool set_closures_hat;
-      struct prog *set_closures_next;
+      ptrdiff_t set_closures_next;
     };
     bool return_hat;
     struct {
       bool yield_hat;
-      struct prog *yield_next;
+      ptrdiff_t yield_next;
     };
-    struct prog *import_next;
+    ptrdiff_t import_next;
   };
 };
 
