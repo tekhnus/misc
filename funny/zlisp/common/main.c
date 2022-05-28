@@ -3,10 +3,10 @@
 #if INTERFACE
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #endif
 #include <ctype.h>
 #include <libgen.h>
-#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -609,7 +609,7 @@ LOCAL datum *prog_to_datum(prog_slice sl, prog *p) {
   exit(EXIT_FAILURE);
 }
 
-datum *prog_to_offset(prog_slice sl, prog *p) {
+ptrdiff_t prog_to_offset_int(prog_slice sl, prog *p) {
   if (p < prog_slice_at(sl, 0) ||
       p > prog_slice_at(sl, prog_slice_length(sl) - 1)) {
     fprintf(stderr,
@@ -619,5 +619,9 @@ datum *prog_to_offset(prog_slice sl, prog *p) {
             p);
     exit(EXIT_FAILURE);
   }
-  return datum_make_int(p - prog_slice_at(sl, 0));
+  return p - prog_slice_at(sl, 0);
+}
+
+datum *prog_to_offset(prog_slice sl, prog *p) {
+  return datum_make_int(prog_to_offset_int(sl, p));
 }

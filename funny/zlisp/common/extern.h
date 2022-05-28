@@ -2,25 +2,26 @@
 #undef INTERFACE
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 #define LOCAL static
-typedef struct routine_0 routine_0;
-typedef struct fdatum fdatum;
+typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct datum datum;
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-LOCAL char *routine_0_step(routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct prog_slice prog_slice;
 typedef struct prog prog;
 struct prog_slice {
   struct prog *begin;
   size_t length;
   size_t capacity;
 };
+typedef struct routine_0 routine_0;
+typedef struct fdatum fdatum;
+typedef struct datum datum;
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
+LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
@@ -67,6 +68,7 @@ LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt);
 void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 LOCAL fdatum prog_append_usages(prog_slice *sl,prog **begin,datum *spec);
 fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
+ptrdiff_t prog_to_offset_int(prog_slice sl,prog *p);
 datum *prog_to_offset(prog_slice sl,prog *p);
 LOCAL datum *prog_to_datum(prog_slice sl,prog *p);
 datum *prog_slice_to_datum(prog_slice sl);

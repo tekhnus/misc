@@ -289,13 +289,15 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
   default:
     break;
   }
-  char *err = routine_0_step(&r->cur, perform_host_instruction);
+  char *err = routine_0_step(sl, &r->cur, perform_host_instruction);
   return err;
 }
 
-LOCAL char *routine_0_step(routine_0 *r,
+LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
+  ptrdiff_t off = prog_to_offset_int(sl, r->prog_);
+  if (off == 0) {}
   prog **p = &r->prog_;
   state **st = &r->state_;
   // routine c = routine_make(*p, s);

@@ -1,6 +1,7 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
 int list_length(datum *seq);
