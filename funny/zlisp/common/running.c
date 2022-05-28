@@ -42,7 +42,7 @@ EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
 LOCAL char *routine_2_run(prog_slice sl, routine_2 *r,
                           fdatum (*perform_host_instruction)(datum *,
                                                              datum *)) {
-  for (; prog_slice_at(sl, r->cur.cur.offset)->type != PROG_END;) {
+  for (; datum_to_prog(sl, prog_slice_datum_at(sl, r->cur.cur.offset)).type != PROG_END;) {
     // printf("%d %s\n", p->type, datum_repr(s->stack));
     char *err = routine_2_step(sl, r, perform_host_instruction);
     if (err != NULL) {
@@ -131,7 +131,8 @@ LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
 LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog *prg = prog_slice_at(sl, r->cur.cur.offset);
+  prog prgx = datum_to_prog(sl, prog_slice_datum_at(sl, r->cur.cur.offset));
+  prog *prg = &prgx;
   state **st = &r->cur.cur.state_;
   switch (prg->type) {
   case PROG_CALL: {
@@ -205,7 +206,9 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
 LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog *prg = prog_slice_at(sl, r->cur.offset); 
+  prog prgx = datum_to_prog(sl, prog_slice_datum_at(sl, r->cur.offset));
+  prog *prg = &prgx;
+  
   state **st = &r->cur.state_;
   switch (prg->type) {
   case PROG_CALL: {
@@ -296,7 +299,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
 LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog prgx = datum_to_prog(sl, prog_to_datum(sl, prog_slice_at(sl, r->offset)));
+  prog prgx = datum_to_prog(sl, prog_slice_datum_at(sl, r->offset));
   prog *prg = &prgx;
   state **st = &r->state_;
   // routine c = routine_make(*p, s);
@@ -404,5 +407,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   default:
     break;
   }
+  // return datum_repr(prog_slice_datum_at(sl, r->offset));
   return ("unhandled instruction type");
 }

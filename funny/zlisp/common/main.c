@@ -517,14 +517,21 @@ prog *prog_slice_at(prog_slice s, size_t index) {
   return s.begin + index;
 }
 
+datum *prog_slice_datum_at(prog_slice s, size_t index) {
+  if (index >= s.length) {
+    fprintf(stderr, "prog slice index overflow\n");
+    exit(EXIT_FAILURE);
+  }
+  return prog_to_datum(s, s.begin + index);
+}
+
 EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
 
 EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   datum *res = datum_make_nil();
   datum **tail = &res;
   for (size_t i = 0; i < prog_slice_length(sl); ++i) {
-    prog *p = prog_slice_at(sl, i);
-    *tail = datum_make_list_1(prog_to_datum(sl, p));
+    *tail = datum_make_list_1(prog_slice_datum_at(sl, i));
     tail = &((*tail)->list_tail);
   }
   return res;
@@ -649,7 +656,7 @@ EXPORT prog datum_to_prog(prog_slice sl, datum *d) {
     res.args_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
-    res.call_hat = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.call_hat = list_at(d, 1)->integer_value;
     res.call_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":host")) {
     res.type = PROG_HOST;
