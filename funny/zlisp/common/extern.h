@@ -109,7 +109,7 @@ struct prog {
     struct prog *args_next;
     struct {
       bool call_hat;
-      struct prog *call_next;
+      ptrdiff_t call_next;
     };
     struct {
       struct datum *host_instruction;

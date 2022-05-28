@@ -567,7 +567,7 @@ EXPORT datum *prog_to_datum(prog_slice sl, prog *p) {
   case PROG_CALL: {
     return datum_make_list_3(datum_make_symbol(":call"),
                              datum_make_int(p->call_hat),
-                             prog_to_offset(sl, p->call_next));
+                             datum_make_int(p->call_next));
   } break;
   case PROG_HOST: {
     return datum_make_list_3(datum_make_symbol(":host"), p->host_instruction,
@@ -657,7 +657,7 @@ EXPORT prog datum_to_prog(prog_slice sl, datum *d) {
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_hat = list_at(d, 1)->integer_value;
-    res.call_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+    res.call_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":host")) {
     res.type = PROG_HOST;
     res.host_instruction = list_at(d, 1);

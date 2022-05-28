@@ -151,7 +151,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (err != NULL) {
       return err;
     }
-    r->cur.cur.offset = prog_to_offset_int(sl, prg->call_next);
+    r->cur.cur.offset = prg->call_next;
     routine_2_push_frame(r, callee);
     state_stack_put(&r->cur.cur.state_, args);
     return NULL;
@@ -234,7 +234,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     } else {
       return ("tried to plain-call a non-routine-0");
     }
-    r->cur.offset = prog_to_offset_int(sl, prg->call_next);
+    r->cur.offset = prg->call_next;
     routine_1_push_frame(r, callee);
     state_stack_put(st, args);
     return NULL;

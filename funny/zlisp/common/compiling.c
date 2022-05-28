@@ -277,8 +277,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
 EXPORT void prog_append_call(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_CALL;
   (*begin)->call_hat = hat;
-  (*begin)->call_next = prog_slice_append_new(sl);
-  *begin = (*begin)->call_next;
+  (*begin)->call_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  *begin = prog_slice_at(*sl, (*begin)->call_next);
 }
 
 LOCAL void prog_append_host(prog_slice *sl, prog **begin, datum *name) {
