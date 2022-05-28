@@ -69,7 +69,7 @@ EXPORT datum *datum_make_list_3(datum *head, datum *second, datum *third) {
   return datum_make_list(head, datum_make_list_2(second, third));
 }
 
-LOCAL datum *datum_make_list_4(datum *head, datum *second, datum *third,
+EXPORT datum *datum_make_list_4(datum *head, datum *second, datum *third,
                          datum *fourth) {
   return datum_make_list(
       head,
@@ -77,7 +77,7 @@ LOCAL datum *datum_make_list_4(datum *head, datum *second, datum *third,
                       second, datum_make_list_2(third, fourth)));
 }
 
-LOCAL datum *datum_make_list_5(datum *head, datum *second, datum *third,
+EXPORT datum *datum_make_list_5(datum *head, datum *second, datum *third,
                          datum *fourth, datum *fifth) {
   return datum_make_list(
       head,
