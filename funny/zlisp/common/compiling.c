@@ -154,12 +154,11 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt) {
       return "defn should have two args";
     }
     size_t s_off = prog_slice_append_new(sl);
-    prog *s = prog_slice_at(*sl, s_off);
     char *err = prog_init_routine(sl, s_off, stmt->list_tail->list_tail->list_head);
     if (err != NULL) {
       return err;
     }
-    prog_append_set_closures(sl, begin, s, stmt->list_tail->list_head, hat);
+    prog_append_set_closures(sl, begin, s_off, stmt->list_tail->list_head, hat);
     prog_append_put_const(sl, begin, datum_make_void());
     return NULL;
   }
@@ -170,13 +169,12 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt) {
       return "fn should have one arg";
     }
     size_t s_off = prog_slice_append_new(sl);
-    prog *s = prog_slice_at(*sl, s_off);
     char *err =
         prog_init_routine(sl, s_off, stmt->list_tail->list_head);
     if (err != NULL) {
       return err;
     }
-    prog_append_set_closures(sl, begin, s, datum_make_symbol("__lambda"), hat);
+    prog_append_set_closures(sl, begin, s_off, datum_make_symbol("__lambda"), hat);
     prog_append_put_var(sl, begin, datum_make_symbol("__lambda"));
     return NULL;
   }
@@ -327,16 +325,16 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var) {
   *begin = next;
 }
 
-LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, prog *p,
+LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
                                     datum *var, bool hat) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_5(datum_make_symbol(":set-closures"), prog_to_offset(*sl, p), var, datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_5(datum_make_symbol(":set-closures"), datum_make_int(p), var, datum_make_int(hat), datum_make_int(next)));
   *begin = next;
 }
 
-EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, prog *val, int capture) {
+EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_4(datum_make_symbol(":put-prog"), prog_to_offset(*sl, val), datum_make_int(capture), datum_make_int(next)));
+  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
 }
 

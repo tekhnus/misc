@@ -38,7 +38,6 @@ EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
 LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   // fprintf(stderr, "!!!!! %s\n", datum_repr(deps));
   size_t bdr_off = prog_slice_append_new(sl);
-  prog *bdr = prog_slice_at(*sl, bdr_off);
   size_t bdr_end = bdr_off;
   prog_append_pop(sl, &bdr_end, datum_make_symbol(":void"));
   prog_append_args(sl, &bdr_end);
@@ -50,7 +49,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   prog_append_collect(sl, &bdr_end);
   prog_append_return(sl, &bdr_end, false);
   prog_append_args(sl, p);
-  prog_append_put_prog(sl, p, bdr, 0);
+  prog_append_put_prog(sl, p, bdr_off, 0);
   prog_append_collect(sl, p);
   prog_append_call(sl, p, false);
   return NULL;
@@ -84,7 +83,6 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep,
     return NULL;
   }
   size_t run_dep_off = prog_slice_append_new(sl);
-  prog *run_dep = prog_slice_at(*sl, run_dep_off);
   size_t run_dep_end = run_dep_off;
   fdatum status = module_source(sl, &run_dep_end, dep->bytestring_value);
   if (fdatum_is_panic(status)) {
@@ -92,7 +90,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep,
   }
   prog_append_yield(sl, &run_dep_end, false);
   prog_append_args(sl, p);
-  prog_append_put_prog(sl, p, run_dep, 0);
+  prog_append_put_prog(sl, p, run_dep_off, 0);
   char *err = prog_build_deps(state, sl, p, status.ok_value->list_tail->list_head, module_source);
   if (err != NULL) {
     return err;

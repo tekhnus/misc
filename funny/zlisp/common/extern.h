@@ -46,7 +46,7 @@ LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,f
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
 LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
-void prog_append_put_prog(prog_slice *sl,size_t *begin,prog *val,int capture);
+void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_collect(prog_slice *sl,size_t *begin);
 void prog_append_args(prog_slice *sl,size_t *begin);
@@ -55,7 +55,7 @@ LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum 
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
 LOCAL void prog_append_import(prog_slice *sl,size_t *begin);
-LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,prog *p,datum *var,bool hat);
+LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
