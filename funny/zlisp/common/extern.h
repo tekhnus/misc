@@ -25,9 +25,9 @@ LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instr
 typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
-LOCAL char *datum_to_routine_0(routine_0 *res,prog_slice sl,datum *fn);
+LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
 LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
-LOCAL datum *routine_0_to_datum(prog_slice sl,routine_0 r);
+LOCAL datum *routine_0_to_datum(routine_0 r);
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
 typedef struct routine_2 routine_2;
