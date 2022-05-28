@@ -21,7 +21,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog_slice sl = prog_slice_make(16 * 1024);
-  size_t p = prog_to_offset_int(sl, prog_slice_append_new(&sl));
+  size_t p = prog_slice_append_new(&sl);
   char *err = prog_build_c_host(&sl, p, src.ok_value);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);

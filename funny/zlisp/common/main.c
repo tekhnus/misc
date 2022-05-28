@@ -499,14 +499,15 @@ EXPORT prog_slice prog_slice_make(size_t capacity) {
   return res;
 }
 
-EXPORT prog *prog_slice_append_new(prog_slice *s) {
+EXPORT size_t prog_slice_append_new(prog_slice *s) {
   if (s->length == s->capacity) {
     fprintf(stderr, "prog slice capacity overflow %zu\n", s->capacity);
     exit(EXIT_FAILURE);
   }
-  prog *p = s->begin + s->length++;
+  size_t res = s->length++;
+  prog *p = s->begin + res;
   p->type = PROG_END;
-  return p;
+  return res;
 }
 
 prog *prog_slice_at(prog_slice s, size_t index) {

@@ -148,7 +148,7 @@ size_t prog_slice_length(prog_slice s);
 datum *prog_to_datum(prog *p);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
 prog *prog_slice_at(prog_slice s,size_t index);
-prog *prog_slice_append_new(prog_slice *s);
+size_t prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);

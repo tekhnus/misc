@@ -112,7 +112,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  size_t p = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  size_t p = prog_slice_append_new(sl);
   char *err = prog_build_one_c_host(
       sl, p, exp.ok_value);
   if (err != NULL) {

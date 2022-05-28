@@ -61,7 +61,7 @@ struct prog_slice {
   size_t capacity;
 };
 prog_slice prog_slice_make(size_t capacity);
-prog *prog_slice_append_new(prog_slice *s);
+size_t prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
 datum *prog_to_datum(prog *p);

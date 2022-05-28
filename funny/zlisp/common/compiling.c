@@ -97,8 +97,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     }
     (*begin)->type = PROG_IF;
 
-    ptrdiff_t true_end = prog_to_offset_int(*sl, prog_slice_append_new(sl)),
-      false_end = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    ptrdiff_t true_end = prog_slice_append_new(sl),
+      false_end = prog_slice_append_new(sl);
     (*begin)->if_true = true_end;
     (*begin)->if_false = false_end;
     prog *te = prog_slice_at(*sl, true_end);
@@ -113,7 +113,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (err != NULL) {
       return err;
     }
-    size_t begin_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    size_t begin_off = prog_slice_append_new(sl);
     *begin = prog_slice_at(*sl, begin_off);
     prog_join(sl, te, fe, *begin);
     return NULL;
@@ -157,7 +157,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
-    size_t s_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    size_t s_off = prog_slice_append_new(sl);
     prog *s = prog_slice_at(*sl, s_off);
     char *err = prog_init_routine(sl, s, stmt->list_tail->list_tail->list_head);
     if (err != NULL) {
@@ -173,7 +173,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (list_length(stmt->list_tail) != 1) {
       return "fn should have one arg";
     }
-    size_t s_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    size_t s_off = prog_slice_append_new(sl);
     prog *s = prog_slice_at(*sl, s_off);
     char *err =
         prog_init_routine(sl, s, stmt->list_tail->list_head);
@@ -281,14 +281,14 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
 EXPORT void prog_append_call(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_CALL;
   (*begin)->call_hat = hat;
-  (*begin)->call_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->call_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->call_next);
 }
 
 LOCAL void prog_append_host(prog_slice *sl, prog **begin, datum *name) {
   (*begin)->type = PROG_HOST;
   (*begin)->host_instruction = name;
-  (*begin)->host_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->host_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->host_next);
 }
 
@@ -306,39 +306,39 @@ LOCAL void prog_join(prog_slice *sl, prog *a, prog *b, prog *e) {
 EXPORT void prog_append_put_const(prog_slice *sl, prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_CONST;
   (*begin)->put_const_value = val;
-  (*begin)->put_const_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->put_const_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->put_const_next);
 }
 
 EXPORT void prog_append_put_var(prog_slice *sl, prog **begin, datum *val) {
   (*begin)->type = PROG_PUT_VAR;
   (*begin)->put_var_value = val;
-  (*begin)->put_var_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->put_var_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->put_var_next);
 }
 
 EXPORT void prog_append_args(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_ARGS;
-  (*begin)->args_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->args_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->args_next);
 }
 
 EXPORT void prog_append_collect(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_COLLECT;
-  (*begin)->collect_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->collect_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->collect_next);
 }
 
 EXPORT void prog_append_uncollect(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_UNCOLLECT;
-  (*begin)->uncollect_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->uncollect_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->uncollect_next);
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, prog **begin, datum *var) {
   (*begin)->type = PROG_POP;
   (*begin)->pop_var = var;
-  (*begin)->pop_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->pop_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->pop_next);
 }
 
@@ -348,7 +348,7 @@ LOCAL void prog_append_set_closures(prog_slice *sl, prog **begin, prog *p,
   (*begin)->set_closures_prog = prog_to_offset_int(*sl, p);
   (*begin)->set_closures_name = var;
   (*begin)->set_closures_hat = hat;
-  (*begin)->set_closures_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->set_closures_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->set_closures_next);
 }
 
@@ -356,21 +356,21 @@ EXPORT void prog_append_put_prog(prog_slice *sl, prog **begin, prog *val, int ca
   (*begin)->type = PROG_PUT_PROG;
   (*begin)->put_prog_value = prog_to_offset_int(*sl, val);
   (*begin)->put_prog_capture = capture;
-  (*begin)->put_prog_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->put_prog_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->put_prog_next);
 }
 
 EXPORT void prog_append_return(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
-  size_t begin_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  size_t begin_off = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, begin_off);
 }
 
 EXPORT void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_YIELD;
   (*begin)->yield_hat = hat;
-  (*begin)->yield_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->yield_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->yield_next);
 }
 
@@ -406,7 +406,7 @@ LOCAL char *prog_init_routine(prog_slice *sl, prog *s, datum *stmt) {
 
 LOCAL void prog_append_import(prog_slice *sl, prog **begin) {
   (*begin)->type = PROG_IMPORT;
-  (*begin)->import_next = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  (*begin)->import_next = prog_slice_append_new(sl);
   *begin = prog_slice_at(*sl, (*begin)->import_next);
 }
 
