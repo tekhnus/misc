@@ -14,7 +14,7 @@ char *prog_build_one_c_host(prog_slice *sl, size_t p, datum *source) {
   return prog_build_one(sl, p, source, module_routine);
 }
 
-fdatum module_routine(prog_slice *sl, prog **p, char *module) {
+fdatum module_routine(prog_slice *sl, size_t *p, char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
     return src;

@@ -41,11 +41,11 @@ struct state {
   struct datum *vars;
   struct datum *stack;
 };
-LOCAL char *prog_build_dep(datum **state,prog_slice *sl,prog **p,datum *dep,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
-LOCAL char *prog_build_deps(datum **state,prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
-char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
-LOCAL char *prog_build_deps_isolated(prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
-char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
+LOCAL char *prog_build_dep(datum **state,prog_slice *sl,prog **p,datum *dep,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+LOCAL char *prog_build_deps(datum **state,prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+LOCAL char *prog_build_deps_isolated(prog_slice *sl,prog **p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
 void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
 void prog_append_call(prog_slice *sl,prog **begin,bool hat);
 void prog_append_collect(prog_slice *sl,prog **begin);
@@ -67,7 +67,7 @@ LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_statement(prog_slice *sl,prog **begin,datum *stmt);
 void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 LOCAL fdatum prog_append_usages(prog_slice *sl,prog **begin,datum *spec);
-fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
+fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
 datum *prog_to_offset(prog_slice sl,prog *p);
 ptrdiff_t prog_to_offset_int(prog_slice sl,prog *p);
 enum prog_type {

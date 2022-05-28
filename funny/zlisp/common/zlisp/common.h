@@ -138,7 +138,7 @@ struct prog {
 };
 prog datum_to_prog(datum *d);
 ptrdiff_t prog_to_offset_int(prog_slice sl,prog *p);
-fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
+fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
 void prog_append_call(prog_slice *sl,prog **begin,bool hat);
 void prog_append_put_const(prog_slice *sl,prog **begin,datum *val);
 void prog_append_put_var(prog_slice *sl,prog **begin,datum *val);
@@ -150,8 +150,8 @@ void prog_append_put_prog(prog_slice *sl,prog **begin,prog *val,int capture);
 void prog_append_return(prog_slice *sl,prog **begin,bool hat);
 void prog_append_yield(prog_slice *sl,prog **begin,bool hat);
 datum *datum_make_void();
-char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
-char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,prog **p,char *));
+char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,

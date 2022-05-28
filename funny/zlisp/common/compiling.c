@@ -3,19 +3,21 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT fdatum prog_init_submodule(prog_slice *sl, prog **s, datum *source) {
-  fdatum res = prog_append_usages(sl, s, source->list_head);
+EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source) {
+  prog *p = prog_slice_at(*sl, *off);
+  fdatum res = prog_append_usages(sl, &p, source->list_head);
   if (fdatum_is_panic(res)) {
     return res;
   }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(sl, s, datum_make_symbol(":void"));
+    prog_append_pop(sl, &p, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
-    char *err = prog_append_statement(sl, s, stmt);
+    char *err = prog_append_statement(sl, &p, stmt);
     if (err != NULL) {
       return fdatum_make_panic(err);
     }
   }
+  *off = prog_to_offset_int(*sl, p);
   return res;
 }
 

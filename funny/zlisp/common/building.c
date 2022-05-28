@@ -3,11 +3,11 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   prog *entrypoint = prog_slice_at(*sl, ep);
   size_t run_main_off = prog_slice_append_new(sl);
   prog *run_main = prog_slice_at(*sl, run_main_off);
-  prog *run_main_end = run_main;
+  size_t run_main_end = run_main_off;
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   fdatum res = prog_init_submodule(sl, &run_main_end, source);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
@@ -25,7 +25,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
 }
 
 EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
-                       fdatum (*module_source)(prog_slice *sl, prog **p,
+                       fdatum (*module_source)(prog_slice *sl, size_t *p,
                                               char *)) {
   datum *spec = datum_make_list_1(datum_make_symbol("req"));
   datum *stmts = datum_make_nil();
@@ -37,7 +37,7 @@ EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
   return prog_build(sl, ep, datum_make_list(spec, stmts), module_source);
 }
 
-LOCAL char *prog_build_deps_isolated(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+LOCAL char *prog_build_deps_isolated(prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   // fprintf(stderr, "!!!!! %s\n", datum_repr(deps));
   size_t bdr_off = prog_slice_append_new(sl);
   prog *bdr = prog_slice_at(*sl, bdr_off);
@@ -58,7 +58,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, prog **p, datum *deps, fdat
   return NULL;
 }
 
-LOCAL char *prog_build_deps(datum **state, prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+LOCAL char *prog_build_deps(datum **state, prog_slice *sl, prog **p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
     if (!datum_is_bytestring(dep)) {
@@ -72,7 +72,7 @@ LOCAL char *prog_build_deps(datum **state, prog_slice *sl, prog **p, datum *deps
   return NULL;
 }
 
-LOCAL char *prog_build_dep(datum **state, prog_slice *sl, prog **p, datum *dep, fdatum (*module_source)(prog_slice *sl, prog **p, char *)) {
+LOCAL char *prog_build_dep(datum **state, prog_slice *sl, prog **p, datum *dep, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   bool already_built = false;
   for (datum *rest_state=*state; !datum_is_nil(rest_state); rest_state=rest_state->list_tail) {
     datum *b = rest_state->list_head;
@@ -87,12 +87,13 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, prog **p, datum *dep, 
   }
   size_t run_dep_off = prog_slice_append_new(sl);
   prog *run_dep = prog_slice_at(*sl, run_dep_off);
-  prog *run_dep_end = run_dep;
+  size_t run_dep_end = run_dep_off;
   fdatum status = module_source(sl, &run_dep_end, dep->bytestring_value);
   if (fdatum_is_panic(status)) {
     return status.panic_message;
   }
-  prog_append_yield(sl, &run_dep_end, false);
+  prog *run_dep_end_prog = prog_slice_at(*sl, run_dep_end);
+  prog_append_yield(sl, &run_dep_end_prog, false);
   prog_append_args(sl, p);
   prog_append_put_prog(sl, p, run_dep, 0);
   char *err = prog_build_deps(state, sl, p, status.ok_value->list_tail->list_head, module_source);
