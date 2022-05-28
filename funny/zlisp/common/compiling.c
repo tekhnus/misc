@@ -69,9 +69,6 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
-  if ((*begin)->type != PROG_END) {
-    return "expected an end state";
-  }
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt);
     return NULL;
@@ -97,12 +94,13 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (err != NULL) {
       return err;
     }
-    (*begin)->type = PROG_IF;
 
-    ptrdiff_t true_end = prog_slice_append_new(sl),
+
+    size_t true_end = prog_slice_append_new(sl),
       false_end = prog_slice_append_new(sl);
-    (*begin)->if_true = true_end;
-    (*begin)->if_false = false_end;
+
+    **begin = datum_to_prog(datum_make_list_3(datum_make_symbol(":if"), datum_make_int(true_end), datum_make_int(false_end)));
+
     prog *te = prog_slice_at(*sl, true_end);
     prog *fe = prog_slice_at(*sl, false_end);
     err = prog_append_statement(
