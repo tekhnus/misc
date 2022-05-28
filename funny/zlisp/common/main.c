@@ -700,7 +700,7 @@ EXPORT prog datum_to_prog(datum *d) {
   return res;
 }
 
-ptrdiff_t prog_to_offset_int(prog_slice sl, prog *p) {
+EXPORT ptrdiff_t prog_to_offset_int(prog_slice sl, prog *p) {
   if (p < prog_slice_at(sl, 0) ||
       p > prog_slice_at(sl, prog_slice_length(sl) - 1)) {
     fprintf(stderr,

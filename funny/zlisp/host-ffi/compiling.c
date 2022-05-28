@@ -122,5 +122,5 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  return routine_run_and_get_value_c_host(*sl, ctxt, p);
+  return routine_run_and_get_value_c_host(*sl, ctxt, prog_to_offset_int(*sl, p));
 }

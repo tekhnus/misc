@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,prog *p);
+fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,size_t prg);
 #include <stdint.h>
 state *state_make_builtins();
 #include <unistd.h>

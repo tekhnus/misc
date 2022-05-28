@@ -24,10 +24,10 @@ typedef struct routine_1 routine_1;
 typedef struct routine_2 routine_2;
 #endif
 
-EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, prog *p,
+EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, ptrdiff_t prg,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
-  routine_0 r0 = {.offset = prog_to_offset_int(sl, p), .state_ = *ctxt};
+  routine_0 r0 = {.offset = prg, .state_ = *ctxt};
   routine_1 r1 = {.cur = r0, .par = NULL};
   routine_2 r = {.cur = r1, .par = NULL};
   char *s = routine_2_run(sl, &r, perform_host_instruction);

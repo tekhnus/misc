@@ -17,7 +17,7 @@
        (return `(:err ~(derefw `(~e string)))))))
 
 
-(def routine-run-and-get-value-c-host-fdatum (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((progslice pointer pointer) fdatum)))
+(def routine-run-and-get-value-c-host-fdatum (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((progslice pointer sizet) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 (builtin.defn fdatum-get-value (return (derefw `(~(head args) val))))
 (def fdatum-get-panic-message (c-function-or-panic selflib "fdatum_get_panic_message" '((fdatum) string)))

@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   fprintf(stderr, "compiled, %zu instructions\n", prog_slice_length(sl));
   // fprintf(stderr, "%s\n", datum_repr(prog_slice_to_datum(sl)));
   state *s = state_make_builtins();
-  fdatum res = routine_run_and_get_value_c_host(sl, &s, p);
+  fdatum res = routine_run_and_get_value_c_host(sl, &s, prog_to_offset_int(sl, p));
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "runtime error: %s\n", res.panic_message);
     return EXIT_FAILURE;
