@@ -65,7 +65,46 @@ prog_slice prog_slice_make(size_t capacity);
 size_t prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
-typedef struct prog prog;
+datum *list_at(datum *list,unsigned index);
+fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
+void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
+void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);
+void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val);
+void prog_append_args(prog_slice *sl,size_t *begin);
+void prog_append_collect(prog_slice *sl,size_t *begin);
+void prog_append_uncollect(prog_slice *sl,size_t *begin);
+void prog_append_pop(prog_slice *sl,size_t *begin,datum *var);
+void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
+void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
+void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
+datum *datum_make_void();
+char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
+enum datum_type {
+  DATUM_NIL,
+  DATUM_LIST,
+  DATUM_SYMBOL,
+  DATUM_BYTESTRING,
+  DATUM_INTEGER,
+};
+typedef enum datum_type datum_type;
+struct datum {
+  enum datum_type type;
+  union {
+    struct {
+      struct datum *list_head;
+      struct datum *list_tail;
+    };
+    char *symbol_value;
+    char *bytestring_value;
+    int64_t integer_value;
+  };
+};
+struct state {
+  struct datum *vars;
+  struct datum *stack;
+};
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -85,6 +124,7 @@ enum prog_type {
   PROG_IMPORT,
 };
 typedef enum prog_type prog_type;
+typedef struct prog prog;
 struct prog {
   enum prog_type type;
   union {
@@ -136,44 +176,4 @@ struct prog {
     };
     ptrdiff_t import_next;
   };
-};
-prog datum_to_prog(datum *d);
-fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
-void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
-void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);
-void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val);
-void prog_append_args(prog_slice *sl,size_t *begin);
-void prog_append_collect(prog_slice *sl,size_t *begin);
-void prog_append_uncollect(prog_slice *sl,size_t *begin);
-void prog_append_pop(prog_slice *sl,size_t *begin,datum *var);
-void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
-void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
-void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
-datum *datum_make_void();
-char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
-char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
-fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
-enum datum_type {
-  DATUM_NIL,
-  DATUM_LIST,
-  DATUM_SYMBOL,
-  DATUM_BYTESTRING,
-  DATUM_INTEGER,
-};
-typedef enum datum_type datum_type;
-struct datum {
-  enum datum_type type;
-  union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
-    char *symbol_value;
-    char *bytestring_value;
-    int64_t integer_value;
-  };
-};
-struct state {
-  struct datum *vars;
-  struct datum *stack;
 };
