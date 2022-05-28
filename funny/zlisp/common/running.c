@@ -296,7 +296,8 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
 LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
-  prog *prg = prog_slice_at(sl, r->offset);
+  prog prgx = datum_to_prog(sl, prog_to_datum(sl, prog_slice_at(sl, r->offset)));
+  prog *prg = &prgx;
   state **st = &r->state_;
   // routine c = routine_make(*p, s);
   switch (prg->type) {

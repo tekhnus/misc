@@ -530,7 +530,7 @@ EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   return res;
 }
 
-LOCAL datum *prog_to_datum(prog_slice sl, prog *p) {
+EXPORT datum *prog_to_datum(prog_slice sl, prog *p) {
   switch (p->type) {
   case PROG_END: {
     return datum_make_list_1(datum_make_symbol(":end"));
@@ -607,6 +607,90 @@ LOCAL datum *prog_to_datum(prog_slice sl, prog *p) {
   }
   fprintf(stderr, "prog_to_datum incomplete\n");
   exit(EXIT_FAILURE);
+}
+
+LOCAL datum *list_at(datum *list, unsigned index) {
+  if (!datum_is_list(list) || datum_is_nil(list)) {
+    fprintf(stderr, "list_at panic\n");
+    exit(EXIT_FAILURE);
+  }
+  if (index == 0) {
+    return list->list_head;
+  }
+  return list_at(list->list_tail, index - 1);
+}
+
+EXPORT prog datum_to_prog(prog_slice sl, datum *d) {
+  prog res;
+  if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(d->list_head)) {
+    fprintf(stderr, "datum_to_prog panic\n");
+    exit(EXIT_FAILURE);
+  }
+  char *opsym = list_at(d, 0)->symbol_value;
+  if (!strcmp(opsym, ":end")) {
+    res.type = PROG_END;
+  } else if (!strcmp(opsym, ":if")) {
+    res.type = PROG_IF;
+    res.if_true = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.if_false = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":nop")) {
+    res.type = PROG_NOP;
+    res.nop_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+  } else if (!strcmp(opsym, ":put-const")) {
+    res.type = PROG_PUT_CONST;
+    res.put_const_value = list_at(d, 1);
+    res.put_const_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":put-var")) {
+    res.type = PROG_PUT_VAR;
+    res.put_var_value = list_at(d, 1);
+    res.put_var_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":args")) {
+    res.type = PROG_ARGS;
+    res.args_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+  } else if (!strcmp(opsym, ":call")) {
+    res.type = PROG_CALL;
+    res.call_hat = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.call_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":host")) {
+    res.type = PROG_HOST;
+    res.host_instruction = list_at(d, 1);
+    res.host_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":collect")) {
+    res.type = PROG_COLLECT;
+    res.collect_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+  } else if (!strcmp(opsym, ":uncollect")) {
+    res.type = PROG_UNCOLLECT;
+    res.uncollect_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+  } else if (!strcmp(opsym, ":pop")) {
+    res.type = PROG_POP;
+    res.pop_var = list_at(d, 1);
+    res.pop_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":set-closures")) {
+    res.type = PROG_SET_CLOSURES;
+    res.set_closures_prog = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.set_closures_name = list_at(d, 2);
+    res.set_closures_hat = list_at(d, 3)->integer_value;
+    res.set_closures_next = prog_slice_at(sl, list_at(d, 4)->integer_value);
+  } else if (!strcmp(opsym, ":put-prog")) {
+    res.type = PROG_PUT_PROG;
+    res.put_prog_value = prog_slice_at(sl, list_at(d, 1)->integer_value);
+    res.put_prog_capture = list_at(d, 2)->integer_value;
+    res.put_prog_next = prog_slice_at(sl, list_at(d, 3)->integer_value);
+  } else if (!strcmp(opsym, ":return")) {
+    res.type = PROG_RETURN;
+    res.return_hat = list_at(d, 1)->integer_value;
+  } else if (!strcmp(opsym, ":yield")) {
+    res.type = PROG_YIELD;
+    res.yield_hat = list_at(d, 1)->integer_value;
+    res.yield_next = prog_slice_at(sl, list_at(d, 2)->integer_value);
+  } else if (!strcmp(opsym, ":import")) {
+    res.type = PROG_IMPORT;
+    res.import_next = prog_slice_at(sl, list_at(d, 1)->integer_value);
+  } else {
+    fprintf(stderr, "datum_to_prog incomplete\n");
+    exit(EXIT_FAILURE);
+  }
+  return res;
 }
 
 ptrdiff_t prog_to_offset_int(prog_slice sl, prog *p) {

@@ -69,12 +69,6 @@ void prog_append_pop(prog_slice *sl,prog **begin,datum *var);
 LOCAL fdatum prog_append_usages(prog_slice *sl,prog **begin,datum *spec);
 fdatum prog_init_submodule(prog_slice *sl,prog **s,datum *source);
 ptrdiff_t prog_to_offset_int(prog_slice sl,prog *p);
-datum *prog_to_offset(prog_slice sl,prog *p);
-LOCAL datum *prog_to_datum(prog_slice sl,prog *p);
-datum *prog_slice_to_datum(prog_slice sl);
-size_t prog_slice_length(prog_slice s);
-prog *prog_slice_at(prog_slice s,size_t index);
-prog *prog_slice_append_new(prog_slice *s);
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -146,6 +140,14 @@ struct prog {
     struct prog *import_next;
   };
 };
+prog datum_to_prog(prog_slice sl,datum *d);
+LOCAL datum *list_at(datum *list,unsigned index);
+datum *prog_to_offset(prog_slice sl,prog *p);
+datum *prog_to_datum(prog_slice sl,prog *p);
+datum *prog_slice_to_datum(prog_slice sl);
+size_t prog_slice_length(prog_slice s);
+prog *prog_slice_at(prog_slice s,size_t index);
+prog *prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
 datum *state_stack_collect(state **s);
 void state_stack_new(state **s);
