@@ -228,6 +228,7 @@ def main():
             pdata[-1][-1].stak.append(p)
             ip = nex
         elif op == sexpdata.Symbol(":return"):
+            # print(op, *args)
             (hat,) = args
             if hat:
                 raise RuntimeError("routine-1 return is not supported yet")

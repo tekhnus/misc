@@ -124,7 +124,7 @@ struct prog {
 };
 
 struct prog_slice {
-  struct prog *begin;
+  datum *begin;
   size_t length;
   size_t capacity;
 };

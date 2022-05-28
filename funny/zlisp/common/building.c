@@ -18,7 +18,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
   if (err != NULL) {
     return err;
   }
-  *prog_slice_at(*sl, ep) = *prog_slice_at(*sl, run_main_off);
+  *prog_slice_datum_at(*sl, ep) = *prog_slice_datum_at(*sl, run_main_off);
   return NULL;
 }
 

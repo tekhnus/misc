@@ -97,7 +97,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt) {
     size_t true_end = prog_slice_append_new(sl),
       false_end = prog_slice_append_new(sl);
 
-    *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":if"), datum_make_int(true_end), datum_make_int(false_end)));
+    *prog_slice_datum_at(*sl, *begin) = *datum_make_list_3(datum_make_symbol(":if"), datum_make_int(true_end), datum_make_int(false_end));
     *begin = prog_slice_append_new(sl); // ???
 
     err = prog_append_statement(
@@ -274,79 +274,79 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt) {
 
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(next)));
   *begin = next;
 }
 
 LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":host"), name, datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":host"), name, datum_make_int(next)));
   *begin = next;
 }
 
 LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
-  *prog_slice_at(*sl, a) = datum_to_prog(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
-  *prog_slice_at(*sl, b) = datum_to_prog(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
+  *prog_slice_datum_at(*sl, a) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
+  *prog_slice_datum_at(*sl, b) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
 }
 
 EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":put-const"), val, datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":put-var"), val, datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), val, datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_args(prog_slice *sl, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_2(datum_make_symbol(":args"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":args"), datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_collect(prog_slice *sl, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_2(datum_make_symbol(":collect"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":collect"), datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_uncollect(prog_slice *sl, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_2(datum_make_symbol(":uncollect"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":uncollect"), datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
   *begin = next;
 }
 
 LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
                                     datum *var, bool hat) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_5(datum_make_symbol(":set-closures"), datum_make_int(p), var, datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_5(datum_make_symbol(":set-closures"), datum_make_int(p), var, datum_make_int(hat), datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_return(prog_slice *sl, size_t *begin, bool hat) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":return"), datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":return"), datum_make_int(hat)));
   *begin = next;
 }
 
 EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_3(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(next)));
   *begin = next;
 }
 
@@ -382,7 +382,7 @@ LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt) {
 
 LOCAL void prog_append_import(prog_slice *sl, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_at(*sl, *begin) = datum_to_prog(datum_make_list_2(datum_make_symbol(":import"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":import"), datum_make_int(next)));
   *begin = next;
 }
 

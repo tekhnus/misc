@@ -56,9 +56,8 @@ state *state_make_fresh();
 bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
 typedef struct prog_slice prog_slice;
-typedef struct prog prog;
 struct prog_slice {
-  struct prog *begin;
+  datum *begin;
   size_t length;
   size_t capacity;
 };
@@ -66,6 +65,7 @@ prog_slice prog_slice_make(size_t capacity);
 size_t prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
+typedef struct prog prog;
 datum *prog_to_datum(prog *p);
 enum prog_type {
   PROG_END,
@@ -139,7 +139,6 @@ struct prog {
   };
 };
 prog datum_to_prog(datum *d);
-ptrdiff_t prog_to_offset_int(prog_slice sl,prog *p);
 fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);

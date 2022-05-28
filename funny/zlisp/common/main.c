@@ -493,7 +493,7 @@ datum *state_stack_collect(state **s) {
 
 EXPORT prog_slice prog_slice_make(size_t capacity) {
   prog_slice res;
-  res.begin = malloc(capacity * sizeof(prog));
+  res.begin = malloc(capacity * sizeof(datum));
   res.length = 0;
   res.capacity = capacity;
   return res;
@@ -505,17 +505,9 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
     exit(EXIT_FAILURE);
   }
   size_t res = s->length++;
-  prog *p = s->begin + res;
-  p->type = PROG_END;
+  datum *p = s->begin + res;
+  *p = *datum_make_list_1(datum_make_symbol(":end"));
   return res;
-}
-
-prog *prog_slice_at(prog_slice s, size_t index) {
-  if (index >= s.length) {
-    fprintf(stderr, "prog slice index overflow\n");
-    exit(EXIT_FAILURE);
-  }
-  return s.begin + index;
 }
 
 datum *prog_slice_datum_at(prog_slice s, size_t index) {
@@ -523,7 +515,7 @@ datum *prog_slice_datum_at(prog_slice s, size_t index) {
     fprintf(stderr, "prog slice index overflow\n");
     exit(EXIT_FAILURE);
   }
-  return prog_to_datum(s.begin + index);
+  return s.begin + index;
 }
 
 EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
@@ -699,21 +691,4 @@ EXPORT prog datum_to_prog(datum *d) {
     exit(EXIT_FAILURE);
   }
   return res;
-}
-
-EXPORT ptrdiff_t prog_to_offset_int(prog_slice sl, prog *p) {
-  if (p < prog_slice_at(sl, 0) ||
-      p > prog_slice_at(sl, prog_slice_length(sl) - 1)) {
-    fprintf(stderr,
-            "prog_to_offset received a prog from another slice. slice: (%p, "
-            "%p), prog: %p\n",
-            prog_slice_at(sl, 0), prog_slice_at(sl, prog_slice_length(sl) - 1),
-            p);
-    exit(EXIT_FAILURE);
-  }
-  return p - prog_slice_at(sl, 0);
-}
-
-datum *prog_to_offset(prog_slice sl, prog *p) {
-  return datum_make_int(prog_to_offset_int(sl, p));
 }

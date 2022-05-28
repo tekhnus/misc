@@ -7,15 +7,14 @@
 typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct prog prog;
+typedef struct datum datum;
 struct prog_slice {
-  struct prog *begin;
+  datum *begin;
   size_t length;
   size_t capacity;
 };
 typedef struct routine_0 routine_0;
 typedef struct fdatum fdatum;
-typedef struct datum datum;
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -68,8 +67,7 @@ LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var);
 LOCAL fdatum prog_append_usages(prog_slice *sl,size_t *begin,datum *spec);
 fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
-datum *prog_to_offset(prog_slice sl,prog *p);
-ptrdiff_t prog_to_offset_int(prog_slice sl,prog *p);
+typedef struct prog prog;
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -143,11 +141,10 @@ struct prog {
 };
 prog datum_to_prog(datum *d);
 LOCAL datum *list_at(datum *list,unsigned index);
+datum *prog_to_datum(prog *p);
 datum *prog_slice_to_datum(prog_slice sl);
 size_t prog_slice_length(prog_slice s);
-datum *prog_to_datum(prog *p);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
-prog *prog_slice_at(prog_slice s,size_t index);
 size_t prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
 datum *state_stack_collect(state **s);
