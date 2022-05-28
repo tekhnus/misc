@@ -113,7 +113,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (err != NULL) {
       return err;
     }
-    *begin = prog_slice_append_new(sl);
+    size_t begin_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    *begin = prog_slice_at(*sl, begin_off);
     prog_join(sl, te, fe, *begin);
     return NULL;
   }
@@ -156,7 +157,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
-    prog *s = prog_slice_append_new(sl);
+    size_t s_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    prog *s = prog_slice_at(*sl, s_off);
     char *err = prog_init_routine(sl, s, stmt->list_tail->list_tail->list_head);
     if (err != NULL) {
       return err;
@@ -171,8 +173,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, prog **begin, datum *stmt) {
     if (list_length(stmt->list_tail) != 1) {
       return "fn should have one arg";
     }
-
-    prog *s = prog_slice_append_new(sl);
+    size_t s_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+    prog *s = prog_slice_at(*sl, s_off);
     char *err =
         prog_init_routine(sl, s, stmt->list_tail->list_head);
     if (err != NULL) {
@@ -361,7 +363,8 @@ EXPORT void prog_append_put_prog(prog_slice *sl, prog **begin, prog *val, int ca
 EXPORT void prog_append_return(prog_slice *sl, prog **begin, bool hat) {
   (*begin)->type = PROG_RETURN;
   (*begin)->return_hat = hat;
-  *begin = prog_slice_append_new(sl);
+  size_t begin_off = prog_to_offset_int(*sl, prog_slice_append_new(sl));
+  *begin = prog_slice_at(*sl, begin_off);
 }
 
 EXPORT void prog_append_yield(prog_slice *sl, prog **begin, bool hat) {
