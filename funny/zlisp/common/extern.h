@@ -23,78 +23,6 @@ struct fdatum {
 LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct prog prog;
-enum prog_type {
-  PROG_END,
-  PROG_IF,
-  PROG_NOP,
-  PROG_PUT_CONST,
-  PROG_PUT_VAR,
-  PROG_ARGS,
-  PROG_CALL,
-  PROG_HOST,
-  PROG_COLLECT,
-  PROG_UNCOLLECT,
-  PROG_POP,
-  PROG_SET_CLOSURES,
-  PROG_PUT_PROG,
-  PROG_RETURN,
-  PROG_YIELD,
-  PROG_IMPORT,
-};
-typedef enum prog_type prog_type;
-struct prog {
-  enum prog_type type;
-  union {
-    struct {
-      ptrdiff_t if_true;
-      ptrdiff_t if_false;
-    };
-    struct {
-      ptrdiff_t nop_next;
-    };
-    struct {
-      struct datum *put_const_value;
-      ptrdiff_t put_const_next;
-    };
-    struct {
-      struct datum *put_var_value;
-      ptrdiff_t put_var_next;
-    };
-    ptrdiff_t args_next;
-    struct {
-      bool call_hat;
-      ptrdiff_t call_next;
-    };
-    struct {
-      struct datum *host_instruction;
-      ptrdiff_t host_next;
-    };
-    ptrdiff_t collect_next;
-    ptrdiff_t uncollect_next;
-    struct {
-      struct datum *pop_var;
-      ptrdiff_t pop_next;
-    };
-    struct {
-      ptrdiff_t put_prog_value;
-      int put_prog_capture;
-      ptrdiff_t put_prog_next;
-    };
-    struct {
-      ptrdiff_t set_closures_prog;
-      struct datum *set_closures_name;
-      bool set_closures_hat;
-      ptrdiff_t set_closures_next;
-    };
-    bool return_hat;
-    struct {
-      bool yield_hat;
-      ptrdiff_t yield_next;
-    };
-    ptrdiff_t import_next;
-  };
-};
 LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
 LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
 LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
@@ -105,6 +33,7 @@ typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct state state;
