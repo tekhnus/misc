@@ -66,7 +66,6 @@ size_t prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
 typedef struct prog prog;
-datum *prog_to_datum(prog *p);
 enum prog_type {
   PROG_END,
   PROG_IF,

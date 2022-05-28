@@ -141,7 +141,6 @@ struct prog {
 };
 prog datum_to_prog(datum *d);
 LOCAL datum *list_at(datum *list,unsigned index);
-datum *prog_to_datum(prog *p);
 datum *prog_slice_to_datum(prog_slice sl);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
