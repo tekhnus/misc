@@ -20,29 +20,10 @@ datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,da
 datum *datum_make_symbol(char *name);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_int(int64_t value);
-typedef struct read_result read_result;
-#include <inttypes.h>
-#include <stdio.h>
-enum read_result_type {
-  READ_RESULT_OK,
-  READ_RESULT_PANIC,
-  READ_RESULT_EOF,
-  READ_RESULT_RIGHT_PAREN,
-};
-typedef enum read_result_type read_result_type;
-struct read_result {
-  enum read_result_type type;
-  union {
-    struct datum *ok_value;
-    char *panic_message;
-  };
-};
-bool read_result_is_ok(read_result x);
-bool read_result_is_panic(read_result x);
-bool read_result_is_right_paren(read_result x);
-read_result datum_read(FILE *strm);
 char *datum_repr(datum *e);
 typedef struct fdatum fdatum;
+#include <inttypes.h>
+#include <stdio.h>
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -66,6 +47,25 @@ size_t prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
 datum *list_at(datum *list,unsigned index);
+typedef struct read_result read_result;
+enum read_result_type {
+  READ_RESULT_OK,
+  READ_RESULT_PANIC,
+  READ_RESULT_EOF,
+  READ_RESULT_RIGHT_PAREN,
+};
+typedef enum read_result_type read_result_type;
+struct read_result {
+  enum read_result_type type;
+  union {
+    struct datum *ok_value;
+    char *panic_message;
+  };
+};
+bool read_result_is_ok(read_result x);
+bool read_result_is_panic(read_result x);
+bool read_result_is_right_paren(read_result x);
+read_result datum_read(FILE *strm);
 fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);
