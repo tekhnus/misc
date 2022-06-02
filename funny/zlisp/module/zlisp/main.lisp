@@ -49,4 +49,8 @@
                (return `(:ok ~val)))
            (return '(:eof)))))))
 
-(export (compile-prog compile-prog))
+(export (compile-prog compile-prog)
+        (eval eval)
+        (read read)
+        (builtins builtins)
+        (prog-slice-make prog-slice-make))
