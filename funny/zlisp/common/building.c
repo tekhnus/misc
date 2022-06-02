@@ -58,9 +58,6 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
 LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
-    if (!datum_is_bytestring(dep)) {
-      return "req expects bytestrings";
-    }
     char *err = prog_build_dep(state, sl, p, dep, module_source);
     if (err != NULL) {
       return err;
@@ -69,17 +66,22 @@ LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *dep
   return NULL;
 }
 
-LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
+LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
+  if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
+    return "req expects bytestrings";
+  }
+  datum *dep = dep_and_sym->list_head;
+
   bool already_built = false;
   for (datum *rest_state=*state; !datum_is_nil(rest_state); rest_state=rest_state->list_tail) {
     datum *b = rest_state->list_head;
-    if (datum_eq(dep, b)) {
+    if (datum_eq(dep_and_sym, b)) {
       already_built = true;
       break;
     }
   }
   if (already_built) {
-    prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep)));
+    prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep_and_sym)));
     return NULL;
   }
   size_t run_dep_off = prog_slice_append_new(sl);
@@ -88,17 +90,28 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep,
   if (fdatum_is_panic(status)) {
     return status.panic_message;
   }
+  datum *transitive_deps = status.ok_value->list_head;
+  datum *syms = status.ok_value->list_tail->list_head;
   prog_append_yield(sl, &run_dep_end, false);
   prog_append_args(sl, p);
   prog_append_put_prog(sl, p, run_dep_off, 0);
-  char *err = prog_build_deps(state, sl, p, status.ok_value->list_head, module_source);
+  char *err = prog_build_deps(state, sl, p, transitive_deps, module_source);
   if (err != NULL) {
     return err;
   }
   prog_append_collect(sl, p);
   prog_append_call(sl, p, false);
-  prog_append_pop(sl, p, datum_make_symbol(datum_repr(dep)));
-  prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep)));
-  *state = datum_make_list(dep, *state);
+  prog_append_pop(sl, p, datum_make_symbol(datum_repr(datum_make_list_1(dep))));
+  prog_append_put_var(sl, p, datum_make_symbol(datum_repr(datum_make_list_1(dep))));
+  prog_append_uncollect(sl, p);
+  for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
+    datum *sym = rest_syms->list_head;
+    prog_append_uncollect(sl, p);
+    prog_append_pop(sl, p, datum_make_symbol(datum_repr(datum_make_list_2(dep, sym))));
+  }
+  prog_append_pop(sl, p, datum_make_symbol(":void"));
+  prog_append_pop(sl, p, datum_make_symbol(":void"));
+  prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep_and_sym)));
+  *state = datum_make_list(dep_and_sym, *state);
   return NULL;
 }

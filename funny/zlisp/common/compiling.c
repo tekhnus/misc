@@ -60,14 +60,14 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   datum **specs_tail = &specs;
   for (datum *rest = items; !datum_is_nil(rest); rest=rest->list_tail) {
     datum *item = rest->list_head;
-    if (!datum_is_list(item) || list_length(item) != 2) {
+    if (!datum_is_list(item) || list_length(item) < 2 || list_length(item) > 3) {
       return fdatum_make_panic("wrong usage spec");
     }
     datum *item_var = item->list_head;
     if (!datum_is_symbol(item_var)) {
       return fdatum_make_panic("wrong usage spec");
     }
-    datum *item_spec = item->list_tail->list_head;
+    datum *item_spec = item->list_tail;
     *vars_tail = datum_make_list_1(item_var);
     vars_tail = &((*vars_tail)->list_tail);
     *specs_tail = datum_make_list_1(item_spec);
