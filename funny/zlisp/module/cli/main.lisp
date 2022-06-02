@@ -40,3 +40,5 @@
 (def sl (prog-slice-make 20000))
 
 !(#ignore (repl sl builtins_))
+
+(export)

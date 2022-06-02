@@ -48,3 +48,5 @@
                (def val (head maybeval))
                (return `(:ok ~val)))
            (return '(:eof)))))))
+
+(export (compile-prog compile-prog))

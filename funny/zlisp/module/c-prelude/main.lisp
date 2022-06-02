@@ -125,3 +125,5 @@
                                  (return `(:ok ~res))))) 
 
 (builtin.defn debug-print (return '()))
+
+(export)

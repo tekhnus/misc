@@ -13,7 +13,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
     return res.panic_message;
   }
-  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_tail->list_head, module_source);
+  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
     return err;
@@ -91,7 +91,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep,
   prog_append_yield(sl, &run_dep_end, false);
   prog_append_args(sl, p);
   prog_append_put_prog(sl, p, run_dep_off, 0);
-  char *err = prog_build_deps(state, sl, p, status.ok_value->list_tail->list_head, module_source);
+  char *err = prog_build_deps(state, sl, p, status.ok_value->list_head, module_source);
   if (err != NULL) {
     return err;
   }

@@ -29,3 +29,5 @@
 
 !(#defun print (val)
   (return (fprintf-bytestring stdout "%s\n" (repr val))))
+
+(export)

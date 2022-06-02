@@ -23,3 +23,5 @@
 (builtin.defn concat-bytestrings (return (host ("eval" "concat_bytestrings(x)") args)))
 
 (builtin.defn repr (return (host ("eval" "repre(x)") args)))
+
+(export)

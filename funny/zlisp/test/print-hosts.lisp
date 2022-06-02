@@ -10,3 +10,5 @@
 (def buffer (malloc 2048))
 (ignore (fread buffer 1 1024 hostsfile))
 (ignore (printfptr "%.2048s" buffer))
+
+(export)

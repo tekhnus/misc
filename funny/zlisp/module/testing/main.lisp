@@ -12,3 +12,5 @@
               (if (eq val ~expect)
                   '()
                 (def panics (cons (concat-bytestrings (concat-bytestrings (repr val) " != ") (repr ~expect)) panics))))))
+
+(export)

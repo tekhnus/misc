@@ -9,14 +9,25 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source) {
     return res;
   }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
-    prog_append_pop(sl, off, datum_make_symbol(":void"));
     datum *stmt = rest->list_head;
+    if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
+      if (!datum_is_nil(rest->list_tail)) {
+        return fdatum_make_panic("export should be the last statement in module");
+      }
+      fdatum exp = prog_append_exports(sl, off, stmt);
+      if (fdatum_is_panic(exp)) {
+        return exp;
+      }
+      return fdatum_make_ok(datum_make_list_2(res.ok_value, exp.ok_value));
+    }
+    prog_append_pop(sl, off, datum_make_symbol(":void"));
     char *err = prog_append_statement(sl, off, stmt);
     if (err != NULL) {
       return fdatum_make_panic(err);
     }
   }
-  return res;
+  return fdatum_make_ok(datum_make_list_2(res.ok_value, datum_make_nil()));
+  // return fdatum_make_panic("export statement should terminate the module");
 }
 
 LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec) {
@@ -35,12 +46,11 @@ LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec) {
   }
   prog_append_pop(sl, begin, datum_make_symbol(":void"));
   prog_append_put_const(sl, begin, datum_make_void());
-  return res;
+  return fdatum_make_ok(re->list_tail->list_head);
 }
 
 LOCAL fdatum prog_read_usages(datum *spec) {
   if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "req")) {
-    return fdatum_make_panic(datum_repr(spec));
     return fdatum_make_panic("wrong usage spec");
   }
   datum *items = spec->list_tail;
@@ -64,6 +74,51 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     specs_tail = &((*specs_tail)->list_tail);
   }
   return fdatum_make_ok(datum_make_list_2(vars, specs));
+}
+
+LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec) {
+  fdatum res = prog_read_exports(spec);
+  if (fdatum_is_panic(res)) {
+    return res;
+  }
+  datum *re = res.ok_value;
+  if (!datum_is_list(re) || list_length(re) != 2) {
+    return fdatum_make_panic("not gonna happen");
+  }
+  prog_append_args(sl, begin);
+  for (datum *rest_expressions=re->list_tail->list_head; !datum_is_nil(rest_expressions); rest_expressions=rest_expressions->list_tail) {
+    datum *expr = rest_expressions->list_head;
+    prog_append_statement(sl, begin, expr);
+  }
+  prog_append_collect(sl, begin);
+  return fdatum_make_ok(re->list_head);
+}
+
+LOCAL fdatum prog_read_exports(datum *spec) {
+  if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "export")) {
+    return fdatum_make_panic("wrong export spec");
+  }
+  datum *items = spec->list_tail;
+  datum *names = datum_make_nil();
+  datum **names_tail = &names;
+  datum *expressions = datum_make_nil();
+  datum **expressions_tail = &expressions;
+  for (datum *rest = items; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum *item = rest->list_head;
+    if (!datum_is_list(item) || list_length(item) != 2) {
+      return fdatum_make_panic("wrong export spec");
+    }
+    datum *item_name = item->list_head;
+    if (!datum_is_symbol(item_name)) {
+      return fdatum_make_panic("wrong export spec");
+    }
+    datum *item_expression = item->list_tail->list_head;
+    *names_tail = datum_make_list_1(item_name);
+    names_tail = &((*names_tail)->list_tail);
+    *expressions_tail = datum_make_list_1(item_expression);
+    expressions_tail = &((*expressions_tail)->list_tail);
+  }
+  return fdatum_make_ok(datum_make_list_2(names, expressions));
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt) {
