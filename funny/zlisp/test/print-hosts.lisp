@@ -1,10 +1,14 @@
-(req (libc "libc"))
-(importall libc)
+(req
+ (fopen "libc" fopen)
+ (malloc "libc" malloc)
+ (fread "libc" fread)
+ (printfptr "libc" printfptr)
+ (std "std"))
+
+(importall std)
 
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)
-
-(def printfptr (c-function-or-panic libc "printf" '((string pointer) sizet)))
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))

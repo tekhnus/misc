@@ -14,6 +14,7 @@
 (def feof (c-function-or-panic libc "feof" '((pointer) int)))
 (def fprintf (c-function-or-panic libc "fprintf" '((pointer string) sizet)))
 (def fprintf-bytestring (c-function-or-panic libc "fprintf" '((pointer string string) sizet)))
+(def printfptr (c-function-or-panic libc "printf" '((string pointer) sizet)))
 
 !(#def-or-panica stdin
   (extern-pointer libc "stdin" 'pointer)
@@ -30,4 +31,15 @@
 !(#defun print (val)
   (return (fprintf-bytestring stdout "%s\n" (repr val))))
 
-(export)
+(export
+ (malloc malloc)
+ (fopen fopen)
+ (fread fread)
+ (feof feof)
+ (fprintf fprintf)
+ (fprintf-bytestring fprintf-bytestring)
+ (printfptr printfptr)
+ (stdin stdin)
+ (stdout stdout)
+ (stderr stderr)
+ (print print))

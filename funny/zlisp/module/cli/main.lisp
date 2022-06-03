@@ -1,6 +1,9 @@
 (req
  (std "std")
- (libc "libc")
+ (fprintf "libc" fprintf)
+ (fprintf-bytestring "libc" fprintf-bytestring)
+ (stdout "libc" stdout)
+ (stdin "libc" stdin)
  (comp-prg "zlisp" compile-prog)
  (ev "zlisp" eval)
  (rd "zlisp" read)
@@ -11,7 +14,6 @@
 !(importall stdmacro)
 
 (importall std)
-(importall libc)
 
 (def readme "A basic REPL for zlisp.")
 

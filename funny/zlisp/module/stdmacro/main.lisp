@@ -1,12 +1,10 @@
 (req
- (defunmod "defun")
+ (defun "defun" defun)
  (std "std"))
 
-(importall defunmod)
 (importall std)
 
-!(req (defunmod "defun"))
-!(importall defunmod)
+!(req (defun "defun" defun))
 
 (def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
 

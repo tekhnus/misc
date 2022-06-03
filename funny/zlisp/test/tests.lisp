@@ -1,10 +1,11 @@
 (req
- (libc "libc"))
+ (fprintf "libc" fprintf)
+ (stderr "libc" stderr)
+ (std "std"))
 
-(importall libc)
+(importall std)
 
-!(req (testing "testing"))
-!(importall testing)
+!(req (fntest "testing" fntest))
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)
 

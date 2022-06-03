@@ -13,4 +13,4 @@
                   '()
                 (def panics (cons (concat-bytestrings (concat-bytestrings (repr val) " != ") (repr ~expect)) panics))))))
 
-(export)
+(export (fntest fntest))

@@ -1,8 +1,7 @@
 (req (std "std"))
 (importall std)
 
-!(req (testing "testing"))
-!(importall testing)
+!(req (fntest "testing" fntest))
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)
 
