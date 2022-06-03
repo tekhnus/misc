@@ -127,4 +127,10 @@
 (builtin.defn switch-fun
     (return (swtchone (map switch-clause (head args)))))
 
-(export)
+(export
+ (switch-fun switch-fun)
+ (decons-pat decons-pat)
+ (ignore ignore)
+ (second second)
+ (third third)
+ (list list))
