@@ -84,6 +84,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep_and_sym)));
     return NULL;
   }
+  // fprintf(stderr, "!!!!!! %s\n", datum_repr(dep_and_sym));
   size_t run_dep_off = prog_slice_append_new(sl);
   size_t run_dep_end = run_dep_off;
   fdatum status = module_source(sl, &run_dep_end, dep->bytestring_value);
@@ -108,6 +109,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     datum *sym = rest_syms->list_head;
     prog_append_uncollect(sl, p);
     prog_append_pop(sl, p, datum_make_symbol(datum_repr(datum_make_list_2(dep, sym))));
+    *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
   prog_append_pop(sl, p, datum_make_symbol(":void"));
   prog_append_pop(sl, p, datum_make_symbol(":void"));
