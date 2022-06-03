@@ -144,4 +144,5 @@
  (+ +)
  (wrap-pointer-into-pointer wrap-pointer-into-pointer)
  (shared-library shared-library)
- (extern-pointer extern-pointer))
+ (extern-pointer extern-pointer)
+ (selflib selflib))

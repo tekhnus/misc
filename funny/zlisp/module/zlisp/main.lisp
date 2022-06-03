@@ -1,4 +1,11 @@
-(req (std "std"))
+(req
+ (shared-library "prelude" shared-library)
+ (c-function-or-panic "prelude" c-function-or-panic)
+ (extern-pointer "prelude" extern-pointer)
+ (selflib "prelude" selflib)
+ (derefw "prelude" derefw)
+ (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
+ (std "std"))
 (importall std)
 
 !(req (stdmacro "stdmacro"))

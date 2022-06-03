@@ -1,5 +1,4 @@
 (req
- (prelude "prelude")
  (panic "prelude" panic)
  (head "prelude" head)
  (tail "prelude" tail)
@@ -10,8 +9,6 @@
  (repr "prelude" repr)
  (concat-bytestrings "prelude" concat-bytestrings)
  (+ "prelude" +))
-
-(importall prelude)
 
 (def list (builtin.fn (return args)))
 
