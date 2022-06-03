@@ -38,6 +38,7 @@ LOCAL prog datum_to_prog(datum *d);
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct state state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *get_varname(datum *dep_and_sym);
 struct state {
   struct datum *vars;
   struct datum *stack;

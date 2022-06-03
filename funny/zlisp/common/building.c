@@ -66,6 +66,22 @@ LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *dep
   return NULL;
 }
 
+LOCAL char *get_varname(datum *dep_and_sym) {
+  char *dep = dep_and_sym->list_head->bytestring_value;
+  char *sym;
+  if (!datum_is_nil(dep_and_sym->list_tail)) {
+    sym = dep_and_sym->list_tail->list_head->symbol_value;
+  } else {
+    sym = "";
+  }
+  char *res = malloc(1024);
+  res[0] = 0;
+  strlcat(res, dep, 128);
+  strlcat(res, "__", 128);
+  strlcat(res, sym, 128);
+  return res;
+}
+
 LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
     return "req expects bytestrings";
@@ -81,7 +97,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     }
   }
   if (already_built) {
-    prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep_and_sym)));
+    prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep_and_sym)));
     return NULL;
   }
   // fprintf(stderr, "!!!!!! %s\n", datum_repr(dep_and_sym));
@@ -102,18 +118,18 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   }
   prog_append_collect(sl, p);
   prog_append_call(sl, p, false);
-  prog_append_pop(sl, p, datum_make_symbol(datum_repr(datum_make_list_1(dep))));
-  prog_append_put_var(sl, p, datum_make_symbol(datum_repr(datum_make_list_1(dep))));
+  prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))));
+  prog_append_put_var(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))));
   prog_append_uncollect(sl, p);
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
     prog_append_uncollect(sl, p);
-    prog_append_pop(sl, p, datum_make_symbol(datum_repr(datum_make_list_2(dep, sym))));
+    prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
     *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
   prog_append_pop(sl, p, datum_make_symbol(":void"));
   prog_append_pop(sl, p, datum_make_symbol(":void"));
-  prog_append_put_var(sl, p, datum_make_symbol(datum_repr(dep_and_sym)));
+  prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep_and_sym)));
   *state = datum_make_list(dep_and_sym, *state);
   return NULL;
 }

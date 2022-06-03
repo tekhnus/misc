@@ -24,4 +24,15 @@
 
 (builtin.defn repr (return (host ("eval" "repre(x)") args)))
 
-(export)
+(export
+ (panic panic)
+ (head head)
+ (tail tail)
+ (cons cons)
+ (eq eq)
+ (eq eq)
+ (annotate annotate)
+ (is-constant is-constant)
+ (repr repr)
+ (concat-bytestrings concat-bytestrings)
+ (+ +))

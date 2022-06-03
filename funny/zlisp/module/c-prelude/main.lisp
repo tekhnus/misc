@@ -126,4 +126,22 @@
 
 (builtin.defn debug-print (return '()))
 
-(export)
+(export
+ (panic panic)
+ (head head)
+ (tail tail)
+ (cons cons)
+ (eq eq)
+ (derefw derefw)
+ (dlopen dlopen)
+ (dlsym dlsym)
+ (c-function-or-panic c-function-or-panic)
+ (eq eq)
+ (annotate annotate)
+ (is-constant is-constant)
+ (repr repr)
+ (concat-bytestrings concat-bytestrings)
+ (+ +)
+ (wrap-pointer-into-pointer wrap-pointer-into-pointer)
+ (shared-library shared-library)
+ (extern-pointer extern-pointer))

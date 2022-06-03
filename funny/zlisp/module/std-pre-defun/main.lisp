@@ -1,4 +1,16 @@
-(req (prelude "prelude"))
+(req
+ (prelude "prelude")
+ (panic "prelude" panic)
+ (head "prelude" head)
+ (tail "prelude" tail)
+ (cons "prelude" cons)
+ (eq "prelude" eq)
+ (annotate "prelude" annotate)
+ (is-constant "prelude" is-constant)
+ (repr "prelude" repr)
+ (concat-bytestrings "prelude" concat-bytestrings)
+ (+ "prelude" +))
+
 (importall prelude)
 
 (def list (builtin.fn (return args)))

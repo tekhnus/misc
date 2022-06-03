@@ -352,6 +352,10 @@ EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val) {
 
 EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val) {
   size_t next = prog_slice_append_new(sl);
+  if (!datum_is_symbol(val)) {
+    fprintf(stderr, "expected a symbol in put-var\n");
+    exit(1);
+  }
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), val, datum_make_int(next)));
   *begin = next;
 }
