@@ -76,9 +76,9 @@ LOCAL char *get_varname(datum *dep_and_sym) {
   }
   char *res = malloc(1024);
   res[0] = 0;
-  strlcat(res, dep, 128);
-  strlcat(res, "__", 128);
-  strlcat(res, sym, 128);
+  strcat(res, dep);
+  strcat(res, "__");
+  strcat(res, sym);
   return res;
 }
 
