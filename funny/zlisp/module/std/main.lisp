@@ -38,4 +38,6 @@
  (is-constant is-constant)
  (repr repr)
  (concat-bytestrings concat-bytestrings)
- (+ +))
+ (+ +)
+ (decons-pat decons-pat)
+ (second second))

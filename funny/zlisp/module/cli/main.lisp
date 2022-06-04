@@ -1,5 +1,9 @@
 (req
- (std "std")
+ (decons-pat "std" decons-pat)
+ (eq "std" eq)
+ (head "std" head)
+ (repr "std" repr)
+ (second "std" second)
  (fprintf "libc" fprintf)
  (fprintf-bytestring "libc" fprintf-bytestring)
  (stdout "libc" stdout)
@@ -12,8 +16,6 @@
 
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)
-
-(importall std)
 
 (def readme "A basic REPL for zlisp.")
 
