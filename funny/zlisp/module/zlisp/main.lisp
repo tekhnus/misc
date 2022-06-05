@@ -5,8 +5,13 @@
  (selflib "prelude" selflib)
  (derefw "prelude" derefw)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
- (std "std"))
-(importall std)
+ (decons-pat "std" decons-pat)
+ (eq "std" eq)
+ (head "std" head)
+ (tail "std" tail)
+ (second "std" second)
+ (third "std" third))
+
 
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)

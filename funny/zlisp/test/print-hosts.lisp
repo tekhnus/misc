@@ -3,9 +3,7 @@
  (malloc "libc" malloc)
  (fread "libc" fread)
  (printfptr "libc" printfptr)
- (std "std"))
-
-(importall std)
+ (ignore "std" ignore))
 
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)

@@ -1,5 +1,8 @@
-(req (std "std"))
-(importall std)
+(req
+ (eq "std" eq)
+ (decons-pat "std" decons-pat)
+ (head "std" head)
+ (second "std" second))
 
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)

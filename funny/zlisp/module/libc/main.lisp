@@ -2,8 +2,11 @@
  (shared-library "prelude" shared-library)
  (c-function-or-panic "prelude" c-function-or-panic)
  (extern-pointer "prelude" extern-pointer)
- (std "std"))
-(importall std)
+ (decons-pat "std" decons-pat)
+ (eq "std" eq)
+ (head "std" head)
+ (repr "std" repr)
+ (second "std" second))
 
 !(req (stdmacro "stdmacro"))
 !(importall stdmacro)

@@ -1,5 +1,13 @@
-(req (std "std"))
-(importall std)
+(req
+ (decons-pat "std" decons-pat)
+ (eq "std" eq)
+ (head "std" head)
+ (tail "std" tail)
+ (repr "std" repr)
+ (second "std" second)
+ (list "std" list)
+ (append "std" append)
+ (+ "std" +))
 
 !(req (fntest "testing" fntest))
 !(req (stdmacro "stdmacro"))

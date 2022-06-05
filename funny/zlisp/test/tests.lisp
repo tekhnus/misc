@@ -1,9 +1,14 @@
 (req
  (fprintf "libc" fprintf)
  (stderr "libc" stderr)
- (std "std"))
-
-(importall std)
+ (decons-pat "std" decons-pat)
+ (eq "std" eq)
+ (head "std" head)
+ (repr "std" repr)
+ (second "std" second)
+ (list "std" list)
+ (append "std" append)
+ (+ "std" +))
 
 !(req (fntest "testing" fntest))
 !(req (stdmacro "stdmacro"))
