@@ -8,8 +8,11 @@
  (repr "std" repr)
  (second "std" second))
 
-!(req (stdmacro "stdmacro"))
-!(importall stdmacro)
+!(req
+  (defun "stdmacro" defun)
+  (fn "stdmacro" fn)
+  (def2 "stdmacro" def2)
+  (def-or-panica "stdmacro" def-or-panica))
 
 !(#def-or-panica libc
   (shared-library "libc.so.6")

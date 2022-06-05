@@ -38,4 +38,9 @@
 
 !(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))
 
-(export)
+(export
+ (defun defun)
+ (fn fn)
+ (def2 def2)
+ (def-or-panica def-or-panica)
+ (switchx switchx))

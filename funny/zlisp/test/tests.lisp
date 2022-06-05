@@ -11,8 +11,10 @@
  (+ "std" +))
 
 !(req (fntest "testing" fntest))
-!(req (stdmacro "stdmacro"))
-!(importall stdmacro)
+!(req
+  (defun "stdmacro" defun)
+  (fn "stdmacro" fn)
+  (def2 "stdmacro" def2))
 
 
 (def panics '())

@@ -6,7 +6,6 @@
  (ignore "std" ignore))
 
 !(req (stdmacro "stdmacro"))
-!(importall stdmacro)
 
 (def hostsfile (fopen "/etc/hosts" "r"))
 (def buffer (malloc 2048))

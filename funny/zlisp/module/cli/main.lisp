@@ -14,8 +14,15 @@
  (bt "zlisp" builtins)
  (psm "zlisp" prog-slice-make))
 
-!(req (stdmacro "stdmacro"))
-!(importall stdmacro)
+!(req
+  (ignore "std" ignore))
+
+!(req
+  (defun "stdmacro" defun)
+  (fn "stdmacro" fn)
+  (def2 "stdmacro" def2)
+  (switchx "stdmacro" switchx)
+  (def-or-panica "stdmacro" def-or-panica))
 
 (def readme "A basic REPL for zlisp.")
 

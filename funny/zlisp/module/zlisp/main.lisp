@@ -12,9 +12,11 @@
  (second "std" second)
  (third "std" third))
 
-
-!(req (stdmacro "stdmacro"))
-!(importall stdmacro)
+!(req
+  (defun "stdmacro" defun)
+  (fn "stdmacro" fn)
+  (def2 "stdmacro" def2)
+  (def-or-panica "stdmacro" def-or-panica))
 
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
