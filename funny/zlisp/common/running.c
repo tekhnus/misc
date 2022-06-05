@@ -36,7 +36,6 @@ enum prog_type {
   PROG_PUT_PROG,
   PROG_RETURN,
   PROG_YIELD,
-  PROG_IMPORT,
 };
 
 struct prog {
@@ -88,7 +87,6 @@ struct prog {
       bool yield_hat;
       ptrdiff_t yield_next;
     };
-    ptrdiff_t import_next;
   };
 };
 
@@ -449,36 +447,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     r->offset = prg->uncollect_next;
     return NULL;
   } break;
-  case PROG_IMPORT: {
-    // fprintf(stderr, "MODULE_END\n");
-    datum *pair = state_stack_pop(st);
-    if (!datum_is_list(pair) || list_length(pair) != 2) {
-      // return datum_repr(pair);
-      return ("expected a pair after a submodule call");
-    }
-    datum *fn = pair->list_tail->list_head;
-    state *module_state;
-    if (datum_is_list(fn) && list_length(fn) == 2 &&
-        datum_is_integer(fn->list_head) &&
-        datum_is_list(fn->list_tail->list_head) &&
-        list_length(fn->list_tail->list_head) == 2) {
-      module_state = state_make(fn->list_tail->list_head->list_head,
-                                fn->list_tail->list_head->list_tail->list_head);
-    } else {
-      return ("expected a routine after a submodule call");
-    }
-
-    datum *imported_bindings = state_list_vars(module_state);
-    for (; !datum_is_nil(imported_bindings);
-         imported_bindings = imported_bindings->list_tail) {
-      datum *sym = imported_bindings->list_head->list_head;
-      datum *val = imported_bindings->list_head->list_tail->list_head;
-
-      state_set_var(st, sym, val);
-    }
-    r->offset = prg->import_next;
-    return NULL;
-  } break;
   default:
     break;
   }
@@ -549,9 +517,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_YIELD;
     res.yield_hat = list_at(d, 1)->integer_value;
     res.yield_next = (list_at(d, 2)->integer_value);
-  } else if (!strcmp(opsym, ":import")) {
-    res.type = PROG_IMPORT;
-    res.import_next = (list_at(d, 1)->integer_value);
   } else {
     fprintf(stderr, "datum_to_prog incomplete\n");
     exit(EXIT_FAILURE);

@@ -247,13 +247,6 @@ def main():
             pdata[-1].pop()
             pdata[-1][-1].stak.append(make_list_with_items(rvalue, cont))
             ip = pdata[-1][-1].ip
-        elif op == sexpdata.Symbol(":import"):
-            (nex,) = args
-            val = pop_stack()
-            _, rout = val
-            _, (varz, _) = check_is_routine_0(rout)
-            pdata[-1][-1].varz.extend(varz)
-            ip = nex
         else:
             raise RuntimeError(op)
         pdata[-1][-1].ip = ip

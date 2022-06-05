@@ -233,19 +233,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt) {
     prog_append_put_var(sl, begin, datum_make_symbol("__lambda"));
     return NULL;
   }
-  if (datum_is_the_symbol(op, "importall")) {
-    if (list_length(stmt->list_tail) != 1) {
-      return "importall should have one arg";
-    }
-    char *err = prog_append_statement(
-        sl, begin, stmt->list_tail->list_head);
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_import(sl, begin);
-    prog_append_put_const(sl, begin, datum_make_void());
-    return NULL;
-  }
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "return");
@@ -437,12 +424,6 @@ LOCAL char *prog_append_backquoted_statement(
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt) {
   prog_append_pop(sl, &s, datum_make_symbol("args"));
   return prog_append_statement(sl, &s, stmt);
-}
-
-LOCAL void prog_append_import(prog_slice *sl, size_t *begin) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":import"), datum_make_int(next)));
-  *begin = next;
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {

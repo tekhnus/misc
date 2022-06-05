@@ -180,17 +180,6 @@ fdatum state_get_var(state *ns, datum *symbol) {
   return fdatum_make_panic(msg);
 }
 
-datum *state_list_vars(state *ns) {
-  datum *result = datum_make_nil();
-  datum **nil = &result;
-  for (datum *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum *keyval = cur->list_head;
-    *nil = datum_make_list_1(keyval);
-    nil = &((*nil)->list_tail);
-  }
-  return result;
-}
-
 EXPORT bool datum_eq(datum *x, datum *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
