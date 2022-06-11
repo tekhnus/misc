@@ -87,8 +87,10 @@
                 (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
                 (if (eq fn-ptr 0)
                     (panic "couldn't load C function")
-                  ((def fn-routine (builtin.fn (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ~args)))))
-                   (return fn-routine)))))
+                  (return
+                   (builtin.fn
+                    (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ~args))))))))
+                
 
 
 (def selflib (dlopen ""))

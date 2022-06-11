@@ -148,22 +148,27 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
 
-
     size_t true_end = prog_slice_append_new(sl),
       false_end = prog_slice_append_new(sl);
 
     *prog_slice_datum_at(*sl, *begin) = *datum_make_list_3(datum_make_symbol(":if"), datum_make_int(true_end), datum_make_int(false_end));
     *begin = prog_slice_append_new(sl); // ???
 
+    datum *false_compdata = *compdata;
     err = prog_append_statement(
                                 sl, &true_end, stmt->list_tail->list_tail->list_head, compdata);
     if (err != NULL) {
       return err;
     }
     err = prog_append_statement(
-                                sl, &false_end, stmt->list_tail->list_tail->list_tail->list_head, compdata);
+                                sl, &false_end, stmt->list_tail->list_tail->list_tail->list_head, &false_compdata);
     if (err != NULL) {
       return err;
+    }
+    if (!datum_eq(*compdata, false_compdata)) {
+      fprintf(stderr, "warning: if branches have different compdata\n");
+      // fprintf(stderr, "%s\n", datum_repr(*compdata));
+      // fprintf(stderr, "%s\n", datum_repr(false_compdata));
     }
 
     prog_join(sl, true_end, false_end, *begin);
@@ -377,7 +382,9 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
   *begin = next;
-  *compdata = compdata_pop_to_var(*compdata, var);
+  if (!datum_is_the_symbol(var, ":void")) {
+    *compdata = compdata_pop_to_var(*compdata, var);
+  }
 }
 
 LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
