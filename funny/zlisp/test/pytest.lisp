@@ -7,7 +7,13 @@
  (second "std" second)
  (list "std" list)
  (append "std" append)
- (+ "std" +))
+ (+ "std" +)
+ (panic "std" panic)
+ (cons "std" cons)
+ (print "prelude" print)
+ (tail "std" tail)
+ (panic "std" panic)
+ (concat-bytestrings "std" concat-bytestrings))
 
 !(req (fntest "testing" fntest))
 !(req

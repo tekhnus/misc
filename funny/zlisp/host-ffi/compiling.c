@@ -6,12 +6,12 @@
 #include <zlisp/common.h>
 #endif
 
-char *prog_build_c_host(prog_slice *sl, size_t p, datum *source) {
-  return prog_build(sl, p, source, module_routine);
+char *prog_build_c_host(prog_slice *sl, size_t p, datum *source, datum **compdata) {
+  return prog_build(sl, p, source, module_routine, compdata);
 }
 
-char *prog_build_one_c_host(prog_slice *sl, size_t p, datum *source) {
-  return prog_build_one(sl, p, source, module_routine);
+char *prog_build_one_c_host(prog_slice *sl, size_t p, datum *source, datum **compdata) {
+  return prog_build_one(sl, p, source, module_routine, compdata);
 }
 
 fdatum module_routine(prog_slice *sl, size_t *p, char *module) {
@@ -19,7 +19,8 @@ fdatum module_routine(prog_slice *sl, size_t *p, char *module) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  return prog_init_submodule(sl, p, src.ok_value);
+  datum *compdata = compdata_make();
+  return prog_init_submodule(sl, p, src.ok_value, &compdata);
 }
 
 fdatum module_source(char *module) {
@@ -56,13 +57,14 @@ fdatum file_source(char *fname) {
 
   state *expander_state = state_make_builtins();
   prog_slice expander_sl = prog_slice_make(16 * 1024);
+  datum *expander_compdata = compdata_make();
   read_result rr;
   datum *res = datum_make_nil();
   datum **resend = &res;
   // printf("start expanding %s\n", fname);
   for (; read_result_is_ok(rr = datum_read(stre));) {
     // printf("preparing to expand a statement\n");
-    fdatum val = datum_expand(rr.ok_value, &expander_sl, &expander_state);
+    fdatum val = datum_expand(rr.ok_value, &expander_sl, &expander_state, &expander_compdata);
     // printf("expanded a statement\n");
     if (fdatum_is_panic(val)) {
       return val;
@@ -85,7 +87,7 @@ fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
+LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt, datum **compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(e);
   }
@@ -96,7 +98,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
 
     for (datum *rest = e; !datum_is_nil(rest); rest = rest->list_tail) {
       datum *x = rest->list_head;
-      fdatum nxt = datum_expand(x, sl, ctxt);
+      fdatum nxt = datum_expand(x, sl, ctxt, compdata);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
@@ -108,13 +110,13 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt) {
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(e->list_tail->list_head, sl, ctxt);
+  fdatum exp = datum_expand(e->list_tail->list_head, sl, ctxt, compdata);
   if (fdatum_is_panic(exp)) {
     return exp;
   }
   size_t p = prog_slice_append_new(sl);
   char *err = prog_build_one_c_host(
-      sl, p, exp.ok_value);
+                                    sl, p, exp.ok_value, compdata);
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;

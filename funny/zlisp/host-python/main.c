@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
   }
   prog_slice sl = prog_slice_make(16 * 1024);
   size_t p = prog_slice_append_new(&sl);
-  char *err = prog_build(&sl, p, src.ok_value, python_module_routine);
+  datum *compdata = compdata_make();
+  char *err = prog_build(&sl, p, src.ok_value, python_module_routine, &compdata);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -42,7 +43,8 @@ LOCAL fdatum python_module_routine(prog_slice *sl, size_t *p, char *module) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  return prog_init_submodule(sl, p, src.ok_value);
+  datum *compdata = compdata_make();
+  return prog_init_submodule(sl, p, src.ok_value, &compdata);
 }
 
 LOCAL fdatum python_module_source(char *module) {

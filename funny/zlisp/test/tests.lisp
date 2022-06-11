@@ -8,7 +8,13 @@
  (second "std" second)
  (list "std" list)
  (append "std" append)
- (+ "std" +))
+ (+ "std" +)
+ (panic "std" panic)
+ (concat-bytestrings "std" concat-bytestrings)
+ (cons "std" cons)
+ (tail "std" tail)
+ (panic "std" panic)
+ (print "libc" print))
 
 !(req (fntest "testing" fntest))
 !(req

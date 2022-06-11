@@ -9,6 +9,7 @@
  (eq "std" eq)
  (head "std" head)
  (tail "std" tail)
+ (panic "std" panic)
  (second "std" second)
  (third "std" third))
 
@@ -18,14 +19,15 @@
   (def2 "stdmacro" def2)
   (def-or-panica "stdmacro" def-or-panica))
 
+(def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-init-module-c-host (c-function-or-panic selflib "prog_build_one_c_host" '((pointer sizet datum) pointer)))
-!(#defun compile-prog (sl src)
+(def prog-init-module-c-host (c-function-or-panic selflib "prog_build_one_c_host" '((pointer sizet datum pointer) pointer)))
+!(#defun compile-prog (sl src compdata)
    (progn
      (def p (prog-slice-append-new (wrap-pointer-into-pointer sl)))
-     (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src))
+     (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src (wrap-pointer-into-pointer compdata)))
      (if (eq 0 (derefw `(~e int64)))
          (return `(:ok ~p))
        (return `(:err ~(derefw `(~e string)))))))
@@ -67,4 +69,5 @@
         (eval eval)
         (read read)
         (builtins builtins)
-        (prog-slice-make prog-slice-make))
+        (prog-slice-make prog-slice-make)
+        (compdata-make compdata-make))

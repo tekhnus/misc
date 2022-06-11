@@ -66,20 +66,21 @@ bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
-fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source);
+fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source,datum **compdata);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);
-void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val);
+void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_args(prog_slice *sl,size_t *begin);
 void prog_append_collect(prog_slice *sl,size_t *begin);
 void prog_append_uncollect(prog_slice *sl,size_t *begin);
-void prog_append_pop(prog_slice *sl,size_t *begin,datum *var);
+void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
 void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
+datum *compdata_make();
 datum *datum_make_void();
-char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
-char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,

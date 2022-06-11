@@ -9,5 +9,5 @@ fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,size_t prg);
 #include <stdint.h>
 state *state_make_builtins();
 #include <unistd.h>
-char *prog_build_c_host(prog_slice *sl,size_t p,datum *source);
+char *prog_build_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
 fdatum file_source(char *fname);

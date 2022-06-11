@@ -6,6 +6,7 @@
  (eq "std" eq)
  (head "std" head)
  (repr "std" repr)
+ (panic "std" panic)
  (second "std" second))
 
 !(req

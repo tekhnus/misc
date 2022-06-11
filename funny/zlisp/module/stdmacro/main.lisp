@@ -7,6 +7,7 @@
  (head "std" head)
  (second "std" second)
  (third "std" third)
+ (panic "std" panic)
  (tail "std" tail))
 
 !(req (defun "defun" defun))

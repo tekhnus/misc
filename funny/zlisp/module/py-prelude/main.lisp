@@ -25,6 +25,7 @@
 (builtin.defn repr (return (host ("eval" "repre(x)") args)))
 
 (export
+ (print print)
  (panic panic)
  (head head)
  (tail tail)

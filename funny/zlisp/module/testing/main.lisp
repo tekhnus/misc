@@ -2,6 +2,8 @@
  (eq "std" eq)
  (decons-pat "std" decons-pat)
  (head "std" head)
+ (concat-bytestrings "std" concat-bytestrings)
+ (panic "std" panic)
  (second "std" second))
 
 !(req

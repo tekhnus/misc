@@ -22,7 +22,8 @@ int main(int argc, char **argv) {
   }
   prog_slice sl = prog_slice_make(16 * 1024);
   size_t p = prog_slice_append_new(&sl);
-  char *err = prog_build_c_host(&sl, p, src.ok_value);
+  datum *compdata = compdata_make();
+  char *err = prog_build_c_host(&sl, p, src.ok_value, &compdata);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
