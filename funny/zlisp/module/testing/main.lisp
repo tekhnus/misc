@@ -10,7 +10,6 @@
   (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2)
-  (switchx "stdmacro" switchx)
   (def-or-panica "stdmacro" def-or-panica))
 
 !(#defun fntest (body expect)
