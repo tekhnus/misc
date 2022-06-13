@@ -230,14 +230,12 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return "fn should have one arg";
     }
     size_t s_off = prog_slice_append_new(sl);
-    *compdata = compdata_pop_to_var(*compdata, datum_make_symbol("__lambda"));
     char *err =
       prog_init_routine(sl, s_off, stmt->list_tail->list_head, compdata);
     if (err != NULL) {
       return err;
     }
-    prog_append_set_closures(sl, begin, s_off, datum_make_symbol("__lambda"), hat);
-    prog_append_put_var(sl, begin, datum_make_symbol("__lambda"), compdata);
+    prog_append_put_prog(sl, begin, s_off, hat ? 2 : 1);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
