@@ -72,7 +72,12 @@
 				     (def args (second prearg))
 				     ~body)
 				 ~rest))))
-		(return '(panic "nothing matched"))))
+		(progn
+                  (def firstarg "ifhack")
+                  (def cond "ifhack")
+                  (def body "ifhack")
+                  (def rest "ifhack")
+                  (return '(panic "nothing matched")))))
 
 
 (builtin.defn decons-pat
@@ -80,11 +85,17 @@
 		(def pat (head args))
 		(def val (second args))
 		(if (is-constant pat)
-		    (if (eq pat val)
-			(return '(:ok ()))
-		      (return '(:err)))
+                    (progn
+                      (def first-decons "ifhack")
+                      (def rest-decons "ifhack")
+		      (if (eq pat val)
+			  (return '(:ok ()))
+		        (return '(:err))))
 		  (if (eq (type pat) :symbol)
-		      (return (list :ok (list val)))
+		      (progn
+                        (def first-decons "ifhack")
+                        (def rest-decons "ifhack")
+                        (return (list :ok (list val))))
 		    (if (eq (type pat) :list)
 			(if pat
 			    (if val
@@ -96,11 +107,23 @@
 				    (if (eq :err (head first-decons))
 					(return '(:err))
 				      (return (list :ok (concat (second first-decons) (second rest-decons)))))))
-			      (return '(:err)))
+			      (progn
+                                (def first-decons "ifhack")
+                                (def rest-decons "ifhack")
+                                (return '(:err))))
 			  (if val
-			      (return '(:err))
-			    (return '(:ok ()))))
-		      (panic "decons-pat met an unsupported type"))))))
+                              (progn
+                                (def first-decons "ifhack")
+                                (def rest-decons "ifhack")
+			        (return '(:err)))
+			    (progn
+                              (def first-decons "ifhack")
+                              (def rest-decons "ifhack")
+                              (return '(:ok ())))))
+		      (progn
+                        (def first-decons "ifhack")
+                        (def rest-decons "ifhack")
+                        (panic "decons-pat met an unsupported type")))))))
 
 (builtin.defn decons-vars
      (if (is-constant (head args))

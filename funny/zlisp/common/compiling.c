@@ -167,6 +167,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     if (!datum_eq(*compdata, false_compdata)) {
       fprintf(stderr, "warning: if branches have different compdata\n");
+      fprintf(stderr, "%s\n", datum_repr(stmt->list_tail->list_head));
       // fprintf(stderr, "%s\n", datum_repr(*compdata));
       // fprintf(stderr, "%s\n", datum_repr(false_compdata));
     }
