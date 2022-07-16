@@ -123,7 +123,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 
 LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, datum **compdata) {
   if (!datum_is_nil(*compdata) && datum_is_the_symbol((*compdata)->list_head, "__different_if_branches")) {
-    fprintf(stderr, "warning: if branches had different compdata %s\n", datum_repr(stmt));
+    fprintf(stderr, "fatal: if branches had different compdata %s\n", datum_repr(stmt));
+    exit(EXIT_FAILURE);
   }
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt);
@@ -453,7 +454,8 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
     return -1;
   }
   if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
-    return compdata_get_index(compdata->list_tail, var);
+    fprintf(stderr, "compdata_get_index: if branches had different compdata\n");
+    exit(EXIT_FAILURE);
   }
   if (datum_eq(compdata->list_head, var)) {
     return 0;
