@@ -27,6 +27,16 @@
 	(tail xs))))
     (return (list x))))
 
+(builtin.defn first-good-value (progn
+                                 (if (head args)
+                                     (progn
+                                       (def first-arg (head (head args)))
+                                       (if (eq :ok (head first-arg))
+                                           (progn
+                                             (return (second first-arg)))
+                                         (return (first-good-value (tail (head args))))))
+                                   (panic "first-good-value: no good value"))))
+
 (export
  (panic panic)
  (head head)
@@ -45,4 +55,5 @@
  (list list)
  (ignore ignore)
  (third third)
- (switch-fun switch-fun))
+ (switch-fun switch-fun)
+ (first-good-value first-good-value))

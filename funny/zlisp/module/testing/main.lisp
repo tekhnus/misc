@@ -9,8 +9,8 @@
 !(req
   (defun "stdmacro" defun)
   (fn "stdmacro" fn)
-  (def2 "stdmacro" def2)
-  (def-or-panica "stdmacro" def-or-panica))
+  (def2 "stdmacro" def2))
+
 
 !(#defun fntest (body expect)
    (return `(progn

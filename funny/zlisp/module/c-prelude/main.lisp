@@ -124,8 +124,8 @@
                                (def res (c-data-pointer handle c-name signature))
                                (if (eq 0 res)
                                    (return `(:err "extern-pointer failed"))
-                                 (return `(:ok ~res))))) 
-
+                                 (return `(:ok ~res)))))
+                                        
 (builtin.defn debug-print (return '()))
 
 (export

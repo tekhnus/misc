@@ -7,17 +7,17 @@
  (head "std" head)
  (repr "std" repr)
  (panic "std" panic)
- (second "std" second))
+ (second "std" second)
+ (first-good-value "std" first-good-value))
 
 !(req
   (defun "stdmacro" defun)
   (fn "stdmacro" fn)
-  (def2 "stdmacro" def2)
-  (def-or-panica "stdmacro" def-or-panica))
+  (def2 "stdmacro" def2))
 
-!(#def-or-panica libc
-  (shared-library "libc.so.6")
-  (shared-library "libSystem.B.dylib"))
+(def libc (first-good-value `(
+  ~(shared-library "libc.so.6")
+  ~(shared-library "libSystem.B.dylib"))))
 
 (def malloc (c-function-or-panic libc "malloc" '((sizet) pointer)))
 (def fopen (c-function-or-panic libc "fopen" '((string string) pointer)))
@@ -27,17 +27,17 @@
 (def fprintf-bytestring (c-function-or-panic libc "fprintf" '((pointer string string) sizet)))
 (def printfptr (c-function-or-panic libc "printf" '((string pointer) sizet)))
 
-!(#def-or-panica stdin
-  (extern-pointer libc "stdin" 'pointer)
-  (extern-pointer libc "__stdinp" 'pointer))
+(def stdin (first-good-value `(
+  ~(extern-pointer libc "stdin" 'pointer)
+  ~(extern-pointer libc "__stdinp" 'pointer))))
 
-!(#def-or-panica stdout
-  (extern-pointer libc "stdout" 'pointer)
-  (extern-pointer libc "__stdoutp" 'pointer))
+(def stdout (first-good-value `(
+  ~(extern-pointer libc "stdout" 'pointer)
+  ~(extern-pointer libc "__stdoutp" 'pointer))))
 
-!(#def-or-panica stderr
-  (extern-pointer libc "stderr" 'pointer)
-  (extern-pointer libc "__stderrp" 'pointer))
+(def stderr (first-good-value `(
+  ~(extern-pointer libc "stderr" 'pointer)
+  ~(extern-pointer libc "__stderrp" 'pointer))))
 
 !(#defun print (val)
   (return (fprintf-bytestring stdout "%s\n" (repr val))))

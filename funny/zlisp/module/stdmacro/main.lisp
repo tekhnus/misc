@@ -20,28 +20,10 @@
 	      (def ~left (head tmp))
 	      (def ~right (second tmp)))))
 
-
-!(#defun def-or-panic-tmp-fn (arg)
-  (if arg
-      (return `(progn
-	 (def tmp ~(head arg))
-	 (if (eq :err (head tmp))
-	     ~(def-or-panic-tmp-fn (tail arg))
-	     (progn))))
-    (return `(panic (second tmp)))))
-
-(def def-or-panica
-     (builtin.fn
-      (return
-      `(progn
-	 ~(def-or-panic-tmp-fn (tail args))
-	 (def ~(head args) (second tmp))))))
-
 !(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))
 
 (export
  (defun defun)
  (fn fn)
  (def2 def2)
- (def-or-panica def-or-panica)
  (switchx switchx))

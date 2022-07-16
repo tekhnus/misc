@@ -16,8 +16,8 @@
 !(req
   (defun "stdmacro" defun)
   (fn "stdmacro" fn)
-  (def2 "stdmacro" def2)
-  (def-or-panica "stdmacro" def-or-panica))
+  (def2 "stdmacro" def2))
+
 
 (def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))
 (def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
