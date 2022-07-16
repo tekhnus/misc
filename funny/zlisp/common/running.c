@@ -54,6 +54,7 @@ struct prog {
     };
     struct {
       struct datum *put_var_value;
+      int put_var_offset;
       ptrdiff_t put_var_next;
     };
     ptrdiff_t args_next;
@@ -400,7 +401,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     return NULL;
   } break;
   case PROG_PUT_VAR: {
-    fdatum er = state_get_var(*st, prg->put_var_value);
+    fdatum er = state_get_var(*st, prg->put_var_value, prg->put_var_offset);
     if (fdatum_is_panic(er)) {
       return (er.panic_message);
     }
@@ -481,7 +482,8 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":put-var")) {
     res.type = PROG_PUT_VAR;
     res.put_var_value = list_at(d, 1);
-    res.put_var_next = (list_at(d, 2)->integer_value);
+    res.put_var_offset = list_at(d, 2)->integer_value;
+    res.put_var_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":args")) {
     res.type = PROG_ARGS;
     res.args_next = (list_at(d, 1)->integer_value);

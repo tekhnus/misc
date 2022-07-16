@@ -360,7 +360,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     // fprintf(stderr, "%s\n", datum_repr(*compdata));
     exit(1);
   }
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), val, datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-var"), val, datum_make_int(index), datum_make_int(next)));
   *begin = next;
 }
 

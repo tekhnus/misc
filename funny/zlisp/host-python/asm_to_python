@@ -37,11 +37,11 @@ def make_symbol(s):
     return sexpdata.Symbol(s)
 
 
-def get_var(d, k):
-    for k_, v in reversed(d):
-        if k_ == k:
-            return v
-    raise KeyError(k)
+def get_var(d, k, offset):
+    k_, v = d[-1 - offset]
+    if k_ != k:
+        exit("get_var: offset didn't match")
+    return v
 
 
 def head(args):
@@ -150,8 +150,8 @@ def main():
             pdata[-1][-1].stak.append(value)
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
-            value, nex = args
-            pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value))
+            value, offset, nex = args
+            pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value, offset))
             ip = nex
         elif op == sexpdata.Symbol(":args"):
             (nex,) = args

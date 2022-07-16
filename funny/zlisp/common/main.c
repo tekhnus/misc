@@ -167,17 +167,14 @@ void state_set_var(state **ns, datum *symbol, datum *value) {
   *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack);
 }
 
-fdatum state_get_var(state *ns, datum *symbol) {
-  for (datum *cur = ns->vars; !datum_is_nil(cur); cur = cur->list_tail) {
-    datum *entry = cur->list_head;
-    if (!strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
-      datum *cell = entry->list_tail;
-      return fdatum_make_ok(cell->list_head);
-    }
+fdatum state_get_var(state *ns, datum *symbol, int offset) {
+  datum *entry = list_at(ns->vars, offset);
+  if (strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
+    fprintf(stderr, "state_get_var: offset didn't match\n");
+    exit(EXIT_FAILURE);
   }
-  char *msg = malloc(1024);
-  sprintf(msg, "unbound symbol: %s", symbol->symbol_value);
-  return fdatum_make_panic(msg);
+  datum *cell = entry->list_tail;
+  return fdatum_make_ok(cell->list_head);
 }
 
 EXPORT bool datum_eq(datum *x, datum *y) {
