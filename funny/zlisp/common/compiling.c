@@ -122,6 +122,9 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, datum **compdata) {
+  if (!datum_is_nil(*compdata) && datum_is_the_symbol((*compdata)->list_head, "__different_if_branches")) {
+    fprintf(stderr, "warning: if branches had different compdata %s\n", datum_repr(stmt));
+  }
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt);
     return NULL;
@@ -166,8 +169,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     if (!datum_eq(*compdata, false_compdata)) {
-      fprintf(stderr, "warning: if branches have different compdata\n");
-      fprintf(stderr, "%s\n", datum_repr(stmt->list_tail->list_head));
+      *compdata = compdata_pop_to_var(*compdata, datum_make_symbol("__different_if_branches"));
+      // fprintf(stderr, "warning: if branches have different compdata\n");
+      // fprintf(stderr, "%s\n", datum_repr(stmt->list_tail->list_head));
       // fprintf(stderr, "%s\n", datum_repr(*compdata));
       // fprintf(stderr, "%s\n", datum_repr(false_compdata));
     }
@@ -447,6 +451,9 @@ LOCAL datum *compdata_pop_to_var(datum *compdata, datum *var) {
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
   if (datum_is_nil(compdata)) {
     return -1;
+  }
+  if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
+    return compdata_get_index(compdata->list_tail, var);
   }
   if (datum_eq(compdata->list_head, var)) {
     return 0;
