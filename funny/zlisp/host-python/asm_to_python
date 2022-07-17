@@ -152,7 +152,9 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             value, offset, nex = args
-            pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value, offset))
+            varval = get_var(pdata[-1][-1].varz, value, offset)
+            pdata[-1][-1].stak.append(varval)
+            pdata[-1][-1].varz.append((sexpdata.Symbol(":anon"), varval))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             hat, nex = args

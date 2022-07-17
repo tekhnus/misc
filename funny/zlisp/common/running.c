@@ -408,6 +408,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       return (er.panic_message);
     }
     state_stack_put(st, er.ok_value);
+    state_set_var(st, datum_make_symbol(":anon"), er.ok_value);
     r->offset = prg->put_var_next;
     return NULL;
   } break;
