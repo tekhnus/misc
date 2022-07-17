@@ -65,7 +65,7 @@ void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdat
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin);
 LOCAL fdatum prog_read_exports(datum *spec);
 datum *datum_make_void();
-void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);
+void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_uncollect(prog_slice *sl,size_t *begin);
 LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);

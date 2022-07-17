@@ -398,6 +398,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   } break;
   case PROG_PUT_CONST: {
     state_stack_put(st, prg->put_const_value);
+    state_set_var(st, datum_make_symbol(":anon"), prg->put_const_value);
     r->offset = prg->put_const_next;
     return NULL;
   } break;

@@ -148,6 +148,7 @@ def main():
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
             pdata[-1][-1].stak.append(value)
+            pdata[-1][-1].varz.append((sexpdata.Symbol(":anon"), value))
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             value, offset, nex = args
