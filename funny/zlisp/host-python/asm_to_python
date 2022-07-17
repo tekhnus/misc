@@ -186,13 +186,15 @@ def main():
                 raise RuntimeError(f"host not implemented: {instruction}")
             ip = nex
         elif op == sexpdata.Symbol(":collect"):
-            (nex,) = args
+            cnt, nex = args
             form = []
-            while True:
+            for _ in range(cnt):
                 val = pop_stack()
-                if val == "__function_call":
-                    break
                 form = [val] + form
+            val = pop_stack()
+            if val != "__function_call":
+                raise RuntimeError("collect: wrong count")
+
             pdata[-1][-1].stak.append((form))
             ip = nex
         elif op == sexpdata.Symbol(":uncollect"):

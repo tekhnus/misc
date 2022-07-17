@@ -66,7 +66,10 @@ struct prog {
       struct datum *host_instruction;
       ptrdiff_t host_next;
     };
-    ptrdiff_t collect_next;
+    struct {
+      size_t collect_count;
+      ptrdiff_t collect_next;
+    };
     ptrdiff_t uncollect_next;
     struct {
       struct datum *pop_var;
@@ -437,7 +440,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     return NULL;
   } break;
   case PROG_COLLECT: {
-    datum *form = state_stack_collect(st);
+    datum *form = state_stack_collect(st, prg->collect_count);
     state_stack_put(st, form);
     r->offset = prg->collect_next;
     return NULL;
@@ -497,7 +500,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.host_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
-    res.collect_next = (list_at(d, 1)->integer_value);
+    res.collect_count = list_at(d, 1)->integer_value;
+    res.collect_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":uncollect")) {
     res.type = PROG_UNCOLLECT;
     res.uncollect_next = (list_at(d, 1)->integer_value);

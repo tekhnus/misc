@@ -90,7 +90,7 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
     datum *expr = rest_expressions->list_head;
     prog_append_statement(sl, begin, expr, compdata);
   }
-  prog_append_collect(sl, begin);
+  prog_append_collect(sl, list_length(re->list_tail->list_head), begin);
   return fdatum_make_ok(re->list_head);
 }
 
@@ -320,7 +320,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_collect(sl, begin);
+  prog_append_collect(sl, list_length(stmt), begin);
   prog_append_call(sl, begin, hat);
   return NULL;
 }
@@ -370,9 +370,9 @@ EXPORT void prog_append_args(prog_slice *sl, size_t *begin) {
   *begin = next;
 }
 
-EXPORT void prog_append_collect(prog_slice *sl, size_t *begin) {
+EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":collect"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
   *begin = next;
 }
 
@@ -437,7 +437,7 @@ LOCAL char *prog_append_backquoted_statement(
       return err;
     }
   }
-  prog_append_collect(sl, begin);
+  prog_append_collect(sl, list_length(stmt), begin);
   return NULL;
 }
 

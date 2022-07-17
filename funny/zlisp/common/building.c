@@ -47,11 +47,11 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   if (err != NULL) {
     return err;
   }
-  prog_append_collect(sl, &bdr_end);
+  prog_append_collect(sl, list_length(deps), &bdr_end);
   prog_append_return(sl, &bdr_end, false);
   prog_append_args(sl, p);
   prog_append_put_prog(sl, p, bdr_off, 0);
-  prog_append_collect(sl, p);
+  prog_append_collect(sl, 1, p);
   prog_append_call(sl, p, false);
   return NULL;
 }
@@ -117,7 +117,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   if (err != NULL) {
     return err;
   }
-  prog_append_collect(sl, p);
+  prog_append_collect(sl, 1 + list_length(transitive_deps), p);
   prog_append_call(sl, p, false);
   prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);
   prog_append_put_var(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);
