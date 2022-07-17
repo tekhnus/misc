@@ -85,7 +85,6 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
   if (!datum_is_list(re) || list_length(re) != 2) {
     return fdatum_make_panic("not gonna happen");
   }
-  prog_append_args(sl, begin);
   for (datum *rest_expressions=re->list_tail->list_head; !datum_is_nil(rest_expressions); rest_expressions=rest_expressions->list_tail) {
     datum *expr = rest_expressions->list_head;
     prog_append_statement(sl, begin, expr, compdata);
@@ -303,7 +302,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       break;
     }
   }
-  prog_append_args(sl, begin);
   char *err = prog_append_statement(sl, begin, fn, compdata);
   if (err != NULL) {
     return err;
@@ -364,12 +362,6 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   *begin = next;
 }
 
-EXPORT void prog_append_args(prog_slice *sl, size_t *begin) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":args"), datum_make_int(next)));
-  *begin = next;
-}
-
 EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
@@ -422,7 +414,6 @@ LOCAL char *prog_append_backquoted_statement(
     prog_append_put_const(sl, begin, stmt);
     return NULL;
   }
-  prog_append_args(sl, begin);
   for (datum *rest_elems = stmt; !datum_is_nil(rest_elems);
        rest_elems = rest_elems->list_tail) {
     datum *elem = rest_elems->list_head;

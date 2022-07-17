@@ -26,7 +26,6 @@ enum prog_type {
   PROG_NOP,
   PROG_PUT_CONST,
   PROG_PUT_VAR,
-  PROG_ARGS,
   PROG_CALL,
   PROG_HOST,
   PROG_COLLECT,
@@ -57,7 +56,6 @@ struct prog {
       int put_var_offset;
       ptrdiff_t put_var_next;
     };
-    ptrdiff_t args_next;
     struct {
       bool call_hat;
       ptrdiff_t call_next;
@@ -423,11 +421,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     r->offset = prg->pop_next;
     return NULL;
   } break;
-  case PROG_ARGS: {
-    state_stack_new(st);
-    r->offset = prg->args_next;
-    return NULL;
-  } break;
   case PROG_HOST: {
     datum *name = prg->host_instruction;
     datum *arg = state_stack_pop(st);
@@ -487,9 +480,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_var_value = list_at(d, 1);
     res.put_var_offset = list_at(d, 2)->integer_value;
     res.put_var_next = (list_at(d, 3)->integer_value);
-  } else if (!strcmp(opsym, ":args")) {
-    res.type = PROG_ARGS;
-    res.args_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_hat = list_at(d, 1)->integer_value;

@@ -153,10 +153,6 @@ def main():
             value, offset, nex = args
             pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value, offset))
             ip = nex
-        elif op == sexpdata.Symbol(":args"):
-            (nex,) = args
-            pdata[-1][-1].stak.append("__function_call")
-            ip = nex
         elif op == sexpdata.Symbol(":call"):
             hat, nex = args
             if hat:
@@ -191,10 +187,6 @@ def main():
             for _ in range(cnt):
                 val = pop_stack()
                 form = [val] + form
-            val = pop_stack()
-            if val != "__function_call":
-                raise RuntimeError("collect: wrong count")
-
             pdata[-1][-1].stak.append((form))
             ip = nex
         elif op == sexpdata.Symbol(":uncollect"):

@@ -228,23 +228,11 @@ datum *state_stack_pop(state **s) {
   return res;
 }
 
-void state_stack_new(state **s) {
-  state_stack_put(s, datum_make_symbol("__function_call"));
-}
-
 datum *state_stack_collect(state **s, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *arg = state_stack_pop(s);
-    if (datum_is_the_symbol(arg, "__function_call")) {
-      break;
-    }
     form = datum_make_list(arg, form);
-  }
-  datum *guard = state_stack_pop(s);
-  if (!datum_is_the_symbol(guard, "__function_call")) {
-    fprintf(stderr, "state_stack_collect: wrong count\n");
-    exit(EXIT_FAILURE);
   }
   return form;
 }
