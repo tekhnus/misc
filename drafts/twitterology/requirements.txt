@@ -23,7 +23,7 @@ matplotlib==3.1.1
 ndg-httpsclient==0.4.0
 normality==0.2.4
 numpy==1.20.3
-oauthlib==3.1.1
+oauthlib==3.2.1
 pandas==1.2.4
 path.py==8.1.2
 pexpect==4.8.0
