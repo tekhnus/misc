@@ -108,7 +108,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   }
   datum *transitive_deps = status.ok_value->list_head;
   datum *syms = status.ok_value->list_tail->list_head;
-  prog_append_yield(sl, &run_dep_end, false);
+  prog_append_return(sl, &run_dep_end, false);
   prog_append_put_prog(sl, p, run_dep_off, 0);
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
@@ -118,14 +118,13 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   prog_append_call(sl, p, false);
   // prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);
   // prog_append_put_var(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);
-  prog_append_uncollect(sl, p);
+  // prog_append_uncollect(sl, p);  // the module yields (value, continuation), so we uncollect the value.
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
     prog_append_uncollect(sl, p);
     prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))), compdata);
     *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
-  prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
   prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
   prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep_and_sym)), compdata);
   *state = datum_make_list(dep_and_sym, *state);
