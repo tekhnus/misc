@@ -170,8 +170,24 @@ void state_set_var(state **ns, datum *symbol, datum *value) {
   *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack);
 }
 
+datum *var_at(datum *vars, int offset) {
+  if (datum_is_nil(vars)) {
+    fprintf(stderr, "var not found\n");
+    exit(EXIT_FAILURE);
+  }
+  /* We have to check for anons anywhere (not only on the top of the list),
+     because lambdas inherit the anons during the closure. */
+  if (datum_is_the_symbol(vars->list_head->list_head, ":anon")) {
+    return var_at(vars->list_tail, offset);
+  }
+  if (offset == 0) {
+    return vars->list_head;
+  }
+  return var_at(vars->list_tail, offset - 1);
+}
+
 fdatum state_get_var(state *ns, datum *symbol, int offset) {
-  datum *entry = list_at(ns->vars, offset);
+  datum *entry = var_at(ns->vars, offset);
   if (strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
     fprintf(stderr, "state_get_var: offset didn't match\n");
     exit(EXIT_FAILURE);
@@ -218,17 +234,21 @@ EXPORT bool datum_is_constant(datum *d) {
 }
 
 void state_stack_put(state **ns, datum *value) {
-  *ns = state_make((*ns)->vars, datum_make_list(value, (*ns)->stack));
+  state_set_var(ns, datum_make_symbol(":anon"), value);
 }
 
 datum *state_stack_pop(state **s) {
-  if (datum_is_nil((*s)->stack)) {
+  if (datum_is_nil((*s)->vars)) {
     fprintf(stderr, "popping from an empty stack is an oh no no\n");
     exit(EXIT_FAILURE);
   }
-  datum *res = (*s)->stack->list_head;
-  *s = state_make((*s)->vars, (*s)->stack->list_tail);
-  return res;
+  datum *cell = (*s)->vars->list_head;
+  if (!datum_is_the_symbol(cell->list_head, ":anon")) {
+    fprintf(stderr, "tried to pop, but it's not an anonymous!\n");
+    exit(EXIT_FAILURE);
+  }
+  *s = state_make((*s)->vars->list_tail, (*s)->stack);
+  return cell->list_tail->list_head;
 }
 
 datum *state_stack_collect(state **s, size_t count) {
