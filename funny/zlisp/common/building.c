@@ -40,7 +40,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
   datum *bdr_compdata = compdata_make();
-  prog_append_pop(sl, &bdr_end, datum_make_symbol(":void"), &bdr_compdata);
+  prog_append_recieve(sl, &bdr_end, datum_make_nil(), &bdr_compdata);  // bdr is callable with zero arguments
   datum *state = datum_make_nil();
   char *err = prog_build_deps(&state, sl, &bdr_end, deps, module_source, &bdr_compdata);
   if (err != NULL) {
