@@ -375,7 +375,11 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
   *begin = next;
-  if (!datum_is_the_symbol(var, ":void")) {
+  if (datum_is_list(var)) {
+    for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
+      *compdata = compdata_pop_to_var(*compdata, rest->list_head);
+    }
+  } else if (!datum_is_the_symbol(var, ":void")) {
     *compdata = compdata_pop_to_var(*compdata, var);
   }
 }
@@ -456,12 +460,7 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
 }
 
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
-  for (datum *rest = args; !datum_is_nil(rest); rest = rest->list_tail) {
-    datum *arg = rest->list_head;
-    prog_append_uncollect(sl, begin);
-    prog_append_pop(sl, begin, arg, compdata);
-  }
-  prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
+  prog_append_pop(sl, begin, args, compdata);
 }
 
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata) {
