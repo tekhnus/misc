@@ -7,7 +7,6 @@ import sexpdata
 @dataclasses.dataclass
 class State:
     varz: list = dataclasses.field(default_factory=list)
-    stak: list = dataclasses.field(default_factory=list)
     ip: int = 0
 
 
@@ -16,9 +15,8 @@ def is_true(tagged_value):
 
 
 def check_is_routine_0(tagged_value):
-    offset, varz_and_stack = tagged_value
-    varz, stack = varz_and_stack
-    return offset, (varz, stack)
+    offset, varz = tagged_value
+    return offset, varz
 
 
 def check_is_cons(val):
@@ -29,8 +27,8 @@ def make_list_with_items(*args):
     return list(args)
 
 
-def make_routine_0(ip, varz, stak):
-    return make_list_with_items((ip), make_list_with_items((varz), (stak)))
+def make_routine_0(ip, varz):
+    return make_list_with_items(ip, varz)
 
 
 def make_symbol(s):
@@ -38,10 +36,14 @@ def make_symbol(s):
 
 
 def get_var(d, k, offset):
-    k_, v = d[-1 - offset]
-    if k_ != k:
-        exit("get_var: offset didn't match")
-    return v
+    if not d:
+        exit("get_var: not found")
+    k_, v = d[-1]
+    if k_ == ":anon":
+        return get_var(d[:-1], k, offset)
+    if offset == 0:
+        return v
+    return get_var(d[:-1], k, offset - 1)
 
 
 def head(args):
@@ -125,7 +127,9 @@ def main():
     pdata = [[State()]]
 
     def pop_stack():
-        return pdata[-1][-1].stak.pop()
+        k, v = pdata[-1][-1].varz.pop()
+        assert k == ":anon"
+        return v
 
     while True:
         ip = pdata[-1][-1].ip
@@ -147,11 +151,11 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
-            pdata[-1][-1].stak.append(value)
+            pdata[-1][-1].varz.append((":anon", value))
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             value, offset, nex = args
-            pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value, offset))
+            pdata[-1][-1].varz.append((":anon", get_var(pdata[-1][-1].varz, value, offset)))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             hat, nex = args
@@ -159,13 +163,12 @@ def main():
                 raise RuntimeError("routine-1 call is not supported yet")
             fnandargs = pop_stack()
             rout, args = check_is_cons(fnandargs)
-            offset, (varz, stack) = check_is_routine_0(rout)
+            offset, varz = check_is_routine_0(rout)
             rtvarz = list(varz)
-            rtstack = list(stack)
-            rtstack.append(args)
+            rtvarz.append((":anon", args))
             pdata[-1][-1].ip = nex
             pdata[-1].append(
-                State(varz=rtvarz, stak=rtstack, ip=0)
+                State(varz=rtvarz, ip=0)
             )  # ip set after endif
             ip = offset
         elif op == sexpdata.Symbol(":host"):
@@ -177,7 +180,7 @@ def main():
                 and instruction[0] == "eval"
             ):
                 res = eval(instruction[1], globals(), {"x": arg})
-                pdata[-1][-1].stak.append(res)
+                pdata[-1][-1].varz.append((":anon", res))
             else:
                 raise RuntimeError(f"host not implemented: {instruction}")
             ip = nex
@@ -187,16 +190,16 @@ def main():
             for _ in range(cnt):
                 val = pop_stack()
                 form = [val] + form
-            pdata[-1][-1].stak.append((form))
+            pdata[-1][-1].varz.append((":anon", form))
             ip = nex
         elif op == sexpdata.Symbol(":uncollect"):
             (nex,) = args
-            lis = pdata[-1][-1].stak.pop()
+            lis = pop_stack()
             if not isinstance(lis, list) or not lis:
                 raise RuntimeError("uncollect expected a non-empty list")
             hd, *tl = lis
-            pdata[-1][-1].stak.append(tl)
-            pdata[-1][-1].stak.append(hd)
+            pdata[-1][-1].varz.append((":anon", tl))
+            pdata[-1][-1].varz.append((":anon", hd))
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
@@ -214,20 +217,20 @@ def main():
             if hat:
                 raise RuntimeError("routine-1 set-closures is not supported yet")
             pvarz = list(pdata[-1][-1].varz)
-            p = make_routine_0(pr, pvarz, [])
+            p = make_routine_0(pr, pvarz)
             pvarz.append((name, p))
             pdata[-1][-1].varz.append((name, p))
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
             if capture == 0:
-                p = make_routine_0(pr, [], [])
+                p = make_routine_0(pr, [])
             elif capture == 1:
                 pvarz = list(pdata[-1][-1].varz)
-                p = make_routine_0(pr, pvarz, [])
+                p = make_routine_0(pr, pvarz)
             else:
                 raise RuntimeError("put-prog capture=2 is not supported yet")
-            pdata[-1][-1].stak.append(p)
+            pdata[-1][-1].varz.append((":anon", p))
             ip = nex
         elif op == sexpdata.Symbol(":return"):
             # print(op, *args)
@@ -236,18 +239,17 @@ def main():
                 raise RuntimeError("routine-1 return is not supported yet")
             rvalue = pop_stack()
             pdata[-1].pop()
-            pdata[-1][-1].stak.append(rvalue)
+            pdata[-1][-1].varz.append((":anon", rvalue))
             ip = pdata[-1][-1].ip
         elif op == sexpdata.Symbol(":yield"):
             hat, nex = args
             rvalue = pop_stack()
 
             contvarz = list(pdata[-1][-1].varz)
-            contstack = list(pdata[-1][-1].stak)
-            cont = make_routine_0(varz=contvarz, stak=contstack, ip=nex)
+            cont = make_routine_0(varz=contvarz, ip=nex)
 
             pdata[-1].pop()
-            pdata[-1][-1].stak.append(make_list_with_items(rvalue, cont))
+            pdata[-1][-1].varz.append((":anon", make_list_with_items(rvalue, cont)))
             ip = pdata[-1][-1].ip
         else:
             raise RuntimeError(op)
