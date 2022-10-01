@@ -46,6 +46,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   if (err != NULL) {
     return err;
   }
+  prog_put_deps(sl, &bdr_end, deps, &bdr_compdata);
   prog_append_collect(sl, list_length(deps), &bdr_end);
   prog_append_return(sl, &bdr_end, false);
   prog_append_put_prog(sl, p, bdr_off, 0);
@@ -61,9 +62,15 @@ LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *dep
     if (err != NULL) {
       return err;
     }
-    prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep)), compdata);
   }
   return NULL;
+}
+
+LOCAL void prog_put_deps(prog_slice *sl, size_t *p, datum *deps, datum **compdata) {
+  for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
+    datum *dep = rest_deps->list_head;
+    prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep)), compdata);
+  }
 }
 
 LOCAL char *get_varname(datum *dep_and_sym) {
@@ -125,6 +132,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   if (err != NULL) {
     return err;
   }
+  prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_collect(sl, 1 + list_length(transitive_deps), p);
   prog_append_call(sl, p, false);
   // prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);

@@ -45,6 +45,7 @@ struct state {
   struct datum *stack;
 };
 LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
