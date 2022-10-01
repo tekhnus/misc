@@ -439,16 +439,20 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   case PROG_COLLECT: {
     datum *form = state_stack_collect(st, prg->collect_count);
     state_stack_put(st, form);
+    state_set_var(st, datum_make_symbol(":anon"), form);
     r->offset = prg->collect_next;
     return NULL;
   } break;
   case PROG_UNCOLLECT: {
     datum *list = state_stack_pop(st);
+    state_vars_pop(st);
     if (!datum_is_list(list) || datum_is_nil(list)) {
       return "uncollect expects a non-empty list";
     }
     state_stack_put(st, list->list_tail);
+    state_set_var(st, datum_make_symbol(":anon"), list->list_tail);
     state_stack_put(st, list->list_head);
+    state_set_var(st, datum_make_symbol(":anon"), list->list_head);
     r->offset = prg->uncollect_next;
     return NULL;
   } break;

@@ -41,7 +41,7 @@ LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datu
   }
   for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep_var = rest_deps->list_head;
-    prog_append_uncollect(sl, begin);
+    prog_append_uncollect(sl, begin, compdata);
     prog_append_pop(sl, begin, dep_var, compdata);
   }
   prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
@@ -89,7 +89,7 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
     datum *expr = rest_expressions->list_head;
     prog_append_statement(sl, begin, expr, compdata);
   }
-  prog_append_collect(sl, list_length(re->list_tail->list_head), begin);
+  prog_append_collect(sl, list_length(re->list_tail->list_head), begin, compdata);
   return fdatum_make_ok(re->list_head);
 }
 
@@ -318,7 +318,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_collect(sl, list_length(stmt), begin);
+  prog_append_collect(sl, list_length(stmt), begin, compdata);
   prog_append_call(sl, begin, hat);
   return NULL;
 }
@@ -364,16 +364,20 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin) {
+EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
   *begin = next;
+  for (size_t i = 0; i + 1 < count; ++i) {
+    *compdata = compdata_del_top(*compdata);
+  }
 }
 
-EXPORT void prog_append_uncollect(prog_slice *sl, size_t *begin) {
+EXPORT void prog_append_uncollect(prog_slice *sl, size_t *begin, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":uncollect"), datum_make_int(next)));
   *begin = next;
+  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
@@ -431,7 +435,7 @@ LOCAL char *prog_append_backquoted_statement(
       return err;
     }
   }
-  prog_append_collect(sl, list_length(stmt), begin);
+  prog_append_collect(sl, list_length(stmt), begin, compdata);
   return NULL;
 }
 
@@ -441,6 +445,14 @@ EXPORT datum *compdata_make() {
 
 LOCAL datum *compdata_pop_to_var(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
+}
+
+LOCAL datum *compdata_del_top(datum *compdata) {
+  if (datum_is_nil(compdata)) {
+    fprintf(stderr, "compdata_del_top\n");
+    exit(EXIT_FAILURE);
+  }
+  return compdata->list_tail;
 }
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
