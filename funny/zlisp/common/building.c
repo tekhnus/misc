@@ -61,6 +61,7 @@ LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *dep
     if (err != NULL) {
       return err;
     }
+    prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep)), compdata);
   }
   return NULL;
 }
@@ -107,7 +108,6 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     }
   }
   if (already_built) {
-    prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep_and_sym)), compdata);
     return NULL;
   }
   // fprintf(stderr, "!!!!!! %s\n", datum_repr(dep_and_sym));
@@ -137,7 +137,5 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
   prog_append_pop(sl, p, names, compdata);
-  prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep_and_sym)), compdata);
-  *state = datum_make_list(dep_and_sym, *state);
   return NULL;
 }
