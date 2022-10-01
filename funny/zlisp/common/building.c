@@ -81,6 +81,17 @@ LOCAL char *get_varname(datum *dep_and_sym) {
   return res;
 }
 
+LOCAL datum *list_append(datum *x, datum *y) {
+  if (!datum_is_list(x)) {
+    fprintf(stderr, "list_append failed\n");
+    exit(EXIT_FAILURE);
+  }
+  if (datum_is_nil(x)) {
+    return datum_make_list_1(y);
+  }
+  return datum_make_list(x->list_head, list_append(x->list_tail, y));
+}
+
 LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
     return "req expects bytestrings";
@@ -119,13 +130,13 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   // prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);
   // prog_append_put_var(sl, p, datum_make_symbol(get_varname(datum_make_list_1(dep))), compdata);
   // prog_append_uncollect(sl, p);  // the module yields (value, continuation), so we uncollect the value.
+  datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
-    prog_append_uncollect(sl, p);
-    prog_append_pop(sl, p, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))), compdata);
+    names = list_append(names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
     *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
-  prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
+  prog_append_pop(sl, p, names, compdata);
   prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep_and_sym)), compdata);
   *state = datum_make_list(dep_and_sym, *state);
   return NULL;
