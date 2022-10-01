@@ -8,6 +8,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
   if (fdatum_is_panic(res)) {
     return res;
   }
+  prog_append_put_const(sl, off, datum_make_void());
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
@@ -39,13 +40,8 @@ LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datu
   if (!datum_is_list(re) || list_length(re) != 2) {
     return fdatum_make_panic("not gonna happen");
   }
-  for (datum *rest_deps=re->list_head; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
-    datum *dep_var = rest_deps->list_head;
-    prog_append_uncollect(sl, begin);
-    prog_append_pop(sl, begin, dep_var, compdata);
-  }
-  prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
-  prog_append_put_const(sl, begin, datum_make_void());
+  datum *vars = re->list_head;
+  prog_append_recieve(sl, begin, vars, compdata);
   return fdatum_make_ok(re->list_tail->list_head);
 }
 
@@ -458,9 +454,19 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
   return res + 1;
 }
 
+EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
+  for (datum *rest = args; !datum_is_nil(rest); rest = rest->list_tail) {
+    datum *arg = rest->list_head;
+    prog_append_uncollect(sl, begin);
+    prog_append_pop(sl, begin, arg, compdata);
+  }
+  prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
+}
+
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata) {
   datum *routine_compdata = *compdata;
-  prog_append_pop(sl, &s, datum_make_symbol("args"), &routine_compdata);
+  prog_append_collect(sl, 1, &s);
+  prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), &routine_compdata);
   return prog_append_statement(sl, &s, stmt, &routine_compdata);
 }
 
