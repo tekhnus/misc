@@ -163,6 +163,9 @@ EXPORT state *state_make_fresh() {
 }
 
 void state_set_var(state **ns, datum *symbol, datum *value) {
+  if (!datum_is_nil((*ns)->stack)) {
+    fprintf(stderr, "warning: setting var %s, but the stack is not nil: %d\n", symbol->symbol_value, list_length((*ns)->stack));
+  }
   datum *kv = datum_make_list_2(symbol, value);
   *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack);
 }
