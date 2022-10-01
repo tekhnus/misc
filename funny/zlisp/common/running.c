@@ -118,7 +118,6 @@ LOCAL char *routine_2_run(prog_slice sl, routine_2 *r,
                           fdatum (*perform_host_instruction)(datum *,
                                                              datum *)) {
   for (; datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset)).type != PROG_END;) {
-    // printf("%d %s\n", p->type, datum_repr(s->stack));
     char *err = routine_2_step(sl, r, perform_host_instruction);
     if (err != NULL) {
       return err;
@@ -163,7 +162,7 @@ LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
 
 LOCAL datum *routine_0_to_datum(routine_0 r) {
   return datum_make_list_2(datum_make_int(r.offset),
-                           datum_make_list_2(r.state_->vars, r.state_->stack));
+                           datum_make_list_1(r.state_->vars));
 }
 
 LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
@@ -178,12 +177,11 @@ LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
   if (!(datum_is_list(fn) && list_length(fn) == 2 &&
         datum_is_integer(fn->list_head) &&
         datum_is_list(fn->list_tail->list_head) &&
-        list_length(fn->list_tail->list_head) == 2)) {
+        list_length(fn->list_tail->list_head) == 1)) {
     return "cannot convert datum to routine-0";
   }
   res->offset = fn->list_head->integer_value;
-  res->state_ = state_make(fn->list_tail->list_head->list_head,
-                           fn->list_tail->list_head->list_tail->list_head);
+  res->state_ = state_make(fn->list_tail->list_head->list_head);
   return NULL;
 }
 
@@ -300,12 +298,11 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if (datum_is_list(fn) && list_length(fn) == 2 &&
         datum_is_integer(fn->list_head) &&
         datum_is_list(fn->list_tail->list_head) &&
-        list_length(fn->list_tail->list_head) == 2) {
+        list_length(fn->list_tail->list_head) == 1) {
       int64_t offset = fn->list_head->integer_value;
       datum *vars = fn->list_tail->list_head->list_head;
-      datum *stack = fn->list_tail->list_head->list_tail->list_head;
       callee.offset = offset;
-      callee.state_ = state_make(vars, stack);
+      callee.state_ = state_make(vars);
     } else {
       return ("tried to plain-call a non-routine-0");
     }
@@ -321,8 +318,8 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     datum *clos = datum_make_list_2(datum_make_int(prg->set_closures_prog),
                                     datum_make_nil());
     state_set_var(st, prg->set_closures_name, clos);
-    clos->list_tail->list_head = datum_make_list_2(
-        (*st)->vars, (*st)->stack); // modifying a datum because we need to
+    clos->list_tail->list_head = datum_make_list_1(
+        (*st)->vars); // modifying a datum because we need to
                                     // create a circular reference:(
     r->cur.offset = prg->set_closures_next;
     return NULL;
@@ -342,13 +339,13 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     }
     if (prg->put_prog_capture == 1) {
       state *s = *st;
-      datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
+      datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s->vars));
       state_stack_put(st, prog);
       r->cur.offset = prg->put_prog_next;
       return NULL;
     }
     state *s = state_make_fresh();
-    datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
+    datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s->vars));
     state_stack_put(st, prog);
     r->cur.offset = prg->put_prog_next;
     return NULL;
@@ -363,7 +360,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),
-                          datum_make_list_2(fr.state_->vars, fr.state_->stack));
+                          datum_make_list_1(fr.state_->vars));
     datum *result = datum_make_list_2(val, conti);
     state_stack_put(st, result);
     return NULL;

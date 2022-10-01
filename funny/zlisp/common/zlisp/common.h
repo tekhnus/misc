@@ -104,5 +104,4 @@ struct datum {
 };
 struct state {
   struct datum *vars;
-  struct datum *stack;
 };

@@ -42,7 +42,6 @@ LOCAL datum *list_append(datum *x,datum *y);
 LOCAL char *get_varname(datum *dep_and_sym);
 struct state {
   struct datum *vars;
-  struct datum *stack;
 };
 LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
@@ -120,7 +119,7 @@ fdatum state_get_var(state *ns,datum *symbol,int offset);
 datum *var_at(datum *vars,int offset);
 void state_set_var(state **ns,datum *symbol,datum *value);
 state *state_make_fresh();
-state *state_make(datum *vars,datum *stack);
+state *state_make(datum *vars);
 char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_make_panic(char *message);
 fdatum fdatum_make_ok(datum *v);

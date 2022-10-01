@@ -151,23 +151,19 @@ char *fdatum_get_panic_message(fdatum result) { // used in lisp
   return result.panic_message;
 }
 
-state *state_make(datum *vars, datum *stack) {
+state *state_make(datum *vars) {
   state *res = malloc(sizeof(state));
   res->vars = vars;
-  res->stack = stack;
   return res;
 }
 
 EXPORT state *state_make_fresh() {
-  return state_make(datum_make_nil(), datum_make_nil());
+  return state_make(datum_make_nil());
 }
 
 void state_set_var(state **ns, datum *symbol, datum *value) {
-  if (!datum_is_nil((*ns)->stack)) {
-    fprintf(stderr, "warning: setting var %s, but the stack is not nil: %d\n", symbol->symbol_value, list_length((*ns)->stack));
-  }
   datum *kv = datum_make_list_2(symbol, value);
-  *ns = state_make(datum_make_list(kv, (*ns)->vars), (*ns)->stack);
+  *ns = state_make(datum_make_list(kv, (*ns)->vars));
 }
 
 datum *var_at(datum *vars, int offset) {
@@ -247,7 +243,7 @@ datum *state_stack_pop(state **s) {
     fprintf(stderr, "tried to pop, but it's not an anonymous!\n");
     exit(EXIT_FAILURE);
   }
-  *s = state_make((*s)->vars->list_tail, (*s)->stack);
+  *s = state_make((*s)->vars->list_tail);
   return cell->list_tail->list_head;
 }
 
