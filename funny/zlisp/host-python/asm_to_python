@@ -148,13 +148,10 @@ def main():
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
             pdata[-1][-1].stak.append(value)
-            pdata[-1][-1].varz.append((sexpdata.Symbol(":anon"), value))
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             value, offset, nex = args
-            varval = get_var(pdata[-1][-1].varz, value, offset)
-            pdata[-1][-1].stak.append(varval)
-            pdata[-1][-1].varz.append((sexpdata.Symbol(":anon"), varval))
+            pdata[-1][-1].stak.append(get_var(pdata[-1][-1].varz, value, offset))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             hat, nex = args
@@ -227,7 +224,6 @@ def main():
             else:
                 raise RuntimeError("put-prog capture=2 is not supported yet")
             pdata[-1][-1].stak.append(p)
-            pdata[-1][-1].varz.append((sexpdata.Symbol(":anon"), p))
             ip = nex
         elif op == sexpdata.Symbol(":return"):
             # print(op, *args)

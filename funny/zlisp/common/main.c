@@ -228,22 +228,11 @@ datum *state_stack_pop(state **s) {
   return res;
 }
 
-datum *state_vars_pop(state **s) {
-  if (datum_is_nil((*s)->vars)) {
-    fprintf(stderr, "popping from empty vars is an oh no no\n");
-    exit(EXIT_FAILURE);
-  }
-  datum *res = (*s)->vars->list_head;
-  *s = state_make((*s)->vars->list_tail, (*s)->stack);
-  return res;
-}
-
 datum *state_stack_collect(state **s, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *arg = state_stack_pop(s);
     form = datum_make_list(arg, form);
-    state_vars_pop(s);
   }
   return form;
 }

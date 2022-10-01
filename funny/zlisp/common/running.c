@@ -344,14 +344,12 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       state *s = *st;
       datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
       state_stack_put(st, prog);
-      state_set_var(st, datum_make_symbol(":anon"), prog);
       r->cur.offset = prg->put_prog_next;
       return NULL;
     }
     state *s = state_make_fresh();
     datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
     state_stack_put(st, prog);
-    state_set_var(st, datum_make_symbol(":anon"), prog);
     r->cur.offset = prg->put_prog_next;
     return NULL;
   }
@@ -400,7 +398,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   } break;
   case PROG_PUT_CONST: {
     state_stack_put(st, prg->put_const_value);
-    state_set_var(st, datum_make_symbol(":anon"), prg->put_const_value);
     r->offset = prg->put_const_next;
     return NULL;
   } break;
@@ -410,7 +407,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       return (er.panic_message);
     }
     state_stack_put(st, er.ok_value);
-    state_set_var(st, datum_make_symbol(":anon"), er.ok_value);
     r->offset = prg->put_var_next;
     return NULL;
   } break;
@@ -439,20 +435,16 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   case PROG_COLLECT: {
     datum *form = state_stack_collect(st, prg->collect_count);
     state_stack_put(st, form);
-    state_set_var(st, datum_make_symbol(":anon"), form);
     r->offset = prg->collect_next;
     return NULL;
   } break;
   case PROG_UNCOLLECT: {
     datum *list = state_stack_pop(st);
-    state_vars_pop(st);
     if (!datum_is_list(list) || datum_is_nil(list)) {
       return "uncollect expects a non-empty list";
     }
     state_stack_put(st, list->list_tail);
-    state_set_var(st, datum_make_symbol(":anon"), list->list_tail);
     state_stack_put(st, list->list_head);
-    state_set_var(st, datum_make_symbol(":anon"), list->list_head);
     r->offset = prg->uncollect_next;
     return NULL;
   } break;

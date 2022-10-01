@@ -16,9 +16,8 @@
    (return `(progn
               !(#defun calltest () ~body)
               (def val (calltest))
-              (def panics ((builtin.fn
-                            (if (eq val ~expect)
-                                (return panics)
-                              (return (cons (concat-bytestrings (concat-bytestrings (repr val) " != ") (repr ~expect)) panics)))))))))
+              (if (eq val ~expect)
+                  (def panics panics)
+                (def panics (cons (concat-bytestrings (concat-bytestrings (repr val) " != ") (repr ~expect)) panics))))))
 
 (export (fntest fntest))
