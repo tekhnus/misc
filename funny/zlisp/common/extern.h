@@ -46,7 +46,7 @@ struct state {
 LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
-LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *));
+LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 datum *compdata_make();
 LOCAL int compdata_get_index(datum *compdata,datum *var);
@@ -55,7 +55,7 @@ LOCAL void prog_append_host(prog_slice *sl,size_t *begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
-void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
+void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);

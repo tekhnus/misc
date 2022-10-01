@@ -227,6 +227,7 @@ def main():
             else:
                 raise RuntimeError("put-prog capture=2 is not supported yet")
             pdata[-1][-1].stak.append(p)
+            pdata[-1][-1].varz.append((sexpdata.Symbol(":anon"), p))
             ip = nex
         elif op == sexpdata.Symbol(":return"):
             # print(op, *args)

@@ -240,7 +240,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_put_prog(sl, begin, s_off, hat ? 2 : 1);
+    prog_append_put_prog(sl, begin, s_off, hat ? 2 : 1, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
@@ -392,10 +392,11 @@ LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
   *begin = next;
 }
 
-EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture) {
+EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
+  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_return(prog_slice *sl, size_t *begin, bool hat) {

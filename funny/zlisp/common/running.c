@@ -344,12 +344,14 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       state *s = *st;
       datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
       state_stack_put(st, prog);
+      state_set_var(st, datum_make_symbol(":anon"), prog);
       r->cur.offset = prg->put_prog_next;
       return NULL;
     }
     state *s = state_make_fresh();
     datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_2(s->vars, s->stack));
     state_stack_put(st, prog);
+    state_set_var(st, datum_make_symbol(":anon"), prog);
     r->cur.offset = prg->put_prog_next;
     return NULL;
   }

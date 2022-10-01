@@ -13,7 +13,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
     return res.panic_message;
   }
-  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source);
+  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source, compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
     return err;
@@ -35,7 +35,7 @@ EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
   return prog_build(sl, ep, datum_make_list(spec, stmts), module_source, compdata);
 }
 
-LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
+LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   // fprintf(stderr, "!!!!! %s\n", datum_repr(deps));
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
@@ -48,7 +48,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   }
   prog_append_collect(sl, list_length(deps), &bdr_end);
   prog_append_return(sl, &bdr_end, false);
-  prog_append_put_prog(sl, p, bdr_off, 0);
+  prog_append_put_prog(sl, p, bdr_off, 0, compdata);
   prog_append_collect(sl, 1, p);
   prog_append_call(sl, p, false);
   return NULL;
@@ -109,7 +109,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   datum *transitive_deps = status.ok_value->list_head;
   datum *syms = status.ok_value->list_tail->list_head;
   prog_append_yield(sl, &run_dep_end, false);
-  prog_append_put_prog(sl, p, run_dep_off, 0);
+  prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;
