@@ -314,7 +314,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_collect(sl, list_length(stmt), begin);
+  prog_append_collect(sl, list_length(stmt) - 1, begin);
+  prog_append_collect(sl, 2, begin);
   prog_append_call(sl, begin, hat);
   return NULL;
 }
@@ -465,7 +466,6 @@ EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datu
 
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata) {
   datum *routine_compdata = *compdata;
-  prog_append_collect(sl, 1, &s);
   prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), &routine_compdata);
   return prog_append_statement(sl, &s, stmt, &routine_compdata);
 }
