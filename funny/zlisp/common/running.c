@@ -29,7 +29,6 @@ enum prog_type {
   PROG_CALL,
   PROG_HOST,
   PROG_COLLECT,
-  PROG_UNCOLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
@@ -68,7 +67,6 @@ struct prog {
       size_t collect_count;
       ptrdiff_t collect_next;
     };
-    ptrdiff_t uncollect_next;
     struct {
       struct datum *pop_var;
       ptrdiff_t pop_next;
@@ -458,15 +456,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     r->offset = prg->collect_next;
     return NULL;
   } break;
-  case PROG_UNCOLLECT: {
-    datum *list = state_stack_pop(st);
-    if (!datum_is_list(list)) {
-      return "uncollect expects a list";
-    }
-    state_stack_put_all(st, list);
-    r->offset = prg->uncollect_next;
-    return NULL;
-  } break;
   default:
     break;
   }
@@ -511,9 +500,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
     res.collect_next = list_at(d, 2)->integer_value;
-  } else if (!strcmp(opsym, ":uncollect")) {
-    res.type = PROG_UNCOLLECT;
-    res.uncollect_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":pop")) {
     res.type = PROG_POP;
     res.pop_var = list_at(d, 1);

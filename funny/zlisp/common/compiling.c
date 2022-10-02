@@ -366,12 +366,6 @@ EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin) {
   *begin = next;
 }
 
-EXPORT void prog_append_uncollect(prog_slice *sl, size_t *begin) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":uncollect"), datum_make_int(next)));
-  *begin = next;
-}
-
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));

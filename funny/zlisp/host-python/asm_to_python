@@ -192,13 +192,6 @@ def main():
                 form = [val] + form
             pdata[-1][-1].varz.append((":anon", form))
             ip = nex
-        elif op == sexpdata.Symbol(":uncollect"):
-            (nex,) = args
-            lis = pop_stack()
-            if not isinstance(lis, list):
-                raise RuntimeError("uncollect expected a list")
-            pdata[-1][-1].varz.extend((":anon", x) for x in lis)
-            ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
             if var == sexpdata.Symbol(":void"):

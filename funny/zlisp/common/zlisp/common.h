@@ -71,7 +71,6 @@ void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin);
-void prog_append_uncollect(prog_slice *sl,size_t *begin);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
 void prog_append_return(prog_slice *sl,size_t *begin,bool hat,size_t count);
