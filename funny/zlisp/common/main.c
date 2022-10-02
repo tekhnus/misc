@@ -233,6 +233,16 @@ void state_stack_put(state **ns, datum *value) {
   state_set_var(ns, datum_make_symbol(":anon"), value);
 }
 
+void state_stack_put_all(state **ns, datum *list) {
+  if (!datum_is_list(list)) {
+    fprintf(stderr, "put_all expected a list\n");
+    exit(EXIT_FAILURE);
+  }
+  for (datum *rest = list; !datum_is_nil(rest); rest = rest->list_tail) {
+    state_stack_put(ns, rest->list_head);
+  }
+}
+
 datum *state_stack_pop(state **s) {
   if (datum_is_nil((*s)->vars)) {
     fprintf(stderr, "popping from an empty stack is an oh no no\n");

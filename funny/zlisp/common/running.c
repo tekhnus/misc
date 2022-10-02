@@ -227,6 +227,11 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     r->cur.cur.offset = prg->call_next;
     routine_2_push_frame(r, callee);
     state_stack_put(&r->cur.cur.state_, args);
+    prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
+    if (xxx.type != PROG_NOP) {
+      fprintf(stderr, "not a nop!\n");
+      exit(EXIT_FAILURE);
+    }
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -309,6 +314,11 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     r->cur.offset = prg->call_next;
     routine_1_push_frame(r, callee);
     state_stack_put(st, args);
+    prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
+    if (xxx.type != PROG_NOP) {
+      fprintf(stderr, "not a nop!\n");
+      exit(EXIT_FAILURE);
+    }
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {

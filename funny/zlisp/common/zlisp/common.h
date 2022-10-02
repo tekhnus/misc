@@ -77,6 +77,7 @@ void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
 void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
 datum *compdata_make();
+void prog_append_nop(prog_slice *sl,size_t *begin);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);
 datum *datum_make_void();
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);

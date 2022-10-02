@@ -263,6 +263,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_yield(sl, begin, hat);
+    prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
+    prog_append_put_const(sl, begin, datum_make_void());
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
@@ -459,7 +461,15 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
   return res + 1;
 }
 
+EXPORT void prog_append_nop(prog_slice *sl, size_t *begin) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":nop"), datum_make_int(next)));
+  *begin = next;
+}
+
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
+  prog_append_nop(sl, begin);
+  // prog_append_collect(sl, list_length(args), begin);
   prog_append_pop(sl, begin, args, compdata);
 }
 
