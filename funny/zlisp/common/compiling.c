@@ -8,7 +8,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
   if (fdatum_is_panic(res)) {
     return res;
   }
-  prog_append_put_const(sl, off, datum_make_void());
+  prog_append_put_const(sl, off, datum_make_void(), compdata);
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
@@ -121,7 +121,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     exit(EXIT_FAILURE);
   }
   if (datum_is_constant(stmt)) {
-    prog_append_put_const(sl, begin, stmt);
+    prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
@@ -175,7 +175,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    prog_append_put_const(sl, begin, datum_make_void());
+    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     for (datum *rest = stmt->list_tail; !datum_is_nil(rest);
          rest = rest->list_tail) {
       prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
@@ -191,7 +191,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (list_length(stmt->list_tail) != 1) {
       return "quote should have a single arg";
     }
-    prog_append_put_const(sl, begin, stmt->list_tail->list_head);
+    prog_append_put_const(sl, begin, stmt->list_tail->list_head, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "def")) {
@@ -204,7 +204,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_pop(sl, begin, datum_make_list_1(stmt->list_tail->list_head), compdata);
-    prog_append_put_const(sl, begin, datum_make_void());
+    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defn") ||
@@ -220,7 +220,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_set_closures(sl, begin, s_off, stmt->list_tail->list_head, hat);
-    prog_append_put_const(sl, begin, datum_make_void());
+    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn") ||
@@ -263,7 +263,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     prog_append_yield(sl, begin, hat);
     prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
-    prog_append_put_const(sl, begin, datum_make_void());
+    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
@@ -307,7 +307,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
        rest_args = rest_args->list_tail) {
     datum *arg = rest_args->list_head;
     if (hash) {
-      prog_append_put_const(sl, begin, arg);
+      prog_append_put_const(sl, begin, arg, compdata);
     } else {
       char *err = prog_append_statement(sl, begin, arg, compdata);
       if (err != NULL) {
@@ -338,10 +338,12 @@ LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name) {
   *begin = next;
 }
 
-EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val) {
+EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
+  compdata = compdata;
+  // *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
@@ -375,7 +377,7 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
       *compdata = compdata_pop_to_var(*compdata, rest->list_head);
     }
   } else if (!datum_is_the_symbol(var, ":void")) {
-    *compdata = compdata_pop_to_var(*compdata, var);
+    *compdata = compdata_del(*compdata);
   }
 }
 
@@ -407,7 +409,7 @@ EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat) {
 LOCAL char *prog_append_backquoted_statement(
                                              prog_slice *sl, size_t *begin, datum *stmt, datum **compdata) {
   if (!datum_is_list(stmt)) {
-    prog_append_put_const(sl, begin, stmt);
+    prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
   }
   for (datum *rest_elems = stmt; !datum_is_nil(rest_elems);
@@ -454,6 +456,18 @@ LOCAL datum *compdata_pop_to_var(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
 }
 
+LOCAL datum *compdata_del(datum *compdata) {
+  if (datum_is_nil(compdata)) {
+    fprintf(stderr, "compdata_del: empty compdata\n");
+    exit(EXIT_FAILURE);
+  }
+  if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
+    fprintf(stderr, "compdata_get_index: if branches had different compdata\n");
+    exit(EXIT_FAILURE);
+  }
+  return compdata->list_tail;
+}
+
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
   if (datum_is_nil(compdata)) {
     return -1;
@@ -465,6 +479,9 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
   if (datum_eq(compdata->list_head, var)) {
     return 0;
   }
+  /* if (datum_is_the_symbol(compdata->list_head, ":anon")) { */
+  /*   return compdata_get_index(compdata->list_tail, var); */
+  /* } */
   int res = compdata_get_index(compdata->list_tail, var);
   if (res == -1) {
     return -1;
