@@ -203,7 +203,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_pop(sl, begin, stmt->list_tail->list_head, compdata);
+    prog_append_pop(sl, begin, datum_make_list_1(stmt->list_tail->list_head), compdata);
     prog_append_put_const(sl, begin, datum_make_void());
     return NULL;
   }

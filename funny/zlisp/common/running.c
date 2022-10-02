@@ -421,11 +421,8 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     return NULL;
   } break;
   case PROG_POP: {
-    if (datum_is_symbol(prg->pop_var)) {
-      datum *v = state_stack_pop(st);
-      if (!datum_is_the_symbol(prg->pop_var, ":void")) {
-        state_set_var(st, prg->pop_var, v);
-      }
+    if (datum_is_the_symbol(prg->pop_var, ":void")) {
+      state_stack_pop(st);
     } else if (datum_is_list(prg->pop_var)) {
       datum *v = state_stack_collect(st, list_length(prg->pop_var));
       datum *vars = prg->pop_var;
