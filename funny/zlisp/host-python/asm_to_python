@@ -232,12 +232,12 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":return"):
             # print(op, *args)
-            (hat,) = args
+            hat, cnt = args
             if hat:
                 raise RuntimeError("routine-1 return is not supported yet")
-            rvalue = pop_stack()
+            rvalues = [pop_stack() for _ in range(cnt)]
             pdata[-1].pop()
-            pdata[-1][-1].varz.append((":anon", rvalue))
+            pdata[-1][-1].varz.extend((":anon", rvalue) for rvalue in reversed(rvalues))
             ip = pdata[-1][-1].ip
         elif op == sexpdata.Symbol(":yield"):
             hat, nex = args

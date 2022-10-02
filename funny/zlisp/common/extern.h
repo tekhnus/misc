@@ -57,7 +57,7 @@ void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 LOCAL void prog_append_host(prog_slice *sl,size_t *begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
-void prog_append_return(prog_slice *sl,size_t *begin,bool hat);
+void prog_append_return(prog_slice *sl,size_t *begin,bool hat,size_t count);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,datum *var,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata);

@@ -51,7 +51,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   }
   prog_put_deps(sl, &bdr_end, deps, &bdr_compdata);
   prog_append_collect(sl, list_length(deps), &bdr_end);
-  prog_append_return(sl, &bdr_end, false);
+  prog_append_return(sl, &bdr_end, false, 1);
   prog_append_put_prog(sl, p, bdr_off, 0);
   prog_append_collect(sl, 1, p);
   prog_append_call(sl, p, false);
@@ -129,7 +129,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   }
   datum *transitive_deps = status.ok_value->list_head;
   datum *syms = status.ok_value->list_tail->list_head;
-  prog_append_return(sl, &run_dep_end, false);
+  prog_append_return(sl, &run_dep_end, false, 1);
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;

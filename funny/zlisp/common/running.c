@@ -84,7 +84,10 @@ struct prog {
       bool set_closures_hat;
       ptrdiff_t set_closures_next;
     };
-    bool return_hat;
+    struct {
+      bool return_hat;
+      size_t return_count;
+    };
     struct {
       bool yield_hat;
       ptrdiff_t yield_next;
@@ -257,9 +260,9 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->return_hat) {
       break;
     }
-    datum *result = state_stack_pop(st);
+    datum *result = state_stack_collect(st, prg->return_count);
     routine_2_pop_frame(r);
-    state_stack_put(st, result);
+    state_stack_put_all(st, result);
     return NULL;
   } break;
   case PROG_YIELD: {
@@ -338,9 +341,9 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if (prg->return_hat) {
       break;
     }
-    datum *result = state_stack_pop(st);
+    datum *result = state_stack_collect(st, prg->return_count);
     routine_1_pop_frame(r);
-    state_stack_put(st, result);
+    state_stack_put_all(st, result);
     return NULL;
   } break;
   case PROG_PUT_PROG: {
@@ -534,6 +537,7 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":return")) {
     res.type = PROG_RETURN;
     res.return_hat = list_at(d, 1)->integer_value;
+    res.return_count = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_hat = list_at(d, 1)->integer_value;
