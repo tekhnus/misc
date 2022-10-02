@@ -321,6 +321,11 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   return NULL;
 }
 
+LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
+  *prog_slice_datum_at(*sl, a) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
+  *prog_slice_datum_at(*sl, b) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
+}
+
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(next)));
@@ -331,11 +336,6 @@ LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":host"), name, datum_make_int(next)));
   *begin = next;
-}
-
-LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
-  *prog_slice_datum_at(*sl, a) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
-  *prog_slice_datum_at(*sl, b) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
 }
 
 EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val) {
@@ -428,6 +428,24 @@ LOCAL char *prog_append_backquoted_statement(
   return NULL;
 }
 
+EXPORT void prog_append_nop(prog_slice *sl, size_t *begin) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":nop"), datum_make_int(next)));
+  *begin = next;
+}
+
+EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
+  prog_append_nop(sl, begin);
+  prog_append_pop(sl, begin, args, compdata);
+}
+
+LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata) {
+  datum *routine_compdata = *compdata;
+  prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), &routine_compdata);
+  return prog_append_statement(sl, &s, stmt, &routine_compdata);
+}
+
+
 EXPORT datum *compdata_make() {
   return datum_make_nil();
 }
@@ -452,23 +470,6 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
     return -1;
   }
   return res + 1;
-}
-
-EXPORT void prog_append_nop(prog_slice *sl, size_t *begin) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":nop"), datum_make_int(next)));
-  *begin = next;
-}
-
-EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
-  prog_append_nop(sl, begin);
-  prog_append_pop(sl, begin, args, compdata);
-}
-
-LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata) {
-  datum *routine_compdata = *compdata;
-  prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), &routine_compdata);
-  return prog_append_statement(sl, &s, stmt, &routine_compdata);
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
