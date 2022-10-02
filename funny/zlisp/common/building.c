@@ -12,7 +12,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
     return res.panic_message;
   }
-  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source);
+  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source, compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
     return err;
@@ -34,7 +34,7 @@ EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
   return prog_build(sl, ep, datum_make_list(spec, stmts), module_source, compdata);
 }
 
-LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *)) {
+LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   // fprintf(stderr, "!!!!! %s\n", datum_repr(deps));
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
@@ -47,8 +47,8 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   }
   prog_put_deps(sl, &bdr_end, deps, &bdr_compdata);
   prog_append_return(sl, &bdr_end, false, list_length(deps));
-  prog_append_put_prog(sl, p, bdr_off, 0);
-  prog_append_collect(sl, 1, p);
+  prog_append_put_prog(sl, p, bdr_off, 0, compdata);
+  prog_append_collect(sl, 1, p, compdata);
   prog_append_call(sl, p, false);
   return NULL;
 }
@@ -129,9 +129,9 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   if (err != NULL) {
     return err;
   }
-  prog_append_put_prog(sl, p, run_dep_off, 0);
+  prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_collect(sl, 1 + list_length(transitive_deps), p);
+  prog_append_collect(sl, 1 + list_length(transitive_deps), p, compdata);
   prog_append_call(sl, p, false);
   datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
