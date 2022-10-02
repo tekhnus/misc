@@ -469,6 +469,7 @@ EXPORT void prog_append_nop(prog_slice *sl, size_t *begin) {
 
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
   prog_append_nop(sl, begin);
+  prog_append_collect(sl, list_length(args), begin);
   prog_append_pop(sl, begin, args, compdata);
 }
 

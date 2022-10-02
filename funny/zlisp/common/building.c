@@ -6,7 +6,10 @@
 EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
-  // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
+  // At this point, the arguments returned from isolated dep builder
+  // are lying on the stack as a single list.
+  // We are unfolding it so the submodule routine recieves them properly.
+  prog_append_uncollect(sl, &run_main_end);
   fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (fdatum_is_panic(res)) {

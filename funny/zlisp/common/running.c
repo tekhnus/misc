@@ -227,7 +227,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     r->cur.cur.offset = prg->call_next;
     routine_2_push_frame(r, callee);
     state_stack_put_all(&r->cur.cur.state_, args);
-    state_stack_put(st, state_stack_collect(st, list_length(args)));
     prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
     if (xxx.type != PROG_NOP) {
       fprintf(stderr, "not a nop!\n");
@@ -315,7 +314,6 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     r->cur.offset = prg->call_next;
     routine_1_push_frame(r, callee);
     state_stack_put_all(st, args);
-    state_stack_put(st, state_stack_collect(st, list_length(args)));
     prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
     if (xxx.type != PROG_NOP) {
       fprintf(stderr, "not a nop!\n");
@@ -464,11 +462,10 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   } break;
   case PROG_UNCOLLECT: {
     datum *list = state_stack_pop(st);
-    if (!datum_is_list(list) || datum_is_nil(list)) {
-      return "uncollect expects a non-empty list";
+    if (!datum_is_list(list)) {
+      return "uncollect expects a list";
     }
-    state_stack_put(st, list->list_tail);
-    state_stack_put(st, list->list_head);
+    state_stack_put_all(st, list);
     r->offset = prg->uncollect_next;
     return NULL;
   } break;

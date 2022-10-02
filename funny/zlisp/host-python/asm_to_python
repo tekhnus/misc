@@ -165,7 +165,7 @@ def main():
             rout, args = check_is_cons(fnandargs)
             offset, varz = check_is_routine_0(rout)
             rtvarz = list(varz)
-            rtvarz.append((":anon", args))
+            rtvarz.extend((":anon", arg) for arg in args)
             pdata[-1][-1].ip = nex
             pdata[-1].append(
                 State(varz=rtvarz, ip=0)
@@ -195,11 +195,9 @@ def main():
         elif op == sexpdata.Symbol(":uncollect"):
             (nex,) = args
             lis = pop_stack()
-            if not isinstance(lis, list) or not lis:
-                raise RuntimeError("uncollect expected a non-empty list")
-            hd, *tl = lis
-            pdata[-1][-1].varz.append((":anon", tl))
-            pdata[-1][-1].varz.append((":anon", hd))
+            if not isinstance(lis, list):
+                raise RuntimeError("uncollect expected a list")
+            pdata[-1][-1].varz.extend((":anon", x) for x in lis)
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
             var, nex = args
