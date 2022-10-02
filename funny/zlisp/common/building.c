@@ -133,6 +133,12 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_collect(sl, 1 + list_length(transitive_deps), p, compdata);
   prog_append_call(sl, p, false);
+  for (int i = 0; i + 1 < list_length(syms); ++i) {
+    // An ugly hack:(
+    // prog_append_call works correctly only for returning a single value.
+    // The run_dep polyreturns, so we need to compensate the compdata.
+    *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
+  }
   datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;

@@ -51,7 +51,6 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 datum *compdata_make();
 void prog_append_nop(prog_slice *sl,size_t *begin);
-LOCAL datum *compdata_del(datum *compdata);
 LOCAL int compdata_get_index(datum *compdata,datum *var);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
@@ -64,10 +63,11 @@ LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,datum 
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
-LOCAL datum *compdata_pop_to_var(datum *compdata,datum *var);
+LOCAL datum *compdata_del(datum *compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);
+datum *compdata_pop_to_var(datum *compdata,datum *var);
 LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
