@@ -204,9 +204,8 @@ def main():
             if var == sexpdata.Symbol(":void"):
                 pop_stack()
             elif isinstance(var, list):
-                vals = pop_stack()
-                for k, v in zip(var, vals):
-                    pdata[-1][-1].varz.append((k, v))
+                named = [(k, pop_stack()) for k in reversed(var)]
+                pdata[-1][-1].varz.extend(reversed(named))
             else:
                 pdata[-1][-1].varz.append((var, pop_stack()))
             ip = nex

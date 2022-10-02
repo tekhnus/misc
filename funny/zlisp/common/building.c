@@ -139,7 +139,6 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     names = list_append(names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
     *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
-  prog_append_collect(sl, list_length(names), p);
   prog_append_pop(sl, p, names, compdata);
   return NULL;
 }
