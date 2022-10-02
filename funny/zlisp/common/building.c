@@ -124,7 +124,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   }
   datum *transitive_deps = status.ok_value->list_head;
   datum *syms = status.ok_value->list_tail->list_head;
-  prog_append_return(sl, &run_dep_end, false, 1);
+  prog_append_return(sl, &run_dep_end, false, list_length(syms));
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;
@@ -139,6 +139,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     names = list_append(names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
     *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
+  prog_append_collect(sl, list_length(names), p);
   prog_append_pop(sl, p, names, compdata);
   return NULL;
 }

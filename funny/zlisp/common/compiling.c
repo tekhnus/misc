@@ -85,7 +85,6 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
     datum *expr = rest_expressions->list_head;
     prog_append_statement(sl, begin, expr, compdata);
   }
-  prog_append_collect(sl, list_length(re->list_tail->list_head), begin);
   return fdatum_make_ok(re->list_head);
 }
 
