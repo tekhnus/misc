@@ -257,6 +257,15 @@ datum *state_stack_pop(state **s) {
   return cell->list_tail->list_head;
 }
 
+datum *state_stack_top(state **s) {
+  if (datum_is_nil((*s)->vars)) {
+    fprintf(stderr, "popping from an empty stack is an oh no no\n");
+    exit(EXIT_FAILURE);
+  }
+  datum *cell = (*s)->vars->list_head;
+  return cell->list_tail->list_head;
+}
+
 datum *state_stack_collect(state **s, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {

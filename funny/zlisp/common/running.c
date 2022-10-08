@@ -111,7 +111,7 @@ EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, ptrdiff_t p
   if (s != NULL) {
     return fdatum_make_panic(s);
   }
-  datum *d = state_stack_pop(&r.cur.cur.state_);
+  datum *d = state_stack_top(&r.cur.cur.state_);
   *ctxt = r.cur.cur.state_;
   return fdatum_make_ok(d);
 }

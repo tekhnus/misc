@@ -112,6 +112,7 @@ datum *prog_slice_datum_at(prog_slice s,size_t index);
 size_t prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
 datum *state_stack_collect(state **s,size_t count);
+datum *state_stack_top(state **s);
 datum *state_stack_pop(state **s);
 void state_stack_put_all(state **ns,datum *list);
 void state_stack_put(state **ns,datum *value);
