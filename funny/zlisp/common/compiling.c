@@ -123,6 +123,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     fprintf(stderr, "fatal: if branches had different compdata %s\n", datum_repr(stmt));
     exit(EXIT_FAILURE);
   }
+  prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("compdata"), *compdata));
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;

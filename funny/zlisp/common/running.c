@@ -393,6 +393,13 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   // routine c = routine_make(*p, s);
   switch (prg->type) {
   case PROG_NOP: {
+    if (datum_is_list(prg->nop_info) && list_length(prg->nop_info) == 2 &&
+        datum_is_the_symbol(prg->nop_info->list_head, "compdata")) {
+      datum *compdata = prg->nop_info->list_tail->list_head;
+      if (list_length(compdata) != list_length(r->state_->vars)) {
+        fprintf(stderr, "mismatch: %d %d\n", list_length(compdata), list_length(r->state_->vars));
+      }
+    }
     r->offset = prg->nop_next;
     return NULL;
   } break;
