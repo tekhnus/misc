@@ -44,6 +44,7 @@ struct prog {
       ptrdiff_t if_false;
     };
     struct {
+      struct datum *nop_info;
       ptrdiff_t nop_next;
     };
     struct {
@@ -478,7 +479,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.if_false = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":nop")) {
     res.type = PROG_NOP;
-    res.nop_next = (list_at(d, 1)->integer_value);
+    res.nop_info = list_at(d, 1);
+    res.nop_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
     res.put_const_value = list_at(d, 1);

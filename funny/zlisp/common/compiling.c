@@ -326,8 +326,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
 }
 
 LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
-  *prog_slice_datum_at(*sl, a) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
-  *prog_slice_datum_at(*sl, b) = *(datum_make_list_2(datum_make_symbol(":nop"),  datum_make_int(e)));
+  *prog_slice_datum_at(*sl, a) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
+  *prog_slice_datum_at(*sl, b) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
 }
 
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat) {
@@ -445,14 +445,14 @@ LOCAL char *prog_append_backquoted_statement(
   return NULL;
 }
 
-EXPORT void prog_append_nop(prog_slice *sl, size_t *begin) {
+EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":nop"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":nop"), info, datum_make_int(next)));
   *begin = next;
 }
 
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
-  prog_append_nop(sl, begin);
+  prog_append_nop(sl, begin, datum_make_list_1(datum_make_symbol("recieve")));
   prog_append_pop(sl, begin, args, compdata);
 }
 
