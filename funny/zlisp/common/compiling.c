@@ -4,7 +4,9 @@
 #include <extern.h>
 
 EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata) {
+  // prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_symbol("__module_start")));
   fdatum res = prog_append_usages(sl, off, source->list_head, compdata);
+  // prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_symbol("__after_usages")));
   if (fdatum_is_panic(res)) {
     return res;
   }
@@ -123,7 +125,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     fprintf(stderr, "fatal: if branches had different compdata %s\n", datum_repr(stmt));
     exit(EXIT_FAILURE);
   }
-  prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("compdata"), *compdata));
+  prog_append_nop(sl, begin, datum_make_list_3(datum_make_symbol("compdata"), *compdata, stmt));
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
