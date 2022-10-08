@@ -398,7 +398,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       datum *compdata = prg->nop_info->list_tail->list_head;
       datum *stmt = prg->nop_info->list_tail->list_tail->list_head;
       if (list_length(compdata) != list_length(r->state_->vars)) {
-        fprintf(stderr, "mismatch: %s %d %s\n", datum_repr(compdata), list_length(r->state_->vars), datum_repr(stmt));
+        fprintf(stderr, "compdata mismatch: %s %d %s\n", datum_repr(compdata), list_length(r->state_->vars), datum_repr(stmt));
         // exit(EXIT_FAILURE);
       }
     }

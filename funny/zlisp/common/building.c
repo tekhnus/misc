@@ -6,13 +6,14 @@
 EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
+  datum *dup_compdata = *compdata;
   fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (fdatum_is_panic(res)) {
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
     return res.panic_message;
   }
-  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source, compdata);
+  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source, &dup_compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
     return err;

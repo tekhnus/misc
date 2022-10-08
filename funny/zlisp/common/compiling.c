@@ -4,9 +4,8 @@
 #include <extern.h>
 
 EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata) {
-  // prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_symbol("__module_start")));
   fdatum res = prog_append_usages(sl, off, source->list_head, compdata);
-  // prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_symbol("__after_usages")));
+  prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_list_2(datum_make_symbol("__module"), source)));
   if (fdatum_is_panic(res)) {
     return res;
   }
@@ -21,6 +20,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
       if (fdatum_is_panic(exp)) {
         return exp;
       }
+      prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_list_2(datum_make_symbol("__end_module"), source)));
       return fdatum_make_ok(datum_make_list_2(res.ok_value, exp.ok_value));
     }
     prog_append_pop(sl, off, datum_make_symbol(":void"), compdata);
@@ -29,6 +29,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
       return fdatum_make_panic(err);
     }
   }
+  prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_list_2(datum_make_symbol("__end_module"), source)));
   return fdatum_make_ok(datum_make_list_2(res.ok_value, datum_make_nil()));
   // return fdatum_make_panic("export statement should terminate the module");
 }
