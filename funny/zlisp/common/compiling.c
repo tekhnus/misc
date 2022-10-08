@@ -390,8 +390,11 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
     for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
       *compdata = compdata_pop_to_var(*compdata, rest->list_head);
     }
-  } else if (!datum_is_the_symbol(var, ":void")) {
+  } else if (datum_is_the_symbol(var, ":void")) {
     *compdata = compdata_del(*compdata);
+  } else {
+    fprintf(stderr, "illegal pop instruction\n");
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -477,6 +480,10 @@ LOCAL datum *compdata_del(datum *compdata) {
   if (datum_is_nil(compdata)) {
     fprintf(stderr, "compdata_del: empty compdata\n");
     exit(EXIT_FAILURE);
+  }
+  if (!datum_is_the_symbol(compdata->list_head, ":anon")) {
+    fprintf(stderr, "warning: tried to delete a var from compdata\n");
+    return compdata;
   }
   if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
     fprintf(stderr, "compdata_get_index: if branches had different compdata\n");
