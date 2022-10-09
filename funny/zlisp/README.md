@@ -33,8 +33,7 @@ tools/
 2) As a workaround, functions are represented by self-referential datums in order to support recursion:(
 3) Hosting by a compiled language should be tried.
 4) Hosting by a constrained environment like bare metal or shader should be tried.
-5) The bytecode manages variables by their names, but it could enumerate them; maybe vars and stack can be united.
-6) The base data structure is a linked list, which has little use. Switch to slices?
-7) Compile-time computation syntax feels awkward to use:( Also it might be merged with quasiquotes?
-8) No loops:(
-9) Optional static typing.
+5) The base data structure is a linked list, which has little use. Switch to slices?
+6) Compile-time computation syntax feels awkward to use:( Also it might be merged with quasiquotes?
+7) No loops:(
+8) Optional static typing.
