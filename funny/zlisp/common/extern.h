@@ -62,7 +62,7 @@ LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,datum 
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
-LOCAL datum *compdata_del(datum *compdata);
+datum *compdata_del(datum *compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);

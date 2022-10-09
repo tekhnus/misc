@@ -377,9 +377,10 @@ EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, dat
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
-  for (size_t i = 0; i + 1 < count; ++i) {
+  for (size_t i = 0; i < count; ++i) {
     *compdata = compdata_del(*compdata);
   }
+  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
@@ -479,7 +480,7 @@ EXPORT datum *compdata_pop_to_var(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
 }
 
-LOCAL datum *compdata_del(datum *compdata) {
+EXPORT datum *compdata_del(datum *compdata) {
   if (datum_is_nil(compdata)) {
     fprintf(stderr, "compdata_del: empty compdata\n");
     exit(EXIT_FAILURE);

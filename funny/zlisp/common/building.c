@@ -134,7 +134,8 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_collect(sl, 1 + list_length(transitive_deps), p, compdata);
   prog_append_call(sl, p, false);
-  for (int i = 0; i + 1 < list_length(syms); ++i) {
+  *compdata = compdata_del(*compdata);
+  for (int i = 0; i < list_length(syms); ++i) {
     // An ugly hack:(
     // prog_append_call works correctly only for returning a single value.
     // The run_dep polyreturns, so we need to compensate the compdata.

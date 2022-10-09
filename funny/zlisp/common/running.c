@@ -399,7 +399,22 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       datum *stmt = prg->nop_info->list_tail->list_tail->list_head;
       if (list_length(compdata) != list_length(r->state_->vars)) {
         fprintf(stderr, "compdata mismatch: %s %d %s\n", datum_repr(compdata), list_length(r->state_->vars), datum_repr(stmt));
-        // exit(EXIT_FAILURE);
+        fprintf(stderr, "context:\n");
+        for (ptrdiff_t i = r->offset - 30; i < r->offset + 10; ++i) {
+          if (i < 0) {
+            continue;
+          }
+          if (i >= (ptrdiff_t)prog_slice_length(sl)) {
+            break;
+          }
+          if (i == r->offset) {
+            fprintf(stderr, "> ");
+          } else {
+            fprintf(stderr, "  ");
+          }
+          fprintf(stderr, "%s\n", datum_repr(prog_slice_datum_at(sl, i)));
+        }
+        exit(EXIT_FAILURE);
       }
     }
     r->offset = prg->nop_next;
