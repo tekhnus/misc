@@ -367,7 +367,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     exit(1);
   }
   prog_append_nop(sl, begin, datum_make_list_3(datum_make_symbol("putvar"), val, datum_make_int(index)));
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-var"), val, datum_make_int(index), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
   *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));

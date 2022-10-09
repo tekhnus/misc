@@ -177,12 +177,8 @@ datum *var_at(datum *vars, int offset) {
   return var_at(vars->list_tail, offset - 1);
 }
 
-fdatum state_get_var(state *ns, datum *symbol, int offset) {
+fdatum state_get_var(state *ns, int offset) {
   datum *entry = var_at(ns->vars, offset);
-  if (strcmp(entry->list_head->symbol_value, symbol->symbol_value)) {
-    fprintf(stderr, "state_get_var: offset didn't match\n");
-    exit(EXIT_FAILURE);
-  }
   datum *cell = entry->list_tail;
   return fdatum_make_ok(cell->list_head);
 }

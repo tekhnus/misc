@@ -118,7 +118,7 @@ void state_stack_put_all(state **ns,datum *list);
 void state_stack_put(state **ns,datum *value);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
-fdatum state_get_var(state *ns,datum *symbol,int offset);
+fdatum state_get_var(state *ns,int offset);
 datum *var_at(datum *vars,int offset);
 void state_set_var(state **ns,datum *symbol,datum *value);
 state *state_make_fresh();
