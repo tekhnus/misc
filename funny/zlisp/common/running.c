@@ -106,6 +106,7 @@ EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, ptrdiff_t p
   routine_2 r = {.cur = r1, .par = NULL};
   char *s = routine_2_run(sl, &r, perform_host_instruction);
   if (s != NULL) {
+    print_backtrace(sl, &r);
     return fdatum_make_panic(s);
   }
   datum *d = state_stack_top(&r.cur.cur.state_);
@@ -381,6 +382,34 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
   return err;
 }
 
+void print_backtrace(prog_slice sl, routine_2 *r) {
+  fprintf(stderr, "=========\n");
+  fprintf(stderr, "BACKTRACE\n");
+  for (routine_2 *x = r; x != NULL; x = x->par) {
+    for (routine_1 *y = &x->cur; y != NULL; y = y->par) {
+      routine_0 *z = &y->cur;
+      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
+        if (i < 0) {
+          continue;
+        }
+        if (i >= (ptrdiff_t)prog_slice_length(sl)) {
+          break;
+        }
+        if (i == z->offset) {
+          fprintf(stderr, "> ");
+        } else {
+          fprintf(stderr, "  ");
+        }
+        fprintf(stderr, "%ld ", i);
+        fprintf(stderr, "%s\n", datum_repr(prog_slice_datum_at(sl, i)));
+      }
+      fprintf(stderr, "**********\n");
+    }
+  }
+ 
+  fprintf(stderr, "=========\n");
+}
+
 LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
@@ -390,28 +419,13 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   // routine c = routine_make(*p, s);
   switch (prg->type) {
   case PROG_NOP: {
-    if (datum_is_list(prg->nop_info) && list_length(prg->nop_info) == 3 &&
-        datum_is_the_symbol(prg->nop_info->list_head, "compdata")) {
-      datum *compdata = prg->nop_info->list_tail->list_head;
-      datum *stmt = prg->nop_info->list_tail->list_tail->list_head;
-      if (list_length(compdata) != list_length(r->state_->vars)) {
-        fprintf(stderr, "compdata mismatch: %s %d %s\n", datum_repr(compdata), list_length(r->state_->vars), datum_repr(stmt));
-        fprintf(stderr, "context:\n");
-        for (ptrdiff_t i = r->offset - 30; i < r->offset + 10; ++i) {
-          if (i < 0) {
-            continue;
-          }
-          if (i >= (ptrdiff_t)prog_slice_length(sl)) {
-            break;
-          }
-          if (i == r->offset) {
-            fprintf(stderr, "> ");
-          } else {
-            fprintf(stderr, "  ");
-          }
-          fprintf(stderr, "%s\n", datum_repr(prog_slice_datum_at(sl, i)));
+    if (datum_is_list(prg->nop_info) && list_length(prg->nop_info) == 2 &&
+        datum_is_symbol(prg->nop_info->list_head)) {
+      if (datum_is_the_symbol(prg->nop_info->list_head, "compdata")) {
+        datum *compdata = prg->nop_info->list_tail->list_head;
+        if (list_length(compdata) != list_length(r->state_->vars)) {
+          return "compdata mismatch";
         }
-        exit(EXIT_FAILURE);
       }
     }
     r->offset = prg->nop_next;

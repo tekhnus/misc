@@ -5,7 +5,6 @@
 
 EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata) {
   fdatum res = prog_append_usages(sl, off, source->list_head, compdata);
-  prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_list_2(datum_make_symbol("__module"), source)));
   if (fdatum_is_panic(res)) {
     return res;
   }
@@ -20,16 +19,15 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
       if (fdatum_is_panic(exp)) {
         return exp;
       }
-      prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_list_2(datum_make_symbol("__end_module"), source)));
       return fdatum_make_ok(datum_make_list_2(res.ok_value, exp.ok_value));
     }
     prog_append_pop(sl, off, datum_make_symbol(":void"), compdata);
+    prog_append_nop(sl, off, datum_make_list_2(datum_make_symbol("info"), stmt));
     char *err = prog_append_statement(sl, off, stmt, compdata);
     if (err != NULL) {
       return fdatum_make_panic(err);
     }
   }
-  prog_append_nop(sl, off, datum_make_list_3(datum_make_symbol("compdata"), *compdata, datum_make_list_2(datum_make_symbol("__end_module"), source)));
   return fdatum_make_ok(datum_make_list_2(res.ok_value, datum_make_nil()));
   // return fdatum_make_panic("export statement should terminate the module");
 }
@@ -126,7 +124,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     fprintf(stderr, "fatal: if branches had different compdata %s\n", datum_repr(stmt));
     exit(EXIT_FAILURE);
   }
-  prog_append_nop(sl, begin, datum_make_list_3(datum_make_symbol("compdata"), *compdata, stmt));
+  prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("compdata"), *compdata));
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -188,6 +186,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
          rest = rest->list_tail) {
       prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
       datum *step = rest->list_head;
+      prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), step));
       char *err = prog_append_statement(sl, begin, step, compdata);
       if (err != NULL) {
         return err;
@@ -221,8 +220,10 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (list_length(stmt->list_tail) != 2) {
       return "defn should have two args";
     }
+    datum *name = stmt->list_tail->list_head;
     size_t s_off = prog_slice_append_new(sl);
-    *compdata = compdata_put(*compdata, stmt->list_tail->list_head);
+    *compdata = compdata_put(*compdata, name);
+    prog_append_nop(sl, &s_off, datum_make_list_2(datum_make_symbol("info"), name));
     char *err = prog_init_routine(sl, s_off, stmt->list_tail->list_tail->list_head, compdata);
     if (err != NULL) {
       return err;
@@ -238,6 +239,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return "fn should have one arg";
     }
     size_t s_off = prog_slice_append_new(sl);
+    prog_append_nop(sl, &s_off, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("lambda")));
     char *err =
       prog_init_routine(sl, s_off, stmt->list_tail->list_head, compdata);
     if (err != NULL) {
@@ -270,6 +272,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_yield(sl, begin, hat);
+    prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
     prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
     prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
@@ -370,7 +373,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     // fprintf(stderr, "%s\n", datum_repr(*compdata));
     exit(1);
   }
-  prog_append_nop(sl, begin, datum_make_list_3(datum_make_symbol("putvar"), val, datum_make_int(index)));
+  prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("putting-var"), val));
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
@@ -465,7 +468,6 @@ EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
 }
 
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
-  prog_append_nop(sl, begin, datum_make_list_1(datum_make_symbol("recieve")));
   prog_append_pop(sl, begin, args, compdata);
 }
 
