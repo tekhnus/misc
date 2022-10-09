@@ -195,7 +195,8 @@ def main():
             pop_stack()
             ip = nex
         elif op == sexpdata.Symbol(":set-closures"):
-            pr, name, hat, nex = args
+            pr, hat, nex = args
+            name = "remove-me"
             if hat:
                 raise RuntimeError("routine-1 set-closures is not supported yet")
             pvarz = list(pdata[-1][-1].varz)

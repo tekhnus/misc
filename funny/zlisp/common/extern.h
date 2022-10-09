@@ -58,7 +58,7 @@ LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum 
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
 void prog_append_return(prog_slice *sl,size_t *begin,bool hat,size_t count);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
-LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,datum *var,bool hat);
+LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);

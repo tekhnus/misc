@@ -77,7 +77,6 @@ struct prog {
     };
     struct {
       ptrdiff_t set_closures_prog;
-      struct datum *set_closures_name;
       bool set_closures_hat;
       ptrdiff_t set_closures_next;
     };
@@ -239,7 +238,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
       break;
     }
     datum *clos = datum_make_nil();
-    state_set_var(st, prg->set_closures_name, clos);
+    state_stack_put(st, clos);
     routine_1 callee = r->cur;
     callee.cur.offset = prg->set_closures_prog;
     *clos = *routine_1_to_datum(
@@ -327,7 +326,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     }
     datum *clos = datum_make_list_2(datum_make_int(prg->set_closures_prog),
                                     datum_make_nil());
-    state_set_var(st, prg->set_closures_name, clos);
+    state_stack_put(st, clos);
     clos->list_tail->list_head = datum_make_list_1(
         (*st)->vars); // modifying a datum because we need to
                                     // create a circular reference:(
@@ -513,9 +512,8 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":set-closures")) {
     res.type = PROG_SET_CLOSURES;
     res.set_closures_prog = (list_at(d, 1)->integer_value);
-    res.set_closures_name = list_at(d, 2);
-    res.set_closures_hat = list_at(d, 3)->integer_value;
-    res.set_closures_next = (list_at(d, 4)->integer_value);
+    res.set_closures_hat = list_at(d, 2)->integer_value;
+    res.set_closures_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_value = (list_at(d, 1)->integer_value);

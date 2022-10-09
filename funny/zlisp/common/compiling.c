@@ -227,7 +227,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_set_closures(sl, begin, s_off, stmt->list_tail->list_head, hat);
+    prog_append_set_closures(sl, begin, s_off, hat);
     prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
@@ -404,9 +404,9 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
 }
 
 LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
-                                    datum *var, bool hat) {
+                                    bool hat) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_5(datum_make_symbol(":set-closures"), datum_make_int(p), var, datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":set-closures"), datum_make_int(p), datum_make_int(hat), datum_make_int(next)));
   *begin = next;
 }
 
