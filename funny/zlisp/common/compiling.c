@@ -394,7 +394,7 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
     }
   } else if (datum_is_the_symbol(var, ":void")) {
     size_t next = prog_slice_append_new(sl);
-    *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
+    *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":pop"), datum_make_int(next)));
     *begin = next;
     *compdata = compdata_del(*compdata);
   } else {

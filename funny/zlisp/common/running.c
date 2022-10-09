@@ -68,7 +68,6 @@ struct prog {
       ptrdiff_t collect_next;
     };
     struct {
-      struct datum *pop_var;
       ptrdiff_t pop_next;
     };
     struct {
@@ -443,11 +442,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     return NULL;
   } break;
   case PROG_POP: {
-    if (datum_is_the_symbol(prg->pop_var, ":void")) {
-      state_stack_pop(st);
-    } else {
-      return "inappropriate variable name in POP instruction";
-    }
+    state_stack_pop(st);
     r->offset = prg->pop_next;
     return NULL;
   } break;
@@ -514,8 +509,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.collect_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":pop")) {
     res.type = PROG_POP;
-    res.pop_var = list_at(d, 1);
-    res.pop_next = (list_at(d, 2)->integer_value);
+    res.pop_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":set-closures")) {
     res.type = PROG_SET_CLOSURES;
     res.set_closures_prog = (list_at(d, 1)->integer_value);
