@@ -161,28 +161,6 @@ EXPORT state *state_make_fresh() {
   return state_make(datum_make_nil());
 }
 
-void state_set_var(state **ns, datum *symbol, datum *value) {
-  datum *kv = datum_make_list_2(symbol, value);
-  *ns = state_make(datum_make_list(kv, (*ns)->vars));
-}
-
-datum *var_at(datum *vars, int offset) {
-  if (datum_is_nil(vars)) {
-    fprintf(stderr, "var not found\n");
-    exit(EXIT_FAILURE);
-  }
-  if (offset == 0) {
-    return vars->list_head;
-  }
-  return var_at(vars->list_tail, offset - 1);
-}
-
-fdatum state_get_var(state *ns, int offset) {
-  datum *entry = var_at(ns->vars, offset);
-  datum *cell = entry->list_tail;
-  return fdatum_make_ok(cell->list_head);
-}
-
 EXPORT bool datum_eq(datum *x, datum *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
@@ -220,8 +198,15 @@ EXPORT bool datum_is_constant(datum *d) {
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
+fdatum state_stack_at(state *ns, int offset) {
+  datum *entry = list_at(ns->vars, offset);
+  datum *cell = entry->list_tail;
+  return fdatum_make_ok(cell->list_head);
+}
+
 void state_stack_put(state **ns, datum *value) {
-  state_set_var(ns, datum_make_symbol(":anon"), value);
+  datum *kv = datum_make_list_2(datum_make_symbol(":anon"), value);
+  *ns = state_make(datum_make_list(kv, (*ns)->vars));
 }
 
 void state_stack_put_all(state **ns, datum *list) {

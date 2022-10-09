@@ -432,7 +432,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     return NULL;
   } break;
   case PROG_PUT_VAR: {
-    fdatum er = state_get_var(*st, prg->put_var_offset);
+    fdatum er = state_stack_at(*st, prg->put_var_offset);
     if (fdatum_is_panic(er)) {
       return (er.panic_message);
     }
