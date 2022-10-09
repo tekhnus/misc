@@ -194,9 +194,6 @@ def main():
             var, nex = args
             if var == sexpdata.Symbol(":void"):
                 pop_stack()
-            elif isinstance(var, list):
-                named = [(k, pop_stack()) for k in reversed(var)]
-                pdata[-1][-1].varz.extend(reversed(named))
             else:
                 raise RuntimeError("malformed POP instruction")
             ip = nex

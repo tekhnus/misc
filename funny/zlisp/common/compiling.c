@@ -385,9 +385,6 @@ EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, dat
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
-  *begin = next;
   if (datum_is_list(var)) {
     for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
       *compdata = compdata_del(*compdata);
@@ -396,6 +393,9 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
       *compdata = compdata_pop_to_var(*compdata, rest->list_head);
     }
   } else if (datum_is_the_symbol(var, ":void")) {
+    size_t next = prog_slice_append_new(sl);
+    *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), var, datum_make_int(next)));
+    *begin = next;
     *compdata = compdata_del(*compdata);
   } else {
     fprintf(stderr, "illegal pop instruction\n");

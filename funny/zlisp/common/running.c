@@ -445,18 +445,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   case PROG_POP: {
     if (datum_is_the_symbol(prg->pop_var, ":void")) {
       state_stack_pop(st);
-    } else if (datum_is_list(prg->pop_var)) {
-      datum *v = state_stack_collect(st, list_length(prg->pop_var));
-      datum *vars = prg->pop_var;
-      datum *vs = v;
-      while (!datum_is_nil(vars) && !datum_is_nil(vs)) {
-        state_set_var(st, vars->list_head, vs->list_head);
-        vars = vars->list_tail;
-        vs = vs->list_tail;
-      }
-      if (!datum_is_nil(vars) || !datum_is_nil(vs)) {
-        return "different list sizes";
-      }
     } else {
       return "inappropriate variable name in POP instruction";
     }
