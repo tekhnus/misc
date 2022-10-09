@@ -45,7 +45,7 @@ LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datu
   }
   datum *vars = re->list_head;
   for (int i = 0; i < list_length(vars); ++i) {
-    *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
   }
   prog_append_recieve(sl, begin, vars, compdata);
   return fdatum_make_ok(re->list_tail->list_head);
@@ -172,7 +172,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     if (!datum_eq(*compdata, false_compdata)) {
-      *compdata = compdata_pop_to_var(*compdata, datum_make_symbol("__different_if_branches"));
+      *compdata = compdata_put(*compdata, datum_make_symbol("__different_if_branches"));
       // fprintf(stderr, "warning: if branches have different compdata\n");
       // fprintf(stderr, "%s\n", datum_repr(stmt->list_tail->list_head));
       // fprintf(stderr, "%s\n", datum_repr(*compdata));
@@ -222,7 +222,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return "defn should have two args";
     }
     size_t s_off = prog_slice_append_new(sl);
-    *compdata = compdata_pop_to_var(*compdata, stmt->list_tail->list_head);
+    *compdata = compdata_put(*compdata, stmt->list_tail->list_head);
     char *err = prog_init_routine(sl, s_off, stmt->list_tail->list_tail->list_head, compdata);
     if (err != NULL) {
       return err;
@@ -325,7 +325,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
   prog_append_collect(sl, 2, begin, compdata);
-  prog_append_call(sl, begin, hat);
+  prog_append_call(sl, begin, hat, 1, compdata);
   return NULL;
 }
 
@@ -334,9 +334,13 @@ LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
   *prog_slice_datum_at(*sl, b) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat) {
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(next)));
+  *compdata = compdata_del(*compdata);
+  for (int i = 0; i < return_count; ++i) {
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+  }  
   *begin = next;
 }
 
@@ -351,7 +355,7 @@ EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, dat
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
   compdata = compdata;
-  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
@@ -370,7 +374,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
-  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datum **compdata) {
@@ -381,7 +385,7 @@ EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, dat
   for (size_t i = 0; i < count; ++i) {
     *compdata = compdata_del(*compdata);
   }
-  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
@@ -390,7 +394,7 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
       *compdata = compdata_del(*compdata);
     }
     for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-      *compdata = compdata_pop_to_var(*compdata, rest->list_head);
+      *compdata = compdata_put(*compdata, rest->list_head);
     }
   } else if (datum_is_the_symbol(var, ":void")) {
     size_t next = prog_slice_append_new(sl);
@@ -415,7 +419,7 @@ EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int 
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
-  *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_return(prog_slice *sl, size_t *begin, bool hat, size_t count) {
@@ -467,7 +471,7 @@ EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datu
 
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata) {
   datum *routine_compdata = *compdata;
-  routine_compdata = compdata_pop_to_var(routine_compdata, datum_make_symbol(":anon"));
+  routine_compdata = compdata_put(routine_compdata, datum_make_symbol(":anon"));
   prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), &routine_compdata);
   return prog_append_statement(sl, &s, stmt, &routine_compdata);
 }
@@ -477,18 +481,14 @@ EXPORT datum *compdata_make() {
   return datum_make_nil();
 }
 
-EXPORT datum *compdata_pop_to_var(datum *compdata, datum *var) {
+LOCAL datum *compdata_put(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
 }
 
-EXPORT datum *compdata_del(datum *compdata) {
+LOCAL datum *compdata_del(datum *compdata) {
   if (datum_is_nil(compdata)) {
     fprintf(stderr, "compdata_del: empty compdata\n");
     exit(EXIT_FAILURE);
-  }
-  if (!datum_is_the_symbol(compdata->list_head, ":anon")) {
-    fprintf(stderr, "warning: tried to delete a var from compdata\n");
-    return compdata;
   }
   if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
     fprintf(stderr, "compdata_get_index: if branches had different compdata\n");

@@ -50,7 +50,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   prog_append_return(sl, &bdr_end, false, list_length(deps));
   prog_append_put_prog(sl, p, bdr_off, 0, compdata);
   prog_append_collect(sl, 1, p, compdata);
-  prog_append_call(sl, p, false);
+  prog_append_call(sl, p, false, list_length(deps), compdata);
   return NULL;
 }
 
@@ -133,14 +133,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_collect(sl, 1 + list_length(transitive_deps), p, compdata);
-  prog_append_call(sl, p, false);
-  *compdata = compdata_del(*compdata);
-  for (int i = 0; i < list_length(syms); ++i) {
-    // An ugly hack:(
-    // prog_append_call works correctly only for returning a single value.
-    // The run_dep polyreturns, so we need to compensate the compdata.
-    *compdata = compdata_pop_to_var(*compdata, datum_make_symbol(":anon"));
-  }
+  prog_append_call(sl, p, false, list_length(syms), compdata);
   datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
