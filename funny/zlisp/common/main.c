@@ -171,11 +171,6 @@ datum *var_at(datum *vars, int offset) {
     fprintf(stderr, "var not found\n");
     exit(EXIT_FAILURE);
   }
-  /* We have to check for anons anywhere (not only on the top of the list),
-     because lambdas inherit the anons during the closure. */
-  if (datum_is_the_symbol(vars->list_head->list_head, ":anon")) {
-    return var_at(vars->list_tail, offset);
-  }
   if (offset == 0) {
     return vars->list_head;
   }

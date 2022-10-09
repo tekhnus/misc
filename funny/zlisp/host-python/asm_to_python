@@ -39,8 +39,6 @@ def get_var(d, k, offset):
     if not d:
         exit("get_var: not found")
     k_, v = d[-1]
-    if k_ == ":anon":
-        return get_var(d[:-1], k, offset)
     if offset == 0:
         return v
     return get_var(d[:-1], k, offset - 1)

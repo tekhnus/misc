@@ -507,9 +507,6 @@ LOCAL int compdata_get_index(datum *compdata, datum *var) {
   if (datum_eq(compdata->list_head, var)) {
     return 0;
   }
-  if (datum_is_the_symbol(compdata->list_head, ":anon")) {
-    return compdata_get_index(compdata->list_tail, var);
-  }
   int res = compdata_get_index(compdata->list_tail, var);
   if (res == -1) {
     return -1;
