@@ -29,11 +29,24 @@ tools/
 ```
 
 **Open problems and TODOs:**
-1) The bytecode should contain debug info.
-2) As a workaround, functions are represented by self-referential datums in order to support recursion:(
-3) Hosting by a compiled language should be tried.
-4) Hosting by a constrained environment like bare metal or shader should be tried.
-5) The base data structure is a linked list, which has little use. Switch to slices?
-6) Compile-time computation syntax feels awkward to use:( Also it might be merged with quasiquotes?
-7) No loops:(
-8) Optional static typing.
+- Debug info in the bytecode
+
+- Optional static typing
+
+- Make less awkward macro syntax
+- Unite preprocessor with quasiquotes
+- Sanitized macros
+
+- Prohibit self-referential datums (currently used for representing recursive functions)
+- Fix the size of module representation which is quadratic w.r.t. the function count
+- Switch from linked lists to slices
+- Sane approach to memory allocation/deallocation
+- Single common stack?
+
+- Loops
+- Tail recursive calls
+
+- Separate the builder and the linker
+
+- Try hosting by a compiled language
+- Try hosting by a constrained environment like bare metal or shader
