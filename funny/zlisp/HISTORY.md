@@ -27,3 +27,11 @@ and are significantly refactored.
 Bytecode generator now writes the whole program onto a linear memory slice.
 Bytecode-to-datum converter is implemented.
 Python interpreter is implemented.
+
+May 2022: the routine types are eliminated;
+the routines are represented by simple types (a datum with state
+and an index of the routine start on the code slice).
+The linker is separated from the compiler and diamond dependencies reusage is implemented.
+
+June-October 2022: the runtime now doesn't have "variables"; there is only stack now;
+variable offsets are calculated by the compiler.
