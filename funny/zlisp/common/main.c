@@ -200,13 +200,11 @@ EXPORT bool datum_is_constant(datum *d) {
 
 fdatum state_stack_at(state *ns, int offset) {
   datum *entry = list_at(ns->vars, offset);
-  datum *cell = entry->list_tail;
-  return fdatum_make_ok(cell->list_head);
+  return fdatum_make_ok(entry);
 }
 
 void state_stack_put(state **ns, datum *value) {
-  datum *kv = datum_make_list_2(datum_make_symbol(":anon"), value);
-  *ns = state_make(datum_make_list(kv, (*ns)->vars));
+  *ns = state_make(datum_make_list(value, (*ns)->vars));
 }
 
 void state_stack_put_all(state **ns, datum *list) {
@@ -225,12 +223,8 @@ datum *state_stack_pop(state **s) {
     exit(EXIT_FAILURE);
   }
   datum *cell = (*s)->vars->list_head;
-  if (!datum_is_the_symbol(cell->list_head, ":anon")) {
-    fprintf(stderr, "tried to pop, but it's not an anonymous!\n");
-    exit(EXIT_FAILURE);
-  }
   *s = state_make((*s)->vars->list_tail);
-  return cell->list_tail->list_head;
+  return cell;
 }
 
 datum *state_stack_top(state **s) {
@@ -239,7 +233,7 @@ datum *state_stack_top(state **s) {
     exit(EXIT_FAILURE);
   }
   datum *cell = (*s)->vars->list_head;
-  return cell->list_tail->list_head;
+  return cell;
 }
 
 datum *state_stack_collect(state **s, size_t count) {
