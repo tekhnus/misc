@@ -7,7 +7,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
   datum *dup_compdata = *compdata;
-  fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata, datum_make_list_1(datum_make_symbol("main")));
+  fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata, datum_make_list_1(datum_make_void()));
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (fdatum_is_panic(res)) {
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
@@ -26,7 +26,7 @@ EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
                        fdatum (*module_source)(prog_slice *sl, size_t *p,
                                                char *), datum **compdata) {
   datum *spec = datum_make_list_1(datum_make_symbol("req"));
-  datum *stmts = datum_make_nil();
+  datum *stmts = datum_make_list_1(datum_make_symbol(":void-value"));
   if (datum_is_list(stmt_or_spec) && !datum_is_nil(stmt_or_spec) && datum_is_the_symbol(stmt_or_spec->list_head, "req")) {
     spec = stmt_or_spec; 
   } else {

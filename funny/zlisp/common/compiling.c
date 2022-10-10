@@ -8,7 +8,6 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
   if (fdatum_is_panic(res)) {
     return res;
   }
-  prog_append_put_const(sl, off, datum_make_void(), compdata);
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
@@ -21,7 +20,6 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
       }
       return fdatum_make_ok(datum_make_list_2(res.ok_value, exp.ok_value));
     }
-    prog_append_pop(sl, off, datum_make_symbol(":void"), compdata);
     prog_append_nop(sl, off, datum_make_list_2(datum_make_symbol("info"), datum_make_list(stmt, info)));
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
     if (err != NULL) {
@@ -181,10 +179,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     for (datum *rest = stmt->list_tail; !datum_is_nil(rest);
          rest = rest->list_tail) {
-      prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
       datum *step = rest->list_head;
       prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_list(step, info)));
       char *err = prog_append_statement(sl, begin, step, compdata, info);
@@ -211,7 +207,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_pop(sl, begin, datum_make_list_1(stmt->list_tail->list_head), compdata);
-    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defn") ||
@@ -228,7 +223,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_set_closures(sl, begin, s_off, hat);
-    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn") ||
@@ -272,7 +266,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     prog_append_yield(sl, begin, hat);
     prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
     prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
-    prog_append_put_const(sl, begin, datum_make_void(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
