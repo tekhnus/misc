@@ -7,8 +7,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
   datum *dup_compdata = *compdata;
-  prog_append_nop(sl, &run_main_end, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("main")));
-  fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata);
+  fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata, datum_make_list_1(datum_make_symbol("main")));
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (fdatum_is_panic(res)) {
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
@@ -41,7 +40,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
   datum *bdr_compdata = compdata_make();
-  prog_append_nop(sl, &bdr_end, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("build-deps-isolated")));
+  prog_append_nop(sl, &bdr_end, datum_make_list_2(datum_make_symbol("info"), datum_make_list_1(datum_make_symbol("build-deps-isolated"))));
   prog_append_recieve(sl, &bdr_end, datum_make_nil(), &bdr_compdata);  // bdr is callable with zero arguments
   datum *state = datum_make_nil();
   char *err = prog_build_deps(&state, sl, &bdr_end, deps, module_source, &bdr_compdata);
@@ -121,7 +120,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   // fprintf(stderr, "!!!!!! %s\n", datum_repr(dep_and_sym));
   size_t run_dep_off = prog_slice_append_new(sl);
   size_t run_dep_end = run_dep_off;
-  prog_append_nop(sl, &run_dep_end, datum_make_list_2(datum_make_symbol("info"), dep));
+  prog_append_nop(sl, &run_dep_end, datum_make_list_2(datum_make_symbol("info"), datum_make_list_1(dep)));
   fdatum status = module_source(sl, &run_dep_end, dep->bytestring_value);
   if (fdatum_is_panic(status)) {
     return status.panic_message;

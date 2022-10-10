@@ -401,7 +401,13 @@ void print_backtrace(prog_slice sl, routine_2 *r) {
           fprintf(stderr, "  ");
         }
         fprintf(stderr, "%ld ", i);
-        fprintf(stderr, "%s\n", datum_repr(prog_slice_datum_at(sl, i)));
+        datum *ins = prog_slice_datum_at(sl, i);
+        char *meta = "";
+        if (datum_is_the_symbol(ins->list_head, ":nop")) {
+          meta = datum_repr(ins->list_tail->list_head);
+          ins = datum_make_list_2(datum_make_symbol(":nop"), datum_make_nil());
+        }
+        fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
       }
       fprintf(stderr, "**********\n");
     }

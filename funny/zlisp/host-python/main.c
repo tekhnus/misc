@@ -44,7 +44,7 @@ LOCAL fdatum python_module_routine(prog_slice *sl, size_t *p, char *module) {
     return src;
   }
   datum *compdata = compdata_make();
-  return prog_init_submodule(sl, p, src.ok_value, &compdata);
+  return prog_init_submodule(sl, p, src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
 }
 
 LOCAL fdatum python_module_source(char *module) {
