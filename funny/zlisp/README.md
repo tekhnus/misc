@@ -29,8 +29,6 @@ tools/
 ```
 
 **Open problems and TODOs:**
-- Debug info in the bytecode
-
 - Optional static typing
 
 - Make less awkward macro syntax
