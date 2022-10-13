@@ -223,14 +223,14 @@ def main():
             pdata[-1][-1].varz.extend((rvalue) for rvalue in reversed(rvalues))
             ip = pdata[-1][-1].ip
         elif op == sexpdata.Symbol(":yield"):
-            hat, nex = args
-            rvalue = pop_stack()
+            hat, cnt, nex = args
+            rvalues = [pop_stack() for _ in range(cnt)]
 
             contvarz = list(pdata[-1][-1].varz)
             cont = make_routine_0(varz=contvarz, ip=nex)
 
             pdata[-1].pop()
-            pdata[-1][-1].varz.extend((make_list_with_items(rvalue, cont)))
+            pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues), cont)))
             ip = pdata[-1][-1].ip
         else:
             raise RuntimeError(op)

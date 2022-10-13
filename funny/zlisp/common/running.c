@@ -86,6 +86,7 @@ struct prog {
     };
     struct {
       bool yield_hat;
+      size_t yield_count;
       ptrdiff_t yield_next;
     };
   };
@@ -266,11 +267,11 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->yield_hat) {
       break;
     }
-    datum *val = state_stack_pop(st);
+    datum *vals = state_stack_collect(st, prg->yield_count);
     r->cur.cur.offset = prg->yield_next;
     routine_1 fr = routine_2_pop_frame(r);
     datum *conti = routine_1_to_datum(sl, fr);
-    state_stack_put(st, val);
+    state_stack_put_all(st, vals);
     state_stack_put(st, conti);
     return NULL;
   } break;
@@ -365,13 +366,13 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if (prg->yield_hat) {
       break;
     }
-    datum *val = state_stack_pop(st);
+    datum *vals = state_stack_collect(st, prg->yield_count);
     r->cur.offset = prg->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),
                           datum_make_list_1(fr.state_->vars));
-    state_stack_put(st, val);
+    state_stack_put_all(st, vals);
     state_stack_put(st, conti);
     return NULL;
   } break;
@@ -546,7 +547,8 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_hat = list_at(d, 1)->integer_value;
-    res.yield_next = (list_at(d, 2)->integer_value);
+    res.yield_count = list_at(d, 2)->integer_value;
+    res.yield_next = (list_at(d, 3)->integer_value);
   } else {
     fprintf(stderr, "datum_to_prog incomplete\n");
     exit(EXIT_FAILURE);
