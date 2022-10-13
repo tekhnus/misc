@@ -32,7 +32,6 @@ enum prog_type {
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
-  PROG_RETURN,
   PROG_YIELD,
 };
 
@@ -79,10 +78,6 @@ struct prog {
       ptrdiff_t set_closures_prog;
       bool set_closures_hat;
       ptrdiff_t set_closures_next;
-    };
-    struct {
-      bool return_hat;
-      size_t return_count;
     };
     struct {
       bool yield_hat;
@@ -253,15 +248,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
       break;
     }
     return "put_prog capture=2 not implemented yet";
-  }
-  case PROG_RETURN: {
-    if (!prg->return_hat) {
-      break;
-    }
-    datum *result = state_stack_collect(st, prg->return_count);
-    routine_2_pop_frame(r);
-    state_stack_put_all(st, result);
-    return NULL;
   } break;
   case PROG_YIELD: {
     if (!prg->yield_hat) {
@@ -335,15 +321,6 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     r->cur.offset = prg->set_closures_next;
     return NULL;
   } break;
-  case PROG_RETURN: {
-    if (prg->return_hat) {
-      break;
-    }
-    datum *result = state_stack_collect(st, prg->return_count);
-    routine_1_pop_frame(r);
-    state_stack_put_all(st, result);
-    return NULL;
-  } break;
   case PROG_PUT_PROG: {
     if (prg->put_prog_capture != 1 && prg->put_prog_capture != 0){
       break;
@@ -360,7 +337,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     state_stack_put(st, prog);
     r->cur.offset = prg->put_prog_next;
     return NULL;
-  }
+  } break;
   case PROG_YIELD: {
     // return fstate_make_panic("disabled ATM");
     if (prg->yield_hat) {
@@ -540,10 +517,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_prog_value = (list_at(d, 1)->integer_value);
     res.put_prog_capture = list_at(d, 2)->integer_value;
     res.put_prog_next = (list_at(d, 3)->integer_value);
-  } else if (!strcmp(opsym, ":return")) {
-    res.type = PROG_RETURN;
-    res.return_hat = list_at(d, 1)->integer_value;
-    res.return_count = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_hat = list_at(d, 1)->integer_value;
