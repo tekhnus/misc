@@ -289,6 +289,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   datum *fn = stmt->list_head;
   bool hash = false;
   bool hat = false;
+  bool at = false;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
          datum_is_symbol(fn->list_head);
        fn = fn->list_tail->list_head) {
@@ -297,6 +298,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       hash = true;
     } else if (!strcmp(tag, "hat")) {
       hat = true;
+    } else if (!strcmp(tag, "at")) {
+      at = true;
     } else {
       break;
     }
@@ -319,7 +322,12 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
   prog_append_collect(sl, 2, begin, compdata);
-  prog_append_call(sl, begin, hat, 1, compdata);
+  if (at) {
+    prog_append_call(sl, begin, hat, 2, compdata);
+    prog_append_collect(sl, 2, begin, compdata);
+  } else {
+    prog_append_call(sl, begin, hat, 1, compdata);
+  }
   return NULL;
 }
 

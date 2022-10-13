@@ -230,7 +230,7 @@ def main():
             cont = make_routine_0(varz=contvarz, ip=nex)
 
             pdata[-1].pop()
-            pdata[-1][-1].varz.append((make_list_with_items(rvalue, cont)))
+            pdata[-1][-1].varz.extend((make_list_with_items(rvalue, cont)))
             ip = pdata[-1][-1].ip
         else:
             raise RuntimeError(op)

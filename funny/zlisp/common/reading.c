@@ -71,6 +71,10 @@ LOCAL bool consume_control_sequence(char c, datum **form) {
     *form = datum_make_symbol("hat");
     return true;
   }
+  if (c == '@') {
+    *form = datum_make_symbol("at");
+    return true;
+  }
   return false;
 }
 
