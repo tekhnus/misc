@@ -52,13 +52,13 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 datum *datum_make_void();
 datum *compdata_make();
+void prog_append_return(prog_slice *sl,size_t *begin,bool hat,size_t count);
 LOCAL int compdata_get_index(datum *compdata,datum *var);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int return_count,datum **compdata);
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL void prog_append_host(prog_slice *sl,size_t *begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat);
-void prog_append_return(prog_slice *sl,size_t *begin,bool hat,size_t count);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata,datum *info);

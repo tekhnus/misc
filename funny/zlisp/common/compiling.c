@@ -240,6 +240,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     prog_append_put_prog(sl, begin, s_off, hat ? 2 : 1, compdata);
     return NULL;
   }
+  /*
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "return");
@@ -253,9 +254,12 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     prog_append_return(sl, begin, hat, 1);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "yield") ||
+  */
+  if (datum_is_the_symbol(op, "return") ||
+      datum_is_the_symbol_pair(op, "hat", "return") ||
+      datum_is_the_symbol(op, "yield") ||
       datum_is_the_symbol_pair(op, "hat", "yield")) {
-    bool hat = datum_is_the_symbol_pair(op, "hat", "yield");
+    bool hat = datum_is_the_symbol_pair(op, "hat", "yield") || datum_is_the_symbol_pair(op, "hat", "return");
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
@@ -264,8 +268,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_yield(sl, begin, hat);
-    prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
-    prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
+    // prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
+    // prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
@@ -326,7 +330,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     prog_append_call(sl, begin, hat, 2, compdata);
     prog_append_collect(sl, 2, begin, compdata);
   } else {
-    prog_append_call(sl, begin, hat, 1, compdata);
+    prog_append_call(sl, begin, hat, 2, compdata);
+    prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }
   return NULL;
 }
