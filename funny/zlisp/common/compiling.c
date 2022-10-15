@@ -3,31 +3,30 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
+EXPORT char *prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
   char *res = prog_append_usages(sl, off, source->list_head, compdata);
   if (res != NULL) {
-    return fdatum_make_panic(res);
+    return (res);
   }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
       if (!datum_is_nil(rest->list_tail)) {
-        return fdatum_make_panic("export should be the last statement in module");
+        return ("export should be the last statement in module");
       }
       char *exp = prog_append_exports(sl, off, stmt, compdata);
       if (exp != NULL) {
-        return fdatum_make_panic(exp);
+        return (exp);
       }
-      return fdatum_make_ok(datum_make_list_2(datum_make_nil(), datum_make_nil()));
+      return NULL;
     }
     prog_append_nop(sl, off, datum_make_list_2(datum_make_symbol("info"), datum_make_list(stmt, info)));
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
     if (err != NULL) {
-      return fdatum_make_panic(err);
+      return (err);
     }
   }
-  return fdatum_make_ok(datum_make_list_2(datum_make_nil(), datum_make_nil()));
-  // return fdatum_make_panic("export statement should terminate the module");
+  return NULL;
 }
 
 LOCAL char *prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {

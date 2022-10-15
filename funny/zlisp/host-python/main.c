@@ -38,10 +38,10 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-LOCAL fdatum python_module_routine(prog_slice *sl, size_t *p, char *module) {
+LOCAL char *python_module_routine(prog_slice *sl, size_t *p, char *module) {
   fdatum src = python_module_source(module);
   if (fdatum_is_panic(src)) {
-    return src;
+    return src.panic_message;
   }
   datum *compdata = compdata_make();
   return prog_init_submodule(sl, p, src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));

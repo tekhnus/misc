@@ -44,12 +44,12 @@ LOCAL char *get_varname(datum *dep_and_sym);
 struct state {
   struct datum *vars;
 };
-LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
-LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
-char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
-LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
-char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL datum *extract_meta(prog_slice sl,size_t run_main_off);
 datum *datum_make_void();
 datum *compdata_make();
@@ -76,7 +76,7 @@ LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
-fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
+char *prog_init_submodule(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
 fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {

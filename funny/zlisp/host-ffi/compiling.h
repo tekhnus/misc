@@ -15,6 +15,6 @@ fdatum file_source(char *fname);
 char *module_to_filename(char *module);
 fdatum module_source(char *module);
 char *prog_build_one_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
-fdatum module_routine(prog_slice *sl,size_t *p,char *module);
+char *module_routine(prog_slice *sl,size_t *p,char *module);
 char *prog_build_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
 #define INTERFACE 0

@@ -14,10 +14,10 @@ char *prog_build_one_c_host(prog_slice *sl, size_t p, datum *source, datum **com
   return prog_build_one(sl, p, source, module_routine, compdata);
 }
 
-fdatum module_routine(prog_slice *sl, size_t *p, char *module) {
+char *module_routine(prog_slice *sl, size_t *p, char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
-    return src;
+    return src.panic_message;
   }
   datum *compdata = compdata_make();
   return prog_init_submodule(sl, p, src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));

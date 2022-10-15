@@ -15,15 +15,15 @@ LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
   return list_at(first_main_instruction, 4);
 }
 
-EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
   datum *dup_compdata = *compdata;
-  fdatum res = prog_init_submodule(sl, &run_main_end, source, compdata, datum_make_list_1(datum_make_void()));
+  char *res = prog_init_submodule(sl, &run_main_end, source, compdata, datum_make_list_1(datum_make_void()));
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
-  if (fdatum_is_panic(res)) {
+  if (res != NULL) {
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
-    return res.panic_message;
+    return res;
   }
   datum *first_main_instruction = prog_slice_datum_at(*sl, run_main_off);
   datum *input_meta = extract_meta(*sl, run_main_off);
@@ -39,7 +39,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
 }
 
 EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
-                       fdatum (*module_source)(prog_slice *sl, size_t *p,
+                       char *(*module_source)(prog_slice *sl, size_t *p,
                                                char *), datum **compdata) {
   datum *spec = datum_make_list_1(datum_make_symbol("req"));
   datum *stmts = datum_make_list_1(datum_make_symbol(":void-value"));
@@ -51,7 +51,7 @@ EXPORT char *prog_build_one(prog_slice *sl, size_t ep, datum *stmt_or_spec,
   return prog_build(sl, ep, datum_make_list(spec, stmts), module_source, compdata);
 }
 
-LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   // fprintf(stderr, "!!!!! %s\n", datum_repr(deps));
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
@@ -73,7 +73,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   return NULL;
 }
 
-LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
     char *err = prog_build_dep(state, sl, p, dep, module_source, compdata);
@@ -118,7 +118,7 @@ LOCAL datum *list_append(datum *x, datum *y) {
   return datum_make_list(x->list_head, list_append(x->list_tail, y));
 }
 
-LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_and_sym, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
     return "req expects bytestrings";
   }
@@ -138,9 +138,9 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   // fprintf(stderr, "!!!!!! %s\n", datum_repr(dep_and_sym));
   size_t run_dep_off = prog_slice_append_new(sl);
   size_t run_dep_end = run_dep_off;
-  fdatum status = module_source(sl, &run_dep_end, dep->bytestring_value);
-  if (fdatum_is_panic(status)) {
-    return status.panic_message;
+  char *status = module_source(sl, &run_dep_end, dep->bytestring_value);
+  if (status != NULL) {
+    return status;
   }
   datum *transitive_deps = extract_meta(*sl, run_dep_off);
   if (run_dep_end == 0) {
