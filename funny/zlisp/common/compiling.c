@@ -169,10 +169,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     if (!datum_eq(*compdata, false_compdata)) {
       *compdata = compdata_put(*compdata, datum_make_symbol("__different_if_branches"));
-      // fprintf(stderr, "warning: if branches have different compdata\n");
-      // fprintf(stderr, "%s\n", datum_repr(stmt->list_tail->list_head));
-      // fprintf(stderr, "%s\n", datum_repr(*compdata));
-      // fprintf(stderr, "%s\n", datum_repr(false_compdata));
     }
 
     prog_join(sl, true_end, false_end, *begin);
@@ -240,26 +236,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     prog_append_put_prog(sl, begin, s_off, hat ? 2 : 1, compdata);
     return NULL;
   }
-  /*
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "return");
-    if (list_length(stmt->list_tail) != 1) {
-      return "return should have a single arg";
-    }
-    char *err = prog_append_statement(sl, begin, stmt->list_tail->list_head, compdata, datum_make_nil());
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_return(sl, begin, hat, 1);
-    return NULL;
-  }
-  */
-  if (datum_is_the_symbol(op, "return") ||
-      datum_is_the_symbol_pair(op, "hat", "return") ||
-      datum_is_the_symbol(op, "yield") ||
-      datum_is_the_symbol_pair(op, "hat", "yield")) {
-    bool hat = datum_is_the_symbol_pair(op, "hat", "yield") || datum_is_the_symbol_pair(op, "hat", "return");
     if (list_length(stmt->list_tail) != 1) {
       return "yield should have a single arg";
     }
@@ -372,7 +351,6 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   int index = compdata_get_index(*compdata, val);
   if (index == -1) {
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
-    // fprintf(stderr, "%s\n", datum_repr(*compdata));
     exit(1);
   }
   prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("putting-var"), val));
@@ -431,10 +409,6 @@ EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t co
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(count), datum_make_int(recieve_count), meta, datum_make_int(next)));
   *begin = next;
-  if (compdata == NULL) {
-    // this is a hack for a single call in building.c
-    return;
-  }
   for (size_t i = 0; i < count; ++i) {
     *compdata = compdata_del(*compdata);
   }

@@ -85,10 +85,10 @@
 !(#fntest
   (progn
     !(#defun fib ()
-       (yield 3)
-       (yield 5)
-       (yield 8)
-       (yield 13))
+       (return 3)
+       (return 5)
+       (return 8)
+       (return 13))
     !(#def2 x fib (@fib))
     !(#def2 y fib (@fib))
     !(#def2 z fib (@fib))
