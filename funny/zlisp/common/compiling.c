@@ -4,9 +4,9 @@
 #include <extern.h>
 
 EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
-  fdatum res = prog_append_usages(sl, off, source->list_head, compdata);
-  if (fdatum_is_panic(res)) {
-    return res;
+  char *res = prog_append_usages(sl, off, source->list_head, compdata);
+  if (res != NULL) {
+    return fdatum_make_panic(res);
   }
   for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
@@ -14,9 +14,9 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
       if (!datum_is_nil(rest->list_tail)) {
         return fdatum_make_panic("export should be the last statement in module");
       }
-      fdatum exp = prog_append_exports(sl, off, stmt, compdata);
-      if (fdatum_is_panic(exp)) {
-        return exp;
+      char *exp = prog_append_exports(sl, off, stmt, compdata);
+      if (exp != NULL) {
+        return fdatum_make_panic(exp);
       }
       return fdatum_make_ok(datum_make_list_2(datum_make_nil(), datum_make_nil()));
     }
@@ -30,18 +30,18 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
   // return fdatum_make_panic("export statement should terminate the module");
 }
 
-LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
+LOCAL char *prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
-    return res;
+    return res.panic_message;
   }
   datum *re = res.ok_value;
   if (!datum_is_list(re) || list_length(re) != 2) {
-    return fdatum_make_panic("not gonna happen");
+    return "not gonna happen";
   }
   datum *vars = re->list_head;
   prog_append_recieve(sl, begin, vars, re->list_tail->list_head, compdata);
-  return fdatum_make_ok(re->list_tail->list_head);
+  return NULL;
 }
 
 LOCAL fdatum prog_read_usages(datum *spec) {
@@ -71,14 +71,14 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   return fdatum_make_ok(datum_make_list_2(vars, specs));
 }
 
-LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
+LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
-    return res;
+    return res.panic_message;
   }
   datum *re = res.ok_value;
   if (!datum_is_list(re) || list_length(re) != 2) {
-    return fdatum_make_panic("not gonna happen");
+    return "not gonna happen";
   }
   for (datum *rest_expressions=re->list_tail->list_head; !datum_is_nil(rest_expressions); rest_expressions=rest_expressions->list_tail) {
     datum *expr = rest_expressions->list_head;
@@ -88,7 +88,7 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
   prog_append_nop(sl, begin, datum_make_nil());
   // probably should change hat=false to true.
   prog_append_yield(sl, begin, false, list_length(re->list_head), 1, re->list_head, compdata);
-  return fdatum_make_ok(re->list_head);
+  return NULL;
 }
 
 LOCAL fdatum prog_read_exports(datum *spec) {

@@ -74,8 +74,8 @@ void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,da
 LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
-LOCAL fdatum prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
-LOCAL fdatum prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
+LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
+LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 fdatum prog_init_submodule(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
 fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
