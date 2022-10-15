@@ -267,7 +267,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_yield(sl, begin, hat, 1);
+    prog_append_yield(sl, begin, hat, 1, datum_make_nil());
     // prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
     // prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
     return NULL;
@@ -429,15 +429,9 @@ EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int 
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_return(prog_slice *sl, size_t *begin, bool hat, size_t count) {
+EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t count, datum *meta) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":return"), datum_make_int(hat), datum_make_int(count)));
-  *begin = next;
-}
-
-EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t count) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(count), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_5(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(count), meta, datum_make_int(next)));
   *begin = next;
 }
 
