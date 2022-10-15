@@ -84,6 +84,8 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
     datum *expr = rest_expressions->list_head;
     prog_append_statement(sl, begin, expr, compdata, datum_make_nil());
   }
+  // probably should change hat=false to true.
+  prog_append_yield(sl, begin, false, list_length(re->list_head), 1, re->list_head, compdata);
   return fdatum_make_ok(re->list_head);
 }
 

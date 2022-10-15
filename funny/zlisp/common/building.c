@@ -144,7 +144,6 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   }
   datum *transitive_deps = extract_input_meta(*sl, run_dep_off);
   datum *syms = status.ok_value->list_tail->list_head;
-  prog_append_yield(sl, &run_dep_end, false, list_length(syms), 1, datum_make_nil(), NULL);
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;

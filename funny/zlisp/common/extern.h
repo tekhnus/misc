@@ -58,7 +58,6 @@ void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int return_count,dat
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL void prog_append_host(prog_slice *sl,size_t *begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
-void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata,datum *info);
@@ -69,6 +68,7 @@ LOCAL datum *compdata_put(datum *compdata,datum *var);
 LOCAL datum *compdata_del(datum *compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
+void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);
