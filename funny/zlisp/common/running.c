@@ -226,7 +226,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     routine_2_push_frame(r, callee);
     state_stack_put_all(&r->cur.cur.state_, args);
     prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
-    if (xxx.type != PROG_NOP) {
+    if (xxx.type != PROG_NOP || !datum_is_the_symbol(xxx.nop_info, "recieve")) {
       fprintf(stderr, "not a nop!\n");
       exit(EXIT_FAILURE);
     }
