@@ -230,6 +230,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
       fprintf(stderr, "not a nop!\n");
       exit(EXIT_FAILURE);
     }
+    r->cur.cur.offset = xxx.nop_next;
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
