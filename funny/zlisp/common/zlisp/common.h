@@ -17,6 +17,7 @@ datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_4(datum *head,datum *second,datum *third,datum *fourth);
 datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
+datum *datum_make_list_6(datum *head,datum *second,datum *third,datum *fourth,datum *fifth,datum *sixth);
 datum *datum_make_symbol(char *name);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_int(int64_t value);
@@ -73,7 +74,7 @@ void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdat
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
-void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,datum *meta,datum **compdata);
+void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);
 datum *compdata_make();

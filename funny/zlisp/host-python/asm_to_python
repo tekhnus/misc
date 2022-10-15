@@ -214,7 +214,7 @@ def main():
             pdata[-1][-1].varz.append((p))
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
-            hat, cnt, meta, nex = args
+            hat, cnt, recieve_cnt, meta, nex = args
             rvalues = [pop_stack() for _ in range(cnt)]
 
             contvarz = list(pdata[-1][-1].varz)

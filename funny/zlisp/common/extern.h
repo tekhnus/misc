@@ -57,7 +57,7 @@ void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int return_count,dat
 void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL void prog_append_host(prog_slice *sl,size_t *begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
-void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,datum *meta,datum **compdata);
+void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,bool hat);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata,datum *info);
@@ -129,6 +129,7 @@ char *datum_repr(datum *e);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);
+datum *datum_make_list_6(datum *head,datum *second,datum *third,datum *fourth,datum *fifth,datum *sixth);
 datum *datum_make_list_5(datum *head,datum *second,datum *third,datum *fourth,datum *fifth);
 datum *datum_make_list_4(datum *head,datum *second,datum *third,datum *fourth);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);

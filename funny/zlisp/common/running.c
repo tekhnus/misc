@@ -82,6 +82,7 @@ struct prog {
     struct {
       bool yield_hat;
       size_t yield_count;
+      size_t yield_recieve_count;
       struct datum *yield_meta;
       ptrdiff_t yield_next;
     };
@@ -522,8 +523,9 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_YIELD;
     res.yield_hat = list_at(d, 1)->integer_value;
     res.yield_count = list_at(d, 2)->integer_value;
-    res.yield_meta = list_at(d, 3);
-    res.yield_next = (list_at(d, 4)->integer_value);
+    res.yield_recieve_count = list_at(d, 3)->integer_value;
+    res.yield_meta = list_at(d, 4);
+    res.yield_next = (list_at(d, 5)->integer_value);
   } else {
     fprintf(stderr, "datum_to_prog incomplete\n");
     exit(EXIT_FAILURE);
