@@ -385,7 +385,7 @@ void print_backtrace(prog_slice sl, routine_2 *r) {
         char *meta = "";
         if (datum_is_the_symbol(ins->list_head, ":nop")) {
           meta = datum_repr(ins->list_tail->list_head);
-          ins = datum_make_list_2(datum_make_symbol(":nop"), datum_make_nil());
+          ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), ins->list_tail->list_tail->list_head);
         }
         fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
       }
@@ -416,6 +416,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     }
     if (datum_is_the_symbol(prg->nop_info, "recieve")) {
       fprintf(stderr, "the nop-reciever should have been ignored\n");
+      // return "nop-reciever";
     }
     r->offset = prg->nop_next;
     return NULL;

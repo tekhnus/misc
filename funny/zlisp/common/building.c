@@ -53,6 +53,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   prog_append_collect(sl, 1, p, compdata);
   prog_append_call(sl, p, false, list_length(deps), compdata);
   prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
+  prog_append_nop(sl, p, datum_make_symbol("we_are_at_build_deps_isolated"));
   return NULL;
 }
 

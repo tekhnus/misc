@@ -269,6 +269,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     prog_append_yield(sl, begin, hat, 1, 1, datum_make_nil(), compdata);
     prog_append_nop(sl, begin, datum_make_symbol("recieve"));
+    prog_append_nop(sl, begin, datum_make_symbol("prog_append_recieve"));
     // prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
     // prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
     return NULL;
@@ -478,6 +479,7 @@ EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
 
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
   prog_append_nop(sl, begin, datum_make_symbol("recieve"));
+  prog_append_nop(sl, begin, datum_make_symbol("prog_append_recieve"));
   prog_append_pop(sl, begin, args, compdata);
 }
 
