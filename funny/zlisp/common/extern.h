@@ -64,12 +64,12 @@ LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compda
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
+LOCAL datum *compdata_put(datum *compdata,datum *var);
 LOCAL datum *compdata_del(datum *compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);
-LOCAL datum *compdata_put(datum *compdata,datum *var);
 LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);

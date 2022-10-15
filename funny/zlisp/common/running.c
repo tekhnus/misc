@@ -226,10 +226,10 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     routine_2_push_frame(r, callee);
     state_stack_put_all(&r->cur.cur.state_, args);
     prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
-    if (xxx.type != PROG_NOP || !datum_is_the_symbol(xxx.nop_info, "recieve")) {
-      return "not a nop";
+    if (xxx.type != PROG_YIELD) {
+      return "not a yield-reciever";
     }
-    r->cur.cur.offset = xxx.nop_next;
+    r->cur.cur.offset = xxx.yield_next;
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -256,7 +256,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
-    r->cur.cur.offset = prg->yield_next;
+    // r->cur.cur.offset = prg->yield_next;
     routine_1 fr = routine_2_pop_frame(r);
     datum *conti = routine_1_to_datum(sl, fr);
     state_stack_put_all(st, vals);
@@ -304,10 +304,10 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     routine_1_push_frame(r, callee);
     state_stack_put_all(st, args);
     prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
-    if (xxx.type != PROG_NOP || !datum_is_the_symbol(xxx.nop_info, "recieve")) {
-      return "not a nop";
+    if (xxx.type != PROG_YIELD) {
+      return "not a yield-reciever";
     }
-    r->cur.offset = xxx.nop_next;
+    r->cur.offset = xxx.yield_next;
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -346,7 +346,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
-    r->cur.offset = prg->yield_next;
+    // r->cur.offset = prg->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),

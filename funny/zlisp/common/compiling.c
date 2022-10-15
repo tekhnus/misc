@@ -40,9 +40,6 @@ LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datu
     return fdatum_make_panic("not gonna happen");
   }
   datum *vars = re->list_head;
-  for (int i = 0; i < list_length(vars); ++i) {
-    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-  }
   prog_append_recieve(sl, begin, vars, compdata);
   return fdatum_make_ok(re->list_tail->list_head);
 }
@@ -268,8 +265,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_yield(sl, begin, hat, 1, 1, datum_make_nil(), compdata);
-    prog_append_nop(sl, begin, datum_make_symbol("recieve"));
-    prog_append_nop(sl, begin, datum_make_symbol("prog_append_recieve"));
     // prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
     // prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
     return NULL;
@@ -478,14 +473,13 @@ EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
 }
 
 EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum **compdata) {
-  prog_append_nop(sl, begin, datum_make_symbol("recieve"));
-  prog_append_nop(sl, begin, datum_make_symbol("prog_append_recieve"));
+  // fix hat=false; sometimes it should be true.
+  prog_append_yield(sl, begin, false, 0, list_length(args), datum_make_nil(), compdata);
   prog_append_pop(sl, begin, args, compdata);
 }
 
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata, datum *info) {
   datum *routine_compdata = *compdata;
-  routine_compdata = compdata_put(routine_compdata, datum_make_symbol(":anon"));
   prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), &routine_compdata);
   prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
   return prog_append_statement(sl, &s, stmt, &routine_compdata, info);

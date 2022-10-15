@@ -168,6 +168,13 @@ def main():
                 State(varz=rtvarz, ip=0)
             )  # ip set after endif
             ip = offset
+            # check that first instruction is yield and skip it
+            ins = prog[ip]
+            op, args = ins[0], ins[1:]
+            if op != sexpdata.Symbol(":yield"):
+                raise RuntimeError("expected a yield-reciever")
+            hat, cnt, recieve_cnt, meta, nex = args
+            ip = nex
         elif op == sexpdata.Symbol(":host"):
             instruction, nex = args
             arg = pop_stack()
@@ -218,7 +225,7 @@ def main():
             rvalues = [pop_stack() for _ in range(cnt)]
 
             contvarz = list(pdata[-1][-1].varz)
-            cont = make_routine_0(varz=contvarz, ip=nex)
+            cont = make_routine_0(varz=contvarz, ip=ip)
 
             pdata[-1].pop()
             pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues), cont)))
