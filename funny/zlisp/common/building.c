@@ -18,7 +18,16 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
   if (err != NULL) {
     return err;
   }
-  *prog_slice_datum_at(*sl, ep) = *prog_slice_datum_at(*sl, run_main_off);
+  datum *first_main_instruction = prog_slice_datum_at(*sl, run_main_off);
+  if (!datum_is_list(first_main_instruction)
+      || list_length(first_main_instruction) != 3
+      || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":nop")
+      || !datum_is_the_symbol(list_at(first_main_instruction, 1), "recieve")
+      || !datum_is_integer(list_at(first_main_instruction, 2))) {
+    return "expected a nop-reciever at the start of the module";
+  }
+  size_t second_main_instruction_offset = list_at(first_main_instruction, 2)->integer_value;
+  *prog_slice_datum_at(*sl, ep) = *prog_slice_datum_at(*sl, second_main_instruction_offset);
   return NULL;
 }
 

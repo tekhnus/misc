@@ -415,8 +415,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
       }
     }
     if (datum_is_the_symbol(prg->nop_info, "recieve")) {
-      fprintf(stderr, "the nop-reciever should have been ignored\n");
-      // return "nop-reciever";
+      return "nop-reciever";
     }
     r->offset = prg->nop_next;
     return NULL;
