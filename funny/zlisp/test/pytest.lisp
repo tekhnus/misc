@@ -97,12 +97,12 @@
   '(3 5 8 13))
 
 !(#defun print-all (xs)
-   (return
    (if xs
        (progn
          (print (head xs))
-         (print-all (tail xs)))
-     '())))
+         (print-all (tail xs))
+         (return '()))
+     (return '())))
 
 (if panics
     (progn

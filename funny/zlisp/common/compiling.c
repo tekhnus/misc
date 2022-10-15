@@ -43,6 +43,7 @@ LOCAL fdatum prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datu
   for (int i = 0; i < list_length(vars); ++i) {
     *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
   }
+  // prog_append_yield(sl, begin, false, 0, datum_make_nil());
   prog_append_recieve(sl, begin, vars, compdata);
   return fdatum_make_ok(re->list_tail->list_head);
 }
@@ -267,7 +268,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_yield(sl, begin, hat, 1, datum_make_nil());
+    prog_append_yield(sl, begin, hat, 1, datum_make_nil(), compdata);
     // prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("info"), datum_make_symbol("after-yield")));
     // prog_append_recieve(sl, begin, datum_make_list_1(datum_make_symbol("__yield_result")), compdata);
     return NULL;
@@ -429,10 +430,18 @@ EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int 
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t count, datum *meta) {
+EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t count, datum *meta, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_5(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(count), meta, datum_make_int(next)));
   *begin = next;
+  if (compdata == NULL) {
+    // this is a hack for a single call in building.c
+    return;
+  }
+  for (size_t i = 0; i < count; ++i) {
+    *compdata = compdata_del(*compdata);
+  }
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 LOCAL char *prog_append_backquoted_statement(
@@ -492,7 +501,8 @@ LOCAL datum *compdata_del(datum *compdata) {
     exit(EXIT_FAILURE);
   }
   if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
-    fprintf(stderr, "compdata_get_index: if branches had different compdata\n");
+    fprintf(stderr, "compdata_del: if branches had different compdata\n");
+    fprintf(stderr, "%s\n", datum_repr(compdata));
     exit(EXIT_FAILURE);
   }
   return compdata->list_tail;
