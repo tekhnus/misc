@@ -3,6 +3,18 @@
 #include <string.h>
 #include <extern.h>
 
+LOCAL datum *extract_input_meta(prog_slice sl, size_t run_main_off) {
+  datum *first_main_instruction = prog_slice_datum_at(sl, run_main_off);
+  if (!datum_is_list(first_main_instruction)
+      || list_length(first_main_instruction) != 6
+      || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")
+      || !datum_is_integer(list_at(first_main_instruction, 5))) {
+    fprintf(stderr, "expected a yield-reciever at the start of the module\n");
+    exit(EXIT_FAILURE);
+  }
+  return list_at(first_main_instruction, 4);
+}
+
 EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
@@ -13,18 +25,14 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
     // fprintf(stderr, "finita %s %s\n", datum_repr(source), res.panic_message);
     return res.panic_message;
   }
-  char *err = prog_build_deps_isolated(sl, &ep, res.ok_value->list_head, module_source, &dup_compdata);
+  datum *first_main_instruction = prog_slice_datum_at(*sl, run_main_off);
+  datum *input_meta = extract_input_meta(*sl, run_main_off);
+  char *err = prog_build_deps_isolated(sl, &ep, input_meta, module_source, &dup_compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
     return err;
   }
-  datum *first_main_instruction = prog_slice_datum_at(*sl, run_main_off);
-  if (!datum_is_list(first_main_instruction)
-      || list_length(first_main_instruction) != 6
-      || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")
-      || !datum_is_integer(list_at(first_main_instruction, 5))) {
-    return "expected a yield-reciever at the start of the module";
-  }
+
   size_t second_main_instruction_offset = list_at(first_main_instruction, 5)->integer_value;
   *prog_slice_datum_at(*sl, ep) = *prog_slice_datum_at(*sl, second_main_instruction_offset);
   return NULL;
@@ -48,7 +56,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, fda
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
   datum *bdr_compdata = compdata_make();
-  prog_append_recieve(sl, &bdr_end, datum_make_nil(), &bdr_compdata);  // bdr is callable with zero arguments
+  prog_append_recieve(sl, &bdr_end, datum_make_nil(), datum_make_nil(), &bdr_compdata);  // bdr is callable with zero arguments
   prog_append_nop(sl, &bdr_end, datum_make_list_2(datum_make_symbol("info"), datum_make_list_1(datum_make_symbol("build-deps-isolated"))));
   datum *state = datum_make_nil();
   char *err = prog_build_deps(&state, sl, &bdr_end, deps, module_source, &bdr_compdata);
@@ -134,7 +142,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   if (fdatum_is_panic(status)) {
     return status.panic_message;
   }
-  datum *transitive_deps = status.ok_value->list_head;
+  datum *transitive_deps = extract_input_meta(*sl, run_dep_off);
   datum *syms = status.ok_value->list_tail->list_head;
   prog_append_yield(sl, &run_dep_end, false, list_length(syms), 1, datum_make_nil(), NULL);
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);

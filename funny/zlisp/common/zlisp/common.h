@@ -76,7 +76,7 @@ void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
-void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);
+void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 datum *compdata_make();
 datum *datum_make_void();
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);

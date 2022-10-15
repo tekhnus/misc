@@ -50,6 +50,7 @@ LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,f
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build(prog_slice *sl,size_t ep,datum *source,fdatum(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+LOCAL datum *extract_input_meta(prog_slice sl,size_t run_main_off);
 datum *datum_make_void();
 datum *compdata_make();
 LOCAL int compdata_get_index(datum *compdata,datum *var);
@@ -69,7 +70,7 @@ LOCAL datum *compdata_del(datum *compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
-void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum **compdata);
+void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
