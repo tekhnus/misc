@@ -227,8 +227,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     state_stack_put_all(&r->cur.cur.state_, args);
     prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
     if (xxx.type != PROG_NOP || !datum_is_the_symbol(xxx.nop_info, "recieve")) {
-      fprintf(stderr, "not a nop!\n");
-      exit(EXIT_FAILURE);
+      return "not a nop";
     }
     r->cur.cur.offset = xxx.nop_next;
     return NULL;
@@ -308,6 +307,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if (xxx.type != PROG_NOP || !datum_is_the_symbol(xxx.nop_info, "recieve")) {
       return "not a nop";
     }
+    r->cur.offset = xxx.nop_next;
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
@@ -413,6 +413,9 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
           return "compdata mismatch";
         }
       }
+    }
+    if (datum_is_the_symbol(prg->nop_info, "recieve")) {
+      fprintf(stderr, "the nop-reciever should have been ignored\n");
     }
     r->offset = prg->nop_next;
     return NULL;
