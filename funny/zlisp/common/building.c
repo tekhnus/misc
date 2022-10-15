@@ -3,13 +3,13 @@
 #include <string.h>
 #include <extern.h>
 
-LOCAL datum *extract_input_meta(prog_slice sl, size_t run_main_off) {
+LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
   datum *first_main_instruction = prog_slice_datum_at(sl, run_main_off);
   if (!datum_is_list(first_main_instruction)
       || list_length(first_main_instruction) != 6
       || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")
       || !datum_is_integer(list_at(first_main_instruction, 5))) {
-    fprintf(stderr, "expected a yield-reciever at the start of the module\n");
+    fprintf(stderr, "extract_meta expected a yield, got %s\n", datum_repr(first_main_instruction));
     exit(EXIT_FAILURE);
   }
   return list_at(first_main_instruction, 4);
@@ -26,7 +26,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, fdatum (*modul
     return res.panic_message;
   }
   datum *first_main_instruction = prog_slice_datum_at(*sl, run_main_off);
-  datum *input_meta = extract_input_meta(*sl, run_main_off);
+  datum *input_meta = extract_meta(*sl, run_main_off);
   char *err = prog_build_deps_isolated(sl, &ep, input_meta, module_source, &dup_compdata);
   // fprintf(stderr, "!!!!! %s\n", datum_repr(source));
   if (err != NULL) {
@@ -142,8 +142,12 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   if (fdatum_is_panic(status)) {
     return status.panic_message;
   }
-  datum *transitive_deps = extract_input_meta(*sl, run_dep_off);
-  datum *syms = status.ok_value->list_tail->list_head;
+  datum *transitive_deps = extract_meta(*sl, run_dep_off);
+  if (run_dep_end == 0) {
+    return "error: run_dep_end == 0";
+  }
+  // fprintf(stderr, "!!! %s\n", dep->bytestring_value);
+  datum *syms = extract_meta(*sl, run_dep_end - 1);
   char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;

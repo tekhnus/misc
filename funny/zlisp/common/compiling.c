@@ -18,7 +18,7 @@ EXPORT fdatum prog_init_submodule(prog_slice *sl, size_t *off, datum *source, da
       if (fdatum_is_panic(exp)) {
         return exp;
       }
-      return fdatum_make_ok(datum_make_list_2(datum_make_nil(), exp.ok_value));
+      return fdatum_make_ok(datum_make_list_2(datum_make_nil(), datum_make_nil()));
     }
     prog_append_nop(sl, off, datum_make_list_2(datum_make_symbol("info"), datum_make_list(stmt, info)));
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
@@ -84,6 +84,8 @@ LOCAL fdatum prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, dat
     datum *expr = rest_expressions->list_head;
     prog_append_statement(sl, begin, expr, compdata, datum_make_nil());
   }
+  /* This nop is appended as a hack so that the yield becomes the last statement on the slice. */
+  prog_append_nop(sl, begin, datum_make_nil());
   // probably should change hat=false to true.
   prog_append_yield(sl, begin, false, list_length(re->list_head), 1, re->list_head, compdata);
   return fdatum_make_ok(re->list_head);
