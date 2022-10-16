@@ -18,8 +18,6 @@ struct routine_2 {
   struct routine_2 *par;
 };
 
-
-
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -539,4 +537,42 @@ LOCAL prog datum_to_prog(datum *d) {
     exit(EXIT_FAILURE);
   }
   return res;
+}
+
+LOCAL fdatum state_stack_at(datum *ns, int offset) {
+  datum *entry = list_at(ns, offset);
+  return fdatum_make_ok(entry);
+}
+
+LOCAL void state_stack_put(datum **ns, datum *value) {
+  *ns = datum_make_list(value, (*ns));
+}
+
+LOCAL void state_stack_put_all(datum **ns, datum *list) {
+  if (!datum_is_list(list)) {
+    fprintf(stderr, "put_all expected a list\n");
+    exit(EXIT_FAILURE);
+  }
+  for (datum *rest = list; !datum_is_nil(rest); rest = rest->list_tail) {
+    state_stack_put(ns, rest->list_head);
+  }
+}
+
+LOCAL datum *state_stack_pop(datum **s) {
+  datum *res = list_at(*s, 0);
+  *s = list_tail(*s);
+  return res;
+}
+
+LOCAL datum *state_stack_top(datum **s) {
+  return list_at(*s, 0);
+}
+
+LOCAL datum *state_stack_collect(datum **s, size_t count) {
+  datum *form = datum_make_nil();
+  for (size_t i = 0; i < count; ++i) {
+    datum *arg = state_stack_pop(s);
+    form = datum_make_list(arg, form);
+  }
+  return form;
 }

@@ -4,25 +4,30 @@
 #include <stdint.h>
 #include <stddef.h>
 #define LOCAL static
-typedef struct prog_slice prog_slice;
+typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
 typedef struct datum datum;
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
+LOCAL fdatum state_stack_at(datum *ns,int offset);
+typedef struct prog_slice prog_slice;
 struct prog_slice {
   datum *begin;
   size_t length;
   size_t capacity;
 };
 typedef struct routine_0 routine_0;
-typedef struct fdatum fdatum;
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
 LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_1 routine_1;
 LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL datum *state_stack_collect(datum **s,size_t count);
+LOCAL void state_stack_put(datum **ns,datum *value);
+LOCAL void state_stack_put_all(datum **ns,datum *list);
+LOCAL datum *state_stack_pop(datum **s);
 LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
 LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
 LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
@@ -35,6 +40,7 @@ LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+LOCAL datum *state_stack_top(datum **s);
 void print_backtrace(prog_slice sl,routine_2 *r);
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 fdatum routine_run_and_get_value(prog_slice sl,datum **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
@@ -103,18 +109,12 @@ bool read_result_is_right_paren(read_result x);
 LOCAL bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
+datum *list_at(datum *list,unsigned index);
 datum *prog_slice_to_datum(prog_slice sl);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
 size_t prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
-datum *state_stack_collect(datum **s,size_t count);
-datum *state_stack_top(datum **s);
-datum *state_stack_pop(datum **s);
-void state_stack_put_all(datum **ns,datum *list);
-void state_stack_put(datum **ns,datum *value);
-datum *list_at(datum *list,unsigned index);
-fdatum state_stack_at(datum *ns,int offset);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
 char *fdatum_get_panic_message(fdatum result);
@@ -135,6 +135,7 @@ datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
 bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
+datum *list_tail(datum *list);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);

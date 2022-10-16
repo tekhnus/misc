@@ -46,6 +46,7 @@ size_t prog_slice_append_new(prog_slice *s);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
 datum *list_at(datum *list,unsigned index);
+datum *list_tail(datum *list);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,

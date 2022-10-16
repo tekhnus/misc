@@ -193,53 +193,6 @@ EXPORT bool datum_is_constant(datum *d) {
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
-fdatum state_stack_at(datum *ns, int offset) {
-  datum *entry = list_at(ns, offset);
-  return fdatum_make_ok(entry);
-}
-
-void state_stack_put(datum **ns, datum *value) {
-  *ns = datum_make_list(value, (*ns));
-}
-
-void state_stack_put_all(datum **ns, datum *list) {
-  if (!datum_is_list(list)) {
-    fprintf(stderr, "put_all expected a list\n");
-    exit(EXIT_FAILURE);
-  }
-  for (datum *rest = list; !datum_is_nil(rest); rest = rest->list_tail) {
-    state_stack_put(ns, rest->list_head);
-  }
-}
-
-datum *state_stack_pop(datum **s) {
-  if (datum_is_nil((*s))) {
-    fprintf(stderr, "popping from an empty stack is an oh no no\n");
-    exit(EXIT_FAILURE);
-  }
-  datum *cell = (*s)->list_head;
-  *s = (*s)->list_tail;
-  return cell;
-}
-
-datum *state_stack_top(datum **s) {
-  if (datum_is_nil((*s))) {
-    fprintf(stderr, "popping from an empty stack is an oh no no\n");
-    exit(EXIT_FAILURE);
-  }
-  datum *cell = (*s)->list_head;
-  return cell;
-}
-
-datum *state_stack_collect(datum **s, size_t count) {
-  datum *form = datum_make_nil();
-  for (size_t i = 0; i < count; ++i) {
-    datum *arg = state_stack_pop(s);
-    form = datum_make_list(arg, form);
-  }
-  return form;
-}
-
 EXPORT prog_slice prog_slice_make(size_t capacity) {
   prog_slice res;
   res.begin = malloc(capacity * sizeof(datum));
@@ -288,4 +241,12 @@ EXPORT datum *list_at(datum *list, unsigned index) {
     return list->list_head;
   }
   return list_at(list->list_tail, index - 1);
+}
+
+EXPORT datum *list_tail(datum *list) {
+  if (!datum_is_list(list) || datum_is_nil(list)) {
+    fprintf(stderr, "list_tail panic\n");
+    exit(EXIT_FAILURE);
+  }
+  return list->list_tail;
 }
