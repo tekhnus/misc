@@ -212,7 +212,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->call_hat) {
       break;
     }
-    // return fstate_make_panic("disabled ATM");
     datum *form = state_stack_pop(st);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return ("a call instruction with a malformed form");
@@ -258,7 +257,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
-    // r->cur.cur.offset = prg->yield_next;
     routine_1 fr = routine_2_pop_frame(r);
     datum *conti = routine_1_to_datum(sl, fr);
     state_stack_put_all(st, vals);
@@ -344,12 +342,10 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     return NULL;
   } break;
   case PROG_YIELD: {
-    // return fstate_make_panic("disabled ATM");
     if (prg->yield_hat) {
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
-    // r->cur.offset = prg->yield_next;
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),
@@ -405,7 +401,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->offset));
   prog *prg = &prgx;
   datum **st = &r->state_;
-  // routine c = routine_make(*p, s);
   switch (prg->type) {
   case PROG_NOP: {
     if (datum_is_list(prg->nop_info) && list_length(prg->nop_info) == 2 &&
@@ -471,7 +466,6 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
   default:
     break;
   }
-  // return datum_repr(prog_slice_datum_at(sl, r->offset));
   return ("unhandled instruction type");
 }
 
