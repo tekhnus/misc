@@ -96,36 +96,38 @@ typedef struct prog prog;
 
 EXPORT datum *make_routine_0_with_empty_state(ptrdiff_t prg) {
   routine_0 r0 = {.offset = prg, .state_ = datum_make_nil()};
-  return routine_0_to_datum(r0);
+  routine_1 r1 = {.cur = r0, .par = NULL};
+  routine_2 r2 = {.cur = r1, .par = NULL};
+  prog_slice sl;
+  return routine_2_to_datum(sl, r2);
 }
 
 EXPORT ptrdiff_t decode_offset_from_routine_0(datum *r0d) {
-  routine_0 r0;
-  char *err = datum_to_routine_0(&r0, r0d);
+  routine_2 r0;
+  prog_slice sl;
+  char *err = datum_to_routine_2(&r0, sl, r0d);
   if (err != NULL) {
     fprintf(stderr, "%s\n", err);
     exit(EXIT_FAILURE);
   }
-  return r0.offset;
+  return r0.cur.cur.offset;
 }
 
 EXPORT fdatum routine_run_and_get_value_new(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
-  routine_0 r0;
-  char *err = datum_to_routine_0(&r0, *r0d);
+  routine_2 r;
+  char *err = datum_to_routine_2(&r, sl, *r0d);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  routine_1 r1 = {.cur = r0, .par = NULL};
-  routine_2 r = {.cur = r1, .par = NULL};
   char *s = routine_2_run(sl, &r, perform_host_instruction);
   if (s != NULL) {
     print_backtrace(sl, &r);
     return fdatum_make_panic(s);
   }
   datum *d = state_stack_top(&r.cur.cur.state_);
-  *r0d = routine_0_to_datum(r.cur.cur);
+  *r0d = routine_2_to_datum(sl, r);
   return fdatum_make_ok(d);
 }
 
@@ -188,6 +190,14 @@ LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
                          routine_1_to_datum(sl, *r.par));
 }
 
+LOCAL datum *routine_2_to_datum(prog_slice sl, routine_2 r) {
+  if (r.par == NULL) {
+    return datum_make_list_1(routine_1_to_datum(sl, r.cur));
+  }
+  return datum_make_list(routine_1_to_datum(sl, r.cur),
+                         routine_2_to_datum(sl, *r.par));
+}
+
 LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
   if (!(datum_is_list(fn) && list_length(fn) == 2 &&
         datum_is_integer(fn->list_head) &&
@@ -214,6 +224,22 @@ LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
   }
   res->par = malloc(sizeof(routine_1));
   return datum_to_routine_1(res->par, sl, fns->list_tail);
+}
+
+LOCAL char *datum_to_routine_2(routine_2 *res, prog_slice sl, datum *fns) {
+  if (!datum_is_list(fns) || datum_is_nil(fns)) {
+    return "cannot convert datum to routine-1";
+  }
+  char *err = datum_to_routine_1(&res->cur, sl, fns->list_head);
+  if (err != NULL) {
+    return err;
+  }
+  if (datum_is_nil(fns->list_tail)) {
+    res->par = NULL;
+    return NULL;
+  }
+  res->par = malloc(sizeof(routine_2));
+  return datum_to_routine_2(res->par, sl, fns->list_tail);
 }
 
 LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
