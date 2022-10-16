@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-datum *state_make_builtins();
 fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);
 fdatum builtin_cons(datum *head,datum *tail);

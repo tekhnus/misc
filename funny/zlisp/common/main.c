@@ -156,16 +156,6 @@ char *fdatum_get_panic_message(fdatum result) { // used in lisp
   return result.panic_message;
 }
 
-datum *state_make(datum *vars) {
-  datum *res = malloc(sizeof(datum));
-  res = vars;
-  return res;
-}
-
-EXPORT datum *state_make_fresh() {
-  return state_make(datum_make_nil());
-}
-
 EXPORT bool datum_eq(datum *x, datum *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
     if (!strcmp(x->symbol_value, y->symbol_value)) {
@@ -209,7 +199,7 @@ fdatum state_stack_at(datum *ns, int offset) {
 }
 
 void state_stack_put(datum **ns, datum *value) {
-  *ns = state_make(datum_make_list(value, (*ns)));
+  *ns = datum_make_list(value, (*ns));
 }
 
 void state_stack_put_all(datum **ns, datum *list) {
@@ -228,7 +218,7 @@ datum *state_stack_pop(datum **s) {
     exit(EXIT_FAILURE);
   }
   datum *cell = (*s)->list_head;
-  *s = state_make((*s)->list_tail);
+  *s = (*s)->list_tail;
   return cell;
 }
 

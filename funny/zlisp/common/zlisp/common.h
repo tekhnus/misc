@@ -33,7 +33,6 @@ struct fdatum {
 bool fdatum_is_panic(fdatum result);
 fdatum fdatum_make_ok(datum *v);
 fdatum fdatum_make_panic(char *message);
-datum *state_make_fresh();
 bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
 typedef struct prog_slice prog_slice;
@@ -80,6 +79,7 @@ datum *compdata_make();
 datum *datum_make_void();
 char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
+datum *state_make_builtins();
 fdatum routine_run_and_get_value(prog_slice sl,datum **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,

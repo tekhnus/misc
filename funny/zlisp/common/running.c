@@ -96,6 +96,10 @@ typedef struct routine_2 routine_2;
 typedef struct prog prog;
 #endif
 
+EXPORT datum *state_make_builtins() {
+  return datum_make_nil();
+}
+
 EXPORT fdatum routine_run_and_get_value(prog_slice sl, datum **ctxt, ptrdiff_t prg,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
@@ -179,7 +183,7 @@ LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
     return "cannot convert datum to routine-0";
   }
   res->offset = fn->list_head->integer_value;
-  res->state_ = state_make(fn->list_tail->list_head->list_head);
+  res->state_ = fn->list_tail->list_head->list_head;
   return NULL;
 }
 
@@ -296,7 +300,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       int64_t offset = fn->list_head->integer_value;
       datum *vars = fn->list_tail->list_head->list_head;
       callee.offset = offset;
-      callee.state_ = state_make(vars);
+      callee.state_ = vars;
     } else {
       return ("tried to plain-call a non-routine-0");
     }
@@ -329,13 +333,14 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     }
     if (prg->put_prog_capture == 1) {
       datum *s = *st;
-      datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s));
+      routine_0 rt = {.offset = prg->put_prog_value, .state_ = s};
+      datum *prog = routine_0_to_datum(rt);
       state_stack_put(st, prog);
       r->cur.offset = prg->put_prog_next;
       return NULL;
     }
-    datum *s = state_make_fresh();
-    datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s));
+    routine_0 rt = {.offset = prg->put_prog_value, .state_ = datum_make_nil()};
+    datum *prog = routine_0_to_datum(rt);
     state_stack_put(st, prog);
     r->cur.offset = prg->put_prog_next;
     return NULL;

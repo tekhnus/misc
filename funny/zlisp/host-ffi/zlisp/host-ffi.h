@@ -12,7 +12,6 @@ fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_head(datum *list);
 fdatum builtin_tail(datum *list);
-datum *state_make_builtins();
 #include <unistd.h>
 char *prog_build_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
 char *prog_build_one_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
