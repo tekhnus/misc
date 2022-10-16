@@ -104,8 +104,7 @@ EXPORT datum *routine_2_make(ptrdiff_t prg) {
 
 EXPORT ptrdiff_t routine_2_get_offset(datum *r0d) {
   routine_2 r0;
-  prog_slice sl;
-  char *err = datum_to_routine_2(&r0, sl, r0d);
+  char *err = datum_to_routine_2(&r0, r0d);
   if (err != NULL) {
     fprintf(stderr, "%s\n", err);
     exit(EXIT_FAILURE);
@@ -117,7 +116,7 @@ EXPORT fdatum routine_2_run(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
   routine_2 r;
-  char *err = datum_to_routine_2(&r, sl, *r0d);
+  char *err = datum_to_routine_2(&r, *r0d);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -161,7 +160,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     datum *fn = form->list_head;
     datum *args = form->list_tail;
     routine_1 callee;
-    char *err = datum_to_routine_1(&callee, sl, fn);
+    char *err = datum_to_routine_1(&callee, fn);
     if (err != NULL) {
       return err;
     }
@@ -508,7 +507,7 @@ LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
   return NULL;
 }
 
-LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
+LOCAL char *datum_to_routine_1(routine_1 *res, datum *fns) {
   if (!datum_is_list(fns) || datum_is_nil(fns)) {
     return "cannot convert datum to routine-1";
   }
@@ -521,14 +520,14 @@ LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
     return NULL;
   }
   res->par = malloc(sizeof(routine_1));
-  return datum_to_routine_1(res->par, sl, fns->list_tail);
+  return datum_to_routine_1(res->par, fns->list_tail);
 }
 
-LOCAL char *datum_to_routine_2(routine_2 *res, prog_slice sl, datum *fns) {
+LOCAL char *datum_to_routine_2(routine_2 *res, datum *fns) {
   if (!datum_is_list(fns) || datum_is_nil(fns)) {
     return "cannot convert datum to routine-1";
   }
-  char *err = datum_to_routine_1(&res->cur, sl, fns->list_head);
+  char *err = datum_to_routine_1(&res->cur, fns->list_head);
   if (err != NULL) {
     return err;
   }
@@ -537,7 +536,7 @@ LOCAL char *datum_to_routine_2(routine_2 *res, prog_slice sl, datum *fns) {
     return NULL;
   }
   res->par = malloc(sizeof(routine_2));
-  return datum_to_routine_2(res->par, sl, fns->list_tail);
+  return datum_to_routine_2(res->par, fns->list_tail);
 }
 
 LOCAL fdatum state_stack_at(datum *ns, int offset) {
