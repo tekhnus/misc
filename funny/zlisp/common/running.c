@@ -94,7 +94,7 @@ typedef struct routine_2 routine_2;
 typedef struct prog prog;
 #endif
 
-EXPORT datum *make_routine_0_with_empty_state(ptrdiff_t prg) {
+EXPORT datum *routine_2_make(ptrdiff_t prg) {
   routine_0 r0 = {.offset = prg, .state_ = datum_make_nil()};
   routine_1 r1 = {.cur = r0, .par = NULL};
   routine_2 r2 = {.cur = r1, .par = NULL};
@@ -102,7 +102,7 @@ EXPORT datum *make_routine_0_with_empty_state(ptrdiff_t prg) {
   return routine_2_to_datum(sl, r2);
 }
 
-EXPORT ptrdiff_t decode_offset_from_routine_0(datum *r0d) {
+EXPORT ptrdiff_t routine_2_get_offset(datum *r0d) {
   routine_2 r0;
   prog_slice sl;
   char *err = datum_to_routine_2(&r0, sl, r0d);
@@ -113,7 +113,7 @@ EXPORT ptrdiff_t decode_offset_from_routine_0(datum *r0d) {
   return r0.cur.cur.offset;
 }
 
-EXPORT fdatum routine_run_and_get_value_new(prog_slice sl, datum **r0d,
+EXPORT fdatum routine_2_run(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
   routine_2 r;
@@ -121,7 +121,7 @@ EXPORT fdatum routine_run_and_get_value_new(prog_slice sl, datum **r0d,
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  char *s = routine_2_run(sl, &r, perform_host_instruction);
+  char *s = routine_2_run_private(sl, &r, perform_host_instruction);
   if (s != NULL) {
     print_backtrace(sl, &r);
     return fdatum_make_panic(s);
@@ -131,7 +131,7 @@ EXPORT fdatum routine_run_and_get_value_new(prog_slice sl, datum **r0d,
   return fdatum_make_ok(d);
 }
 
-LOCAL char *routine_2_run(prog_slice sl, routine_2 *r,
+LOCAL char *routine_2_run_private(prog_slice sl, routine_2 *r,
                           fdatum (*perform_host_instruction)(datum *,
                                                              datum *)) {
   for (; datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset)).type != PROG_END;) {

@@ -57,7 +57,7 @@ fdatum file_source(char *fname) {
 
   prog_slice expander_sl = prog_slice_make(16 * 1024);
   size_t expander_prg = prog_slice_append_new(&expander_sl);
-  datum *expander_routine = make_routine_0_with_empty_state(expander_prg);
+  datum *expander_routine = routine_2_make(expander_prg);
   datum *expander_compdata = compdata_make();
   read_result rr;
   datum *res = datum_make_nil();
@@ -118,7 +118,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, datum **com
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  size_t p = decode_offset_from_routine_0(*routine);
+  size_t p = routine_2_get_offset(*routine);
   char *err = prog_build_one_c_host(
                                     sl, p, exp.ok_value, compdata);
   if (err != NULL) {

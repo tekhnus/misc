@@ -20,11 +20,11 @@
   (def2 "stdmacro" def2))
 
 (def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))
-(def make-routine-with-empty-state (c-function-or-panic selflib "make_routine_0_with_empty_state" '((sizet) pointer)))
+(def make-routine-with-empty-state (c-function-or-panic selflib "routine_2_make" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-init-module-c-host (c-function-or-panic selflib "prog_build_one_c_host" '((pointer sizet datum pointer) pointer)))
-(def decode-offset (c-function-or-panic selflib "decode_offset_from_routine_0" '((pointer) sizet)))
+(def decode-offset (c-function-or-panic selflib "routine_2_get_offset" '((pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 

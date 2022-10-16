@@ -64,7 +64,7 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
 }
 
 fdatum routine_run_and_get_value_c_host_new(prog_slice sl, datum **r0d) {
-  return routine_run_and_get_value_new(sl, r0d, perform_host_instruction);
+  return routine_2_run(sl, r0d, perform_host_instruction);
 }
 
 bool ffi_type_init(ffi_type **type, datum *definition) {
