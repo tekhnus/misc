@@ -5,7 +5,7 @@
 
 struct routine_0 {
   ptrdiff_t offset;
-  state *state_;
+  datum *state_;
 };
 
 struct routine_1 {
@@ -96,7 +96,7 @@ typedef struct routine_2 routine_2;
 typedef struct prog prog;
 #endif
 
-EXPORT fdatum routine_run_and_get_value(prog_slice sl, state **ctxt, ptrdiff_t prg,
+EXPORT fdatum routine_run_and_get_value(prog_slice sl, datum **ctxt, ptrdiff_t prg,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
   routine_0 r0 = {.offset = prg, .state_ = *ctxt};
@@ -204,7 +204,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
                                                               datum *)) {
   prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
   prog *prg = &prgx;
-  state **st = &r->cur.cur.state_;
+  datum **st = &r->cur.cur.state_;
   switch (prg->type) {
   case PROG_CALL: {
     if (!prg->call_hat) {
@@ -276,7 +276,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
   prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
   prog *prg = &prgx;
   
-  state **st = &r->cur.state_;
+  datum **st = &r->cur.state_;
   switch (prg->type) {
   case PROG_CALL: {
     if (prg->call_hat) {
@@ -328,13 +328,13 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       break;
     }
     if (prg->put_prog_capture == 1) {
-      state *s = *st;
+      datum *s = *st;
       datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s));
       state_stack_put(st, prog);
       r->cur.offset = prg->put_prog_next;
       return NULL;
     }
-    state *s = state_make_fresh();
+    datum *s = state_make_fresh();
     datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s));
     state_stack_put(st, prog);
     r->cur.offset = prg->put_prog_next;
@@ -401,7 +401,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                                                               datum *)) {
   prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->offset));
   prog *prg = &prgx;
-  state **st = &r->state_;
+  datum **st = &r->state_;
   // routine c = routine_make(*p, s);
   switch (prg->type) {
   case PROG_NOP: {

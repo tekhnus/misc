@@ -12,7 +12,7 @@ fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_head(datum *list);
 fdatum builtin_tail(datum *list);
-state *state_make_builtins();
+datum *state_make_builtins();
 #include <unistd.h>
 char *prog_build_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
 char *prog_build_one_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
@@ -25,7 +25,7 @@ fdatum file_source(char *fname);
 void *simplified_dlopen(char *path);
 void *simplified_dlsym(void *handle,const char *symbol);
 fdatum perform_host_instruction(datum *name,datum *arg);
-fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,size_t prg);
+fdatum routine_run_and_get_value_c_host(prog_slice sl,datum **ctxt,size_t prg);
 bool ffi_type_init(ffi_type **type,datum *definition);
 char *pointer_ffi_init_cif(datum *sig,ffi_cif *cif);
 char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs,bool datums);

@@ -37,28 +37,7 @@ typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 void print_backtrace(prog_slice sl,routine_2 *r);
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-enum datum_type {
-  DATUM_NIL,
-  DATUM_LIST,
-  DATUM_SYMBOL,
-  DATUM_BYTESTRING,
-  DATUM_INTEGER,
-};
-typedef enum datum_type datum_type;
-struct datum {
-  enum datum_type type;
-  union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
-    char *symbol_value;
-    char *bytestring_value;
-    int64_t integer_value;
-  };
-};
-typedef struct datum state;
-fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
+fdatum routine_run_and_get_value(prog_slice sl,datum **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL datum *list_append(datum *x,datum *y);
 LOCAL char *get_varname(datum *dep_and_sym);
 LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
@@ -128,17 +107,17 @@ size_t prog_slice_length(prog_slice s);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
 size_t prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
-datum *state_stack_collect(state **s,size_t count);
-datum *state_stack_top(state **s);
-datum *state_stack_pop(state **s);
-void state_stack_put_all(state **ns,datum *list);
-void state_stack_put(state **ns,datum *value);
+datum *state_stack_collect(datum **s,size_t count);
+datum *state_stack_top(datum **s);
+datum *state_stack_pop(datum **s);
+void state_stack_put_all(datum **ns,datum *list);
+void state_stack_put(datum **ns,datum *value);
 datum *list_at(datum *list,unsigned index);
-fdatum state_stack_at(state *ns,int offset);
+fdatum state_stack_at(datum *ns,int offset);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
-state *state_make_fresh();
-state *state_make(datum *vars);
+datum *state_make_fresh();
+datum *state_make(datum *vars);
 char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_make_panic(char *message);
 fdatum fdatum_make_ok(datum *v);
@@ -161,6 +140,26 @@ bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
 bool datum_is_symbol(datum *e);
+enum datum_type {
+  DATUM_NIL,
+  DATUM_LIST,
+  DATUM_SYMBOL,
+  DATUM_BYTESTRING,
+  DATUM_INTEGER,
+};
+typedef enum datum_type datum_type;
+struct datum {
+  enum datum_type type;
+  union {
+    struct {
+      struct datum *list_head;
+      struct datum *list_tail;
+    };
+    char *symbol_value;
+    char *bytestring_value;
+    int64_t integer_value;
+  };
+};
 bool datum_is_the_symbol(datum *d,char *val);
 #define EXPORT
 #define INTERFACE 0

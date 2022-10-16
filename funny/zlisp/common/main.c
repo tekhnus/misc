@@ -156,13 +156,13 @@ char *fdatum_get_panic_message(fdatum result) { // used in lisp
   return result.panic_message;
 }
 
-state *state_make(datum *vars) {
-  state *res = malloc(sizeof(state));
+datum *state_make(datum *vars) {
+  datum *res = malloc(sizeof(datum));
   res = vars;
   return res;
 }
 
-EXPORT state *state_make_fresh() {
+EXPORT datum *state_make_fresh() {
   return state_make(datum_make_nil());
 }
 
@@ -203,16 +203,16 @@ EXPORT bool datum_is_constant(datum *d) {
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
-fdatum state_stack_at(state *ns, int offset) {
+fdatum state_stack_at(datum *ns, int offset) {
   datum *entry = list_at(ns, offset);
   return fdatum_make_ok(entry);
 }
 
-void state_stack_put(state **ns, datum *value) {
+void state_stack_put(datum **ns, datum *value) {
   *ns = state_make(datum_make_list(value, (*ns)));
 }
 
-void state_stack_put_all(state **ns, datum *list) {
+void state_stack_put_all(datum **ns, datum *list) {
   if (!datum_is_list(list)) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
@@ -222,7 +222,7 @@ void state_stack_put_all(state **ns, datum *list) {
   }
 }
 
-datum *state_stack_pop(state **s) {
+datum *state_stack_pop(datum **s) {
   if (datum_is_nil((*s))) {
     fprintf(stderr, "popping from an empty stack is an oh no no\n");
     exit(EXIT_FAILURE);
@@ -232,7 +232,7 @@ datum *state_stack_pop(state **s) {
   return cell;
 }
 
-datum *state_stack_top(state **s) {
+datum *state_stack_top(datum **s) {
   if (datum_is_nil((*s))) {
     fprintf(stderr, "popping from an empty stack is an oh no no\n");
     exit(EXIT_FAILURE);
@@ -241,7 +241,7 @@ datum *state_stack_top(state **s) {
   return cell;
 }
 
-datum *state_stack_collect(state **s, size_t count) {
+datum *state_stack_collect(datum **s, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *arg = state_stack_pop(s);

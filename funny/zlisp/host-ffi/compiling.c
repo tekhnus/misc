@@ -55,7 +55,7 @@ fdatum file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  state *expander_state = state_make_builtins();
+  datum *expander_state = state_make_builtins();
   prog_slice expander_sl = prog_slice_make(16 * 1024);
   datum *expander_compdata = compdata_make();
   read_result rr;
@@ -87,7 +87,7 @@ fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-LOCAL fdatum datum_expand(datum *e, prog_slice *sl, state **ctxt, datum **compdata) {
+LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **ctxt, datum **compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(e);
   }

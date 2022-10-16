@@ -10,7 +10,7 @@ void *allocate_space_for_return_value(datum *sig);
 char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs,bool datums);
 char *pointer_ffi_init_cif(datum *sig,ffi_cif *cif);
 bool ffi_type_init(ffi_type **type,datum *definition);
-fdatum routine_run_and_get_value_c_host(prog_slice sl,state **ctxt,size_t prg);
+fdatum routine_run_and_get_value_c_host(prog_slice sl,datum **ctxt,size_t prg);
 #include <stdint.h>
 fdatum builtin_eq(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);

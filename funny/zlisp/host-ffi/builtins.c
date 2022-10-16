@@ -86,7 +86,7 @@ fdatum builtin_tail(datum *list) {
   return fdatum_make_ok(list->list_tail);
 }
 
-state *state_make_builtins() {
-  state *ns = state_make_fresh();
+datum *state_make_builtins() {
+  datum *ns = state_make_fresh();
   return ns;
 }
