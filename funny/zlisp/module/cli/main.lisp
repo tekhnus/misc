@@ -13,9 +13,12 @@
  (stdin "libc" stdin)
  (comp-prg "zlisp" compile-prog)
  (ev "zlisp" eval)
+ (eval-new "zlisp" eval-new)
  (rd "zlisp" read)
+ (mres "zlisp" make-routine-with-empty-state)
  (bt "zlisp" builtins)
  (psm "zlisp" prog-slice-make)
+ (psan "zlisp" prog-slice-append-new)
  (cdm "zlisp" compdata-make))
 
 !(req
@@ -55,6 +58,8 @@
 
 (def builtins_ (bt))
 (def sl (psm 20000))
+(def p (psan sl))
+(def rt (mres p))
 (def compdata (cdm))
 
 !(#ignore (repl sl builtins_ compdata))
