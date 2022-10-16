@@ -4,10 +4,12 @@
 #include <stdint.h>
 #include <stddef.h>
 #define LOCAL static
+typedef struct routine_0 routine_0;
+typedef struct datum datum;
+LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct datum datum;
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -20,23 +22,21 @@ struct prog_slice {
   size_t length;
   size_t capacity;
 };
-typedef struct routine_0 routine_0;
 LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_1 routine_1;
-LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL datum *state_stack_collect(datum **s,size_t count);
-LOCAL void state_stack_put(datum **ns,datum *value);
-LOCAL void state_stack_put_all(datum **ns,datum *list);
-LOCAL datum *state_stack_pop(datum **s);
-LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
-LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
-LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
-LOCAL datum *routine_0_to_datum(routine_0 r);
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
+LOCAL datum *routine_0_to_datum(routine_0 r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
+LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
+LOCAL datum *state_stack_collect(datum **s,size_t count);
+LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
+LOCAL void state_stack_put(datum **ns,datum *value);
+LOCAL void state_stack_put_all(datum **ns,datum *list);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
+LOCAL char *datum_to_routine_1(routine_1 *res,prog_slice sl,datum *fns);
+LOCAL datum *state_stack_pop(datum **s);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);

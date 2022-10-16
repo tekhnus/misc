@@ -143,105 +143,6 @@ LOCAL char *routine_2_run_private(prog_slice sl, routine_2 *r,
   return NULL;
 }
 
-LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
-  routine_2 *cont = malloc(sizeof(routine_2));
-  *cont = *r;
-  r->cur = sub;
-  r->par = cont;
-}
-
-LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
-  if (r->par == NULL) {
-    fprintf(stderr, "routine_2 has no more frames\n");
-    exit(EXIT_FAILURE);
-  }
-  routine_1 res = r->cur;
-  r->cur = r->par->cur;
-  return res;
-}
-
-LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
-  routine_1 *cont = malloc(sizeof(routine_1));
-  *cont = *r;
-  r->cur = sub;
-  r->par = cont;
-}
-
-LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
-  if (r->par == NULL) {
-    fprintf(stderr, "routine_1 has no more frames\n");
-    exit(EXIT_FAILURE);
-  }
-  routine_0 res = r->cur;
-  *r = *r->par;
-  return res;
-}
-
-LOCAL datum *routine_0_to_datum(routine_0 r) {
-  return datum_make_list_2(datum_make_int(r.offset),
-                           datum_make_list_1(r.state_));
-}
-
-LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
-  if (r.par == NULL) {
-    return datum_make_list_1(routine_0_to_datum(r.cur));
-  }
-  return datum_make_list(routine_0_to_datum(r.cur),
-                         routine_1_to_datum(sl, *r.par));
-}
-
-LOCAL datum *routine_2_to_datum(prog_slice sl, routine_2 r) {
-  if (r.par == NULL) {
-    return datum_make_list_1(routine_1_to_datum(sl, r.cur));
-  }
-  return datum_make_list(routine_1_to_datum(sl, r.cur),
-                         routine_2_to_datum(sl, *r.par));
-}
-
-LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
-  if (!(datum_is_list(fn) && list_length(fn) == 2 &&
-        datum_is_integer(fn->list_head) &&
-        datum_is_list(fn->list_tail->list_head) &&
-        list_length(fn->list_tail->list_head) == 1)) {
-    return "cannot convert datum to routine-0";
-  }
-  res->offset = fn->list_head->integer_value;
-  res->state_ = fn->list_tail->list_head->list_head;
-  return NULL;
-}
-
-LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
-  if (!datum_is_list(fns) || datum_is_nil(fns)) {
-    return "cannot convert datum to routine-1";
-  }
-  char *err = datum_to_routine_0(&res->cur, fns->list_head);
-  if (err != NULL) {
-    return err;
-  }
-  if (datum_is_nil(fns->list_tail)) {
-    res->par = NULL;
-    return NULL;
-  }
-  res->par = malloc(sizeof(routine_1));
-  return datum_to_routine_1(res->par, sl, fns->list_tail);
-}
-
-LOCAL char *datum_to_routine_2(routine_2 *res, prog_slice sl, datum *fns) {
-  if (!datum_is_list(fns) || datum_is_nil(fns)) {
-    return "cannot convert datum to routine-1";
-  }
-  char *err = datum_to_routine_1(&res->cur, sl, fns->list_head);
-  if (err != NULL) {
-    return err;
-  }
-  if (datum_is_nil(fns->list_tail)) {
-    res->par = NULL;
-    return NULL;
-  }
-  res->par = malloc(sizeof(routine_2));
-  return datum_to_routine_2(res->par, sl, fns->list_tail);
-}
-
 LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
@@ -402,44 +303,6 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
   return err;
 }
 
-void print_backtrace(prog_slice sl, routine_2 *r) {
-  fprintf(stderr, "=========\n");
-  fprintf(stderr, "BACKTRACE\n");
-  for (routine_2 *x = r; x != NULL; x = x->par) {
-    for (routine_1 *y = &x->cur; y != NULL; y = y->par) {
-      routine_0 *z = &y->cur;
-      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
-        if (i < 0) {
-          continue;
-        }
-        if (i >= (ptrdiff_t)prog_slice_length(sl)) {
-          break;
-        }
-        if (i == z->offset) {
-          fprintf(stderr, "> ");
-        } else {
-          fprintf(stderr, "  ");
-        }
-        fprintf(stderr, "%ld ", i);
-        datum *ins = prog_slice_datum_at(sl, i);
-        char *meta = "";
-        if (datum_is_the_symbol(ins->list_head, ":nop")) {
-          meta = datum_repr(ins->list_tail->list_head);
-          ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), ins->list_tail->list_tail->list_head);
-        }
-        fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
-      }
-      fprintf(stderr, "**********\n");
-      for (datum *rest = z->state_; !datum_is_nil(rest); rest=rest->list_tail) {
-        fprintf(stderr, "%s\n", datum_repr(rest->list_head));
-      }
-      fprintf(stderr, "**********\n");
-    }
-  }
- 
-  fprintf(stderr, "=========\n");
-}
-
 LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
                            fdatum (*perform_host_instruction)(datum *,
                                                               datum *)) {
@@ -578,6 +441,105 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
+LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
+  routine_2 *cont = malloc(sizeof(routine_2));
+  *cont = *r;
+  r->cur = sub;
+  r->par = cont;
+}
+
+LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
+  if (r->par == NULL) {
+    fprintf(stderr, "routine_2 has no more frames\n");
+    exit(EXIT_FAILURE);
+  }
+  routine_1 res = r->cur;
+  r->cur = r->par->cur;
+  return res;
+}
+
+LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
+  routine_1 *cont = malloc(sizeof(routine_1));
+  *cont = *r;
+  r->cur = sub;
+  r->par = cont;
+}
+
+LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
+  if (r->par == NULL) {
+    fprintf(stderr, "routine_1 has no more frames\n");
+    exit(EXIT_FAILURE);
+  }
+  routine_0 res = r->cur;
+  *r = *r->par;
+  return res;
+}
+
+LOCAL datum *routine_0_to_datum(routine_0 r) {
+  return datum_make_list_2(datum_make_int(r.offset),
+                           datum_make_list_1(r.state_));
+}
+
+LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
+  if (r.par == NULL) {
+    return datum_make_list_1(routine_0_to_datum(r.cur));
+  }
+  return datum_make_list(routine_0_to_datum(r.cur),
+                         routine_1_to_datum(sl, *r.par));
+}
+
+LOCAL datum *routine_2_to_datum(prog_slice sl, routine_2 r) {
+  if (r.par == NULL) {
+    return datum_make_list_1(routine_1_to_datum(sl, r.cur));
+  }
+  return datum_make_list(routine_1_to_datum(sl, r.cur),
+                         routine_2_to_datum(sl, *r.par));
+}
+
+LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
+  if (!(datum_is_list(fn) && list_length(fn) == 2 &&
+        datum_is_integer(fn->list_head) &&
+        datum_is_list(fn->list_tail->list_head) &&
+        list_length(fn->list_tail->list_head) == 1)) {
+    return "cannot convert datum to routine-0";
+  }
+  res->offset = fn->list_head->integer_value;
+  res->state_ = fn->list_tail->list_head->list_head;
+  return NULL;
+}
+
+LOCAL char *datum_to_routine_1(routine_1 *res, prog_slice sl, datum *fns) {
+  if (!datum_is_list(fns) || datum_is_nil(fns)) {
+    return "cannot convert datum to routine-1";
+  }
+  char *err = datum_to_routine_0(&res->cur, fns->list_head);
+  if (err != NULL) {
+    return err;
+  }
+  if (datum_is_nil(fns->list_tail)) {
+    res->par = NULL;
+    return NULL;
+  }
+  res->par = malloc(sizeof(routine_1));
+  return datum_to_routine_1(res->par, sl, fns->list_tail);
+}
+
+LOCAL char *datum_to_routine_2(routine_2 *res, prog_slice sl, datum *fns) {
+  if (!datum_is_list(fns) || datum_is_nil(fns)) {
+    return "cannot convert datum to routine-1";
+  }
+  char *err = datum_to_routine_1(&res->cur, sl, fns->list_head);
+  if (err != NULL) {
+    return err;
+  }
+  if (datum_is_nil(fns->list_tail)) {
+    res->par = NULL;
+    return NULL;
+  }
+  res->par = malloc(sizeof(routine_2));
+  return datum_to_routine_2(res->par, sl, fns->list_tail);
+}
+
 LOCAL fdatum state_stack_at(datum *ns, int offset) {
   datum *entry = list_at(ns, offset);
   return fdatum_make_ok(entry);
@@ -614,4 +576,42 @@ LOCAL datum *state_stack_collect(datum **s, size_t count) {
     form = datum_make_list(arg, form);
   }
   return form;
+}
+
+void print_backtrace(prog_slice sl, routine_2 *r) {
+  fprintf(stderr, "=========\n");
+  fprintf(stderr, "BACKTRACE\n");
+  for (routine_2 *x = r; x != NULL; x = x->par) {
+    for (routine_1 *y = &x->cur; y != NULL; y = y->par) {
+      routine_0 *z = &y->cur;
+      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
+        if (i < 0) {
+          continue;
+        }
+        if (i >= (ptrdiff_t)prog_slice_length(sl)) {
+          break;
+        }
+        if (i == z->offset) {
+          fprintf(stderr, "> ");
+        } else {
+          fprintf(stderr, "  ");
+        }
+        fprintf(stderr, "%ld ", i);
+        datum *ins = prog_slice_datum_at(sl, i);
+        char *meta = "";
+        if (datum_is_the_symbol(ins->list_head, ":nop")) {
+          meta = datum_repr(ins->list_tail->list_head);
+          ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), ins->list_tail->list_tail->list_head);
+        }
+        fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
+      }
+      fprintf(stderr, "**********\n");
+      for (datum *rest = z->state_; !datum_is_nil(rest); rest=rest->list_tail) {
+        fprintf(stderr, "%s\n", datum_repr(rest->list_head));
+      }
+      fprintf(stderr, "**********\n");
+    }
+  }
+ 
+  fprintf(stderr, "=========\n");
 }
