@@ -94,12 +94,8 @@ typedef struct routine_2 routine_2;
 typedef struct prog prog;
 #endif
 
-EXPORT datum *state_make_builtins() {
-  return datum_make_nil();
-}
-
 EXPORT datum *make_routine_0_with_empty_state(ptrdiff_t prg) {
-  routine_0 r0 = {.offset = prg, .state_ = state_make_builtins()};
+  routine_0 r0 = {.offset = prg, .state_ = datum_make_nil()};
   return routine_0_to_datum(r0);
 }
 
@@ -130,22 +126,6 @@ EXPORT fdatum routine_run_and_get_value_new(prog_slice sl, datum **r0d,
   }
   datum *d = state_stack_top(&r.cur.cur.state_);
   *r0d = routine_0_to_datum(r.cur.cur);
-  return fdatum_make_ok(d);
-}
-
-EXPORT fdatum routine_run_and_get_value(prog_slice sl, datum **ctxt, ptrdiff_t prg,
-                                 fdatum (*perform_host_instruction)(datum *,
-                                                                    datum *)) {
-  routine_0 r0 = {.offset = prg, .state_ = *ctxt};
-  routine_1 r1 = {.cur = r0, .par = NULL};
-  routine_2 r = {.cur = r1, .par = NULL};
-  char *s = routine_2_run(sl, &r, perform_host_instruction);
-  if (s != NULL) {
-    print_backtrace(sl, &r);
-    return fdatum_make_panic(s);
-  }
-  datum *d = state_stack_top(&r.cur.cur.state_);
-  *ctxt = r.cur.cur.state_;
   return fdatum_make_ok(d);
 }
 

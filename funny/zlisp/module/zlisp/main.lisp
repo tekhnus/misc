@@ -20,7 +20,6 @@
   (def2 "stdmacro" def2))
 
 (def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))
-(def builtins (c-function-or-panic selflib "state_make_builtins" '(() pointer)))
 (def make-routine-with-empty-state (c-function-or-panic selflib "make_routine_0_with_empty_state" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
@@ -28,14 +27,6 @@
 (def decode-offset (c-function-or-panic selflib "decode_offset_from_routine_0" '((pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
-
-!(#defun compile-prog (sl src compdata)
-   (progn
-     (def p (prog-slice-append-new sl))
-     (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src (wrap-pointer-into-pointer compdata)))
-     (if (eq 0 (derefw `(~e int64)))
-         (return `(:ok ~p))
-       (return `(:err ~(derefw `(~e string)))))))
 
 !(#defun compile-prog-new (sl p src compdata)
    (progn
@@ -45,23 +36,10 @@
        (return `(:err ~(derefw `(~e string)))))))
 
 
-(def routine-run-and-get-value-c-host-fdatum (c-function-or-panic selflib "routine_run_and_get_value_c_host" '((progslice pointer sizet) fdatum)))
 (def routine-run-and-get-value-c-host-new (c-function-or-panic selflib "routine_run_and_get_value_c_host_new" '((progslice pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 (builtin.defn fdatum-get-value (return (derefw `(~(head args) val))))
 (def fdatum-get-panic-message (c-function-or-panic selflib "fdatum_get_panic_message" '((fdatum) string)))
-!(#defun eval (sl state prog)
-   (progn
-     (def state-ptr (wrap-pointer-into-pointer state))
-     (def res (routine-run-and-get-value-c-host-fdatum sl state-ptr prog))
-     (if (eq (fdatum-is-panic res) 1)
-         (progn
-           (def msg (fdatum-get-panic-message res))
-           (return `(:err ~msg)))
-       (progn
-         (def val (fdatum-get-value res))
-         (def new-state (host "deref" `(~state-ptr int64)))
-         (return `(:ok ~val ~new-state))))))
 
 !(#defun eval-new (sl rt0)
    (progn
@@ -92,14 +70,11 @@
                (return `(:ok ~val)))
            (return '(:eof)))))))
 
-(export (compile-prog compile-prog)
-        (compile-prog-new compile-prog-new)
-        (eval eval)
+(export (compile-prog-new compile-prog-new)
         (eval-new eval-new)
         (read read)
         (make-routine-with-empty-state make-routine-with-empty-state)
         (decode-offset decode-offset)
-        (builtins builtins)
         (prog-slice-make prog-slice-make)
         (prog-slice-append-new prog-slice-append-new)
         (compdata-make compdata-make))

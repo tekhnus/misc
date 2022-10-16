@@ -80,11 +80,9 @@ datum *compdata_make();
 datum *datum_make_void();
 char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
-datum *state_make_builtins();
 datum *make_routine_0_with_empty_state(ptrdiff_t prg);
 ptrdiff_t decode_offset_from_routine_0(datum *r0d);
 fdatum routine_run_and_get_value_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
-fdatum routine_run_and_get_value(prog_slice sl,datum **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,
