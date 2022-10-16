@@ -103,6 +103,16 @@ EXPORT datum *make_routine_0_with_empty_state(ptrdiff_t prg) {
   return routine_0_to_datum(r0);
 }
 
+EXPORT ptrdiff_t decode_offset_from_routine_0(datum *r0d) {
+  routine_0 r0;
+  char *err = datum_to_routine_0(&r0, r0d);
+  if (err != NULL) {
+    fprintf(stderr, "%s\n", err);
+    exit(EXIT_FAILURE);
+  }
+  return r0.offset;
+}
+
 EXPORT fdatum routine_run_and_get_value_new(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {

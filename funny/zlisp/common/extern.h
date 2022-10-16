@@ -42,8 +42,9 @@ fdatum routine_run_and_get_value(prog_slice sl,datum **ctxt,ptrdiff_t prg,fdatum
 LOCAL datum *state_stack_top(datum **s);
 void print_backtrace(prog_slice sl,routine_2 *r);
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
 fdatum routine_run_and_get_value_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
+ptrdiff_t decode_offset_from_routine_0(datum *r0d);
 LOCAL datum *routine_0_to_datum(routine_0 r);
 datum *make_routine_0_with_empty_state(ptrdiff_t prg);
 datum *state_make_builtins();
