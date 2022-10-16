@@ -67,6 +67,10 @@ fdatum routine_run_and_get_value_c_host(prog_slice sl, datum **ctxt, size_t prg)
   return routine_run_and_get_value(sl, ctxt, prg, perform_host_instruction);
 }
 
+fdatum routine_run_and_get_value_c_host_new(prog_slice sl, datum **r0d) {
+  return routine_run_and_get_value_new(sl, r0d, perform_host_instruction);
+}
+
 bool ffi_type_init(ffi_type **type, datum *definition) {
   if (!datum_is_symbol(definition)) {
     return false;

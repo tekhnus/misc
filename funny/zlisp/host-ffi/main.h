@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-fdatum routine_run_and_get_value_c_host(prog_slice sl,datum **ctxt,size_t prg);
+fdatum routine_run_and_get_value_c_host_new(prog_slice sl,datum **r0d);
 #include <unistd.h>
 char *prog_build_c_host(prog_slice *sl,size_t p,datum *source,datum **compdata);
 fdatum file_source(char *fname);
