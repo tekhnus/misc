@@ -39,11 +39,11 @@ tools/
 - Fix the size of module representation which is quadratic w.r.t. the function count
 - Switch from linked lists to slices
 - Sane approach to memory allocation/deallocation
-- Single common stack?
 
 - Loops
 - Tail recursive calls
 
+- The builder state should be persistent in repl and preprocessor
 - Separate the builder and the linker
 
 - Try hosting by a compiled language
