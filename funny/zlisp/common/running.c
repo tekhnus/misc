@@ -5,7 +5,7 @@
 
 struct routine_0 {
   ptrdiff_t offset;
-  struct state *state_;
+  state *state_;
 };
 
 struct routine_1 {
@@ -160,7 +160,7 @@ LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
 
 LOCAL datum *routine_0_to_datum(routine_0 r) {
   return datum_make_list_2(datum_make_int(r.offset),
-                           datum_make_list_1(r.state_->vars));
+                           datum_make_list_1(r.state_));
 }
 
 LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
@@ -318,7 +318,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
                                     datum_make_nil());
     state_stack_put(st, clos);
     clos->list_tail->list_head = datum_make_list_1(
-        (*st)->vars); // modifying a datum because we need to
+        (*st)); // modifying a datum because we need to
                                     // create a circular reference:(
     r->cur.offset = prg->set_closures_next;
     return NULL;
@@ -329,13 +329,13 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     }
     if (prg->put_prog_capture == 1) {
       state *s = *st;
-      datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s->vars));
+      datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s));
       state_stack_put(st, prog);
       r->cur.offset = prg->put_prog_next;
       return NULL;
     }
     state *s = state_make_fresh();
-    datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s->vars));
+    datum *prog = datum_make_list_2(datum_make_int(prg->put_prog_value), datum_make_list_1(s));
     state_stack_put(st, prog);
     r->cur.offset = prg->put_prog_next;
     return NULL;
@@ -350,7 +350,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),
-                          datum_make_list_1(fr.state_->vars));
+                          datum_make_list_1(fr.state_));
     state_stack_put_all(st, vals);
     state_stack_put(st, conti);
     return NULL;
@@ -409,7 +409,7 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
         datum_is_symbol(prg->nop_info->list_head)) {
       if (datum_is_the_symbol(prg->nop_info->list_head, "compdata")) {
         datum *compdata = prg->nop_info->list_tail->list_head;
-        if (list_length(compdata) != list_length(r->state_->vars)) {
+        if (list_length(compdata) != list_length(r->state_)) {
           return "compdata mismatch";
         }
       }

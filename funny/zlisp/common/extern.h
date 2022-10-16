@@ -37,13 +37,30 @@ typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 void print_backtrace(prog_slice sl,routine_2 *r);
 LOCAL char *routine_2_run(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct state state;
+enum datum_type {
+  DATUM_NIL,
+  DATUM_LIST,
+  DATUM_SYMBOL,
+  DATUM_BYTESTRING,
+  DATUM_INTEGER,
+};
+typedef enum datum_type datum_type;
+struct datum {
+  enum datum_type type;
+  union {
+    struct {
+      struct datum *list_head;
+      struct datum *list_tail;
+    };
+    char *symbol_value;
+    char *bytestring_value;
+    int64_t integer_value;
+  };
+};
+typedef struct datum state;
 fdatum routine_run_and_get_value(prog_slice sl,state **ctxt,ptrdiff_t prg,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL datum *list_append(datum *x,datum *y);
 LOCAL char *get_varname(datum *dep_and_sym);
-struct state {
-  struct datum *vars;
-};
 LOCAL char *prog_build_dep(datum **state,prog_slice *sl,size_t *p,datum *dep_and_sym,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(datum **state,prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
@@ -144,26 +161,6 @@ bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 int list_length(datum *seq);
 bool datum_is_symbol(datum *e);
-enum datum_type {
-  DATUM_NIL,
-  DATUM_LIST,
-  DATUM_SYMBOL,
-  DATUM_BYTESTRING,
-  DATUM_INTEGER,
-};
-typedef enum datum_type datum_type;
-struct datum {
-  enum datum_type type;
-  union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
-    char *symbol_value;
-    char *bytestring_value;
-    int64_t integer_value;
-  };
-};
 bool datum_is_the_symbol(datum *d,char *val);
 #define EXPORT
 #define INTERFACE 0

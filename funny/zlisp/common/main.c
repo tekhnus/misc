@@ -158,7 +158,7 @@ char *fdatum_get_panic_message(fdatum result) { // used in lisp
 
 state *state_make(datum *vars) {
   state *res = malloc(sizeof(state));
-  res->vars = vars;
+  res = vars;
   return res;
 }
 
@@ -204,12 +204,12 @@ EXPORT bool datum_is_constant(datum *d) {
 }
 
 fdatum state_stack_at(state *ns, int offset) {
-  datum *entry = list_at(ns->vars, offset);
+  datum *entry = list_at(ns, offset);
   return fdatum_make_ok(entry);
 }
 
 void state_stack_put(state **ns, datum *value) {
-  *ns = state_make(datum_make_list(value, (*ns)->vars));
+  *ns = state_make(datum_make_list(value, (*ns)));
 }
 
 void state_stack_put_all(state **ns, datum *list) {
@@ -223,21 +223,21 @@ void state_stack_put_all(state **ns, datum *list) {
 }
 
 datum *state_stack_pop(state **s) {
-  if (datum_is_nil((*s)->vars)) {
+  if (datum_is_nil((*s))) {
     fprintf(stderr, "popping from an empty stack is an oh no no\n");
     exit(EXIT_FAILURE);
   }
-  datum *cell = (*s)->vars->list_head;
-  *s = state_make((*s)->vars->list_tail);
+  datum *cell = (*s)->list_head;
+  *s = state_make((*s)->list_tail);
   return cell;
 }
 
 datum *state_stack_top(state **s) {
-  if (datum_is_nil((*s)->vars)) {
+  if (datum_is_nil((*s))) {
     fprintf(stderr, "popping from an empty stack is an oh no no\n");
     exit(EXIT_FAILURE);
   }
-  datum *cell = (*s)->vars->list_head;
+  datum *cell = (*s)->list_head;
   return cell;
 }
 

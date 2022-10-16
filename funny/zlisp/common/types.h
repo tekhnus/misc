@@ -24,9 +24,7 @@ struct datum {
   };
 };
 
-struct state {
-  struct datum *vars;
-};
+typedef struct datum state;
 
 enum read_result_type {
   READ_RESULT_OK,
