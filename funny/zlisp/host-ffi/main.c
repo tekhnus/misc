@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   datum *compdata = compdata_make();
   char *err = prog_build_c_host(&sl, p, src.ok_value, &compdata);
   if (err != NULL) {
-    fprintf(stderr, "compilation error: %s\n", err);
+    fprintf(stderr, "compilation error (C host): %s\n", err);
     return EXIT_FAILURE;
   }
   fprintf(stderr, "compiled, %zu instructions\n", prog_slice_length(sl));

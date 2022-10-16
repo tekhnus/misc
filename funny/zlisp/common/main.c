@@ -118,14 +118,20 @@ EXPORT datum *datum_make_int(int64_t value) {
 }
 
 EXPORT char *datum_repr(datum *e) {
+  return datum_repr_bounded(e, 5);
+}
+
+LOCAL char *datum_repr_bounded(datum *e, size_t depth) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
-  if (datum_is_integer(e)) {
+  if (depth == 0) {
+    sprintf(buf, "<truncated>");
+  } else if (datum_is_integer(e)) {
     sprintf(buf, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     end += sprintf(end, "(");
     for (datum *item = e; !datum_is_nil(item); item = item->list_tail) {
-      end += sprintf(end, "%s ", datum_repr(item->list_head));
+      end += sprintf(end, "%s ", datum_repr_bounded(item->list_head, depth - 1));
     }
     end += sprintf(end, ")");
   } else if (datum_is_symbol(e)) {

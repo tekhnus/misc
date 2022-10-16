@@ -124,6 +124,7 @@ char *fdatum_get_panic_message(fdatum result);
 fdatum fdatum_make_panic(char *message);
 fdatum fdatum_make_ok(datum *v);
 bool fdatum_is_panic(fdatum result);
+LOCAL char *datum_repr_bounded(datum *e,size_t depth);
 char *datum_repr(datum *e);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);

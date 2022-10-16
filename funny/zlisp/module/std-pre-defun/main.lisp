@@ -57,6 +57,7 @@
 (def progn- (builtin.fn (return (cons 'progn (head args)))))
 
 (builtin.defn third (return (head (tail (tail (head args))))))
+(builtin.defn fourth (return (head (tail (tail (tail (head args)))))))
 
 (builtin.defn swtchone
 	      (if (head args)
@@ -136,7 +137,7 @@
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
-(def switch-defines '((head args) (second args) (third args)))
+(def switch-defines '((head args) (second args) (third args) (fourth args)))
 
 (builtin.defn switch-clause
     (progn
@@ -156,4 +157,5 @@
  (ignore ignore)
  (second second)
  (third third)
+ (fourth fourth)
  (list list))

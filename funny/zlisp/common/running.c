@@ -424,6 +424,10 @@ void print_backtrace(prog_slice sl, routine_2 *r) {
         fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
       }
       fprintf(stderr, "**********\n");
+      for (datum *rest = z->state_; !datum_is_nil(rest); rest=rest->list_tail) {
+        fprintf(stderr, "%s\n", datum_repr(rest->list_head));
+      }
+      fprintf(stderr, "**********\n");
     }
   }
  

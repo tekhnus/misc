@@ -68,7 +68,10 @@ fdatum file_source(char *fname) {
     fdatum val = datum_expand(rr.ok_value, &expander_sl, &expander_routine, &expander_compdata);
     // printf("expanded a statement\n");
     if (fdatum_is_panic(val)) {
-      return val;
+      char *err = malloc(1024);
+      char *end = err;
+      end += sprintf(end, "while expanding %s: %s", datum_repr(rr.ok_value), val.panic_message);
+      return fdatum_make_panic(err);
     }
     // printf("%s\n", datum_repr(val.ok_value));
     if (datum_is_the_symbol(val.ok_value, ":void-value")) {
