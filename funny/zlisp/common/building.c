@@ -121,9 +121,9 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   datum *dep = dep_and_sym->list_head;
 
   bool already_built = false;
-  for (datum *rest_state=*state; !datum_is_nil(rest_state); rest_state=rest_state->list_tail) {
-    datum *b = rest_state->list_head;
-    if (datum_eq(dep_and_sym, b)) {
+  for (datum *rest_compdata=*compdata; !datum_is_nil(rest_compdata); rest_compdata=rest_compdata->list_tail) {
+    datum *n = rest_compdata->list_head;
+    if (datum_eq(datum_make_symbol(get_varname(dep_and_sym)), n)) {
       already_built = true;
       break;
     }
