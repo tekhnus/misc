@@ -22,15 +22,17 @@ int main(int argc, char **argv) {
   }
   prog_slice sl = prog_slice_make(16 * 1024);
   size_t p = prog_slice_append_new(&sl);
+  size_t bp = prog_slice_append_new(&sl);
+  datum *s = routine_2_make_couple(bp, p);
   datum *compdata = compdata_make();
-  char *err = prog_build_c_host(&sl, p, src.ok_value, &compdata);
+  datum *builder_compdata = datum_make_list_1(datum_make_symbol(":anon"));
+  char *err = prog_build_c_host(&sl, &p, &bp, src.ok_value, &compdata, &builder_compdata);
   if (err != NULL) {
     fprintf(stderr, "compilation error (C host): %s\n", err);
     return EXIT_FAILURE;
   }
   fprintf(stderr, "compiled, %zu instructions\n", prog_slice_length(sl));
   // fprintf(stderr, "%s\n", datum_repr(prog_slice_to_datum(sl)));
-  datum *s = routine_2_make(p);
   fdatum res = routine_run_and_get_value_c_host_new(sl, &s);
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "runtime error: %s\n", res.panic_message);

@@ -15,6 +15,25 @@ LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
   return list_at(first_main_instruction, 4);
 }
 
+EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {
+  size_t original_ep = *ep;
+  char *res = prog_init_submodule(sl, ep, source, compdata, datum_make_list_1(datum_make_void()));
+  if (res != NULL) {
+    return res;
+  }
+  datum *input_meta = extract_meta(*sl, original_ep);
+  prog_append_pop(sl, bdr_p, datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
+  char *err = prog_build_deps(sl, bdr_p, input_meta, module_source, builder_compdata);
+  if (err != NULL) {
+    return err;
+  }
+  prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"), builder_compdata);
+  prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
+  prog_append_collect(sl, 1 + list_length(input_meta), bdr_p, builder_compdata);
+  prog_append_call(sl, bdr_p, false, 1, builder_compdata);
+  return NULL;
+}
+
 EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
