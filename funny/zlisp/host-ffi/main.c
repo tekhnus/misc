@@ -23,9 +23,10 @@ int main(int argc, char **argv) {
   prog_slice sl = prog_slice_make(16 * 1024);
   size_t p = prog_slice_append_new(&sl);
   size_t bp = prog_slice_append_new(&sl);
-  datum *s = routine_2_make_couple(bp, p);
+  datum *s = routine_2_make(bp);
   datum *compdata = compdata_make();
-  datum *builder_compdata = datum_make_list_1(datum_make_symbol(":anon"));
+  datum *builder_compdata = compdata_make();
+  prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   char *err = prog_build_c_host(&sl, &p, &bp, src.ok_value, &compdata, &builder_compdata);
   if (err != NULL) {
     fprintf(stderr, "compilation error (C host): %s\n", err);

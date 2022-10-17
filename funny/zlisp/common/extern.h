@@ -46,7 +46,6 @@ LOCAL char *routine_2_run_private(prog_slice sl,routine_2 *r,fdatum(*perform_hos
 fdatum routine_2_run(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *datum_to_routine_2(routine_2 *res,datum *fns);
 ptrdiff_t routine_2_get_offset(datum *r0d);
-datum *routine_2_make_couple(ptrdiff_t prg_lower,ptrdiff_t prg_upper);
 LOCAL datum *routine_2_to_datum(prog_slice sl,routine_2 r);
 datum *routine_2_make(ptrdiff_t prg);
 LOCAL datum *list_append(datum *x,datum *y);
@@ -58,6 +57,7 @@ char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(p
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
+void prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 LOCAL datum *extract_meta(prog_slice sl,size_t run_main_off);
 datum *datum_make_void();
 datum *compdata_make();

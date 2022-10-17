@@ -102,20 +102,6 @@ EXPORT datum *routine_2_make(ptrdiff_t prg) {
   return routine_2_to_datum(sl, r2);
 }
 
-EXPORT datum *routine_2_make_couple(ptrdiff_t prg_lower, ptrdiff_t prg_upper) {
-  routine_0 r0 = {.offset = prg_lower, .state_ = datum_make_nil()};
-  routine_1 *r1l = malloc(sizeof(routine_1));
-  r1l->cur = r0;
-  r1l->par = NULL;
-  routine_1 r1u;
-  routine_0 r0u = {.offset = prg_upper, .state_ = datum_make_nil()};
-  r1u.cur = r0u;
-  r1u.par = r1l;
-  routine_2 r2 = {.cur = r1u, .par = NULL};
-  prog_slice sl;
-  return routine_2_to_datum(sl, r2);
-}
-
 EXPORT ptrdiff_t routine_2_get_offset(datum *r0d) {
   routine_2 r0;
   char *err = datum_to_routine_2(&r0, r0d);

@@ -78,11 +78,11 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 datum *compdata_make();
 datum *datum_make_void();
+void prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
 char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 datum *routine_2_make(ptrdiff_t prg);
-datum *routine_2_make_couple(ptrdiff_t prg_lower,ptrdiff_t prg_upper);
 ptrdiff_t routine_2_get_offset(datum *r0d);
 fdatum routine_2_run(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
