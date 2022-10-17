@@ -54,8 +54,7 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, cha
   datum *bdr_compdata = compdata_make();
   prog_append_recieve(sl, &bdr_end, datum_make_nil(), datum_make_nil(), &bdr_compdata);  // bdr is callable with zero arguments
   prog_append_nop(sl, &bdr_end, datum_make_list_2(datum_make_symbol("info"), datum_make_list_1(datum_make_symbol("build-deps-isolated"))));
-  datum *state = datum_make_nil();
-  char *err = prog_build_deps(&state, sl, &bdr_end, deps, module_source, &bdr_compdata);
+  char *err = prog_build_deps(sl, &bdr_end, deps, module_source, &bdr_compdata);
   if (err != NULL) {
     return err;
   }
@@ -69,10 +68,10 @@ LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, cha
   return NULL;
 }
 
-LOCAL char *prog_build_deps(datum **state, prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
-    char *err = prog_build_dep(state, sl, p, dep, module_source, compdata);
+    char *err = prog_build_dep(sl, p, dep, module_source, compdata);
     if (err != NULL) {
       return err;
     }
@@ -114,7 +113,7 @@ LOCAL datum *list_append(datum *x, datum *y) {
   return datum_make_list(x->list_head, list_append(x->list_tail, y));
 }
 
-LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_and_sym, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
     return "req expects bytestrings";
   }
@@ -142,7 +141,7 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
     return "error: run_dep_end == 0";
   }
   datum *syms = extract_meta(*sl, run_dep_end - 1);
-  char *err = prog_build_deps(state, sl, p, transitive_deps, module_source, compdata);
+  char *err = prog_build_deps(sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;
   }
@@ -155,7 +154,6 @@ LOCAL char *prog_build_dep(datum **state, prog_slice *sl, size_t *p, datum *dep_
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
     names = list_append(names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
-    *state = datum_make_list(datum_make_list_2(dep, sym), *state);
   }
   prog_append_pop(sl, p, names, compdata);
   return NULL;
