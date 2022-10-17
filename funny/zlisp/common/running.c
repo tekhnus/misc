@@ -125,7 +125,11 @@ EXPORT fdatum routine_2_run(prog_slice sl, datum **r0d,
     print_backtrace(sl, &r);
     return fdatum_make_panic(s);
   }
-  datum *d = state_stack_top(&r.cur.cur.state_);
+  datum *d = datum_make_nil();
+  // TODO: this is just for expander calls; remove this!
+  if (!datum_is_nil(r.cur.cur.state_)) {
+    d = state_stack_top(&r.cur.cur.state_);
+  }
   *r0d = routine_2_to_datum(sl, r);
   return fdatum_make_ok(d);
 }
@@ -287,6 +291,9 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
+    if (r->par == NULL) {
+      return "rt_1 has no more frames";
+    }
     routine_0 fr = routine_1_pop_frame(r);
     datum *conti =
       datum_make_list_2(datum_make_int(fr.offset),

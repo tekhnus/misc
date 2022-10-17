@@ -43,6 +43,7 @@ struct prog_slice {
 };
 prog_slice prog_slice_make(size_t capacity);
 size_t prog_slice_append_new(prog_slice *s);
+datum *prog_slice_datum_at(prog_slice s,size_t index);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
 datum *list_at(datum *list,unsigned index);
@@ -80,6 +81,7 @@ datum *compdata_make();
 datum *datum_make_void();
 void prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
+char *prog_build_one_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
 char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one(prog_slice *sl,size_t ep,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 datum *routine_2_make(ptrdiff_t prg);

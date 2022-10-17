@@ -218,7 +218,7 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
   return res;
 }
 
-datum *prog_slice_datum_at(prog_slice s, size_t index) {
+EXPORT datum *prog_slice_datum_at(prog_slice s, size_t index) {
   if (index >= s.length) {
     fprintf(stderr, "prog slice index overflow\n");
     exit(EXIT_FAILURE);

@@ -41,6 +41,17 @@ EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *sour
   return NULL;
 }
 
+EXPORT char *prog_build_one_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *stmt_or_spec, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {
+  datum *spec = datum_make_list_1(datum_make_symbol("req"));
+  datum *stmts = datum_make_list_1(datum_make_symbol(":void-value"));
+  if (datum_is_list(stmt_or_spec) && !datum_is_nil(stmt_or_spec) && datum_is_the_symbol(stmt_or_spec->list_head, "req")) {
+    spec = stmt_or_spec; 
+  } else {
+    stmts = datum_make_list_1(stmt_or_spec);
+  }
+  return prog_build_2(sl, ep, bdr_p, datum_make_list(spec, stmts), module_source, compdata, builder_compdata);
+}
+
 EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t run_main_off = prog_slice_append_new(sl);
   size_t run_main_end = run_main_off;
