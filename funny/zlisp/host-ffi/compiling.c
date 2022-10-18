@@ -132,9 +132,15 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
     return fdatum_make_panic(err2);
   }
   fdatum res = routine_run_and_get_value_c_host_new(*sl, routine);
+  if (fdatum_is_panic(res)) {
+    return res;
+  }
   size_t p_alt = routine_2_get_offset(*routine);
   if (!fdatum_is_panic(res) && p_alt != *p) {
     return fdatum_make_panic("suddenly p_alt != p");
+  }
+  if (!compdata_has_value(*compdata)) {
+    return fdatum_make_ok(datum_make_symbol(":void-value"));
   }
   return res;
 }

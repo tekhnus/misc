@@ -57,7 +57,7 @@ LOCAL char *prog_build_deps(prog_slice *sl,size_t *p,datum *deps,char *(*module_
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 LOCAL datum *extract_meta(prog_slice sl,size_t run_main_off);
-datum *datum_make_void();
+bool compdata_has_value(datum *compdata);
 datum *compdata_make();
 LOCAL int compdata_get_index(datum *compdata,datum *var);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int return_count,datum **compdata);

@@ -46,7 +46,8 @@ EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *sour
 EXPORT char *prog_build_one_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *stmt_or_spec, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {
   datum *stmts;
   if (datum_is_list(stmt_or_spec) && !datum_is_nil(stmt_or_spec) && datum_is_the_symbol(stmt_or_spec->list_head, "req")) {
-    stmts = datum_make_list_2(stmt_or_spec, datum_make_symbol(":void-value")); 
+    stmts = datum_make_list_2(stmt_or_spec, datum_make_int(42));
+    stmts = datum_make_list_1(stmt_or_spec);
   } else {
     stmts = datum_make_list_1(stmt_or_spec);
   }

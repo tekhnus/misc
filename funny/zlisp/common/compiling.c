@@ -15,6 +15,7 @@ EXPORT char *prog_init_submodule(prog_slice *sl, size_t *off, datum *source, dat
     }
     source = source->list_tail;
   }
+  // prog_append_nop(sl, off, datum_make_nil());
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
@@ -472,6 +473,10 @@ EXPORT datum *compdata_make() {
   return datum_make_nil();
 }
 
+EXPORT bool compdata_has_value(datum *compdata) {
+  return !datum_is_nil(compdata) && datum_is_the_symbol(compdata->list_head, ":anon");
+}
+
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
 }
@@ -512,5 +517,3 @@ LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
          datum_is_the_symbol(d->list_head, val1) &&
          datum_is_the_symbol(d->list_tail->list_head, val2);
 }
-
-EXPORT datum *datum_make_void() { return datum_make_symbol(":void-value"); }
