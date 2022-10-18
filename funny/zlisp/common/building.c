@@ -43,17 +43,6 @@ EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *sour
   return NULL;
 }
 
-EXPORT char *prog_build_one_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *stmt_or_spec, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {
-  datum *stmts;
-  if (datum_is_list(stmt_or_spec) && !datum_is_nil(stmt_or_spec) && datum_is_the_symbol(stmt_or_spec->list_head, "req")) {
-    stmts = datum_make_list_2(stmt_or_spec, datum_make_int(42));
-    stmts = datum_make_list_1(stmt_or_spec);
-  } else {
-    stmts = datum_make_list_1(stmt_or_spec);
-  }
-  return prog_build_2(sl, ep, bdr_p, stmts, module_source, compdata, builder_compdata);
-}
-
 LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;

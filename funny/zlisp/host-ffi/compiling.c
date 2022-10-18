@@ -10,10 +10,6 @@ char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, da
   return prog_build_2(sl, p, bp, source, module_routine, compdata, builder_compdata);
 }
 
-char *prog_build_one_c_host_2(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {
-  return prog_build_one_2(sl, p, bp, source, module_routine, compdata, builder_compdata);
-}
-
 char *module_routine(prog_slice *sl, size_t *p, char *module) {
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
@@ -122,8 +118,8 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  char *err = prog_build_one_c_host_2(
-                                      sl, p, bp, exp.ok_value, compdata, builder_compdata);
+  char *err = prog_build_c_host(
+                                  sl, p, bp, datum_make_list_1(exp.ok_value), compdata, builder_compdata);
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;

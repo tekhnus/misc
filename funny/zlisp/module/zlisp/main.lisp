@@ -25,7 +25,7 @@
 (def make-routine-with-empty-state (c-function-or-panic selflib "routine_2_make" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-build-one-c-host (c-function-or-panic selflib "prog_build_one_c_host_2" '((pointer pointer pointer datum pointer pointer) pointer)))
+(def prog-build-one-c-host (c-function-or-panic selflib "prog_build_c_host" '((pointer pointer pointer datum pointer pointer) pointer)))
 (def prog-build-init (c-function-or-panic selflib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def decode-offset (c-function-or-panic selflib "routine_2_get_offset" '((pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
@@ -38,7 +38,7 @@
 
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) src (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata)))
+     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) `(~src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata)))
      (if (eq 0 (derefw `(~e int64)))
          (return `(:ok :nothing))
        (return `(:err ~(derefw `(~e string)))))))
