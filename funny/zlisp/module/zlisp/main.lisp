@@ -33,14 +33,15 @@
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 
 !(#defun init-prog (sl pptr bpptr compdata bdrcompdata)
-   (return 42))
+   (progn
+     (def nothing (prog-build-init (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata)))
+     (return 42)))
 
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def p (derefw `(~pptr int64)))
-     (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src (wrap-pointer-into-pointer compdata)))
+     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) src (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata)))
      (if (eq 0 (derefw `(~e int64)))
-         (return `(:ok ~p))
+         (return `(:ok :nothing))
        (return `(:err ~(derefw `(~e string)))))))
 
 
