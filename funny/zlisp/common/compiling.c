@@ -4,11 +4,18 @@
 #include <extern.h>
 
 EXPORT char *prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
-  char *res = prog_append_usages(sl, off, source->list_head, compdata);
-  if (res != NULL) {
-    return (res);
+  if (datum_is_nil(source)) {
+    return "source can't be null";
   }
-  for (datum *rest = source->list_tail; !datum_is_nil(rest); rest = rest->list_tail) {
+  datum *spec = source->list_head;
+  if (datum_is_list(spec) && list_length(spec) > 0 && datum_is_the_symbol(spec->list_head, "req")) {
+    char *res = prog_append_usages(sl, off, source->list_head, compdata);
+    if (res != NULL) {
+      return (res);
+    }
+    source = source->list_tail;
+  }
+  for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(stmt->list_head, "export")) {
       if (!datum_is_nil(rest->list_tail)) {

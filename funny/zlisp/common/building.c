@@ -9,8 +9,7 @@ LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
       || list_length(first_main_instruction) != 6
       || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")
       || !datum_is_integer(list_at(first_main_instruction, 5))) {
-    fprintf(stderr, "extract_meta expected a yield, got %s\n", datum_repr(first_main_instruction));
-    exit(EXIT_FAILURE);
+    return NULL;
   }
   return list_at(first_main_instruction, 4);
 }
@@ -30,27 +29,28 @@ EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *sour
     return res;
   }
   datum *input_meta = extract_meta(*sl, original_ep);
-  prog_append_pop(sl, bdr_p, datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
-  char *err = prog_build_deps(sl, bdr_p, input_meta, module_source, builder_compdata);
-  if (err != NULL) {
-    return err;
+  if (input_meta != NULL) {
+    prog_append_pop(sl, bdr_p, datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
+    char *err = prog_build_deps(sl, bdr_p, input_meta, module_source, builder_compdata);
+    if (err != NULL) {
+      return err;
+    }
+    prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"), builder_compdata);
+    prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
+    prog_append_collect(sl, 1 + list_length(input_meta), bdr_p, builder_compdata);
+    prog_append_call(sl, bdr_p, false, 1, builder_compdata);
   }
-  prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"), builder_compdata);
-  prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_collect(sl, 1 + list_length(input_meta), bdr_p, builder_compdata);
-  prog_append_call(sl, bdr_p, false, 1, builder_compdata);
   return NULL;
 }
 
 EXPORT char *prog_build_one_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *stmt_or_spec, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {
-  datum *spec = datum_make_list_1(datum_make_symbol("req"));
-  datum *stmts = datum_make_list_1(datum_make_symbol(":void-value"));
+  datum *stmts;
   if (datum_is_list(stmt_or_spec) && !datum_is_nil(stmt_or_spec) && datum_is_the_symbol(stmt_or_spec->list_head, "req")) {
-    spec = stmt_or_spec; 
+    stmts = datum_make_list_2(stmt_or_spec, datum_make_symbol(":void-value")); 
   } else {
     stmts = datum_make_list_1(stmt_or_spec);
   }
-  return prog_build_2(sl, ep, bdr_p, datum_make_list(spec, stmts), module_source, compdata, builder_compdata);
+  return prog_build_2(sl, ep, bdr_p, stmts, module_source, compdata, builder_compdata);
 }
 
 LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
@@ -122,10 +122,16 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *
     return status;
   }
   datum *transitive_deps = extract_meta(*sl, run_dep_off);
+  if (transitive_deps == NULL) {
+    return "error: null extract_meta for reqs";
+  }
   if (run_dep_end == 0) {
     return "error: run_dep_end == 0";
   }
   datum *syms = extract_meta(*sl, run_dep_end - 1);
+  if (syms == NULL) {
+    return "error: null extract_meta for exports";
+  }
   char *err = prog_build_deps(sl, p, transitive_deps, module_source, compdata);
   if (err != NULL) {
     return err;
