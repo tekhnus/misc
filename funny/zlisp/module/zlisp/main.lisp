@@ -25,7 +25,6 @@
 (def make-routine-with-empty-state (c-function-or-panic selflib "routine_2_make" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-init-module-c-host (c-function-or-panic selflib "prog_build_one_c_host" '((pointer sizet datum pointer) pointer)))
 (def prog-build-one-c-host (c-function-or-panic selflib "prog_build_one_c_host_2" '((pointer pointer pointer datum pointer pointer) pointer)))
 (def prog-build-init (c-function-or-panic selflib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def decode-offset (c-function-or-panic selflib "routine_2_get_offset" '((pointer) sizet)))

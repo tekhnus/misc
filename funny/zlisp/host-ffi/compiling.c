@@ -10,10 +10,6 @@ char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, da
   return prog_build_2(sl, p, bp, source, module_routine, compdata, builder_compdata);
 }
 
-char *prog_build_one_c_host(prog_slice *sl, size_t p, datum *source, datum **compdata) {
-  return prog_build_one(sl, p, source, module_routine, compdata);
-}
-
 char *prog_build_one_c_host_2(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {
   return prog_build_one_2(sl, p, bp, source, module_routine, compdata, builder_compdata);
 }
