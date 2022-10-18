@@ -52,7 +52,6 @@ LOCAL datum *list_append(datum *x,datum *y);
 LOCAL char *get_varname(datum *dep_and_sym);
 LOCAL char *prog_build_dep(prog_slice *sl,size_t *p,datum *dep_and_sym,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 LOCAL char *prog_build_deps_isolated(prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
-char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_one_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);

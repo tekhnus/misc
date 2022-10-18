@@ -53,26 +53,6 @@ EXPORT char *prog_build_one_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
   return prog_build_2(sl, ep, bdr_p, datum_make_list(spec, stmts), module_source, compdata, builder_compdata);
 }
 
-EXPORT char *prog_build(prog_slice *sl, size_t ep, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
-  size_t run_main_off = prog_slice_append_new(sl);
-  size_t run_main_end = run_main_off;
-  datum *dup_compdata = *compdata;
-  char *res = prog_init_submodule(sl, &run_main_end, source, compdata, datum_make_list_1(datum_make_void()));
-  if (res != NULL) {
-    return res;
-  }
-  datum *first_main_instruction = prog_slice_datum_at(*sl, run_main_off);
-  datum *input_meta = extract_meta(*sl, run_main_off);
-  char *err = prog_build_deps_isolated(sl, &ep, input_meta, module_source, &dup_compdata);
-  if (err != NULL) {
-    return err;
-  }
-
-  size_t second_main_instruction_offset = list_at(first_main_instruction, 5)->integer_value;
-  *prog_slice_datum_at(*sl, ep) = *prog_slice_datum_at(*sl, second_main_instruction_offset);
-  return NULL;
-}
-
 LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   size_t bdr_off = prog_slice_append_new(sl);
   size_t bdr_end = bdr_off;
