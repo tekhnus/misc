@@ -334,7 +334,7 @@ LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name) {
   *begin = next;
 }
 
-EXPORT void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
+LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
@@ -441,13 +441,13 @@ LOCAL char *prog_append_backquoted_statement(
   return NULL;
 }
 
-EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
+LOCAL void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":nop"), info, datum_make_int(next)));
   *begin = next;
 }
 
-EXPORT void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum *meta, datum **compdata) {
+LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum *meta, datum **compdata) {
   // fix hat=false; sometimes it should be true.
   prog_append_yield(sl, begin, false, 0, list_length(args), meta, compdata);
   prog_append_pop(sl, begin, args, compdata);

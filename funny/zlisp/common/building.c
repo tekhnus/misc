@@ -53,26 +53,6 @@ EXPORT char *prog_build_one_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
   return prog_build_2(sl, ep, bdr_p, datum_make_list(spec, stmts), module_source, compdata, builder_compdata);
 }
 
-LOCAL char *prog_build_deps_isolated(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
-  size_t bdr_off = prog_slice_append_new(sl);
-  size_t bdr_end = bdr_off;
-  datum *bdr_compdata = compdata_make();
-  prog_append_recieve(sl, &bdr_end, datum_make_nil(), datum_make_nil(), &bdr_compdata);  // bdr is callable with zero arguments
-  prog_append_nop(sl, &bdr_end, datum_make_list_2(datum_make_symbol("info"), datum_make_list_1(datum_make_symbol("build-deps-isolated"))));
-  char *err = prog_build_deps(sl, &bdr_end, deps, module_source, &bdr_compdata);
-  if (err != NULL) {
-    return err;
-  }
-  prog_put_deps(sl, &bdr_end, deps, &bdr_compdata);
-  prog_append_yield(sl, &bdr_end, false, list_length(deps), 1, datum_make_nil(), &bdr_compdata);
-  prog_append_put_prog(sl, p, bdr_off, 0, compdata);
-  prog_append_collect(sl, 1, p, compdata);
-  prog_append_call(sl, p, false, list_length(deps), compdata);
-  prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
-  prog_append_nop(sl, p, datum_make_symbol("we_are_at_build_deps_isolated"));
-  return NULL;
-}
-
 LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
