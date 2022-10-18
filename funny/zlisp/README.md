@@ -43,7 +43,6 @@ tools/
 - Loops
 - Tail recursive calls
 
-- The builder state should be persistent in repl and preprocessor
 - Separate the builder and the linker
 
 - Try hosting by a compiled language
