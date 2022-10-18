@@ -137,7 +137,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
   }
   fdatum res = routine_run_and_get_value_c_host_new(*sl, routine);
   size_t p_alt = routine_2_get_offset(*routine);
-  if (p_alt != *p) {
+  if (!fdatum_is_panic(res) && p_alt != *p) {
     return fdatum_make_panic("suddenly p_alt != p");
   }
   return res;

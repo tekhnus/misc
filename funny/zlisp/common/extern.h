@@ -58,7 +58,7 @@ char *prog_build_one_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *stmt_or_sp
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(prog_slice *sl,size_t *p,datum *deps,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
-void prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
+size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 LOCAL datum *extract_meta(prog_slice sl,size_t run_main_off);
 datum *datum_make_void();
 datum *compdata_make();

@@ -15,11 +15,12 @@ LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
   return list_at(first_main_instruction, 4);
 }
 
-EXPORT void prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum **compdata, datum **builder_compdata) {
+EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum **compdata, datum **builder_compdata) {
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_collect(sl, 1, bdr_p, builder_compdata);
   prog_append_call(sl, bdr_p, false, 1, builder_compdata);
   prog_append_yield(sl, ep, false, 0, 0, datum_make_nil(), compdata);
+  return 42;
 }
 
 EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {

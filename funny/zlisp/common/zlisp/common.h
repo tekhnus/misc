@@ -79,7 +79,7 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 datum *compdata_make();
 datum *datum_make_void();
-void prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
+size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
 char *prog_build_one_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *stmt_or_spec,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
 char *prog_build(prog_slice *sl,size_t ep,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata);

@@ -12,7 +12,9 @@
  (panic "std" panic)
  (second "std" second)
  (third "std" third)
- (fourth "std" fourth))
+ (fourth "std" fourth)
+ (fifth "std" fifth)
+ (sixth "std" sixth))
 
 !(req
   (defun "stdmacro" defun)
@@ -24,12 +26,18 @@
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-init-module-c-host (c-function-or-panic selflib "prog_build_one_c_host" '((pointer sizet datum pointer) pointer)))
+(def prog-build-one-c-host (c-function-or-panic selflib "prog_build_one_c_host_2" '((pointer pointer pointer datum pointer pointer) pointer)))
+(def prog-build-init (c-function-or-panic selflib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def decode-offset (c-function-or-panic selflib "routine_2_get_offset" '((pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 
-!(#defun compile-prog-new (sl p src compdata)
+!(#defun init-prog (sl pptr bpptr compdata bdrcompdata)
+   (return 42))
+
+!(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
+     (def p (derefw `(~pptr int64)))
      (def e (prog-init-module-c-host (wrap-pointer-into-pointer sl) p src (wrap-pointer-into-pointer compdata)))
      (if (eq 0 (derefw `(~e int64)))
          (return `(:ok ~p))
@@ -71,6 +79,7 @@
            (return '(:eof)))))))
 
 (export (compile-prog-new compile-prog-new)
+        (init-prog init-prog)
         (eval-new eval-new)
         (read read)
         (make-routine-with-empty-state make-routine-with-empty-state)

@@ -15,6 +15,8 @@
  (second "std-pre-defun" second)
  (third "std-pre-defun" third)
  (fourth "std-pre-defun" fourth)
+ (fifth "std-pre-defun" fifth)
+ (sixth "std-pre-defun" sixth)
  (list "std-pre-defun" list))
 
 !(req (defun "defun" defun))
@@ -57,5 +59,7 @@
  (ignore ignore)
  (third third)
  (fourth fourth)
+ (fifth fifth)
+ (sixth sixth)
  (switch-fun switch-fun)
  (first-good-value first-good-value))

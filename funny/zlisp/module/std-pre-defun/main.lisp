@@ -58,6 +58,8 @@
 
 (builtin.defn third (return (head (tail (tail (head args))))))
 (builtin.defn fourth (return (head (tail (tail (tail (head args)))))))
+(builtin.defn fifth (return (head (tail (tail (tail (tail (head args))))))))
+(builtin.defn sixth (return (head (tail (tail (tail (tail (tail (head args)))))))))
 
 (builtin.defn swtchone
 	      (if (head args)
@@ -137,7 +139,7 @@
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
-(def switch-defines '((head args) (second args) (third args) (fourth args)))
+(def switch-defines '((head args) (second args) (third args) (fourth args) (fifth args) (sixth args)))
 
 (builtin.defn switch-clause
     (progn
@@ -158,4 +160,6 @@
  (second second)
  (third third)
  (fourth fourth)
+ (fifth fifth)
+ (sixth sixth)
  (list list))
