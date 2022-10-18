@@ -27,9 +27,16 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog_slice sl = prog_slice_make(16 * 1024);
+  // python will start from the first instruction,
+  // so the first call of append_new must be for the starting point.
+  size_t bp = prog_slice_append_new(&sl);
   size_t p = prog_slice_append_new(&sl);
+  // datum *s = routine_2_make(bp);
   datum *compdata = compdata_make();
-  char *err = prog_build(&sl, p, src.ok_value, python_module_routine, &compdata);
+  datum *builder_compdata = compdata_make();
+  prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
+  char *err = prog_build_2(&sl, &p, &bp, src.ok_value, python_module_routine, &compdata, &builder_compdata);
+
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;

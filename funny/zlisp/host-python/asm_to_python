@@ -134,8 +134,6 @@ def main():
         # print(ins)
         op, args = ins[0], ins[1:]
         if op == sexpdata.Symbol(":end"):
-            if len(pdata) != 1 or len(pdata[0]) != 1:
-                raise RuntimeError("program ended, but the call stack is not empty")
             break
         elif op == sexpdata.Symbol(":if"):
             if_true, if_false = args
