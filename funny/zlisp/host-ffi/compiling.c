@@ -66,14 +66,14 @@ fdatum file_source(char *fname) {
   datum *expander_compdata = compdata_make();
   datum *expander_builder_compdata = compdata_make();
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg, &expander_compdata, &expander_builder_compdata);
-  routine_run_and_get_value_c_host_new(expander_sl, &expander_routine);
+  // routine_run_and_get_value_c_host_new(expander_sl, &expander_routine);
   read_result rr;
   datum *res = datum_make_nil();
   datum **resend = &res;
   // printf("start expanding %s\n", fname);
   for (; read_result_is_ok(rr = datum_read(stre));) {
     // printf("preparing to expand a statement\n");
-    fdatum val = datum_expand(rr.ok_value, &expander_sl, &expander_routine, &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
+    fdatum val = datum_expand(rr.ok_value, &expander_sl, &expander_routine, &expander_prg, &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
     // printf("expanded a statement\n");
     if (fdatum_is_panic(val)) {
       char *err = malloc(1024);
@@ -99,7 +99,7 @@ fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, datum **compdata, size_t *bp, datum **builder_compdata) {
+LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, datum **compdata, size_t *bp, datum **builder_compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(e);
   }
@@ -110,7 +110,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, datum **com
 
     for (datum *rest = e; !datum_is_nil(rest); rest = rest->list_tail) {
       datum *x = rest->list_head;
-      fdatum nxt = datum_expand(x, sl, routine, compdata, bp, builder_compdata);
+      fdatum nxt = datum_expand(x, sl, routine, p, compdata, bp, builder_compdata);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
@@ -122,13 +122,12 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, datum **com
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(e->list_tail->list_head, sl, routine, compdata, bp, builder_compdata);
+  fdatum exp = datum_expand(e->list_tail->list_head, sl, routine, p, compdata, bp, builder_compdata);
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  size_t p = routine_2_get_offset(*routine);
   char *err = prog_build_one_c_host_2(
-                                      sl, &p, bp, exp.ok_value, compdata, builder_compdata);
+                                      sl, p, bp, exp.ok_value, compdata, builder_compdata);
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;
@@ -137,5 +136,9 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, datum **com
     return fdatum_make_panic(err2);
   }
   fdatum res = routine_run_and_get_value_c_host_new(*sl, routine);
+  size_t p_alt = routine_2_get_offset(*routine);
+  if (p_alt != *p) {
+    return fdatum_make_panic("suddenly p_alt != p");
+  }
   return res;
 }
