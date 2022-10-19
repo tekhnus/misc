@@ -467,8 +467,6 @@ LOCAL void compdata_validate(datum *compdata) {
   }
 }
 
-
-
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
 }
@@ -483,22 +481,7 @@ LOCAL datum *compdata_del(datum *compdata) {
 }
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
-  compdata_validate(compdata);
-  if (datum_is_nil(compdata)) {
-    return -1;
-  }
-  if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
-    fprintf(stderr, "compdata_get_index: if branches had different compdata\n");
-    exit(EXIT_FAILURE);
-  }
-  if (datum_eq(compdata->list_head, var)) {
-    return 0;
-  }
-  int res = compdata_get_index(compdata->list_tail, var);
-  if (res == -1) {
-    return -1;
-  }
-  return res + 1;
+  return list_index_of(compdata, var);
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {

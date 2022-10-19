@@ -94,14 +94,7 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *
   }
   datum *dep = dep_and_sym->list_head;
 
-  bool already_built = false;
-  for (datum *rest_compdata=*compdata; !datum_is_nil(rest_compdata); rest_compdata=rest_compdata->list_tail) {
-    datum *n = rest_compdata->list_head;
-    if (datum_eq(datum_make_symbol(get_varname(dep_and_sym)), n)) {
-      already_built = true;
-      break;
-    }
-  }
+  bool already_built = list_index_of(*compdata, datum_make_symbol(get_varname(dep_and_sym))) >= 0;
   if (already_built) {
     return NULL;
   }
