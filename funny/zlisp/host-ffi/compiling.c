@@ -16,7 +16,7 @@ char *module_routine(prog_slice *sl, size_t *p, char *module) {
     return src.panic_message;
   }
   datum *compdata = compdata_make();
-  return prog_init_submodule(sl, p, src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
+  return prog_append_statements(sl, p, src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
 }
 
 fdatum module_source(char *module) {

@@ -3,11 +3,7 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT char *prog_init_submodule(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
-  if (datum_is_nil(source)) {
-    return "source can't be null";
-  }
-  // prog_append_nop(sl, off, datum_make_nil());
+EXPORT char *prog_append_statements(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
     if (rest != source) {
@@ -15,105 +11,13 @@ EXPORT char *prog_init_submodule(prog_slice *sl, size_t *off, datum *source, dat
     }
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
     if (err != NULL) {
-      return (err);
+      return err;
     }
   }
   return NULL;
-}
-
-LOCAL char *prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
-  fdatum res = prog_read_usages(spec);
-  if (fdatum_is_panic(res)) {
-    return res.panic_message;
-  }
-  datum *re = res.ok_value;
-  if (!datum_is_list(re) || list_length(re) != 2) {
-    return "not gonna happen";
-  }
-  datum *vars = re->list_head;
-  prog_append_recieve(sl, begin, vars, re->list_tail->list_head, compdata);
-  return NULL;
-}
-
-LOCAL fdatum prog_read_usages(datum *spec) {
-  if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "req")) {
-    return fdatum_make_panic("wrong usage spec");
-  }
-  datum *items = spec->list_tail;
-  datum *vars = datum_make_nil();
-  datum **vars_tail = &vars;
-  datum *specs = datum_make_nil();
-  datum **specs_tail = &specs;
-  for (datum *rest = items; !datum_is_nil(rest); rest=rest->list_tail) {
-    datum *item = rest->list_head;
-    if (!datum_is_list(item) || list_length(item) < 2 || list_length(item) > 3) {
-      return fdatum_make_panic("wrong usage spec");
-    }
-    datum *item_var = item->list_head;
-    if (!datum_is_symbol(item_var)) {
-      return fdatum_make_panic("wrong usage spec");
-    }
-    datum *item_spec = item->list_tail;
-    *vars_tail = datum_make_list_1(item_var);
-    vars_tail = &((*vars_tail)->list_tail);
-    *specs_tail = datum_make_list_1(item_spec);
-    specs_tail = &((*specs_tail)->list_tail);
-  }
-  return fdatum_make_ok(datum_make_list_2(vars, specs));
-}
-
-LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
-  fdatum res = prog_read_exports(spec);
-  if (fdatum_is_panic(res)) {
-    return res.panic_message;
-  }
-  datum *re = res.ok_value;
-  if (!datum_is_list(re) || list_length(re) != 2) {
-    return "not gonna happen";
-  }
-  for (datum *rest_expressions=re->list_tail->list_head; !datum_is_nil(rest_expressions); rest_expressions=rest_expressions->list_tail) {
-    datum *expr = rest_expressions->list_head;
-    prog_append_statement(sl, begin, expr, compdata, datum_make_nil());
-  }
-  /* This nop is appended as a hack so that the yield becomes the last statement on the slice. */
-  prog_append_nop(sl, begin, datum_make_nil());
-  // probably should change hat=false to true.
-  prog_append_yield(sl, begin, false, list_length(re->list_head), 1, re->list_head, compdata);
-  return NULL;
-}
-
-LOCAL fdatum prog_read_exports(datum *spec) {
-  if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "export")) {
-    return fdatum_make_panic("wrong export spec");
-  }
-  datum *items = spec->list_tail;
-  datum *names = datum_make_nil();
-  datum **names_tail = &names;
-  datum *expressions = datum_make_nil();
-  datum **expressions_tail = &expressions;
-  for (datum *rest = items; !datum_is_nil(rest); rest=rest->list_tail) {
-    datum *item = rest->list_head;
-    if (!datum_is_list(item) || list_length(item) != 2) {
-      return fdatum_make_panic("wrong export spec");
-    }
-    datum *item_name = item->list_head;
-    if (!datum_is_symbol(item_name)) {
-      return fdatum_make_panic("wrong export spec");
-    }
-    datum *item_expression = item->list_tail->list_head;
-    *names_tail = datum_make_list_1(item_name);
-    names_tail = &((*names_tail)->list_tail);
-    *expressions_tail = datum_make_list_1(item_expression);
-    expressions_tail = &((*expressions_tail)->list_tail);
-  }
-  return fdatum_make_ok(datum_make_list_2(names, expressions));
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, datum **compdata, datum *info) {
-  if (!datum_is_nil(*compdata) && datum_is_the_symbol((*compdata)->list_head, "__different_if_branches")) {
-    fprintf(stderr, "fatal: if branches had different compdata %s\n", datum_repr(stmt));
-    exit(EXIT_FAILURE);
-  }
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -301,19 +205,138 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
   prog_append_collect(sl, 2, begin, compdata);
+  prog_append_call(sl, begin, hat, 2, compdata);
   if (at) {
-    prog_append_call(sl, begin, hat, 2, compdata);
     prog_append_collect(sl, 2, begin, compdata);
   } else {
-    prog_append_call(sl, begin, hat, 2, compdata);
     prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }
   return NULL;
 }
 
-LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
-  *prog_slice_datum_at(*sl, a) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
-  *prog_slice_datum_at(*sl, b) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
+LOCAL char *prog_append_usages(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
+  fdatum res = prog_read_usages(spec);
+  if (fdatum_is_panic(res)) {
+    return res.panic_message;
+  }
+  datum *re = res.ok_value;
+  if (!datum_is_list(re) || list_length(re) != 2) {
+    return "not gonna happen";
+  }
+  datum *vars = re->list_head;
+  prog_append_recieve(sl, begin, vars, re->list_tail->list_head, compdata);
+  return NULL;
+}
+
+LOCAL fdatum prog_read_usages(datum *spec) {
+  if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "req")) {
+    return fdatum_make_panic("wrong usage spec");
+  }
+  datum *items = spec->list_tail;
+  datum *vars = datum_make_nil();
+  datum **vars_tail = &vars;
+  datum *specs = datum_make_nil();
+  datum **specs_tail = &specs;
+  for (datum *rest = items; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum *item = rest->list_head;
+    if (!datum_is_list(item) || list_length(item) < 2 || list_length(item) > 3) {
+      return fdatum_make_panic("wrong usage spec");
+    }
+    datum *item_var = item->list_head;
+    if (!datum_is_symbol(item_var)) {
+      return fdatum_make_panic("wrong usage spec");
+    }
+    datum *item_spec = item->list_tail;
+    *vars_tail = datum_make_list_1(item_var);
+    vars_tail = &((*vars_tail)->list_tail);
+    *specs_tail = datum_make_list_1(item_spec);
+    specs_tail = &((*specs_tail)->list_tail);
+  }
+  return fdatum_make_ok(datum_make_list_2(vars, specs));
+}
+
+LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, datum **compdata) {
+  fdatum res = prog_read_exports(spec);
+  if (fdatum_is_panic(res)) {
+    return res.panic_message;
+  }
+  datum *re = res.ok_value;
+  if (!datum_is_list(re) || list_length(re) != 2) {
+    return "not gonna happen";
+  }
+  for (datum *rest_expressions=re->list_tail->list_head; !datum_is_nil(rest_expressions); rest_expressions=rest_expressions->list_tail) {
+    datum *expr = rest_expressions->list_head;
+    prog_append_statement(sl, begin, expr, compdata, datum_make_nil());
+  }
+  /* This nop is appended as a hack so that the yield becomes the last statement on the slice. */
+  prog_append_nop(sl, begin, datum_make_nil());
+  // probably should change hat=false to true.
+  prog_append_yield(sl, begin, false, list_length(re->list_head), 1, re->list_head, compdata);
+  return NULL;
+}
+
+LOCAL char *prog_append_backquoted_statement(
+                                             prog_slice *sl, size_t *begin, datum *stmt, datum **compdata) {
+  if (!datum_is_list(stmt)) {
+    prog_append_put_const(sl, begin, stmt, compdata);
+    return NULL;
+  }
+  for (datum *rest_elems = stmt; !datum_is_nil(rest_elems);
+       rest_elems = rest_elems->list_tail) {
+    datum *elem = rest_elems->list_head;
+    char *err;
+    if (datum_is_list(elem) && list_length(elem) == 2 &&
+        datum_is_the_symbol(elem->list_head, "tilde")) {
+      err = prog_append_statement(sl, begin, elem->list_tail->list_head, compdata, datum_make_nil());
+    } else {
+      err = prog_append_backquoted_statement(sl, begin, elem, compdata);
+    }
+    if (err != NULL) {
+      return err;
+    }
+  }
+  prog_append_collect(sl, list_length(stmt), begin, compdata);
+  return NULL;
+}
+
+LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum *meta, datum **compdata) {
+  // fix hat=false; sometimes it should be true.
+  prog_append_yield(sl, begin, false, 0, list_length(args), meta, compdata);
+  prog_append_pop(sl, begin, args, compdata);
+}
+
+LOCAL fdatum prog_read_exports(datum *spec) {
+  if (!datum_is_list(spec) || list_length(spec) == 0 || !datum_is_the_symbol(spec->list_head, "export")) {
+    return fdatum_make_panic("wrong export spec");
+  }
+  datum *items = spec->list_tail;
+  datum *names = datum_make_nil();
+  datum **names_tail = &names;
+  datum *expressions = datum_make_nil();
+  datum **expressions_tail = &expressions;
+  for (datum *rest = items; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum *item = rest->list_head;
+    if (!datum_is_list(item) || list_length(item) != 2) {
+      return fdatum_make_panic("wrong export spec");
+    }
+    datum *item_name = item->list_head;
+    if (!datum_is_symbol(item_name)) {
+      return fdatum_make_panic("wrong export spec");
+    }
+    datum *item_expression = item->list_tail->list_head;
+    *names_tail = datum_make_list_1(item_name);
+    names_tail = &((*names_tail)->list_tail);
+    *expressions_tail = datum_make_list_1(item_expression);
+    expressions_tail = &((*expressions_tail)->list_tail);
+  }
+  return fdatum_make_ok(datum_make_list_2(names, expressions));
+}
+
+LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata, datum *info) {
+  datum *routine_compdata = *compdata;
+  prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
+  prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
+  return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
 }
 
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat, int return_count, datum **compdata) {
@@ -415,55 +438,31 @@ EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t co
   }
 }
 
-LOCAL char *prog_append_backquoted_statement(
-                                             prog_slice *sl, size_t *begin, datum *stmt, datum **compdata) {
-  if (!datum_is_list(stmt)) {
-    prog_append_put_const(sl, begin, stmt, compdata);
-    return NULL;
-  }
-  for (datum *rest_elems = stmt; !datum_is_nil(rest_elems);
-       rest_elems = rest_elems->list_tail) {
-    datum *elem = rest_elems->list_head;
-    char *err;
-    if (datum_is_list(elem) && list_length(elem) == 2 &&
-        datum_is_the_symbol(elem->list_head, "tilde")) {
-      err = prog_append_statement(sl, begin, elem->list_tail->list_head, compdata, datum_make_nil());
-    } else {
-      err = prog_append_backquoted_statement(sl, begin, elem, compdata);
-    }
-    if (err != NULL) {
-      return err;
-    }
-  }
-  prog_append_collect(sl, list_length(stmt), begin, compdata);
-  return NULL;
-}
-
 LOCAL void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":nop"), info, datum_make_int(next)));
   *begin = next;
 }
 
-LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum *meta, datum **compdata) {
-  // fix hat=false; sometimes it should be true.
-  prog_append_yield(sl, begin, false, 0, list_length(args), meta, compdata);
-  prog_append_pop(sl, begin, args, compdata);
+LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
+  *prog_slice_datum_at(*sl, a) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
+  *prog_slice_datum_at(*sl, b) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
 }
-
-LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata, datum *info) {
-  datum *routine_compdata = *compdata;
-  prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
-  prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
-  return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
-}
-
 
 EXPORT datum *compdata_make() {
   return datum_make_nil();
 }
 
+LOCAL void compdata_validate(datum *compdata) {
+  if (!datum_is_nil(compdata) && datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
+    fprintf(stderr, "compdata_del: if branches had different compdata\n");
+    fprintf(stderr, "%s\n", datum_repr(compdata));
+    exit(EXIT_FAILURE);
+  }
+}
+
 EXPORT bool compdata_has_value(datum *compdata) {
+  compdata_validate(compdata);
   return !datum_is_nil(compdata) && datum_is_the_symbol(compdata->list_head, ":anon");
 }
 
@@ -472,19 +471,16 @@ LOCAL datum *compdata_put(datum *compdata, datum *var) {
 }
 
 LOCAL datum *compdata_del(datum *compdata) {
+  compdata_validate(compdata);
   if (datum_is_nil(compdata)) {
     fprintf(stderr, "compdata_del: empty compdata\n");
-    exit(EXIT_FAILURE);
-  }
-  if (datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
-    fprintf(stderr, "compdata_del: if branches had different compdata\n");
-    fprintf(stderr, "%s\n", datum_repr(compdata));
     exit(EXIT_FAILURE);
   }
   return compdata->list_tail;
 }
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
+  compdata_validate(compdata);
   if (datum_is_nil(compdata)) {
     return -1;
   }
