@@ -156,7 +156,7 @@ def main():
             hat, arg_cnt, nex = args
             if hat:
                 raise RuntimeError("routine-1 call is not supported yet")
-            fnandargs = pop_stack()
+            fnandargs = list(reversed([pop_stack() for _ in range(arg_cnt + 1)]))
             rout, args = check_is_cons(fnandargs)
             offset, varz = check_is_routine_0(rout)
             rtvarz = list(varz)

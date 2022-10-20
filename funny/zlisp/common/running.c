@@ -158,7 +158,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->call_hat) {
       break;
     }
-    datum *form = state_stack_pop(st);
+    datum *form = state_stack_collect(st, prg->call_arg_count + 1);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return ("a call instruction with a malformed form");
     }
@@ -228,7 +228,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     if (prg->call_hat) {
       break;
     }
-    datum *form = state_stack_pop(st);
+    datum *form = state_stack_collect(st, prg->call_arg_count + 1);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return ("a call instruction with a malformed form");
     }
