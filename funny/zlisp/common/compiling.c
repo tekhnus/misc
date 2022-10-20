@@ -182,7 +182,13 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_pop(sl, begin, datum_make_list_1(stmt->list_tail->list_head), compdata);
+    datum *names;
+    if (datum_is_list(stmt->list_tail->list_head)) {
+      names = stmt->list_tail->list_head;
+    } else {
+      names = datum_make_list_1(stmt->list_tail->list_head);
+    }
+    prog_append_pop(sl, begin, names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defn") ||
@@ -283,9 +289,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
   prog_append_call(sl, begin, hat, 1, 2, compdata);
-  if (at) {
-    prog_append_collect(sl, 2, begin, compdata);
-  } else {
+  if (!at) {
     prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }
   return NULL;
