@@ -45,13 +45,12 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-LOCAL char *python_module_routine(prog_slice *sl, size_t *p, char *module) {
+LOCAL fdatum python_module_routine(char *module) {
   fdatum src = python_module_source(module);
   if (fdatum_is_panic(src)) {
-    return src.panic_message;
+    return src;
   }
-  datum *compdata = compdata_make();
-  return prog_append_statements(sl, p, src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
+  return prog_compile(src.ok_value, datum_make_list_1(datum_make_symbol(module)));
 }
 
 LOCAL fdatum python_module_source(char *module) {

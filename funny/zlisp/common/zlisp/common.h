@@ -70,6 +70,7 @@ bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
+fdatum prog_compile(datum *source,datum *info);
 char *prog_append_statements(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
@@ -79,7 +80,7 @@ void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
-char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,char *(*module_source)(prog_slice *sl,size_t *p,char *),datum **compdata,datum **builder_compdata);
+char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,fdatum(*module_source)(char *),datum **compdata,datum **builder_compdata);
 datum *routine_2_make(ptrdiff_t prg);
 ptrdiff_t routine_2_get_offset(datum *r0d);
 fdatum routine_2_run(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));

@@ -21,7 +21,7 @@ EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
   return 42;
 }
 
-EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *source, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata, datum **builder_compdata) {
+EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *source, fdatum (*module_source)(char *), datum **compdata, datum **builder_compdata) {
   size_t original_ep = *ep;
   char *res = prog_append_statements(sl, ep, source, compdata, datum_make_list_1(datum_make_symbol("main")));
   if (res != NULL) {
@@ -41,7 +41,7 @@ EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *sour
   return NULL;
 }
 
-LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(char *), datum **compdata) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
     char *err = prog_build_dep(sl, p, dep, module_source, compdata);
@@ -106,17 +106,18 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
   return res;
 }
 
-LOCAL char *prog_slice_relocate(prog_slice *dst, size_t *p, prog_slice src) {
+LOCAL char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
   size_t delta = *p;
-  // the "+1" comes because of the final :end
-  for (size_t off = 0; off + 1 < prog_slice_length(src); ++off) {
-    *prog_slice_datum_at(*dst, *p) = *instruction_relocate(prog_slice_datum_at(src, off), delta);
+  // the ">1" comes because of the final :end
+  for (datum *rest = src; list_length(rest) > 1; rest = rest->list_tail) {
+    datum *ins = rest->list_head;
+    *prog_slice_datum_at(*dst, *p) = *instruction_relocate(ins, delta);
     *p = prog_slice_append_new(dst);
   }
   return NULL;
 }
 
-LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
+LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_source)(char *), datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
     return "req expects bytestrings";
   }
@@ -129,14 +130,11 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *
   size_t run_dep_off = prog_slice_append_new(sl);
   size_t run_dep_end = run_dep_off;
 
-  prog_slice dep_sl = prog_slice_make(16 * 1024);
-  size_t off = prog_slice_append_new(&dep_sl);
-  size_t end = off;
-  char *stts = module_source(&dep_sl, &end, dep->bytestring_value);
-  if (stts != NULL) {
-    return stts;
+  fdatum stts = module_source(dep->bytestring_value);
+  if (fdatum_is_panic(stts)) {
+    return stts.panic_message;
   }
-  char *er = prog_slice_relocate(sl, &run_dep_end, dep_sl);
+  char *er = prog_slice_relocate(sl, &run_dep_end, stts.ok_value);
 
   if (er != NULL) {
     return er;
