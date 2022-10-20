@@ -13,20 +13,6 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   return fdatum_make_ok(prog_slice_to_datum(sl));
 }
 
-EXPORT char *prog_append_statements(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
-  for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
-    datum *stmt = rest->list_head;
-    if (rest != source) {
-      prog_append_nop(sl, off, datum_make_list_2(datum_make_symbol("info"), datum_make_list(stmt, info)));
-    }
-    char *err = prog_append_statement(sl, off, stmt, compdata, info);
-    if (err != NULL) {
-      return err;
-    }
-  }
-  return NULL;
-}
-
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat, int arg_count, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(arg_count), datum_make_int(next)));
@@ -103,6 +89,20 @@ EXPORT datum *compdata_make() {
 EXPORT bool compdata_has_value(datum *compdata) {
   compdata_validate(compdata);
   return !datum_is_nil(compdata) && datum_is_the_symbol(compdata->list_head, ":anon");
+}
+
+LOCAL char *prog_append_statements(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
+  for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
+    datum *stmt = rest->list_head;
+    if (rest != source) {
+      prog_append_nop(sl, off, datum_make_list_2(datum_make_symbol("info"), datum_make_list(stmt, info)));
+    }
+    char *err = prog_append_statement(sl, off, stmt, compdata, info);
+    if (err != NULL) {
+      return err;
+    }
+  }
+  return NULL;
 }
 
 LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, datum **compdata, datum *info) {
