@@ -47,17 +47,6 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
-  *begin = next;
-  compdata = compdata;
-  for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_del(*compdata);
-  }
-  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-}
-
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
   if (datum_is_list(var)) {
     for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
@@ -453,6 +442,17 @@ LOCAL void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":nop"), info, datum_make_int(next)));
   *begin = next;
+}
+
+LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
+  *begin = next;
+  compdata = compdata;
+  for (size_t i = 0; i < count; ++i) {
+    *compdata = compdata_del(*compdata);
+  }
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {

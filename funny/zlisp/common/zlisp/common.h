@@ -71,7 +71,6 @@ read_result datum_read(FILE *strm);
 char *prog_append_statements(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
 void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
-void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
