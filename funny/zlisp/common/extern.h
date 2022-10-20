@@ -48,14 +48,14 @@ LOCAL char *datum_to_routine_2(routine_2 *res,datum *fns);
 ptrdiff_t routine_2_get_offset(datum *r0d);
 LOCAL datum *routine_2_to_datum(prog_slice sl,routine_2 r);
 datum *routine_2_make(ptrdiff_t prg);
-LOCAL char *prog_slice_relocate(prog_slice *dst,size_t *p,datum *src);
 LOCAL datum *instruction_relocate(datum *ins,size_t delta);
 LOCAL datum *offset_relocate(datum *ins,size_t delta);
 LOCAL char *get_varname(datum *dep_and_sym);
 LOCAL char *prog_build_dep(prog_slice *sl,size_t *p,datum *dep_and_sym,fdatum(*module_source)(char *),datum **compdata);
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_source)(char *),datum **compdata);
-char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,fdatum(*module_source)(char *),datum **compdata,datum **builder_compdata);
+LOCAL char *prog_slice_relocate(prog_slice *dst,size_t *p,datum *src);
+char *prog_build(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *bytecode,fdatum(*module_bytecode)(char *),datum **builder_compdata);
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 LOCAL datum *extract_meta(prog_slice sl,size_t run_main_off);
 LOCAL fdatum prog_read_exports(datum *spec);
@@ -73,6 +73,7 @@ LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **
 LOCAL void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
+datum *compdata_make();
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
@@ -84,8 +85,7 @@ void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int arg_count,int re
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 char *prog_append_statements(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
-datum *compdata_make();
-fdatum prog_compile(datum *source,datum *info);
+fdatum prog_compile(datum *source,datum **compdata,datum *info);
 fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {

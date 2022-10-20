@@ -3,11 +3,10 @@
 #include <string.h>
 #include <extern.h>
 
-EXPORT fdatum prog_compile(datum *source, datum *info) {
+EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   prog_slice sl = prog_slice_make(16 * 1024);
   size_t p = prog_slice_append_new(&sl);
-  datum *compdata = compdata_make();
-  char *err = prog_append_statements(&sl, &p, source, &compdata, info);
+  char *err = prog_append_statements(&sl, &p, source, compdata, info);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }

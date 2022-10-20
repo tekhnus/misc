@@ -7,7 +7,11 @@
 #endif
 
 char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {
-  return prog_build_2(sl, p, bp, source, module_routine, compdata, builder_compdata);
+  fdatum bytecode = prog_compile(source, compdata, datum_make_list_1(datum_make_symbol("main")));
+  if (fdatum_is_panic(bytecode)) {
+    return bytecode.panic_message;
+  }
+  return prog_build(sl, p, bp, bytecode.ok_value, module_routine, builder_compdata);
 }
 
 fdatum module_routine(char *module) {
@@ -15,7 +19,8 @@ fdatum module_routine(char *module) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  return prog_compile(src.ok_value, datum_make_list_1(datum_make_symbol(module)));
+  datum *compdata = compdata_make();
+  return prog_compile(src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
 }
 
 fdatum module_source(char *module) {

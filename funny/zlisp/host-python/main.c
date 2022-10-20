@@ -35,7 +35,12 @@ int main(int argc, char **argv) {
   datum *compdata = compdata_make();
   datum *builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
-  char *err = prog_build_2(&sl, &p, &bp, src.ok_value, python_module_routine, &compdata, &builder_compdata);
+  fdatum bytecode = prog_compile(src.ok_value, &compdata, datum_make_list_1(datum_make_symbol("main")));
+  if (fdatum_is_panic(bytecode)) {
+    fprintf(stderr, "%s\n", bytecode.panic_message);
+    return EXIT_FAILURE;
+  }
+  char *err = prog_build(&sl, &p, &bp, bytecode.ok_value, python_module_routine, &builder_compdata);
 
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
@@ -50,7 +55,8 @@ LOCAL fdatum python_module_routine(char *module) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  return prog_compile(src.ok_value, datum_make_list_1(datum_make_symbol(module)));
+  datum *compdata = compdata_make();
+  return prog_compile(src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
 }
 
 LOCAL fdatum python_module_source(char *module) {
