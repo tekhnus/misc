@@ -75,15 +75,45 @@ LOCAL char *get_varname(datum *dep_and_sym) {
   return res;
 }
 
-LOCAL datum *list_append(datum *x, datum *y) {
-  if (!datum_is_list(x)) {
-    fprintf(stderr, "list_append failed\n");
+LOCAL datum *offset_relocate(datum *ins, size_t delta) {
+  if (!datum_is_integer(ins)) {
+    fprintf(stderr, "error: offset_relocate");
     exit(EXIT_FAILURE);
   }
-  if (datum_is_nil(x)) {
-    return datum_make_list_1(y);
+  return datum_make_int(ins->integer_value + delta);
+}
+
+LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
+  if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
+    return datum_make_list_1(list_at(ins, 0));
   }
-  return datum_make_list(x->list_head, list_append(x->list_tail, y));
+  if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
+    return datum_make_list_3(list_at(ins, 0), offset_relocate(list_at(ins, 1), delta), offset_relocate(list_at(ins, 2), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
+    return datum_make_list_4(list_at(ins, 0), offset_relocate(list_at(ins, 1), delta), list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
+    return datum_make_list_4(list_at(ins, 0), offset_relocate(list_at(ins, 1), delta), list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
+  }
+  datum *res = ins;
+  if (list_length(res) < 2) {
+    fprintf(stderr, "malformed instruction: %s\n", datum_repr(res));
+    exit(EXIT_FAILURE);
+  }
+  datum *nxt = list_at(res, list_length(res) - 1);
+  res = list_append(list_chop_last(res), offset_relocate(nxt, delta));
+  return res;
+}
+
+LOCAL char *prog_slice_relocate(prog_slice *dst, size_t *p, prog_slice src) {
+  size_t delta = *p;
+  // the "+1" comes because of the final :end
+  for (size_t off = 0; off + 1 < prog_slice_length(src); ++off) {
+    *prog_slice_datum_at(*dst, *p) = *instruction_relocate(prog_slice_datum_at(src, off), delta);
+    *p = prog_slice_append_new(dst);
+  }
+  return NULL;
 }
 
 LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *(*module_source)(prog_slice *sl, size_t *p, char *), datum **compdata) {
@@ -98,9 +128,18 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, char *
   }
   size_t run_dep_off = prog_slice_append_new(sl);
   size_t run_dep_end = run_dep_off;
-  char *status = module_source(sl, &run_dep_end, dep->bytestring_value);
-  if (status != NULL) {
-    return status;
+
+  prog_slice dep_sl = prog_slice_make(16 * 1024);
+  size_t off = prog_slice_append_new(&dep_sl);
+  size_t end = off;
+  char *stts = module_source(&dep_sl, &end, dep->bytestring_value);
+  if (stts != NULL) {
+    return stts;
+  }
+  char *er = prog_slice_relocate(sl, &run_dep_end, dep_sl);
+
+  if (er != NULL) {
+    return er;
   }
   datum *transitive_deps = extract_meta(*sl, run_dep_off);
   if (transitive_deps == NULL) {

@@ -257,6 +257,24 @@ EXPORT datum *list_tail(datum *list) {
   return list->list_tail;
 }
 
+EXPORT datum *list_append(datum *list, datum *value) {
+  if (datum_is_nil(list)) {
+    return datum_make_list_1(value);
+  }
+  return datum_make_list(list->list_head, list_append(list->list_tail, value));
+}
+
+EXPORT datum *list_chop_last(datum *list) {
+  if (datum_is_nil(list)) {
+    fprintf(stderr, "list_chop_last error\n");
+    exit(EXIT_FAILURE);
+  }
+  if (list_length(list) == 1) {
+    return datum_make_nil();
+  }
+  return datum_make_list(list->list_head, list_chop_last(list->list_tail));
+}
+
 EXPORT int list_index_of(datum *xs, datum *x) {
   int i = 0;
   for (datum *rest = xs; !datum_is_nil(rest); rest = rest->list_tail) {
