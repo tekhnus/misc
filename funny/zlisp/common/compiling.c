@@ -17,7 +17,8 @@ EXPORT char *prog_append_statements(prog_slice *sl, size_t *off, datum *source, 
   return NULL;
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat, int return_count, datum **compdata) {
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat, int arg_count, int return_count, datum **compdata) {
+  prog_append_collect(sl, arg_count + 1, begin, compdata);
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(next)));
   *compdata = compdata_del(*compdata);
@@ -291,8 +292,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
   }
   prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
-  prog_append_collect(sl, 2, begin, compdata);
-  prog_append_call(sl, begin, hat, 2, compdata);
+  prog_append_call(sl, begin, hat, 1, 2, compdata);
   if (at) {
     prog_append_collect(sl, 2, begin, compdata);
   } else {
