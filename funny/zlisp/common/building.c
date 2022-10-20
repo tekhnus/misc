@@ -22,6 +22,9 @@ EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
 }
 
 EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *source, fdatum (*module_source)(char *), datum **compdata, datum **builder_compdata) {
+  /* if (*ep + 1 != prog_slice_length(*sl)) { */
+  /*   return "prog_build can only build from the slice end"; */
+  /* } */
   size_t original_ep = *ep;
   char *res = prog_append_statements(sl, ep, source, compdata, datum_make_list_1(datum_make_symbol("main")));
   if (res != NULL) {
