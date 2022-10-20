@@ -20,7 +20,7 @@ EXPORT char *prog_append_statements(prog_slice *sl, size_t *off, datum *source, 
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, bool hat, int arg_count, int return_count, datum **compdata) {
   prog_append_collect(sl, arg_count + 1, begin, compdata);
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":call"), datum_make_int(hat), datum_make_int(arg_count), datum_make_int(next)));
   *compdata = compdata_del(*compdata);
   for (int i = 0; i < return_count; ++i) {
     *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));

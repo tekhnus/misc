@@ -54,6 +54,7 @@ struct prog {
     };
     struct {
       bool call_hat;
+      size_t call_arg_count;
       ptrdiff_t call_next;
     };
     struct {
@@ -411,7 +412,8 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_hat = list_at(d, 1)->integer_value;
-    res.call_next = list_at(d, 2)->integer_value;
+    res.call_arg_count = list_at(d, 2)->integer_value;
+    res.call_next = list_at(d, 3)->integer_value;
   } else if (!strcmp(opsym, ":host")) {
     res.type = PROG_HOST;
     res.host_instruction = list_at(d, 1);
