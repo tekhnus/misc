@@ -79,6 +79,7 @@ void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,da
 void prog_append_yield(prog_slice *sl,size_t *begin,bool hat,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);
+void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 char *prog_build_2(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *source,fdatum(*module_source)(char *),datum **compdata,datum **builder_compdata);
 datum *routine_2_make(ptrdiff_t prg);

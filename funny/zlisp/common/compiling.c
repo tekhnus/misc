@@ -453,7 +453,7 @@ LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
   *begin = next;
 }
 
-LOCAL void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
+EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":nop"), info, datum_make_int(next)));
   *begin = next;

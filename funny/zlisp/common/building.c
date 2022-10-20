@@ -22,9 +22,7 @@ EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
 }
 
 EXPORT char *prog_build_2(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *source, fdatum (*module_source)(char *), datum **compdata, datum **builder_compdata) {
-  /* if (*ep + 1 != prog_slice_length(*sl)) { */
-  /*   return "prog_build can only build from the slice end"; */
-  /* } */
+  prog_append_nop(sl, ep, datum_make_symbol("this_is_so_that_relocation_is_possible"));
   size_t original_ep = *ep;
   char *res = prog_append_statements(sl, ep, source, compdata, datum_make_list_1(datum_make_symbol("main")));
   if (res != NULL) {
@@ -110,6 +108,9 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
 }
 
 LOCAL char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
+  if (*p + 1 != prog_slice_length(*dst)) {
+     return "relocation can only be done to the slice end";
+  }
   size_t delta = *p;
   // the ">1" comes because of the final :end
   for (datum *rest = src; list_length(rest) > 1; rest = rest->list_tail) {
