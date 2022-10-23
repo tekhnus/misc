@@ -65,7 +65,7 @@ LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum *
 LOCAL void prog_append_host(prog_slice *sl,size_t *begin,datum *name);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p,bool hat);
-LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *stmt,datum **compdata,datum *info);
+LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **compdata,datum *info);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
 LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);

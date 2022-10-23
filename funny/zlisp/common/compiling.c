@@ -205,12 +205,13 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       datum_is_the_symbol_pair(op, "hat", "builtin.defn")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.defn");
     if (list_length(stmt->list_tail) != 2) {
-      return "defn should have two args";
+      return datum_repr(datum_make_list_2(datum_make_symbol("wrong defn"), list_at(stmt, 1)));
     }
-    datum *name = stmt->list_tail->list_head;
+    datum *name = list_at(stmt, 1);
+    datum *body = list_at(stmt, 2);
     size_t s_off = prog_slice_append_new(sl);
     *compdata = compdata_put(*compdata, name);
-    char *err = prog_init_routine(sl, s_off, stmt->list_tail->list_tail->list_head, compdata, datum_make_list(name, info));
+    char *err = prog_init_routine(sl, s_off, NULL, body, compdata, datum_make_list(name, info));
     if (err != NULL) {
       return err;
     }
@@ -221,11 +222,12 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       datum_is_the_symbol_pair(op, "hat", "builtin.fn")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.fn");
     if (list_length(stmt->list_tail) != 1) {
-      return "fn should have one arg";
+      return datum_repr(datum_make_list_2(datum_make_symbol("wrong fn"), stmt));
     }
+    datum *body = list_at(stmt, 1);
     size_t s_off = prog_slice_append_new(sl);
     char *err =
-      prog_init_routine(sl, s_off, stmt->list_tail->list_head, compdata, datum_make_list(datum_make_symbol("lambda"), info));
+      prog_init_routine(sl, s_off, NULL, body, compdata, datum_make_list(datum_make_symbol("lambda"), info));
     if (err != NULL) {
       return err;
     }
@@ -423,9 +425,13 @@ LOCAL fdatum prog_read_exports(datum *spec) {
   return fdatum_make_ok(datum_make_list_2(names, expressions));
 }
 
-LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *stmt, datum **compdata, datum *info) {
+LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt, datum **compdata, datum *info) {
   datum *routine_compdata = *compdata;
-  prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
+  if (args == NULL) {
+    prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
+  } else {
+    prog_append_recieve(sl, &s, args, datum_make_nil(), &routine_compdata);
+  }
   prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
   return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
 }
