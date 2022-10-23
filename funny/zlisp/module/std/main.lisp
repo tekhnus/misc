@@ -16,8 +16,7 @@
  (third "std-pre-defun" third)
  (fourth "std-pre-defun" fourth)
  (fifth "std-pre-defun" fifth)
- (sixth "std-pre-defun" sixth)
- (list "std-pre-defun" list))
+ (sixth "std-pre-defun" sixth))
 
 !(req (defun "defun" defun))
 
@@ -28,7 +27,7 @@
        (append
 	x
 	(tail xs))))
-    (return (list x))))
+    (return `(~x))))
 
 (builtin.defn first-good-value (progn
                                  (if (head args)
@@ -55,7 +54,6 @@
  (decons-pat decons-pat)
  (second second)
  (append append)
- (list list)
  (ignore ignore)
  (third third)
  (fourth fourth)

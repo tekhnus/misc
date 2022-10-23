@@ -6,7 +6,6 @@
  (head "std" head)
  (repr "std" repr)
  (second "std" second)
- (list "std" list)
  (append "std" append)
  (+ "std" +)
  (panic "std" panic)
@@ -53,10 +52,6 @@
   '(1 2 3 4 5))
 
 !(#fntest
-  (return (list 1 2 (+ 1 2)))
-  '(1 2 3))
-
-!(#fntest
   (progn
     !(#defun twice (arg) (return (+ arg arg)))
     (return (twice 35)))
@@ -79,7 +74,7 @@
     (def (y fib) (@fib))
     (def (z fib) (@fib))
     (def (t fib) (@fib))
-    (return (list x y z t)))
+    (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
 !(#fntest
@@ -98,7 +93,7 @@
     (def (y more-far-fib) (@^more-far-fib))
     (def (z more-far-fib) (@^more-far-fib))
     (def (t more-far-fib) (@^more-far-fib))
-    (return (list x y z t)))
+    (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
 !(#fntest

@@ -1,24 +1,22 @@
 (req)
 
 (def panic-pointer (host "panic" '()))
-(builtin.defn panic (return (host "deref" `(~(host "pointer-call-datums" `(~panic-pointer  ((datum) val)  ~args)) val))))
+(builtin.defn panic (arg) (return (host "deref" `(~(host "pointer-call-datums" `(~panic-pointer  ((datum) val)  (~arg))) val))))
 
 (def head-pointer (host "head" '()))
-(builtin.defn head (return (host "deref" `(~(host "pointer-call-datums" `(~head-pointer  ((datum) val)  ~args)) val))))
+(builtin.defn head (arg) (return (host "deref" `(~(host "pointer-call-datums" `(~head-pointer  ((datum) val)  (~arg))) val))))
 
 (def tail-pointer (host "tail" '()))
-(builtin.defn tail (return (host "deref" `(~(host "pointer-call-datums" `(~tail-pointer  ((datum) val)  ~args)) val))))
+(builtin.defn tail (arg) (return (host "deref" `(~(host "pointer-call-datums" `(~tail-pointer  ((datum) val)  ~(arg))) val))))
 
 (def cons-pointer (host "cons" '()))
-(builtin.defn cons (return (host "deref" `(~(host "pointer-call-datums" `(~cons-pointer  ((datum datum) val)  ~args)) val))))
+(builtin.defn cons (arg) (return (host "deref" `(~(host "pointer-call-datums" `(~cons-pointer  ((datum datum) val)  ~(arg))) val))))
 
 (def eq-pointer (host "eq" '()))
-(builtin.defn eq (return (host "deref" `(~(host "pointer-call-datums" `(~eq-pointer  ((datum datum) val)  ~args)) val))))
+(builtin.defn eq (arg) (return (host "deref" `(~(host "pointer-call-datums" `(~eq-pointer  ((datum datum) val)  ~(arg))) val))))
 
-(builtin.defn serialize-param
+(builtin.defn serialize-param (param signature)
               (progn
-                (def param (head args))
-                (def signature (head (tail args)))
                 (if (eq signature 'pointer)
                     (return param)
                   (if (eq signature 'fdatum)
@@ -27,17 +25,14 @@
                         (return param)
                       (return (host "mkptr" `(~param ~signature))))))))
 
-(builtin.defn serialize-params
+(builtin.defn serialize-params (params signature)
               (progn
-                (def params (head args))
-                (def signature (head (tail args)))
                 (if params
                     (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
                   (return '()))))
 
-(builtin.defn derefw
+(builtin.defn derefw (whathow)
               (progn
-                (def whathow (head args))
                 (def what (head whathow))
                 (def how (head (tail whathow)))
                 (if (eq how 'pointer)
@@ -48,9 +43,8 @@
                         (return what)
                       (return (host "deref" whathow)))))))
 
-(builtin.defn pointer-call-and-deserialize
+(builtin.defn pointer-call-and-deserialize (annotated-function-and-params)
               (progn
-                (def annotated-function-and-params (head args))
                 (def annotated-function (head annotated-function-and-params))
                 (def params (head (tail annotated-function-and-params)))
                 (def annotation annotated-function)
@@ -64,41 +58,33 @@
 
 
 (def dlopen-pointer (host "dlopen" '()))
-(builtin.defn dlopen (return (pointer-call-and-deserialize `((~dlopen-pointer ((string) pointer)) ~args))))
+(builtin.defn dlopen (arg) (return (pointer-call-and-deserialize `((~dlopen-pointer ((string) pointer)) (~arg)))))
 
 (def dlsym-pointer (host "dlsym" '()))
-(builtin.defn dlsym (return (pointer-call-and-deserialize `((~dlsym-pointer ((pointer string) pointer)) ~args))))
+(builtin.defn dlsym (arg) (return (pointer-call-and-deserialize `((~dlsym-pointer ((pointer string) pointer)) (~arg)))))
 
-(builtin.defn c-data-pointer
+(builtin.defn c-data-pointer (handle c-name signature)
             (progn
-              (def handle (head args))
-                (def c-name (head (tail args)))
-                (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (derefw `(~fn-pointer-pointer int64)))
                 (return fn-pointer)))    
 
-(builtin.defn c-function-or-panic
+(builtin.defn c-function-or-panic (handle c-name signature)
               (progn
-                (def handle (head args))
-                (def c-name (head (tail args)))
-                (def signature (head (tail (tail args))))
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
                 (if (eq fn-ptr 0)
                     (panic "couldn't load C function")
                   (return
-                   (builtin.fn
-                    (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ~args))))))))
+                   (builtin.fn (arg)
+                    (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg)))))))))
                 
 
 
 (def selflib (dlopen ""))
 
-(builtin.defn builtin-function
+(builtin.defn builtin-function (c-name signature)
               (progn
-                (def c-name (head args))
-                (def signature (head (tail args)))
                 (return (c-function-or-panic selflib c-name signature))))
 
 (def eq (builtin-function "builtin_eq" '((datum datum) val)))
@@ -108,25 +94,22 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
-(builtin.defn wrap-pointer-into-pointer (return (host "mkptr" `(~(head args) sizet))))
+(builtin.defn wrap-pointer-into-pointer (x) (return (host "mkptr" `(~x sizet))))
 
 
-(builtin.defn shared-library (progn
-                               (def r (dlopen (head args)))
+(builtin.defn shared-library (x) (progn
+                               (def r (dlopen x))
                                (if (eq 0 (derefw `(~r int64)))
                                    (return `(:err "shared-library failed"))
                                  (return `(:ok ~r)))))
 
-(builtin.defn extern-pointer (progn
-                               (def handle (head args))
-                               (def c-name (head (tail args)))
-                               (def signature (head (tail (tail args))))
+(builtin.defn extern-pointer (handle c-name signature) (progn
                                (def res (c-data-pointer handle c-name signature))
                                (if (eq 0 res)
                                    (return `(:err "extern-pointer failed"))
                                  (return `(:ok ~res)))))
                                         
-(builtin.defn debug-print (return '()))
+(builtin.defn debug-print () (return '()))
 
 (export
  (panic panic)
