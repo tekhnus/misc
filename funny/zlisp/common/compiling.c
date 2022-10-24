@@ -221,7 +221,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   if (datum_is_the_symbol(op, "builtin.fn") ||
       datum_is_the_symbol_pair(op, "hat", "builtin.fn")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.fn");
-    if (list_length(stmt->list_tail) != 2) {
+    if (list_length(stmt->list_tail) != 1) {
       return datum_repr(datum_make_list_2(datum_make_symbol("wrong fn"), stmt));
     }
     datum *body = list_at(stmt, 1);

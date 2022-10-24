@@ -10,62 +10,64 @@
  (concat-bytestrings "prelude" concat-bytestrings)
  (+ "prelude" +))
 
+(def list (builtin.fn (return args)))
+
 (def second
-     (builtin.fn (xs)
-      (return (head (tail xs)))))
+     (builtin.fn
+      (return (head (tail (head args))))))
 
-(builtin.defn last (xs)
+(builtin.defn last
 	      
-	 (if (tail xs)
-	     (return (last (tail xs)))
-	   (return (head xs))))
+	 (if (tail (head args))
+	     (return (last (tail (head args))))
+	   (return (head (head args)))))
 
-(def type (builtin.fn (x) (return (head (annotate x)))))
+(def type (builtin.fn (return (head (annotate (head args))))))
 
-(builtin.defn concat (x y)
+(builtin.defn concat
 	     
-    (if x
-	(return (cons (head x) (concat (tail x) y)))
-      (return y)))
+    (if (head args)
+	(return (cons (head (head args)) (concat (tail (head args)) (second args))))
+      (return (second args))))
 
 
 
-(builtin.defn zip (x y)
+(builtin.defn zip
 	      
-    (if x
-	(return (cons `(~(head x) ~(head y)) (zip (tail x) (tail y))))
+    (if (head args)
+	(return (cons (list (head (head args)) (head (second args))) (zip (tail (head args)) (tail (second args)))))
       (return '())))
 
-(builtin.defn map	    (f xs)
-  (if xs
+(builtin.defn map	    
+  (if (head (tail args))
       (return (cons
-       (f
-	(head xs))
+       ((head args)
+	(head (head (tail args))))
        (map
-	f
-	(tail xs))))
+	(head args)
+	(tail (head (tail args))))))
     (return '())))
 
-(def ignore-fn (builtin.fn (x) (return `(def throwaway ~x))))
+(def ignore-fn (builtin.fn (return `(def throwaway ~(head args)))))
 
-(def ignore (builtin.fn (x) (return (ignore-fn x))))
+(def ignore (builtin.fn (return (ignore-fn (head args)))))
 
 (def panic-block '(argz (panic "wrong fn call")))
 
-(def progn- (builtin.fn (x) (return (cons 'progn x))))
+(def progn- (builtin.fn (return (cons 'progn (head args)))))
 
-(builtin.defn third (xs) (return (head (tail (tail xs)))))
-(builtin.defn fourth (xs) (return (head (tail (tail (tail xs))))))
-(builtin.defn fifth (xs) (return (head (tail (tail (tail (tail xs)))))))
-(builtin.defn sixth (xs) (return (head (tail (tail (tail (tail (tail xs))))))))
+(builtin.defn third (return (head (tail (tail (head args))))))
+(builtin.defn fourth (return (head (tail (tail (tail (head args)))))))
+(builtin.defn fifth (return (head (tail (tail (tail (tail (head args))))))))
+(builtin.defn sixth (return (head (tail (tail (tail (tail (tail (head args)))))))))
 
-(builtin.defn swtchone (x)
-	      (if x
+(builtin.defn swtchone
+	      (if (head args)
 		  (progn
-		    (def firstarg x))
+		    (def firstarg (head (head args)))
 		    (def cond (head firstarg))
 		    (def body (second firstarg))
-		    (def rest (swtchone (tail x)))
+		    (def rest (swtchone (tail (head args))))
 		    (return `(progn
 			       (def prearg ~cond)
 			       (if (eq (head prearg) :ok)
@@ -81,8 +83,10 @@
                   (return '(panic "nothing matched")))))
 
 
-(builtin.defn decons-pat (pat val)
+(builtin.defn decons-pat
 	      (progn
+		(def pat (head args))
+		(def val (second args))
 		(if (is-constant pat)
                     (progn
                       (def first-decons "ifhack")
@@ -94,7 +98,7 @@
 		      (progn
                         (def first-decons "ifhack")
                         (def rest-decons "ifhack")
-                        (return `(:ok (~val))))
+                        (return (list :ok (list val))))
 		    (if (eq (type pat) :list)
 			(if pat
 			    (if val
@@ -105,7 +109,7 @@
 				      (return '(:err))
 				    (if (eq :err (head first-decons))
 					(return '(:err))
-				      (return `(:ok ~(concat (second first-decons) (second rest-decons)))))))
+				      (return (list :ok (concat (second first-decons) (second rest-decons)))))))
 			      (progn
                                 (def first-decons "ifhack")
                                 (def rest-decons "ifhack")
@@ -124,14 +128,14 @@
                         (def rest-decons "ifhack")
                         (panic "decons-pat met an unsupported type")))))))
 
-(builtin.defn decons-vars (x)
-     (if (is-constant x)
+(builtin.defn decons-vars
+     (if (is-constant (head args))
 	(return '())
-      (if (eq (type x) :symbol)
-	  (return `(~x))
-	(if (eq (type x) :list)
-	    (if x
-		(return (concat (decons-vars (head x)) (decons-vars (tail x))))
+      (if (eq (type (head args)) :symbol)
+	  (return (list (head args)))
+	(if (eq (type (head args)) :list)
+	    (if (head args)
+		(return (concat (decons-vars (head (head args))) (decons-vars (tail (head args)))))
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
@@ -141,10 +145,10 @@
     (progn
       (def sig (head (head args)))
       (def cmds (tail (head args)))
-      (def checker `(decons-pat (quote ~sig) args))
+      (def checker (list 'decons-pat (list 'quote sig) 'args))
       (def vars (decons-vars sig))
       (def body (cons 'progn (concat (map (builtin.fn (return (cons 'def (head args)))) (zip vars switch-defines)) cmds)))
-      (return `(~checker ~body))))
+      (return (list checker body))))
 
 (builtin.defn switch-fun
     (return (swtchone (map switch-clause (head args)))))
@@ -157,4 +161,5 @@
  (third third)
  (fourth fourth)
  (fifth fifth)
- (sixth sixth))
+ (sixth sixth)
+ (list list))
