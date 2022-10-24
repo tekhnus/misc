@@ -12,12 +12,6 @@ fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_head(datum *list);
 fdatum builtin_tail(datum *list);
-#include <unistd.h>
-char *prog_build_c_host(prog_slice *sl,size_t *p,size_t *bp,datum *source,datum **compdata,datum **builder_compdata);
-fdatum module_routine(char *module);
-fdatum module_source(char *module);
-char *module_to_filename(char *module);
-fdatum file_source(char *fname);
 #include <dlfcn.h>
 #include <ffi.h>
 void *simplified_dlopen(char *path);

@@ -6,6 +6,7 @@
  (derefw "prelude" derefw)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (decons-pat "std" decons-pat)
+ (first-good-value "std" first-good-value)
  (eq "std" eq)
  (head "std" head)
  (tail "std" tail)
@@ -21,11 +22,14 @@
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2))
 
+(def buildlib (first-good-value `(
+  ~(shared-library "libzlisp-build-lib.so"))))
+
 (def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))
 (def make-routine-with-empty-state (c-function-or-panic selflib "routine_2_make" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-build-one-c-host (c-function-or-panic selflib "prog_build_c_host" '((pointer pointer pointer datum pointer pointer) pointer)))
+(def prog-build-one-c-host (c-function-or-panic buildlib "prog_build_c_host" '((pointer pointer pointer datum pointer pointer) pointer)))
 (def prog-build-init (c-function-or-panic selflib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def decode-offset (c-function-or-panic selflib "routine_2_get_offset" '((pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
