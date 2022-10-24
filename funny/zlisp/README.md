@@ -21,7 +21,7 @@ common/
 host-ffi/
   main.c            an interpreter supporting dlopen() and FFI function calls
 host-python/
-  asm_to_python     an interpreter supporting Python evaluation
+  zlisp-run-py      an interpreter supporting Python evaluation
 builder/
   main.c            build tool which preprocesses, compiles and links lisp programs
 module/             lisp modules
