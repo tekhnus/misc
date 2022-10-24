@@ -5,7 +5,7 @@ add_test(NAME print-file
 add_test(NAME run-cli
          COMMAND sh -c "printf '(req (+ \"std\" +)) (+ 33 9)\n' | $<TARGET_FILE:zlisp-run> ${PROJECT_SOURCE_DIR}/module/cli/main.lisp | tee /dev/stderr | grep 42")
 add_test(NAME pytests
-         COMMAND sh -c "$<TARGET_FILE:zlisp-python-asm> ${CMAKE_CURRENT_SOURCE_DIR}/pytest.lisp | ${PROJECT_SOURCE_DIR}/host-python/asm_to_python")
+         COMMAND sh -c "$<TARGET_FILE:zlisp-build> py-prelude ${CMAKE_CURRENT_SOURCE_DIR}/pytest.lisp | ${PROJECT_SOURCE_DIR}/host-python/asm_to_python")
 
 set_tests_properties(
         tests print-file run-cli pytests
