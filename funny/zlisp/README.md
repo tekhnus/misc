@@ -7,7 +7,7 @@ To build and test:
 
 After this you can run the repl:
 ```
-ZLISP=./module ./build/host-ffi/zlisp-run module/cli/main.lisp
+ZLISP=./module ./build/host-ffi/zlisp-run <(./build/builder/zlisp-build c-prelude module/cli/main.lisp)
 ```
 
 Project structure:

@@ -107,7 +107,7 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
   return res;
 }
 
-LOCAL char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
+EXPORT char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
   if (*p + 1 != prog_slice_length(*dst)) {
      return "relocation can only be done to the slice end";
   }

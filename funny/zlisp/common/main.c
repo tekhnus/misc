@@ -118,7 +118,7 @@ EXPORT datum *datum_make_int(int64_t value) {
 }
 
 EXPORT char *datum_repr(datum *e) {
-  return datum_repr_bounded(e, 5);
+  return datum_repr_bounded(e, 128);
 }
 
 LOCAL char *datum_repr_bounded(datum *e, size_t depth) {

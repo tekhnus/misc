@@ -6,6 +6,3 @@
 #include <string.h>
 #include <zlisp/common.h>
 fdatum routine_run_and_get_value_c_host_new(prog_slice sl,datum **r0d);
-#include <unistd.h>
-char *prog_build_c_host(prog_slice *sl,size_t *p,size_t *bp,datum *source,datum **compdata,datum **builder_compdata);
-fdatum file_source(char *fname);
