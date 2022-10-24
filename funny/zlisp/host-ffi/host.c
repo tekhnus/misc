@@ -8,18 +8,11 @@
 #include <zlisp/common.h>
 #endif
 
-void *simplified_dlopen(char *path) {
-  if (strlen(path) == 0) {
-    return RTLD_DEFAULT;
-  }
-  return dlopen(path, RTLD_LAZY);
+EXPORT fdatum routine_run_and_get_value_c_host_new(prog_slice sl, datum **r0d) {
+  return routine_2_run(sl, r0d, perform_host_instruction);
 }
 
-void *simplified_dlsym(void *handle, const char *symbol) {
-  return dlsym(handle, symbol);
-}
-
-fdatum perform_host_instruction(datum *name, datum *arg) {
+LOCAL fdatum perform_host_instruction(datum *name, datum *arg) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }
@@ -63,11 +56,18 @@ fdatum perform_host_instruction(datum *name, datum *arg) {
   return fdatum_make_ok(res);
 }
 
-fdatum routine_run_and_get_value_c_host_new(prog_slice sl, datum **r0d) {
-  return routine_2_run(sl, r0d, perform_host_instruction);
+LOCAL void *simplified_dlopen(char *path) {
+  if (strlen(path) == 0) {
+    return RTLD_DEFAULT;
+  }
+  return dlopen(path, RTLD_LAZY);
 }
 
-bool ffi_type_init(ffi_type **type, datum *definition) {
+LOCAL void *simplified_dlsym(void *handle, const char *symbol) {
+  return dlsym(handle, symbol);
+}
+
+LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
   }
@@ -123,7 +123,7 @@ bool ffi_type_init(ffi_type **type, datum *definition) {
   return false;
 }
 
-char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
+LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
   if (!datum_is_list(sig) || datum_is_nil(sig) ||
       datum_is_nil(sig->list_tail) ||
       !datum_is_nil(sig->list_tail->list_tail)) {
@@ -151,7 +151,7 @@ char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
   return NULL;
 }
 
-char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
+LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
                                  bool datums) {
   int arg_cnt = 0;
   datum *arg = args;
@@ -177,7 +177,7 @@ char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
   return NULL;
 }
 
-fdatum datum_mkptr(datum *arg) {
+LOCAL fdatum datum_mkptr(datum *arg) {
   datum *form = arg;
   if (!datum_is_list(form) || list_length(form) != 2) {
     return fdatum_make_panic("mkptr expected a pair on stack");
@@ -207,7 +207,7 @@ fdatum datum_mkptr(datum *arg) {
   }
 }
 
-fdatum datum_deref(datum *arg) {
+LOCAL fdatum datum_deref(datum *arg) {
   datum *form = arg;
   if (!datum_is_list(form) || list_length(form) != 2) {
     return fdatum_make_panic("deref expected a pair on stack");
@@ -237,7 +237,7 @@ fdatum datum_deref(datum *arg) {
   }
 }
 
-void *allocate_space_for_return_value(datum *sig) {
+LOCAL void *allocate_space_for_return_value(datum *sig) {
   char *rettype = sig->list_tail->list_head->symbol_value;
   void *res;
   if (!strcmp(rettype, "pointer")) {
@@ -260,7 +260,7 @@ void *allocate_space_for_return_value(datum *sig) {
   return res;
 }
 
-fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
+LOCAL fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
   char *err = NULL;
@@ -282,7 +282,7 @@ fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
   return fdatum_make_ok(datum_make_int((int64_t)res));
 }
 
-void (*datum_to_function_pointer(datum *d))(void) {
+LOCAL void (*datum_to_function_pointer(datum *d))(void) {
   if (!datum_is_integer(d)) {
     fprintf(stderr, "Not a pointer!");
     exit(1);
