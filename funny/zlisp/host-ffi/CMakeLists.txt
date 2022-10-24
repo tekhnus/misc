@@ -1,4 +1,4 @@
-add_library(zlisp-c SHARED builtins.c compiling.c host.c)
+add_library(zlisp-c SHARED builtins.c host.c)
 target_link_libraries(zlisp-c PUBLIC zlisp-impl ffi dl)
 target_compile_options(zlisp-c PRIVATE -Wall -Wextra -Wno-unused-function -Werror)
 

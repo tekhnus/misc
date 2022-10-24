@@ -1,6 +1,5 @@
 // a basic CLI for zlisp interpreter.
 #include <main.h>
-#include <compiling.h>
 
 
 int main(int argc, char **argv) {
