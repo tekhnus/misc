@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  printf("%s\n", datum_repr(prog_slice_to_datum(sl)));
+  printf("%s\n", datum_repr_bounded(prog_slice_to_datum(sl), 128));
   return EXIT_SUCCESS;
 }
 
