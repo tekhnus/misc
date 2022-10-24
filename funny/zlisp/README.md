@@ -21,7 +21,6 @@ common/
 host-ffi/
   main.c            an interpreter supporting dlopen() and FFI function calls
 host-python/
-  main.c            takes a lisp file, writes bytecode to stdout
   asm_to_python     an interpreter supporting Python evaluation
 builder/
   main.c            build tool which preprocesses, compiles and links lisp programs
