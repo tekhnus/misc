@@ -44,7 +44,5 @@ tools/
 - Loops
 - Tail recursive calls
 
-- Separate the builder and the linker
-
 - Try hosting by a compiled language
 - Try hosting by a constrained environment like bare metal or shader
