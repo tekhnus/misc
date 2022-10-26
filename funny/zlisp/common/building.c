@@ -42,10 +42,10 @@ EXPORT char *prog_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *byteco
   return NULL;
 }
 
-LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_source)(char *), datum **compdata) {
+LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps, fdatum (*module_bytecode)(char *), datum **compdata) {
   for (datum *rest_deps = deps; !datum_is_nil(rest_deps); rest_deps=rest_deps->list_tail) {
     datum *dep = rest_deps->list_head;
-    char *err = prog_build_dep(sl, p, dep, module_source, compdata);
+    char *err = prog_build_dep(sl, p, dep, module_bytecode, compdata);
     if (err != NULL) {
       return err;
     }
@@ -121,7 +121,7 @@ EXPORT char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
   return NULL;
 }
 
-LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_source)(char *), datum **compdata) {
+LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum (*module_bytecode)(char *), datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) || !datum_is_bytestring(dep_and_sym->list_head)){
     return "req expects bytestrings";
   }
@@ -134,7 +134,7 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   size_t run_dep_off = prog_slice_append_new(sl);
   size_t run_dep_end = run_dep_off;
 
-  fdatum stts = module_source(dep->bytestring_value);
+  fdatum stts = module_bytecode(dep->bytestring_value);
   if (fdatum_is_panic(stts)) {
     return stts.panic_message;
   }
@@ -154,7 +154,7 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   if (syms == NULL) {
     return "error: null extract_meta for exports";
   }
-  char *err = prog_build_deps(sl, p, transitive_deps, module_source, compdata);
+  char *err = prog_build_deps(sl, p, transitive_deps, module_bytecode, compdata);
   if (err != NULL) {
     return err;
   }
