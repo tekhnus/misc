@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "%s\n", bytecode.panic_message);
     return EXIT_FAILURE;
   }
-  char *err = prog_build(&sl, &p, &bp, bytecode.ok_value, compile_module, &builder_compdata);
+  char *err = relocate_and_build(&sl, &p, &bp, bytecode.ok_value, compile_module, &builder_compdata);
 
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
@@ -70,12 +70,22 @@ LOCAL fdatum preprocessed_module_source(char *module) {
   return file_source(fname);
 }
 
+char *relocate_and_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytecode, fdatum (*module_bytecode)(char *), datum **builder_compdata) {
+  prog_append_nop(sl, ep, datum_make_symbol("this_is_so_that_relocation_is_possible"));
+  size_t original_ep = *ep;
+  char *res = prog_slice_relocate(sl, ep, bytecode);
+  if (res != NULL) {
+    return res;
+  }
+  return prog_link_deps(sl, original_ep, bdr_p, module_bytecode, builder_compdata);
+}
+
 char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {
   fdatum bytecode = prog_compile(source, compdata, datum_make_list_1(datum_make_symbol("main")));
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
-  return prog_build(sl, p, bp, bytecode.ok_value, module_routine, builder_compdata);
+  return relocate_and_build(sl, p, bp, bytecode.ok_value, module_routine, builder_compdata);
 }
 
 LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, datum **compdata, size_t *bp, datum **builder_compdata) {

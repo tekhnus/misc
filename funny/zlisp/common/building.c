@@ -21,24 +21,19 @@ EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
   return 42;
 }
 
-EXPORT char *prog_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytecode, fdatum (*module_bytecode)(char *), datum **builder_compdata) {
-  prog_append_nop(sl, ep, datum_make_symbol("this_is_so_that_relocation_is_possible"));
-  size_t original_ep = *ep;
-  char *res = prog_slice_relocate(sl, ep, bytecode);
-  if (res != NULL) {
-    return res;
-  }
+EXPORT char *prog_link_deps(prog_slice *sl, size_t original_ep, size_t *bdr_p, fdatum (*module_bytecode)(char *), datum **builder_compdata) {
   datum *input_meta = extract_meta(*sl, original_ep);
-  if (input_meta != NULL) {
-    prog_append_pop(sl, bdr_p, datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
-    char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, builder_compdata);
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"), builder_compdata);
-    prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-    prog_append_call(sl, bdr_p, false, list_length(input_meta), 1, builder_compdata);
+  if (input_meta == NULL) {
+    return NULL;
   }
+  prog_append_pop(sl, bdr_p, datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
+  char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, builder_compdata);
+  if (err != NULL) {
+    return err;
+  }
+  prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"), builder_compdata);
+  prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
+  prog_append_call(sl, bdr_p, false, list_length(input_meta), 1, builder_compdata);
   return NULL;
 }
 

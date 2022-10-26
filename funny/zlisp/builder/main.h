@@ -10,6 +10,7 @@ char *prog_build_c_host(prog_slice *sl,size_t *p,size_t *bp,datum *source,datum 
 char *module_to_filename(char *module);
 LOCAL fdatum preprocessed_module_source(char *module);
 LOCAL fdatum compile_module(char *module);
+char *relocate_and_build(prog_slice *sl,size_t *ep,size_t *bdr_p,datum *bytecode,fdatum(*module_bytecode)(char *),datum **builder_compdata);
 fdatum file_source(char *fname);
 extern char *prelude_module_name;
 #define INTERFACE 0
