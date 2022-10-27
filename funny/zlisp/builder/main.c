@@ -77,7 +77,7 @@ char *relocate_and_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytec
   if (res != NULL) {
     return res;
   }
-  return prog_link_deps(sl, original_ep, bdr_p, module_bytecode, builder_compdata);
+  return prog_link_deps(sl, bdr_p, builder_compdata, original_ep, module_bytecode);
 }
 
 char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {

@@ -55,7 +55,7 @@ LOCAL char *get_varname(datum *dep_and_sym);
 LOCAL char *prog_build_dep(prog_slice *sl,size_t *p,datum *dep_and_sym,fdatum(*module_bytecode)(char *),datum **compdata);
 LOCAL void prog_put_deps(prog_slice *sl,size_t *p,datum *deps,datum **compdata);
 LOCAL char *prog_build_deps(prog_slice *sl,size_t *p,datum *deps,fdatum(*module_bytecode)(char *),datum **compdata);
-char *prog_link_deps(prog_slice *sl,size_t original_ep,size_t *bdr_p,fdatum(*module_bytecode)(char *),datum **builder_compdata);
+char *prog_link_deps(prog_slice *sl,size_t *bdr_p,datum **builder_compdata,size_t p,fdatum(*module_bytecode)(char *));
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 LOCAL datum *extract_meta(prog_slice sl,size_t run_main_off);
 LOCAL fdatum prog_read_exports(datum *spec);

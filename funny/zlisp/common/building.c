@@ -21,8 +21,8 @@ EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *
   return 42;
 }
 
-EXPORT char *prog_link_deps(prog_slice *sl, size_t original_ep, size_t *bdr_p, fdatum (*module_bytecode)(char *), datum **builder_compdata) {
-  datum *input_meta = extract_meta(*sl, original_ep);
+EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p, datum **builder_compdata, size_t p, fdatum (*module_bytecode)(char *)) {
+  datum *input_meta = extract_meta(*sl, p);
   if (input_meta == NULL) {
     return NULL;
   }
