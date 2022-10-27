@@ -53,7 +53,8 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-LOCAL fdatum compile_module(char *module) {
+LOCAL fdatum compile_module(char *module, datum *settings) {
+  settings = settings;
   fdatum src = preprocessed_module_source(module);
   if (fdatum_is_panic(src)) {
     return src;
@@ -70,14 +71,14 @@ LOCAL fdatum preprocessed_module_source(char *module) {
   return file_source(fname);
 }
 
-char *relocate_and_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytecode, fdatum (*module_bytecode)(char *), datum **builder_compdata) {
+char *relocate_and_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytecode, fdatum (*module_bytecode)(char *, datum *), datum **builder_compdata) {
   prog_append_nop(sl, ep, datum_make_symbol("this_is_so_that_relocation_is_possible"));
   size_t original_ep = *ep;
   char *res = prog_slice_relocate(sl, ep, bytecode);
   if (res != NULL) {
     return res;
   }
-  return prog_link_deps(sl, bdr_p, builder_compdata, original_ep, module_bytecode);
+  return prog_link_deps(sl, bdr_p, builder_compdata, original_ep, module_bytecode, datum_make_nil());
 }
 
 char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {
@@ -139,7 +140,8 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
 }
 
 
-fdatum module_routine(char *module) {
+fdatum module_routine(char *module, datum *settings) {
+  settings = settings;
   fdatum src = module_source(module);
   if (fdatum_is_panic(src)) {
     return src;

@@ -81,7 +81,7 @@ datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
-char *prog_link_deps(prog_slice *sl,size_t *bdr_p,datum **builder_compdata,size_t p,fdatum(*module_bytecode)(char *));
+char *prog_link_deps(prog_slice *sl,size_t *bdr_p,datum **builder_compdata,size_t p,fdatum(*module_bytecode)(char *,datum *),datum *settings);
 char *prog_slice_relocate(prog_slice *dst,size_t *p,datum *src);
 datum *routine_2_make(ptrdiff_t prg);
 ptrdiff_t routine_2_get_offset(datum *r0d);
