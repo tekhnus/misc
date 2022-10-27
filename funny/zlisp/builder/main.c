@@ -9,14 +9,11 @@
 #include <stdio.h>
 #include <string.h>
 
-char *prelude_module_name;
-
 int main(int argc, char **argv) {
   if (argc != 3) {
     printf("usage: %s <prelude> <script>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
-  prelude_module_name = argv[1];
   char filename_copy[1024] = {0};
 
   if (argv[2][0] != '/') {
@@ -43,7 +40,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "%s\n", bytecode.panic_message);
     return EXIT_FAILURE;
   }
-  char *err = relocate_and_build(&sl, &p, &bp, bytecode.ok_value, compile_module, &builder_compdata);
+  char *err = relocate_and_build(&sl, &p, &bp, bytecode.ok_value, compile_module, &builder_compdata, datum_make_bytestring(argv[1]));
 
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
@@ -54,8 +51,11 @@ int main(int argc, char **argv) {
 }
 
 LOCAL fdatum compile_module(char *module, datum *settings) {
+  if (!datum_is_bytestring(settings)) {
+    return fdatum_make_panic("settings should be a string");
+  }
   settings = settings;
-  fdatum src = preprocessed_module_source(module);
+  fdatum src = preprocessed_module_source(module, settings->bytestring_value);
   if (fdatum_is_panic(src)) {
     return src;
   }
@@ -63,7 +63,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   return prog_compile(src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
 }
 
-LOCAL fdatum preprocessed_module_source(char *module) {
+LOCAL fdatum preprocessed_module_source(char *module, char *prelude_module_name) {
   if (!strcmp(module, "prelude")) {
     module = prelude_module_name;
   }
@@ -71,14 +71,14 @@ LOCAL fdatum preprocessed_module_source(char *module) {
   return file_source(fname);
 }
 
-char *relocate_and_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytecode, fdatum (*module_bytecode)(char *, datum *), datum **builder_compdata) {
+char *relocate_and_build(prog_slice *sl, size_t *ep, size_t *bdr_p, datum *bytecode, fdatum (*module_bytecode)(char *, datum *), datum **builder_compdata, datum *settings) {
   prog_append_nop(sl, ep, datum_make_symbol("this_is_so_that_relocation_is_possible"));
   size_t original_ep = *ep;
   char *res = prog_slice_relocate(sl, ep, bytecode);
   if (res != NULL) {
     return res;
   }
-  return prog_link_deps(sl, bdr_p, builder_compdata, original_ep, module_bytecode, datum_make_nil());
+  return prog_link_deps(sl, bdr_p, builder_compdata, original_ep, module_bytecode, settings);
 }
 
 char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata) {
@@ -86,7 +86,7 @@ char *prog_build_c_host(prog_slice *sl, size_t *p, size_t *bp, datum *source, da
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
-  return relocate_and_build(sl, p, bp, bytecode.ok_value, module_routine, builder_compdata);
+  return relocate_and_build(sl, p, bp, bytecode.ok_value, module_routine, builder_compdata, datum_make_bytestring("c-prelude"));
 }
 
 LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, datum **compdata, size_t *bp, datum **builder_compdata) {
