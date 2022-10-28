@@ -25,7 +25,6 @@ enum prog_type {
   PROG_PUT_CONST,
   PROG_PUT_VAR,
   PROG_CALL,
-  PROG_HOST,
   PROG_COLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
@@ -56,10 +55,6 @@ struct prog {
       bool call_hat;
       size_t call_arg_count;
       ptrdiff_t call_next;
-    };
-    struct {
-      struct datum *host_instruction;
-      ptrdiff_t host_next;
     };
     struct {
       size_t collect_count;
@@ -391,10 +386,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.call_hat = list_at(d, 1)->integer_value;
     res.call_arg_count = list_at(d, 2)->integer_value;
     res.call_next = list_at(d, 3)->integer_value;
-  } else if (!strcmp(opsym, ":host")) {
-    res.type = PROG_HOST;
-    res.host_instruction = list_at(d, 1);
-    res.host_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
