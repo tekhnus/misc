@@ -199,9 +199,7 @@ def main():
             pop_stack()
             ip = nex
         elif op == sexpdata.Symbol(":set-closures"):
-            pr, hat, nex = args
-            if hat:
-                raise RuntimeError("routine-1 set-closures is not supported yet")
+            pr, nex = args
             pvarz = list(pdata[-1][-1].varz)
             p = make_routine_0(pr, pvarz)
             pvarz.append((p))

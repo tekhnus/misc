@@ -201,9 +201,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     prog_append_pop(sl, begin, names, compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.defn") ||
-      datum_is_the_symbol_pair(op, "hat", "builtin.defn")) {
-    bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.defn");
+  if (datum_is_the_symbol(op, "builtin.defn")) {
     if (list_length(stmt->list_tail) != 2) {
       return datum_repr(datum_make_list_2(datum_make_symbol("wrong defn"), list_at(stmt, 1)));
     }
@@ -215,12 +213,10 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_set_closures(sl, begin, s_off, hat);
+    prog_append_set_closures(sl, begin, s_off);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.fn") ||
-      datum_is_the_symbol_pair(op, "hat", "builtin.fn")) {
-    bool hat = datum_is_the_symbol_pair(op, "hat", "builtin.fn");
+  if (datum_is_the_symbol(op, "builtin.fn")) {
     if (list_length(stmt->list_tail) != 1) {
       return datum_repr(datum_make_list_2(datum_make_symbol("wrong fn"), stmt));
     }
@@ -231,7 +227,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_put_prog(sl, begin, s_off, hat ? 2 : 1, compdata);
+    prog_append_put_prog(sl, begin, s_off, 1, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
@@ -451,10 +447,9 @@ LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datu
 }
 
 
-LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p,
-                                    bool hat) {
+LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":set-closures"), datum_make_int(p), datum_make_int(hat), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":set-closures"), datum_make_int(p), datum_make_int(next)));
   *begin = next;
 }
 

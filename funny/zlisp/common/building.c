@@ -90,7 +90,7 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
     return datum_make_list_4(list_at(ins, 0), offset_relocate(list_at(ins, 1), delta), list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return datum_make_list_4(list_at(ins, 0), offset_relocate(list_at(ins, 1), delta), list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
+    return datum_make_list_3(list_at(ins, 0), offset_relocate(list_at(ins, 1), delta), offset_relocate(list_at(ins, 2), delta));
   }
   datum *res = ins;
   if (list_length(res) < 2) {

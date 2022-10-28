@@ -75,7 +75,6 @@ struct prog {
     };
     struct {
       ptrdiff_t set_closures_prog;
-      bool set_closures_hat;
       ptrdiff_t set_closures_next;
     };
     struct {
@@ -180,20 +179,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     r->cur.cur.offset = xxx.yield_next;
     return NULL;
   } break;
-  case PROG_SET_CLOSURES: {
-    if (!prg->set_closures_hat) {
-      break;
-    }
-    return "no hat-closure";
-    datum *clos = datum_make_nil();
-    state_stack_put(st, clos);
-    routine_1 callee = r->cur;
-    callee.cur.offset = prg->set_closures_prog;
-    *clos = *routine_1_to_datum(
-        sl, callee); // modifying the datum because there is a self-reference:(
-    r->cur.cur.offset = prg->set_closures_next;
-    return NULL;
-  } break;
   case PROG_PUT_PROG: {
     if (prg->put_prog_capture != 2){
       break;
@@ -259,9 +244,6 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     return NULL;
   } break;
   case PROG_SET_CLOSURES: {
-    if (prg->set_closures_hat) {
-      break;
-    }
     datum *clos = datum_make_list_2(datum_make_int(prg->set_closures_prog),
                                     datum_make_nil());
     state_stack_put(st, clos);
@@ -430,8 +412,7 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":set-closures")) {
     res.type = PROG_SET_CLOSURES;
     res.set_closures_prog = (list_at(d, 1)->integer_value);
-    res.set_closures_hat = list_at(d, 2)->integer_value;
-    res.set_closures_next = (list_at(d, 3)->integer_value);
+    res.set_closures_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_value = (list_at(d, 1)->integer_value);
