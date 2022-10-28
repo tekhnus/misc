@@ -173,19 +173,6 @@ def main():
                 raise RuntimeError("expected a yield-reciever")
             hat, cnt, recieve_cnt, meta, nex = args
             ip = nex
-        elif op == sexpdata.Symbol(":host"):
-            instruction, nex = args
-            arg = pop_stack()
-            if (
-                isinstance(instruction, list)
-                and len(instruction) == 2
-                and instruction[0] == "eval"
-            ):
-                res = eval(instruction[1], globals(), {"x": arg})
-                pdata[-1][-1].varz.append((res))
-            else:
-                raise RuntimeError(f"host not implemented: {instruction}")
-            ip = nex
         elif op == sexpdata.Symbol(":collect"):
             cnt, nex = args
             form = []
@@ -216,14 +203,30 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
             hat, cnt, recieve_cnt, meta, nex = args
-            rvalues = [pop_stack() for _ in range(cnt)]
+            if hat == sexpdata.Symbol("plain"):
+                rvalues = [pop_stack() for _ in range(cnt)]
 
-            contvarz = list(pdata[-1][-1].varz)
-            cont = make_routine_0(varz=contvarz, ip=ip)
+                contvarz = list(pdata[-1][-1].varz)
+                cont = make_routine_0(varz=contvarz, ip=ip)
 
-            pdata[-1].pop()
-            pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues), cont)))
-            ip = pdata[-1][-1].ip
+                pdata[-1].pop()
+                pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues), cont)))
+                ip = pdata[-1][-1].ip
+            elif hat == sexpdata.Symbol("host"):
+                instruction = meta
+                arg = pop_stack()
+                if (
+                        isinstance(instruction, list)
+                        and len(instruction) == 2
+                        and instruction[0] == "eval"
+                ):
+                    res = eval(instruction[1], globals(), {"x": arg})
+                    pdata[-1][-1].varz.append((res))
+                else:
+                    raise RuntimeError(f"host not implemented: {instruction}")
+                ip = nex
+            else:
+                raise RuntimeError("invalid yield")
         else:
             raise RuntimeError(op)
         pdata[-1][-1].ip = ip

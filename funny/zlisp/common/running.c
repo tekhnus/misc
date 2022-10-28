@@ -335,15 +335,18 @@ LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
     r->offset = prg->pop_next;
     return NULL;
   } break;
-  case PROG_HOST: {
-    datum *name = prg->host_instruction;
+  case PROG_YIELD: {
+    if (!datum_is_the_symbol(prg->yield_type, "host")) {
+      break;
+    }
+    datum *name = prg->yield_meta;
     datum *arg = state_stack_pop(st);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
       return (res.panic_message);
     }
     state_stack_put(st, res.ok_value);
-    r->offset = prg->host_next;
+    r->offset = prg->yield_next;
     return NULL;
   } break;
   case PROG_COLLECT: {

@@ -257,7 +257,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     datum *operation = stmt->list_tail->list_head;
     datum *arg = stmt->list_tail->list_tail->list_head;
     prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
-    prog_append_host(sl, begin, operation);
+    prog_append_host(sl, begin, operation, compdata);
     return NULL;
   }
 
@@ -432,10 +432,8 @@ LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt
   return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
 }
 
-LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":host"), name, datum_make_int(next)));
-  *begin = next;
+LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name, datum **compdata) {
+  prog_append_yield(sl, begin, datum_make_symbol("host"), 1, 1, name, compdata);
 }
 
 LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
