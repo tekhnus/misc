@@ -158,6 +158,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->call_hat) {
       break;
     }
+    return "no hat-call for now";
     datum *form = state_stack_collect(st, prg->call_arg_count + 1);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return ("a call instruction with a malformed form");
@@ -183,6 +184,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->set_closures_hat) {
       break;
     }
+    return "no hat-closure";
     datum *clos = datum_make_nil();
     state_stack_put(st, clos);
     routine_1 callee = r->cur;
