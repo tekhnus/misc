@@ -78,7 +78,7 @@ struct prog {
       ptrdiff_t set_closures_next;
     };
     struct {
-      bool yield_hat;
+      struct datum *yield_type;
       size_t yield_count;
       size_t yield_recieve_count;
       struct datum *yield_meta;
@@ -179,7 +179,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     return NULL;
   } break;
   case PROG_YIELD: {
-    if (!prg->yield_hat) {
+    if (!datum_is_the_symbol(prg->yield_type, "hat")) {
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
@@ -262,7 +262,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     return NULL;
   } break;
   case PROG_YIELD: {
-    if (prg->yield_hat) {
+    if (!datum_is_the_symbol(prg->yield_type, "plain")) {
       break;
     }
     datum *vals = state_stack_collect(st, prg->yield_count);
@@ -410,7 +410,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_prog_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
-    res.yield_hat = list_at(d, 1)->integer_value;
+    res.yield_type = list_at(d, 1);
     res.yield_count = list_at(d, 2)->integer_value;
     res.yield_recieve_count = list_at(d, 3)->integer_value;
     res.yield_meta = list_at(d, 4);

@@ -17,7 +17,7 @@ LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
 EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum **compdata, datum **builder_compdata) {
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_call(sl, bdr_p, false, 0, 1, builder_compdata);
-  prog_append_yield(sl, ep, false, 0, 0, datum_make_nil(), compdata);
+  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, datum_make_nil(), compdata);
   return 42;
 }
 

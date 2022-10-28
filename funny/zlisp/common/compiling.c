@@ -70,9 +70,9 @@ EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int 
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, bool hat, size_t count, size_t recieve_count, datum *meta, datum **compdata) {
+EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type, size_t count, size_t recieve_count, datum *meta, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(datum_make_symbol(":yield"), datum_make_int(hat), datum_make_int(count), datum_make_int(recieve_count), meta, datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(datum_make_symbol(":yield"), type, datum_make_int(count), datum_make_int(recieve_count), meta, datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
     *compdata = compdata_del(*compdata);
@@ -240,7 +240,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_yield(sl, begin, hat, 1, 1, datum_make_nil(), compdata);
+    prog_append_yield(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), 1, 1, datum_make_nil(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
@@ -360,7 +360,7 @@ LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec, datu
   /* This nop is appended as a hack so that the yield becomes the last statement on the slice. */
   prog_append_nop(sl, begin, datum_make_nil());
   // probably should change hat=false to true.
-  prog_append_yield(sl, begin, false, list_length(re->list_head), 1, re->list_head, compdata);
+  prog_append_yield(sl, begin, datum_make_symbol("plain"), list_length(re->list_head), 1, re->list_head, compdata);
   return NULL;
 }
 
@@ -390,7 +390,7 @@ LOCAL char *prog_append_backquoted_statement(
 
 LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum *meta, datum **compdata) {
   // fix hat=false; sometimes it should be true.
-  prog_append_yield(sl, begin, false, 0, list_length(args), meta, compdata);
+  prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args), meta, compdata);
   prog_append_pop(sl, begin, args, compdata);
 }
 
