@@ -157,7 +157,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     if (!prg->call_hat) {
       break;
     }
-    return "no hat-call for now";
     datum *form = state_stack_collect(st, prg->call_arg_count + 1);
     if (!datum_is_list(form) || datum_is_nil(form)) {
       return ("a call instruction with a malformed form");
@@ -165,7 +164,7 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     datum *fn = form->list_head;
     datum *args = form->list_tail;
     routine_1 callee;
-    char *err = datum_to_routine_1(&callee, fn);
+    char *err = datum_0_or_1_to_routine_1(&callee, fn);
     if (err != NULL) {
       return err;
     }
@@ -487,6 +486,21 @@ LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
   }
   res->offset = fn->list_head->integer_value;
   res->state_ = fn->list_tail->list_head->list_head;
+  return NULL;
+}
+
+LOCAL char *datum_0_or_1_to_routine_1(routine_1 *res, datum *fn_or_fns) {
+  char *err = datum_to_routine_1(res, fn_or_fns);
+  if (err == NULL) {
+    return err;
+  }
+  routine_0 r;
+  err = datum_to_routine_0(&r, fn_or_fns);
+  if (err != NULL) {
+    return err;
+  }
+  res->cur = r;
+  res->par = NULL;
   return NULL;
 }
 

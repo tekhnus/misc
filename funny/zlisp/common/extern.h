@@ -4,8 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #define LOCAL static
-typedef struct routine_0 routine_0;
+typedef struct routine_1 routine_1;
 typedef struct datum datum;
+LOCAL char *datum_to_routine_1(routine_1 *res,datum *fns);
+typedef struct routine_0 routine_0;
 LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
@@ -24,7 +26,6 @@ struct prog_slice {
   size_t capacity;
 };
 LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-typedef struct routine_1 routine_1;
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL datum *routine_0_to_datum(routine_0 r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
@@ -35,7 +36,7 @@ typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
 LOCAL void state_stack_put_all(datum **ns,datum *list);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
-LOCAL char *datum_to_routine_1(routine_1 *res,datum *fns);
+LOCAL char *datum_0_or_1_to_routine_1(routine_1 *res,datum *fn_or_fns);
 LOCAL datum *state_stack_collect(datum **s,size_t count);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct prog prog;
