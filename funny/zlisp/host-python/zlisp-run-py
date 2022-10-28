@@ -207,13 +207,11 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
-            if capture == 0:
-                p = make_routine_0(pr, [])
-            elif capture == 1:
+            if capture:
                 pvarz = list(pdata[-1][-1].varz)
                 p = make_routine_0(pr, pvarz)
             else:
-                raise RuntimeError("put-prog capture=2 is not supported yet")
+                p = make_routine_0(pr, [])
             pdata[-1][-1].varz.append((p))
             ip = nex
         elif op == sexpdata.Symbol(":yield"):

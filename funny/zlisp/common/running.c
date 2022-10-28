@@ -70,7 +70,7 @@ struct prog {
     };
     struct {
       ptrdiff_t put_prog_value;
-      int put_prog_capture;
+      bool put_prog_capture;
       ptrdiff_t put_prog_next;
     };
     struct {
@@ -179,12 +179,6 @@ LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
     r->cur.cur.offset = xxx.yield_next;
     return NULL;
   } break;
-  case PROG_PUT_PROG: {
-    if (prg->put_prog_capture != 2){
-      break;
-    }
-    return "put_prog capture=2 not implemented yet";
-  } break;
   case PROG_YIELD: {
     if (!prg->yield_hat) {
       break;
@@ -254,10 +248,7 @@ LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
     return NULL;
   } break;
   case PROG_PUT_PROG: {
-    if (prg->put_prog_capture != 1 && prg->put_prog_capture != 0){
-      break;
-    }
-    if (prg->put_prog_capture == 1) {
+    if (prg->put_prog_capture) {
       datum *s = *st;
       routine_0 rt = {.offset = prg->put_prog_value, .state_ = s};
       datum *prog = routine_0_to_datum(rt);
