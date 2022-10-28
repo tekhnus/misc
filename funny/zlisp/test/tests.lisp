@@ -82,14 +82,14 @@
     (return (list x y z t)))
   '(3 5 8 13))
 
-!(#fntest
+(def disabled-test '!(#fntest
   (progn
     (builtin.defn far-fib (progn
        (^return 3)
        (^return 5)
        (return 8)))
 
-    (^builtin.defn more-far-fib (progn
+    (builtin.defn more-far-fib (progn
        (def x (far-fib))
        (^return x)
        (^return 13)))
@@ -99,7 +99,7 @@
     (def (z more-far-fib) (@^more-far-fib))
     (def (t more-far-fib) (@^more-far-fib))
     (return (list x y z t)))
-  '(3 5 8 13))
+  '(3 5 8 13)))
 
 !(#fntest
   (progn
