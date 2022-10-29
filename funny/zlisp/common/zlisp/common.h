@@ -83,16 +83,14 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
 char *prog_link_deps(prog_slice *sl,size_t *bdr_p,datum **builder_compdata,size_t p,fdatum(*module_bytecode)(char *,datum *),datum *settings);
 char *prog_slice_relocate(prog_slice *dst,size_t *p,datum *src);
-datum *routine_2_make(ptrdiff_t prg);
-fdatum routine_2_run(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
+datum *routine_make_new(ptrdiff_t prg);
+fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 fdatum state_stack_at(datum *ns,int offset);
 void state_stack_put(datum **ns,datum *value);
 void state_stack_put_all(datum **ns,datum *list);
 datum *state_stack_pop(datum **s);
 datum *state_stack_top(datum **s);
 datum *state_stack_collect(datum **s,size_t count);
-datum *routine_make_new(ptrdiff_t prg);
-fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

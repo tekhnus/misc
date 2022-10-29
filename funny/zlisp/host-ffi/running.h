@@ -22,8 +22,7 @@ fdatum builtin_panic(datum *arg_value);
 LOCAL fdatum datum_mkptr(datum *arg);
 LOCAL fdatum datum_deref(datum *arg);
 LOCAL fdatum pointer_call(datum *fpt,datum *sig,datum *args,bool datums);
-fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl,datum **r0d);
 LOCAL fdatum perform_host_instruction(datum *name,datum *arg);
-fdatum routine_run_and_get_value_c_host_new(prog_slice sl,datum **r0d);
+fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl,datum **r0d);
 #define EXPORT
 #define INTERFACE 0

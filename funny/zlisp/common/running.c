@@ -3,21 +3,6 @@
 #include <string.h>
 #include <extern.h>
 
-struct routine_0 {
-  ptrdiff_t offset;
-  datum *state_;
-};
-
-struct routine_1 {
-  struct routine_0 cur;
-  struct routine_1 *par;
-};
-
-struct routine_2 {
-  struct routine_1 cur;
-  struct routine_2 *par;
-};
-
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -52,7 +37,7 @@ struct prog {
       ptrdiff_t put_var_next;
     };
     struct {
-      datum *call_type;
+      struct datum *call_type;
       size_t call_arg_count;
       ptrdiff_t call_next;
     };
@@ -82,268 +67,244 @@ struct prog {
   };
 };
 
+struct routine {
+  ptrdiff_t offset;
+  datum *state;
+  struct routine *child;
+};
+
 #if INTERFACE
-typedef struct routine_0 routine_0;
-typedef struct routine_1 routine_1;
-typedef struct routine_2 routine_2;
 typedef struct prog prog;
+typedef struct routine routine;
 #endif
 
-EXPORT datum *routine_2_make(ptrdiff_t prg) {
-  routine_0 r0 = {.offset = prg, .state_ = datum_make_nil()};
-  routine_1 r1 = {.cur = r0, .par = NULL};
-  routine_2 r2 = {.cur = r1, .par = NULL};
-  prog_slice sl;
-  return routine_2_to_datum(sl, r2);
+EXPORT datum *routine_make_new(ptrdiff_t prg) {
+  routine r = {.offset = prg, .state = datum_make_nil(), .child = NULL};
+  return routine_to_datum(&r);
 }
 
-EXPORT fdatum routine_2_run(prog_slice sl, datum **r0d,
+EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
-  routine_2 r;
-  char *err = datum_to_routine_2(&r, *r0d);
+  routine r;
+  char *err = datum_to_routine(*r0d, &r);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  char *s = routine_2_run_private(sl, &r, perform_host_instruction);
-  if (s != NULL) {
-    print_backtrace(sl, &r);
-    return fdatum_make_panic(s);
-  }
-  datum *d = datum_make_nil();
-  // TODO: this is just for expander calls; remove this!
-  if (!datum_is_nil(r.cur.cur.state_)) {
-    d = state_stack_top(&r.cur.cur.state_);
-  }
-  *r0d = routine_2_to_datum(sl, r);
-  return fdatum_make_ok(d);
-}
-
-LOCAL char *routine_2_run_private(prog_slice sl, routine_2 *r,
-                          fdatum (*perform_host_instruction)(datum *,
-                                                             datum *)) {
-  for (; datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset)).type != PROG_END;) {
-    char *err = routine_2_step(sl, r, perform_host_instruction);
+  for (;;) {
+    err = routine_run(sl, &r);
     if (err != NULL) {
-      return err;
+      return fdatum_make_panic(err);
     }
-  }
-  return NULL;
-}
-
-LOCAL char *routine_2_step(prog_slice sl, routine_2 *r,
-                           fdatum (*perform_host_instruction)(datum *,
-                                                              datum *)) {
-  prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
-  prog *prg = &prgx;
-  datum **st = &r->cur.cur.state_;
-  switch (prg->type) {
-  case PROG_CALL: {
-    if (!datum_is_the_symbol(prg->call_type, "hat")) {
+    routine *top = topmost_routine(&r);
+    prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
+    if (prg.type == PROG_END) {
       break;
     }
-    datum *form = state_stack_collect(st, prg->call_arg_count + 1);
-    if (!datum_is_list(form) || datum_is_nil(form)) {
-      return ("a call instruction with a malformed form");
+    if (prg.type != PROG_YIELD || !datum_is_the_symbol(prg.yield_type, "host")) {
+      return fdatum_make_panic("execution stopped at wrong place");
     }
-    datum *fn = form->list_head;
-    datum *args = form->list_tail;
-    routine_1 callee;
-    char *err = datum_0_or_1_to_routine_1(&callee, fn);
-    if (err != NULL) {
-      return err;
-    }
-    r->cur.cur.offset = prg->call_next;
-    routine_2_push_frame(r, callee);
-    state_stack_put_all(&r->cur.cur.state_, args);
-    prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.cur.offset));
-    if (xxx.type != PROG_YIELD) {
-      return "not a yield-reciever";
-    }
-    r->cur.cur.offset = xxx.yield_next;
-    return NULL;
-  } break;
-  case PROG_YIELD: {
-    if (!datum_is_the_symbol(prg->yield_type, "hat")) {
-      break;
-    }
-    datum *vals = state_stack_collect(st, prg->yield_count);
-    routine_1 fr = routine_2_pop_frame(r);
-    datum *conti = routine_1_to_datum(sl, fr);
-    state_stack_put_all(st, vals);
-    state_stack_put(st, conti);
-    return NULL;
-  } break;
-  default:
-    break;
-  }
-  char *err = routine_1_step(sl, &r->cur, perform_host_instruction);
-  return err;
-}
-
-LOCAL char *routine_1_step(prog_slice sl, routine_1 *r,
-                           fdatum (*perform_host_instruction)(datum *,
-                                                              datum *)) {
-  prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
-  prog *prg = &prgx;
-  
-  datum **st = &r->cur.state_;
-  switch (prg->type) {
-  case PROG_CALL: {
-    if (!datum_is_the_symbol(prg->call_type, "plain")) {
-      break;
-    }
-    datum *form = state_stack_collect(st, prg->call_arg_count + 1);
-    if (!datum_is_list(form) || datum_is_nil(form)) {
-      return ("a call instruction with a malformed form");
-    }
-    datum *fn = form->list_head;
-    datum *args = form->list_tail;
-    routine_0 callee;
-    if (datum_is_list(fn) && list_length(fn) == 2 &&
-        datum_is_integer(fn->list_head) &&
-        datum_is_list(fn->list_tail->list_head) &&
-        list_length(fn->list_tail->list_head) == 1) {
-      int64_t offset = fn->list_head->integer_value;
-      datum *vars = fn->list_tail->list_head->list_head;
-      callee.offset = offset;
-      callee.state_ = vars;
-    } else {
-      return ("tried to plain-call a non-routine-0");
-    }
-    r->cur.offset = prg->call_next;
-    routine_1_push_frame(r, callee);
-    state_stack_put_all(st, args);
-    prog xxx = datum_to_prog(prog_slice_datum_at(sl, r->cur.offset));
-    if (xxx.type != PROG_YIELD) {
-      return "not a yield-reciever";
-    }
-    r->cur.offset = xxx.yield_next;
-    return NULL;
-  } break;
-  case PROG_SET_CLOSURES: {
-    datum *clos = datum_make_list_2(datum_make_int(prg->set_closures_prog),
-                                    datum_make_nil());
-    state_stack_put(st, clos);
-    clos->list_tail->list_head = datum_make_list_1(
-        (*st)); // modifying a datum because we need to
-                                    // create a circular reference:(
-    r->cur.offset = prg->set_closures_next;
-    return NULL;
-  } break;
-  case PROG_PUT_PROG: {
-    if (prg->put_prog_capture) {
-      datum *s = *st;
-      routine_0 rt = {.offset = prg->put_prog_value, .state_ = s};
-      datum *prog = routine_0_to_datum(rt);
-      state_stack_put(st, prog);
-      r->cur.offset = prg->put_prog_next;
-      return NULL;
-    }
-    routine_0 rt = {.offset = prg->put_prog_value, .state_ = datum_make_nil()};
-    datum *prog = routine_0_to_datum(rt);
-    state_stack_put(st, prog);
-    r->cur.offset = prg->put_prog_next;
-    return NULL;
-  } break;
-  case PROG_YIELD: {
-    if (!datum_is_the_symbol(prg->yield_type, "plain")) {
-      break;
-    }
-    datum *vals = state_stack_collect(st, prg->yield_count);
-    if (r->par == NULL) {
-      return "rt_1 has no more frames";
-    }
-    routine_0 fr = routine_1_pop_frame(r);
-    datum *conti =
-      datum_make_list_2(datum_make_int(fr.offset),
-                          datum_make_list_1(fr.state_));
-    state_stack_put_all(st, vals);
-    state_stack_put(st, conti);
-    return NULL;
-  } break;
-  default:
-    break;
-  }
-  char *err = routine_0_step(sl, &r->cur, perform_host_instruction);
-  return err;
-}
-
-LOCAL char *routine_0_step(prog_slice sl, routine_0 *r,
-                           fdatum (*perform_host_instruction)(datum *,
-                                                              datum *)) {
-  prog prgx = datum_to_prog(prog_slice_datum_at(sl, r->offset));
-  prog *prg = &prgx;
-  datum **st = &r->state_;
-  switch (prg->type) {
-  case PROG_NOP: {
-    if (datum_is_list(prg->nop_info) && list_length(prg->nop_info) == 2 &&
-        datum_is_symbol(prg->nop_info->list_head)) {
-      if (datum_is_the_symbol(prg->nop_info->list_head, "compdata")) {
-        datum *compdata = prg->nop_info->list_tail->list_head;
-        if (list_length(compdata) != list_length(r->state_)) {
-          return "compdata mismatch";
-        }
-      }
-    }
-    if (datum_is_the_symbol(prg->nop_info, "recieve")) {
-      return "nop-reciever";
-    }
-    r->offset = prg->nop_next;
-    return NULL;
-  } break;
-  case PROG_IF: {
-    datum *v = state_stack_pop(st);
-    if (!datum_is_nil(v)) {
-      r->offset = prg->if_true;
-    } else {
-      r->offset = prg->if_false;
-    }
-    return NULL;
-  } break;
-  case PROG_PUT_CONST: {
-    state_stack_put(st, prg->put_const_value);
-    r->offset = prg->put_const_next;
-    return NULL;
-  } break;
-  case PROG_PUT_VAR: {
-    fdatum er = state_stack_at(*st, prg->put_var_offset);
-    if (fdatum_is_panic(er)) {
-      return (er.panic_message);
-    }
-    state_stack_put(st, er.ok_value);
-    r->offset = prg->put_var_next;
-    return NULL;
-  } break;
-  case PROG_POP: {
-    state_stack_pop(st);
-    r->offset = prg->pop_next;
-    return NULL;
-  } break;
-  case PROG_YIELD: {
-    if (!datum_is_the_symbol(prg->yield_type, "host")) {
-      break;
-    }
-    datum *name = prg->yield_meta;
-    datum *arg = state_stack_pop(st);
+    //print_backtrace_new(sl, &r);
+    //getc(stdin);
+    datum *name = prg.yield_meta;
+    datum *arg = state_stack_pop(&top->state);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
-      return (res.panic_message);
+      return res;
     }
-    state_stack_put(st, res.ok_value);
-    r->offset = prg->yield_next;
-    return NULL;
-  } break;
-  case PROG_COLLECT: {
-    datum *form = state_stack_collect(st, prg->collect_count);
-    state_stack_put(st, form);
-    r->offset = prg->collect_next;
-    return NULL;
-  } break;
-  default:
-    break;
+    state_stack_put(&top->state, res.ok_value);
+    top->offset = prg.yield_next;
   }
-  return ("unhandled instruction type");
+  routine *top = topmost_routine(&r);
+  if (datum_is_nil(top->state)) {
+    return fdatum_make_ok(datum_make_nil());
+  }
+  return fdatum_make_ok(state_stack_top(&top->state));
+}
+
+LOCAL routine *topmost_routine(routine *r) {
+  if (r == NULL) {
+    fprintf(stderr, "a null routinen\n");
+    exit(EXIT_FAILURE);
+  }
+  if (r->child == NULL) {
+    return r;
+  }
+  return topmost_routine(r->child);
+}
+
+LOCAL datum *routine_to_datum(routine *r) {
+  if (r == NULL) {
+    return datum_make_nil();
+  }
+  return datum_make_list(
+                         datum_make_list_2(datum_make_int(r->offset), r->state),
+                         routine_to_datum(r->child));
+}
+
+LOCAL char *datum_to_routine(datum *d, routine *r) {
+  if (!datum_is_list(d) || datum_is_nil(d)) {
+    return "not a routine";
+  }
+  datum *first_frame = list_at(d, 0);
+  if (!datum_is_list(first_frame) || list_length(first_frame) != 2 || !datum_is_integer(list_at(first_frame, 0))) {
+    // return datum_repr(first_frame);
+    return "invalid frame";
+  }
+  r->offset = list_at(first_frame, 0)->integer_value;
+  r->state = list_at(first_frame, 1);
+  if (list_length(d) == 1) {
+    r->child = NULL;
+    return NULL;
+  }
+  r->child = malloc(sizeof(routine));
+  return datum_to_routine(d->list_tail, r->child);
+}
+
+LOCAL char *routine_run(prog_slice sl, routine *r) {
+  for(;;) {
+    // print_backtrace_new(sl, r);
+    prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
+    if (r->child != NULL) {
+      if (prg.type != PROG_CALL) {
+        return "a routine has child, but the instruction is not 'call'";
+      }
+      datum *recieve_type = prg.call_type;
+      char *err = routine_run(sl, r->child);
+      if (err != NULL) {
+        return err;
+      }
+      routine *yielding_routine = topmost_routine(r->child);
+      prog yield = datum_to_prog(prog_slice_datum_at(sl, yielding_routine->offset));
+      if (yield.type == PROG_END) {
+        return NULL;
+      }
+      if (yield.type != PROG_YIELD) {
+        return "a child routine stopped not on a yield instruction";
+      }
+      datum *yield_type = yield.yield_type;
+      if (!datum_eq(recieve_type, yield_type)) {
+        return NULL;
+      }
+      // TODO: check that counts coincide.
+      datum *args = state_stack_collect(&yielding_routine->state, yield.yield_count);
+      datum *suspended = routine_to_datum(r->child);
+      free(r->child);
+      r->child = NULL;
+      state_stack_put_all(&r->state, args);
+      state_stack_put(&r->state, suspended);
+      r->offset = prg.call_next;
+      continue;
+    }
+    if (prg.type == PROG_END) {
+      return NULL;
+    }
+    if (prg.type == PROG_YIELD) {
+      return NULL;
+    }
+    if (prg.type == PROG_CALL) {
+      datum *form = state_stack_collect(&r->state, prg.call_arg_count + 1);
+      if (!datum_is_list(form) || datum_is_nil(form)) {
+        return "a call instruction with a malformed form";
+      }
+      datum *fn = form->list_head;
+      datum *args = form->list_tail;
+      routine child;
+      char *err = datum_to_routine(fn, &child);
+      if (err != NULL) {
+        return err;
+      }
+      prog recieve = datum_to_prog(prog_slice_datum_at(sl, child.offset));
+      if (recieve.type != PROG_YIELD) {
+        return "the routine beging called is not at yield instruction";
+      }
+      // TODO: check that type and counts match.
+      state_stack_put_all(&child.state, args);
+      child.offset = recieve.yield_next;
+      r->child = malloc(sizeof(routine));
+      *r->child = child;
+      continue;
+    }
+    if (prg.type == PROG_SET_CLOSURES) {
+      // TODO: check this
+      datum *state = datum_make_nil();
+      routine cl = {.offset = prg.set_closures_prog, .state = state, .child = NULL};
+      datum *clos = routine_to_datum(&cl);
+      state_stack_put(&r->state, clos);
+      *state = *r->state;
+      // modifying a datum because we need to
+      // create a circular reference:(
+      r->offset = prg.set_closures_next;
+      continue;
+    }
+    if (prg.type == PROG_PUT_PROG) {
+      routine rt;
+      rt.offset = prg.put_prog_value;
+      rt.child = NULL;
+      if (prg.put_prog_capture) {
+        rt.state = r->state;
+      } else {
+        rt.state = datum_make_nil();
+      }
+      datum *prog = routine_to_datum(&rt);
+      state_stack_put(&r->state, prog);
+      r->offset = prg.put_prog_next;
+      continue;
+    }
+    if (prg.type == PROG_NOP) {
+      if (datum_is_list(prg.nop_info) && list_length(prg.nop_info) == 2 &&
+          datum_is_symbol(prg.nop_info->list_head)) {
+        if (datum_is_the_symbol(prg.nop_info->list_head, "compdata")) {
+          datum *compdata = prg.nop_info->list_tail->list_head;
+          if (list_length(compdata) != list_length(r->state)) {
+            return "compdata mismatch";
+          }
+        }
+      }
+      if (datum_is_the_symbol(prg.nop_info, "recieve")) {
+        return "nop-reciever";
+      }
+      r->offset = prg.nop_next;
+      continue;
+    }
+    if (prg.type == PROG_IF) {
+      datum *v = state_stack_pop(&r->state);
+      if (!datum_is_nil(v)) {
+        r->offset = prg.if_true;
+      } else {
+        r->offset = prg.if_false;
+      }
+      continue;
+    }
+    if (prg.type == PROG_PUT_CONST) {
+      state_stack_put(&r->state, prg.put_const_value);
+      r->offset = prg.put_const_next;
+      continue;
+    }
+    if (prg.type == PROG_PUT_VAR) {
+      fdatum er = state_stack_at(r->state, prg.put_var_offset);
+      if (fdatum_is_panic(er)) {
+        return (er.panic_message);
+      }
+      state_stack_put(&r->state, er.ok_value);
+      r->offset = prg.put_var_next;
+      continue;
+    }
+    if (prg.type == PROG_POP) {
+      state_stack_pop(&r->state);
+      r->offset = prg.pop_next;
+      continue;
+    }
+    if (prg.type == PROG_COLLECT) {
+      datum *form = state_stack_collect(&r->state, prg.collect_count);
+      state_stack_put(&r->state, form);
+      r->offset = prg.collect_next;
+      continue;
+    }
+    // return datum_repr(prog_slice_datum_at(sl, r->offset));
+    return "unhandled instruction type";
+  }
+  return "unreachable";
 }
 
 LOCAL prog datum_to_prog(datum *d) {
@@ -406,118 +367,37 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
-LOCAL void routine_2_push_frame(routine_2 *r, routine_1 sub) {
-  routine_2 *cont = malloc(sizeof(routine_2));
-  *cont = *r;
-  r->cur = sub;
-  r->par = cont;
-}
-
-LOCAL routine_1 routine_2_pop_frame(routine_2 *r) {
-  if (r->par == NULL) {
-    fprintf(stderr, "routine_2 has no more frames\n");
-    exit(EXIT_FAILURE);
+void print_backtrace_new(prog_slice sl, routine *r) {
+  fprintf(stderr, "=========\n");
+  fprintf(stderr, "BACKTRACE\n");
+  for (routine *z = r; z != NULL; z = z->child) {
+      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
+        if (i < 0) {
+          continue;
+        }
+        if (i >= (ptrdiff_t)prog_slice_length(sl)) {
+          break;
+        }
+        if (i == z->offset) {
+          fprintf(stderr, "> ");
+        } else {
+          fprintf(stderr, "  ");
+        }
+        fprintf(stderr, "%ld ", i);
+        datum *ins = prog_slice_datum_at(sl, i);
+        char *meta = "";
+        if (datum_is_the_symbol(ins->list_head, ":nop")) {
+          meta = datum_repr(ins->list_tail->list_head);
+          ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), ins->list_tail->list_tail->list_head);
+        }
+        fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
+      }
+      fprintf(stderr, "**********\n");
+      fprintf(stderr, "%d vars on stack\n", list_length(z->state));
+      fprintf(stderr, "**********\n");
   }
-  routine_1 res = r->cur;
-  r->cur = r->par->cur;
-  return res;
-}
-
-LOCAL void routine_1_push_frame(routine_1 *r, routine_0 sub) {
-  routine_1 *cont = malloc(sizeof(routine_1));
-  *cont = *r;
-  r->cur = sub;
-  r->par = cont;
-}
-
-LOCAL routine_0 routine_1_pop_frame(routine_1 *r) {
-  if (r->par == NULL) {
-    fprintf(stderr, "routine_1 has no more frames\n");
-    exit(EXIT_FAILURE);
-  }
-  routine_0 res = r->cur;
-  *r = *r->par;
-  return res;
-}
-
-LOCAL datum *routine_0_to_datum(routine_0 r) {
-  return datum_make_list_2(datum_make_int(r.offset),
-                           datum_make_list_1(r.state_));
-}
-
-LOCAL datum *routine_1_to_datum(prog_slice sl, routine_1 r) {
-  if (r.par == NULL) {
-    return datum_make_list_1(routine_0_to_datum(r.cur));
-  }
-  return datum_make_list(routine_0_to_datum(r.cur),
-                         routine_1_to_datum(sl, *r.par));
-}
-
-LOCAL datum *routine_2_to_datum(prog_slice sl, routine_2 r) {
-  if (r.par == NULL) {
-    return datum_make_list_1(routine_1_to_datum(sl, r.cur));
-  }
-  return datum_make_list(routine_1_to_datum(sl, r.cur),
-                         routine_2_to_datum(sl, *r.par));
-}
-
-LOCAL char *datum_to_routine_0(routine_0 *res, datum *fn) {
-  if (!(datum_is_list(fn) && list_length(fn) == 2 &&
-        datum_is_integer(fn->list_head) &&
-        datum_is_list(fn->list_tail->list_head) &&
-        list_length(fn->list_tail->list_head) == 1)) {
-    return "cannot convert datum to routine-0";
-  }
-  res->offset = fn->list_head->integer_value;
-  res->state_ = fn->list_tail->list_head->list_head;
-  return NULL;
-}
-
-LOCAL char *datum_0_or_1_to_routine_1(routine_1 *res, datum *fn_or_fns) {
-  char *err = datum_to_routine_1(res, fn_or_fns);
-  if (err == NULL) {
-    return err;
-  }
-  routine_0 r;
-  err = datum_to_routine_0(&r, fn_or_fns);
-  if (err != NULL) {
-    return err;
-  }
-  res->cur = r;
-  res->par = NULL;
-  return NULL;
-}
-
-LOCAL char *datum_to_routine_1(routine_1 *res, datum *fns) {
-  if (!datum_is_list(fns) || datum_is_nil(fns)) {
-    return "cannot convert datum to routine-1";
-  }
-  char *err = datum_to_routine_0(&res->cur, fns->list_head);
-  if (err != NULL) {
-    return err;
-  }
-  if (datum_is_nil(fns->list_tail)) {
-    res->par = NULL;
-    return NULL;
-  }
-  res->par = malloc(sizeof(routine_1));
-  return datum_to_routine_1(res->par, fns->list_tail);
-}
-
-LOCAL char *datum_to_routine_2(routine_2 *res, datum *fns) {
-  if (!datum_is_list(fns) || datum_is_nil(fns)) {
-    return "cannot convert datum to routine-1";
-  }
-  char *err = datum_to_routine_1(&res->cur, fns->list_head);
-  if (err != NULL) {
-    return err;
-  }
-  if (datum_is_nil(fns->list_tail)) {
-    res->par = NULL;
-    return NULL;
-  }
-  res->par = malloc(sizeof(routine_2));
-  return datum_to_routine_2(res->par, fns->list_tail);
+ 
+  fprintf(stderr, "=========\n");
 }
 
 EXPORT fdatum state_stack_at(datum *ns, int offset) {
@@ -556,42 +436,4 @@ EXPORT datum *state_stack_collect(datum **s, size_t count) {
     form = datum_make_list(arg, form);
   }
   return form;
-}
-
-void print_backtrace(prog_slice sl, routine_2 *r) {
-  fprintf(stderr, "=========\n");
-  fprintf(stderr, "BACKTRACE\n");
-  for (routine_2 *x = r; x != NULL; x = x->par) {
-    for (routine_1 *y = &x->cur; y != NULL; y = y->par) {
-      routine_0 *z = &y->cur;
-      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
-        if (i < 0) {
-          continue;
-        }
-        if (i >= (ptrdiff_t)prog_slice_length(sl)) {
-          break;
-        }
-        if (i == z->offset) {
-          fprintf(stderr, "> ");
-        } else {
-          fprintf(stderr, "  ");
-        }
-        fprintf(stderr, "%ld ", i);
-        datum *ins = prog_slice_datum_at(sl, i);
-        char *meta = "";
-        if (datum_is_the_symbol(ins->list_head, ":nop")) {
-          meta = datum_repr(ins->list_tail->list_head);
-          ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), ins->list_tail->list_tail->list_head);
-        }
-        fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
-      }
-      fprintf(stderr, "**********\n");
-      for (datum *rest = z->state_; !datum_is_nil(rest); rest=rest->list_tail) {
-        // fprintf(stderr, "%s\n", datum_repr(rest->list_head));
-      }
-      fprintf(stderr, "**********\n");
-    }
-  }
- 
-  fprintf(stderr, "=========\n");
 }

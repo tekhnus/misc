@@ -8,10 +8,6 @@
 #include <zlisp/common.h>
 #endif
 
-EXPORT fdatum routine_run_and_get_value_c_host_new(prog_slice sl, datum **r0d) {
-  return routine_2_run(sl, r0d, perform_host_instruction);
-}
-
 EXPORT fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl, datum **r0d) {
   return routine_run_new(sl, r0d, perform_host_instruction);
 }

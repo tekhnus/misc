@@ -14,7 +14,6 @@ fdatum builtin_head(datum *list);
 fdatum builtin_tail(datum *list);
 #include <dlfcn.h>
 #include <ffi.h>
-fdatum routine_run_and_get_value_c_host_new(prog_slice sl,datum **r0d);
 fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl,datum **r0d);
 #define INTERFACE 0
 #define EXPORT_INTERFACE 0
