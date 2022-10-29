@@ -26,7 +26,7 @@
   ~(shared-library "libzlisp-build-lib.so"))))
 
 (def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))
-(def make-routine-with-empty-state (c-function-or-panic selflib "routine_2_make" '((sizet) pointer)))
+(def make-routine-with-empty-state (c-function-or-panic selflib "routine_make_new" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (c-function-or-panic buildlib "prog_build" '((pointer pointer pointer datum pointer pointer datum) pointer)))
@@ -47,7 +47,7 @@
        (return `(:err ~(derefw `(~e string)))))))
 
 
-(def routine-run-and-get-value-c-host-new (c-function-or-panic selflib "routine_run_and_get_value_c_host_new" '((progslice pointer) fdatum)))
+(def routine-run-and-get-value-c-host-new (c-function-or-panic selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 (builtin.defn fdatum-get-value (return (derefw `(~(head args) val))))
 (def fdatum-get-panic-message (c-function-or-panic selflib "fdatum_get_panic_message" '((fdatum) string)))
