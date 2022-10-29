@@ -72,7 +72,7 @@ bool read_result_is_panic(read_result x);
 bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
 fdatum prog_compile(datum *source,datum **compdata,datum *info);
-void prog_append_call(prog_slice *sl,size_t *begin,bool hat,int arg_count,int return_count,datum **compdata);
+void prog_append_call(prog_slice *sl,size_t *begin,datum *type,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_pop(prog_slice *sl,size_t *begin,datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
