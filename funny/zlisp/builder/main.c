@@ -86,7 +86,7 @@ LOCAL fdatum file_source(char *fname) {
   prog_slice expander_sl = prog_slice_make(16 * 1024);
   size_t expander_prg = prog_slice_append_new(&expander_sl);
   size_t expander_builder_prg = prog_slice_append_new(&expander_sl);
-  datum *expander_routine = routine_2_make(expander_builder_prg);
+  datum *expander_routine = routine_make_new(expander_builder_prg);
   datum *expander_compdata = compdata_make();
   datum *expander_builder_compdata = compdata_make();
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg, &expander_compdata, &expander_builder_compdata);
@@ -152,7 +152,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  fdatum res = routine_run_and_get_value_c_host_new(*sl, routine);
+  fdatum res = routine_run_and_get_value_c_host_new_new(*sl, routine);
   if (fdatum_is_panic(res)) {
     return res;
   }
