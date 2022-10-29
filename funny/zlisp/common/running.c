@@ -115,6 +115,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     state_stack_put(&top->state, res.ok_value);
     top->offset = prg.yield_next;
   }
+  *r0d = routine_to_datum(&r);
   routine *top = topmost_routine(&r);
   if (datum_is_nil(top->state)) {
     return fdatum_make_ok(datum_make_nil());
