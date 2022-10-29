@@ -97,16 +97,6 @@ EXPORT datum *routine_2_make(ptrdiff_t prg) {
   return routine_2_to_datum(sl, r2);
 }
 
-EXPORT ptrdiff_t routine_2_get_offset(datum *r0d) {
-  routine_2 r0;
-  char *err = datum_to_routine_2(&r0, r0d);
-  if (err != NULL) {
-    fprintf(stderr, "%s\n", err);
-    exit(EXIT_FAILURE);
-  }
-  return r0.cur.cur.offset;
-}
-
 EXPORT fdatum routine_2_run(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
@@ -530,16 +520,16 @@ LOCAL char *datum_to_routine_2(routine_2 *res, datum *fns) {
   return datum_to_routine_2(res->par, fns->list_tail);
 }
 
-LOCAL fdatum state_stack_at(datum *ns, int offset) {
+EXPORT fdatum state_stack_at(datum *ns, int offset) {
   datum *entry = list_at(ns, offset);
   return fdatum_make_ok(entry);
 }
 
-LOCAL void state_stack_put(datum **ns, datum *value) {
+EXPORT void state_stack_put(datum **ns, datum *value) {
   *ns = datum_make_list(value, (*ns));
 }
 
-LOCAL void state_stack_put_all(datum **ns, datum *list) {
+EXPORT void state_stack_put_all(datum **ns, datum *list) {
   if (!datum_is_list(list)) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
@@ -549,17 +539,17 @@ LOCAL void state_stack_put_all(datum **ns, datum *list) {
   }
 }
 
-LOCAL datum *state_stack_pop(datum **s) {
+EXPORT datum *state_stack_pop(datum **s) {
   datum *res = list_at(*s, 0);
   *s = list_tail(*s);
   return res;
 }
 
-LOCAL datum *state_stack_top(datum **s) {
+EXPORT datum *state_stack_top(datum **s) {
   return list_at(*s, 0);
 }
 
-LOCAL datum *state_stack_collect(datum **s, size_t count) {
+EXPORT datum *state_stack_collect(datum **s, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *arg = state_stack_pop(s);

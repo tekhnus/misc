@@ -3,50 +3,58 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-#define LOCAL static
-typedef struct routine_1 routine_1;
-typedef struct datum datum;
-LOCAL char *datum_to_routine_1(routine_1 *res,datum *fns);
-typedef struct routine_0 routine_0;
-LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
-typedef struct fdatum fdatum;
+typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-LOCAL fdatum state_stack_at(datum *ns,int offset);
-LOCAL datum *state_stack_pop(datum **s);
-typedef struct prog_slice prog_slice;
+typedef struct datum datum;
 struct prog_slice {
   datum *begin;
   size_t length;
   size_t capacity;
 };
+typedef struct routine routine;
+void print_backtrace_new(prog_slice sl,routine *r);
+#define LOCAL static
+LOCAL routine *topmost_routine(routine *r);
+LOCAL char *routine_run(prog_slice sl,routine *r);
+LOCAL char *datum_to_routine(datum *d,routine *r);
+typedef struct fdatum fdatum;
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
+fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
+LOCAL datum *routine_to_datum(routine *r);
+datum *routine_make_new(ptrdiff_t prg);
+typedef struct routine_1 routine_1;
+LOCAL char *datum_to_routine_1(routine_1 *res,datum *fns);
+typedef struct routine_0 routine_0;
+LOCAL char *datum_to_routine_0(routine_0 *res,datum *fn);
+fdatum state_stack_at(datum *ns,int offset);
+datum *state_stack_pop(datum **s);
 LOCAL char *routine_0_step(prog_slice sl,routine_0 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL routine_0 routine_1_pop_frame(routine_1 *r);
 LOCAL datum *routine_0_to_datum(routine_0 r);
 LOCAL void routine_1_push_frame(routine_1 *r,routine_0 sub);
 LOCAL char *routine_1_step(prog_slice sl,routine_1 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL void state_stack_put(datum **ns,datum *value);
+void state_stack_put(datum **ns,datum *value);
 LOCAL datum *routine_1_to_datum(prog_slice sl,routine_1 r);
 typedef struct routine_2 routine_2;
 LOCAL routine_1 routine_2_pop_frame(routine_2 *r);
-LOCAL void state_stack_put_all(datum **ns,datum *list);
+void state_stack_put_all(datum **ns,datum *list);
 LOCAL void routine_2_push_frame(routine_2 *r,routine_1 sub);
 LOCAL char *datum_0_or_1_to_routine_1(routine_1 *res,datum *fn_or_fns);
-LOCAL datum *state_stack_collect(datum **s,size_t count);
+datum *state_stack_collect(datum **s,size_t count);
 LOCAL char *routine_2_step(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
-LOCAL datum *state_stack_top(datum **s);
+LOCAL prog datum_to_prog(datum *d);
+datum *state_stack_top(datum **s);
 void print_backtrace(prog_slice sl,routine_2 *r);
 LOCAL char *routine_2_run_private(prog_slice sl,routine_2 *r,fdatum(*perform_host_instruction)(datum *,datum *));
-fdatum routine_2_run(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL char *datum_to_routine_2(routine_2 *res,datum *fns);
-ptrdiff_t routine_2_get_offset(datum *r0d);
+fdatum routine_2_run(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL datum *routine_2_to_datum(prog_slice sl,routine_2 r);
 datum *routine_2_make(ptrdiff_t prg);
 char *prog_slice_relocate(prog_slice *dst,size_t *p,datum *src);

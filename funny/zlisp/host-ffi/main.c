@@ -26,8 +26,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "relocation error (C host): %s\n", err);
     return EXIT_FAILURE;
   }
-  datum *s = routine_2_make(0);  // running starts from the first instruction.
-  fdatum res = routine_run_and_get_value_c_host_new(sl, &s);
+  datum *s = routine_make_new(0);  // running starts from the first instruction.
+  fdatum res = routine_run_and_get_value_c_host_new_new(sl, &s);
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "runtime error: %s\n", res.panic_message);
     return EXIT_FAILURE;

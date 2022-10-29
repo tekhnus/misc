@@ -31,7 +31,6 @@
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (c-function-or-panic buildlib "prog_build" '((pointer pointer pointer datum pointer pointer datum) pointer)))
 (def prog-build-init (c-function-or-panic selflib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
-(def decode-offset (c-function-or-panic selflib "routine_2_get_offset" '((pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 
@@ -87,7 +86,6 @@
         (eval-new eval-new)
         (read read)
         (make-routine-with-empty-state make-routine-with-empty-state)
-        (decode-offset decode-offset)
         (prog-slice-make prog-slice-make)
         (prog-slice-append-new prog-slice-append-new)
         (compdata-make compdata-make))

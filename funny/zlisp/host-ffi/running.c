@@ -12,6 +12,10 @@ EXPORT fdatum routine_run_and_get_value_c_host_new(prog_slice sl, datum **r0d) {
   return routine_2_run(sl, r0d, perform_host_instruction);
 }
 
+EXPORT fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl, datum **r0d) {
+  return routine_run_new(sl, r0d, perform_host_instruction);
+}
+
 LOCAL fdatum perform_host_instruction(datum *name, datum *arg) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");

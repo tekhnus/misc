@@ -21,7 +21,6 @@
  (eval-new "zlisp" eval-new)
  (rd "zlisp" read)
  (mres "zlisp" make-routine-with-empty-state)
- (dec "zlisp" decode-offset)
  (psm "zlisp" prog-slice-make)
  (psan "zlisp" prog-slice-append-new)
  (cdm "zlisp" compdata-make))
