@@ -43,7 +43,6 @@ tools/
 
 - Loops
 - Tail recursive calls
-- Migrate host instruction to yield instruction
 - The yield structure should be flexible; i.e. possibility to call a routine and intercept its host calls
 
 - Try hosting by a compiled language
