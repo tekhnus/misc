@@ -218,6 +218,14 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
   return res;
 }
 
+EXPORT void prog_slice_extend(prog_slice *s, datum *instructions) {
+  for (datum *rest = instructions; !datum_is_nil(rest); rest = rest->list_tail) {
+    datum *i = rest->list_head;
+    size_t index = prog_slice_append_new(s);
+    *prog_slice_datum_at(*s, index) = *i;
+  }
+}
+
 EXPORT datum *prog_slice_datum_at(prog_slice s, size_t index) {
   if (index >= s.length) {
     fprintf(stderr, "prog slice index overflow\n");

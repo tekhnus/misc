@@ -30,7 +30,7 @@
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (c-function-or-panic buildlib "prog_build" '((pointer pointer pointer datum pointer pointer datum) pointer)))
-(def prog-build-init (c-function-or-panic selflib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
+(def prog-build-init (c-function-or-panic buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 

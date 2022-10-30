@@ -20,12 +20,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   prog_slice sl = prog_slice_make(16 * 1024);
-  size_t p = prog_slice_append_new(&sl);
-  char *err = prog_slice_relocate(&sl, &p, rr.ok_value);
-  if (err != NULL) {
-    fprintf(stderr, "relocation error (C host): %s\n", err);
-    return EXIT_FAILURE;
-  }
+  prog_slice_extend(&sl, rr.ok_value);
   datum *s = routine_make_new(0);  // running starts from the first instruction.
   fdatum res = routine_run_and_get_value_c_host_new_new(sl, &s);
   if (fdatum_is_panic(res)) {

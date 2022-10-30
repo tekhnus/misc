@@ -17,7 +17,6 @@ core/
   datum.c           manipulating data
   reading.c         parsing data
   compiling.c       compiling lisp to bytecode
-  linking.c         linking modules together
   running.c         a generic interpreter
 host-ffi/
   main.c            an interpreter supporting dlopen() and FFI function calls

@@ -44,6 +44,7 @@ struct prog_slice {
 };
 prog_slice prog_slice_make(size_t capacity);
 size_t prog_slice_append_new(prog_slice *s);
+void prog_slice_extend(prog_slice *s,datum *instructions);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
@@ -80,9 +81,6 @@ void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,siz
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
-size_t prog_build_init(prog_slice *sl,size_t *ep,size_t *bdr_p,datum **compdata,datum **builder_compdata);
-char *prog_link_deps(prog_slice *sl,size_t *bdr_p,datum **builder_compdata,size_t p,fdatum(*module_bytecode)(char *,datum *),datum *settings);
-char *prog_slice_relocate(prog_slice *dst,size_t *p,datum *src);
 datum *routine_make_new(ptrdiff_t prg);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 fdatum state_stack_at(datum *ns,int offset);
