@@ -3,17 +3,6 @@
 #include <string.h>
 #include <extern.h>
 
-LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
-  datum *first_main_instruction = prog_slice_datum_at(sl, run_main_off);
-  if (!datum_is_list(first_main_instruction)
-      || list_length(first_main_instruction) != 6
-      || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")
-      || !datum_is_integer(list_at(first_main_instruction, 5))) {
-    return NULL;
-  }
-  return list_at(first_main_instruction, 4);
-}
-
 EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum **compdata, datum **builder_compdata) {
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_call(sl, bdr_p, datum_make_symbol("plain"), 0, 1, builder_compdata);
@@ -164,4 +153,15 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   }
   prog_append_pop(sl, p, names, compdata);
   return NULL;
+}
+
+LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
+  datum *first_main_instruction = prog_slice_datum_at(sl, run_main_off);
+  if (!datum_is_list(first_main_instruction)
+      || list_length(first_main_instruction) != 6
+      || !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")
+      || !datum_is_integer(list_at(first_main_instruction, 5))) {
+    return NULL;
+  }
+  return list_at(first_main_instruction, 4);
 }

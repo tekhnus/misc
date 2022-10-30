@@ -12,18 +12,19 @@ ZLISP=./module LD_LIBRARY_PATH=./build/builder ./build/host-ffi/zlisp-run <(./bu
 
 Project structure:
 ```
-common/
-  types.h           data types
-  main.c            data manipulation, reading and writing
+core/
+  types.h           type definitions
+  datum.c           manipulating data
+  reading.c         parsing data
   compiling.c       compiling lisp to bytecode
-  building.c        linking modules together
-  running.c         a common interpreter
+  linking.c         linking modules together
+  running.c         a generic interpreter
 host-ffi/
   main.c            an interpreter supporting dlopen() and FFI function calls
 host-python/
   zlisp-run-py      an interpreter supporting Python evaluation
 builder/
-  main.c            build tool which preprocesses, compiles and links lisp programs
+  main.c            a build tool which preprocesses, compiles and links lisp programs
 module/             lisp modules
 tools/
   makeheaders.c     copied from the Fossil project; used to generate header files

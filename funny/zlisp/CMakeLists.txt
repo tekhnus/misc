@@ -5,7 +5,7 @@ enable_testing()
 
 find_package(Python COMPONENTS Interpreter)
 
-add_subdirectory(common)
+add_subdirectory(core)
 add_subdirectory(host-ffi)
 add_subdirectory(builder)
 add_subdirectory(host-python)
