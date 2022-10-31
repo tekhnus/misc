@@ -296,8 +296,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
   }
   prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
-  prog_append_put_const(sl, begin, datum_make_int(list_length(stmt) - 1), compdata);
-  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), 2, 2, compdata);
+  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), 1, 2, compdata);
   if (!at) {
     prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }
@@ -425,7 +424,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt, datum **compdata, datum *info) {
   datum *routine_compdata = *compdata;
   if (args == NULL) {
-    prog_append_recieve(sl, &s, datum_make_list_2(datum_make_symbol("args"), datum_make_symbol("nargs")), datum_make_nil(), &routine_compdata);
+    prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), &routine_compdata);
   }
