@@ -12,7 +12,7 @@
 
 !(req (defun "defun" defun))
 
-(def fn (builtin.fn (return `(builtin.fn ~(switch-fun `(~args))))))
+(def fn (builtin.fn (x y) (return `(builtin.fn ~(switch-fun `((~x ~y)))))))
 
 !(#defun def2 (left right val)
    (return `(progn
