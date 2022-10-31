@@ -208,10 +208,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (list_length(stmt->list_tail) == 3) {
       args = list_at(stmt, 2);
       body = list_at(stmt, 3);
-    }
-    else if (list_length(stmt->list_tail) == 2) {
-      args = NULL;
-      body = list_at(stmt, 2);
     } else {
       return datum_repr(datum_make_list_2(datum_make_symbol("wrong defn"), list_at(stmt, 1)));
     }
@@ -436,7 +432,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt, datum **compdata, datum *info) {
   datum *routine_compdata = *compdata;
   if (args == NULL) {
-    prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
+    return "args can't be null";
   } else {
     prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
     prog_append_put_var(sl, &s, datum_make_symbol("args"), &routine_compdata);
