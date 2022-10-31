@@ -78,20 +78,49 @@
                 (def fn-pointer (derefw `(~fn-pointer-pointer int64)))
                 (return fn-pointer)))    
 
+(builtin.defn nth
+              (progn
+                (def n (head args))
+                (def xs (head (tail args)))
+                (if xs
+                    (if n
+                        (return (nth (tail n) (tail xs)))
+                      (return (head xs)))
+                  (panic "nth fail"))))
+
+(def get-pcads (builtin.fn (fn-ptr signature) (progn
+(def pointer-call-and-deserialize-0 (builtin.fn () (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ())))))
+(def pointer-call-and-deserialize-1 (builtin.fn (arg1) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1))))))
+(def pointer-call-and-deserialize-2 (builtin.fn (arg1 arg2) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1 ~arg2))))))
+(def pointer-call-and-deserialize-3 (builtin.fn (arg1 arg2 a3) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1 ~arg2 ~a3))))))
+(def pointer-call-and-deserialize-4 (builtin.fn (arg1 arg2 a3 a4) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1  ~arg2 ~a3 ~a4))))))
+(def pointer-call-and-deserialize-5 (builtin.fn (arg1 arg2 a3 a4 a5) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1 ~arg2 ~a3 ~a4 ~a5))))))
+(def pointer-call-and-deserialize-6 (builtin.fn (arg1 arg2 a3 a4 a5 a6) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6))))))
+(def pointer-call-and-deserialize-7 (builtin.fn (arg1 arg2 a3 a4 a5 a6 a7) (return (pointer-call-and-deserialize `((~fn-ptr ~signature) (~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6 ~a7))))))
+(return `(~pointer-call-and-deserialize-0
+             ~pointer-call-and-deserialize-1
+             ~pointer-call-and-deserialize-2
+             ~pointer-call-and-deserialize-3
+             ~pointer-call-and-deserialize-4
+             ~pointer-call-and-deserialize-5
+             ~pointer-call-and-deserialize-6
+             ~pointer-call-and-deserialize-7)))))
+
+
 (builtin.defn c-function-or-panic
               (progn
                 (def handle (head args))
                 (def c-name (head (tail args)))
                 (def signature (head (tail (tail args))))
+                (def argssig (head signature))
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
                 (if (eq fn-ptr 0)
                     (panic "couldn't load C function")
-                  (return
-                   (builtin.fn
-                    (return (pointer-call-and-deserialize `((~fn-ptr ~signature) ~args))))))))
-                
-
+                  (progn
+                    (def pcadfns (get-pcads fn-ptr signature))
+                    (def pcadfn (nth argssig pcadfns))
+                    (return pcadfn)))))
 
 (def selflib (dlopen ""))
 
