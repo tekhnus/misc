@@ -14,36 +14,36 @@
      (builtin.fn (x)
       (return (head (tail x)))))
 
-(builtin.defn last
+(builtin.defn last (a0)
 	      
-	 (if (tail (head args))
-	     (return (last (tail (head args))))
-	   (return (head (head args)))))
+	 (if (tail a0)
+	     (return (last (tail a0)))
+	   (return (head a0))))
 
 (def type (builtin.fn (x) (return (head (annotate x)))))
 
-(builtin.defn concat
+(builtin.defn concat (a0 a1)
 	     
-    (if (head args)
-	(return (cons (head (head args)) (concat (tail (head args)) (second args))))
-      (return (second args))))
+    (if a0
+	(return (cons (head a0) (concat (tail a0) a1)))
+      (return a1)))
 
 
 
-(builtin.defn zip
+(builtin.defn zip (a0 a1)
 	      
-    (if (head args)
-	(return (cons `(~(head (head args)) ~(head (second args))) (zip (tail (head args)) (tail (second args)))))
+    (if a0
+	(return (cons `(~(head a0) ~(head a1)) (zip (tail a0) (tail a1))))
       (return '())))
 
-(builtin.defn map	    
-  (if (head (tail args))
+(builtin.defn map	     (a0 a1)
+  (if a1
       (return (cons
-       ((head args)
-	(head (head (tail args))))
+       (a0
+	(head a1))
        (map
-	(head args)
-	(tail (head (tail args))))))
+	a0
+	(tail a1))))
     (return '())))
 
 (def ignore-fn (builtin.fn (x) (return `(def throwaway ~x))))
@@ -54,18 +54,18 @@
 
 (def progn- (builtin.fn (x) (return (cons 'progn x))))
 
-(builtin.defn third (return (head (tail (tail (head args))))))
-(builtin.defn fourth (return (head (tail (tail (tail (head args)))))))
-(builtin.defn fifth (return (head (tail (tail (tail (tail (head args))))))))
-(builtin.defn sixth (return (head (tail (tail (tail (tail (tail (head args)))))))))
+(builtin.defn third (a0) (return (head (tail (tail a0)))))
+(builtin.defn fourth (a0) (return (head (tail (tail (tail a0))))))
+(builtin.defn fifth (a0) (return (head (tail (tail (tail (tail a0)))))))
+(builtin.defn sixth (a0) (return (head (tail (tail (tail (tail (tail a0))))))))
 
-(builtin.defn swtchone
-	      (if (head args)
+(builtin.defn swtchone (a0)
+	      (if a0
 		  (progn
-		    (def firstarg (head (head args)))
+		    (def firstarg (head a0))
 		    (def cond (head firstarg))
 		    (def body (second firstarg))
-		    (def rest (swtchone (tail (head args))))
+		    (def rest (swtchone (tail a0)))
 		    (return `(progn
 			       (def prearg ~cond)
 			       (if (eq (head prearg) :ok)
@@ -81,10 +81,10 @@
                   (return '(panic "nothing matched")))))
 
 
-(builtin.defn decons-pat
+(builtin.defn decons-pat (a0 a1)
 	      (progn
-		(def pat (head args))
-		(def val (second args))
+		(def pat a0)
+		(def val a1)
 		(if (is-constant pat)
                     (progn
                       (def first-decons "ifhack")
@@ -126,30 +126,30 @@
                         (def rest-decons "ifhack")
                         (panic "decons-pat met an unsupported type")))))))
 
-(builtin.defn decons-vars
-     (if (is-constant (head args))
+(builtin.defn decons-vars (a0)
+     (if (is-constant a0)
 	(return '())
-      (if (eq (type (head args)) :symbol)
-	  (return `(~(head args)))
-	(if (eq (type (head args)) :list)
-	    (if (head args)
-		(return (concat (decons-vars (head (head args))) (decons-vars (tail (head args)))))
+      (if (eq (type a0) :symbol)
+	  (return `(~a0))
+	(if (eq (type a0) :list)
+	    (if a0
+		(return (concat (decons-vars (head a0)) (decons-vars (tail a0))))
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
 (def switch-defines '((head args) (second args) (third args) (fourth args) (fifth args) (sixth args)))
 
-(builtin.defn switch-clause
+(builtin.defn switch-clause (a0)
     (progn
-      (def sig (head (head args)))
-      (def cmds (tail (head args)))
+      (def sig (head a0))
+      (def cmds (tail a0))
       (def checker `(decons-pat (quote ~sig) args))
       (def vars (decons-vars sig))
       (def body (cons 'progn (concat (map (builtin.fn (x) (return (cons 'def x))) (zip vars switch-defines)) cmds)))
       (return `(~checker ~body))))
 
-(builtin.defn switch-fun
-    (return (swtchone (map switch-clause (head args)))))
+(builtin.defn switch-fun (a0)
+    (return (swtchone (map switch-clause a0))))
 
 (export
  (switch-fun switch-fun)
