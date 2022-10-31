@@ -83,11 +83,11 @@
 
 !(#fntest
   (progn
-    !(#defun fib ()
+    !(#defun fib () (progn
        (return 3)
        (return 5)
        (return 8)
-       (return 13))
+       (return 13)))
     (def (x fib) (@fib))
     (def (y fib) (@fib))
     (def (z fib) (@fib))
