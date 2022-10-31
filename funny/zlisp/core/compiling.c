@@ -219,10 +219,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   if (datum_is_the_symbol(op, "builtin.fn")) {
     datum *args;
     datum *body;
-    if (list_length(stmt->list_tail) == 1) {
-      args = NULL;
-      body = list_at(stmt, 1);
-    } else if (list_length(stmt->list_tail) == 2) {
+    if (list_length(stmt->list_tail) == 2) {
       args = list_at(stmt, 1);
       body = list_at(stmt, 2);
     } else {
