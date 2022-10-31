@@ -11,6 +11,7 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_CALL,
   PROG_COLLECT,
+  PROG_UNCOLLECT,
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
@@ -44,6 +45,10 @@ struct prog {
     struct {
       size_t collect_count;
       ptrdiff_t collect_next;
+    };
+    struct {
+      size_t uncollect_count;
+      ptrdiff_t uncollect_next;
     };
     struct {
       ptrdiff_t pop_next;
@@ -302,6 +307,12 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       r->offset = prg.collect_next;
       continue;
     }
+    if (prg.type == PROG_UNCOLLECT) {
+      datum *xs = state_stack_pop(&r->state);
+      state_stack_put_all(&r->state, xs);
+      r->offset = prg.uncollect_next;
+      continue;
+    }
     // return datum_repr(prog_slice_datum_at(sl, r->offset));
     return "unhandled instruction type";
   }
@@ -342,6 +353,10 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
     res.collect_next = list_at(d, 2)->integer_value;
+  } else if (!strcmp(opsym, ":uncollect")) {
+    res.type = PROG_UNCOLLECT;
+    res.uncollect_count = list_at(d, 1)->integer_value;
+    res.uncollect_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":pop")) {
     res.type = PROG_POP;
     res.pop_next = (list_at(d, 1)->integer_value);

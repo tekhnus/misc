@@ -183,6 +183,12 @@ def main():
                 form = [val] + form
             pdata[-1][-1].varz.append((form))
             ip = nex
+        elif op == sexpdata.Symbol(":uncollect"):
+            cnt, nex = args
+            vals = pop_stack()
+            for val in vals:
+                pdata[-1][-1].varz.append(val)
+            ip = nex
         elif op == sexpdata.Symbol(":pop"):
             (nex,) = args
             pop_stack()

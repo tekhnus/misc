@@ -217,13 +217,20 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn")) {
-    if (list_length(stmt->list_tail) != 1) {
+    datum *args;
+    datum *body;
+    if (list_length(stmt->list_tail) == 1) {
+      args = NULL;
+      body = list_at(stmt, 1);
+    } else if (list_length(stmt->list_tail) == 2) {
+      args = list_at(stmt, 1);
+      body = list_at(stmt, 2);
+    } else {
       return datum_repr(datum_make_list_2(datum_make_symbol("wrong fn"), stmt));
     }
-    datum *body = list_at(stmt, 1);
     size_t s_off = prog_slice_append_new(sl);
     char *err =
-      prog_init_routine(sl, s_off, NULL, body, compdata, datum_make_list(datum_make_symbol("lambda"), info));
+      prog_init_routine(sl, s_off, args, body, compdata, datum_make_list(datum_make_symbol("lambda"), info));
     if (err != NULL) {
       return err;
     }
@@ -426,7 +433,10 @@ LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt
   if (args == NULL) {
     prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
   } else {
-    prog_append_recieve(sl, &s, args, datum_make_nil(), &routine_compdata);
+    prog_append_recieve(sl, &s, datum_make_list_1(datum_make_symbol("args")), datum_make_nil(), &routine_compdata);
+    prog_append_put_var(sl, &s, datum_make_symbol("args"), &routine_compdata);
+    prog_append_uncollect(sl, list_length(args), &s, &routine_compdata);
+    prog_append_pop(sl, &s, args, &routine_compdata);
   }
   prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
   return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
@@ -466,6 +476,16 @@ LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datu
     *compdata = compdata_del(*compdata);
   }
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+}
+
+LOCAL void prog_append_uncollect(prog_slice *sl, size_t count, size_t *begin, datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":uncollect"), datum_make_int(count), datum_make_int(next)));
+  *begin = next;
+  *compdata = compdata_del(*compdata);
+  for (size_t i = 0; i < count; ++i) {
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+  }
 }
 
 LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {

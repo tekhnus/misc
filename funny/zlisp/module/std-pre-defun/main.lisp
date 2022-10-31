@@ -13,8 +13,8 @@
 (def list (builtin.fn (return args)))
 
 (def second
-     (builtin.fn
-      (return (head (tail (head args))))))
+     (builtin.fn (x)
+      (return (head (tail x)))))
 
 (builtin.defn last
 	      

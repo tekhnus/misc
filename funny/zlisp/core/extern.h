@@ -35,6 +35,7 @@ LOCAL char *datum_to_routine(datum *d,routine *r);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 LOCAL datum *routine_to_datum(routine *r);
 datum *routine_make_new(ptrdiff_t prg);
+LOCAL void prog_append_uncollect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);
