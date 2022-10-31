@@ -20,10 +20,10 @@
 	      (def ~left (head tmp))
 	      (def ~right (second tmp)))))
 
-!(#defun switchx argz (return `(progn (def args ~(head argz)) ~(switch-fun (tail argz)))))
+!(#defun switchx2 (exp argz) (return `(progn (def args ~exp) ~(switch-fun argz))))
 
 (export
  (defun defun)
  (fn fn)
  (def2 def2)
- (switchx switchx))
+ (switchx2 switchx2))

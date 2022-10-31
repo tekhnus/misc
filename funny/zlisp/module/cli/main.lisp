@@ -32,7 +32,7 @@
   (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2)
-  (switchx "stdmacro" switchx))
+  (switchx2 "stdmacro" switchx2))
 
 (def readme "A basic REPL for zlisp.")
 
@@ -40,26 +40,26 @@
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
   (def tmp (fprintf stdout "> "))
-  !(#switchx (rd stdin)
+  !(#switchx2 (rd stdin) (
 	  ((:eof)
 	   (return (fprintf stdout "\n")))
 	  ((:ok datum)
            (def maybe-prog (comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
-           !(#switchx maybe-prog
+           !(#switchx2 maybe-prog (
                       ((:ok progxxx)
-                       !(#switchx (eval-new sl nsp)
+                       !(#switchx2 (eval-new sl nsp) (
 		                  ((:ok val ctxt)
 		                   !(#ignore (fprintf-bytestring stdout "%s\n" (repr val)))
 		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
 		                  ((:err msg)
 		                   !(#ignore (fprintf-bytestring stderr "eval error: %s\n" msg))
-		                   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))
+		                   (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
                       ((:err msg)
                        !(#ignore (fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
-                       (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))
+                       (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
 	  ((:err msg)
 	   !(#ignore (fprintf-bytestring stderr "read error: %s\n" msg))
-	   (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
 (def sl (psm 20000))
 (def pptr (wrap-pointer-into-pointer (psan sl)))
