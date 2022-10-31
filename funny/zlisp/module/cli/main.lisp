@@ -38,6 +38,7 @@
 
 !(#defun repl
   (sl nsp pptr bpptr compdata bdrcompdata)
+  (progn
   (def tmp (fprintf stdout "> "))
   !(#switchx (rd stdin)
 	  ((:eof)
@@ -58,7 +59,7 @@
                        (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))
 	  ((:err msg)
 	   !(#ignore (fprintf-bytestring stderr "read error: %s\n" msg))
-	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))
+	   (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
 
 (def sl (psm 20000))
 (def pptr (wrap-pointer-into-pointer (psan sl)))
