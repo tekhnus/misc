@@ -1,19 +1,19 @@
 (req)
 
 (def panic-pointer (host "panic" '()))
-(builtin.defn panic (return (host "deref" `(~(host "pointer-call-datums" `(~panic-pointer  ((datum) val)  ~args)) val))))
+(builtin.defn panic (x) (return (host "deref" `(~(host "pointer-call-datums" `(~panic-pointer  ((datum) val)  (~x))) val))))
 
 (def head-pointer (host "head" '()))
-(builtin.defn head (return (host "deref" `(~(host "pointer-call-datums" `(~head-pointer  ((datum) val)  ~args)) val))))
+(builtin.defn head (x) (return (host "deref" `(~(host "pointer-call-datums" `(~head-pointer  ((datum) val)  (~x))) val))))
 
 (def tail-pointer (host "tail" '()))
-(builtin.defn tail (return (host "deref" `(~(host "pointer-call-datums" `(~tail-pointer  ((datum) val)  ~args)) val))))
+(builtin.defn tail (x) (return (host "deref" `(~(host "pointer-call-datums" `(~tail-pointer  ((datum) val)  (~x))) val))))
 
 (def cons-pointer (host "cons" '()))
-(builtin.defn cons (return (host "deref" `(~(host "pointer-call-datums" `(~cons-pointer  ((datum datum) val)  ~args)) val))))
+(builtin.defn cons (x xs) (return (host "deref" `(~(host "pointer-call-datums" `(~cons-pointer  ((datum datum) val)  (~x ~xs))) val))))
 
 (def eq-pointer (host "eq" '()))
-(builtin.defn eq (return (host "deref" `(~(host "pointer-call-datums" `(~eq-pointer  ((datum datum) val)  ~args)) val))))
+(builtin.defn eq (x y) (return (host "deref" `(~(host "pointer-call-datums" `(~eq-pointer  ((datum datum) val)  (~x ~y))) val))))
 
 (builtin.defn serialize-param (arg0 arg1)
               (progn
@@ -64,10 +64,10 @@
 
 
 (def dlopen-pointer (host "dlopen" '()))
-(builtin.defn dlopen (return (pointer-call-and-deserialize `((~dlopen-pointer ((string) pointer)) ~args))))
+(builtin.defn dlopen (x) (return (pointer-call-and-deserialize `((~dlopen-pointer ((string) pointer)) (~x)))))
 
 (def dlsym-pointer (host "dlsym" '()))
-(builtin.defn dlsym (return (pointer-call-and-deserialize `((~dlsym-pointer ((pointer string) pointer)) ~args))))
+(builtin.defn dlsym (x y) (return (pointer-call-and-deserialize `((~dlsym-pointer ((pointer string) pointer)) (~x ~y)))))
 
 (builtin.defn c-data-pointer (arg0 arg1 arg2)
             (progn
