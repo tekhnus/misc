@@ -202,14 +202,22 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defn")) {
-    if (list_length(stmt->list_tail) != 2) {
+    datum *name = list_at(stmt, 1);
+    datum *args;
+    datum *body;
+    if (list_length(stmt->list_tail) == 3) {
+      args = list_at(stmt, 2);
+      body = list_at(stmt, 3);
+    }
+    else if (list_length(stmt->list_tail) == 2) {
+      args = NULL;
+      body = list_at(stmt, 2);
+    } else {
       return datum_repr(datum_make_list_2(datum_make_symbol("wrong defn"), list_at(stmt, 1)));
     }
-    datum *name = list_at(stmt, 1);
-    datum *body = list_at(stmt, 2);
     size_t s_off = prog_slice_append_new(sl);
     *compdata = compdata_put(*compdata, name);
-    char *err = prog_init_routine(sl, s_off, NULL, body, compdata, datum_make_list(name, info));
+    char *err = prog_init_routine(sl, s_off, args, body, compdata, datum_make_list(name, info));
     if (err != NULL) {
       return err;
     }

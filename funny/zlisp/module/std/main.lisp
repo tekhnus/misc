@@ -29,14 +29,14 @@
 	(tail xs))))
     (return `(~x))))
 
-(builtin.defn first-good-value (progn
-                                 (if (head args)
+(builtin.defn first-good-value (x) (progn
+                                 (if x
                                      (progn
-                                       (def first-arg (head (head args)))
+                                       (def first-arg (head x))
                                        (if (eq :ok (head first-arg))
                                            (progn
                                              (return (second first-arg)))
-                                         (return (first-good-value (tail (head args))))))
+                                         (return (first-good-value (tail x)))))
                                    (panic "first-good-value: no good value"))))
 
 (export

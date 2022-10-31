@@ -83,12 +83,12 @@
 
 (def disabled-test '!(#fntest
   (progn
-    (builtin.defn far-fib (progn
+    (builtin.defn far-fib () (progn
        (^return 3)
        (^return 5)
        (return 8)))
 
-    (builtin.defn more-far-fib (progn
+    (builtin.defn more-far-fib () (progn
        (def x (far-fib))
        (^return x)
        (^return 13)))
