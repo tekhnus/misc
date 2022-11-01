@@ -25,7 +25,7 @@
                       (return param)
                     (if (eq signature 'progslice)
                         (return param)
-                      (return (host "mkptr" `(~param ~signature))))))))
+                      (return (host "mkptr" param signature)))))))
 
 (builtin.defn serialize-params (arg0 arg1)
               (progn
@@ -137,7 +137,7 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
-(builtin.defn wrap-pointer-into-pointer (arg0) (return (host "mkptr" `(~arg0 sizet))))
+(builtin.defn wrap-pointer-into-pointer (arg0) (return (host "mkptr" arg0 'sizet)))
 
 
 (builtin.defn shared-library (arg0) (progn

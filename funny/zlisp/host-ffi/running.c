@@ -39,8 +39,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     }
     res = preres.ok_value;
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
-    datum *arg = list_at(args, 0);
-    fdatum preres = datum_mkptr(arg);
+    fdatum preres = datum_mkptr(args);
     if (fdatum_is_panic(preres)) {
       return preres;
     }
@@ -186,8 +185,8 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
   return NULL;
 }
 
-LOCAL fdatum datum_mkptr(datum *arg) {
-  datum *form = arg;
+LOCAL fdatum datum_mkptr(datum *args) {
+  datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     return fdatum_make_panic("mkptr expected a pair on stack");
   }

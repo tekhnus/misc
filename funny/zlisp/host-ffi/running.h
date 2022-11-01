@@ -19,7 +19,7 @@ fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_tail(datum *list);
 fdatum builtin_head(datum *list);
 fdatum builtin_panic(datum *arg_value);
-LOCAL fdatum datum_mkptr(datum *arg);
+LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);
 LOCAL fdatum pointer_call(datum *fpt,datum *sig,datum *args,bool datums);
 LOCAL fdatum perform_host_instruction(datum *name,datum *args);
