@@ -19,7 +19,7 @@ EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *type, int arg
   for (int i = 0; i < arg_count + 1; ++i) {
     *compdata = compdata_del(*compdata);
   }
-  for (int i = 0; i < return_count; ++i) {
+  for (int i = 0; i < return_count + 1; ++i) {
     *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
   }  
   *begin = next;
@@ -303,7 +303,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), list_length(stmt) - 1, 2, compdata);
+  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), list_length(stmt) - 1, 1, compdata);
   if (!at) {
     prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }

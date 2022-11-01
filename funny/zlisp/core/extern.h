@@ -3,18 +3,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
-typedef struct prog_slice prog_slice;
+typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
 typedef struct datum datum;
-struct prog_slice {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-typedef struct routine routine;
-void print_backtrace_new(prog_slice sl,routine *r);
-typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -29,7 +21,15 @@ datum *state_stack_pop(datum **s);
 #define LOCAL static
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+typedef struct routine routine;
 LOCAL routine *topmost_routine(routine *r);
+typedef struct prog_slice prog_slice;
+struct prog_slice {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL char *routine_run(prog_slice sl,routine *r);
 LOCAL char *datum_to_routine(datum *d,routine *r);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));

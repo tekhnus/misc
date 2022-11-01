@@ -100,6 +100,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   for (;;) {
     err = routine_run(sl, &r);
     if (err != NULL) {
+      print_backtrace_new(sl, &r);
       return fdatum_make_panic(err);
     }
     routine *top = topmost_routine(&r);
@@ -110,7 +111,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     if (prg.type != PROG_YIELD || !datum_is_the_symbol(prg.yield_type, "host")) {
       return fdatum_make_panic("execution stopped at wrong place");
     }
-    //print_backtrace_new(sl, &r);
+    //
     //getc(stdin);
     datum *name = prg.yield_meta;
     datum *arg = state_stack_pop(&top->state);
@@ -170,7 +171,6 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
 
 LOCAL char *routine_run(prog_slice sl, routine *r) {
   for(;;) {
-    // print_backtrace_new(sl, r);
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (r->child != NULL) {
       if (prg.type != PROG_CALL) {
@@ -193,7 +193,9 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       if (!datum_eq(recieve_type, yield_type)) {
         return NULL;
       }
-      // TODO: check that counts coincide.
+      if (prg.call_return_count != yield.yield_count) {
+        return "call count and yield count are not equal";
+      }
       datum *args = state_stack_collect(&yielding_routine->state, yield.yield_count);
       datum *suspended = routine_to_datum(r->child);
       free(r->child);
@@ -225,7 +227,9 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       if (recieve.type != PROG_YIELD) {
         return "the routine beging called is not at yield instruction";
       }
-      // TODO: check that type and counts match.
+      if (prg.call_arg_count != recieve.yield_recieve_count) {
+        return "arg count and recieve count are not equal";
+      }
       state_stack_put_all(&child.state, args);
       child.offset = recieve.yield_next;
       r->child = malloc(sizeof(routine));
