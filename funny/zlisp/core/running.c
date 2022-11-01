@@ -114,12 +114,12 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     //
     //getc(stdin);
     datum *name = prg.yield_meta;
-    datum *arg = state_stack_pop(&top->state);
+    datum *arg = state_stack_collect(&top->state, prg.yield_count);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
       return res;
     }
-    state_stack_put(&top->state, res.ok_value);
+    state_stack_put_all(&top->state, res.ok_value);
     top->offset = prg.yield_next;
   }
   *r0d = routine_to_datum(&r);

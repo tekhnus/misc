@@ -12,10 +12,14 @@ EXPORT fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl, datum **r0
   return routine_run_new(sl, r0d, perform_host_instruction);
 }
 
-LOCAL fdatum perform_host_instruction(datum *name, datum *arg) {
+LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }
+  if (!datum_is_list(args) || list_length(args) != 1) {
+    return fdatum_make_panic("multiple argument host instructions are not supported yet");
+  }
+  datum *arg = list_at(args, 0);
   datum *res;
   if (!strcmp(name->bytestring_value, "pointer-call") ||
       !strcmp(name->bytestring_value, "pointer-call-datums")) {
@@ -33,9 +37,17 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *arg) {
     }
     res = resu.ok_value;
   } else if (!strcmp(name->bytestring_value, "deref")) {
-    return datum_deref(arg);
+    fdatum preres = datum_deref(arg);
+    if (fdatum_is_panic(preres)) {
+      return preres;
+    }
+    res = preres.ok_value;
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
-    return datum_mkptr(arg);
+    fdatum preres = datum_mkptr(arg);
+    if (fdatum_is_panic(preres)) {
+      return preres;
+    }
+    res = preres.ok_value;
   } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
@@ -53,7 +65,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *arg) {
   } else {
     return fdatum_make_panic("unknown host instruction");
   }
-  return fdatum_make_ok(res);
+  return fdatum_make_ok(datum_make_list_1(res));
 }
 
 LOCAL void *simplified_dlopen(char *path) {
