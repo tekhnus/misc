@@ -15,7 +15,7 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
 
 EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *type, int arg_count, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":call"), type, datum_make_int(arg_count), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_5(datum_make_symbol(":call"), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count + 1; ++i) {
     *compdata = compdata_del(*compdata);
   }

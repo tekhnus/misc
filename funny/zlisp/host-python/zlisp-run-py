@@ -153,7 +153,7 @@ def main():
             pdata[-1][-1].varz.append((get_var(pdata[-1][-1].varz, offset)))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
-            hat, arg_cnt, nex = args
+            hat, arg_cnt, ret_cnt, nex = args
             if hat == sexpdata.Symbol("hat"):
                 raise RuntimeError("routine-1 call is not supported yet")
             if hat != sexpdata.Symbol("plain"):
