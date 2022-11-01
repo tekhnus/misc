@@ -107,7 +107,12 @@
   42)
 
 
-
+!(#fntest
+  (progn
+    (builtin.defn multi-ret () (return 42 34))
+    (def (x y) (multi-ret @2))
+    (return `(~x ~y)))
+  '(42 34))
 
 !(#defun print-all (xs)
    (if xs

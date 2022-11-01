@@ -241,14 +241,14 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "return");
-    if (list_length(stmt->list_tail) != 1) {
-      return "yield should have a single arg";
+    for (datum *rest = stmt->list_tail; !datum_is_nil(rest); rest=rest->list_tail) {
+      datum *component = rest->list_head;
+      char *err = prog_append_statement(sl, begin, component, compdata, datum_make_nil());
+      if (err != NULL) {
+        return err;
+      }
     }
-    char *err = prog_append_statement(sl, begin, stmt->list_tail->list_head, compdata, datum_make_nil());
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_yield(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), 1, 1, datum_make_nil(), compdata);
+    prog_append_yield(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), list_length(stmt->list_tail), 1, datum_make_nil(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
@@ -273,6 +273,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   bool hash = false;
   bool hat = false;
   bool at = false;
+  size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
          datum_is_symbol(fn->list_head);
        fn = fn->list_tail->list_head) {
@@ -291,7 +292,20 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   if (err != NULL) {
     return err;
   }
-  for (datum *rest_args = stmt->list_tail; !datum_is_nil(rest_args);
+  datum *rest_args = stmt->list_tail;
+  if (!datum_is_nil(rest_args)) {
+    datum *tag = rest_args->list_head;
+    if (datum_is_list(tag) && list_length(tag) == 2 && datum_is_the_symbol(tag->list_head, "at")) {
+      datum *content = list_at(tag, 1);
+      if (!datum_is_integer(content)) {
+        return "unknown tag";
+      }
+      ret_count = content->integer_value;
+      rest_args = rest_args->list_tail;
+    }
+  }
+  size_t arg_count = list_length(rest_args);
+  for (; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
     datum *arg = rest_args->list_head;
     if (hash) {
@@ -303,7 +317,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), list_length(stmt) - 1, 1, compdata);
+  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   if (!at) {
     prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }

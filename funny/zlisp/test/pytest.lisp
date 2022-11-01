@@ -103,6 +103,13 @@
          (return '()))
      (return '())))
 
+!(#fntest
+  (progn
+    (builtin.defn multi-ret () (return 42 34))
+    (def (x y) (multi-ret @2))
+    (return `(~x ~y)))
+  '(42 34))
+
 (if panics
     (progn
       (print-all panics)
