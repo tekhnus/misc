@@ -223,15 +223,16 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       if (err != NULL) {
         return err;
       }
-      prog recieve = datum_to_prog(prog_slice_datum_at(sl, child.offset));
+      routine *child_top = topmost_routine(&child);
+      prog recieve = datum_to_prog(prog_slice_datum_at(sl, child_top->offset));
       if (recieve.type != PROG_YIELD) {
         return "the routine beging called is not at yield instruction";
       }
       if (prg.call_arg_count != recieve.yield_recieve_count) {
         return "arg count and recieve count are not equal";
       }
-      state_stack_put_all(&child.state, args);
-      child.offset = recieve.yield_next;
+      state_stack_put_all(&child_top->state, args);
+      child_top->offset = recieve.yield_next;
       r->child = malloc(sizeof(routine));
       *r->child = child;
       continue;
