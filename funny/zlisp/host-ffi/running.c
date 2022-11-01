@@ -16,33 +16,31 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }
-  if (!datum_is_list(args) || list_length(args) != 1) {
-    return fdatum_make_panic("multiple argument host instructions are not supported yet");
-  }
-  datum *arg = list_at(args, 0);
   datum *res;
   if (!strcmp(name->bytestring_value, "pointer-call") ||
       !strcmp(name->bytestring_value, "pointer-call-datums")) {
-    datum *form = arg;
+    datum *form = args;
     if (!datum_is_list(form) || list_length(form) != 3) {
       return fdatum_make_panic("pointer-call expected a triple on stack");
     }
     datum *fn = form->list_head;
     datum *sig = form->list_tail->list_head;
-    datum *args = form->list_tail->list_tail->list_head;
+    datum *callargs = form->list_tail->list_tail->list_head;
     bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
-    fdatum resu = pointer_call(fn, sig, args, datums);
+    fdatum resu = pointer_call(fn, sig, callargs, datums);
     if (fdatum_is_panic(resu)) {
       return fdatum_make_panic(resu.panic_message);
     }
     res = resu.ok_value;
   } else if (!strcmp(name->bytestring_value, "deref")) {
+    datum *arg = list_at(args, 0);
     fdatum preres = datum_deref(arg);
     if (fdatum_is_panic(preres)) {
       return preres;
     }
     res = preres.ok_value;
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
+    datum *arg = list_at(args, 0);
     fdatum preres = datum_mkptr(arg);
     if (fdatum_is_panic(preres)) {
       return preres;
