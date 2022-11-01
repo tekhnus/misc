@@ -259,13 +259,17 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
                                             sl, begin, stmt->list_tail->list_head, compdata);
   }
   if (datum_is_the_symbol(op, "host")) {
-    if (list_length(stmt->list_tail) != 2) {
-      return "host should have exactly two args";
+    if (list_length(stmt->list_tail) < 1) {
+      return "host should have at least one arg";
     }
-    datum *operation = stmt->list_tail->list_head;
-    datum *arg = stmt->list_tail->list_tail->list_head;
-    prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
-    prog_append_host(sl, begin, operation, compdata);
+    datum *name = stmt->list_tail->list_head;
+    datum *args = stmt->list_tail->list_tail;
+    size_t nargs = list_length(args);
+    for (datum *rest = args; !datum_is_nil(rest); rest=rest->list_tail) {
+      datum *arg = rest->list_head;
+      prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
+    }
+    prog_append_yield(sl, begin, datum_make_symbol("host"), nargs, 1, name, compdata);
     return NULL;
   }
 
@@ -451,10 +455,6 @@ LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt
   }
   prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
   return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
-}
-
-LOCAL void prog_append_host(prog_slice *sl, size_t *begin, datum *name, datum **compdata) {
-  prog_append_yield(sl, begin, datum_make_symbol("host"), 1, 1, name, compdata);
 }
 
 LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
