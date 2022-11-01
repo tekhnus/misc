@@ -33,8 +33,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     }
     res = resu.ok_value;
   } else if (!strcmp(name->bytestring_value, "deref")) {
-    datum *arg = list_at(args, 0);
-    fdatum preres = datum_deref(arg);
+    fdatum preres = datum_deref(args);
     if (fdatum_is_panic(preres)) {
       return preres;
     }
@@ -217,8 +216,8 @@ LOCAL fdatum datum_mkptr(datum *arg) {
   }
 }
 
-LOCAL fdatum datum_deref(datum *arg) {
-  datum *form = arg;
+LOCAL fdatum datum_deref(datum *args) {
+  datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     return fdatum_make_panic("deref expected a pair on stack");
   }

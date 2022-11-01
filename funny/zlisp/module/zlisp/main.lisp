@@ -62,7 +62,7 @@
            (return `(:err ~msg)))
        (progn
          (def val (fdatum-get-value res))
-         (def new-rt (host "deref" `(~rt-ptr int64)))
+         (def new-rt (derefw `(~rt-ptr int64)))
          (return `(:ok ~val ~new-rt))))))
 
 (def datum-read-one (c-function-or-panic selflib "datum_read_one" '((pointer) fdatum)))
