@@ -89,9 +89,9 @@
        (return 8)
        (return 13)))
     (def (x fib) (@fib))
-    (def (y fib) (@fib))
-    (def (z fib) (@fib))
-    (def (t fib) (@fib))
+    (def (y fib) (@fib '()))
+    (def (z fib) (@fib '()))
+    (def (t fib) (@fib '()))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
