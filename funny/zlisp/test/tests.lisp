@@ -114,6 +114,32 @@
     (return `(~x ~y)))
   '(42 34))
 
+!(#fntest
+  (progn
+    (builtin.defn cl-cons (x xs)
+                  (return (builtin.fn () (return x xs))))
+
+    (builtin.defn cl-head (xs)
+                  (progn
+                    (def (h r) (xs @2))
+                    (return h)))
+
+    (builtin.defn cl-tail (xs)
+                  (progn
+                    (def (h r) (xs @2))
+                    (return r)))
+
+    (def cl-nil :nil)
+
+    (def xs0 cl-nil)
+    (def xs1 (cl-cons 42 xs0))
+    (def xs2 (cl-cons 34 xs1))
+
+    (def a (cl-head xs2))
+    (def b (cl-head (cl-tail xs2)))
+    (return `(~a ~b)))
+  '(34 42))
+
 !(#defun print-all (xs)
    (if xs
        (progn
