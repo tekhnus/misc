@@ -36,7 +36,6 @@ tools/
 - Unite preprocessor with quasiquotes
 - Sanitized macros
 
-- Prohibit self-referential datums (currently used for representing recursive functions)
 - Fix the size of module representation which is quadratic w.r.t. the function count
 - Switch from linked lists to slices
 - Sane approach to memory allocation/deallocation
