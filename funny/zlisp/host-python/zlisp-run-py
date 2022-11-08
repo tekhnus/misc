@@ -216,11 +216,12 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":resolve"):
             nex, = args
-            fnptr = pop_stack()
+            fnptr = pdata[-1][-1].varz[-1]
             pr, stateptr = fnptr
             if stateptr > len(pdata[-1][-1].varz):
                 raise RuntimeError("statptr is too big")
             cutvarz = pdata[-1][-1].varz[:stateptr]
+            pop_stack()
             pdata[-1][-1].varz.append(make_list_with_items(pr, cutvarz))
             ip = nex
         elif op == sexpdata.Symbol(":yield"):

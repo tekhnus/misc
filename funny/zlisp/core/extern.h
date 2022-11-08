@@ -13,9 +13,9 @@ struct fdatum {
   char *panic_message;
 };
 fdatum state_stack_at(datum *ns,int offset);
+datum *state_stack_pop(datum **s);
 #define LOCAL static
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
-datum *state_stack_pop(datum **s);
 void state_stack_put(datum **ns,datum *value);
 datum *state_stack_top(datum **s);
 void state_stack_put_all(datum **ns,datum *list);

@@ -272,14 +272,20 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       continue;
     }
     if (prg.type == PROG_RESOLVE) {
-      datum *fnptr = state_stack_pop(&r->state);
+      // we don't pop immediately because the pointer might want to reference itself
+      // (this happens with lambdas).
+      datum *fnptr = state_stack_top(&r->state);
       if (!datum_is_list(fnptr) || list_length(fnptr) != 2 || !datum_is_integer(list_at(fnptr, 0)) || !datum_is_integer(list_at(fnptr, 1))) {
         return "incorrect fnptr";
       }
       size_t off = list_at(fnptr, 0)->integer_value;
       size_t stack_off = list_at(fnptr, 1)->integer_value;
       datum *cut_state = list_cut(r->state, stack_off);
+      if (cut_state == NULL) {
+        return "list_cut: list is too short";
+      }
       routine rt = {.offset = off, .state = cut_state, .child = NULL};
+      state_stack_pop(&r->state);
       state_stack_put(&r->state, routine_to_datum(&rt));
       r->offset = prg.resolve_next;
       continue;
@@ -418,7 +424,7 @@ void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   for (routine *z = r; z != NULL; z = z->child) {
-      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
+      for (ptrdiff_t i = z->offset - 1000; i < z->offset + 3; ++i) {
         if (i < 0) {
           continue;
         }
@@ -488,8 +494,7 @@ EXPORT datum *state_stack_collect(datum **s, size_t count) {
 LOCAL datum *list_cut(datum *xs, size_t rest_length) {
   size_t len = list_length(xs);
   if (len < rest_length) {
-    fprintf(stderr, "list_cut: list is too short\n");
-    exit(EXIT_FAILURE);
+    return NULL;
   }
   size_t cut_cnt = len - rest_length;
   for (size_t i = 0; i < cut_cnt; ++i) {
