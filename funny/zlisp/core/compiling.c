@@ -205,12 +205,11 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     datum *name = list_at(stmt, 1);
     datum *args;
     datum *body;
-    if (list_length(stmt->list_tail) == 3) {
-      args = list_at(stmt, 2);
-      body = list_at(stmt, 3);
-    } else {
-      return datum_repr(datum_make_list_2(datum_make_symbol("wrong defn"), list_at(stmt, 1)));
+    if (list_length(stmt->list_tail) != 3) {
+      return "wrong defn";
     }
+    args = list_at(stmt, 2);
+    body = list_at(stmt, 3);
     size_t s_off = prog_slice_append_new(sl);
     *compdata = compdata_put(*compdata, name);
     char *err = prog_init_routine(sl, s_off, args, body, compdata, datum_make_list(name, info));
@@ -223,12 +222,11 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   if (datum_is_the_symbol(op, "builtin.fn")) {
     datum *args;
     datum *body;
-    if (list_length(stmt->list_tail) == 2) {
-      args = list_at(stmt, 1);
-      body = list_at(stmt, 2);
-    } else {
-      return datum_repr(datum_make_list_2(datum_make_symbol("wrong fn"), stmt));
+    if (list_length(stmt->list_tail) != 2) {
+      return "wrong fn";
     }
+    args = list_at(stmt, 1);
+    body = list_at(stmt, 2);
     size_t s_off = prog_slice_append_new(sl);
     char *err =
       prog_init_routine(sl, s_off, args, body, compdata, datum_make_list(datum_make_symbol("lambda"), info));
