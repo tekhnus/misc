@@ -195,13 +195,6 @@ def main():
             (nex,) = args
             pop_stack()
             ip = nex
-        elif op == sexpdata.Symbol(":set-closures"):
-            pr, nex = args
-            pvarz = list(pdata[-1][-1].varz)
-            p = make_routine_0(pr, pvarz)
-            pvarz.append((p))
-            pdata[-1][-1].varz.append((p))
-            ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
             if capture == 1:

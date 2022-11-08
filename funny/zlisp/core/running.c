@@ -13,7 +13,6 @@ enum prog_type {
   PROG_COLLECT,
   PROG_UNCOLLECT,
   PROG_POP,
-  PROG_SET_CLOSURES,
   PROG_PUT_PROG,
   PROG_RESOLVE,
   PROG_YIELD,
@@ -61,10 +60,6 @@ struct prog {
       ptrdiff_t put_prog_next;
     };
     ptrdiff_t resolve_next;
-    struct {
-      ptrdiff_t set_closures_prog;
-      ptrdiff_t set_closures_next;
-    };
     struct {
       struct datum *yield_type;
       size_t yield_count;
@@ -239,18 +234,6 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       *r->child = child;
       continue;
     }
-    if (prg.type == PROG_SET_CLOSURES) {
-      // TODO: check this
-      datum *state = datum_make_nil();
-      routine cl = {.offset = prg.set_closures_prog, .state = state, .child = NULL};
-      datum *clos = routine_to_datum(&cl);
-      state_stack_put(&r->state, clos);
-      *state = *r->state;
-      // modifying a datum because we need to
-      // create a circular reference:(
-      r->offset = prg.set_closures_next;
-      continue;
-    }
     if (prg.type == PROG_PUT_PROG) {
       routine rt;
       rt.offset = prg.put_prog_value;
@@ -394,10 +377,6 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":pop")) {
     res.type = PROG_POP;
     res.pop_next = (list_at(d, 1)->integer_value);
-  } else if (!strcmp(opsym, ":set-closures")) {
-    res.type = PROG_SET_CLOSURES;
-    res.set_closures_prog = (list_at(d, 1)->integer_value);
-    res.set_closures_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_value = (list_at(d, 1)->integer_value);
