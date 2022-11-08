@@ -15,6 +15,7 @@ enum prog_type {
   PROG_POP,
   PROG_SET_CLOSURES,
   PROG_PUT_PROG,
+  PROG_RESOLVE,
   PROG_YIELD,
 };
 
@@ -56,9 +57,10 @@ struct prog {
     };
     struct {
       ptrdiff_t put_prog_value;
-      bool put_prog_capture;
+      int put_prog_capture;
       ptrdiff_t put_prog_next;
     };
+    ptrdiff_t resolve_next;
     struct {
       ptrdiff_t set_closures_prog;
       ptrdiff_t set_closures_next;
@@ -253,14 +255,33 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       routine rt;
       rt.offset = prg.put_prog_value;
       rt.child = NULL;
-      if (prg.put_prog_capture) {
+      if (prg.put_prog_capture == 1) {
         rt.state = r->state;
-      } else {
+      } else if (prg.put_prog_capture == 0) {
         rt.state = datum_make_nil();
+      } else {
+        size_t stack_size_after_put = list_length(r->state) + 1;
+        datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(stack_size_after_put));
+        state_stack_put(&r->state, prog_ptr);
+        r->offset = prg.put_prog_next;
+        continue;
       }
       datum *prog = routine_to_datum(&rt);
       state_stack_put(&r->state, prog);
       r->offset = prg.put_prog_next;
+      continue;
+    }
+    if (prg.type == PROG_RESOLVE) {
+      datum *fnptr = state_stack_pop(&r->state);
+      if (!datum_is_list(fnptr) || list_length(fnptr) != 2 || !datum_is_integer(list_at(fnptr, 0)) || !datum_is_integer(list_at(fnptr, 1))) {
+        return "incorrect fnptr";
+      }
+      size_t off = list_at(fnptr, 0)->integer_value;
+      size_t stack_off = list_at(fnptr, 1)->integer_value;
+      datum *cut_state = list_cut(r->state, stack_off);
+      routine rt = {.offset = off, .state = cut_state, .child = NULL};
+      state_stack_put(&r->state, routine_to_datum(&rt));
+      r->offset = prg.resolve_next;
       continue;
     }
     if (prg.type == PROG_NOP) {
@@ -376,6 +397,9 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_prog_value = (list_at(d, 1)->integer_value);
     res.put_prog_capture = list_at(d, 2)->integer_value;
     res.put_prog_next = (list_at(d, 3)->integer_value);
+  } else if (!strcmp(opsym, ":resolve")) {
+    res.type = PROG_RESOLVE;
+    res.resolve_next = list_at(d, 1)->integer_value;
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);
@@ -459,4 +483,17 @@ EXPORT datum *state_stack_collect(datum **s, size_t count) {
     form = datum_make_list(arg, form);
   }
   return form;
+}
+
+LOCAL datum *list_cut(datum *xs, size_t rest_length) {
+  size_t len = list_length(xs);
+  if (len < rest_length) {
+    fprintf(stderr, "list_cut: list is too short\n");
+    exit(EXIT_FAILURE);
+  }
+  size_t cut_cnt = len - rest_length;
+  for (size_t i = 0; i < cut_cnt; ++i) {
+    xs = xs->list_tail;
+  }
+  return xs;
 }

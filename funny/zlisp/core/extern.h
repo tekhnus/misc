@@ -13,12 +13,13 @@ struct fdatum {
   char *panic_message;
 };
 fdatum state_stack_at(datum *ns,int offset);
+#define LOCAL static
+LOCAL datum *list_cut(datum *xs,size_t rest_length);
 datum *state_stack_pop(datum **s);
 void state_stack_put(datum **ns,datum *value);
 datum *state_stack_top(datum **s);
 void state_stack_put_all(datum **ns,datum *list);
 datum *state_stack_collect(datum **s,size_t count);
-#define LOCAL static
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 typedef struct routine routine;
@@ -42,8 +43,9 @@ LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *m
 LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
+LOCAL void prog_append_resolve(prog_slice *sl,size_t *begin);
 LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p);
-LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **compdata,datum *info);
+LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,datum *info);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
 LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);

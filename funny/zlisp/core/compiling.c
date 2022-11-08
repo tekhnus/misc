@@ -211,12 +211,32 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     args = list_at(stmt, 2);
     body = list_at(stmt, 3);
     size_t s_off = prog_slice_append_new(sl);
-    *compdata = compdata_put(*compdata, name);
-    char *err = prog_init_routine(sl, s_off, args, body, compdata, datum_make_list(name, info));
+    datum *routine_compdata = compdata_put(*compdata, name);
+    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata, datum_make_list(name, info));
     if (err != NULL) {
       return err;
     }
     prog_append_set_closures(sl, begin, s_off);
+    *compdata = compdata_put(*compdata, name);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "builtin.defun")) {
+    datum *name = list_at(stmt, 1);
+    datum *args;
+    datum *body;
+    if (list_length(stmt->list_tail) != 3) {
+      return "wrong defun";
+    }
+    args = list_at(stmt, 2);
+    body = list_at(stmt, 3);
+    size_t s_off = prog_slice_append_new(sl);
+    datum *routine_compdata = compdata_put(*compdata, name);
+    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata, datum_make_list(name, info));
+    if (err != NULL) {
+      return err;
+    }
+    prog_append_put_prog(sl, begin, s_off, 2, compdata);
+    prog_append_pop(sl, begin, datum_make_list_1(name), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn")) {
@@ -228,12 +248,22 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     args = list_at(stmt, 1);
     body = list_at(stmt, 2);
     size_t s_off = prog_slice_append_new(sl);
+    datum *routine_compdata = *compdata;
     char *err =
-      prog_init_routine(sl, s_off, args, body, compdata, datum_make_list(datum_make_symbol("lambda"), info));
+      prog_init_routine(sl, s_off, args, body, &routine_compdata, datum_make_list(datum_make_symbol("lambda"), info));
     if (err != NULL) {
       return err;
     }
     prog_append_put_prog(sl, begin, s_off, 1, compdata);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "resolve")) {
+    if (list_length(stmt->list_tail) != 1) {
+      return "resolve takes a single argument";
+    }
+    datum *arg = list_at(stmt, 1);
+    prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
+    prog_append_resolve(sl, begin);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
@@ -444,15 +474,14 @@ LOCAL fdatum prog_read_exports(datum *spec) {
   return fdatum_make_ok(datum_make_list_2(names, expressions));
 }
 
-LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt, datum **compdata, datum *info) {
-  datum *routine_compdata = *compdata;
+LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args, datum *stmt, datum **routine_compdata, datum *info) {
   if (args == NULL) {
     return "args can't be null";
   } else {
-    prog_append_recieve(sl, &s, args, datum_make_nil(), &routine_compdata);
+    prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
   prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
-  return prog_append_statement(sl, &s, stmt, &routine_compdata, info);
+  return prog_append_statement(sl, &s, stmt, routine_compdata, info);
 }
 
 LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
@@ -467,6 +496,12 @@ LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datu
 LOCAL void prog_append_set_closures(prog_slice *sl, size_t *begin, size_t p) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":set-closures"), datum_make_int(p), datum_make_int(next)));
+  *begin = next;
+}
+
+LOCAL void prog_append_resolve(prog_slice *sl, size_t *begin) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":resolve"), datum_make_int(next)));
   *begin = next;
 }
 
