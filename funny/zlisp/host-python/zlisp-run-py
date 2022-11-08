@@ -204,12 +204,24 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
-            if capture:
+            if capture == 1:
                 pvarz = list(pdata[-1][-1].varz)
                 p = make_routine_0(pr, pvarz)
-            else:
+            elif capture == 0:
                 p = make_routine_0(pr, [])
+            else:
+                size_after_put = len(pdata[-1][-1].varz) + 1
+                p = make_list_with_items(pr, size_after_put)
             pdata[-1][-1].varz.append((p))
+            ip = nex
+        elif op == sexpdata.Symbol(":resolve"):
+            nex, = args
+            fnptr = pop_stack()
+            pr, stateptr = fnptr
+            if stateptr > len(pdata[-1][-1].varz):
+                raise RuntimeError("statptr is too big")
+            cutvarz = pdata[-1][-1].varz[:stateptr]
+            pdata[-1][-1].varz.append(make_list_with_items(pr, cutvarz))
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
             hat, cnt, recieve_cnt, meta, nex = args
