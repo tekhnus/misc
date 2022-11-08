@@ -495,7 +495,7 @@ LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datu
 }
 
 
-LOCAL void prog_append_resolve(prog_slice *sl, size_t *begin) {
+EXPORT void prog_append_resolve(prog_slice *sl, size_t *begin) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":resolve"), datum_make_int(next)));
   *begin = next;

@@ -198,14 +198,12 @@ def main():
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
             if capture == 0:
-                p = make_routine_0(pr, [])
-                pdata[-1][-1].varz.append((p))
-                ip = nex
+                capture_size = 0
             else:
-                size_after_put = len(pdata[-1][-1].varz) + 1
-                p = make_list_with_items(pr, size_after_put)
-                pdata[-1][-1].varz.append((p))
-                ip = nex
+                capture_size = len(pdata[-1][-1].varz) + 1
+            p = make_list_with_items(pr, capture_size)
+            pdata[-1][-1].varz.append((p))
+            ip = nex
         elif op == sexpdata.Symbol(":resolve"):
             nex, = args
             fnptr = pdata[-1][-1].varz[-1]

@@ -80,6 +80,7 @@ void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,da
 void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);
+void prog_append_resolve(prog_slice *sl,size_t *begin);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 datum *routine_make_new(ptrdiff_t prg);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));

@@ -235,22 +235,16 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
+      size_t capture_size;
       if (prg.put_prog_capture == 0) {
-        routine rt;
-        rt.offset = prg.put_prog_value;
-        rt.child = NULL;
-        rt.state = datum_make_nil();
-        datum *prog = routine_to_datum(&rt);
-        state_stack_put(&r->state, prog);
-        r->offset = prg.put_prog_next;
-        continue;
+        capture_size = 0;
       } else {
-        size_t stack_size_after_put = list_length(r->state) + 1;
-        datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(stack_size_after_put));
-        state_stack_put(&r->state, prog_ptr);
-        r->offset = prg.put_prog_next;
-        continue;
+        capture_size = list_length(r->state) + 1;
       }
+      datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(capture_size));
+      state_stack_put(&r->state, prog_ptr);
+      r->offset = prg.put_prog_next;
+      continue;
     }
     if (prg.type == PROG_RESOLVE) {
       // we don't pop immediately because the pointer might want to reference itself
