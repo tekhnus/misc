@@ -24,7 +24,7 @@
   (if xs
       (return (cons
        (head xs)
-       (append
+       ((resolve append)
 	x
 	(tail xs))))
     (return `(~x))))
@@ -36,7 +36,7 @@
                                        (if (eq :ok (head first-arg))
                                            (progn
                                              (return (second first-arg)))
-                                         (return (first-good-value (tail x)))))
+                                         (return ((resolve first-good-value) (tail x)))))
                                    (panic "first-good-value: no good value"))))
 
 (export

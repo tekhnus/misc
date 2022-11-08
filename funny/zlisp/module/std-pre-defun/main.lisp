@@ -17,7 +17,7 @@
 (builtin.defn last (a0)
 	      
 	 (if (tail a0)
-	     (return (last (tail a0)))
+	     (return ((resolve last) (tail a0)))
 	   (return (head a0))))
 
 (def type (builtin.fn (x) (return (head (annotate x)))))
@@ -25,7 +25,7 @@
 (builtin.defn concat (a0 a1)
 	     
     (if a0
-	(return (cons (head a0) (concat (tail a0) a1)))
+	(return (cons (head a0) ((resolve concat) (tail a0) a1)))
       (return a1)))
 
 
@@ -33,7 +33,7 @@
 (builtin.defn zip (a0 a1)
 	      
     (if a0
-	(return (cons `(~(head a0) ~(head a1)) (zip (tail a0) (tail a1))))
+	(return (cons `(~(head a0) ~(head a1)) ((resolve zip) (tail a0) (tail a1))))
       (return '())))
 
 (builtin.defn map	     (a0 a1)
@@ -41,7 +41,7 @@
       (return (cons
        (a0
 	(head a1))
-       (map
+       ((resolve map)
 	a0
 	(tail a1))))
     (return '())))
@@ -65,7 +65,7 @@
 		    (def firstarg (head a0))
 		    (def cond (head firstarg))
 		    (def body (second firstarg))
-		    (def rest (swtchone (tail a0)))
+		    (def rest ((resolve swtchone) (tail a0)))
 		    (return `(progn
 			       (def prearg ~cond)
 			       (if (eq (head prearg) :ok)
@@ -101,8 +101,8 @@
 			(if pat
 			    (if val
 				(progn
-				  (def first-decons (decons-pat (head pat) (head val)))
-				  (def rest-decons (decons-pat (tail pat) (tail val)))
+				  (def first-decons ((resolve decons-pat) (head pat) (head val)))
+				  (def rest-decons ((resolve decons-pat) (tail pat) (tail val)))
 				  (if (eq :err (head rest-decons))
 				      (return '(:err))
 				    (if (eq :err (head first-decons))
@@ -133,7 +133,7 @@
 	  (return `(~a0))
 	(if (eq (type a0) :list)
 	    (if a0
-		(return (concat (decons-vars (head a0)) (decons-vars (tail a0))))
+		(return (concat ((resolve decons-vars) (head a0)) ((resolve decons-vars) (tail a0))))
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 

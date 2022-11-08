@@ -32,7 +32,7 @@
                 (def params arg0)
                 (def signature arg1)
                 (if params
-                    (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
+                    (return (cons (serialize-param (head params) (head signature)) ((resolve serialize-params) (tail params) (tail signature))))
                   (return '()))))
 
 (builtin.defn  derefw (arg0)
@@ -84,7 +84,7 @@
                 (def xs arg1)
                 (if xs
                     (if n
-                        (return (nth (tail n) (tail xs)))
+                        (return ((resolve nth) (tail n) (tail xs)))
                       (return (head xs)))
                   (panic "nth fail"))))
 

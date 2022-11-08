@@ -216,8 +216,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    prog_append_set_closures(sl, begin, s_off);
-    *compdata = compdata_put(*compdata, name);
+    prog_append_put_prog(sl, begin, s_off, 2, compdata);
+    prog_append_resolve(sl, begin);
+    prog_append_pop(sl, begin, datum_make_list_1(name), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defun")) {

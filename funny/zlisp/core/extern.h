@@ -37,6 +37,7 @@ fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instructio
 LOCAL datum *routine_to_datum(routine *r);
 datum *routine_make_new(ptrdiff_t prg);
 LOCAL void prog_append_uncollect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
+LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p);
 LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
@@ -44,7 +45,6 @@ LOCAL fdatum prog_read_usages(datum *spec);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 LOCAL void prog_append_resolve(prog_slice *sl,size_t *begin);
-LOCAL void prog_append_set_closures(prog_slice *sl,size_t *begin,size_t p);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,datum *info);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
 LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);

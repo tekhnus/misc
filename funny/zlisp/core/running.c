@@ -424,7 +424,7 @@ void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   for (routine *z = r; z != NULL; z = z->child) {
-      for (ptrdiff_t i = z->offset - 1000; i < z->offset + 3; ++i) {
+      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
         if (i < 0) {
           continue;
         }
