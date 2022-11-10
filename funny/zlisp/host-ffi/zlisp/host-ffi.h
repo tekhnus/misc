@@ -10,7 +10,7 @@ fdatum builtin_repr(datum *v);
 fdatum builtin_concat_bytestrings(datum *x,datum *y);
 fdatum builtin_add(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);
-fdatum builtin_head(datum *list);
+fdatum builtin_head(datum *args);
 fdatum builtin_tail(datum *list);
 #include <dlfcn.h>
 #include <ffi.h>

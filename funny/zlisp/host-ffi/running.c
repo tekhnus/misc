@@ -29,6 +29,18 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
     fdatum resu = pointer_call(fn, sig, callargs, datums);
     return resu;
+  } else if (!strcmp(name->bytestring_value, "call-extension")) {
+    if (!datum_is_list(args) || list_length(args) == 0) {
+      return fdatum_make_panic("call-extension expected at least a single arg");
+    }
+    datum *fn = args->list_head;
+    datum *callargs = args->list_tail;
+    if (!datum_is_integer(fn)) {
+      return fdatum_make_panic("call-extension expected a pointer to function");
+    }
+    fdatum (*fnptr)(datum *) = (fdatum (*)(datum *)) fn->integer_value;
+    fdatum results = fnptr(callargs);
+    return results;
   } else if (!strcmp(name->bytestring_value, "deref")) {
     return datum_deref(args);
   } else if (!strcmp(name->bytestring_value, "mkptr")) {

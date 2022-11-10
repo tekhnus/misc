@@ -72,11 +72,15 @@ fdatum builtin_cons(datum *head, datum *tail) {
   return fdatum_make_ok(datum_make_list(head, tail));
 }
 
-fdatum builtin_head(datum *list) {
+fdatum builtin_head(datum *args) {
+  if (list_length(args) != 1) {
+    return fdatum_make_panic("head expects a single argument");
+  }
+  datum *list = list_at(args, 0);
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("car expects a nonempty list");
   }
-  return fdatum_make_ok(list->list_head);
+  return fdatum_make_ok(datum_make_list_1(list->list_head));
 }
 
 fdatum builtin_tail(datum *list) {

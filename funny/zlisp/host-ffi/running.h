@@ -17,7 +17,7 @@ LOCAL void *simplified_dlopen(char *path);
 fdatum builtin_eq(datum *x,datum *y);
 fdatum builtin_cons(datum *head,datum *tail);
 fdatum builtin_tail(datum *list);
-fdatum builtin_head(datum *list);
+fdatum builtin_head(datum *args);
 fdatum builtin_panic(datum *arg_value);
 LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);

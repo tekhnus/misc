@@ -4,7 +4,7 @@
 (builtin.defn panic (x) (return (host "deref" (host "pointer-call-datums" panic-pointer  '((datum) val)  `(~x)) 'val)))
 
 (def head-pointer (host "head" '()))
-(builtin.defn head (x) (return (host "deref" (host "pointer-call-datums" head-pointer  '((datum) val)  `(~x)) 'val)))
+(builtin.defn head (x) (return (host "call-extension" head-pointer x)))
 
 (def tail-pointer (host "tail" '()))
 (builtin.defn tail (x) (return (host "deref" (host "pointer-call-datums" tail-pointer  '((datum) val)  `(~x)) 'val)))

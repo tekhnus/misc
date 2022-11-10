@@ -19,7 +19,8 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
 
 EXPORT int list_length(datum *seq) {
   if (!datum_is_list(seq)) {
-    return -1;
+    fprintf(stderr, "not a list\n");
+    exit(EXIT_FAILURE);
   }
   int res;
   for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
