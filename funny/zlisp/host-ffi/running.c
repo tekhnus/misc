@@ -56,9 +56,6 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
 }
 
 LOCAL void *simplified_dlopen(char *path) {
-  if (strlen(path) == 0) {
-    return RTLD_DEFAULT;
-  }
   return dlopen(path, RTLD_LAZY);
 }
 

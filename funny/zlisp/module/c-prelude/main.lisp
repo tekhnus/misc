@@ -60,6 +60,7 @@
 
 (def dlopen-pointer (host "dlopen" '()))
 (builtin.defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string) pointer) `(~x))))
+(builtin.defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer) pointer) `(~(mkptr 0 'sizet)))))
 
 (def dlsym-pointer (host "dlsym" '()))
 (builtin.defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
@@ -108,7 +109,7 @@
                     (def pcadfn (nth argssig pcadfns))
                     (return pcadfn)))))
 
-(def selflib (dlopen ""))
+(def selflib (dlopen-null))
 
 (builtin.defn builtin-function (c-name signature)
               (progn
