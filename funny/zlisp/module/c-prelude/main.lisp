@@ -58,9 +58,12 @@
                 (def rawres (pointer-call fn-ptr `(~fnparamst ~rettype) s))
                 (return (derefw2 rawres rettype))))
 
+(def rtld-lazy (host "RTLD_LAZY" '()))
+
 (def dlopen-pointer (host "dlopen" '()))
-(builtin.defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string) pointer) `(~x))))
-(builtin.defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer) pointer) `(~(mkptr 0 'sizet)))))
+"TODO: dlopen actually has an int argument, not a size_t."
+(builtin.defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
+(builtin.defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
 
 (def dlsym-pointer (host "dlsym" '()))
 (builtin.defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))

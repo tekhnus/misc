@@ -11,7 +11,6 @@ LOCAL void *allocate_space_for_return_value(datum *sig);
 LOCAL char *pointer_ffi_serialize_args(datum *args,void **cargs,int nargs);
 LOCAL char *pointer_ffi_init_cif(datum *sig,ffi_cif *cif);
 LOCAL bool ffi_type_init(ffi_type **type,datum *definition);
-LOCAL void *simplified_dlopen(char *path);
 #include <stdint.h>
 fdatum builtin_eq(datum *args);
 fdatum builtin_cons(datum *args);

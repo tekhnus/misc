@@ -1,4 +1,3 @@
-#define _GNU_SOURCE
 #include <running.h>
 #if INTERFACE
 #include <dlfcn.h>
@@ -46,17 +45,15 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
   } else if (!strcmp(name->bytestring_value, "eq")) {
     res = datum_make_int((int64_t)builtin_eq);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
-    res = datum_make_int((int64_t)simplified_dlopen);
+    res = datum_make_int((int64_t)dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
     res = datum_make_int((int64_t)dlsym);
+  } else if (!strcmp(name->bytestring_value, "RTLD_LAZY")) {
+    res = datum_make_int(RTLD_LAZY);
   } else {
     return fdatum_make_panic("unknown host instruction");
   }
   return fdatum_make_ok(datum_make_list_1(res));
-}
-
-LOCAL void *simplified_dlopen(char *path) {
-  return dlopen(path, RTLD_LAZY);
 }
 
 LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
