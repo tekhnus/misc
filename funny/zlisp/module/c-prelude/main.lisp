@@ -6,6 +6,9 @@
 (def mkptr-pointer (host "mkptr-pointer" '()))
 (builtin.defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
 
+(def pointer-call-pointer (host "pointer-call-pointer" '()))
+(builtin.defn pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
+
 (def panic-pointer (host "panic" '()))
 (builtin.defn panic (x) (return (host "call-extension" panic-pointer x)))
 
@@ -52,7 +55,7 @@
                 (def fnparamst (head signature))
                 (def rettype (head (tail signature)))
                 (def s (serialize-params params fnparamst))
-                (def rawres (host "pointer-call" fn-ptr `(~fnparamst ~rettype) s))
+                (def rawres (pointer-call fn-ptr `(~fnparamst ~rettype) s))
                 (return (derefw2 rawres rettype))))
 
 (def dlopen-pointer (host "dlopen" '()))

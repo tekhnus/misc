@@ -17,17 +17,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "pointer-call")) {
-    datum *form = args;
-    if (!datum_is_list(form) || list_length(form) != 3) {
-      return fdatum_make_panic("pointer-call expected a triple on stack");
-    }
-    datum *fn = form->list_head;
-    datum *sig = form->list_tail->list_head;
-    datum *callargs = form->list_tail->list_tail->list_head;
-    fdatum resu = pointer_call(fn, sig, callargs);
-    return resu;
-  } else if (!strcmp(name->bytestring_value, "call-extension")) {
+  if (!strcmp(name->bytestring_value, "call-extension")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
       return fdatum_make_panic("call-extension expected at least a single arg");
     }
@@ -43,6 +33,8 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     res = datum_make_int((int64_t)datum_deref);
   } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
     res = datum_make_int((int64_t)datum_mkptr);
+  } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
+    res = datum_make_int((int64_t)pointer_call);
   } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
@@ -266,7 +258,14 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
   return res;
 }
 
-LOCAL fdatum pointer_call(datum *fpt, datum *sig, datum *args) {
+LOCAL fdatum pointer_call(datum *argz) {
+  if (!datum_is_list(argz) || list_length(argz) != 3) {
+    return fdatum_make_panic("pointer-call expected a triple on stack");
+  }
+
+  datum *fpt = list_at(argz, 0);
+  datum *sig = list_at(argz, 1);
+  datum *args = list_at(argz, 2);
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
   char *err = NULL;

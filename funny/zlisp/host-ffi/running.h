@@ -19,9 +19,9 @@ fdatum builtin_cons(datum *args);
 fdatum builtin_tail(datum *args);
 fdatum builtin_head(datum *args);
 fdatum builtin_panic(datum *args);
+LOCAL fdatum pointer_call(datum *argz);
 LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);
-LOCAL fdatum pointer_call(datum *fpt,datum *sig,datum *args);
 LOCAL fdatum perform_host_instruction(datum *name,datum *args);
 fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl,datum **r0d);
 #define EXPORT
