@@ -48,7 +48,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     res = datum_make_int((int64_t)simplified_dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
-    res = datum_make_int((int64_t)simplified_dlsym);
+    res = datum_make_int((int64_t)dlsym);
   } else {
     return fdatum_make_panic("unknown host instruction");
   }
@@ -60,10 +60,6 @@ LOCAL void *simplified_dlopen(char *path) {
     return RTLD_DEFAULT;
   }
   return dlopen(path, RTLD_LAZY);
-}
-
-LOCAL void *simplified_dlsym(void *handle, const char *symbol) {
-  return dlsym(handle, symbol);
 }
 
 LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
