@@ -41,10 +41,10 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     fdatum (*fnptr)(datum *) = (fdatum (*)(datum *)) fn->integer_value;
     fdatum results = fnptr(callargs);
     return results;
-  } else if (!strcmp(name->bytestring_value, "deref")) {
-    return datum_deref(args);
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
     return datum_mkptr(args);
+  } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
+    res = datum_make_int((int64_t)datum_deref);
   } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
