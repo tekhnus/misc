@@ -15,10 +15,8 @@
 (def eq-pointer (host "eq" '()))
 (builtin.defn eq (x y) (return (host "deref" (host "pointer-call-datums" eq-pointer  '((datum datum) val)  `(~x ~y)) 'val)))
 
-(builtin.defn serialize-param (arg0 arg1)
+(builtin.defn serialize-param (param signature)
               (progn
-                (def param arg0)
-                (def signature arg1)
                 (if (eq signature 'pointer)
                     (return param)
                   (if (eq signature 'fdatum)
@@ -27,17 +25,14 @@
                         (return param)
                       (return (host "mkptr" param signature)))))))
 
-(builtin.defn serialize-params (arg0 arg1)
+(builtin.defn serialize-params (params signature)
               (progn
-                (def params arg0)
-                (def signature arg1)
                 (if params
                     (return (cons (serialize-param (head params) (head signature)) ((resolve serialize-params) (tail params) (tail signature))))
                   (return '()))))
 
-(builtin.defn  derefw (arg0)
+(builtin.defn  derefw (whathow)
               (progn
-                (def whathow arg0)
                 (def what (head whathow))
                 (def how (head (tail whathow)))
                 (if (eq how 'pointer)
@@ -48,9 +43,8 @@
                         (return what)
                       (return (host "deref" what how)))))))
 
-(builtin.defn pointer-call-and-deserialize (arg0)
+(builtin.defn pointer-call-and-deserialize (annotated-function-and-params)
               (progn
-                (def annotated-function-and-params arg0)
                 (def annotated-function (head annotated-function-and-params))
                 (def params (head (tail annotated-function-and-params)))
                 (def annotation annotated-function)
@@ -69,19 +63,14 @@
 (def dlsym-pointer (host "dlsym" '()))
 (builtin.defn dlsym (x y) (return (pointer-call-and-deserialize `((~dlsym-pointer ((pointer string) pointer)) (~x ~y)))))
 
-(builtin.defn c-data-pointer (arg0 arg1 arg2)
+(builtin.defn c-data-pointer (handle c-name signature)
             (progn
-              (def handle arg0)
-                (def c-name arg1)
-                (def signature arg2)
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (derefw `(~fn-pointer-pointer int64)))
                 (return fn-pointer)))    
 
-(builtin.defn nth (arg0 arg1)
+(builtin.defn nth (n xs)
               (progn
-                (def n arg0)
-                (def xs arg1)
                 (if xs
                     (if n
                         (return ((resolve nth) (tail n) (tail xs)))
@@ -106,12 +95,8 @@
              ~pointer-call-and-deserialize-6
              ~pointer-call-and-deserialize-7)))))
 
-
-(builtin.defn c-function-or-panic (arg0 arg1 arg2)
+(builtin.defn c-function-or-panic (handle c-name signature)
               (progn
-                (def handle arg0)
-                (def c-name arg1)
-                (def signature arg2)
                 (def argssig (head signature))
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
@@ -124,10 +109,8 @@
 
 (def selflib (dlopen ""))
 
-(builtin.defn builtin-function (arg0 arg1)
+(builtin.defn builtin-function (c-name signature)
               (progn
-                (def c-name arg0)
-                (def signature arg1)
                 (return (c-function-or-panic selflib c-name signature))))
 
 (def eq (builtin-function "builtin_eq" '((datum datum) val)))
@@ -137,25 +120,22 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
-(builtin.defn wrap-pointer-into-pointer (arg0) (return (host "mkptr" arg0 'sizet)))
+(builtin.defn wrap-pointer-into-pointer (p) (return (host "mkptr" p 'sizet)))
 
 
-(builtin.defn shared-library (arg0) (progn
-                               (def r (dlopen arg0))
+(builtin.defn shared-library (path) (progn
+                               (def r (dlopen path))
                                (if (eq 0 (derefw `(~r int64)))
                                    (return `(:err "shared-library failed"))
                                  (return `(:ok ~r)))))
 
-(builtin.defn extern-pointer (arg0 arg1 arg2) (progn
-                               (def handle arg0)
-                               (def c-name arg1)
-                               (def signature arg2)
+(builtin.defn extern-pointer (handle c-name signature) (progn
                                (def res (c-data-pointer handle c-name signature))
                                (if (eq 0 res)
                                    (return `(:err "extern-pointer failed"))
                                  (return `(:ok ~res)))))
                                         
-(builtin.defn debug-print (arg0) (return '()))
+(builtin.defn debug-print (x) (return '()))
 
 (export
  (panic panic)
