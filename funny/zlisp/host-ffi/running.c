@@ -28,22 +28,11 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     datum *callargs = form->list_tail->list_tail->list_head;
     bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
     fdatum resu = pointer_call(fn, sig, callargs, datums);
-    if (fdatum_is_panic(resu)) {
-      return fdatum_make_panic(resu.panic_message);
-    }
-    res = resu.ok_value;
+    return resu;
   } else if (!strcmp(name->bytestring_value, "deref")) {
-    fdatum preres = datum_deref(args);
-    if (fdatum_is_panic(preres)) {
-      return preres;
-    }
-    res = preres.ok_value;
+    return datum_deref(args);
   } else if (!strcmp(name->bytestring_value, "mkptr")) {
-    fdatum preres = datum_mkptr(args);
-    if (fdatum_is_panic(preres)) {
-      return preres;
-    }
-    res = preres.ok_value;
+    return datum_mkptr(args);
   } else if (!strcmp(name->bytestring_value, "panic")) {
     res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
@@ -200,16 +189,16 @@ LOCAL fdatum datum_mkptr(datum *args) {
     if (!datum_is_bytestring(d)) {
       return fdatum_make_panic("string expected, got something else");
     }
-    return fdatum_make_ok(datum_make_int((int64_t) & (d->bytestring_value)));
+    return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t) & (d->bytestring_value))));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       return fdatum_make_panic("int expected, got something else");
     }
-    return fdatum_make_ok(datum_make_int((int64_t) & (d->integer_value)));
+    return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t) & (d->integer_value))));
   } else if (!strcmp(des, "datum")) {
     datum **p = malloc(sizeof(datum **));
     *p = d;
-    return fdatum_make_ok(datum_make_int((int64_t)p));
+    return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t)p)));
   } else {
     return fdatum_make_panic("cannot load an argument");
   }
@@ -231,15 +220,19 @@ LOCAL fdatum datum_deref(datum *args) {
   char *rettype = how->symbol_value;
   void *wha = (void *)what->integer_value;
   if (!strcmp(rettype, "sizet")) {
-    return fdatum_make_ok(datum_make_int((int64_t) * (size_t *)wha));
+    return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t) * (size_t *)wha)));
   } else if (!strcmp(rettype, "int")) {
-    return fdatum_make_ok(datum_make_int((int64_t) * (int *)wha));
+    return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
-    return fdatum_make_ok(datum_make_int(*(int64_t *)wha));
+    return fdatum_make_ok(datum_make_list_1(datum_make_int(*(int64_t *)wha)));
   } else if (!strcmp(rettype, "string")) {
-    return fdatum_make_ok(datum_make_bytestring(*(char **)wha));
+    return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(*(char **)wha)));
   } else if (!strcmp(rettype, "val")) {
-    return *(fdatum *)wha;
+    fdatum res = *(fdatum *)wha;
+    if (fdatum_is_panic(res)) {
+      return res;
+    }
+    return fdatum_make_ok(datum_make_list_1(res.ok_value));
   } else {
     return fdatum_make_panic("unknown return type for deref");
   }
@@ -287,7 +280,7 @@ LOCAL fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
     return fdatum_make_panic("unknown return type for extern func");
   }
   ffi_call(&cif, fn_ptr, res, cargs);
-  return fdatum_make_ok(datum_make_int((int64_t)res));
+  return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t)res)));
 }
 
 LOCAL void (*datum_to_function_pointer(datum *d))(void) {
