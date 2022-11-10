@@ -17,8 +17,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum *res;
-  if (!strcmp(name->bytestring_value, "pointer-call") ||
-      !strcmp(name->bytestring_value, "pointer-call-datums")) {
+  if (!strcmp(name->bytestring_value, "pointer-call")) {
     datum *form = args;
     if (!datum_is_list(form) || list_length(form) != 3) {
       return fdatum_make_panic("pointer-call expected a triple on stack");
@@ -26,8 +25,7 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     datum *fn = form->list_head;
     datum *sig = form->list_tail->list_head;
     datum *callargs = form->list_tail->list_tail->list_head;
-    bool datums = !strcmp(name->bytestring_value, "pointer-call-datums");
-    fdatum resu = pointer_call(fn, sig, callargs, datums);
+    fdatum resu = pointer_call(fn, sig, callargs);
     return resu;
   } else if (!strcmp(name->bytestring_value, "call-extension")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
@@ -160,8 +158,7 @@ LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
   return NULL;
 }
 
-LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
-                                 bool datums) {
+LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
   int arg_cnt = 0;
   datum *arg = args;
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
@@ -169,14 +166,10 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
       return "too few arguments";
     }
 
-    if (!datums) {
-      if (!datum_is_integer(arg->list_head)) {
-        return "int pointer expected, got something else";
-      }
-      cargs[arg_cnt] = (void *)arg->list_head->integer_value;
-    } else {
-      cargs[arg_cnt] = &arg->list_head;
+    if (!datum_is_integer(arg->list_head)) {
+      return "int pointer expected, got something else";
     }
+    cargs[arg_cnt] = (void *)arg->list_head->integer_value;
 
     arg = arg->list_tail;
   }
@@ -273,7 +266,7 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
   return res;
 }
 
-LOCAL fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
+LOCAL fdatum pointer_call(datum *fpt, datum *sig, datum *args) {
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
   char *err = NULL;
@@ -283,7 +276,7 @@ LOCAL fdatum pointer_call(datum *fpt, datum *sig, datum *args, bool datums) {
   }
   int nargs = list_length(sig->list_head);
   void *cargs[32];
-  err = pointer_ffi_serialize_args(args, cargs, nargs, datums);
+  err = pointer_ffi_serialize_args(args, cargs, nargs);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
