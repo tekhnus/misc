@@ -3,7 +3,7 @@
  (c-function-or-panic "prelude" c-function-or-panic)
  (extern-pointer "prelude" extern-pointer)
  (selflib "prelude" selflib)
- (derefw "prelude" derefw)
+ (derefw2 "prelude" derefw2)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (decons-pat "std" decons-pat)
  (first-good-value "std" first-good-value)
@@ -42,14 +42,14 @@
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
      (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) `(~src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) "c-prelude"))
-     (if (eq 0 (derefw `(~e int64)))
+     (if (eq 0 (derefw2 e 'int64))
          (return `(:ok :nothing))
-       (return `(:err ~(derefw `(~e string)))))))
+       (return `(:err ~(derefw2 e 'string))))))
 
 
 (def routine-run-and-get-value-c-host-new (c-function-or-panic selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
-(builtin.defn fdatum-get-value (x) (return (derefw `(~x val))))
+(builtin.defn fdatum-get-value (x) (return (derefw2 x 'val)))
 (def fdatum-get-panic-message (c-function-or-panic selflib "fdatum_get_panic_message" '((fdatum) string)))
 
 !(#defun eval-new (sl rt0)
@@ -62,7 +62,7 @@
            (return `(:err ~msg)))
        (progn
          (def val (fdatum-get-value res))
-         (def new-rt (derefw `(~rt-ptr int64)))
+         (def new-rt (derefw2 rt-ptr 'int64))
          (return `(:ok ~val ~new-rt))))))
 
 (def datum-read-one (c-function-or-panic selflib "datum_read_one" '((pointer) fdatum)))

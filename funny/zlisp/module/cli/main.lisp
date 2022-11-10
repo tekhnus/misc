@@ -1,6 +1,6 @@
 (req
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
- (derefw "prelude" derefw)
+ (derefw2 "prelude" derefw2)
  (decons-pat "std" decons-pat)
  (eq "std" eq)
  (head "std" head)
@@ -64,7 +64,7 @@
 (def sl (psm 20000))
 (def pptr (wrap-pointer-into-pointer (psan sl)))
 (def bpptr (wrap-pointer-into-pointer (psan sl)))
-(def rt (mres (derefw `(~bpptr int64))))
+(def rt (mres (derefw2 bpptr 'int64)))
 (def compdata (cdm))
 (def bdrcompdata (cdm))
 (def xxx (iprog sl pptr bpptr compdata bdrcompdata))

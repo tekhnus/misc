@@ -31,10 +31,8 @@
                     (return (cons (serialize-param (head params) (head signature)) ((resolve serialize-params) (tail params) (tail signature))))
                   (return '()))))
 
-(builtin.defn  derefw (whathow)
+(builtin.defn  derefw2 (what how)
               (progn
-                (def what (head whathow))
-                (def how (head (tail whathow)))
                 (if (eq how 'pointer)
                     (return what)
                   (if (eq how 'fdatum)
@@ -54,7 +52,7 @@
                 (def rettype (head (tail signature)))
                 (def s (serialize-params params fnparamst))
                 (def rawres (host "pointer-call" fn-ptr `(~fnparamst ~rettype) s))
-                (return (derefw `(~rawres ~rettype)))))
+                (return (derefw2 rawres rettype))))
 
 
 (def dlopen-pointer (host "dlopen" '()))
@@ -66,7 +64,7 @@
 (builtin.defn c-data-pointer (handle c-name signature)
             (progn
                 (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-pointer (derefw `(~fn-pointer-pointer int64)))
+                (def fn-pointer (derefw2 fn-pointer-pointer 'int64))
                 (return fn-pointer)))    
 
 (builtin.defn nth (n xs)
@@ -99,7 +97,7 @@
               (progn
                 (def argssig (head signature))
                 (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-ptr (derefw `(~fn-pointer-pointer int64)))
+                (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
                 (if (eq fn-ptr 0)
                     (panic "couldn't load C function")
                   (progn
@@ -125,7 +123,7 @@
 
 (builtin.defn shared-library (path) (progn
                                (def r (dlopen path))
-                               (if (eq 0 (derefw `(~r int64)))
+                               (if (eq 0 (derefw2 r 'int64))
                                    (return `(:err "shared-library failed"))
                                  (return `(:ok ~r)))))
 
@@ -143,7 +141,7 @@
  (tail tail)
  (cons cons)
  (eq eq)
- (derefw derefw)
+ (derefw2 derefw2)
  (dlopen dlopen)
  (dlsym dlsym)
  (c-function-or-panic c-function-or-panic)
