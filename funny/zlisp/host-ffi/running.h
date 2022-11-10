@@ -14,11 +14,11 @@ LOCAL bool ffi_type_init(ffi_type **type,datum *definition);
 LOCAL void *simplified_dlsym(void *handle,const char *symbol);
 LOCAL void *simplified_dlopen(char *path);
 #include <stdint.h>
-fdatum builtin_eq(datum *x,datum *y);
-fdatum builtin_cons(datum *head,datum *tail);
-fdatum builtin_tail(datum *list);
+fdatum builtin_eq(datum *args);
+fdatum builtin_cons(datum *args);
+fdatum builtin_tail(datum *args);
 fdatum builtin_head(datum *args);
-fdatum builtin_panic(datum *arg_value);
+fdatum builtin_panic(datum *args);
 LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);
 LOCAL fdatum pointer_call(datum *fpt,datum *sig,datum *args,bool datums);

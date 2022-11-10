@@ -7,19 +7,19 @@
 (builtin.defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
 
 (def panic-pointer (host "panic" '()))
-(builtin.defn panic (x) (return (deref (host "pointer-call-datums" panic-pointer  '((datum) val)  `(~x)) 'val)))
+(builtin.defn panic (x) (return (host "call-extension" panic-pointer x)))
 
 (def head-pointer (host "head" '()))
 (builtin.defn head (x) (return (host "call-extension" head-pointer x)))
 
 (def tail-pointer (host "tail" '()))
-(builtin.defn tail (x) (return (deref (host "pointer-call-datums" tail-pointer  '((datum) val)  `(~x)) 'val)))
+(builtin.defn tail (x) (return (host "call-extension" tail-pointer x)))
 
 (def cons-pointer (host "cons" '()))
-(builtin.defn cons (x xs) (return (deref (host "pointer-call-datums" cons-pointer  '((datum datum) val)  `(~x ~xs)) 'val)))
+(builtin.defn cons (x xs) (return (host "call-extension" cons-pointer x xs)))
 
 (def eq-pointer (host "eq" '()))
-(builtin.defn eq (x y) (return (deref (host "pointer-call-datums" eq-pointer  '((datum datum) val)  `(~x ~y)) 'val)))
+(builtin.defn eq (x y) (return (host "call-extension" eq-pointer x y)))
 
 (builtin.defn serialize-param (param signature)
               (progn
@@ -111,7 +111,6 @@
               (progn
                 (return (c-function-or-panic selflib c-name signature))))
 
-(def eq (builtin-function "builtin_eq" '((datum datum) val)))
 (def annotate (builtin-function "builtin_annotate" '((datum) val)))
 (def is-constant (builtin-function "builtin_is_constant" '((datum) val)))
 (def repr (builtin-function "builtin_repr" '((datum) val)))
