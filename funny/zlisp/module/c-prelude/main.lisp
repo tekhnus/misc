@@ -3,6 +3,9 @@
 (def deref-pointer (host "deref-pointer" '()))
 (builtin.defn deref (x y) (return (host "call-extension" deref-pointer x y)))
 
+(def mkptr-pointer (host "mkptr-pointer" '()))
+(builtin.defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
+
 (def panic-pointer (host "panic" '()))
 (builtin.defn panic (x) (return (deref (host "pointer-call-datums" panic-pointer  '((datum) val)  `(~x)) 'val)))
 
@@ -26,7 +29,7 @@
                       (return param)
                     (if (eq signature 'progslice)
                         (return param)
-                      (return (host "mkptr" param signature)))))))
+                      (return (mkptr param signature)))))))
 
 (builtin.defn serialize-params (params signature)
               (progn
@@ -115,7 +118,7 @@
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
 
-(builtin.defn wrap-pointer-into-pointer (p) (return (host "mkptr" p 'sizet)))
+(builtin.defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
 
 
 (builtin.defn shared-library (path) (progn
