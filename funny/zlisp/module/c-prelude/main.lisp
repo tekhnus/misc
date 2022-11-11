@@ -114,18 +114,20 @@
 
 (def selflib (dlopen-null))
 
-(builtin.defn builtin-function (c-name signature)
-              (progn
-                (return (c-function-or-panic selflib c-name signature))))
-
-(def annotate (builtin-function "builtin_annotate" '((datum) val)))
+(def annotate-pointer (derefw2 (dlsym selflib "builtin_annotate") 'int64))
+(builtin.defn annotate (x) (return (host "call-extension" annotate-pointer x)))
 
 (def is-constant-pointer (derefw2 (dlsym selflib "builtin_is_constant") 'int64))
 (builtin.defn is-constant (x) (return (host "call-extension" is-constant-pointer x)))
 
-(def repr (builtin-function "builtin_repr" '((datum) val)))
-(def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
-(def + (builtin-function "builtin_add" '((datum datum) val)))
+(def repr-pointer (derefw2 (dlsym selflib "builtin_repr") 'int64))
+(builtin.defn repr (x) (return (host "call-extension" repr-pointer x)))
+
+(def concat-bytestrings-pointer (derefw2 (dlsym selflib "builtin_concat_bytestrings") 'int64))
+(builtin.defn concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
+
+(def +-pointer (derefw2 (dlsym selflib "builtin_add") 'int64))
+(builtin.defn + (x y) (return (host "call-extension" +-pointer x y)))
 
 (builtin.defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
 

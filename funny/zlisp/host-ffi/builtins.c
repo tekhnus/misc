@@ -17,7 +17,8 @@ fdatum builtin_eq(datum *args) {
   return fdatum_make_ok(datum_make_list_1(f));
 }
 
-fdatum builtin_annotate(datum *arg_value) {
+fdatum builtin_annotate(datum *args) {
+  datum *arg_value = list_at(args, 0);
   char *type;
   if (datum_is_list(arg_value)) {
     type = ":list";
@@ -30,7 +31,7 @@ fdatum builtin_annotate(datum *arg_value) {
   } else {
     return fdatum_make_panic("incomplete implementation of type");
   }
-  return fdatum_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
+  return fdatum_make_ok(datum_make_list_1(datum_make_list_2(datum_make_symbol(type), arg_value)));
 }
 
 fdatum builtin_is_constant(datum *args) {
@@ -46,11 +47,14 @@ fdatum builtin_panic(datum *args) {
   return fdatum_make_panic(datum_repr(arg_value));
 }
 
-fdatum builtin_repr(datum *v) {
-  return fdatum_make_ok(datum_make_bytestring(datum_repr(v)));
+fdatum builtin_repr(datum *args) {
+  datum *v = list_at(args, 0);
+  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(datum_repr(v))));
 }
 
-fdatum builtin_concat_bytestrings(datum *x, datum *y) {
+fdatum builtin_concat_bytestrings(datum *args) {
+  datum *x = list_at(args, 0);
+  datum *y = list_at(args, 1);
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return fdatum_make_panic("expected integers");
   }
@@ -59,14 +63,16 @@ fdatum builtin_concat_bytestrings(datum *x, datum *y) {
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);
-  return fdatum_make_ok(datum_make_bytestring(buf));
+  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(buf)));
 }
 
-fdatum builtin_add(datum *x, datum *y) {
+fdatum builtin_add(datum *args) {
+  datum *x = list_at(args, 0);
+  datum *y = list_at(args, 1);
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
     return fdatum_make_panic("expected integers");
   }
-  return fdatum_make_ok(datum_make_int(x->integer_value + y->integer_value));
+  return fdatum_make_ok(datum_make_list_1(datum_make_int(x->integer_value + y->integer_value)));
 }
 
 fdatum builtin_cons(datum *args) {
