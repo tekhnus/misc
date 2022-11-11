@@ -104,7 +104,7 @@ size_t prog_slice_append_new(prog_slice *s);
 prog_slice prog_slice_make(size_t capacity);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
-char *fdatum_get_panic_message(fdatum result);
+fdatum fdatum_get_panic_message(datum *args);
 datum *list_at(datum *list,unsigned index);
 fdatum fdatum_get_value(datum *args);
 fdatum fdatum_make_panic(char *message);

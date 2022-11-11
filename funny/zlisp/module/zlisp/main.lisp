@@ -54,7 +54,9 @@
 
 (def fdatum-get-value-ptr (dlsym selflib "fdatum_get_value"))
 (builtin.defn fdatum-get-value (x) (return (host "call-extension" (derefw2 fdatum-get-value-ptr 'int64) x)))
-(def fdatum-get-panic-message (c-function-or-panic selflib "fdatum_get_panic_message" '((fdatum) string)))
+
+(def fdatum-get-panic-message-ptr (dlsym selflib "fdatum_get_panic_message"))
+(builtin.defn fdatum-get-panic-message (x) (return (host "call-extension" (derefw2 fdatum-get-panic-message-ptr 'int64) x)))
 
 !(#defun eval-new (sl rt0)
    (progn
