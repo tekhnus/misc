@@ -33,11 +33,12 @@ fdatum builtin_annotate(datum *arg_value) {
   return fdatum_make_ok(datum_make_list_2(datum_make_symbol(type), arg_value));
 }
 
-fdatum builtin_is_constant(datum *arg_value) {
+fdatum builtin_is_constant(datum *args) {
+  datum *arg_value = list_at(args, 0);
   if (datum_is_constant(arg_value)) {
-    return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
+    return fdatum_make_ok(datum_make_list_1(datum_make_list_1(datum_make_nil())));
   }
-  return fdatum_make_ok(datum_make_nil());
+  return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
 }
 
 fdatum builtin_panic(datum *args) {

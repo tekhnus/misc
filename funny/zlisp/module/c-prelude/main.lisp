@@ -119,7 +119,10 @@
                 (return (c-function-or-panic selflib c-name signature))))
 
 (def annotate (builtin-function "builtin_annotate" '((datum) val)))
-(def is-constant (builtin-function "builtin_is_constant" '((datum) val)))
+
+(def is-constant-pointer (derefw2 (dlsym selflib "builtin_is_constant") 'int64))
+(builtin.defn is-constant (x) (return (host "call-extension" is-constant-pointer x)))
+
 (def repr (builtin-function "builtin_repr" '((datum) val)))
 (def concat-bytestrings (builtin-function "builtin_concat_bytestrings" '((datum datum) val)))
 (def + (builtin-function "builtin_add" '((datum datum) val)))
