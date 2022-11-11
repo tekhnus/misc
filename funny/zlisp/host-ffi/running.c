@@ -178,10 +178,6 @@ LOCAL fdatum datum_mkptr(datum *args) {
       return fdatum_make_panic("int expected, got something else");
     }
     return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t) & (d->integer_value))));
-  } else if (!strcmp(des, "datum")) {
-    datum **p = malloc(sizeof(datum **));
-    *p = d;
-    return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t)p)));
   } else {
     return fdatum_make_panic("cannot load an argument");
   }
