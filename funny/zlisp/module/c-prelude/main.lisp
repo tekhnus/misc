@@ -153,6 +153,7 @@
  (cons cons)
  (eq eq)
  (derefw2 derefw2)
+ (mkptr mkptr)
  (dlopen dlopen)
  (dlsym dlsym)
  (c-function-or-panic c-function-or-panic)

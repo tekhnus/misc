@@ -5,6 +5,7 @@
  (selflib "prelude" selflib)
  (dlsym "prelude" dlsym)
  (derefw2 "prelude" derefw2)
+ (mkptr "prelude" mkptr)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (decons-pat "std" decons-pat)
  (first-good-value "std" first-good-value)
@@ -30,7 +31,7 @@
 (def make-routine-with-empty-state (c-function-or-panic selflib "routine_make_new" '((sizet) pointer)))
 (def prog-slice-make (c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-build-one-c-host (c-function-or-panic buildlib "prog_build" '((pointer pointer pointer datum pointer pointer datum) pointer)))
+(def prog-build-one-c-host (c-function-or-panic buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (c-function-or-panic buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
@@ -42,7 +43,7 @@
 
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) src (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) "c-prelude"))
+     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (mkptr src 'datum) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) (mkptr "c-prelude" 'datum)))
      (if (eq 0 (derefw2 e 'int64))
          (return `(:ok :nothing))
        (return `(:err ~(derefw2 e 'string))))))
