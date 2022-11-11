@@ -50,7 +50,6 @@
 
 (def routine-run-and-get-value-c-host-new (c-function-or-panic selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
-(builtin.defn fdatum-get-value (x) (return (derefw2 x 'val)))
 
 (def fdatum-get-value-ptr (dlsym selflib "fdatum_get_value"))
 (builtin.defn fdatum-get-value (x) (return (host "call-extension" (derefw2 fdatum-get-value-ptr 'int64) x)))
