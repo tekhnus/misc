@@ -3,6 +3,7 @@
  (c-function-or-panic "prelude" c-function-or-panic)
  (extern-pointer "prelude" extern-pointer)
  (selflib "prelude" selflib)
+ (dlsym "prelude" dlsym)
  (derefw2 "prelude" derefw2)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (decons-pat "std" decons-pat)
@@ -50,6 +51,9 @@
 (def routine-run-and-get-value-c-host-new (c-function-or-panic selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 (builtin.defn fdatum-get-value (x) (return (derefw2 x 'val)))
+
+(def fdatum-get-value-ptr (dlsym selflib "fdatum_get_value"))
+(builtin.defn fdatum-get-value (x) (return (host "call-extension" (derefw2 fdatum-get-value-ptr 'int64) x)))
 (def fdatum-get-panic-message (c-function-or-panic selflib "fdatum_get_panic_message" '((fdatum) string)))
 
 !(#defun eval-new (sl rt0)
