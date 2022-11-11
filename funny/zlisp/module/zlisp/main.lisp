@@ -42,7 +42,7 @@
 
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) `(~src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) "c-prelude"))
+     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) src (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) "c-prelude"))
      (if (eq 0 (derefw2 e 'int64))
          (return `(:ok :nothing))
        (return `(:err ~(derefw2 e 'string))))))
@@ -82,8 +82,7 @@
          (def maybeval (fdatum-get-value res))
          (if maybeval
              (progn
-               (def val (head maybeval))
-               (return `(:ok ~val)))
+               (return `(:ok ~maybeval)))
            (return '(:eof)))))))
 
 (export (compile-prog-new compile-prog-new)
