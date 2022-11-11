@@ -76,10 +76,6 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
     *type = &ffi_type_sint;
     return true;
   }
-  if (!strcmp(definition->symbol_value, "datum")) {
-    *type = &ffi_type_pointer;
-    return true;
-  }
   if (!strcmp(definition->symbol_value, "val") ||
       !strcmp(definition->symbol_value, "fdatum")) {
     *type = malloc(sizeof(ffi_type));
