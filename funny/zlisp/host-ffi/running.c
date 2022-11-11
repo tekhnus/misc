@@ -214,12 +214,6 @@ LOCAL fdatum datum_deref(datum *args) {
     return fdatum_make_ok(datum_make_list_1(datum_make_int(*(int64_t *)wha)));
   } else if (!strcmp(rettype, "string")) {
     return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(*(char **)wha)));
-  } else if (!strcmp(rettype, "val")) {
-    fdatum res = *(fdatum *)wha;
-    if (fdatum_is_panic(res)) {
-      return res;
-    }
-    return fdatum_make_ok(datum_make_list_1(res.ok_value));
   } else {
     return fdatum_make_panic("unknown return type for deref");
   }
