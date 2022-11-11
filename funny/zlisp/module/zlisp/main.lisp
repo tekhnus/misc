@@ -43,7 +43,7 @@
 
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (mkptr src 'datum) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) (mkptr "c-prelude" 'datum)))
+     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (wrap-pointer-into-pointer src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) (mkptr "c-prelude" 'datum)))
      (if (eq 0 (derefw2 e 'int64))
          (return `(:ok :nothing))
        (return `(:err ~(derefw2 e 'string))))))
@@ -57,6 +57,9 @@
 
 (def fdatum-get-panic-message-ptr (dlsym selflib "fdatum_get_panic_message"))
 (builtin.defn fdatum-get-panic-message (x) (return (host "call-extension" (derefw2 fdatum-get-panic-message-ptr 'int64) x)))
+
+(def fdatum-repr-datum-pointer-ptr (dlsym selflib "fdatum_repr_datum_pointer"))
+(builtin.defn repr-pointer (x) (return (host "call-extension" (derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
 
 !(#defun eval-new (sl rt0)
    (progn
@@ -78,18 +81,18 @@
      (if (eq (fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
-           (return `(:err ~msg)))
+           (if (eq msg "eof")
+               (return '(:eof))
+             (return `(:err ~msg))))
        (progn
          (def maybeval (fdatum-get-value res))
-         (if maybeval
-             (progn
-               (return `(:ok ~maybeval)))
-           (return '(:eof)))))))
+         (return `(:ok ~maybeval))))))
 
 (export (compile-prog-new compile-prog-new)
         (init-prog init-prog)
         (eval-new eval-new)
         (read read)
+        (repr-pointer repr-pointer)
         (make-routine-with-empty-state make-routine-with-empty-state)
         (prog-slice-make prog-slice-make)
         (prog-slice-append-new prog-slice-append-new)

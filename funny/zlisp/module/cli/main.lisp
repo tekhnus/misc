@@ -20,6 +20,7 @@
  (iprog "zlisp" init-prog)
  (eval-new "zlisp" eval-new)
  (rd "zlisp" read)
+ (repr-pointer "zlisp" repr-pointer)
  (mres "zlisp" make-routine-with-empty-state)
  (psm "zlisp" prog-slice-make)
  (psan "zlisp" prog-slice-append-new)
@@ -49,7 +50,7 @@
                       ((:ok progxxx)
                        !(#switchx2 (eval-new sl nsp) (
 		                  ((:ok val ctxt)
-		                   !(#ignore (fprintf-bytestring stdout "%s\n" (repr val)))
+		                   !(#ignore (fprintf-bytestring stdout "%s\n" (repr-pointer val)))
 		                   (return ((resolve repl) sl ctxt pptr bpptr compdata bdrcompdata)))
 		                  ((:err msg)
 		                   !(#ignore (fprintf-bytestring stderr "eval error: %s\n" msg))

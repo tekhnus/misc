@@ -236,7 +236,7 @@ fdatum datum_read_one(FILE *stre) { // used in lisp
     return fdatum_make_panic("unmatched right paren");
   }
   if (read_result_is_eof(rr)) {
-    return fdatum_make_ok(datum_make_nil());
+    return fdatum_make_panic("eof");
   }
   return fdatum_make_ok(datum_make_list_1(rr.ok_value));
 }

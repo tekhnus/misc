@@ -105,6 +105,7 @@ prog_slice prog_slice_make(size_t capacity);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
 fdatum fdatum_get_panic_message(datum *args);
+fdatum fdatum_repr_datum_pointer(datum *args);
 datum *list_at(datum *list,unsigned index);
 fdatum fdatum_get_value(datum *args);
 fdatum fdatum_make_panic(char *message);

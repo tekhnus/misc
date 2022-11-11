@@ -168,7 +168,17 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
   if (fdatum_is_panic(val)) {
     return val;
   }
-  return fdatum_make_ok(datum_make_list_1(val.ok_value));
+  return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t)val.ok_value)));
+}
+
+fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
+  datum *arg = list_at(args, 0);
+  if (!datum_is_integer(arg)) {
+    return fdatum_make_panic("fdatum_get_value expected a pointer");
+  }
+  datum *val = (datum *)arg->integer_value;
+  char *res = datum_repr(val);
+  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(res)));
 }
 
 fdatum fdatum_get_panic_message(datum *args) { // used in lisp
