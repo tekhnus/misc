@@ -33,6 +33,8 @@
 (def prog-slice-append-new- (c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (c-function-or-panic buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (c-function-or-panic buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
+(def get-host-ffi-settings (c-function-or-panic buildlib "get_host_ffi_settings" '(() pointer)))
+
 !(#defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 
@@ -43,7 +45,7 @@
 
 !(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (wrap-pointer-into-pointer src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) (mkptr "c-prelude" 'datum)))
+     (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (wrap-pointer-into-pointer src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) (get-host-ffi-settings)))
      (if (eq 0 (derefw2 e 'int64))
          (return `(:ok :nothing))
        (return `(:err ~(derefw2 e 'string))))))

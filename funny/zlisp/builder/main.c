@@ -43,6 +43,10 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
+EXPORT datum *get_host_ffi_settings() { // used in lisp
+  return datum_make_bytestring("c-prelude");
+}
+
 EXPORT char *prog_build(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata, datum *settings) {
   fdatum bytecode = prog_compile(source, compdata, datum_make_list_1(datum_make_symbol("main")));
   if (fdatum_is_panic(bytecode)) {
