@@ -13,9 +13,9 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   return fdatum_make_ok(prog_slice_to_datum(sl));
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *type, int arg_count, int return_count, datum **compdata) {
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, int fn_index, datum *type, int arg_count, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_5(datum_make_symbol(":call"), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(datum_make_symbol(":call"), datum_make_int(fn_index), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count + 1; ++i) {
     *compdata = compdata_del(*compdata);
   }
@@ -25,7 +25,7 @@ EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *type, int arg
   *begin = next;
 }
 
-EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
+EXPORT int prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
@@ -41,6 +41,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   *begin = next;
   compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+  return compdata_get_top_index(*compdata);
 }
 
 EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
@@ -62,12 +63,13 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **c
   }
 }
 
-EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
+EXPORT int prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+  return compdata_get_top_index(*compdata);
 }
 
 EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type, size_t count, size_t recieve_count, datum *meta, datum **compdata) {
@@ -322,9 +324,26 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       break;
     }
   }
-  char *err = prog_append_statement(sl, begin, fn, compdata, datum_make_nil());
-  if (err != NULL) {
-    return err;
+  int fn_index;
+  if (at) {
+    if (!datum_is_symbol(fn)) {
+      return "expected an lvalue";
+    }
+    fn_index = compdata_get_index(*compdata, fn);
+    if (fn_index == -1) {
+      return "function not found";
+    }
+    char *err = prog_append_statement(sl, begin, fn, compdata, datum_make_nil());
+    if (err != NULL) {
+      return err;
+    }
+    fn_index = compdata_get_top_index(*compdata);
+  } else {
+    char *err = prog_append_statement(sl, begin, fn, compdata, datum_make_nil());
+    if (err != NULL) {
+      return err;
+    }
+    fn_index = compdata_get_top_index(*compdata);
   }
   datum *rest_args = stmt->list_tail;
   if (!datum_is_nil(rest_args)) {
@@ -351,7 +370,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_call(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
+  prog_append_call(sl, begin, 0, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   if (!at) {
     prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
   }
@@ -556,6 +575,14 @@ LOCAL datum *compdata_del(datum *compdata) {
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
   return list_index_of(compdata, var);
+}
+
+LOCAL int compdata_get_top_index(datum *compdata) {
+  if (datum_is_nil(compdata)) {
+    fprintf(stderr, "compdata_get_top_index: empty compdata\n");
+    exit(EXIT_FAILURE);
+  }
+  return list_length(compdata) - 1;
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {

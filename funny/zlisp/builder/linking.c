@@ -7,7 +7,7 @@
 EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum **compdata, datum **builder_compdata) {
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_resolve(sl, bdr_p);
-  prog_append_call(sl, bdr_p, datum_make_symbol("plain"), 0, 0, builder_compdata);
+  prog_append_call(sl, bdr_p, 0, datum_make_symbol("plain"), 0, 0, builder_compdata);
   prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, datum_make_nil(), compdata);
   return 42;
 }
@@ -24,7 +24,7 @@ EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p, datum **builder_compd
   }
   prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"), builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, datum_make_symbol("plain"), list_length(input_meta), 0, builder_compdata);
+  prog_append_call(sl, bdr_p, 0, datum_make_symbol("plain"), list_length(input_meta), 0, builder_compdata);
   return NULL;
 }
 
@@ -147,7 +147,7 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   prog_append_resolve(sl, p);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, datum_make_symbol("plain"), list_length(transitive_deps), list_length(syms), compdata);
+  prog_append_call(sl, p, 0, datum_make_symbol("plain"), list_length(transitive_deps), list_length(syms), compdata);
   prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
   datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
