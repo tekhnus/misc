@@ -55,7 +55,7 @@ bool compdata_has_value(datum *compdata);
 datum *compdata_make();
 void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 int prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
-void prog_append_pop(prog_slice *sl,size_t *begin,datum **compdata);
+void prog_append_pop(prog_slice *sl,size_t *begin,size_t idx,datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
 LOCAL int compdata_get_top_index(datum *compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);

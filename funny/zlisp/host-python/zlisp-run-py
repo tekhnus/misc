@@ -192,7 +192,7 @@ def main():
                 pdata[-1][-1].varz.append(val)
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
-            (nex,) = args
+            idx, nex = args
             pop_stack()
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):

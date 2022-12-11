@@ -57,9 +57,9 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
   }
 }
 
-EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum **compdata) {
+EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, size_t idx, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":pop"), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), datum_make_int(idx), datum_make_int(next)));
   *begin = next;
   *compdata = compdata_del(*compdata);
 }
@@ -373,7 +373,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_call(sl, begin, 0, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   if (!at) {
-    prog_append_pop(sl, begin, compdata);
+    prog_append_pop(sl, begin, 0, compdata);
   }
   return NULL;
 }

@@ -53,6 +53,7 @@ struct prog {
       ptrdiff_t uncollect_next;
     };
     struct {
+      int pop_idx;
       ptrdiff_t pop_next;
     };
     struct {
@@ -368,7 +369,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.uncollect_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":pop")) {
     res.type = PROG_POP;
-    res.pop_next = (list_at(d, 1)->integer_value);
+    res.pop_idx = list_at(d, 1)->integer_value;
+    res.pop_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_value = (list_at(d, 1)->integer_value);
