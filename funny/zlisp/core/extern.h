@@ -62,7 +62,7 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 LOCAL int compdata_get_index(datum *compdata,datum *var);
 int prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL datum *compdata_put(datum *compdata,datum *var);
-LOCAL datum *compdata_del(datum *compdata);
+LOCAL datum *compdata_del(datum *compdata,int index);
 void prog_append_call(prog_slice *sl,size_t *begin,int fn_index,datum *type,int arg_count,int return_count,datum **compdata);
 LOCAL char *prog_append_statements(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
 fdatum prog_compile(datum *source,datum **compdata,datum *info);

@@ -158,12 +158,11 @@ def main():
                 raise RuntimeError("routine-1 call is not supported yet")
             if hat != sexpdata.Symbol("plain"):
                 raise RuntimeError("unknown type of the call")
-            fnandargs = list(reversed([pop_stack() for _ in range(arg_cnt + 1)]))
-            rout, args = check_is_cons(fnandargs)
+            args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
+            rout = pdata[-1][-1].varz[-1 - fn_index]
             offset, varz = check_is_routine_0(rout)
             rtvarz = list(varz)
             rtvarz.extend((arg) for arg in args)
-            pdata[-1][-1].ip = nex
             pdata[-1].append(
                 State(varz=rtvarz, ip=0)
             )  # ip set after endif
@@ -228,8 +227,19 @@ def main():
                 cont = make_routine_0(varz=contvarz, ip=ip)
 
                 pdata[-1].pop()
-                pdata[-1][-1].varz.extend((make_list_with_items(cont, *reversed(rvalues))))
+
                 ip = pdata[-1][-1].ip
+                ins = prog[ip]
+                op, args = ins[0], ins[1:]
+                if op != sexpdata.Symbol(":call"):
+                    raise RuntimeError("expected a call")
+                fn_index, hat, arg_cnt, ret_cnt, nex = args
+
+                # update the routine
+                pdata[-1][-1].varz[-1 - fn_index] = cont
+                pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues))))
+
+                ip = nex
             elif hat == sexpdata.Symbol("host"):
                 instruction = meta
                 arg = pop_stack()
