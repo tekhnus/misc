@@ -17,7 +17,7 @@ EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p, datum **builder_compd
   if (input_meta == NULL) {
     return NULL;
   }
-  prog_append_pop(sl, bdr_p, datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
+  compdata_give_names(datum_make_list_1(datum_make_symbol("__main__")), builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings, builder_compdata);
   if (err != NULL) {
     return err;
@@ -148,13 +148,13 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   prog_append_resolve(sl, p);
   prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_call(sl, p, 0, datum_make_symbol("plain"), list_length(transitive_deps), list_length(syms), compdata);
-  prog_append_pop(sl, p, datum_make_symbol(":void"), compdata);
+  prog_append_pop(sl, p, compdata);
   datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
     names = list_append(names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
   }
-  prog_append_pop(sl, p, names, compdata);
+  compdata_give_names(names, compdata);
   return NULL;
 }
 

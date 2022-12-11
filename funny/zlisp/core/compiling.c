@@ -44,23 +44,24 @@ EXPORT int prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum 
   return compdata_get_top_index(*compdata);
 }
 
-EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum *var, datum **compdata) {
-  if (datum_is_list(var)) {
-    for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-      *compdata = compdata_del(*compdata);
-    }
-    for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-      *compdata = compdata_put(*compdata, rest->list_head);
-    }
-  } else if (datum_is_the_symbol(var, ":void")) {
-    size_t next = prog_slice_append_new(sl);
-    *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":pop"), datum_make_int(next)));
-    *begin = next;
-    *compdata = compdata_del(*compdata);
-  } else {
-    fprintf(stderr, "illegal pop instruction\n");
+EXPORT void compdata_give_names(datum *var, datum **compdata) {
+  if (!datum_is_list(var)) {
+    fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
   }
+  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
+    *compdata = compdata_del(*compdata);
+  }
+  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
+    *compdata = compdata_put(*compdata, rest->list_head);
+  }
+}
+
+EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_2(datum_make_symbol(":pop"), datum_make_int(next)));
+  *begin = next;
+  *compdata = compdata_del(*compdata);
 }
 
 EXPORT int prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
@@ -200,7 +201,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     } else {
       names = datum_make_list_1(stmt->list_tail->list_head);
     }
-    prog_append_pop(sl, begin, names, compdata);
+    compdata_give_names(names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defn")) {
@@ -220,7 +221,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
     prog_append_resolve(sl, begin);
-    prog_append_pop(sl, begin, datum_make_list_1(name), compdata);
+    compdata_give_names(datum_make_list_1(name), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.defun")) {
@@ -239,7 +240,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
-    prog_append_pop(sl, begin, datum_make_list_1(name), compdata);
+    compdata_give_names(datum_make_list_1(name), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "builtin.fn")) {
@@ -372,7 +373,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_call(sl, begin, 0, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   if (!at) {
-    prog_append_pop(sl, begin, datum_make_symbol(":void"), compdata);
+    prog_append_pop(sl, begin, compdata);
   }
   return NULL;
 }
@@ -465,7 +466,7 @@ LOCAL char *prog_append_backquoted_statement(
 LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args, datum *meta, datum **compdata) {
   // fix hat=false; sometimes it should be true.
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args), meta, compdata);
-  prog_append_pop(sl, begin, args, compdata);
+  compdata_give_names(args, compdata);
 }
 
 LOCAL fdatum prog_read_exports(datum *spec) {
