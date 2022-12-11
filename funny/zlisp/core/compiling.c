@@ -373,7 +373,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   }
   prog_append_call(sl, begin, 0, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   if (!at) {
-    prog_append_pop(sl, begin, 0, compdata);
+    prog_append_pop(sl, begin, ret_count, compdata);
   }
   return NULL;
 }

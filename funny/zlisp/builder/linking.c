@@ -148,7 +148,7 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   prog_append_resolve(sl, p);
   prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_call(sl, p, 0, datum_make_symbol("plain"), list_length(transitive_deps), list_length(syms), compdata);
-  prog_append_pop(sl, p, 0, compdata);
+  prog_append_pop(sl, p, list_length(syms), compdata);
   datum *names = datum_make_nil();
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;

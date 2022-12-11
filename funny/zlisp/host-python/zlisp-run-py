@@ -193,7 +193,12 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":pop"):
             idx, nex = args
+            form = []
+            for _ in range(idx):
+                val = pop_stack()
+                form = [val] + form
             pop_stack()
+            pdata[-1][-1].varz.extend(form)
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
@@ -223,7 +228,7 @@ def main():
                 cont = make_routine_0(varz=contvarz, ip=ip)
 
                 pdata[-1].pop()
-                pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues), cont)))
+                pdata[-1][-1].varz.extend((make_list_with_items(cont, *reversed(rvalues))))
                 ip = pdata[-1][-1].ip
             elif hat == sexpdata.Symbol("host"):
                 instruction = meta

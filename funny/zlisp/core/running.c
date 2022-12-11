@@ -199,9 +199,12 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       datum *suspended = routine_to_datum(r->child);
       free(r->child);
       r->child = NULL;
-      state_stack_pop(&r->state);  // popping the old child routine
-      state_stack_put_all(&r->state, args);
+
+      // update the callee.
+      state_stack_pop(&r->state);  
       state_stack_put(&r->state, suspended);
+
+      state_stack_put_all(&r->state, args);
       r->offset = prg.call_next;
       continue;
     }
@@ -214,7 +217,6 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
     if (prg.type == PROG_CALL) {
       datum *args = state_stack_collect(&r->state, prg.call_arg_count);
       datum *fn = state_stack_at(r->state, prg.call_fn_index).ok_value;
-      // state_stack_pop(&r->state);
       routine child;
       char *err = datum_to_routine(fn, &child);
       if (err != NULL) {
@@ -305,7 +307,9 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       continue;
     }
     if (prg.type == PROG_POP) {
+      datum *t = state_stack_collect(&r->state, prg.pop_idx);
       state_stack_pop(&r->state);
+      state_stack_put_all(&r->state, t);
       r->offset = prg.pop_next;
       continue;
     }
