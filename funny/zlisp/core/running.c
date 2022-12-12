@@ -177,6 +177,18 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
         return "a routine has child, but the instruction is not 'call'";
       }
       datum *recieve_type = prg.call_type;
+      fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
+      if (fdatum_is_panic(mbchild)) {
+        return mbchild.panic_message;
+      }
+      datum *dchild = mbchild.ok_value;
+      if (!datum_is_integer(dchild)) {
+        return "expected an integer at call_fn_index";
+      }
+      routine *child = (routine *)dchild->integer_value;
+      if (child != r->child) {
+        // problem
+      }
       char *err = routine_run(sl, r->child);
       if (err != NULL) {
         return err;
@@ -220,13 +232,15 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
     if (prg.type == PROG_CALL) {
       datum *args = state_stack_collect(&r->state, prg.call_arg_count);
 
-      // replace the routine with a placeholder.
+      // the child routine (filled below).
+      routine *child = malloc(sizeof(routine));
+
+      // replace the serialized routine with a pointer to deserialized routine.
       datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
       datum *fn = state_stack_pop(&r->state);
-      state_stack_put(&r->state, datum_make_nil());
+      state_stack_put(&r->state, datum_make_int((size_t)child));
       state_stack_put_all(&r->state, tmp);
 
-      routine *child = malloc(sizeof(routine));
       char *err = datum_to_routine(fn, child);
       if (err != NULL) {
         return err;

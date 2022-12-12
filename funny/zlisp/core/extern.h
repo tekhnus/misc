@@ -3,20 +3,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
+#define LOCAL static
+typedef struct datum datum;
+LOCAL datum *list_cut(datum *xs,size_t rest_length);
+void state_stack_put(datum **ns,datum *value);
+datum *state_stack_pop(datum **s);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct datum datum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
 fdatum state_stack_at(datum *ns,int offset);
-#define LOCAL static
-LOCAL datum *list_cut(datum *xs,size_t rest_length);
-void state_stack_put(datum **ns,datum *value);
-datum *state_stack_pop(datum **s);
 datum *state_stack_top(datum **s);
 void state_stack_put_all(datum **ns,datum *list);
 datum *state_stack_collect(datum **s,size_t count);
