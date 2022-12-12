@@ -220,12 +220,12 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
     if (prg.type == PROG_CALL) {
       datum *args = state_stack_collect(&r->state, prg.call_arg_count);
       datum *fn = state_stack_at(r->state, prg.call_fn_index).ok_value;
-      routine child;
-      char *err = datum_to_routine(fn, &child);
+      routine *child = malloc(sizeof(routine));
+      char *err = datum_to_routine(fn, child);
       if (err != NULL) {
         return err;
       }
-      routine *child_top = topmost_routine(&child);
+      routine *child_top = topmost_routine(child);
       prog recieve = datum_to_prog(prog_slice_datum_at(sl, child_top->offset));
       if (recieve.type != PROG_YIELD) {
         return "the routine beging called is not at yield instruction";
@@ -235,8 +235,7 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       }
       state_stack_put_all(&child_top->state, args);
       child_top->offset = recieve.yield_next;
-      r->child = malloc(sizeof(routine));
-      *r->child = child;
+      r->child = child;
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
