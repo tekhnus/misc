@@ -219,7 +219,13 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
     }
     if (prg.type == PROG_CALL) {
       datum *args = state_stack_collect(&r->state, prg.call_arg_count);
-      datum *fn = state_stack_at(r->state, prg.call_fn_index).ok_value;
+
+      // replace the routine with a placeholder.
+      datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
+      datum *fn = state_stack_pop(&r->state);
+      state_stack_put(&r->state, datum_make_nil());
+      state_stack_put_all(&r->state, tmp);
+
       routine *child = malloc(sizeof(routine));
       char *err = datum_to_routine(fn, child);
       if (err != NULL) {
