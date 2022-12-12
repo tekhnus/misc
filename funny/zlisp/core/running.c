@@ -142,11 +142,12 @@ LOCAL routine *topmost_routine(routine *r) {
 
 LOCAL datum *routine_to_datum(routine *r) {
   if (r == NULL) {
-    return datum_make_nil();
+    fprintf(stderr, "a null routine!\n");
+    exit(EXIT_FAILURE);
   }
   return datum_make_list(
                          datum_make_list_2(datum_make_int(r->offset), r->state),
-                         routine_to_datum(r->child));
+                         r->child == NULL ? datum_make_nil() : routine_to_datum(r->child));
 }
 
 LOCAL char *datum_to_routine(datum *d, routine *r) {
