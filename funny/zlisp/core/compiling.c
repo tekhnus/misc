@@ -204,7 +204,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     compdata_give_names(names, compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.defn")) {
+  if (datum_is_the_symbol(op, "builtin.defn") || datum_is_the_symbol(op, "builtin.defun")) {
     datum *name = list_at(stmt, 1);
     datum *args;
     datum *body;
@@ -220,8 +220,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
-    prog_append_resolve(sl, begin);
-
+    if (datum_is_the_symbol(op, "builtin.defn")) {
+      prog_append_resolve(sl, begin);
+    }
     compdata_give_names(datum_make_list_1(name), compdata);
     return NULL;
   }
