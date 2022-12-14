@@ -140,13 +140,6 @@
     (return `(~a ~b)))
   '(34 42))
 
-!(#fntest
-  (progn
-    (builtin.defun fff (x) (return (+ x 42)))
-    (def yyy ((resolve fff) 1))
-    (return yyy))
-  43)
-
 !(#defun print-all (xs)
    (if xs
        (progn
