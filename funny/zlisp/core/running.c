@@ -145,13 +145,13 @@ LOCAL datum *routine_to_datum(routine *r) {
     fprintf(stderr, "a null routine!\n");
     exit(EXIT_FAILURE);
   }
-  return datum_make_list(
+  return datum_make_list_2(
                          datum_make_list_2(datum_make_int(r->offset), r->state),
-                         r->child == NULL ? datum_make_nil() : routine_to_datum(r->child));
+                         datum_make_int((size_t)r->child));
 }
 
 LOCAL char *datum_to_routine(datum *d, routine *r) {
-  if (!datum_is_list(d) || datum_is_nil(d)) {
+  if (!datum_is_list(d) || list_length(d) != 2 || !datum_is_integer(list_at(d, 1))) {
     return "not a routine";
   }
   datum *first_frame = list_at(d, 0);
@@ -161,12 +161,8 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
   }
   r->offset = list_at(first_frame, 0)->integer_value;
   r->state = list_at(first_frame, 1);
-  if (list_length(d) == 1) {
-    r->child = NULL;
-    return NULL;
-  }
-  r->child = malloc(sizeof(routine));
-  return datum_to_routine(d->list_tail, r->child);
+  r->child = (routine *)list_at(d, 1)->integer_value;
+  return NULL;
 }
 
 LOCAL char *routine_run(prog_slice sl, routine *r) {
