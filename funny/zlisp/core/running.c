@@ -183,7 +183,8 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
       }
       routine *child = (routine *)dchild->integer_value;
       if (child != r->child) {
-        // problem
+        fprintf(stderr, "problem\n");
+        exit(EXIT_FAILURE);
       }
       char *err = routine_run(sl, r->child);
       if (err != NULL) {
