@@ -186,11 +186,11 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
         fprintf(stderr, "problem\n");
         exit(EXIT_FAILURE);
       }
-      char *err = routine_run(sl, r->child);
+      char *err = routine_run(sl, child);
       if (err != NULL) {
         return err;
       }
-      routine *yielding_routine = topmost_routine(r->child);
+      routine *yielding_routine = topmost_routine(child);
       prog yield = datum_to_prog(prog_slice_datum_at(sl, yielding_routine->offset));
       if (yield.type == PROG_END) {
         return NULL;
@@ -206,8 +206,7 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
         return "call count and yield count are not equal";
       }
       datum *args = state_stack_collect(&yielding_routine->state, yield.yield_count);
-      datum *suspended = routine_to_datum(r->child);
-      free(r->child);
+      datum *suspended = routine_to_datum(child);
       r->child = NULL;
 
       // update the callee.
