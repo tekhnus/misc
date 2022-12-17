@@ -96,14 +96,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  routine *top0 = topmost_routine(&r);
-  prog prg0 = datum_to_prog(prog_slice_datum_at(sl, top0->offset));
-  if (prg0.type == PROG_YIELD && datum_is_the_symbol(prg0.yield_type, "halt")) {
-  } else {
-    fprintf(stderr, "!!!!!!\n");
-    print_backtrace_new(sl, &r);
-    exit(EXIT_FAILURE);
-  }
   datum *args = datum_make_nil();
   for (;;) {
     fdatum rerr = routine_run(sl, &r, args);
@@ -113,14 +105,15 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     }
     routine *top = topmost_routine(&r);
     prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
-    if (prg.type == PROG_END) {
+    datum *yield_type = list_at(rerr.ok_value, 0);
+    if (datum_is_the_symbol(yield_type, "legacy_end")) {
       fprintf(stderr, "warning: end instruction reached\n");
       break;
     }
-    if (prg.type == PROG_YIELD && datum_is_the_symbol(prg.yield_type, "halt")) {
+    if (datum_is_the_symbol(yield_type, "halt")) {
       break;
     }
-    if (prg.type != PROG_YIELD || !datum_is_the_symbol(prg.yield_type, "host")) {
+    if (!datum_is_the_symbol(yield_type, "host")) {
       return fdatum_make_panic("execution stopped at wrong place");
     }
     datum *name = prg.yield_meta;
@@ -215,22 +208,17 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (fdatum_is_panic(err)) {
         return err;
       }
-      routine *yielding_routine = topmost_routine(child);
-      prog yield = datum_to_prog(prog_slice_datum_at(sl, yielding_routine->offset));
-      if (yield.type == PROG_END) {
-        return fdatum_make_ok(datum_make_list_2(datum_make_symbol("legacy_end"), datum_make_nil()));
+      datum *yield_type = list_at(err.ok_value, 0);
+      if (datum_is_the_symbol(yield_type, "legacy_end")) {
+        return err;
       }
-      if (yield.type != PROG_YIELD) {
-        return fdatum_make_panic("a child routine stopped not on a yield instruction");
-      }
-      datum *yield_type = yield.yield_type;
       if (!datum_eq(recieve_type, yield_type)) {
         return fdatum_make_ok(err.ok_value);
       }
-      if (prg.call_return_count != yield.yield_count) {
+      datum *args = list_at(err.ok_value, 1);
+      if (prg.call_return_count != (long unsigned int)list_length(args)) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
-      datum *args = list_at(err.ok_value, 1);
       datum *suspended = routine_to_datum(child);
       r->child = NULL;
 
