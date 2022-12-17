@@ -97,6 +97,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     return fdatum_make_panic(err);
   }
   datum *args = datum_make_nil();
+  datum *result = datum_make_nil();
   for (;;) {
     fdatum rerr = routine_run(sl, &r, args);
     if (fdatum_is_panic(rerr)) {
@@ -105,6 +106,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     }
     datum *yield_type = list_at(rerr.ok_value, 0);
     if (datum_is_the_symbol(yield_type, "halt")) {
+      result = list_at(rerr.ok_value, 1);
       break;
     }
     if (!datum_is_list(yield_type) || !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
@@ -119,6 +121,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     args = res.ok_value;
   }
   *r0d = routine_to_datum(&r);
+  return fdatum_make_ok(result);
   routine *top = topmost_routine(&r);
   if (datum_is_nil(top->state)) {
     return fdatum_make_ok(datum_make_nil());

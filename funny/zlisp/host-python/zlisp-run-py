@@ -141,9 +141,7 @@ def main():
         ins = prog[ip]
         # print(ins)
         op, args = ins[0], ins[1:]
-        if op == sexpdata.Symbol(":end"):
-            break
-        elif op == sexpdata.Symbol(":if"):
+        if op == sexpdata.Symbol(":if"):
             if_true, if_false = args
             if is_true(pop_stack()):
                 ip = if_true
@@ -261,6 +259,8 @@ def main():
                 else:
                     raise RuntimeError(f"host not implemented: {instruction}")
                 ip = nex
+            elif hat == sexpdata.Symbol("halt"):
+                break
             else:
                 raise RuntimeError("invalid yield")
         else:

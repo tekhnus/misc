@@ -121,4 +121,4 @@
     (progn
       (print-all panics)
       (panic "FAILED"))
-  (progn))
+  (progn '() '()))

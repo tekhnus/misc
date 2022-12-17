@@ -28,6 +28,7 @@ EXPORT fdatum file_source(char *fname) {
       end += sprintf(end, "while expanding %s: %s", datum_repr(rr.ok_value), val.panic_message);
       return fdatum_make_panic(err);
     }
+    // fprintf(stderr, "exp\n  from %s\n  to   %s\n", datum_repr(rr.ok_value), datum_repr(val.ok_value));
     if (datum_is_the_symbol(val.ok_value, ":void-value")) {
       continue;
     }
@@ -83,7 +84,7 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
   if (fdatum_is_panic(res)) {
     return res;
   }
-  if (!compdata_has_value(*compdata)) {
+  if (list_length(res.ok_value) == 0) {
     return fdatum_make_ok(datum_make_symbol(":void-value"));
   }
   if (list_length(res.ok_value) != 1) {
