@@ -27,7 +27,7 @@ struct prog_slice {
   size_t capacity;
 };
 typedef struct routine routine;
-LOCAL char *routine_run(prog_slice sl,routine *r,datum *args);
+LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 void print_backtrace_new(prog_slice sl,routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);

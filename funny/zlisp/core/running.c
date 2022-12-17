@@ -107,10 +107,10 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   }
   datum *args = datum_make_nil();
   for (;;) {
-    err = routine_run(sl, &r, args);
-    if (err != NULL) {
+    fdatum rerr = routine_run(sl, &r, args);
+    if (fdatum_is_panic(rerr)) {
       print_backtrace_new(sl, &r);
-      return fdatum_make_panic(err);
+      return rerr;
     }
     routine *top = topmost_routine(&r);
     prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
@@ -178,7 +178,7 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
   return NULL;
 }
 
-LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
+LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
   prog prg0 = datum_to_prog(prog_slice_datum_at(sl, r->offset));
   if (prg0.type == PROG_CALL) {
 
@@ -198,41 +198,41 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (r->child != NULL) {
       if (prg.type != PROG_CALL) {
-        return "a routine has child, but the instruction is not 'call'";
+        return fdatum_make_panic("a routine has child, but the instruction is not 'call'");
       }
       datum *recieve_type = prg.call_type;
       fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
       if (fdatum_is_panic(mbchild)) {
-        return mbchild.panic_message;
+        return mbchild;
       }
       datum *dchild = mbchild.ok_value;
       if (!datum_is_integer(dchild)) {
-        return "expected an integer at call_fn_index";
+        return fdatum_make_panic("expected an integer at call_fn_index");
       }
       routine *child = (routine *)dchild->integer_value;
       if (child != r->child) {
         fprintf(stderr, "problem\n");
         exit(EXIT_FAILURE);
       }
-      char *err = routine_run(sl, child, args);
+      fdatum err = routine_run(sl, child, args);
       args = NULL;
-      if (err != NULL) {
+      if (fdatum_is_panic(err)) {
         return err;
       }
       routine *yielding_routine = topmost_routine(child);
       prog yield = datum_to_prog(prog_slice_datum_at(sl, yielding_routine->offset));
       if (yield.type == PROG_END) {
-        return NULL;
+        return fdatum_make_ok(datum_make_nil());
       }
       if (yield.type != PROG_YIELD) {
-        return "a child routine stopped not on a yield instruction";
+        return fdatum_make_panic("a child routine stopped not on a yield instruction");
       }
       datum *yield_type = yield.yield_type;
       if (!datum_eq(recieve_type, yield_type)) {
-        return NULL;
+        return fdatum_make_ok(datum_make_nil());
       }
       if (prg.call_return_count != yield.yield_count) {
-        return "call count and yield count are not equal";
+        return fdatum_make_panic("call count and yield count are not equal");
       }
       datum *args = state_stack_collect(&yielding_routine->state, yield.yield_count);
       datum *suspended = routine_to_datum(child);
@@ -249,10 +249,10 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_END) {
-      return NULL;
+      return fdatum_make_ok(datum_make_nil());
     }
     if (prg.type == PROG_YIELD) {
-      return NULL;
+      return fdatum_make_ok(datum_make_nil());
     }
     if (prg.type == PROG_CALL) {
       datum *argz = state_stack_collect(&r->state, prg.call_arg_count);
@@ -268,15 +268,15 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
 
       char *err = datum_to_routine(fn, child);
       if (err != NULL) {
-        return err;
+        return fdatum_make_panic(err);
       }
       routine *child_top = topmost_routine(child);
       prog recieve = datum_to_prog(prog_slice_datum_at(sl, child_top->offset));
       if (recieve.type != PROG_YIELD) {
-        return "the routine beging called is not at yield instruction";
+        return fdatum_make_panic("the routine beging called is not at yield instruction");
       }
       if (prg.call_arg_count != recieve.yield_recieve_count) {
-        return "arg count and recieve count are not equal";
+        return fdatum_make_panic("arg count and recieve count are not equal");
       }
       args = argz;
       // state_stack_put_all(&child_top->state, argz);
@@ -300,13 +300,13 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
       // (this happens with lambdas).
       datum *fnptr = state_stack_top(&r->state);
       if (!datum_is_list(fnptr) || list_length(fnptr) != 2 || !datum_is_integer(list_at(fnptr, 0)) || !datum_is_integer(list_at(fnptr, 1))) {
-        return "incorrect fnptr";
+        return fdatum_make_panic("incorrect fnptr");
       }
       size_t off = list_at(fnptr, 0)->integer_value;
       size_t stack_off = list_at(fnptr, 1)->integer_value;
       datum *cut_state = list_cut(r->state, stack_off);
       if (cut_state == NULL) {
-        return "list_cut: list is too short";
+        return fdatum_make_panic("list_cut: list is too short");
       }
       routine rt = {.offset = off, .state = cut_state, .child = NULL};
       state_stack_pop(&r->state);
@@ -320,12 +320,12 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
         if (datum_is_the_symbol(prg.nop_info->list_head, "compdata")) {
           datum *compdata = prg.nop_info->list_tail->list_head;
           if (list_length(compdata) != list_length(r->state)) {
-            return "compdata mismatch";
+            return fdatum_make_panic("compdata mismatch");
           }
         }
       }
       if (datum_is_the_symbol(prg.nop_info, "recieve")) {
-        return "nop-reciever";
+        return fdatum_make_panic("nop-reciever");
       }
       r->offset = prg.nop_next;
       continue;
@@ -347,7 +347,7 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
     if (prg.type == PROG_PUT_VAR) {
       fdatum er = state_stack_at(r->state, prg.put_var_offset);
       if (fdatum_is_panic(er)) {
-        return (er.panic_message);
+        return er;
       }
       state_stack_put(&r->state, er.ok_value);
       r->offset = prg.put_var_next;
@@ -373,9 +373,9 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     // return datum_repr(prog_slice_datum_at(sl, r->offset));
-    return "unhandled instruction type";
+    return fdatum_make_panic("unhandled instruction type");
   }
-  return "unreachable";
+  return fdatum_make_panic("unreachable");
 }
 
 LOCAL prog datum_to_prog(datum *d) {
