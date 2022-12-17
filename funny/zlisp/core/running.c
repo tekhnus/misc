@@ -124,7 +124,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
       return fdatum_make_panic("execution stopped at wrong place");
     }
     datum *name = prg.yield_meta;
-    datum *arg = rerr.ok_value;
+    datum *arg = list_at(rerr.ok_value, 1);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
       return res;
@@ -218,7 +218,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       routine *yielding_routine = topmost_routine(child);
       prog yield = datum_to_prog(prog_slice_datum_at(sl, yielding_routine->offset));
       if (yield.type == PROG_END) {
-        return fdatum_make_ok(datum_make_nil());
+        return fdatum_make_ok(datum_make_list_2(datum_make_symbol("legacy_end"), datum_make_nil()));
       }
       if (yield.type != PROG_YIELD) {
         return fdatum_make_panic("a child routine stopped not on a yield instruction");
@@ -230,7 +230,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.call_return_count != yield.yield_count) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
-      datum *args = err.ok_value;
+      datum *args = list_at(err.ok_value, 1);
       datum *suspended = routine_to_datum(child);
       r->child = NULL;
 
@@ -245,11 +245,11 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_END) {
-      return fdatum_make_ok(datum_make_nil());
+      return fdatum_make_ok(datum_make_list_2(datum_make_symbol("legacy_end"), datum_make_nil()));
     }
     if (prg.type == PROG_YIELD) {
       datum *res = state_stack_collect(&r->state, prg.yield_count);
-      return fdatum_make_ok(res);
+      return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
     }
     if (prg.type == PROG_CALL) {
       datum *argz = state_stack_collect(&r->state, prg.call_arg_count);
