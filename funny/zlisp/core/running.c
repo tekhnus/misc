@@ -183,10 +183,12 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
   if (prg0.type == PROG_CALL) {
 
   } else if (prg0.type == PROG_YIELD) {
-    if (args != NULL) {
-      state_stack_put_all(&r->state, args);
-      args = NULL;
+    if (args == NULL) {
+      fprintf(stderr, "null args\n");
+      exit(EXIT_FAILURE);
     }
+    state_stack_put_all(&r->state, args);
+    args = NULL;
     r->offset = prg0.yield_next;
   } else {
     fprintf(stderr, "warning: wrong type\n");
@@ -253,7 +255,7 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
       return NULL;
     }
     if (prg.type == PROG_CALL) {
-      datum *args = state_stack_collect(&r->state, prg.call_arg_count);
+      datum *argz = state_stack_collect(&r->state, prg.call_arg_count);
 
       // the child routine (filled below).
       routine *child = malloc(sizeof(routine));
@@ -276,7 +278,8 @@ LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.call_arg_count != recieve.yield_recieve_count) {
         return "arg count and recieve count are not equal";
       }
-      state_stack_put_all(&child_top->state, args);
+      args = argz;
+      // state_stack_put_all(&child_top->state, argz);
       r->child = child;
       continue;
     }
