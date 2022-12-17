@@ -5,6 +5,7 @@
 #include <linking.h>
 
 EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p, datum **compdata, datum **builder_compdata) {
+  prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0, datum_make_nil(), builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_resolve(sl, bdr_p);
   prog_append_call(sl, bdr_p, 0, datum_make_symbol("plain"), 0, 0, builder_compdata);

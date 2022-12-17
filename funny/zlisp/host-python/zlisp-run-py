@@ -128,6 +128,14 @@ def main():
         v = pdata[-1][-1].varz.pop()
         return v
 
+    ip = pdata[-1][-1].ip
+    ins = prog[ip]
+    op, args = ins[0], ins[1:]
+    if op == sexpdata.Symbol(":yield"):
+        hat, cnt, recieve_cnt, meta, nex = args
+        pdata[-1][-1].ip = nex
+    else:
+        pass
     while True:
         ip = pdata[-1][-1].ip
         ins = prog[ip]
