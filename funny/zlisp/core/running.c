@@ -105,8 +105,9 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     print_backtrace_new(sl, &r);
     exit(EXIT_FAILURE);
   }
+  datum *args = datum_make_nil();
   for (;;) {
-    err = routine_run(sl, &r);
+    err = routine_run(sl, &r, args);
     if (err != NULL) {
       print_backtrace_new(sl, &r);
       return fdatum_make_panic(err);
@@ -131,8 +132,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     if (fdatum_is_panic(res)) {
       return res;
     }
-    state_stack_put_all(&top->state, res.ok_value);
-    // top->offset = prg.yield_next;
+    args = res.ok_value;
   }
   *r0d = routine_to_datum(&r);
   routine *top = topmost_routine(&r);
@@ -178,11 +178,15 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
   return NULL;
 }
 
-LOCAL char *routine_run(prog_slice sl, routine *r) {
+LOCAL char *routine_run(prog_slice sl, routine *r, datum *args) {
   prog prg0 = datum_to_prog(prog_slice_datum_at(sl, r->offset));
   if (prg0.type == PROG_CALL) {
 
   } else if (prg0.type == PROG_YIELD) {
+    if (args != NULL) {
+      state_stack_put_all(&r->state, args);
+      args = NULL;
+    }
     r->offset = prg0.yield_next;
   } else {
     fprintf(stderr, "warning: wrong type\n");
@@ -208,7 +212,8 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
         fprintf(stderr, "problem\n");
         exit(EXIT_FAILURE);
       }
-      char *err = routine_run(sl, child);
+      char *err = routine_run(sl, child, args);
+      args = NULL;
       if (err != NULL) {
         return err;
       }
