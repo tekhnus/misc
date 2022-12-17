@@ -103,8 +103,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
       print_backtrace_new(sl, &r);
       return rerr;
     }
-    //routine *top = topmost_routine(&r);
-    //prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
     datum *yield_type = list_at(rerr.ok_value, 0);
     if (datum_is_the_symbol(yield_type, "legacy_end")) {
       fprintf(stderr, "warning: end instruction reached\n");
@@ -175,6 +173,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     if (args == NULL) {
       fprintf(stderr, "null args\n");
       exit(EXIT_FAILURE);
+    }
+    if (list_length(args) != (int)prg0.yield_recieve_count) {
+      return fdatum_make_panic("recieved incorrect number of arguments");
     }
     state_stack_put_all(&r->state, args);
     args = NULL;
@@ -254,14 +255,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       char *err = datum_to_routine(fn, child);
       if (err != NULL) {
         return fdatum_make_panic(err);
-      }
-      routine *child_top = topmost_routine(child);
-      prog recieve = datum_to_prog(prog_slice_datum_at(sl, child_top->offset));
-      if (recieve.type != PROG_YIELD) {
-        return fdatum_make_panic("the routine beging called is not at yield instruction");
-      }
-      if (prg.call_arg_count != recieve.yield_recieve_count) {
-        return fdatum_make_panic("arg count and recieve count are not equal");
       }
       args = argz;
       r->child = child;
