@@ -19,9 +19,9 @@ struct fdatum {
 };
 fdatum state_stack_at(datum *ns,int offset);
 void state_stack_put_all(datum **ns,datum *list);
-datum *state_stack_top(datum **s);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+datum *state_stack_top(datum **s);
 typedef struct routine routine;
 LOCAL routine *topmost_routine(routine *r);
 typedef struct prog_slice prog_slice;

@@ -285,7 +285,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       datum *arg = rest->list_head;
       prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
     }
-    prog_append_yield(sl, begin, datum_make_symbol("host"), nargs, 1, name, compdata);
+    prog_append_yield(sl, begin, datum_make_list_2(datum_make_symbol("host"), name), nargs, 1, datum_make_nil(), compdata);
     return NULL;
   }
 

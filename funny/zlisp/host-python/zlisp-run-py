@@ -248,8 +248,8 @@ def main():
                 pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues))))
 
                 ip = nex
-            elif hat == sexpdata.Symbol("host"):
-                instruction = meta
+            elif isinstance(hat, list) and len(hat) == 2 and hat[0] == sexpdata.Symbol("host"):
+                instruction = hat[1]
                 arg = pop_stack()
                 if (
                         isinstance(instruction, list)

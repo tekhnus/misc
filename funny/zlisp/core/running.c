@@ -103,8 +103,8 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
       print_backtrace_new(sl, &r);
       return rerr;
     }
-    routine *top = topmost_routine(&r);
-    prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
+    //routine *top = topmost_routine(&r);
+    //prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
     datum *yield_type = list_at(rerr.ok_value, 0);
     if (datum_is_the_symbol(yield_type, "legacy_end")) {
       fprintf(stderr, "warning: end instruction reached\n");
@@ -113,10 +113,10 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     if (datum_is_the_symbol(yield_type, "halt")) {
       break;
     }
-    if (!datum_is_the_symbol(yield_type, "host")) {
+    if (!datum_is_list(yield_type) || !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
       return fdatum_make_panic("execution stopped at wrong place");
     }
-    datum *name = prg.yield_meta;
+    datum *name = list_at(yield_type, 1);
     datum *arg = list_at(rerr.ok_value, 1);
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
