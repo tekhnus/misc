@@ -229,7 +229,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       }
       datum *yield_type = yield.yield_type;
       if (!datum_eq(recieve_type, yield_type)) {
-        return fdatum_make_ok(datum_make_nil());
+        return fdatum_make_ok(err.ok_value);
       }
       if (prg.call_return_count != yield.yield_count) {
         return fdatum_make_panic("call count and yield count are not equal");
@@ -252,7 +252,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       return fdatum_make_ok(datum_make_nil());
     }
     if (prg.type == PROG_YIELD) {
-      return fdatum_make_ok(datum_make_nil());
+      datum *res = state_stack_collect(&r->state, prg.yield_count);
+      state_stack_put_all(&r->state, res);
+      return fdatum_make_ok(res);
     }
     if (prg.type == PROG_CALL) {
       datum *argz = state_stack_collect(&r->state, prg.call_arg_count);
