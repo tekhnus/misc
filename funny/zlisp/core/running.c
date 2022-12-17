@@ -99,7 +99,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   routine *top0 = topmost_routine(&r);
   prog prg0 = datum_to_prog(prog_slice_datum_at(sl, top0->offset));
   if (prg0.type == PROG_YIELD && datum_is_the_symbol(prg0.yield_type, "halt")) {
-    top0->offset = prg0.yield_next;
+    // top0->offset = prg0.yield_next;
   } else {
     fprintf(stderr, "!!!!!!\n");
     print_backtrace_new(sl, &r);
@@ -132,7 +132,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
       return res;
     }
     state_stack_put_all(&top->state, res.ok_value);
-    top->offset = prg.yield_next;
+    // top->offset = prg.yield_next;
   }
   *r0d = routine_to_datum(&r);
   routine *top = topmost_routine(&r);
@@ -179,6 +179,15 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
 }
 
 LOCAL char *routine_run(prog_slice sl, routine *r) {
+  prog prg0 = datum_to_prog(prog_slice_datum_at(sl, r->offset));
+  if (prg0.type == PROG_CALL) {
+
+  } else if (prg0.type == PROG_YIELD) {
+    r->offset = prg0.yield_next;
+  } else {
+    fprintf(stderr, "warning: wrong type\n");
+    exit(EXIT_FAILURE);
+  }
   for(;;) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (r->child != NULL) {
@@ -263,7 +272,6 @@ LOCAL char *routine_run(prog_slice sl, routine *r) {
         return "arg count and recieve count are not equal";
       }
       state_stack_put_all(&child_top->state, args);
-      child_top->offset = recieve.yield_next;
       r->child = child;
       continue;
     }
