@@ -99,7 +99,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   routine *top0 = topmost_routine(&r);
   prog prg0 = datum_to_prog(prog_slice_datum_at(sl, top0->offset));
   if (prg0.type == PROG_YIELD && datum_is_the_symbol(prg0.yield_type, "halt")) {
-    // top0->offset = prg0.yield_next;
   } else {
     fprintf(stderr, "!!!!!!\n");
     print_backtrace_new(sl, &r);
@@ -124,10 +123,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     if (prg.type != PROG_YIELD || !datum_is_the_symbol(prg.yield_type, "host")) {
       return fdatum_make_panic("execution stopped at wrong place");
     }
-    //
-    //getc(stdin);
     datum *name = prg.yield_meta;
-    state_stack_collect(&top->state, prg.yield_count);
     datum *arg = rerr.ok_value;
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
@@ -170,7 +166,6 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
   }
   datum *first_frame = list_at(d, 0);
   if (!datum_is_list(first_frame) || list_length(first_frame) != 2 || !datum_is_integer(list_at(first_frame, 0))) {
-    // return datum_repr(first_frame);
     return "invalid frame";
   }
   r->offset = list_at(first_frame, 0)->integer_value;
@@ -235,7 +230,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.call_return_count != yield.yield_count) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
-      // state_stack_collect(&yielding_routine->state, yield.yield_count);
       datum *args = err.ok_value;
       datum *suspended = routine_to_datum(child);
       r->child = NULL;
@@ -255,7 +249,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     }
     if (prg.type == PROG_YIELD) {
       datum *res = state_stack_collect(&r->state, prg.yield_count);
-      state_stack_put_all(&r->state, res);
       return fdatum_make_ok(res);
     }
     if (prg.type == PROG_CALL) {
@@ -283,7 +276,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return fdatum_make_panic("arg count and recieve count are not equal");
       }
       args = argz;
-      // state_stack_put_all(&child_top->state, argz);
       r->child = child;
       continue;
     }
@@ -376,7 +368,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       r->offset = prg.uncollect_next;
       continue;
     }
-    // return datum_repr(prog_slice_datum_at(sl, r->offset));
     return fdatum_make_panic("unhandled instruction type");
   }
   return fdatum_make_panic("unreachable");
