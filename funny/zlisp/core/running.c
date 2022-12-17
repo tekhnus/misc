@@ -127,7 +127,8 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     //
     //getc(stdin);
     datum *name = prg.yield_meta;
-    datum *arg = state_stack_collect(&top->state, prg.yield_count);
+    state_stack_collect(&top->state, prg.yield_count);
+    datum *arg = rerr.ok_value;
     fdatum res = perform_host_instruction(name, arg);
     if (fdatum_is_panic(res)) {
       return res;
@@ -234,7 +235,8 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.call_return_count != yield.yield_count) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
-      datum *args = state_stack_collect(&yielding_routine->state, yield.yield_count);
+      // state_stack_collect(&yielding_routine->state, yield.yield_count);
+      datum *args = err.ok_value;
       datum *suspended = routine_to_datum(child);
       r->child = NULL;
 
