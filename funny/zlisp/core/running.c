@@ -123,7 +123,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   if (datum_is_nil(top->state)) {
     return fdatum_make_ok(datum_make_nil());
   }
-  return fdatum_make_ok(state_stack_top(&top->state));
+  return fdatum_make_ok(datum_make_list_1(state_stack_top(&top->state)));
 }
 
 LOCAL routine *topmost_routine(routine *r) {

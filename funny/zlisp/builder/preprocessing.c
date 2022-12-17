@@ -86,5 +86,8 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
   if (!compdata_has_value(*compdata)) {
     return fdatum_make_ok(datum_make_symbol(":void-value"));
   }
-  return res;
+  if (list_length(res.ok_value) != 1) {
+    return fdatum_make_panic("expected a single result while preprocessing");
+  }
+  return fdatum_make_ok(list_at(res.ok_value, 0));
 }
