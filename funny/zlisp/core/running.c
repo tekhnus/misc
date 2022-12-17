@@ -104,10 +104,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
       return rerr;
     }
     datum *yield_type = list_at(rerr.ok_value, 0);
-    if (datum_is_the_symbol(yield_type, "legacy_end")) {
-      fprintf(stderr, "warning: end instruction reached\n");
-      break;
-    }
     if (datum_is_the_symbol(yield_type, "halt")) {
       break;
     }
@@ -210,9 +206,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return err;
       }
       datum *yield_type = list_at(err.ok_value, 0);
-      if (datum_is_the_symbol(yield_type, "legacy_end")) {
-        return err;
-      }
       if (!datum_eq(recieve_type, yield_type)) {
         return fdatum_make_ok(err.ok_value);
       }
@@ -232,9 +225,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       state_stack_put_all(&r->state, args);
       r->offset = prg.call_next;
       continue;
-    }
-    if (prg.type == PROG_END) {
-      return fdatum_make_ok(datum_make_list_2(datum_make_symbol("legacy_end"), datum_make_nil()));
     }
     if (prg.type == PROG_YIELD) {
       datum *res = state_stack_collect(&r->state, prg.yield_count);

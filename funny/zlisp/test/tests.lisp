@@ -160,3 +160,5 @@
       (print-all panics)
       (panic "FAILED"))
   (progn))
+
+(def x "if at the end of the module doesn't work well, so here is this statement:)")
