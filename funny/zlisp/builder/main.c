@@ -58,6 +58,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t *p, size_t *bp, datum *source, da
   if (res != NULL) {
     return res;
   }
+  prog_append_yield(sl, p, datum_make_symbol("halt"), 0, 0, datum_make_nil(), compdata);
   return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module, settings);
 }
 

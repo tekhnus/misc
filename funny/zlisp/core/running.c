@@ -96,16 +96,14 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  prog prg0 = datum_to_prog(prog_slice_datum_at(sl, r.offset));
-  if (prg0.type == PROG_YIELD) {
-    r.offset = prg0.yield_next;
-  } else if (prg0.type == PROG_CALL) {
-    fprintf(stderr, "!!!!!!\n");
-    //print_backtrace_new(sl, &r);
-    //exit(EXIT_FAILURE);
+  routine *top0 = topmost_routine(&r);
+  prog prg0 = datum_to_prog(prog_slice_datum_at(sl, top0->offset));
+  if (prg0.type == PROG_YIELD && datum_is_the_symbol(prg0.yield_type, "halt")) {
+    top0->offset = prg0.yield_next;
   } else {
-      fprintf(stderr, "warning: bad beginning\n");
-      exit(EXIT_FAILURE);
+    fprintf(stderr, "!!!!!!\n");
+    print_backtrace_new(sl, &r);
+    exit(EXIT_FAILURE);
   }
   for (;;) {
     err = routine_run(sl, &r);
@@ -116,6 +114,9 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     routine *top = topmost_routine(&r);
     prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
     if (prg.type == PROG_END) {
+      break;
+    }
+    if (prg.type == PROG_YIELD && datum_is_the_symbol(prg.yield_type, "halt")) {
       break;
     }
     if (prg.type != PROG_YIELD || !datum_is_the_symbol(prg.yield_type, "host")) {
