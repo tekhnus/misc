@@ -6,6 +6,7 @@
 #define LOCAL static
 typedef struct datum datum;
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
+datum *state_stack_top(datum **s);
 void state_stack_put(datum **ns,datum *value);
 datum *state_stack_pop(datum **s);
 datum *state_stack_collect(datum **s,size_t count);
@@ -21,15 +22,13 @@ fdatum state_stack_at(datum *ns,int offset);
 void state_stack_put_all(datum **ns,datum *list);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
-datum *state_stack_top(datum **s);
-typedef struct routine routine;
-LOCAL routine *topmost_routine(routine *r);
 typedef struct prog_slice prog_slice;
 struct prog_slice {
   datum *begin;
   size_t length;
   size_t capacity;
 };
+typedef struct routine routine;
 void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL char *datum_to_routine(datum *d,routine *r);

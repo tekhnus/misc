@@ -122,22 +122,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
   }
   *r0d = routine_to_datum(&r);
   return fdatum_make_ok(result);
-  routine *top = topmost_routine(&r);
-  if (datum_is_nil(top->state)) {
-    return fdatum_make_ok(datum_make_nil());
-  }
-  return fdatum_make_ok(datum_make_list_1(state_stack_top(&top->state)));
-}
-
-LOCAL routine *topmost_routine(routine *r) {
-  if (r == NULL) {
-    fprintf(stderr, "a null routinen\n");
-    exit(EXIT_FAILURE);
-  }
-  if (r->child == NULL) {
-    return r;
-  }
-  return topmost_routine(r->child);
 }
 
 LOCAL datum *routine_to_datum(routine *r) {
