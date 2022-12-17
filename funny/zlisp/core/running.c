@@ -114,6 +114,7 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     routine *top = topmost_routine(&r);
     prog prg = datum_to_prog(prog_slice_datum_at(sl, top->offset));
     if (prg.type == PROG_END) {
+      fprintf(stderr, "warning: end instruction reached\n");
       break;
     }
     if (prg.type == PROG_YIELD && datum_is_the_symbol(prg.yield_type, "halt")) {
