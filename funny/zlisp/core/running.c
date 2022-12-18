@@ -92,17 +92,13 @@ EXPORT datum *routine_make_new(ptrdiff_t prg) {
 EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
                                  fdatum (*perform_host_instruction)(datum *,
                                                                     datum *)) {
-  routine r;
-  char *err = datum_to_routine(*r0d, &r);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
+  routine *r = get_routine_from_datum(*r0d);
   datum *args = datum_make_nil();
   datum *result = datum_make_nil();
   for (;;) {
-    fdatum rerr = routine_run(sl, &r, args);
+    fdatum rerr = routine_run(sl, r, args);
     if (fdatum_is_panic(rerr)) {
-      print_backtrace_new(sl, &r);
+      print_backtrace_new(sl, r);
       return rerr;
     }
     datum *yield_type = list_at(rerr.ok_value, 0);
@@ -121,7 +117,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     }
     args = res.ok_value;
   }
-  *r0d = routine_to_datum(&r);
   return fdatum_make_ok(result);
 }
 
