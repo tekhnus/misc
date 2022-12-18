@@ -83,8 +83,10 @@ typedef struct routine routine;
 #endif
 
 EXPORT datum *routine_make_new(ptrdiff_t prg) {
-  routine r = {.offset = prg, .state = datum_make_nil()};
-  return routine_to_datum(&r);
+  routine *r = malloc(sizeof(routine));
+  r->offset = prg;
+  r->state = datum_make_nil();
+  return routine_to_datum(r);
 }
 
 EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
@@ -128,21 +130,28 @@ LOCAL datum *routine_to_datum(routine *r) {
     fprintf(stderr, "a null routine!\n");
     exit(EXIT_FAILURE);
   }
-  return datum_make_list_1(
-                           datum_make_list_2(datum_make_int(r->offset), r->state));
+  routine *rt = malloc(sizeof(routine));
+  routine_copy(rt, r);
+  return datum_make_int((size_t)rt);
 }
 
 LOCAL char *datum_to_routine(datum *d, routine *r) {
-  if (!datum_is_list(d) || list_length(d) != 1) {
-    return "not a routine";
-  }
-  datum *first_frame = list_at(d, 0);
-  if (!datum_is_list(first_frame) || list_length(first_frame) != 2 || !datum_is_integer(list_at(first_frame, 0))) {
-    return "invalid frame";
-  }
-  r->offset = list_at(first_frame, 0)->integer_value;
-  r->state = list_at(first_frame, 1);
+  routine *rt = get_routine_from_datum(d);
+  routine_copy(r, rt);
   return NULL;
+}
+
+LOCAL routine *get_routine_from_datum(datum *d) {
+  if (!datum_is_integer(d)) {
+    fprintf(stderr, "get_routine_from_datum: not a routine\n");
+    exit(EXIT_FAILURE);
+  }
+  return (routine *)d->integer_value;
+}
+
+LOCAL void routine_copy(routine *dst, routine *src) {
+  dst->offset = src->offset;
+  dst->state = src->state;
 }
 
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {

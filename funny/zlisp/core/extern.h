@@ -30,6 +30,8 @@ struct fdatum {
 fdatum state_stack_at(datum *ns,int offset);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+LOCAL routine *get_routine_from_datum(datum *d);
+LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL char *datum_to_routine(datum *d,routine *r);
