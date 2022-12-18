@@ -4,7 +4,17 @@
 #include <stdint.h>
 #include <stddef.h>
 #define LOCAL static
+typedef struct routine routine;
+typedef struct prog_slice prog_slice;
+#include <inttypes.h>
+#include <stdio.h>
 typedef struct datum datum;
+struct prog_slice {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 datum *state_stack_top(datum **s);
 void state_stack_put_all(datum **ns,datum *list);
@@ -12,8 +22,6 @@ void state_stack_put(datum **ns,datum *value);
 datum *state_stack_pop(datum **s);
 datum *state_stack_collect(datum **s,size_t count);
 typedef struct fdatum fdatum;
-#include <inttypes.h>
-#include <stdio.h>
 struct fdatum {
   int type;
   struct datum *ok_value;
@@ -22,14 +30,7 @@ struct fdatum {
 fdatum state_stack_at(datum *ns,int offset);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
-typedef struct prog_slice prog_slice;
-struct prog_slice {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-typedef struct routine routine;
-void print_backtrace_new(prog_slice sl,routine *r);
+LOCAL void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL char *datum_to_routine(datum *d,routine *r);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));

@@ -385,10 +385,38 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
-void print_backtrace_new(prog_slice sl, routine *r) {
+LOCAL routine *get_child(prog_slice sl, routine *r) {
+  prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
+  if (prg.type != PROG_CALL) {
+    return NULL;
+  }
+  fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
+  if (fdatum_is_panic(mbchild)) {
+    fprintf(stderr, "get_child error\n");
+    exit(EXIT_FAILURE);
+  }
+  datum *dchild = mbchild.ok_value;
+  if (!datum_is_integer(dchild)) {
+    fprintf(stderr, "get_child error\n");
+    exit(EXIT_FAILURE);
+  }
+  routine *child = (routine *)dchild->integer_value;
+  prog child_prg = datum_to_prog(prog_slice_datum_at(sl, child->offset));
+  if (child_prg.type == PROG_YIELD) {
+    // it's not currently being called
+    return NULL;
+  }
+  if (child_prg.type == PROG_CALL) {
+    // TODO: this is not correct, fix it!
+    return NULL;
+  }
+  return child;
+}
+
+LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
-  for (routine *z = r; z != NULL; z = z->child) {
+  for (routine *z = r; z != NULL; z = get_child(sl, r)) {
       for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
         if (i < 0) {
           continue;
