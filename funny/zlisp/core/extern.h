@@ -17,10 +17,10 @@ struct prog_slice {
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 datum *state_stack_top(datum **s);
-void state_stack_put_all(datum **ns,datum *list);
 void state_stack_put(datum **ns,datum *value);
 datum *state_stack_pop(datum **s);
 datum *state_stack_collect(datum **s,size_t count);
+void state_stack_put_all(datum **ns,datum *list);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;

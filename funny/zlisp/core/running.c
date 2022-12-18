@@ -178,13 +178,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.call_return_count != (long unsigned int)list_length(args)) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
-      datum *suspended = routine_to_datum(child);
-
-      // update the callee.
-      datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
-      state_stack_pop(&r->state);  
-      state_stack_put(&r->state, suspended);
-      state_stack_put_all(&r->state, tmp);
 
       state_stack_put_all(&r->state, args);
       r->offset = prg.call_next;
