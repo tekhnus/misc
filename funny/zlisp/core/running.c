@@ -184,11 +184,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       r->offset = prg.call_next;
       continue;
     }
-    if (prg.type == PROG_YIELD) {
-      if (args == NULL) {
-        datum *res = state_stack_collect(&r->state, prg.yield_count);
-        return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
-      }
+    if (prg.type == PROG_YIELD && args != NULL) {
       if (list_length(args) != (int)prg.yield_recieve_count) {
         return fdatum_make_panic("recieved incorrect number of arguments");
       }
@@ -197,8 +193,15 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       r->offset = prg.yield_next;
       continue;
     }
+    if (args != NULL) {
+      return fdatum_make_panic("args passed to a wrong instruction");
+    }
+    if (prg.type == PROG_YIELD) {
+      datum *res = state_stack_collect(&r->state, prg.yield_count);
+      return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
+    }
     if (prg.type == PROG_CALL) {
-      datum *argz = state_stack_collect(&r->state, prg.call_arg_count);
+      args = state_stack_collect(&r->state, prg.call_arg_count);
 
       // the child routine (filled below).
       routine *child = malloc(sizeof(routine));
@@ -213,7 +216,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (err != NULL) {
         return fdatum_make_panic(err);
       }
-      args = argz;
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
