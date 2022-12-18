@@ -149,24 +149,6 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
 }
 
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
-  prog prg0 = datum_to_prog(prog_slice_datum_at(sl, r->offset));
-  if (prg0.type == PROG_CALL) {
-
-  } else if (prg0.type == PROG_YIELD) {
-    if (args == NULL) {
-      fprintf(stderr, "null args\n");
-      exit(EXIT_FAILURE);
-    }
-    if (list_length(args) != (int)prg0.yield_recieve_count) {
-      return fdatum_make_panic("recieved incorrect number of arguments");
-    }
-    state_stack_put_all(&r->state, args);
-    args = NULL;
-    r->offset = prg0.yield_next;
-  } else {
-    fprintf(stderr, "warning: wrong type\n");
-    exit(EXIT_FAILURE);
-  }
   for(;;) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (r->child != NULL) {
@@ -214,8 +196,17 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_YIELD) {
-      datum *res = state_stack_collect(&r->state, prg.yield_count);
-      return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
+      if (args == NULL) {
+        datum *res = state_stack_collect(&r->state, prg.yield_count);
+        return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
+      }
+      if (list_length(args) != (int)prg.yield_recieve_count) {
+        return fdatum_make_panic("recieved incorrect number of arguments");
+      }
+      state_stack_put_all(&r->state, args);
+      args = NULL;
+      r->offset = prg.yield_next;
+      continue;
     }
     if (prg.type == PROG_CALL) {
       datum *argz = state_stack_collect(&r->state, prg.call_arg_count);

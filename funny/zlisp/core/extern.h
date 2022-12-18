@@ -7,6 +7,7 @@
 typedef struct datum datum;
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 datum *state_stack_top(datum **s);
+void state_stack_put_all(datum **ns,datum *list);
 void state_stack_put(datum **ns,datum *value);
 datum *state_stack_pop(datum **s);
 datum *state_stack_collect(datum **s,size_t count);
@@ -19,7 +20,6 @@ struct fdatum {
   char *panic_message;
 };
 fdatum state_stack_at(datum *ns,int offset);
-void state_stack_put_all(datum **ns,datum *list);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 typedef struct prog_slice prog_slice;
