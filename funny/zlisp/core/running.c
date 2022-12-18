@@ -75,7 +75,6 @@ struct prog {
 struct routine {
   ptrdiff_t offset;
   datum *state;
-  struct routine *child;
 };
 
 #if INTERFACE
@@ -84,7 +83,7 @@ typedef struct routine routine;
 #endif
 
 EXPORT datum *routine_make_new(ptrdiff_t prg) {
-  routine r = {.offset = prg, .state = datum_make_nil(), .child = NULL};
+  routine r = {.offset = prg, .state = datum_make_nil()};
   return routine_to_datum(&r);
 }
 
@@ -129,13 +128,12 @@ LOCAL datum *routine_to_datum(routine *r) {
     fprintf(stderr, "a null routine!\n");
     exit(EXIT_FAILURE);
   }
-  return datum_make_list_2(
-                         datum_make_list_2(datum_make_int(r->offset), r->state),
-                         datum_make_int((size_t)r->child));
+  return datum_make_list_1(
+                           datum_make_list_2(datum_make_int(r->offset), r->state));
 }
 
 LOCAL char *datum_to_routine(datum *d, routine *r) {
-  if (!datum_is_list(d) || list_length(d) != 2 || !datum_is_integer(list_at(d, 1))) {
+  if (!datum_is_list(d) || list_length(d) != 1) {
     return "not a routine";
   }
   datum *first_frame = list_at(d, 0);
@@ -144,7 +142,6 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
   }
   r->offset = list_at(first_frame, 0)->integer_value;
   r->state = list_at(first_frame, 1);
-  r->child = (routine *)list_at(d, 1)->integer_value;
   return NULL;
 }
 
@@ -162,10 +159,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return fdatum_make_panic("expected an integer at call_fn_index");
       }
       routine *child = (routine *)dchild->integer_value;
-      if (child != r->child) {
-        fprintf(stderr, "problem\n");
-        exit(EXIT_FAILURE);
-      }
       fdatum err = routine_run(sl, child, args);
       args = NULL;
       if (fdatum_is_panic(err)) {
@@ -180,7 +173,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
       datum *suspended = routine_to_datum(child);
-      r->child = NULL;
 
       // update the callee.
       datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
@@ -222,7 +214,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return fdatum_make_panic(err);
       }
       args = argz;
-      r->child = child;
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
@@ -250,7 +241,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (cut_state == NULL) {
         return fdatum_make_panic("list_cut: list is too short");
       }
-      routine rt = {.offset = off, .state = cut_state, .child = NULL};
+      routine rt = {.offset = off, .state = cut_state};
       state_stack_pop(&r->state);
       state_stack_put(&r->state, routine_to_datum(&rt));
       r->offset = prg.resolve_next;
