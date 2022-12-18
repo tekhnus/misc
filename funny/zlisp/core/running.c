@@ -128,12 +128,6 @@ LOCAL datum *routine_to_datum(routine *r) {
   return datum_make_int((size_t)r);
 }
 
-LOCAL char *datum_to_routine(datum *d, routine *r) {
-  routine *rt = get_routine_from_datum(d);
-  routine_copy(r, rt);
-  return NULL;
-}
-
 LOCAL routine *get_routine_from_datum(datum *d) {
   if (!datum_is_integer(d)) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
@@ -198,11 +192,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       // the callee is currently copied, this will be fixed.
       datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
       datum *fn = state_stack_pop(&r->state);
+      routine *fn_r = get_routine_from_datum(fn);
       routine *fn_copy = malloc(sizeof(routine));
-      char *err = datum_to_routine(fn, fn_copy);
-      if (err != NULL) {
-        return fdatum_make_panic(err);
-      }
+      routine_copy(fn_copy, fn_r);
       state_stack_put(&r->state, routine_to_datum(fn_copy));
       state_stack_put_all(&r->state, tmp);
 
