@@ -125,9 +125,7 @@ LOCAL datum *routine_to_datum(routine *r) {
     fprintf(stderr, "a null routine!\n");
     exit(EXIT_FAILURE);
   }
-  routine *rt = malloc(sizeof(routine));
-  routine_copy(rt, r);
-  return datum_make_int((size_t)rt);
+  return datum_make_int((size_t)r);
 }
 
 LOCAL char *datum_to_routine(datum *d, routine *r) {
@@ -235,9 +233,11 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (cut_state == NULL) {
         return fdatum_make_panic("list_cut: list is too short");
       }
-      routine rt = {.offset = off, .state = cut_state};
+      routine *rt = malloc(sizeof(routine));
+      rt->offset = off;
+      rt->state = cut_state;
       state_stack_pop(&r->state);
-      state_stack_put(&r->state, routine_to_datum(&rt));
+      state_stack_put(&r->state, routine_to_datum(rt));
       r->offset = prg.resolve_next;
       continue;
     }
