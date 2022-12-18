@@ -151,10 +151,7 @@ LOCAL char *datum_to_routine(datum *d, routine *r) {
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
   for(;;) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
-    if (r->child != NULL) {
-      if (prg.type != PROG_CALL) {
-        return fdatum_make_panic("a routine has child, but the instruction is not 'call'");
-      }
+    if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
       fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
       if (fdatum_is_panic(mbchild)) {
