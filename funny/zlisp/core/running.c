@@ -164,10 +164,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return mbchild;
       }
       datum *dchild = mbchild.ok_value;
-      if (!datum_is_integer(dchild)) {
-        return fdatum_make_panic("expected an integer at call_fn_index");
-      }
-      routine *child = (routine *)dchild->integer_value;
+      routine *child = get_routine_from_datum(dchild);
       fdatum err = routine_run(sl, child, args);
       args = NULL;
       if (fdatum_is_panic(err)) {
@@ -212,19 +209,17 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(&r->state, prg.call_arg_count);
 
-      // the child routine (filled below).
-      routine *child = malloc(sizeof(routine));
-
-      // replace the serialized routine with a pointer to deserialized routine.
+      // the callee is currently copied, this will be fixed.
       datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
       datum *fn = state_stack_pop(&r->state);
-      state_stack_put(&r->state, datum_make_int((size_t)child));
-      state_stack_put_all(&r->state, tmp);
-
-      char *err = datum_to_routine(fn, child);
+      routine *fn_copy = malloc(sizeof(routine));
+      char *err = datum_to_routine(fn, fn_copy);
       if (err != NULL) {
         return fdatum_make_panic(err);
       }
+      state_stack_put(&r->state, routine_to_datum(fn_copy));
+      state_stack_put_all(&r->state, tmp);
+
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
