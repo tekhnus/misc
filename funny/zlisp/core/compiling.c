@@ -25,7 +25,7 @@ EXPORT void prog_append_call(prog_slice *sl, size_t *begin, int fn_index, datum 
   *begin = next;
 }
 
-EXPORT int prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
+EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
@@ -41,7 +41,6 @@ EXPORT int prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum 
   *begin = next;
   compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-  return compdata_get_top_index(*compdata);
 }
 
 EXPORT void compdata_give_names(datum *var, datum **compdata) {
@@ -64,13 +63,12 @@ EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, size_t idx, datum **c
   *compdata = compdata_del(*compdata, idx);
 }
 
-EXPORT int prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
+EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
   compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-  return compdata_get_top_index(*compdata);
 }
 
 EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type, size_t count, size_t recieve_count, datum *meta, datum **compdata) {
@@ -558,14 +556,6 @@ LOCAL datum *compdata_del(datum *compdata, int index) {
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
   return list_index_of(compdata, var);
-}
-
-LOCAL int compdata_get_top_index(datum *compdata) {
-  if (datum_is_nil(compdata)) {
-    fprintf(stderr, "compdata_get_top_index: empty compdata\n");
-    exit(EXIT_FAILURE);
-  }
-  return list_length(compdata) - 1;
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
