@@ -146,7 +146,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
-      fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
+      fdatum mbchild = state_stack_at(r->state, list_length(r->state) - 1 - prg.call_fn_index);
       if (fdatum_is_panic(mbchild)) {
         return mbchild;
       }
@@ -190,7 +190,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       args = state_stack_collect(&r->state, prg.call_arg_count);
 
       // the callee is currently copied, this will be fixed.
-      datum *tmp = state_stack_collect(&r->state, prg.call_fn_index);
+      datum *tmp = state_stack_collect(&r->state, list_length(r->state) - 1 - prg.call_fn_index);
       datum *fn = state_stack_pop(&r->state);
       routine *fn_r = get_routine_from_datum(fn);
       routine *fn_copy = malloc(sizeof(routine));

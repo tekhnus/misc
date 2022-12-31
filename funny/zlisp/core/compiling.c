@@ -312,7 +312,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (!datum_is_symbol(fn)) {
       return "expected an lvalue";
     }
-    fn_index = compdata_get_index(*compdata, fn);
+    fn_index = list_length(*compdata) - 1 - compdata_get_index(*compdata, fn);
     if (fn_index == -1) {
       return datum_repr(*compdata);
       return "function not found";
@@ -322,7 +322,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    fn_index = 0;
+    fn_index = list_length(*compdata) - 1;
   }
   datum *rest_args = stmt->list_tail;
   if (!datum_is_nil(rest_args)) {

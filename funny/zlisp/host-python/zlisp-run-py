@@ -165,7 +165,7 @@ def main():
             if hat != sexpdata.Symbol("plain"):
                 raise RuntimeError("unknown type of the call")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
-            rout = pdata[-1][-1].varz[-1 - fn_index]
+            rout = pdata[-1][-1].varz[fn_index]
             offset, varz = check_is_routine_0(rout)
             rtvarz = list(varz)
             rtvarz.extend((arg) for arg in args)
@@ -242,7 +242,7 @@ def main():
                 fn_index, hat, arg_cnt, ret_cnt, nex = args
 
                 # update the routine
-                pdata[-1][-1].varz[-1 - fn_index] = cont
+                pdata[-1][-1].varz[fn_index] = cont
                 pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues))))
 
                 ip = nex
