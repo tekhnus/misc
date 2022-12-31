@@ -141,7 +141,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
-      fdatum mbchild = state_stack_at(r->state, list_length(r->state) - 1 - prg.call_fn_index);
+      fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
       if (fdatum_is_panic(mbchild)) {
         return mbchild;
       }
@@ -262,7 +262,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
-      fdatum er = state_stack_at(r->state, list_length(r->state) - 1 - prg.put_var_offset);
+      fdatum er = state_stack_at(r->state, prg.put_var_offset);
       if (fdatum_is_panic(er)) {
         return er;
       }
@@ -402,7 +402,7 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
 }
 
 EXPORT fdatum state_stack_at(datum *ns, int offset) {
-  datum *entry = list_at(ns, offset);
+  datum *entry = list_at(ns, list_length(ns) - 1 - offset);
   return fdatum_make_ok(entry);
 }
 

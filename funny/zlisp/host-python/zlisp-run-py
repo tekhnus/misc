@@ -35,15 +35,6 @@ def make_symbol(s):
     return sexpdata.Symbol(s)
 
 
-def get_var(d, offset):
-    if not d:
-        exit("get_var: not found")
-    v = d[-1]
-    if offset == 0:
-        return v
-    return get_var(d[:-1], offset - 1)
-
-
 def head(args):
     a1, ar = check_is_cons(args)
     h, t = check_is_cons(a1)
@@ -156,7 +147,7 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             offset, nex = args
-            pdata[-1][-1].varz.append((get_var(pdata[-1][-1].varz, len(pdata[-1][-1].varz) - 1 - offset)))
+            pdata[-1][-1].varz.append(pdata[-1][-1].varz[offset])
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
