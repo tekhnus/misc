@@ -156,7 +156,7 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             offset, nex = args
-            pdata[-1][-1].varz.append((get_var(pdata[-1][-1].varz, offset)))
+            pdata[-1][-1].varz.append((get_var(pdata[-1][-1].varz, len(pdata[-1][-1].varz) - 1 - offset)))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             fn_index, hat, arg_cnt, ret_cnt, nex = args

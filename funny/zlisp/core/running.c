@@ -264,7 +264,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
-      fdatum er = state_stack_at(r->state, prg.put_var_offset);
+      fdatum er = state_stack_at(r->state, list_length(r->state) - 1 - prg.put_var_offset);
       if (fdatum_is_panic(er)) {
         return er;
       }

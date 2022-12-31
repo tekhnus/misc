@@ -36,6 +36,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
   }
+  index = list_length(*compdata) - 1 - index;
   prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("putting-var"), val));
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
   *begin = next;
