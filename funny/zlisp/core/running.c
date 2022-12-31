@@ -11,8 +11,6 @@ enum prog_type {
   PROG_PUT_VAR,
   PROG_CALL,
   PROG_COLLECT,
-  PROG_UNCOLLECT,
-  PROG_POP,
   PROG_PUT_PROG,
   PROG_RESOLVE,
   PROG_YIELD,
@@ -52,10 +50,6 @@ struct prog {
     struct {
       size_t uncollect_count;
       ptrdiff_t uncollect_next;
-    };
-    struct {
-      int pop_idx;
-      ptrdiff_t pop_next;
     };
     struct {
       ptrdiff_t put_prog_value;
@@ -276,23 +270,10 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       r->offset = prg.put_var_next;
       continue;
     }
-    if (prg.type == PROG_POP) {
-      datum *t = state_stack_collect(&r->state, prg.pop_idx);
-      state_stack_pop(&r->state);
-      state_stack_put_all(&r->state, t);
-      r->offset = prg.pop_next;
-      continue;
-    }
     if (prg.type == PROG_COLLECT) {
       datum *form = state_stack_collect(&r->state, prg.collect_count);
       state_stack_put(&r->state, form);
       r->offset = prg.collect_next;
-      continue;
-    }
-    if (prg.type == PROG_UNCOLLECT) {
-      datum *xs = state_stack_pop(&r->state);
-      state_stack_put_all(&r->state, xs);
-      r->offset = prg.uncollect_next;
       continue;
     }
     return fdatum_make_panic("unhandled instruction type");
@@ -337,14 +318,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
     res.collect_next = list_at(d, 2)->integer_value;
-  } else if (!strcmp(opsym, ":uncollect")) {
-    res.type = PROG_UNCOLLECT;
-    res.uncollect_count = list_at(d, 1)->integer_value;
-    res.uncollect_next = list_at(d, 2)->integer_value;
-  } else if (!strcmp(opsym, ":pop")) {
-    res.type = PROG_POP;
-    res.pop_idx = list_at(d, 1)->integer_value;
-    res.pop_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_value = (list_at(d, 1)->integer_value);

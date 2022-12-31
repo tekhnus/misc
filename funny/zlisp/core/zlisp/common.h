@@ -77,7 +77,6 @@ fdatum prog_compile(datum *source,datum **compdata,datum *info);
 void prog_append_call(prog_slice *sl,size_t *begin,int fn_index,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
-void prog_append_pop(prog_slice *sl,size_t *begin,size_t idx,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 datum *compdata_make();

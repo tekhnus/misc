@@ -190,21 +190,6 @@ def main():
                 form = [val] + form
             pdata[-1][-1].varz.append((form))
             ip = nex
-        elif op == sexpdata.Symbol(":uncollect"):
-            cnt, nex = args
-            vals = pop_stack()
-            for val in vals:
-                pdata[-1][-1].varz.append(val)
-            ip = nex
-        elif op == sexpdata.Symbol(":pop"):
-            idx, nex = args
-            form = []
-            for _ in range(idx):
-                val = pop_stack()
-                form = [val] + form
-            pop_stack()
-            pdata[-1][-1].varz.extend(form)
-            ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
             if capture == 0:

@@ -60,13 +60,6 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
   }
 }
 
-EXPORT void prog_append_pop(prog_slice *sl, size_t *begin, size_t idx, datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":pop"), datum_make_int(idx), datum_make_int(next)));
-  *begin = next;
-  *compdata = compdata_del(*compdata, idx);
-}
-
 EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int capture, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
@@ -514,16 +507,6 @@ LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datu
     *compdata = compdata_del(*compdata, 0);
   }
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-}
-
-LOCAL void prog_append_uncollect(prog_slice *sl, size_t count, size_t *begin, datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":uncollect"), datum_make_int(count), datum_make_int(next)));
-  *begin = next;
-  *compdata = compdata_del(*compdata, 0);
-  for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-  }
 }
 
 LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
