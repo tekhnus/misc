@@ -39,7 +39,6 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
   }
-  index = list_length(*compdata) - 1 - index;
   prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("putting-var"), val));
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
   *begin = next;
@@ -308,7 +307,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (!datum_is_symbol(fn)) {
       return "expected an lvalue";
     }
-    fn_index = list_length(*compdata) - 1 - compdata_get_index(*compdata, fn);
+    fn_index = compdata_get_index(*compdata, fn);
     if (fn_index == -1) {
       return datum_repr(*compdata);
       return "function not found";
@@ -318,7 +317,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    fn_index = list_length(*compdata) - 1;
+    fn_index = compdata_get_top_index(*compdata);
   }
   datum *rest_args = stmt->list_tail;
   if (!datum_is_nil(rest_args)) {
@@ -539,7 +538,15 @@ LOCAL datum *compdata_del(datum *compdata, int index) {
 }
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
-  return list_index_of(compdata, var);
+  int res = list_index_of(compdata, var);
+  if (res == -1) {
+    return res;
+  }
+  return list_length(compdata) - 1 - res;
+}
+
+EXPORT int compdata_get_top_index(datum *compdata) {
+  return list_length(compdata) - 1;
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {

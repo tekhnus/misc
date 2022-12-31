@@ -83,6 +83,7 @@ datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 void prog_append_resolve(prog_slice *sl,size_t *begin);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
+int compdata_get_top_index(datum *compdata);
 datum *routine_make_new(ptrdiff_t prg);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 fdatum state_stack_at(datum *ns,int offset);

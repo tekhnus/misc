@@ -41,6 +41,7 @@ LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum *
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);
+int compdata_get_top_index(datum *compdata);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 void prog_append_resolve(prog_slice *sl,size_t *begin);
