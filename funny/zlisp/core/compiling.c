@@ -42,7 +42,6 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
   prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("putting-var"), val));
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
   *begin = next;
-  compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
@@ -63,7 +62,6 @@ EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val, int 
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val), datum_make_int(capture), datum_make_int(next)));
   *begin = next;
-  compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
@@ -480,7 +478,6 @@ LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val, datu
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
-  compdata = compdata;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
@@ -501,7 +498,6 @@ LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datu
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count), datum_make_int(next)));
   *begin = next;
-  compdata = compdata;
   for (size_t i = 0; i < count; ++i) {
     *compdata = compdata_del(*compdata);
   }
