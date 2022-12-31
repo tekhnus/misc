@@ -159,7 +159,7 @@ def main():
             pdata[-1][-1].varz.append((get_var(pdata[-1][-1].varz, len(pdata[-1][-1].varz) - 1 - offset)))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
-            fn_index, hat, arg_cnt, ret_cnt, nex = args
+            fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
             if hat == sexpdata.Symbol("hat"):
                 raise RuntimeError("routine-1 call is not supported yet")
             if hat != sexpdata.Symbol("plain"):
@@ -239,10 +239,12 @@ def main():
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
                     raise RuntimeError("expected a call")
-                fn_index, hat, arg_cnt, ret_cnt, nex = args
+                fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
 
                 # update the routine
                 pdata[-1][-1].varz[fn_index] = cont
+                if pop_one:
+                    pop_stack()
                 pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues))))
 
                 ip = nex

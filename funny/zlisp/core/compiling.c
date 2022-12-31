@@ -13,10 +13,13 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   return fdatum_make_ok(prog_slice_to_datum(sl));
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, int fn_index, datum *type, int arg_count, int return_count, datum **compdata) {
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, int fn_index, bool pop_one, datum *type, int arg_count, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(datum_make_symbol(":call"), datum_make_int(fn_index), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_7(datum_make_symbol(":call"), datum_make_int(fn_index), datum_make_int(pop_one), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
+    *compdata = compdata_del(*compdata, 0);
+  }
+  if (pop_one) {
     *compdata = compdata_del(*compdata, 0);
   }
   for (int i = 0; i < return_count; ++i) {
@@ -349,10 +352,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_call(sl, begin, fn_index, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
-  if (!at) {
-    prog_append_pop(sl, begin, ret_count, compdata);
-  }
+  prog_append_call(sl, begin, fn_index, !at, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   return NULL;
 }
 

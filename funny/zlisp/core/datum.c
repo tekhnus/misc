@@ -89,6 +89,11 @@ EXPORT datum *datum_make_list_6(datum *head, datum *second, datum *third,
   return datum_make_list(head, datum_make_list_5(second, third, fourth, fifth, sixth));
 }
 
+EXPORT datum *datum_make_list_7(datum *head, datum *second, datum *third,
+                                datum *fourth, datum *fifth, datum *sixth, datum *seventh) {
+  return datum_make_list(head, datum_make_list_6(second, third, fourth, fifth, sixth, seventh));
+}
+
 EXPORT datum *datum_make_symbol(char *name) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_SYMBOL;
