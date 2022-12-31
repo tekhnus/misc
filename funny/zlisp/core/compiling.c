@@ -17,10 +17,10 @@ EXPORT void prog_append_call(prog_slice *sl, size_t *begin, int fn_index, bool p
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_7(datum_make_symbol(":call"), datum_make_int(fn_index), datum_make_int(pop_one), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
-    *compdata = compdata_del(*compdata, 0);
+    *compdata = compdata_del(*compdata);
   }
   if (pop_one) {
-    *compdata = compdata_del(*compdata, 0);
+    *compdata = compdata_del(*compdata);
   }
   for (int i = 0; i < return_count; ++i) {
     *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
@@ -52,7 +52,7 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
     exit(EXIT_FAILURE);
   }
   for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-    *compdata = compdata_del(*compdata, 0);
+    *compdata = compdata_del(*compdata);
   }
   for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
     *compdata = compdata_put(*compdata, rest->list_head);
@@ -72,7 +72,7 @@ EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type, size_t
   *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(datum_make_symbol(":yield"), type, datum_make_int(count), datum_make_int(recieve_count), meta, datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_del(*compdata, 0);
+    *compdata = compdata_del(*compdata);
   }
   for (size_t i = 0; i < recieve_count; ++i) {
     *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
@@ -142,7 +142,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     *prog_slice_datum_at(*sl, *begin) = *datum_make_list_3(datum_make_symbol(":if"), datum_make_int(true_end), datum_make_int(false_end));
     *begin = prog_slice_append_new(sl); // ???
 
-    *compdata = compdata_del(*compdata, 0);
+    *compdata = compdata_del(*compdata);
     datum *false_compdata = *compdata;
     err = prog_append_statement(
                                 sl, &true_end, stmt->list_tail->list_tail->list_head, compdata, info);
@@ -503,7 +503,7 @@ LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin, datu
   *begin = next;
   compdata = compdata;
   for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_del(*compdata, 0);
+    *compdata = compdata_del(*compdata);
   }
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
@@ -525,16 +525,13 @@ LOCAL datum *compdata_put(datum *compdata, datum *var) {
   return datum_make_list(var, compdata);
 }
 
-LOCAL datum *compdata_del(datum *compdata, int index) {
+LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
   if (datum_is_nil(compdata)) {
     fprintf(stderr, "compdata_del: empty compdata\n");
     exit(EXIT_FAILURE);
   }
-  if (index == 0) {
-    return compdata->list_tail;
-  }
-  return datum_make_list(compdata->list_head, compdata_del(compdata->list_tail, index - 1));
+  return compdata->list_tail;
 }
 
 LOCAL int compdata_get_index(datum *compdata, datum *var) {
