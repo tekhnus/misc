@@ -81,7 +81,7 @@ EXPORT datum *routine_make_new(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
   r->offset = prg;
   r->state = datum_make_nil();
-  return routine_to_datum(r);
+  return datum_make_frame_new(r);
 }
 
 EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
@@ -124,11 +124,11 @@ LOCAL datum *routine_to_datum(routine *r) {
 }
 
 LOCAL routine *get_routine_from_datum(datum *d) {
-  if (!datum_is_integer(d)) {
+  if (!datum_is_frame(d)) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
     exit(EXIT_FAILURE);
   }
-  return (routine *)d->integer_value;
+  return (routine *)d->frame_value;
 }
 
 LOCAL void routine_copy(routine *dst, routine *src) {
@@ -193,7 +193,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       routine *fn_r = get_routine_from_datum(fn);
       routine *fn_copy = malloc(sizeof(routine));
       routine_copy(fn_copy, fn_r);
-      state_stack_put(&r->state, routine_to_datum(fn_copy));
+      state_stack_put(&r->state, datum_make_frame_new(fn_copy));
       state_stack_put_all(&r->state, tmp);
 
       continue;
@@ -227,7 +227,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       rt->offset = off;
       rt->state = cut_state;
       state_stack_pop(&r->state);
-      state_stack_put(&r->state, routine_to_datum(rt));
+      state_stack_put(&r->state, datum_make_frame_new(rt));
       r->offset = prg.resolve_next;
       continue;
     }
@@ -449,4 +449,11 @@ LOCAL datum *list_cut(datum *xs, size_t rest_length) {
     xs = xs->list_tail;
   }
   return xs;
+}
+
+LOCAL datum *datum_make_frame_new(routine *r) {
+  datum *e = malloc(sizeof(datum));
+  e->type = DATUM_FRAME;
+  e->frame_value = r;
+  return e;
 }

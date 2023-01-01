@@ -9,6 +9,7 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
+  DATUM_FRAME,
 };
 
 struct datum {
@@ -21,6 +22,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
+    void *frame_value;
   };
 };
 

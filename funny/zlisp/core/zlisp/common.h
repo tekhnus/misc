@@ -10,6 +10,7 @@ bool datum_is_list(datum *e);
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);
+bool datum_is_frame(datum *e);
 datum *datum_make_nil();
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_list_1(datum *head);
@@ -98,6 +99,7 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
+  DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
 struct datum {
@@ -110,5 +112,6 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
+    void *frame_value;
   };
 };

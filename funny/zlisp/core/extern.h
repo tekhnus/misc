@@ -31,11 +31,12 @@ fdatum state_stack_at(datum *ns,int offset);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL void routine_copy(routine *dst,routine *src);
+LOCAL datum *routine_to_datum(routine *r);
 LOCAL void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL datum *routine_to_datum(routine *r);
+LOCAL datum *datum_make_frame_new(routine *r);
 datum *routine_make_new(ptrdiff_t prg);
 LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
@@ -126,6 +127,7 @@ datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
+bool datum_is_frame(datum *e);
 bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
 datum *list_tail(datum *list);
@@ -139,6 +141,7 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
+  DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
 struct datum {
@@ -151,6 +154,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
+    void *frame_value;
   };
 };
 bool datum_is_the_symbol(datum *d,char *val);

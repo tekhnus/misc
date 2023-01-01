@@ -42,6 +42,10 @@ EXPORT bool datum_is_bytestring(datum *e) {
   return e->type == DATUM_BYTESTRING;
 }
 
+EXPORT bool datum_is_frame(datum *e) {
+  return e->type == DATUM_FRAME;
+}
+
 EXPORT datum *datum_make_nil() {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_NIL;
