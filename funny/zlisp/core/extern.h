@@ -15,6 +15,7 @@ struct prog_slice {
   size_t capacity;
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
+LOCAL datum *datum_copy(datum *d);
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 datum *state_stack_top(datum **s);
 void state_stack_put(datum **ns,datum *value);

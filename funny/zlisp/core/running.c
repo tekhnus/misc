@@ -186,16 +186,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(&r->state, prg.call_arg_count);
-
-      // the callee is currently copied, this will be fixed.
-      datum *tmp = state_stack_collect(&r->state, list_length(r->state) - 1 - prg.call_fn_index);
-      datum *fn = state_stack_pop(&r->state);
-      routine *fn_r = get_routine_from_datum(fn);
-      routine *fn_copy = malloc(sizeof(routine));
-      routine_copy(fn_copy, fn_r);
-      state_stack_put(&r->state, datum_make_frame_new(fn_copy));
-      state_stack_put_all(&r->state, tmp);
-
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
@@ -266,7 +256,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (fdatum_is_panic(er)) {
         return er;
       }
-      state_stack_put(&r->state, er.ok_value);
+      state_stack_put(&r->state, datum_copy(er.ok_value));
       r->offset = prg.put_var_next;
       continue;
     }
@@ -456,4 +446,14 @@ LOCAL datum *datum_make_frame_new(routine *r) {
   e->type = DATUM_FRAME;
   e->frame_value = r;
   return e;
+}
+
+LOCAL datum *datum_copy(datum *d) {
+  if (datum_is_frame(d)) {
+    routine *fn_r = get_routine_from_datum(d);
+    routine *fn_copy = malloc(sizeof(routine));
+    routine_copy(fn_copy, fn_r);
+    return datum_make_frame_new(fn_copy);
+  }
+  return d;
 }
