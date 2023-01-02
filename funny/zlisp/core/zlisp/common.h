@@ -86,6 +86,7 @@ datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 int compdata_get_index(datum *compdata,datum *var);
 int compdata_get_top_index(datum *compdata);
+datum *compdata_get_shape(datum *compdata);
 datum *routine_make_new(ptrdiff_t prg);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine routine;

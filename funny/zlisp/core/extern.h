@@ -18,6 +18,7 @@ struct prog_slice {
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
+LOCAL datum *routine_get_shape(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_top(routine *r);
 void state_stack_put(routine *r,datum *value);
@@ -42,6 +43,7 @@ fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instructio
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make_new(ptrdiff_t prg);
+datum *compdata_get_shape(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();
@@ -54,6 +56,7 @@ LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum 
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 void prog_append_resolve(prog_slice *sl,size_t *begin);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,datum *info);
+LOCAL datum *compdata_start_new_section(datum *compdata);
 LOCAL void prog_join(prog_slice *sl,size_t a,size_t b,size_t e);
 LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);

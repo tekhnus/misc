@@ -213,6 +213,11 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
           if (compdata_get_top_index(compdata) + 1 != (int)routine_get_stack_size(r)) {
             return fdatum_make_panic("compdata mismatch");
           }
+          datum *compdata_shape = compdata_get_shape(compdata);
+          datum *state_shape = routine_get_shape(r);
+          if (!datum_eq(compdata_shape, state_shape)) {
+            fprintf(stderr, "shape mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
+          }
         }
       }
       if (datum_is_the_symbol(prg.nop_info, "recieve")) {
@@ -435,6 +440,14 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < r->cnt; ++i) {
     res += list_length(r->frames[i].state);
+  }
+  return res;
+}
+
+LOCAL datum *routine_get_shape(routine *r) {
+  datum *res = datum_make_nil();
+  for (size_t i = 0; i < r->cnt; ++i) {
+    res = list_append(res, datum_make_int(list_length(r->frames[i].state)));
   }
   return res;
 }

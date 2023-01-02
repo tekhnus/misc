@@ -198,6 +198,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     body = list_at(stmt, 3);
     size_t s_off = prog_slice_append_new(sl);
     datum *routine_compdata = compdata_put(*compdata, name);
+    routine_compdata = compdata_start_new_section(routine_compdata);
     char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata, datum_make_list(name, info));
     if (err != NULL) {
       return err;
@@ -541,6 +542,10 @@ EXPORT int compdata_get_index(datum *compdata, datum *var) {
   return -1;
 }
 
+LOCAL datum *compdata_start_new_section(datum *compdata) {
+  return datum_make_list(datum_make_nil(), compdata);
+}
+
 EXPORT int compdata_get_top_index(datum *compdata) {
   int res = 0;
   for (datum *rest = compdata; !datum_is_nil(rest); rest=rest->list_tail) {
@@ -548,6 +553,14 @@ EXPORT int compdata_get_top_index(datum *compdata) {
     res += list_length(comp);
   }
   return res - 1;
+}
+
+EXPORT datum *compdata_get_shape(datum *compdata) {
+  if (datum_is_nil(compdata)) {
+    return datum_make_nil();
+  }
+  datum *c = compdata->list_head;
+  return list_append(compdata_get_shape(compdata->list_tail), datum_make_int(list_length(c)));
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
