@@ -32,6 +32,7 @@ struct fdatum {
   char *panic_message;
 };
 fdatum state_stack_at(routine *r,int offset);
+LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL datum *routine_to_datum(routine *r);

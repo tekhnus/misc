@@ -131,7 +131,7 @@ LOCAL routine *get_routine_from_datum(datum *d) {
 
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
   for(;;) {
-    prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
+    prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
       fdatum mbchild = state_stack_at(r, prg.call_fn_index);
@@ -158,7 +158,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         state_stack_pop(r);
       }
       state_stack_put_all(r, args);
-      r->offset = prg.call_next;
+      *routine_offset(r) = prg.call_next;
       continue;
     }
     if (prg.type == PROG_YIELD && args != NULL) {
@@ -167,7 +167,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       }
       state_stack_put_all(r, args);
       args = NULL;
-      r->offset = prg.yield_next;
+      *routine_offset(r) = prg.yield_next;
       continue;
     }
     if (args != NULL) {
@@ -190,7 +190,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       }
       datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(capture_size));
       state_stack_put(r, prog_ptr);
-      r->offset = prg.put_prog_next;
+      *routine_offset(r) = prg.put_prog_next;
       continue;
     }
     if (prg.type == PROG_RESOLVE) {
@@ -205,7 +205,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       routine *rt = routine_cut_and_rewind(r, stack_off, off);
       state_stack_pop(r);
       state_stack_put(r, datum_make_frame(rt));
-      r->offset = prg.resolve_next;
+      *routine_offset(r) = prg.resolve_next;
       continue;
     }
     if (prg.type == PROG_NOP) {
@@ -221,21 +221,21 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (datum_is_the_symbol(prg.nop_info, "recieve")) {
         return fdatum_make_panic("nop-reciever");
       }
-      r->offset = prg.nop_next;
+      *routine_offset(r) = prg.nop_next;
       continue;
     }
     if (prg.type == PROG_IF) {
       datum *v = state_stack_pop(r);
       if (!datum_is_nil(v)) {
-        r->offset = prg.if_true;
+        *routine_offset(r) = prg.if_true;
       } else {
-        r->offset = prg.if_false;
+        *routine_offset(r) = prg.if_false;
       }
       continue;
     }
     if (prg.type == PROG_PUT_CONST) {
       state_stack_put(r, prg.put_const_value);
-      r->offset = prg.put_const_next;
+      *routine_offset(r) = prg.put_const_next;
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
@@ -244,13 +244,13 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         return er;
       }
       state_stack_put(r, datum_copy(er.ok_value));
-      r->offset = prg.put_var_next;
+      *routine_offset(r) = prg.put_var_next;
       continue;
     }
     if (prg.type == PROG_COLLECT) {
       datum *form = state_stack_collect(r, prg.collect_count);
       state_stack_put(r, form);
-      r->offset = prg.collect_next;
+      *routine_offset(r) = prg.collect_next;
       continue;
     }
     return fdatum_make_panic("unhandled instruction type");
@@ -318,7 +318,7 @@ LOCAL prog datum_to_prog(datum *d) {
 }
 
 LOCAL routine *get_child(prog_slice sl, routine *r) {
-  prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
+  prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
     return NULL;
   }
@@ -333,7 +333,7 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
     exit(EXIT_FAILURE);
   }
   routine *child = (routine *)dchild->integer_value;
-  prog child_prg = datum_to_prog(prog_slice_datum_at(sl, child->offset));
+  prog child_prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(child)));
   if (child_prg.type == PROG_YIELD) {
     // it's not currently being called
     return NULL;
@@ -349,14 +349,14 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   for (routine *z = r; z != NULL; z = get_child(sl, r)) {
-      for (ptrdiff_t i = z->offset - 15; i < z->offset + 3; ++i) {
+    for (ptrdiff_t i = *routine_offset(z) - 15; i < z->offset + 3; ++i) {
         if (i < 0) {
           continue;
         }
         if (i >= (ptrdiff_t)prog_slice_length(sl)) {
           break;
         }
-        if (i == z->offset) {
+        if (i == *routine_offset(z)) {
           fprintf(stderr, "> ");
         } else {
           fprintf(stderr, "  ");
@@ -439,9 +439,13 @@ LOCAL routine *routine_cut_and_rewind(routine *r, size_t stack_off, size_t off) 
 
 LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
-  r->offset = prg;
+  *routine_offset(r) = prg;
   r->state = datum_make_nil();
   return r;
+}
+
+LOCAL ptrdiff_t *routine_offset(routine *r) {
+  return &r->offset;
 }
 
 LOCAL datum *list_cut(datum *xs, size_t rest_length) {
