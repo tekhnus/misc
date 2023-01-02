@@ -85,6 +85,7 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 int compdata_get_index(datum *compdata,datum *var);
+datum *compdata_get_polyindex(datum *compdata,datum *var);
 int compdata_get_top_index(datum *compdata);
 datum *compdata_get_shape(datum *compdata);
 datum *routine_make_new(ptrdiff_t prg);

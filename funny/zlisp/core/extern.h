@@ -66,6 +66,7 @@ void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,siz
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
+datum *compdata_get_polyindex(datum *compdata,datum *var);
 int compdata_get_index(datum *compdata,datum *var);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL datum *compdata_put(datum *compdata,datum *var);

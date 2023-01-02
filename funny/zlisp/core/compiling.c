@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,8 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     exit(1);
   }
   int index = compdata_get_index(*compdata, val);
+  datum *polyindex = compdata_get_polyindex(*compdata, val);
+  assert(!datum_is_nil(polyindex));
   if (index == -1) {
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
@@ -541,6 +544,19 @@ EXPORT int compdata_get_index(datum *compdata, datum *var) {
   }
   // fprintf(stderr, "%s in %s\n", datum_repr(var), datum_repr(compdata));
   return -1;
+}
+
+EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
+  int frame = 0;
+  size_t frames = list_length(compdata);
+  for (datum *rest = compdata; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum *comp = rest->list_head;
+    int idx = list_index_of(comp, var);
+    if (idx != -1) {
+      return datum_make_list_2(datum_make_int(frames - 1 - frame), datum_make_int(list_length(comp) - 1 - idx));
+    }
+  }
+  return datum_make_nil();
 }
 
 LOCAL datum *compdata_start_new_section(datum *compdata) {
