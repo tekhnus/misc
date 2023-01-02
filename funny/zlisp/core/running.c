@@ -372,17 +372,6 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
-EXPORT fdatum state_stack_at(routine *r, int offset) {
-  assert(r->cnt > 0);
-  for (size_t i = 0; i < r->cnt; ++i) {
-    if (offset < list_length(r->frames[i].state)) {
-      return fdatum_make_ok(list_at(r->frames[i].state,  list_length(r->frames[i].state) - 1 - offset));
-    }
-    offset -= list_length(r->frames[i].state);
-  }
-  return fdatum_make_panic("state_stack_at fail");
-}
-
 EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
   assert(datum_is_list(offset) && list_length(offset) == 2);
   datum *frame = list_at(offset, 0);

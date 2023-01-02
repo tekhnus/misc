@@ -91,7 +91,6 @@ datum *compdata_get_shape(datum *compdata);
 datum *routine_make_new(ptrdiff_t prg);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
 typedef struct routine routine;
-fdatum state_stack_at(routine *r,int offset);
 datum *state_stack_at_poly(routine *r,datum *offset);
 void state_stack_put(routine *r,datum *value);
 void state_stack_put_all(routine *r,datum *list);

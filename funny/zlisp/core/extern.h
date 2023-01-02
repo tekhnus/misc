@@ -8,16 +8,9 @@ typedef struct datum datum;
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
-typedef struct fdatum fdatum;
+typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-fdatum state_stack_at(routine *r,int offset);
-typedef struct prog_slice prog_slice;
 struct prog_slice {
   datum *begin;
   size_t length;
@@ -38,6 +31,12 @@ LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL void print_backtrace_new(prog_slice sl,routine *r);
+typedef struct fdatum fdatum;
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
