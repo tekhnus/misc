@@ -199,7 +199,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       // (this happens with lambdas).
       datum *fnptr = state_stack_top(r);
       routine *rt_tail = get_routine_from_datum(fnptr);
-      routine *rt = routine_cut_and_rewind(r, rt_tail);
+      routine *rt = routine_merge(r, rt_tail);
       state_stack_pop(r);
       state_stack_put(r, datum_make_frame(rt));
       *routine_offset(r) = prg.resolve_next;
@@ -438,19 +438,20 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_cut_and_rewind(routine *r, routine *rt_tail) {
-  size_t stack_off = rt_tail->extvars;
-  size_t off = *routine_offset(rt_tail);
-  assert(r->cnt == 1);
-  datum *cut_state = list_cut(r->frames[0].state, stack_off);
-  if (cut_state == NULL) {
-    fprintf(stderr, "list_cut: list is too short\n");
-    exit(EXIT_FAILURE);
-  }
+LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
+  size_t rest_vars = rt_tail->extvars;
   routine *rt = malloc(sizeof(routine));
-  rt->cnt = r->cnt;
-  rt->frames[0].offset = off;
-  rt->frames[0].state = cut_state;
+  for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
+    rt->frames[rt->cnt++] = r->frames[i];
+    if (list_length(r->frames[i].state) > (int)rest_vars) {
+      datum *cut_state = list_cut(r->frames[i].state, rest_vars);
+      rt->frames[rt->cnt - 1].state = cut_state;
+    }
+    rest_vars -= list_length(rt->frames[rt->cnt - 1].state);
+  }
+  for (size_t j = 0; j < rt_tail->cnt; ++j) {
+    rt->frames[rt->cnt++] = rt_tail->frames[j];
+  }
   return rt;
 }
 

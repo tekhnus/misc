@@ -18,7 +18,7 @@ struct prog_slice {
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
-LOCAL routine *routine_cut_and_rewind(routine *r,routine *rt_tail);
+LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_top(routine *r);
 void state_stack_put(routine *r,datum *value);
 LOCAL size_t routine_get_stack_size(routine *r);
