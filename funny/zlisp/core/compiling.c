@@ -220,6 +220,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     body = list_at(stmt, 2);
     size_t s_off = prog_slice_append_new(sl);
     datum *routine_compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+    routine_compdata = compdata_start_new_section(routine_compdata);
     char *err =
       prog_init_routine(sl, s_off, args, body, &routine_compdata, datum_make_list(datum_make_symbol("lambda"), info));
     if (err != NULL) {

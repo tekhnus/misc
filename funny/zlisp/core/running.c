@@ -217,6 +217,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
           datum *state_shape = routine_get_shape(r);
           if (!datum_eq(compdata_shape, state_shape)) {
             fprintf(stderr, "shape mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
+            exit(EXIT_FAILURE);
           }
         }
       }
