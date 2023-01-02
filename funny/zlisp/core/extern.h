@@ -17,18 +17,18 @@ struct prog_slice {
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
-datum *state_stack_top(datum **s);
-void state_stack_put(datum **ns,datum *value);
-datum *state_stack_collect(datum **s,size_t count);
-void state_stack_put_all(datum **ns,datum *list);
-datum *state_stack_pop(datum **s);
+datum *state_stack_top(routine *r);
+void state_stack_put(routine *r,datum *value);
+datum *state_stack_collect(routine *r,size_t count);
+void state_stack_put_all(routine *r,datum *list);
+datum *state_stack_pop(routine *r);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum *ok_value;
   char *panic_message;
 };
-fdatum state_stack_at(datum *ns,int offset);
+fdatum state_stack_at(routine *r,int offset);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL void routine_copy(routine *dst,routine *src);

@@ -87,12 +87,13 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 int compdata_get_top_index(datum *compdata);
 datum *routine_make_new(ptrdiff_t prg);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
-fdatum state_stack_at(datum *ns,int offset);
-void state_stack_put(datum **ns,datum *value);
-void state_stack_put_all(datum **ns,datum *list);
-datum *state_stack_pop(datum **s);
-datum *state_stack_top(datum **s);
-datum *state_stack_collect(datum **s,size_t count);
+typedef struct routine routine;
+fdatum state_stack_at(routine *r,int offset);
+void state_stack_put(routine *r,datum *value);
+void state_stack_put_all(routine *r,datum *list);
+datum *state_stack_pop(routine *r);
+datum *state_stack_top(routine *r);
+datum *state_stack_collect(routine *r,size_t count);
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

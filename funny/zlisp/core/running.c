@@ -141,7 +141,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, r->offset));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
-      fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
+      fdatum mbchild = state_stack_at(r, prg.call_fn_index);
       if (fdatum_is_panic(mbchild)) {
         return mbchild;
       }
@@ -162,9 +162,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       }
 
       if (prg.call_pop_one) {
-        state_stack_pop(&r->state);
+        state_stack_pop(r);
       }
-      state_stack_put_all(&r->state, args);
+      state_stack_put_all(r, args);
       r->offset = prg.call_next;
       continue;
     }
@@ -172,7 +172,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (list_length(args) != (int)prg.yield_recieve_count) {
         return fdatum_make_panic("recieved incorrect number of arguments");
       }
-      state_stack_put_all(&r->state, args);
+      state_stack_put_all(r, args);
       args = NULL;
       r->offset = prg.yield_next;
       continue;
@@ -181,11 +181,11 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       return fdatum_make_panic("args passed to a wrong instruction");
     }
     if (prg.type == PROG_YIELD) {
-      datum *res = state_stack_collect(&r->state, prg.yield_count);
+      datum *res = state_stack_collect(r, prg.yield_count);
       return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
     }
     if (prg.type == PROG_CALL) {
-      args = state_stack_collect(&r->state, prg.call_arg_count);
+      args = state_stack_collect(r, prg.call_arg_count);
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
@@ -196,14 +196,14 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
         capture_size = list_length(r->state) + 1;
       }
       datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(capture_size));
-      state_stack_put(&r->state, prog_ptr);
+      state_stack_put(r, prog_ptr);
       r->offset = prg.put_prog_next;
       continue;
     }
     if (prg.type == PROG_RESOLVE) {
       // we don't pop immediately because the pointer might want to reference itself
       // (this happens with lambdas).
-      datum *fnptr = state_stack_top(&r->state);
+      datum *fnptr = state_stack_top(r);
       if (!datum_is_list(fnptr) || list_length(fnptr) != 2 || !datum_is_integer(list_at(fnptr, 0)) || !datum_is_integer(list_at(fnptr, 1))) {
         return fdatum_make_panic("incorrect fnptr");
       }
@@ -216,8 +216,8 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       routine *rt = malloc(sizeof(routine));
       rt->offset = off;
       rt->state = cut_state;
-      state_stack_pop(&r->state);
-      state_stack_put(&r->state, datum_make_frame_new(rt));
+      state_stack_pop(r);
+      state_stack_put(r, datum_make_frame_new(rt));
       r->offset = prg.resolve_next;
       continue;
     }
@@ -238,7 +238,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_IF) {
-      datum *v = state_stack_pop(&r->state);
+      datum *v = state_stack_pop(r);
       if (!datum_is_nil(v)) {
         r->offset = prg.if_true;
       } else {
@@ -247,22 +247,22 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_PUT_CONST) {
-      state_stack_put(&r->state, prg.put_const_value);
+      state_stack_put(r, prg.put_const_value);
       r->offset = prg.put_const_next;
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
-      fdatum er = state_stack_at(r->state, prg.put_var_offset);
+      fdatum er = state_stack_at(r, prg.put_var_offset);
       if (fdatum_is_panic(er)) {
         return er;
       }
-      state_stack_put(&r->state, datum_copy(er.ok_value));
+      state_stack_put(r, datum_copy(er.ok_value));
       r->offset = prg.put_var_next;
       continue;
     }
     if (prg.type == PROG_COLLECT) {
-      datum *form = state_stack_collect(&r->state, prg.collect_count);
-      state_stack_put(&r->state, form);
+      datum *form = state_stack_collect(r, prg.collect_count);
+      state_stack_put(r, form);
       r->offset = prg.collect_next;
       continue;
     }
@@ -335,7 +335,7 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  fdatum mbchild = state_stack_at(r->state, prg.call_fn_index);
+  fdatum mbchild = state_stack_at(r, prg.call_fn_index);
   if (fdatum_is_panic(mbchild)) {
     fprintf(stderr, "get_child error\n");
     exit(EXIT_FAILURE);
@@ -391,39 +391,39 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
-EXPORT fdatum state_stack_at(datum *ns, int offset) {
-  datum *entry = list_at(ns, list_length(ns) - 1 - offset);
+EXPORT fdatum state_stack_at(routine *r, int offset) {
+  datum *entry = list_at(r->state, list_length(r->state) - 1 - offset);
   return fdatum_make_ok(entry);
 }
 
-EXPORT void state_stack_put(datum **ns, datum *value) {
-  *ns = datum_make_list(value, (*ns));
+EXPORT void state_stack_put(routine *r, datum *value) {
+  r->state = datum_make_list(value, r->state);
 }
 
-EXPORT void state_stack_put_all(datum **ns, datum *list) {
+EXPORT void state_stack_put_all(routine *r, datum *list) {
   if (!datum_is_list(list)) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
   }
   for (datum *rest = list; !datum_is_nil(rest); rest = rest->list_tail) {
-    state_stack_put(ns, rest->list_head);
+    state_stack_put(r, rest->list_head);
   }
 }
 
-EXPORT datum *state_stack_pop(datum **s) {
-  datum *res = list_at(*s, 0);
-  *s = list_tail(*s);
+EXPORT datum *state_stack_pop(routine *r) {
+  datum *res = list_at(r->state, 0);
+  r->state = list_tail(r->state);
   return res;
 }
 
-EXPORT datum *state_stack_top(datum **s) {
-  return list_at(*s, 0);
+EXPORT datum *state_stack_top(routine *r) {
+  return list_at(r->state, 0);
 }
 
-EXPORT datum *state_stack_collect(datum **s, size_t count) {
+EXPORT datum *state_stack_collect(routine *r, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
-    datum *arg = state_stack_pop(s);
+    datum *arg = state_stack_pop(r);
     form = datum_make_list(arg, form);
   }
   return form;
