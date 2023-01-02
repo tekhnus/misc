@@ -206,13 +206,15 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
           datum_is_symbol(prg.nop_info->list_head)) {
         if (datum_is_the_symbol(prg.nop_info->list_head, "compdata")) {
           datum *compdata = prg.nop_info->list_tail->list_head;
-          if (compdata_get_top_index(compdata) + 1 != (int)routine_get_stack_size(r)) {
-            return fdatum_make_panic("compdata mismatch");
-          }
           datum *compdata_shape = compdata_get_shape(compdata);
           datum *state_shape = routine_get_shape(r);
-          if (!datum_eq(compdata_shape, state_shape)) {
-            fprintf(stderr, "shape mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
+          if (list_length(compdata_shape) != list_length(state_shape)) {
+            fprintf(stderr, "compdata mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
+            exit(EXIT_FAILURE);
+          }
+          int len = list_length(compdata_shape);
+          if (!datum_eq(list_at(compdata_shape, len - 1), list_at(state_shape, len - 1))) {
+            fprintf(stderr, "compdata mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
             exit(EXIT_FAILURE);
           }
         }
