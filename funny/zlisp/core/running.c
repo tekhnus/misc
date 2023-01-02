@@ -455,14 +455,10 @@ LOCAL datum *routine_get_shape(routine *r) {
 }
 
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  size_t rest_vars = rt_tail->extvars;
+  int rest_vars = rt_tail->extvars;
   routine *rt = malloc(sizeof(routine));
   for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
     rt->frames[rt->cnt++] = r->frames[i];
-    if (list_length(r->frames[i].state) > (int)rest_vars) {
-      datum *cut_state = list_cut(r->frames[i].state, rest_vars);
-      rt->frames[rt->cnt - 1].state = cut_state;
-    }
     rest_vars -= list_length(rt->frames[rt->cnt - 1].state);
   }
   for (size_t j = 0; j < rt_tail->cnt; ++j) {
