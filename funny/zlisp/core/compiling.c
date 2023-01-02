@@ -43,7 +43,7 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     exit(1);
   }
   prog_append_nop(sl, begin, datum_make_list_2(datum_make_symbol("putting-var"), val));
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), datum_make_int(index), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(datum_make_symbol(":put-var"), polyindex, datum_make_int(next)));
   *begin = next;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
@@ -555,6 +555,7 @@ EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
     if (idx != -1) {
       return datum_make_list_2(datum_make_int(frames - 1 - frame), datum_make_int(list_length(comp) - 1 - idx));
     }
+    ++frame;
   }
   return datum_make_nil();
 }

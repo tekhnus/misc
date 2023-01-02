@@ -18,6 +18,7 @@ struct prog_slice {
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
+datum *state_stack_at_poly(routine *r,datum *offset);
 LOCAL datum *routine_get_shape(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_top(routine *r);

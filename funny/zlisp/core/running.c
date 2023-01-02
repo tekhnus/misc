@@ -33,7 +33,7 @@ struct prog {
       ptrdiff_t put_const_next;
     };
     struct {
-      int put_var_offset;
+      datum *put_var_offset;
       ptrdiff_t put_var_next;
     };
     struct {
@@ -242,11 +242,8 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
-      fdatum er = state_stack_at(r, prg.put_var_offset);
-      if (fdatum_is_panic(er)) {
-        return er;
-      }
-      state_stack_put(r, datum_copy(er.ok_value));
+      datum *er = state_stack_at_poly(r, prg.put_var_offset);
+      state_stack_put(r, datum_copy(er));
       *routine_offset(r) = prg.put_var_next;
       continue;
     }
@@ -284,7 +281,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_const_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":put-var")) {
     res.type = PROG_PUT_VAR;
-    res.put_var_offset = list_at(d, 1)->integer_value;
+    res.put_var_offset = list_at(d, 1);
     res.put_var_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
@@ -391,6 +388,17 @@ EXPORT fdatum state_stack_at(routine *r, int offset) {
     offset -= list_length(r->frames[i].state);
   }
   return fdatum_make_panic("state_stack_at fail");
+}
+
+EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
+  assert(datum_is_list(offset) && list_length(offset) == 2);
+  datum *frame = list_at(offset, 0);
+  datum *idx = list_at(offset, 1);
+  assert(datum_is_integer(frame) && datum_is_integer(idx));
+  assert(frame->integer_value < (int)r->cnt);
+  datum *vars = r->frames[frame->integer_value].state;
+  assert(idx->integer_value < list_length(vars));
+  return list_at(vars, list_length(vars) - 1 - idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
