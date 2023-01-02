@@ -2,11 +2,12 @@
 import sys
 import dataclasses
 import sexpdata
+import copy
 
 
 @dataclasses.dataclass
 class State:
-    varz: list = dataclasses.field(default_factory=list)
+    varz: list = dataclasses.field(default_factory=lambda: [[]])
     ip: int = 0
 
 
@@ -116,7 +117,7 @@ def main():
     pdata = [[State()]]
 
     def pop_stack():
-        v = pdata[-1][-1].varz.pop()
+        v = pdata[-1][-1].varz[-1].pop()
         return v
 
     ip = pdata[-1][-1].ip
@@ -143,11 +144,13 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
-            pdata[-1][-1].varz.append((value))
+            pdata[-1][-1].varz[-1].append((value))
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             offset, nex = args
-            pdata[-1][-1].varz.append(pdata[-1][-1].varz[offset])
+            frame, indx = offset
+            print([len(x) for x in pdata[-1][-1].varz], offset)
+            pdata[-1][-1].varz[-1].append(copy.deepcopy(pdata[-1][-1].varz[frame][indx]))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
@@ -156,10 +159,12 @@ def main():
             if hat != sexpdata.Symbol("plain"):
                 raise RuntimeError("unknown type of the call")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
-            rout = pdata[-1][-1].varz[fn_index]
+            frame, indx = fn_index
+            rout = pdata[-1][-1].varz[frame][indx]
             offset, varz = check_is_routine_0(rout)
-            rtvarz = list(varz)
-            rtvarz.extend((arg) for arg in args)
+            assert varz
+            rtvarz = copy.deepcopy(varz)
+            rtvarz[-1].extend(arg for arg in args)
             pdata[-1].append(
                 State(varz=rtvarz, ip=0)
             )  # ip set after endif
@@ -179,33 +184,40 @@ def main():
             for _ in range(cnt):
                 val = pop_stack()
                 form = [val] + form
-            pdata[-1][-1].varz.append((form))
+            pdata[-1][-1].varz[-1].append(form)
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
             if capture == 0:
                 capture_size = 0
             else:
-                capture_size = len(pdata[-1][-1].varz) + 1
+                capture_size = sum(len(frame) for frame in pdata[-1][-1].varz) + 1
             p = make_list_with_items(pr, capture_size)
-            pdata[-1][-1].varz.append((p))
+            pdata[-1][-1].varz[-1].append(p)
             ip = nex
         elif op == sexpdata.Symbol(":resolve"):
             nex, = args
-            fnptr = pdata[-1][-1].varz[-1]
+            fnptr = pdata[-1][-1].varz[-1][-1]
             pr, stateptr = fnptr
-            if stateptr > len(pdata[-1][-1].varz):
-                raise RuntimeError("statptr is too big")
-            cutvarz = pdata[-1][-1].varz[:stateptr]
+            cutvarz = []
+            count = 0
+            for frame in pdata[-1][-1].varz:
+                if count >= stateptr:
+                    break
+                cutvarz.append(copy.copy(frame))
+                count += len(frame)
+            if count < stateptr:
+                raise RuntimeError('resolution error')
+            cutvarz.append([])
             pop_stack()
-            pdata[-1][-1].varz.append(make_list_with_items(pr, cutvarz))
+            pdata[-1][-1].varz[-1].append(make_list_with_items(pr, cutvarz))
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
             hat, cnt, recieve_cnt, meta, nex = args
             if hat == sexpdata.Symbol("plain"):
                 rvalues = [pop_stack() for _ in range(cnt)]
 
-                contvarz = list(pdata[-1][-1].varz)
+                contvarz = list(list(x) for x in pdata[-1][-1].varz)
                 cont = make_routine_0(varz=contvarz, ip=ip)
 
                 pdata[-1].pop()
@@ -217,11 +229,12 @@ def main():
                     raise RuntimeError("expected a call")
                 fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
 
+                frame, indx = fn_index
                 # update the routine
-                pdata[-1][-1].varz[fn_index] = cont
+                pdata[-1][-1].varz[frame][indx] = cont
                 if pop_one:
                     pop_stack()
-                pdata[-1][-1].varz.extend((make_list_with_items(*reversed(rvalues))))
+                pdata[-1][-1].varz[-1].extend((make_list_with_items(*reversed(rvalues))))
 
                 ip = nex
             elif isinstance(hat, list) and len(hat) == 2 and hat[0] == sexpdata.Symbol("host"):
@@ -233,7 +246,7 @@ def main():
                         and instruction[0] == "eval"
                 ):
                     res = eval(instruction[1], globals(), {"x": arg})
-                    pdata[-1][-1].varz.append((res))
+                    pdata[-1][-1].varz[-1].append((res))
                 else:
                     raise RuntimeError(f"host not implemented: {instruction}")
                 ip = nex
