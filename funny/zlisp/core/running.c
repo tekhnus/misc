@@ -78,10 +78,8 @@ typedef struct routine routine;
 #endif
 
 EXPORT datum *routine_make_new(ptrdiff_t prg) {
-  routine *r = malloc(sizeof(routine));
-  r->offset = prg;
-  r->state = datum_make_nil();
-  return datum_make_frame_new(r);
+  routine *r = routine_make_empty(prg);
+  return datum_make_frame(r);
 }
 
 EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
@@ -129,11 +127,6 @@ LOCAL routine *get_routine_from_datum(datum *d) {
     exit(EXIT_FAILURE);
   }
   return (routine *)d->frame_value;
-}
-
-LOCAL void routine_copy(routine *dst, routine *src) {
-  dst->offset = src->offset;
-  dst->state = src->state;
 }
 
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
@@ -193,7 +186,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.put_prog_capture == 0) {
         capture_size = 0;
       } else {
-        capture_size = list_length(r->state) + 1;
+        capture_size = routine_get_stack_size(r) + 1;
       }
       datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(capture_size));
       state_stack_put(r, prog_ptr);
@@ -209,15 +202,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       }
       size_t off = list_at(fnptr, 0)->integer_value;
       size_t stack_off = list_at(fnptr, 1)->integer_value;
-      datum *cut_state = list_cut(r->state, stack_off);
-      if (cut_state == NULL) {
-        return fdatum_make_panic("list_cut: list is too short");
-      }
-      routine *rt = malloc(sizeof(routine));
-      rt->offset = off;
-      rt->state = cut_state;
+      routine *rt = routine_cut_and_rewind(r, stack_off, off);
       state_stack_pop(r);
-      state_stack_put(r, datum_make_frame_new(rt));
+      state_stack_put(r, datum_make_frame(rt));
       r->offset = prg.resolve_next;
       continue;
     }
@@ -226,7 +213,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
           datum_is_symbol(prg.nop_info->list_head)) {
         if (datum_is_the_symbol(prg.nop_info->list_head, "compdata")) {
           datum *compdata = prg.nop_info->list_tail->list_head;
-          if (list_length(compdata) != list_length(r->state)) {
+          if (list_length(compdata) != (int)routine_get_stack_size(r)) {
             return fdatum_make_panic("compdata mismatch");
           }
         }
@@ -384,7 +371,7 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
         fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
       }
       fprintf(stderr, "**********\n");
-      fprintf(stderr, "%d vars on stack\n", list_length(z->state));
+      fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));
       fprintf(stderr, "**********\n");
   }
  
@@ -429,6 +416,34 @@ EXPORT datum *state_stack_collect(routine *r, size_t count) {
   return form;
 }
 
+LOCAL void routine_copy(routine *dst, routine *src) {
+  dst->offset = src->offset;
+  dst->state = src->state;
+}
+
+LOCAL size_t routine_get_stack_size(routine *r) {
+  return list_length(r->state);
+}
+
+LOCAL routine *routine_cut_and_rewind(routine *r, size_t stack_off, size_t off) {
+  datum *cut_state = list_cut(r->state, stack_off);
+  if (cut_state == NULL) {
+    fprintf(stderr, "list_cut: list is too short\n");
+    exit(EXIT_FAILURE);
+  }
+  routine *rt = malloc(sizeof(routine));
+  rt->offset = off;
+  rt->state = cut_state;
+  return rt;
+}
+
+LOCAL routine *routine_make_empty(ptrdiff_t prg) {
+  routine *r = malloc(sizeof(routine));
+  r->offset = prg;
+  r->state = datum_make_nil();
+  return r;
+}
+
 LOCAL datum *list_cut(datum *xs, size_t rest_length) {
   size_t len = list_length(xs);
   if (len < rest_length) {
@@ -441,7 +456,7 @@ LOCAL datum *list_cut(datum *xs, size_t rest_length) {
   return xs;
 }
 
-LOCAL datum *datum_make_frame_new(routine *r) {
+LOCAL datum *datum_make_frame(routine *r) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value = r;
@@ -453,7 +468,7 @@ LOCAL datum *datum_copy(datum *d) {
     routine *fn_r = get_routine_from_datum(d);
     routine *fn_copy = malloc(sizeof(routine));
     routine_copy(fn_copy, fn_r);
-    return datum_make_frame_new(fn_copy);
+    return datum_make_frame(fn_copy);
   }
   return d;
 }

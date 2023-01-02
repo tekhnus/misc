@@ -4,11 +4,13 @@
 #include <stdint.h>
 #include <stddef.h>
 #define LOCAL static
+typedef struct datum datum;
+LOCAL datum *list_cut(datum *xs,size_t rest_length);
 typedef struct routine routine;
+LOCAL void routine_copy(routine *dst,routine *src);
 typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct datum datum;
 struct prog_slice {
   datum *begin;
   size_t length;
@@ -16,9 +18,10 @@ struct prog_slice {
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
-LOCAL datum *list_cut(datum *xs,size_t rest_length);
+LOCAL routine *routine_cut_and_rewind(routine *r,size_t stack_off,size_t off);
 datum *state_stack_top(routine *r);
 void state_stack_put(routine *r,datum *value);
+LOCAL size_t routine_get_stack_size(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
@@ -31,13 +34,13 @@ struct fdatum {
 fdatum state_stack_at(routine *r,int offset);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
-LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL datum *routine_to_datum(routine *r);
 LOCAL void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
 fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
-LOCAL datum *datum_make_frame_new(routine *r);
+LOCAL datum *datum_make_frame(routine *r);
+LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make_new(ptrdiff_t prg);
 LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
