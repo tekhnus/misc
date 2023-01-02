@@ -115,7 +115,7 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   }
   datum *dep = dep_and_sym->list_head;
 
-  bool already_built = compdata_get_index(*compdata, datum_make_symbol(get_varname(dep_and_sym))) >= 0;
+  bool already_built = !datum_is_nil(compdata_get_polyindex(*compdata, datum_make_symbol(get_varname(dep_and_sym))));
   if (already_built) {
     return NULL;
   }

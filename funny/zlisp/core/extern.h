@@ -46,7 +46,6 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make_new(ptrdiff_t prg);
 datum *compdata_get_shape(datum *compdata);
 int compdata_get_top_index(datum *compdata);
-int compdata_get_index(datum *compdata,datum *var);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();

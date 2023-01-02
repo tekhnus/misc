@@ -529,21 +529,6 @@ LOCAL datum *compdata_del(datum *compdata) {
   return datum_make_list(compdata->list_head->list_tail, compdata->list_tail);
 }
 
-EXPORT int compdata_get_index(datum *compdata, datum *var) {
-  int res = 0;
-  for (datum *rest = compdata; !datum_is_nil(rest); rest=rest->list_tail) {
-    datum *comp = rest->list_head;
-    int idx = list_index_of(comp, var);
-    if (idx != -1) {
-      res += idx;
-      return compdata_get_top_index(compdata) - res;
-    }
-    res += list_length(comp);
-  }
-  // fprintf(stderr, "%s in %s\n", datum_repr(var), datum_repr(compdata));
-  return -1;
-}
-
 EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
   int frame = 0;
   size_t frames = list_length(compdata);
