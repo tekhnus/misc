@@ -76,6 +76,7 @@ struct frame {
 struct routine {
   struct frame frames[10];
   size_t cnt;
+  int extvars;
 };
 
 #if INTERFACE
@@ -117,14 +118,6 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     args = res.ok_value;
   }
   return fdatum_make_ok(result);
-}
-
-LOCAL datum *routine_to_datum(routine *r) {
-  if (r == NULL) {
-    fprintf(stderr, "a null routine!\n");
-    exit(EXIT_FAILURE);
-  }
-  return datum_make_int((size_t)r);
 }
 
 LOCAL routine *get_routine_from_datum(datum *d) {
@@ -194,7 +187,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       } else {
         capture_size = routine_get_stack_size(r) + 1;
       }
-      datum *prog_ptr = datum_make_list_2(datum_make_int(prg.put_prog_value), datum_make_int(capture_size));
+      routine *rt = routine_make_empty(prg.put_prog_value);
+      rt->extvars = capture_size;
+      datum *prog_ptr = datum_make_frame(rt);
       state_stack_put(r, prog_ptr);
       *routine_offset(r) = prg.put_prog_next;
       continue;
@@ -203,12 +198,8 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       // we don't pop immediately because the pointer might want to reference itself
       // (this happens with lambdas).
       datum *fnptr = state_stack_top(r);
-      if (!datum_is_list(fnptr) || list_length(fnptr) != 2 || !datum_is_integer(list_at(fnptr, 0)) || !datum_is_integer(list_at(fnptr, 1))) {
-        return fdatum_make_panic("incorrect fnptr");
-      }
-      size_t off = list_at(fnptr, 0)->integer_value;
-      size_t stack_off = list_at(fnptr, 1)->integer_value;
-      routine *rt = routine_cut_and_rewind(r, stack_off, off);
+      routine *rt_tail = get_routine_from_datum(fnptr);
+      routine *rt = routine_cut_and_rewind(r, rt_tail);
       state_stack_pop(r);
       state_stack_put(r, datum_make_frame(rt));
       *routine_offset(r) = prg.resolve_next;
@@ -436,6 +427,7 @@ LOCAL void routine_copy(routine *dst, routine *src) {
   for (size_t i = 0; i < dst->cnt; ++i) {
     dst->frames[i] = src->frames[i];
   }
+  dst->extvars = src->extvars;
 }
 
 LOCAL size_t routine_get_stack_size(routine *r) {
@@ -446,7 +438,9 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_cut_and_rewind(routine *r, size_t stack_off, size_t off) {
+LOCAL routine *routine_cut_and_rewind(routine *r, routine *rt_tail) {
+  size_t stack_off = rt_tail->extvars;
+  size_t off = *routine_offset(rt_tail);
   assert(r->cnt == 1);
   datum *cut_state = list_cut(r->frames[0].state, stack_off);
   if (cut_state == NULL) {
@@ -465,6 +459,7 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   r->frames[0].offset = prg;
   r->frames[0].state = datum_make_nil();
   r->cnt = 1;
+  r->extvars = 0;
   return r;
 }
 

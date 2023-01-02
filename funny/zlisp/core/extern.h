@@ -18,7 +18,7 @@ struct prog_slice {
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
-LOCAL routine *routine_cut_and_rewind(routine *r,size_t stack_off,size_t off);
+LOCAL routine *routine_cut_and_rewind(routine *r,routine *rt_tail);
 datum *state_stack_top(routine *r);
 void state_stack_put(routine *r,datum *value);
 LOCAL size_t routine_get_stack_size(routine *r);
@@ -35,7 +35,6 @@ fdatum state_stack_at(routine *r,int offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
-LOCAL datum *routine_to_datum(routine *r);
 LOCAL void print_backtrace_new(prog_slice sl,routine *r);
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
