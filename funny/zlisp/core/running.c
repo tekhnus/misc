@@ -210,7 +210,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
           datum_is_symbol(prg.nop_info->list_head)) {
         if (datum_is_the_symbol(prg.nop_info->list_head, "compdata")) {
           datum *compdata = prg.nop_info->list_tail->list_head;
-          if (list_length(compdata) != (int)routine_get_stack_size(r)) {
+          if (compdata_get_top_index(compdata) + 1 != (int)routine_get_stack_size(r)) {
             return fdatum_make_panic("compdata mismatch");
           }
         }
@@ -321,15 +321,15 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   }
   fdatum mbchild = state_stack_at(r, prg.call_fn_index);
   if (fdatum_is_panic(mbchild)) {
-    fprintf(stderr, "get_child error\n");
+    fprintf(stderr, "get_child error %s\n", mbchild.panic_message);
     exit(EXIT_FAILURE);
   }
   datum *dchild = mbchild.ok_value;
-  if (!datum_is_integer(dchild)) {
-    fprintf(stderr, "get_child error\n");
+  if (!datum_is_frame(dchild)) {
+    fprintf(stderr, "get_child error: not an integer\n");
     exit(EXIT_FAILURE);
   }
-  routine *child = (routine *)dchild->integer_value;
+  routine *child = get_routine_from_datum(dchild);
   prog child_prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(child)));
   if (child_prg.type == PROG_YIELD) {
     // it's not currently being called
@@ -345,7 +345,8 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
 LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
-  for (routine *z = r; z != NULL; z = get_child(sl, r)) {
+  int i = 0;
+  for (routine *z = r; z != NULL && i < 10; z = get_child(sl, r), ++i) {
     for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3; ++i) {
         if (i < 0) {
           continue;

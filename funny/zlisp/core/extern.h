@@ -42,6 +42,9 @@ fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instructio
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make_new(ptrdiff_t prg);
+LOCAL void compdata_validate(datum *compdata);
+bool compdata_has_value(datum *compdata);
+datum *compdata_make();
 LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
@@ -56,14 +59,11 @@ LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum *
 LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 LOCAL void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
-LOCAL void compdata_validate(datum *compdata);
-bool compdata_has_value(datum *compdata);
-datum *compdata_make();
 void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
-LOCAL int compdata_get_index(datum *compdata,datum *var);
+int compdata_get_index(datum *compdata,datum *var);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL datum *compdata_put(datum *compdata,datum *var);
 LOCAL datum *compdata_del(datum *compdata);

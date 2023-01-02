@@ -77,15 +77,6 @@ EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type, size_t
   }
 }
 
-EXPORT datum *compdata_make() {
-  return datum_make_nil();
-}
-
-EXPORT bool compdata_has_value(datum *compdata) {
-  compdata_validate(compdata);
-  return !datum_is_nil(compdata) && datum_is_the_symbol(compdata->list_head, ":anon");
-}
-
 LOCAL char *prog_append_statements(prog_slice *sl, size_t *off, datum *source, datum **compdata, datum *info) {
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
     datum *stmt = rest->list_head;
@@ -509,8 +500,17 @@ LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
   *prog_slice_datum_at(*sl, b) = *(datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
 }
 
+EXPORT datum *compdata_make() {
+  return datum_make_list_1(datum_make_nil());
+}
+
+EXPORT bool compdata_has_value(datum *compdata) {
+  compdata_validate(compdata);
+  return !datum_is_nil(compdata) && datum_is_list(compdata->list_head) && !datum_is_nil(compdata->list_head) && datum_is_the_symbol(compdata->list_head->list_head, ":anon");
+}
+
 LOCAL void compdata_validate(datum *compdata) {
-  if (!datum_is_nil(compdata) && datum_is_the_symbol(compdata->list_head, "__different_if_branches")) {
+  if (!datum_is_nil(compdata) && !datum_is_nil(compdata->list_head) && datum_is_the_symbol(compdata->list_head->list_head, "__different_if_branches")) {
     fprintf(stderr, "compdata_del: if branches had different compdata\n");
     fprintf(stderr, "%s\n", datum_repr(compdata));
     exit(EXIT_FAILURE);
@@ -518,28 +518,36 @@ LOCAL void compdata_validate(datum *compdata) {
 }
 
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
-  return datum_make_list(var, compdata);
+  return datum_make_list(datum_make_list(var, compdata->list_head), compdata->list_tail);
 }
 
 LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
-  if (datum_is_nil(compdata)) {
-    fprintf(stderr, "compdata_del: empty compdata\n");
-    exit(EXIT_FAILURE);
-  }
-  return compdata->list_tail;
+  return datum_make_list(compdata->list_head->list_tail, compdata->list_tail);
 }
 
-LOCAL int compdata_get_index(datum *compdata, datum *var) {
-  int res = list_index_of(compdata, var);
-  if (res == -1) {
-    return res;
+EXPORT int compdata_get_index(datum *compdata, datum *var) {
+  int res = 0;
+  for (datum *rest = compdata; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum *comp = rest->list_head;
+    int idx = list_index_of(comp, var);
+    if (idx != -1) {
+      res += idx;
+      return compdata_get_top_index(compdata) - res;
+    }
+    res += list_length(comp);
   }
-  return list_length(compdata) - 1 - res;
+  // fprintf(stderr, "%s in %s\n", datum_repr(var), datum_repr(compdata));
+  return -1;
 }
 
 EXPORT int compdata_get_top_index(datum *compdata) {
-  return list_length(compdata) - 1;
+  int res = 0;
+  for (datum *rest = compdata; !datum_is_nil(rest); rest=rest->list_tail) {
+    datum *comp = rest->list_head;
+    res += list_length(comp);
+  }
+  return res - 1;
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
