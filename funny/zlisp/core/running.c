@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,9 +68,14 @@ struct prog {
   };
 };
 
-struct routine {
+struct frame {
   ptrdiff_t offset;
   datum *state;
+};
+
+struct routine {
+  struct frame frames[10];
+  size_t cnt;
 };
 
 #if INTERFACE
@@ -349,7 +355,7 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   for (routine *z = r; z != NULL; z = get_child(sl, r)) {
-    for (ptrdiff_t i = *routine_offset(z) - 15; i < z->offset + 3; ++i) {
+    for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3; ++i) {
         if (i < 0) {
           continue;
         }
@@ -379,12 +385,19 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
 }
 
 EXPORT fdatum state_stack_at(routine *r, int offset) {
-  datum *entry = list_at(r->state, list_length(r->state) - 1 - offset);
-  return fdatum_make_ok(entry);
+  assert(r->cnt > 0);
+  for (size_t i = 0; i < r->cnt; ++i) {
+    if (offset < list_length(r->frames[i].state)) {
+      return fdatum_make_ok(list_at(r->frames[i].state,  list_length(r->frames[i].state) - 1 - offset));
+    }
+    offset -= list_length(r->frames[i].state);
+  }
+  return fdatum_make_panic("state_stack_at fail");
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
-  r->state = datum_make_list(value, r->state);
+  assert(r->cnt > 0);
+  r->frames[r->cnt - 1].state = datum_make_list(value, r->frames[r->cnt - 1].state);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum *list) {
@@ -398,13 +411,15 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
 }
 
 EXPORT datum *state_stack_pop(routine *r) {
-  datum *res = list_at(r->state, 0);
-  r->state = list_tail(r->state);
+  assert(r->cnt > 0);
+  datum *res = list_at(r->frames[r->cnt - 1].state, 0);
+  r->frames[r->cnt - 1].state = list_tail(r->frames[r->cnt - 1].state);
   return res;
 }
 
 EXPORT datum *state_stack_top(routine *r) {
-  return list_at(r->state, 0);
+  assert(r->cnt > 0);
+  return list_at(r->frames[r->cnt - 1].state, 0);
 }
 
 EXPORT datum *state_stack_collect(routine *r, size_t count) {
@@ -417,35 +432,45 @@ EXPORT datum *state_stack_collect(routine *r, size_t count) {
 }
 
 LOCAL void routine_copy(routine *dst, routine *src) {
-  dst->offset = src->offset;
-  dst->state = src->state;
+  dst->cnt = src->cnt;
+  for (size_t i = 0; i < dst->cnt; ++i) {
+    dst->frames[i] = src->frames[i];
+  }
 }
 
 LOCAL size_t routine_get_stack_size(routine *r) {
-  return list_length(r->state);
+  size_t res = 0;
+  for (size_t i = 0; i < r->cnt; ++i) {
+    res += list_length(r->frames[i].state);
+  }
+  return res;
 }
 
 LOCAL routine *routine_cut_and_rewind(routine *r, size_t stack_off, size_t off) {
-  datum *cut_state = list_cut(r->state, stack_off);
+  assert(r->cnt == 1);
+  datum *cut_state = list_cut(r->frames[0].state, stack_off);
   if (cut_state == NULL) {
     fprintf(stderr, "list_cut: list is too short\n");
     exit(EXIT_FAILURE);
   }
   routine *rt = malloc(sizeof(routine));
-  rt->offset = off;
-  rt->state = cut_state;
+  rt->cnt = r->cnt;
+  rt->frames[0].offset = off;
+  rt->frames[0].state = cut_state;
   return rt;
 }
 
 LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
-  *routine_offset(r) = prg;
-  r->state = datum_make_nil();
+  r->frames[0].offset = prg;
+  r->frames[0].state = datum_make_nil();
+  r->cnt = 1;
   return r;
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
-  return &r->offset;
+  assert(r->cnt > 0);
+  return &r->frames[r->cnt - 1].offset;
 }
 
 LOCAL datum *list_cut(datum *xs, size_t rest_length) {
