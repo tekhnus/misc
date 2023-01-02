@@ -8,9 +8,16 @@ typedef struct datum datum;
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
-typedef struct prog_slice prog_slice;
+typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
+struct fdatum {
+  int type;
+  struct datum *ok_value;
+  char *panic_message;
+};
+fdatum state_stack_at(routine *r,int offset);
+typedef struct prog_slice prog_slice;
 struct prog_slice {
   datum *begin;
   size_t length;
@@ -18,7 +25,6 @@ struct prog_slice {
 };
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
-datum *state_stack_at_poly(routine *r,datum *offset);
 LOCAL datum *routine_get_shape(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_top(routine *r);
@@ -27,13 +33,7 @@ LOCAL size_t routine_get_stack_size(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
-typedef struct fdatum fdatum;
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-fdatum state_stack_at(routine *r,int offset);
+datum *state_stack_at_poly(routine *r,datum *offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
@@ -45,6 +45,8 @@ LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make_new(ptrdiff_t prg);
 datum *compdata_get_shape(datum *compdata);
+int compdata_get_top_index(datum *compdata);
+int compdata_get_index(datum *compdata,datum *var);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();
@@ -52,7 +54,7 @@ LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum *
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);
-int compdata_get_top_index(datum *compdata);
+datum *compdata_get_top_polyindex(datum *compdata);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 void prog_append_resolve(prog_slice *sl,size_t *begin);
@@ -68,11 +70,10 @@ void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,da
 void compdata_give_names(datum *var,datum **compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
-int compdata_get_index(datum *compdata,datum *var);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL datum *compdata_put(datum *compdata,datum *var);
 LOCAL datum *compdata_del(datum *compdata);
-void prog_append_call(prog_slice *sl,size_t *begin,int fn_index,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
+void prog_append_call(prog_slice *sl,size_t *begin,datum *fn_index,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
 LOCAL char *prog_append_statements(prog_slice *sl,size_t *off,datum *source,datum **compdata,datum *info);
 fdatum prog_compile(datum *source,datum **compdata,datum *info);
 fdatum datum_read_one(FILE *stre);

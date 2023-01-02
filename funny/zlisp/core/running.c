@@ -37,7 +37,7 @@ struct prog {
       ptrdiff_t put_var_next;
     };
     struct {
-      int call_fn_index;
+      struct datum *call_fn_index;
       bool call_pop_one;
       struct datum *call_type;
       size_t call_arg_count;
@@ -133,11 +133,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
-      fdatum mbchild = state_stack_at(r, prg.call_fn_index);
-      if (fdatum_is_panic(mbchild)) {
-        return mbchild;
-      }
-      datum *dchild = mbchild.ok_value;
+      datum *dchild = state_stack_at_poly(r, prg.call_fn_index);
       routine *child = get_routine_from_datum(dchild);
       fdatum err = routine_run(sl, child, args);
       args = NULL;
@@ -285,7 +281,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_var_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
-    res.call_fn_index = list_at(d, 1)->integer_value;
+    res.call_fn_index = list_at(d, 1);
     res.call_pop_one = list_at(d, 2)->integer_value;
     res.call_type = list_at(d, 3);
     res.call_arg_count = list_at(d, 4)->integer_value;
@@ -322,12 +318,7 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  fdatum mbchild = state_stack_at(r, prg.call_fn_index);
-  if (fdatum_is_panic(mbchild)) {
-    fprintf(stderr, "get_child error %s\n", mbchild.panic_message);
-    exit(EXIT_FAILURE);
-  }
-  datum *dchild = mbchild.ok_value;
+  datum *dchild = state_stack_at_poly(r, prg.call_fn_index);
   if (!datum_is_frame(dchild)) {
     fprintf(stderr, "get_child error: not an integer\n");
     exit(EXIT_FAILURE);

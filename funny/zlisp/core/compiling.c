@@ -14,9 +14,9 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   return fdatum_make_ok(prog_slice_to_datum(sl));
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, int fn_index, bool pop_one, datum *type, int arg_count, int return_count, datum **compdata) {
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *fn_index, bool pop_one, datum *type, int arg_count, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_7(datum_make_symbol(":call"), datum_make_int(fn_index), datum_make_int(pop_one), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_7(datum_make_symbol(":call"), fn_index, datum_make_int(pop_one), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
     *compdata = compdata_del(*compdata);
   }
@@ -35,10 +35,8 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val, datum
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
   }
-  int index = compdata_get_index(*compdata, val);
   datum *polyindex = compdata_get_polyindex(*compdata, val);
-  assert(!datum_is_nil(polyindex));
-  if (index == -1) {
+  if (datum_is_nil(polyindex)) {
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
   }
@@ -296,13 +294,13 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       break;
     }
   }
-  int fn_index;
+  datum *fn_index;
   if (at) {
     if (!datum_is_symbol(fn)) {
       return "expected an lvalue";
     }
-    fn_index = compdata_get_index(*compdata, fn);
-    if (fn_index == -1) {
+    fn_index = compdata_get_polyindex(*compdata, fn);
+    if (datum_is_nil(fn_index)) {
       return datum_repr(*compdata);
       return "function not found";
     }
@@ -311,7 +309,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (err != NULL) {
       return err;
     }
-    fn_index = compdata_get_top_index(*compdata);
+    fn_index = compdata_get_top_polyindex(*compdata);
   }
   datum *rest_args = stmt->list_tail;
   if (!datum_is_nil(rest_args)) {
@@ -571,6 +569,13 @@ EXPORT int compdata_get_top_index(datum *compdata) {
     res += list_length(comp);
   }
   return res - 1;
+}
+
+EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
+  size_t frames = list_length(compdata);
+  size_t indices = list_length(compdata->list_head);
+  assert(frames > 0 && indices > 0);
+  return datum_make_list_2(datum_make_int(frames - 1), datum_make_int(indices - 1));
 }
 
 EXPORT datum *compdata_get_shape(datum *compdata) {
