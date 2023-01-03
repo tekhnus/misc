@@ -74,7 +74,7 @@ struct frame {
 };
 
 struct routine {
-  struct frame *frames[10];
+  struct frame frames[10];
   size_t cnt;
   int extvars;
 };
@@ -378,14 +378,14 @@ EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(frame) && datum_is_integer(idx));
   assert(frame->integer_value < (int)r->cnt);
-  datum *vars = r->frames[frame->integer_value]->state;
+  datum *vars = r->frames[frame->integer_value].state;
   assert(idx->integer_value < list_length(vars));
   return list_at(vars, list_length(vars) - 1 - idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
-  r->frames[r->cnt - 1]->state = datum_make_list(value, r->frames[r->cnt - 1]->state);
+  r->frames[r->cnt - 1].state = datum_make_list(value, r->frames[r->cnt - 1].state);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum *list) {
@@ -400,14 +400,14 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
 
 EXPORT datum *state_stack_pop(routine *r) {
   assert(r->cnt > 0);
-  datum *res = list_at(r->frames[r->cnt - 1]->state, 0);
-  r->frames[r->cnt - 1]->state = list_tail(r->frames[r->cnt - 1]->state);
+  datum *res = list_at(r->frames[r->cnt - 1].state, 0);
+  r->frames[r->cnt - 1].state = list_tail(r->frames[r->cnt - 1].state);
   return res;
 }
 
 EXPORT datum *state_stack_top(routine *r) {
   assert(r->cnt > 0);
-  return list_at(r->frames[r->cnt - 1]->state, 0);
+  return list_at(r->frames[r->cnt - 1].state, 0);
 }
 
 EXPORT datum *state_stack_collect(routine *r, size_t count) {
@@ -422,8 +422,7 @@ EXPORT datum *state_stack_collect(routine *r, size_t count) {
 LOCAL void routine_copy(routine *dst, routine *src) {
   dst->cnt = src->cnt;
   for (size_t i = 0; i < dst->cnt; ++i) {
-    dst->frames[i] = malloc(sizeof(struct frame));
-    *dst->frames[i] = *src->frames[i];
+    dst->frames[i] = src->frames[i];
   }
   dst->extvars = src->extvars;
 }
@@ -431,7 +430,7 @@ LOCAL void routine_copy(routine *dst, routine *src) {
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < r->cnt; ++i) {
-    res += list_length(r->frames[i]->state);
+    res += list_length(r->frames[i].state);
   }
   return res;
 }
@@ -439,7 +438,7 @@ LOCAL size_t routine_get_stack_size(routine *r) {
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
-    res = list_append(res, datum_make_int(list_length(r->frames[i]->state)));
+    res = list_append(res, datum_make_int(list_length(r->frames[i].state)));
   }
   return res;
 }
@@ -448,22 +447,19 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   int rest_vars = rt_tail->extvars;
   routine *rt = malloc(sizeof(routine));
   for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
-    rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
-    *rt->frames[rt->cnt - 1] = *r->frames[i];
-    rest_vars -= list_length(rt->frames[rt->cnt - 1]->state);
+    rt->frames[rt->cnt++] = r->frames[i];
+    rest_vars -= list_length(rt->frames[rt->cnt - 1].state);
   }
   for (size_t j = 0; j < rt_tail->cnt; ++j) {
-    rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
-    *rt->frames[rt->cnt - 1] = *rt_tail->frames[j];
+    rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
   return rt;
 }
 
 LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
-  r->frames[0] = malloc(sizeof(struct frame));
-  r->frames[0]->offset = prg;
-  r->frames[0]->state = datum_make_nil();
+  r->frames[0].offset = prg;
+  r->frames[0].state = datum_make_nil();
   r->cnt = 1;
   r->extvars = 0;
   return r;
@@ -471,7 +467,7 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(r->cnt > 0);
-  return &r->frames[r->cnt - 1]->offset;
+  return &r->frames[r->cnt - 1].offset;
 }
 
 LOCAL datum *list_cut(datum *xs, size_t rest_length) {
