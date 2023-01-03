@@ -16,8 +16,8 @@ def is_true(tagged_value):
 
 
 def check_is_routine_0(tagged_value):
-    offset, varz = tagged_value
-    return offset, varz
+    offset, varz, extvars = tagged_value
+    return offset, varz, extvars
 
 
 def check_is_cons(val):
@@ -29,7 +29,7 @@ def make_list_with_items(*args):
 
 
 def make_routine_0(ip, varz):
-    return make_list_with_items(ip, varz)
+    return make_list_with_items(ip, varz, 0)
 
 
 def make_symbol(s):
@@ -160,9 +160,18 @@ def main():
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
             frame, indx = fn_index
             rout = pdata[-1][-1].varz[frame][indx]
-            offset, varz = check_is_routine_0(rout)
+            offset, varz, extvars = check_is_routine_0(rout)
             assert varz
-            rtvarz = copy.deepcopy(varz)
+            rtvarz = []
+            for fra in pdata[-1][-1].varz:
+                if extvars <= 0:
+                    break
+                rtvarz.append(copy.copy(fra))
+                extvars -= len(fra)
+            if extvars > 0:
+                raise RuntimeError("not enough vars")
+            for fram in varz:
+                rtvarz.append(copy.copy(fram))
             rtvarz[-1].extend(arg for arg in args)
             pdata[-1].append(
                 State(varz=rtvarz, ip=0)
@@ -191,13 +200,13 @@ def main():
                 capture_size = 0
             else:
                 capture_size = sum(len(frame) for frame in pdata[-1][-1].varz) + 1
-            p = make_list_with_items(pr, capture_size)
+            p = make_list_with_items(pr, [[]], capture_size)
             pdata[-1][-1].varz[-1].append(p)
             ip = nex
         elif op == sexpdata.Symbol(":resolve"):
             nex, = args
             fnptr = pdata[-1][-1].varz[-1][-1]
-            pr, stateptr = fnptr
+            pr, topvarz, stateptr = fnptr
             cutvarz = []
             count = 0
             for frame in pdata[-1][-1].varz:
@@ -207,9 +216,9 @@ def main():
                 count += len(frame)
             if count < stateptr:
                 raise RuntimeError('resolution error')
-            cutvarz.append([])
+            cutvarz.extend(topvarz)
             pop_stack()
-            pdata[-1][-1].varz[-1].append(make_list_with_items(pr, cutvarz))
+            pdata[-1][-1].varz[-1].append(make_list_with_items(pr, cutvarz, 0))
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
             hat, cnt, recieve_cnt, meta, nex = args
