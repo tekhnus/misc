@@ -147,6 +147,18 @@
     (return yyy))
   43)
 
+!(#fntest
+  (progn
+    (builtin.defun fff ()
+                   (progn
+                     (def x 2)
+                     (builtin.defn ggg ()
+                                    (return (+ x 40)))
+                     (return ggg)))
+    (def ggg-in-fff (@fff))
+    (return (fff @slash ggg-in-fff)))
+  42)
+
 !(#defun print-all (xs)
    (if xs
        (progn
