@@ -186,7 +186,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       if (prg.put_prog_capture == 0) {
         capture_size = 0;
       } else {
-        capture_size = routine_get_stack_size(r) + 1;
+        capture_size = routine_get_count(r);
       }
       routine *rt = routine_make_empty(prg.put_prog_value);
       rt->extvars = capture_size;
@@ -442,6 +442,10 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   return res;
 }
 
+LOCAL size_t routine_get_count(routine *r) {
+  return r->cnt;
+}
+
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
@@ -456,7 +460,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
     rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
     *rt->frames[rt->cnt - 1] = *r->frames[i];
-    rest_vars -= list_length(rt->frames[rt->cnt - 1]->state);
+    rest_vars -= 1;
   }
   for (size_t j = 0; j < rt_tail->cnt; ++j) {
     rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
@@ -471,7 +475,7 @@ LOCAL routine *routine_merge_new(routine *r, routine *rt_tail) {
   rt->extvars = 0;
   for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
     rt->frames[rt->cnt++] = r->frames[i];
-    rest_vars -= list_length(rt->frames[rt->cnt - 1]->state);
+    rest_vars -= 1;
   }
   if (rest_vars > 0) {
     fprintf(stderr, "routine_merge: not enough variables\n");

@@ -8,6 +8,7 @@ typedef struct datum datum;
 LOCAL datum *list_cut(datum *xs,size_t rest_length);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
+LOCAL size_t routine_get_stack_size(routine *r);
 typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
@@ -22,7 +23,7 @@ LOCAL datum *routine_get_shape(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_top(routine *r);
 void state_stack_put(routine *r,datum *value);
-LOCAL size_t routine_get_stack_size(routine *r);
+LOCAL size_t routine_get_count(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
