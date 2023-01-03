@@ -148,6 +148,8 @@ EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
     end += sprintf(end, "\"%s\"", e->bytestring_value);
+  } else if (datum_is_frame(e)) {
+    sprintf(buf, "<some frame>");
   } else {
     sprintf(buf, "<fmt not implemented>");
   }

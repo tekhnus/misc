@@ -150,8 +150,9 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym, fdatum
   datum *fn_index = compdata_get_top_polyindex(*compdata);
   prog_append_resolve(sl, p);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, fn_index, true, datum_make_symbol("plain"), list_length(transitive_deps), list_length(syms), compdata);
+  prog_append_call(sl, p, fn_index, false, datum_make_symbol("plain"), list_length(transitive_deps), list_length(syms), compdata);
   datum *names = datum_make_nil();
+  names = list_append(names, datum_make_symbol(get_varname(datum_make_list_1(dep))));
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms); rest_syms=rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
     names = list_append(names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));

@@ -16,6 +16,7 @@
  (stdout "libc" stdout)
  (stderr "libc" stderr)
  (stdin "libc" stdin)
+ (zlisp "zlisp")
  (comp-prg-new "zlisp" compile-prog-new)
  (iprog "zlisp" init-prog)
  (eval-new "zlisp" eval-new)
