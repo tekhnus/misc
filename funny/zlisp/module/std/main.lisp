@@ -24,7 +24,7 @@
   (if xs
       (return (cons
        (head xs)
-       ((resolve append)
+       (append
 	x
 	(tail xs))))
     (return `(~x))))

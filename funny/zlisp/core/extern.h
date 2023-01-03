@@ -26,6 +26,7 @@ LOCAL size_t routine_get_stack_size(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
+LOCAL routine *routine_merge_new(routine *r,routine *rt_tail);
 datum *state_stack_at_poly(routine *r,datum *offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;

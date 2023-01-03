@@ -135,7 +135,13 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       datum *recieve_type = prg.call_type;
       datum *dchild = state_stack_at_poly(r, prg.call_fn_index);
       routine *child = get_routine_from_datum(dchild);
-      fdatum err = routine_run(sl, child, args);
+      fdatum err;
+      if (child->extvars == 0) {
+        err = routine_run(sl, child, args);
+      } else {
+        routine *rt = routine_merge_new(r, child);
+        err = routine_run(sl, rt, args);
+      }
       args = NULL;
       if (fdatum_is_panic(err)) {
         return err;
@@ -455,6 +461,24 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   for (size_t j = 0; j < rt_tail->cnt; ++j) {
     rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
     *rt->frames[rt->cnt - 1] = *rt_tail->frames[j];
+  }
+  return rt;
+}
+
+LOCAL routine *routine_merge_new(routine *r, routine *rt_tail) {
+  int rest_vars = rt_tail->extvars;
+  routine *rt = malloc(sizeof(routine));
+  rt->extvars = 0;
+  for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
+    rt->frames[rt->cnt++] = r->frames[i];
+    rest_vars -= list_length(rt->frames[rt->cnt - 1]->state);
+  }
+  if (rest_vars > 0) {
+    fprintf(stderr, "routine_merge: not enough variables\n");
+    exit(EXIT_FAILURE);
+  }
+  for (size_t j = 0; j < rt_tail->cnt; ++j) {
+    rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
   return rt;
 }
