@@ -136,12 +136,8 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       datum *dchild = state_stack_at_poly(r, prg.call_fn_index);
       routine *child = get_routine_from_datum(dchild);
       fdatum err;
-      if (child->extvars == 0) {
-        err = routine_run(sl, child, args);
-      } else {
-        routine *rt = routine_merge_new(r, child);
-        err = routine_run(sl, rt, args);
-      }
+      routine *rt = routine_merge_new(r, child);
+      err = routine_run(sl, rt, args);
       args = NULL;
       if (fdatum_is_panic(err)) {
         return err;
