@@ -51,7 +51,7 @@
                       ((:ok progxxx)
                        !(#switchx2 (eval-new sl nsp) (
 		                  ((:ok val ctxt)
-		                   !(#ignore (fprintf-bytestring stdout "%s\n" (repr-pointer val)))
+		                   !(#ignore (fprintf-bytestring stdout "%s\n" (zlisp @slash repr-pointer val)))
 		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
 		                  ((:err msg)
 		                   !(#ignore (fprintf-bytestring stderr "eval error: %s\n" msg))

@@ -294,6 +294,31 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       break;
     }
   }
+  datum *subname = NULL;
+  datum *rest_args = stmt->list_tail;
+  while (!datum_is_nil(rest_args)) {
+    datum *tag = rest_args->list_head;
+    if (!datum_is_list(tag) || list_length(tag) != 2 || !datum_is_the_symbol(tag->list_head, "at")) {
+      break;
+    }
+    datum *content = list_at(tag, 1);
+    if (datum_is_integer(content)) {
+      ret_count = content->integer_value;
+      rest_args = rest_args->list_tail;
+    } else if (datum_is_the_symbol(content, "slash")) {
+      rest_args = rest_args->list_tail;
+      if (datum_is_nil(rest_args)) {
+        return "bad slash tag";
+      }
+      subname = rest_args->list_head;
+      rest_args = rest_args->list_tail;
+    } else {
+      return "unknown tag";
+    }
+  }
+  if (subname != NULL) {
+    fn = subname;
+  }
   datum *fn_index;
   if (at) {
     if (!datum_is_symbol(fn)) {
@@ -310,18 +335,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     fn_index = compdata_get_top_polyindex(*compdata);
-  }
-  datum *rest_args = stmt->list_tail;
-  if (!datum_is_nil(rest_args)) {
-    datum *tag = rest_args->list_head;
-    if (datum_is_list(tag) && list_length(tag) == 2 && datum_is_the_symbol(tag->list_head, "at")) {
-      datum *content = list_at(tag, 1);
-      if (!datum_is_integer(content)) {
-        return "unknown tag";
-      }
-      ret_count = content->integer_value;
-      rest_args = rest_args->list_tail;
-    }
   }
   size_t arg_count = list_length(rest_args);
   for (; !datum_is_nil(rest_args);
