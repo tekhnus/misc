@@ -152,7 +152,7 @@
     (builtin.defun fff ()
                    (progn
                      (def x 2)
-                     (builtin.defn ggg ()
+                     (builtin.defun ggg ()
                                     (return (+ x 40)))
                      (return ggg)))
     (def ggg-in-fff (@fff))
