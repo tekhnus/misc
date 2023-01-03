@@ -98,7 +98,7 @@
 !(#fntest
   (progn
     (builtin.defun fff (x) (return (+ x 42)))
-    (def yyy ((resolve fff) 1))
+    (def yyy (fff 1))
     (return yyy))
   43)
 

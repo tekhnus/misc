@@ -37,7 +37,7 @@
 (builtin.defn serialize-params (params signature)
               (progn
                 (if params
-                    (return (cons (serialize-param (head params) (head signature)) ((resolve serialize-params) (tail params) (tail signature))))
+                    (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
                   (return '()))))
 
 (builtin.defn  derefw2 (what how)
@@ -78,7 +78,7 @@
               (progn
                 (if xs
                     (if n
-                        (return ((resolve nth) (tail n) (tail xs)))
+                        (return (nth (tail n) (tail xs)))
                       (return (head xs)))
                   (panic "nth fail"))))
 
