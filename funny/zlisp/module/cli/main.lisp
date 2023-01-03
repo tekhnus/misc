@@ -70,5 +70,3 @@
 (def bdrcompdata (cdm))
 (def xxx (iprog sl pptr bpptr compdata bdrcompdata))
 !(#ignore (repl sl rt pptr bpptr compdata bdrcompdata))
-
-(export)
