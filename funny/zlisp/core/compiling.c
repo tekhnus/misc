@@ -14,9 +14,9 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   return fdatum_make_ok(prog_slice_to_datum(sl));
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *fn_index, bool pop_one, datum *type, int arg_count, int return_count, datum **compdata) {
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *fn_index, datum *subfn_index, bool pop_one, datum *type, int arg_count, int return_count, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_7(datum_make_symbol(":call"), fn_index, datum_make_int(pop_one), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_8(datum_make_symbol(":call"), fn_index, subfn_index, datum_make_int(pop_one), type, datum_make_int(arg_count), datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
     *compdata = compdata_del(*compdata);
   }
@@ -316,11 +316,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return "unknown tag";
     }
   }
-  if (subname != NULL) {
-    fn = subname;
-  }
   datum *fn_index;
-  if (at) {
+  datum *subfn_index = datum_make_nil();
+  if (at || subname != NULL) {
     if (!datum_is_symbol(fn)) {
       return "expected an lvalue";
     }
@@ -336,6 +334,13 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     fn_index = compdata_get_top_polyindex(*compdata);
   }
+  if (subname != NULL) {
+    char *err = prog_append_statement(sl, begin, subname, compdata, datum_make_nil());
+    if (err != NULL) {
+      return err;
+    }
+    subfn_index = compdata_get_top_polyindex(*compdata);
+  }
   size_t arg_count = list_length(rest_args);
   for (; !datum_is_nil(rest_args);
        rest_args = rest_args->list_tail) {
@@ -349,7 +354,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       }
     }
   }
-  prog_append_call(sl, begin, fn_index, !at, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
+  prog_append_call(sl, begin, fn_index, subfn_index, !at, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), arg_count, ret_count, compdata);
   return NULL;
 }
 

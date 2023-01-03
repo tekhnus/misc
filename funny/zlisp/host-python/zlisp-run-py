@@ -152,7 +152,7 @@ def main():
             pdata[-1][-1].varz[-1].append(copy.deepcopy(pdata[-1][-1].varz[frame][indx]))
             ip = nex
         elif op == sexpdata.Symbol(":call"):
-            fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
+            fn_index, subfn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
             if hat == sexpdata.Symbol("hat"):
                 raise RuntimeError("routine-1 call is not supported yet")
             if hat != sexpdata.Symbol("plain"):
@@ -235,7 +235,7 @@ def main():
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
                     raise RuntimeError("expected a call")
-                fn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
+                fn_index, subfn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
 
                 frame, indx = fn_index
                 # update the routine

@@ -38,6 +38,7 @@ struct prog {
     };
     struct {
       struct datum *call_fn_index;
+      struct datum *call_subfn_index;
       bool call_pop_one;
       struct datum *call_type;
       size_t call_arg_count;
@@ -133,10 +134,12 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
-      datum *dchild = state_stack_at_poly(r, prg.call_fn_index);
-      routine *child = get_routine_from_datum(dchild);
-      fdatum err;
+      routine *child = get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index));
       routine *rt = routine_merge_new(r, child);
+      if (!datum_is_nil(prg.call_subfn_index)) {
+        rt = routine_merge_new(rt, get_routine_from_datum(state_stack_at_poly(r, prg.call_subfn_index)));
+      }
+      fdatum err;
       err = routine_run(sl, rt, args);
       args = NULL;
       if (fdatum_is_panic(err)) {
@@ -286,11 +289,12 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_fn_index = list_at(d, 1);
-    res.call_pop_one = list_at(d, 2)->integer_value;
-    res.call_type = list_at(d, 3);
-    res.call_arg_count = list_at(d, 4)->integer_value;
-    res.call_return_count = list_at(d, 5)->integer_value;
-    res.call_next = list_at(d, 6)->integer_value;
+    res.call_subfn_index = list_at(d, 2);
+    res.call_pop_one = list_at(d, 3)->integer_value;
+    res.call_type = list_at(d, 4);
+    res.call_arg_count = list_at(d, 5)->integer_value;
+    res.call_return_count = list_at(d, 6)->integer_value;
+    res.call_next = list_at(d, 7)->integer_value;
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
