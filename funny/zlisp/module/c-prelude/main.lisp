@@ -1,13 +1,13 @@
 (req)
 
 (def deref-pointer (host "deref-pointer" '()))
-(builtin.defn deref (x y) (return (host "call-extension" deref-pointer x y)))
+(builtin.defun deref (x y) (return (host "call-extension" deref-pointer x y)))
 
 (def mkptr-pointer (host "mkptr-pointer" '()))
 (builtin.defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
 
 (def pointer-call-pointer (host "pointer-call-pointer" '()))
-(builtin.defn pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
+(builtin.defun pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
 
 (def panic-pointer (host "panic" '()))
 (builtin.defn panic (x) (return (host "call-extension" panic-pointer x)))
@@ -24,7 +24,7 @@
 (def eq-pointer (host "eq" '()))
 (builtin.defn eq (x y) (return (host "call-extension" eq-pointer x y)))
 
-(builtin.defn serialize-param (param signature)
+(builtin.defun serialize-param (param signature)
               (progn
                 (if (eq signature 'pointer)
                     (return param)
@@ -34,7 +34,7 @@
                         (return param)
                       (return (mkptr param signature)))))))
 
-(builtin.defn serialize-params (params signature)
+(builtin.defun serialize-params (params signature)
               (progn
                 (if params
                     (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
@@ -50,7 +50,7 @@
                         (return what)
                       (return (deref what how)))))))
 
-(builtin.defn pointer-call-and-deserialize (fn-ptr signature params)
+(builtin.defun pointer-call-and-deserialize (fn-ptr signature params)
               (progn
                 (def fnparamst (head signature))
                 (def rettype (head (tail signature)))
@@ -63,18 +63,18 @@
 (def dlopen-pointer (host "dlopen" '()))
 "TODO: dlopen actually has an int argument, not a size_t."
 (builtin.defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
-(builtin.defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
+(builtin.defun dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
 
 (def dlsym-pointer (host "dlsym" '()))
 (builtin.defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
 
-(builtin.defn c-data-pointer (handle c-name signature)
+(builtin.defun c-data-pointer (handle c-name signature)
             (progn
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (derefw2 fn-pointer-pointer 'int64))
                 (return fn-pointer)))    
 
-(builtin.defn nth (n xs)
+(builtin.defun nth (n xs)
               (progn
                 (if xs
                     (if n
@@ -144,8 +144,6 @@
                                    (return `(:err "extern-pointer failed"))
                                  (return `(:ok ~res)))))
                                         
-(builtin.defn debug-print (x) (return '()))
-
 (export
  (panic panic)
  (head head)
