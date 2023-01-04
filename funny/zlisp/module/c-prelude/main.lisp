@@ -10,19 +10,19 @@
 (builtin.defun pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
 
 (def panic-pointer (host "panic" '()))
-(builtin.defn panic (x) (return (host "call-extension" panic-pointer x)))
+(builtin.defun panic (x) (return (host "call-extension" panic-pointer x)))
 
 (def head-pointer (host "head" '()))
-(builtin.defn head (x) (return (host "call-extension" head-pointer x)))
+(builtin.defun head (x) (return (host "call-extension" head-pointer x)))
 
 (def tail-pointer (host "tail" '()))
-(builtin.defn tail (x) (return (host "call-extension" tail-pointer x)))
+(builtin.defun tail (x) (return (host "call-extension" tail-pointer x)))
 
 (def cons-pointer (host "cons" '()))
-(builtin.defn cons (x xs) (return (host "call-extension" cons-pointer x xs)))
+(builtin.defun cons (x xs) (return (host "call-extension" cons-pointer x xs)))
 
 (def eq-pointer (host "eq" '()))
-(builtin.defn eq (x y) (return (host "call-extension" eq-pointer x y)))
+(builtin.defun eq (x y) (return (host "call-extension" eq-pointer x y)))
 
 (builtin.defun serialize-param (param signature)
               (progn
@@ -115,19 +115,19 @@
 (def selflib (dlopen-null))
 
 (def annotate-pointer (derefw2 (dlsym selflib "builtin_annotate") 'int64))
-(builtin.defn annotate (x) (return (host "call-extension" annotate-pointer x)))
+(builtin.defun annotate (x) (return (host "call-extension" annotate-pointer x)))
 
 (def is-constant-pointer (derefw2 (dlsym selflib "builtin_is_constant") 'int64))
-(builtin.defn is-constant (x) (return (host "call-extension" is-constant-pointer x)))
+(builtin.defun is-constant (x) (return (host "call-extension" is-constant-pointer x)))
 
 (def repr-pointer (derefw2 (dlsym selflib "builtin_repr") 'int64))
-(builtin.defn repr (x) (return (host "call-extension" repr-pointer x)))
+(builtin.defun repr (x) (return (host "call-extension" repr-pointer x)))
 
 (def concat-bytestrings-pointer (derefw2 (dlsym selflib "builtin_concat_bytestrings") 'int64))
-(builtin.defn concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
+(builtin.defun concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
 
 (def +-pointer (derefw2 (dlsym selflib "builtin_add") 'int64))
-(builtin.defn + (x y) (return (host "call-extension" +-pointer x y)))
+(builtin.defun + (x y) (return (host "call-extension" +-pointer x y)))
 
 (builtin.defun wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
 
