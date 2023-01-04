@@ -1,6 +1,7 @@
 (req
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (derefw2 "prelude" derefw2)
+ (std "std")
  (decons-pat "std" decons-pat)
  (eq "std" eq)
  (head "std" head)
@@ -24,6 +25,7 @@
  (cdm "zlisp" compdata-make))
 
 !(req
+  (std "std")
   (ignore "std" ignore))
 
 !(req

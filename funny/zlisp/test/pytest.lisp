@@ -1,4 +1,5 @@
 (req
+ (std "std")
  (decons-pat "std" decons-pat)
  (eq "std" eq)
  (head "std" head)
@@ -33,7 +34,7 @@
   5)
 
 !(#testing @slash fntest
-  (return (list-at '(42 5 3) 1))
+  (return (std @slash list-at '(42 5 3) 1))
   5)
 
 !(#testing @slash fntest
@@ -45,7 +46,7 @@
   7)
 
 !(#testing @slash fntest
-  (return (list-at '(1 2) 1))
+  (return (std @slash list-at '(1 2) 1))
   2)
 
 !(#testing @slash fntest

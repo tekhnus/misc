@@ -51,7 +51,7 @@
 (def progn- (builtin.fn (x) (return (cons 'progn x))))
 
 
-(builtin.defn list-at (xs n) (progn
+(builtin.defun list-at (xs n) (progn
                                (if (eq n 0)
                                    (return (head xs))
                                  (return (list-at (tail xs) (+ n -1))))))
@@ -67,7 +67,7 @@
 			       (def prearg ~cond)
 			       (if (eq (head prearg) :ok)
 				   (progn
-				     (def args (list-at prearg 1))
+				     (def args (std @slash list-at prearg 1))
 				     ~body)
 				 ~rest))))
 		(progn
@@ -134,7 +134,7 @@
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
-(def switch-defines '((list-at args 0) (list-at args 1) (list-at args 2) (lits-at args 3) (list-at args 4) (list-at args 5)))
+(def switch-defines '((std @slash list-at args 0) (std @slash list-at args 1) (std @slash list-at args 2) (std @slash list-at args 3) (std @slash list-at args 4) (std @slash list-at args 5)))
 
 (builtin.defn switch-clause (a0)
     (progn
