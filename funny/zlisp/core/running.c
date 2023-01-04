@@ -326,19 +326,13 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  datum *dchild = state_stack_at_poly(r, prg.call_fn_index);
-  if (!datum_is_frame(dchild)) {
-    fprintf(stderr, "get_child error: not an integer\n");
-    exit(EXIT_FAILURE);
+  routine *child = routine_merge_new(r, get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index)));
+  if (!datum_is_nil(prg.call_subfn_index)) {
+    child = routine_merge_new(child, get_routine_from_datum(state_stack_at_poly(r, prg.call_subfn_index)));
   }
-  routine *child = get_routine_from_datum(dchild);
   prog child_prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(child)));
   if (child_prg.type == PROG_YIELD) {
     // it's not currently being called
-    return NULL;
-  }
-  if (child_prg.type == PROG_CALL) {
-    // TODO: this is not correct, fix it!
     return NULL;
   }
   return child;
@@ -348,7 +342,7 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
-  for (routine *z = r; z != NULL && i < 10; z = get_child(sl, r), ++i) {
+  for (routine *z = r; z != NULL && i < 10; z = get_child(sl, z), ++i) {
     for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3; ++i) {
         if (i < 0) {
           continue;
