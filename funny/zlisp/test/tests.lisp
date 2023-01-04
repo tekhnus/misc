@@ -53,19 +53,19 @@
 
 !(#fntest
   (progn
-    (builtin.defn twice (arg) (return (+ arg arg)))
+    (builtin.defun twice (arg) (return (+ arg arg)))
     (return (twice 35)))
   70)
 
 !(#fntest
   (progn
-    (builtin.defn adder (n) (return (builtin.fn (m) (return (+ n m)))))
+    (builtin.defun adder (n) (return (builtin.fn (m) (return (+ n m)))))
     (return ((adder 3) 4)))
   7)
 
 !(#fntest
   (progn
-    (builtin.defn fib () (progn
+    (builtin.defun fib () (progn
        (return 3)
        (return 5)
        (return 8)
@@ -79,12 +79,12 @@
 
 !(#fntest
   (progn
-    (builtin.defn far-fib () (progn
+    (builtin.defun far-fib () (progn
        (^return 3)
        (^return 5)
        (return 8)))
 
-    (builtin.defn more-far-fib () (progn
+    (builtin.defun more-far-fib () (progn
        (def x (far-fib))
        (^return x)
        (^return 13)))
@@ -105,22 +105,22 @@
 
 !(#fntest
   (progn
-    (builtin.defn multi-ret () (return 42 34))
+    (builtin.defun multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
 !(#fntest
   (progn
-    (builtin.defn cl-cons (x xs)
+    (builtin.defun cl-cons (x xs)
                   (return (builtin.fn () (return x xs))))
 
-    (builtin.defn cl-head (xs)
+    (builtin.defun cl-head (xs)
                   (progn
                     (def (h r) (xs @2))
                     (return h)))
 
-    (builtin.defn cl-tail (xs)
+    (builtin.defun cl-tail (xs)
                   (progn
                     (def (h r) (xs @2))
                     (return r)))
@@ -161,7 +161,7 @@
     (return 33))
   33)
 
-(builtin.defn print-all (xs)
+(builtin.defun print-all (xs)
    (if xs
        (progn
          (libc @slash print (head xs))

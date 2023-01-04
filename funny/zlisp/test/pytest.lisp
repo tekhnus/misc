@@ -67,19 +67,19 @@
 
 !(#fntest
   (progn
-    (builtin.defn twice (arg) (return (+ arg arg)))
+    (builtin.defun twice (arg) (return (+ arg arg)))
     (return (twice 35)))
   70)
 
 !(#fntest
   (progn
-    (builtin.defn adder (n) (return (builtin.fn (m) (return (+ n m)))))
+    (builtin.defun adder (n) (return (builtin.fn (m) (return (+ n m)))))
     (return ((adder 3) 4)))
   7)
 
 !(#fntest
   (progn
-    (builtin.defn fib () (progn
+    (builtin.defun fib () (progn
        (return 3)
        (return 5)
        (return 8)
@@ -100,7 +100,7 @@
 
 !(#fntest
   (progn
-    (builtin.defn multi-ret () (return 42 34))
+    (builtin.defun multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
@@ -119,7 +119,7 @@
     (return (fff @slash ggg-in-fff)))
   42)
 
-(builtin.defn print-all (xs)
+(builtin.defun print-all (xs)
    (if xs
        (progn
          (print (head xs))
