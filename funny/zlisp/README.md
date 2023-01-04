@@ -34,11 +34,12 @@ tools/
 
 - Make less awkward macro syntax
 - Unite preprocessor with quasiquotes
-- Sanitized macros
+- Sanitized macros; self-describing identifiers?; implicit imports?
 
 - Fix the size of module representation which is quadratic w.r.t. the function count
 - Switch from linked lists to slices
 - Sane approach to memory allocation/deallocation
+- Enclosing frames should be error-resistant and zero-cost
 
 - Loops
 - Tail recursive calls
