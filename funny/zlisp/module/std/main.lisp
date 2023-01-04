@@ -12,11 +12,11 @@
  (decons-pat "std-pre-defun" decons-pat)
  (switch-fun "std-pre-defun" switch-fun)
  (ignore "std-pre-defun" ignore)
- (second "std-pre-defun" second)
  (third "std-pre-defun" third)
  (fourth "std-pre-defun" fourth)
  (fifth "std-pre-defun" fifth)
- (sixth "std-pre-defun" sixth))
+ (sixth "std-pre-defun" sixth)
+ (list-at "std-pre-defun" list-at))
 
 (builtin.defn append (x xs)
   (if xs
@@ -33,7 +33,7 @@
                                        (def first-arg (head x))
                                        (if (eq :ok (head first-arg))
                                            (progn
-                                             (return (second first-arg)))
+                                             (return (list-at first-arg 1)))
                                          (return (first-good-value (tail x)))))
                                    (panic "first-good-value: no good value"))))
 
@@ -50,12 +50,12 @@
  (concat-bytestrings concat-bytestrings)
  (+ +)
  (decons-pat decons-pat)
- (second second)
  (append append)
  (ignore ignore)
  (third third)
  (fourth fourth)
  (fifth fifth)
  (sixth sixth)
+ (list-at list-at)
  (switch-fun switch-fun)
  (first-good-value first-good-value))

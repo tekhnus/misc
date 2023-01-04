@@ -10,10 +10,6 @@
  (concat-bytestrings "prelude" concat-bytestrings)
  (+ "prelude" +))
 
-(def second
-     (builtin.fn (x)
-      (return (head (tail x)))))
-
 (builtin.defn last (a0)
 	      
 	 (if (tail a0)
@@ -70,13 +66,13 @@
 		  (progn
 		    (def firstarg (head a0))
 		    (def cond (head firstarg))
-		    (def body (second firstarg))
+		    (def body (list-at firstarg 1))
 		    (def rest (swtchone (tail a0)))
 		    (return `(progn
 			       (def prearg ~cond)
 			       (if (eq (head prearg) :ok)
 				   (progn
-				     (def args (second prearg))
+				     (def args (list-at prearg 1))
 				     ~body)
 				 ~rest))))
 		(progn
@@ -113,7 +109,7 @@
 				      (return '(:err))
 				    (if (eq :err (head first-decons))
 					(return '(:err))
-				      (return `(:ok ~(concat (second first-decons) (second rest-decons)))))))
+				      (return `(:ok ~(concat (list-at first-decons 1) (list-at rest-decons 1)))))))
 			      (progn
                                 (def first-decons "ifhack")
                                 (def rest-decons "ifhack")
@@ -143,7 +139,7 @@
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
-(def switch-defines '((head args) (second args) (third args) (fourth args) (fifth args) (sixth args)))
+(def switch-defines '((list-at args 0) (list-at args 1) (list-at args 2) (lits-at args 3) (list-at args 4) (list-at args 5)))
 
 (builtin.defn switch-clause (a0)
     (progn
@@ -161,8 +157,8 @@
  (switch-fun switch-fun)
  (decons-pat decons-pat)
  (ignore ignore)
- (second second)
  (third third)
  (fourth fourth)
  (fifth fifth)
- (sixth sixth))
+ (sixth sixth)
+ (list-at list-at))

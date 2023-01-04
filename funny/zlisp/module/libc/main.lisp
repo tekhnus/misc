@@ -7,7 +7,6 @@
  (head "std" head)
  (repr "std" repr)
  (panic "std" panic)
- (second "std" second)
  (first-good-value "std" first-good-value))
 
 (def libc (first-good-value `(

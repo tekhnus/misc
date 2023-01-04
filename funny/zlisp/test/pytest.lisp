@@ -4,8 +4,8 @@
  (head "std" head)
  (tail "std" tail)
  (repr "std" repr)
- (second "std" second)
  (append "std" append)
+ (list-at "std" list-at)
  (+ "std" +)
  (panic "std" panic)
  (cons "std" cons)
@@ -31,7 +31,7 @@
   5)
 
 !(#fntest
-  (return (second '(42 5 3)))
+  (return (list-at '(42 5 3) 1))
   5)
 
 !(#fntest
@@ -43,7 +43,7 @@
   7)
 
 !(#fntest
-  (return (second '(1 2)))
+  (return (list-at '(1 2) 1))
   2)
 
 !(#fntest

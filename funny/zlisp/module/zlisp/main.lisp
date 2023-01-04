@@ -12,12 +12,7 @@
  (eq "std" eq)
  (head "std" head)
  (tail "std" tail)
- (panic "std" panic)
- (second "std" second)
- (third "std" third)
- (fourth "std" fourth)
- (fifth "std" fifth)
- (sixth "std" sixth))
+ (panic "std" panic))
 
 (def buildlib (first-good-value `(
   ~(shared-library "libzlisp-build-lib.so"))))

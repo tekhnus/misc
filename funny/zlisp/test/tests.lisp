@@ -5,8 +5,8 @@
  (eq "std" eq)
  (head "std" head)
  (repr "std" repr)
- (second "std" second)
  (append "std" append)
+ (list-at "std" list-at)
  (+ "std" +)
  (panic "std" panic)
  (concat-bytestrings "std" concat-bytestrings)
@@ -28,7 +28,7 @@
   7)
 
 !(#fntest
-  (return (second '(1 2)))
+  (return (list-at '(1 2) 1))
   2)
 
 !(#fntest
