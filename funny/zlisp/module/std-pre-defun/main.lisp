@@ -54,7 +54,13 @@
 
 (def progn- (builtin.fn (x) (return (cons 'progn x))))
 
-(builtin.defn third (a0) (return (head (tail (tail a0)))))
+
+(builtin.defn list-at (xs n) (progn
+                               (if (eq n 0)
+                                   (return (head xs))
+                                 (return (list-at (tail xs) (+ n -1))))))
+
+(builtin.defn third (a0) (return (list-at a0 2)))
 (builtin.defn fourth (a0) (return (head (tail (tail (tail a0))))))
 (builtin.defn fifth (a0) (return (head (tail (tail (tail (tail a0)))))))
 (builtin.defn sixth (a0) (return (head (tail (tail (tail (tail (tail a0))))))))
