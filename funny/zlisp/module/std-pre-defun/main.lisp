@@ -56,11 +56,6 @@
                                    (return (head xs))
                                  (return (list-at (tail xs) (+ n -1))))))
 
-(builtin.defn third (a0) (return (list-at a0 2)))
-(builtin.defn fourth (a0) (return (head (tail (tail (tail a0))))))
-(builtin.defn fifth (a0) (return (head (tail (tail (tail (tail a0)))))))
-(builtin.defn sixth (a0) (return (head (tail (tail (tail (tail (tail a0))))))))
-
 (builtin.defn swtchone (a0)
 	      (if a0
 		  (progn
@@ -157,8 +152,4 @@
  (switch-fun switch-fun)
  (decons-pat decons-pat)
  (ignore ignore)
- (third third)
- (fourth fourth)
- (fifth fifth)
- (sixth sixth)
  (list-at list-at))
