@@ -10,7 +10,7 @@
  (concat-bytestrings "prelude" concat-bytestrings)
  (+ "prelude" +))
 
-(builtin.defn last (a0)
+(builtin.defun last (a0)
 	      
 	 (if (tail a0)
 	     (return (last (tail a0)))
@@ -18,7 +18,7 @@
 
 (def type (builtin.fn (x) (return (head (annotate x)))))
 
-(builtin.defn concat (a0 a1)
+(builtin.defun concat (a0 a1)
 	     
     (if a0
 	(return (cons (head a0) (concat (tail a0) a1)))
@@ -26,13 +26,13 @@
 
 
 
-(builtin.defn zip (a0 a1)
+(builtin.defun zip (a0 a1)
 	      
     (if a0
 	(return (cons `(~(head a0) ~(head a1)) (zip (tail a0) (tail a1))))
       (return '())))
 
-(builtin.defn map	     (a0 a1)
+(builtin.defun map	     (a0 a1)
   (if a1
       (return (cons
        (a0
