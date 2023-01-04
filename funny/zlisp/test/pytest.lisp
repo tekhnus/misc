@@ -16,7 +16,6 @@
 
 !(req (fntest "testing" fntest))
 !(req
-  (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2))
 
@@ -71,19 +70,19 @@
 
 !(#fntest
   (progn
-    !(#defun twice (arg) (return (+ arg arg)))
+    (builtin.defn twice (arg) (return (+ arg arg)))
     (return (twice 35)))
   70)
 
 !(#fntest
   (progn
-    !(#defun adder (n) (return !(#fn (m) (return (+ n m)))))
+    (builtin.defn adder (n) (return !(#fn (m) (return (+ n m)))))
     (return ((adder 3) 4)))
   7)
 
 !(#fntest
   (progn
-    !(#defun fib () (progn
+    (builtin.defn fib () (progn
        (return 3)
        (return 5)
        (return 8)
@@ -123,7 +122,7 @@
     (return (fff @slash ggg-in-fff)))
   42)
 
-!(#defun print-all (xs)
+(builtin.defn print-all (xs)
    (if xs
        (progn
          (print (head xs))

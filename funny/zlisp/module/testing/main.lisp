@@ -7,14 +7,13 @@
  (second "std" second))
 
 !(req
-  (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2))
 
 
-!(#defun fntest (body expect)
+(builtin.defn fntest (body expect)
    (return `(progn
-              !(#defun calltest () ~body)
+              (builtin.defn calltest () ~body)
               (def val (calltest))
               (if (eq val ~expect)
                   (def panics panics)

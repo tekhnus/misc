@@ -20,7 +20,6 @@
  (sixth "std" sixth))
 
 !(req
-  (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2))
 
@@ -35,15 +34,15 @@
 (def prog-build-init (c-function-or-panic buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def get-host-ffi-settings (c-function-or-panic buildlib "get_host_ffi_settings" '(() pointer)))
 
-!(#defun prog-slice-append-new (sl)
+(builtin.defn prog-slice-append-new (sl)
    (return (prog-slice-append-new- (wrap-pointer-into-pointer sl))))
 
-!(#defun init-prog (sl pptr bpptr compdata bdrcompdata)
+(builtin.defn init-prog (sl pptr bpptr compdata bdrcompdata)
    (progn
      (def nothing (prog-build-init (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata)))
      (return 42)))
 
-!(#defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
+(builtin.defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
      (def e (prog-build-one-c-host (wrap-pointer-into-pointer sl) (wrap-pointer-into-pointer pptr) (wrap-pointer-into-pointer bpptr) (wrap-pointer-into-pointer src) (wrap-pointer-into-pointer compdata) (wrap-pointer-into-pointer bdrcompdata) (get-host-ffi-settings)))
      (if (eq 0 (derefw2 e 'int64))
@@ -63,7 +62,7 @@
 (def fdatum-repr-datum-pointer-ptr (dlsym selflib "fdatum_repr_datum_pointer"))
 (builtin.defun repr-pointer (x) (return (host "call-extension" (derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
 
-!(#defun eval-new (sl rt0)
+(builtin.defn eval-new (sl rt0)
    (progn
      (def rt-ptr (wrap-pointer-into-pointer rt0))
      (def res (routine-run-and-get-value-c-host-new sl rt-ptr))
@@ -77,7 +76,7 @@
          (return `(:ok ~val ~new-rt))))))
 
 (def datum-read-one (c-function-or-panic selflib "datum_read_one" '((pointer) fdatum)))
-!(#defun read (strm)
+(builtin.defn read (strm)
    (progn
      (def res (datum-read-one strm))
      (if (eq (fdatum-is-panic res) 1)

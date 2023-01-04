@@ -31,14 +31,13 @@
   (ignore "std" ignore))
 
 !(req
-  (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2)
   (switchx2 "stdmacro" switchx2))
 
 (def readme "A basic REPL for zlisp.")
 
-!(#defun repl
+(builtin.defn repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
   (def tmp (fprintf stdout "> "))

@@ -18,9 +18,7 @@
  (fifth "std-pre-defun" fifth)
  (sixth "std-pre-defun" sixth))
 
-!(req (defun "defun" defun))
-
-!(#defun append (x xs)
+(builtin.defn append (x xs)
   (if xs
       (return (cons
        (head xs)

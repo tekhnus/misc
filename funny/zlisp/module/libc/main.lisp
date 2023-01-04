@@ -11,7 +11,6 @@
  (first-good-value "std" first-good-value))
 
 !(req
-  (defun "stdmacro" defun)
   (fn "stdmacro" fn)
   (def2 "stdmacro" def2))
 
@@ -39,7 +38,7 @@
   ~(extern-pointer libc "stderr" 'pointer)
   ~(extern-pointer libc "__stderrp" 'pointer))))
 
-!(#defun print (val)
+(builtin.defn print (val)
   (return (fprintf-bytestring stdout "%s\n" (repr val))))
 
 (export
