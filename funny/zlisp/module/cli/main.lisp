@@ -1,4 +1,5 @@
 (req
+ (prelude "prelude")
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (derefw2 "prelude" derefw2)
  (std "std")
@@ -60,9 +61,9 @@
 	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
 (def sl (zlisp @slash psm 20000))
-(def pptr (wrap-pointer-into-pointer (zlisp @slash psan sl)))
-(def bpptr (wrap-pointer-into-pointer (zlisp @slash psan sl)))
-(def rt (zlisp @slash mres (derefw2 bpptr 'int64)))
+(def pptr (prelude @slash wrap-pointer-into-pointer (zlisp @slash psan sl)))
+(def bpptr (prelude @slash wrap-pointer-into-pointer (zlisp @slash psan sl)))
+(def rt (zlisp @slash mres (prelude @slash derefw2 bpptr 'int64)))
 (def compdata (zlisp @slash cdm))
 (def bdrcompdata (zlisp @slash cdm))
 (def xxx (zlisp @slash iprog sl pptr bpptr compdata bdrcompdata))

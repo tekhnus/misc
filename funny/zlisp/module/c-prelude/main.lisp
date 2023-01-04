@@ -4,7 +4,7 @@
 (builtin.defun deref (x y) (return (host "call-extension" deref-pointer x y)))
 
 (def mkptr-pointer (host "mkptr-pointer" '()))
-(builtin.defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
+(builtin.defun mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
 
 (def pointer-call-pointer (host "pointer-call-pointer" '()))
 (builtin.defun pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
@@ -40,7 +40,7 @@
                     (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
                   (return '()))))
 
-(builtin.defn  derefw2 (what how)
+(builtin.defun  derefw2 (what how)
               (progn
                 (if (eq how 'pointer)
                     (return what)
@@ -62,11 +62,11 @@
 
 (def dlopen-pointer (host "dlopen" '()))
 "TODO: dlopen actually has an int argument, not a size_t."
-(builtin.defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
+(builtin.defun dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
 (builtin.defun dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
 
 (def dlsym-pointer (host "dlsym" '()))
-(builtin.defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
+(builtin.defun dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
 
 (builtin.defun c-data-pointer (handle c-name signature)
             (progn
@@ -100,7 +100,7 @@
              ~pointer-call-and-deserialize-6
              ~pointer-call-and-deserialize-7)))))
 
-(builtin.defn c-function-or-panic (handle c-name signature)
+(builtin.defun c-function-or-panic (handle c-name signature)
               (progn
                 (def argssig (head signature))
                 (def fn-pointer-pointer (dlsym handle c-name))
@@ -129,16 +129,16 @@
 (def +-pointer (derefw2 (dlsym selflib "builtin_add") 'int64))
 (builtin.defn + (x y) (return (host "call-extension" +-pointer x y)))
 
-(builtin.defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
+(builtin.defun wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
 
 
-(builtin.defn shared-library (path) (progn
+(builtin.defun shared-library (path) (progn
                                (def r (dlopen path))
                                (if (eq 0 (derefw2 r 'int64))
                                    (return `(:err "shared-library failed"))
                                  (return `(:ok ~r)))))
 
-(builtin.defn extern-pointer (handle c-name signature) (progn
+(builtin.defun extern-pointer (handle c-name signature) (progn
                                (def res (c-data-pointer handle c-name signature))
                                (if (eq 0 res)
                                    (return `(:err "extern-pointer failed"))
@@ -151,8 +151,6 @@
  (cons cons)
  (eq eq)
  (derefw2 derefw2)
- (mkptr mkptr)
- (dlopen dlopen)
  (dlsym dlsym)
  (c-function-or-panic c-function-or-panic)
  (eq eq)
