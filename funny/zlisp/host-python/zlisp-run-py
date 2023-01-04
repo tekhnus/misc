@@ -109,6 +109,18 @@ def repre(args):
     a1, ar = check_is_cons(args)
     return repr(a1)
 
+def merge(x, y, extvars):
+    rtvarz = []
+    for fra in x:
+        if extvars <= 0:
+            break
+        rtvarz.append(copy.copy(fra))
+        extvars -= 1
+    if extvars > 0:
+        raise RuntimeError("not enough vars")
+    for fram in y:
+        rtvarz.append(copy.copy(fram))
+    return rtvarz
 
 def main():
     bc = sys.stdin.read()
@@ -162,21 +174,18 @@ def main():
             rout = pdata[-1][-1].varz[frame][indx]
             offset, varz, extvars = check_is_routine_0(rout)
             assert varz
-            rtvarz = []
-            for fra in pdata[-1][-1].varz:
-                if extvars <= 0:
-                    break
-                rtvarz.append(copy.copy(fra))
-                extvars -= len(fra)
-            if extvars > 0:
-                raise RuntimeError("not enough vars")
-            for fram in varz:
-                rtvarz.append(copy.copy(fram))
+            rtvarz = merge(pdata[-1][-1].varz, varz, extvars)
+            ip = offset
+            if len(subfn_index) > 0:
+                subframe, subindx = subfn_index
+                subrout = pdata[-1][-1].varz[subframe][subindx]
+                suboff, subvarz, subext = check_is_routine_0(subrout)
+                rtvarz = merge(rtvarz, subvarz, subext)
+                ip = suboff
             rtvarz[-1].extend(arg for arg in args)
             pdata[-1].append(
                 State(varz=rtvarz, ip=0)
             )  # ip set after endif
-            ip = offset
             # check that first instruction is yield and skip it
             ins = prog[ip]
             op, args = ins[0], ins[1:]
@@ -184,7 +193,7 @@ def main():
                 raise RuntimeError("expected a yield-reciever")
             hat, cnt, recieve_cnt, meta, nex = args
             if arg_cnt != recieve_cnt:
-                raise RuntimeError("arg count and recieve count are different")
+                raise RuntimeError(f"arg count {arg_cnt} and recieve count {recieve_cnt} are different")
             ip = nex
         elif op == sexpdata.Symbol(":collect"):
             cnt, nex = args
@@ -199,7 +208,7 @@ def main():
             if capture == 0:
                 capture_size = 0
             else:
-                capture_size = sum(len(frame) for frame in pdata[-1][-1].varz) + 1
+                capture_size = len(pdata[-1][-1].varz)
             p = make_list_with_items(pr, [[]], capture_size)
             pdata[-1][-1].varz[-1].append(p)
             ip = nex
@@ -213,7 +222,7 @@ def main():
                 if count >= stateptr:
                     break
                 cutvarz.append(copy.copy(frame))
-                count += len(frame)
+                count += 1
             if count < stateptr:
                 raise RuntimeError('resolution error')
             cutvarz.extend(topvarz)
