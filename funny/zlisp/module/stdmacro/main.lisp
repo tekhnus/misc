@@ -1,7 +1,7 @@
 (req
  (switch-fun "std" switch-fun))
 
-(builtin.defn switchx2 (exp argz) (return `(progn (def args ~exp) ~(switch-fun argz))))
+(builtin.defun switch (exp argz) (return `(progn (def args ~exp) ~(switch-fun argz))))
 
 (export
- (switchx2 switchx2))
+ (switch switch))

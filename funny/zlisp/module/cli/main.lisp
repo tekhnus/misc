@@ -27,22 +27,23 @@
   (ignore "std" ignore))
 
 !(req
-  (switchx2 "stdmacro" switchx2))
+  (stdmacro "stdmacro")
+  (switchx2 "stdmacro" switch))
 
 (def readme "A basic REPL for zlisp.")
 
-(builtin.defn repl
+(builtin.defun repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
   (def tmp (fprintf stdout "> "))
-  !(#switchx2 (zlisp @slash rd stdin) (
+  !(#stdmacro @slash switchx2 (zlisp @slash rd stdin) (
 	  ((:eof)
 	   (return (fprintf stdout "\n")))
 	  ((:ok datum)
            (def maybe-prog (zlisp @slash comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
-           !(#switchx2 maybe-prog (
+           !(#stdmacro @slash switchx2 maybe-prog (
                       ((:ok progxxx)
-                       !(#switchx2 (zlisp @slash eval-new sl nsp) (
+                       !(#stdmacro @slash switchx2 (zlisp @slash eval-new sl nsp) (
 		                  ((:ok val ctxt)
 		                   !(#ignore (fprintf-bytestring stdout "%s\n" (zlisp @slash repr-pointer val)))
 		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
