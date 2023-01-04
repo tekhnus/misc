@@ -55,10 +55,10 @@
 (def fdatum-is-panic (c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
 
 (def fdatum-get-value-ptr (dlsym selflib "fdatum_get_value"))
-(builtin.defn fdatum-get-value (x) (return (host "call-extension" (derefw2 fdatum-get-value-ptr 'int64) x)))
+(builtin.defun fdatum-get-value (x) (return (host "call-extension" (derefw2 fdatum-get-value-ptr 'int64) x)))
 
 (def fdatum-get-panic-message-ptr (dlsym selflib "fdatum_get_panic_message"))
-(builtin.defn fdatum-get-panic-message (x) (return (host "call-extension" (derefw2 fdatum-get-panic-message-ptr 'int64) x)))
+(builtin.defun fdatum-get-panic-message (x) (return (host "call-extension" (derefw2 fdatum-get-panic-message-ptr 'int64) x)))
 
 (def fdatum-repr-datum-pointer-ptr (dlsym selflib "fdatum_repr_datum_pointer"))
 (builtin.defun repr-pointer (x) (return (host "call-extension" (derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))

@@ -42,14 +42,14 @@
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
   (def tmp (fprintf stdout "> "))
-  !(#switchx2 (rd stdin) (
+  !(#switchx2 (zlisp @slash rd stdin) (
 	  ((:eof)
 	   (return (fprintf stdout "\n")))
 	  ((:ok datum)
-           (def maybe-prog (comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
+           (def maybe-prog (zlisp @slash comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
            !(#switchx2 maybe-prog (
                       ((:ok progxxx)
-                       !(#switchx2 (eval-new sl nsp) (
+                       !(#switchx2 (zlisp @slash eval-new sl nsp) (
 		                  ((:ok val ctxt)
 		                   !(#ignore (fprintf-bytestring stdout "%s\n" (zlisp @slash repr-pointer val)))
 		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
@@ -63,11 +63,11 @@
 	   !(#ignore (fprintf-bytestring stderr "read error: %s\n" msg))
 	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
-(def sl (psm 20000))
-(def pptr (wrap-pointer-into-pointer (psan sl)))
-(def bpptr (wrap-pointer-into-pointer (psan sl)))
-(def rt (mres (derefw2 bpptr 'int64)))
-(def compdata (cdm))
-(def bdrcompdata (cdm))
-(def xxx (iprog sl pptr bpptr compdata bdrcompdata))
+(def sl (zlisp @slash psm 20000))
+(def pptr (wrap-pointer-into-pointer (zlisp @slash psan sl)))
+(def bpptr (wrap-pointer-into-pointer (zlisp @slash psan sl)))
+(def rt (zlisp @slash mres (derefw2 bpptr 'int64)))
+(def compdata (zlisp @slash cdm))
+(def bdrcompdata (zlisp @slash cdm))
+(def xxx (zlisp @slash iprog sl pptr bpptr compdata bdrcompdata))
 !(#ignore (repl sl rt pptr bpptr compdata bdrcompdata))
