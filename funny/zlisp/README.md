@@ -40,6 +40,7 @@ tools/
 - Switch from linked lists to slices
 - Sane approach to memory allocation/deallocation
 - Enclosing frames should be error-resistant and zero-cost
+- Implement closure by value?
 
 - Loops
 - Tail recursive calls
