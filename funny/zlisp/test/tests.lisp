@@ -47,7 +47,7 @@
 
 !(#testing @slash fntest
   (progn
-    (return (append 5 '(1 2 3 4))))
+    (return (std @slash append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
 !(#testing @slash fntest

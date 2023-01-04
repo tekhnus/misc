@@ -7,6 +7,7 @@
  (derefw2 "prelude" derefw2)
  (mkptr "prelude" mkptr)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
+ (std "std")
  (decons-pat "std" decons-pat)
  (first-good-value "std" first-good-value)
  (eq "std" eq)
@@ -14,7 +15,7 @@
  (tail "std" tail)
  (panic "std" panic))
 
-(def buildlib (first-good-value `(
+(def buildlib (std @slash first-good-value `(
   ~(shared-library "libzlisp-build-lib.so"))))
 
 (def compdata-make (c-function-or-panic selflib "compdata_make" '(() pointer)))

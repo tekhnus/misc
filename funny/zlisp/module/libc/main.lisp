@@ -2,6 +2,7 @@
  (shared-library "prelude" shared-library)
  (c-function-or-panic "prelude" c-function-or-panic)
  (extern-pointer "prelude" extern-pointer)
+ (std "std")
  (decons-pat "std" decons-pat)
  (eq "std" eq)
  (head "std" head)
@@ -9,7 +10,7 @@
  (panic "std" panic)
  (first-good-value "std" first-good-value))
 
-(def libc (first-good-value `(
+(def libc (std @slash first-good-value `(
   ~(shared-library "libc.so.6")
   ~(shared-library "libSystem.B.dylib"))))
 
@@ -21,15 +22,15 @@
 (def fprintf-bytestring (c-function-or-panic libc "fprintf" '((pointer string string) sizet)))
 (def printfptr (c-function-or-panic libc "printf" '((string pointer) sizet)))
 
-(def stdin (first-good-value `(
+(def stdin (std @slash first-good-value `(
   ~(extern-pointer libc "stdin" 'pointer)
   ~(extern-pointer libc "__stdinp" 'pointer))))
 
-(def stdout (first-good-value `(
+(def stdout (std @slash first-good-value `(
   ~(extern-pointer libc "stdout" 'pointer)
   ~(extern-pointer libc "__stdoutp" 'pointer))))
 
-(def stderr (first-good-value `(
+(def stderr (std @slash first-good-value `(
   ~(extern-pointer libc "stderr" 'pointer)
   ~(extern-pointer libc "__stderrp" 'pointer))))
 

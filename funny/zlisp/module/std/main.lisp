@@ -56,7 +56,7 @@
                                    (return (head xs))
                                  (return (list-at (tail xs) (+ n -1))))))
 
-(builtin.defn swtchone (a0)
+(builtin.defun swtchone (a0)
 	      (if a0
 		  (progn
 		    (def firstarg (head a0))
@@ -78,7 +78,7 @@
                   (return '(panic "nothing matched")))))
 
 
-(builtin.defn decons-pat (a0 a1)
+(builtin.defun decons-pat (a0 a1)
 	      (progn
 		(def pat a0)
 		(def val a1)
@@ -123,7 +123,7 @@
                         (def rest-decons "ifhack")
                         (panic "decons-pat met an unsupported type")))))))
 
-(builtin.defn decons-vars (a0)
+(builtin.defun decons-vars (a0)
      (if (is-constant a0)
 	(return '())
       (if (eq (type a0) :symbol)
@@ -136,18 +136,19 @@
 
 (def switch-defines '((std @slash list-at args 0) (std @slash list-at args 1) (std @slash list-at args 2) (std @slash list-at args 3) (std @slash list-at args 4) (std @slash list-at args 5)))
 
-(builtin.defn switch-clause (a0)
+(builtin.defun switch-clause (a0)
     (progn
       (def sig (head a0))
       (def cmds (tail a0))
-      (def checker `(decons-pat (quote ~sig) args))
+      (def checker `(std @slash decons-pat (quote ~sig) args))
       (def vars (decons-vars sig))
       (def body (cons 'progn (concat (map (builtin.fn (x) (return (cons 'def x))) (zip vars switch-defines)) cmds)))
       (return `(~checker ~body))))
 
-(builtin.defn switch-fun (a0)
+(builtin.defun switch-fun (a0)
     (return (swtchone (map switch-clause a0))))
-(builtin.defn append (x xs)
+
+(builtin.defun append (x xs)
   (if xs
       (return (cons
        (head xs)
@@ -156,7 +157,7 @@
 	(tail xs))))
     (return `(~x))))
 
-(builtin.defn first-good-value (x) (progn
+(builtin.defun first-good-value (x) (progn
                                  (if x
                                      (progn
                                        (def first-arg (head x))
