@@ -33,7 +33,7 @@
   ~(extern-pointer libc "stderr" 'pointer)
   ~(extern-pointer libc "__stderrp" 'pointer))))
 
-(builtin.defn print (val)
+(builtin.defun print (val)
   (return (fprintf-bytestring stdout "%s\n" (repr val))))
 
 (export

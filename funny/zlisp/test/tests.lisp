@@ -13,6 +13,7 @@
  (cons "std" cons)
  (tail "std" tail)
  (panic "std" panic)
+ (libc "libc")
  (print "libc" print))
 
 !(req (fntest "testing" fntest))
@@ -154,10 +155,16 @@
     (return (fff @slash ggg-in-fff)))
   42)
 
+!(#fntest
+  (progn
+    (libc @slash print 42)
+    (return 33))
+  33)
+
 (builtin.defn print-all (xs)
    (if xs
        (progn
-         (print (head xs))
+         (libc @slash print (head xs))
          (print-all (tail xs))
          (return '()))
      (return '())))
