@@ -61,7 +61,7 @@
 (builtin.defn fdatum-get-panic-message (x) (return (host "call-extension" (derefw2 fdatum-get-panic-message-ptr 'int64) x)))
 
 (def fdatum-repr-datum-pointer-ptr (dlsym selflib "fdatum_repr_datum_pointer"))
-(builtin.defn repr-pointer (x) (return (host "call-extension" (derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
+(builtin.defun repr-pointer (x) (return (host "call-extension" (derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
 
 !(#defun eval-new (sl rt0)
    (progn
