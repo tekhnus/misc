@@ -14,70 +14,72 @@
  (panic "std" panic)
  (concat-bytestrings "std" concat-bytestrings))
 
-!(req (fntest "testing" fntest))
+!(req
+  (testing "testing")
+  (fntest "testing" fntest))
 
 (def panics '())
 
-!(#fntest
+!(#testing @slash fntest
   (return (head '(42 5 3)))
   42)
 
-!(#fntest
+!(#testing @slash fntest
   (return (tail '(42 5 3)))
   '(5 3))
 
-!(#fntest
+!(#testing @slash fntest
   (return (head (tail '(42 5 3))))
   5)
 
-!(#fntest
+!(#testing @slash fntest
   (return (list-at '(42 5 3) 1))
   5)
 
-!(#fntest
+!(#testing @slash fntest
  (return "hello, world!")
  "hello, world!")
 
-!(#fntest
+!(#testing @slash fntest
   (return (+ 4 3))
   7)
 
-!(#fntest
+!(#testing @slash fntest
   (return (list-at '(1 2) 1))
   2)
 
-!(#fntest
+!(#testing @slash fntest
   (return (eq :foo :bar))
   '())
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (def bar :foo)
     (return (eq :foo bar)))
   '(()))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (return (append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#fntest
+!(#testing @slash fntest
   (return `(1 2 ~(+ 1 2)))
   '(1 2 3))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun twice (arg) (return (+ arg arg)))
     (return (twice 35)))
   70)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun adder (n) (return (builtin.fn (m) (return (+ n m)))))
     (return ((adder 3) 4)))
   7)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun fib () (progn
        (return 3)
@@ -91,21 +93,21 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun fff (x) (return (+ x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (def y 3)
     (builtin.defun fff ()

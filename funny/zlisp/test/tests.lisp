@@ -16,54 +16,56 @@
  (libc "libc")
  (print "libc" print))
 
-!(req (fntest "testing" fntest))
+!(req
+  (testing "testing")
+  (fntest "testing" fntest))
 
 (def panics '())
 
-!(#fntest
+!(#testing @slash fntest
  (return "hello, world!")
  "hello, world!")
 
-!(#fntest
+!(#testing @slash fntest
   (return (+ 4 3))
   7)
 
-!(#fntest
+!(#testing @slash fntest
   (return (list-at '(1 2) 1))
   2)
 
-!(#fntest
+!(#testing @slash fntest
   (return (eq :foo :bar))
   '())
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (def bar :foo)
     (return (eq :foo bar)))
   '(()))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (return (append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#fntest
+!(#testing @slash fntest
   (return `(1 2 ~(+ 1 2)))
   '(1 2 3))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun twice (arg) (return (+ arg arg)))
     (return (twice 35)))
   70)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun adder (n) (return (builtin.fn (m) (return (+ n m)))))
     (return ((adder 3) 4)))
   7)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun fib () (progn
        (return 3)
@@ -77,7 +79,7 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun far-fib () (progn
        (^return 3)
@@ -96,21 +98,21 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (fprintf stderr "hello")
     (return 42))
   42)
 
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun cl-cons (x xs)
                   (return (builtin.fn () (return x xs))))
@@ -136,14 +138,14 @@
     (return `(~a ~b)))
   '(34 42))
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun fff (x) (return (+ x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (builtin.defun fff ()
                    (progn
@@ -155,7 +157,7 @@
     (return (fff @slash ggg-in-fff)))
   42)
 
-!(#fntest
+!(#testing @slash fntest
   (progn
     (libc @slash print 42)
     (return 33))
