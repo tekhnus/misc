@@ -11,8 +11,7 @@
  (first-good-value "std" first-good-value))
 
 !(req
-  (fn "stdmacro" fn)
-  (def2 "stdmacro" def2))
+  (fn "stdmacro" fn))
 
 (def libc (first-good-value `(
   ~(shared-library "libc.so.6")

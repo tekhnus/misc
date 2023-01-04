@@ -17,8 +17,7 @@
 
 !(req (fntest "testing" fntest))
 !(req
-  (fn "stdmacro" fn)
-  (def2 "stdmacro" def2))
+  (fn "stdmacro" fn))
 
 
 (def panics '())

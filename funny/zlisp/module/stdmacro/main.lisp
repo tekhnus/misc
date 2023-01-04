@@ -11,15 +11,8 @@
 
 (def fn (builtin.fn (x y) (return `(builtin.fn ~x ~y))))
 
-(builtin.defn def2 (left right val)
-   (return `(progn
-	      (def tmp ~val)
-	      (def ~left (head tmp))
-	      (def ~right (second tmp)))))
-
 (builtin.defn switchx2 (exp argz) (return `(progn (def args ~exp) ~(switch-fun argz))))
 
 (export
  (fn fn)
- (def2 def2)
  (switchx2 switchx2))
