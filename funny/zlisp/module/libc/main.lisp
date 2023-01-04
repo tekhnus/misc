@@ -10,9 +10,6 @@
  (second "std" second)
  (first-good-value "std" first-good-value))
 
-!(req
-  (fn "stdmacro" fn))
-
 (def libc (first-good-value `(
   ~(shared-library "libc.so.6")
   ~(shared-library "libSystem.B.dylib"))))

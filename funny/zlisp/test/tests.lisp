@@ -16,9 +16,6 @@
  (print "libc" print))
 
 !(req (fntest "testing" fntest))
-!(req
-  (fn "stdmacro" fn))
-
 
 (def panics '())
 
@@ -61,7 +58,7 @@
 
 !(#fntest
   (progn
-    (builtin.defn adder (n) (return !(#fn (m) (return (+ n m)))))
+    (builtin.defn adder (n) (return (builtin.fn (m) (return (+ n m)))))
     (return ((adder 3) 4)))
   7)
 

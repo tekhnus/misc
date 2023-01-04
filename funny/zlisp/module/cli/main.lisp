@@ -31,7 +31,6 @@
   (ignore "std" ignore))
 
 !(req
-  (fn "stdmacro" fn)
   (switchx2 "stdmacro" switchx2))
 
 (def readme "A basic REPL for zlisp.")

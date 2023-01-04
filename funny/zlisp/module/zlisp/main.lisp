@@ -19,9 +19,6 @@
  (fifth "std" fifth)
  (sixth "std" sixth))
 
-!(req
-  (fn "stdmacro" fn))
-
 (def buildlib (first-good-value `(
   ~(shared-library "libzlisp-build-lib.so"))))
 

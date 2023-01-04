@@ -6,10 +6,6 @@
  (panic "std" panic)
  (second "std" second))
 
-!(req
-  (fn "stdmacro" fn))
-
-
 (builtin.defn fntest (body expect)
    (return `(progn
               (builtin.defn calltest () ~body)
