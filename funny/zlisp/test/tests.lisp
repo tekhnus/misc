@@ -115,17 +115,23 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun cl-cons (x xs)
-                  (return (builtin.fn () (return x xs))))
+    (builtin.defun cl-holder (x xs) (progn
+                                    (return :nothing)
+                                    (return x xs)))
+
+    (builtin.defun cl-cons (x xs) (progn
+                                    (def holder cl-holder)
+                                    (@holder x xs)
+                                    (return holder)))
 
     (builtin.defun cl-head (xs)
                   (progn
-                    (def (h r) (xs @2))
+                    (def (h r) (xs @2 :nuthing))
                     (return h)))
 
     (builtin.defun cl-tail (xs)
                   (progn
-                    (def (h r) (xs @2))
+                    (def (h r) (xs @2 :nuthin))
                     (return r)))
 
     (def cl-nil :nil)
