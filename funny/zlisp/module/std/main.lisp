@@ -18,7 +18,7 @@
 (builtin.defn eq (x y) (return (prelude @slash eq- x y)))
 (builtin.defn annotate (x) (return (prelude @slash annotate- x)))
 (builtin.defn is-constant (x) (return (prelude @slash is-constant- x)))
-(builtin.defn repr (x) (return (prelude @slash repr- x)))
+(builtin.defun repr (x) (return (prelude @slash repr- x)))
 (builtin.defn concat-bytestrings (x y) (return (prelude @slash concat-bytestrings- x y)))
 (builtin.defn + (x y) (return (prelude @slash +- x y)))
 

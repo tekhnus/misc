@@ -1,4 +1,5 @@
 (req
+ (std "std")
  (eq "std" eq)
  (decons-pat "std" decons-pat)
  (head "std" head)
@@ -11,6 +12,6 @@
               (def val (calltest))
               (if (eq val ~expect)
                   (def panics panics)
-                (def panics (cons (concat-bytestrings (concat-bytestrings (repr val) " != ") (repr ~expect)) panics))))))
+                (def panics (cons (concat-bytestrings (concat-bytestrings (std @slash repr val) " != ") (std @slash repr ~expect)) panics))))))
 
 (export (fntest fntest))
