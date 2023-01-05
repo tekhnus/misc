@@ -11,16 +11,16 @@
  (concat-bytestrings- "prelude" concat-bytestrings)
  (+- "prelude" +))
 
-(builtin.defn panic (x) (return (prelude @slash panic- x)))
+(builtin.defun panic (x) (return (prelude @slash panic- x)))
 (builtin.defun head (x) (return (prelude @slash head- x)))
 (builtin.defun tail (x) (return (prelude @slash tail- x)))
-(builtin.defn cons (x xs) (return (prelude @slash cons- x xs)))
-(builtin.defn eq (x y) (return (prelude @slash eq- x y)))
-(builtin.defn annotate (x) (return (prelude @slash annotate- x)))
+(builtin.defun cons (x xs) (return (prelude @slash cons- x xs)))
+(builtin.defun eq (x y) (return (prelude @slash eq- x y)))
+(builtin.defun annotate (x) (return (prelude @slash annotate- x)))
 (builtin.defun is-constant (x) (return (prelude @slash is-constant- x)))
 (builtin.defun repr (x) (return (prelude @slash repr- x)))
 (builtin.defun concat-bytestrings (x y) (return (prelude @slash concat-bytestrings- x y)))
-(builtin.defn + (x y) (return (prelude @slash +- x y)))
+(builtin.defun + (x y) (return (prelude @slash +- x y)))
 
 (builtin.defun last (a0)
 	      
@@ -58,7 +58,7 @@
 
 (def ignore (builtin.fn (x) (return (ignore-fn x))))
 
-(def panic-block '(argz (panic "wrong fn call")))
+(def panic-block '(argz (std @slash panic "wrong fn call")))
 
 (def progn- (builtin.fn (x) (return (cons 'progn x))))
 
@@ -77,7 +77,7 @@
 		    (def rest (swtchone (tail a0)))
 		    (return `(progn
 			       (def prearg ~cond)
-			       (if (eq (std @slash head prearg) :ok)
+			       (if (std @slash eq (std @slash head prearg) :ok)
 				   (progn
 				     (def args (std @slash list-at prearg 1))
 				     ~body)
@@ -87,7 +87,7 @@
                   (def cond "ifhack")
                   (def body "ifhack")
                   (def rest "ifhack")
-                  (return '(panic "nothing matched")))))
+                  (return '(std @slash panic "nothing matched")))))
 
 
 (builtin.defun decons-pat (a0 a1)

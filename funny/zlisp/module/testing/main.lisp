@@ -10,8 +10,8 @@
    (return `(progn
               (builtin.defun calltest () ~body)
               (def val (calltest))
-              (if (eq val ~expect)
+              (if (std @slash eq val ~expect)
                   (def panics panics)
-                (def panics (cons (std @slash concat-bytestrings (std @slash concat-bytestrings (std @slash repr val) " != ") (std @slash repr ~expect)) panics))))))
+                (def panics (std @slash cons (std @slash concat-bytestrings (std @slash concat-bytestrings (std @slash repr val) " != ") (std @slash repr ~expect)) panics))))))
 
 (export (fntest fntest))

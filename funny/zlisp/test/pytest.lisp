@@ -40,7 +40,7 @@
  "hello, world!")
 
 !(#testing @slash fntest
-  (return (+ 4 3))
+  (return (std @slash + 4 3))
   7)
 
 !(#testing @slash fntest
@@ -48,13 +48,13 @@
   2)
 
 !(#testing @slash fntest
-  (return (eq :foo :bar))
+  (return (std @slash eq :foo :bar))
   '())
 
 !(#testing @slash fntest
   (progn
     (def bar :foo)
-    (return (eq :foo bar)))
+    (return (std @slash eq :foo bar)))
   '(()))
 
 !(#testing @slash fntest
@@ -63,18 +63,18 @@
   '(1 2 3 4 5))
 
 !(#testing @slash fntest
-  (return `(1 2 ~(+ 1 2)))
+  (return `(1 2 ~(std @slash + 1 2)))
   '(1 2 3))
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun twice (arg) (return (+ arg arg)))
+    (builtin.defun twice (arg) (return (std @slash + arg arg)))
     (return (twice 35)))
   70)
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun adder (n) (return (builtin.fn (m) (return (+ n m)))))
+    (builtin.defun adder (n) (return (builtin.fn (m) (return (std @slash + n m)))))
     (return ((adder 3) 4)))
   7)
 
@@ -94,7 +94,7 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun fff (x) (return (+ x 42)))
+    (builtin.defun fff (x) (return (std @slash + x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
@@ -114,7 +114,7 @@
                      (def x 2)
                      (builtin.defun ggg ()
                                     (progn
-                                                           (return (+ x 40))))
+                                                           (return (std @slash + x 40))))
                      (return ggg)))
     (def ggg-in-fff (@fff))
     (return (fff @slash ggg-in-fff)))
@@ -131,5 +131,5 @@
 (if panics
     (progn
       (print-all panics)
-      (panic "FAILED"))
+      (std @slash panic "FAILED"))
   (progn '() '()))

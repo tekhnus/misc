@@ -36,7 +36,7 @@
 (builtin.defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
      (def e (prog-build-one-c-host (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer src) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata) (get-host-ffi-settings)))
-     (if (eq 0 (prelude @slash derefw2 e 'int64))
+     (if (std @slash eq 0 (prelude @slash derefw2 e 'int64))
          (return `(:ok :nothing))
        (return `(:err ~(prelude @slash derefw2 e 'string))))))
 
@@ -57,7 +57,7 @@
    (progn
      (def rt-ptr (prelude @slash wrap-pointer-into-pointer rt0))
      (def res (routine-run-and-get-value-c-host-new sl rt-ptr))
-     (if (eq (fdatum-is-panic res) 1)
+     (if (std @slash eq (fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
            (return `(:err ~msg)))
@@ -70,10 +70,10 @@
 (builtin.defun read (strm)
    (progn
      (def res (datum-read-one strm))
-     (if (eq (fdatum-is-panic res) 1)
+     (if (std @slash eq (fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
-           (if (eq msg "eof")
+           (if (std @slash eq msg "eof")
                (return '(:eof))
              (return `(:err ~msg))))
        (progn
