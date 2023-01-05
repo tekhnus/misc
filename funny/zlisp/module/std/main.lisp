@@ -12,8 +12,8 @@
  (+- "prelude" +))
 
 (builtin.defn panic (x) (return (prelude @slash panic- x)))
-(builtin.defn head (x) (return (prelude @slash head- x)))
-(builtin.defn tail (x) (return (prelude @slash tail- x)))
+(builtin.defun head (x) (return (prelude @slash head- x)))
+(builtin.defun tail (x) (return (prelude @slash tail- x)))
 (builtin.defn cons (x xs) (return (prelude @slash cons- x xs)))
 (builtin.defn eq (x y) (return (prelude @slash eq- x y)))
 (builtin.defn annotate (x) (return (prelude @slash annotate- x)))
@@ -77,7 +77,7 @@
 		    (def rest (swtchone (tail a0)))
 		    (return `(progn
 			       (def prearg ~cond)
-			       (if (eq (head prearg) :ok)
+			       (if (eq (std @slash head prearg) :ok)
 				   (progn
 				     (def args (std @slash list-at prearg 1))
 				     ~body)

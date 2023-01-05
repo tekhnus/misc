@@ -168,7 +168,7 @@
    (if xs
        (progn
          (libc @slash print (std @slash head xs))
-         (print-all (tail xs))
+         (print-all (std @slash tail xs))
          (return '()))
      (return '())))
 

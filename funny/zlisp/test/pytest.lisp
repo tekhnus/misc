@@ -11,8 +11,6 @@
  (panic "std" panic)
  (cons "std" cons)
  (print "prelude" print)
- (tail "std" tail)
- (panic "std" panic)
  (concat-bytestrings "std" concat-bytestrings))
 
 !(req
@@ -26,11 +24,11 @@
   42)
 
 !(#testing @slash fntest
-  (return (tail '(42 5 3)))
+  (return (std @slash tail '(42 5 3)))
   '(5 3))
 
 !(#testing @slash fntest
-  (return (std @slash head (tail '(42 5 3))))
+  (return (std @slash head (std @slash tail '(42 5 3))))
   5)
 
 !(#testing @slash fntest
@@ -126,7 +124,7 @@
    (if xs
        (progn
          (print (std @slash head xs))
-         (print-all (tail xs))
+         (print-all (std @slash tail xs))
          (return '()))
      (return '())))
 
