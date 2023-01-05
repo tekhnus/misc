@@ -324,8 +324,10 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     }
     fn_index = compdata_get_polyindex(*compdata, fn);
     if (datum_is_nil(fn_index)) {
-      return datum_repr(*compdata);
-      return "function not found";
+      char *err = malloc(256);
+      *err = 0;
+      sprintf(err, "function not found: %s", datum_repr(fn));
+      return err;
     }
   } else {
     char *err = prog_append_statement(sl, begin, fn, compdata, datum_make_nil());

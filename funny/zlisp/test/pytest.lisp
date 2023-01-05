@@ -22,7 +22,7 @@
 (def panics '())
 
 !(#testing @slash fntest
-  (return (head '(42 5 3)))
+  (return (std @slash head '(42 5 3)))
   42)
 
 !(#testing @slash fntest
@@ -30,7 +30,7 @@
   '(5 3))
 
 !(#testing @slash fntest
-  (return (head (tail '(42 5 3))))
+  (return (std @slash head (tail '(42 5 3))))
   5)
 
 !(#testing @slash fntest
@@ -125,7 +125,7 @@
 (builtin.defun print-all (xs)
    (if xs
        (progn
-         (print (head xs))
+         (print (std @slash head xs))
          (print-all (tail xs))
          (return '()))
      (return '())))

@@ -167,7 +167,7 @@
 (builtin.defun print-all (xs)
    (if xs
        (progn
-         (libc @slash print (head xs))
+         (libc @slash print (std @slash head xs))
          (print-all (tail xs))
          (return '()))
      (return '())))
