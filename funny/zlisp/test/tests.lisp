@@ -62,7 +62,15 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun adder (n) (return (builtin.fn (m) (return (std @slash + n m)))))
+    (builtin.defun adderf (n)
+                   (progn
+                     (def m (return :ready))
+                     (return (std @slash + n m))))
+    (builtin.defun adder (n)
+                   (progn
+                     (def a adderf)
+                     (@a n)
+                     (return a)))
     (return ((adder 3) 4)))
   7)
 
