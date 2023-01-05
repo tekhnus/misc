@@ -82,7 +82,7 @@
                       (return (head xs)))
                   (panic "nth fail"))))
 
-(def get-pcads (builtin.fn (fn-ptr signature) (progn
+(builtin.defun get-pcads (fn-ptr signature) (progn
 (def pointer-call-and-deserialize-0 (builtin.fn () (return (pointer-call-and-deserialize fn-ptr signature `()))))
 (def pointer-call-and-deserialize-1 (builtin.fn (arg1) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1)))))
 (def pointer-call-and-deserialize-2 (builtin.fn (arg1 arg2) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2)))))
@@ -98,7 +98,7 @@
              ~pointer-call-and-deserialize-4
              ~pointer-call-and-deserialize-5
              ~pointer-call-and-deserialize-6
-             ~pointer-call-and-deserialize-7)))))
+             ~pointer-call-and-deserialize-7))))
 
 (builtin.defun c-function-or-panic (handle c-name signature)
               (progn

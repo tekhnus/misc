@@ -28,7 +28,7 @@
 	     (return (last (tail a0)))
 	   (return (head a0))))
 
-(def type (builtin.fn (x) (return (head (annotate x)))))
+(builtin.defun type (x) (return (head (annotate x))))
 
 (builtin.defun concat (a0 a1)
 	     
@@ -54,14 +54,9 @@
 	(tail a1))))
     (return '())))
 
-(def ignore-fn (builtin.fn (x) (return `(def throwaway ~x))))
-
-(def ignore (builtin.fn (x) (return (ignore-fn x))))
+(builtin.defun ignore (x) (return `(def throwaway ~x)))
 
 (def panic-block '(argz (std @slash panic "wrong fn call")))
-
-(def progn- (builtin.fn (x) (return (cons 'progn x))))
-
 
 (builtin.defun list-at (xs n) (progn
                                (if (eq n 0)
