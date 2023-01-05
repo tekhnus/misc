@@ -83,14 +83,14 @@
                   (panic "nth fail"))))
 
 (builtin.defun get-pcads (fn-ptr signature) (progn
-(def pointer-call-and-deserialize-0 (builtin.fn () (return (pointer-call-and-deserialize fn-ptr signature `()))))
-(def pointer-call-and-deserialize-1 (builtin.fn (arg1) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1)))))
-(def pointer-call-and-deserialize-2 (builtin.fn (arg1 arg2) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2)))))
-(def pointer-call-and-deserialize-3 (builtin.fn (arg1 arg2 a3) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3)))))
-(def pointer-call-and-deserialize-4 (builtin.fn (arg1 arg2 a3 a4) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1  ~arg2 ~a3 ~a4)))))
-(def pointer-call-and-deserialize-5 (builtin.fn (arg1 arg2 a3 a4 a5) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5)))))
-(def pointer-call-and-deserialize-6 (builtin.fn (arg1 arg2 a3 a4 a5 a6) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6)))))
-(def pointer-call-and-deserialize-7 (builtin.fn (arg1 arg2 a3 a4 a5 a6 a7) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
+(builtin.defn pointer-call-and-deserialize-0 () (return (pointer-call-and-deserialize fn-ptr signature `())))
+(builtin.defn pointer-call-and-deserialize-1 (arg1) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1))))
+(builtin.defn pointer-call-and-deserialize-2 (arg1 arg2) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2))))
+(builtin.defn pointer-call-and-deserialize-3 (arg1 arg2 a3) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3))))
+(builtin.defn pointer-call-and-deserialize-4 (arg1 arg2 a3 a4) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1  ~arg2 ~a3 ~a4))))
+(builtin.defn pointer-call-and-deserialize-5 (arg1 arg2 a3 a4 a5) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5))))
+(builtin.defn pointer-call-and-deserialize-6 (arg1 arg2 a3 a4 a5 a6) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6))))
+(builtin.defn pointer-call-and-deserialize-7 (arg1 arg2 a3 a4 a5 a6 a7) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6 ~a7))))
 (return `(~pointer-call-and-deserialize-0
              ~pointer-call-and-deserialize-1
              ~pointer-call-and-deserialize-2
