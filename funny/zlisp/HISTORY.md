@@ -35,3 +35,13 @@ The linker is separated from the compiler and diamond dependencies reusage is im
 
 June-October 2022: the runtime now doesn't have "variables"; there is only stack now;
 variable offsets are calculated by the compiler.
+
+October 2022-January 2023:
+- routine now can have recieve and yield multiple values natively (without packing/unpacking);
+- the interpreter is reimplemented:
+  - the call structure is now flat (instead of being a stack of stacks)
+  - the child frame now lives in the parent frame and is mutated in-place;
+- the routine is now a special type in C interpreter again (so that we can copy it correctly);
+- there are no more closures; the routine now stores only its own frame;
+  the parent frames are explicitly specified during the call and they are borrowed;
+  when we need to capture a value, we use coroutines
