@@ -112,22 +112,37 @@
                     (def pcadfn (nth argssig pcadfns))
                     (return pcadfn)))))
 
-(builtin.defun c-function-or-panic-new-f (handle c-name signature)
+(builtin.defun get-fn-ptr (handle c-name)
+               (progn
+                 (def fn-pointer-pointer (dlsym handle c-name))
+                 (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
+                 (if (eq fn-ptr 0)
+                     (panic "couldn't load C function")
+                   (return fn-ptr))))
+                                                 
+(builtin.defun c-function-or-panic-new-5 (fn-ptr signature)
               (progn
-                (def argssig (head signature))
-                (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
-                (if (eq fn-ptr 0)
-                    (panic "couldn't load C function")
-                  (progn
-                    (def (a1 a2 a3 a4 a5) (return @5 :ready))
-                    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))))
+                (def (a1 a2 a3 a4 a5) (return @5 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))
+
+(builtin.defun c-function-or-panic-new-6 (fn-ptr signature)
+              (progn
+                (def (a1 a2 a3 a4 a5 a6) (return @6 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6)))))
+
+(builtin.defun c-function-or-panic-new-7 (fn-ptr signature)
+              (progn
+                (def (a1 a2 a3 a4 a5 a6 a7) (return @7 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
 
 (builtin.defun c-function-or-panic-new (handle c-name signature)
                (progn
-                 (def obj c-function-or-panic-new-f)
-                 (@c-function-or-panic-new-f handle c-name signature)
-                 (return c-function-or-panic-new-f)))
+                 (def argssig (head signature))
+                 (def objs `(() () () () () ~c-function-or-panic-new-5 ~c-function-or-panic-new-6 ~c-function-or-panic-new-7))
+                 (def obj (nth argssig objs))
+                 (def fn-ptr (get-fn-ptr handle c-name))
+                 (@obj fn-ptr signature)
+                 (return obj)))
 
 (def selflib (dlopen-null))
 
