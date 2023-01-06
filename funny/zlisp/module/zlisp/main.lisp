@@ -2,6 +2,7 @@
  (prelude "prelude")
  (shared-library "prelude" shared-library)
  (c-function-or-panic "prelude" c-function-or-panic)
+ (c-function-or-panic-new "prelude" c-function-or-panic-new)
  (selflib "prelude" selflib)
  (dlsym "prelude" dlsym)
  (derefw2 "prelude" derefw2)
@@ -22,7 +23,7 @@
 (def prog-slice-make (prelude @slash c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (prelude @slash c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (prelude @slash c-function-or-panic buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
-(def prog-build-init (prelude @slash c-function-or-panic buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
+(def prog-build-init (prelude @slash c-function-or-panic-new buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def get-host-ffi-settings (prelude @slash c-function-or-panic buildlib "get_host_ffi_settings" '(() pointer)))
 
 (builtin.defun prog-slice-append-new (sl)
@@ -30,7 +31,7 @@
 
 (builtin.defun init-prog (sl pptr bpptr compdata bdrcompdata)
    (progn
-     (def nothing (prog-build-init (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata)))
+     (def nothing (prelude @slash prog-build-init (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata)))
      (return 42)))
 
 (builtin.defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)

@@ -163,7 +163,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     }
     if (prg.type == PROG_YIELD && args != NULL) {
       if (list_length(args) != (int)prg.yield_recieve_count) {
-        return fdatum_make_panic("recieved incorrect number of arguments");
+        char *err = malloc(256);
+        sprintf(err, "recieved incorrect number of arguments: expected %zu, got %d", prg.yield_recieve_count, list_length(args));
+        return fdatum_make_panic(err);
       }
       state_stack_put_all(r, args);
       args = NULL;

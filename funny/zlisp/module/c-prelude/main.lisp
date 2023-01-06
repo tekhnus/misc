@@ -112,6 +112,23 @@
                     (def pcadfn (nth argssig pcadfns))
                     (return pcadfn)))))
 
+(builtin.defun c-function-or-panic-new-f (handle c-name signature)
+              (progn
+                (def argssig (head signature))
+                (def fn-pointer-pointer (dlsym handle c-name))
+                (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
+                (if (eq fn-ptr 0)
+                    (panic "couldn't load C function")
+                  (progn
+                    (def (a1 a2 a3 a4 a5) (return @5 :ready))
+                    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))))
+
+(builtin.defun c-function-or-panic-new (handle c-name signature)
+               (progn
+                 (def obj c-function-or-panic-new-f)
+                 (@c-function-or-panic-new-f handle c-name signature)
+                 (return c-function-or-panic-new-f)))
+
 (def selflib (dlopen-null))
 
 (def annotate-pointer (derefw2 (dlsym selflib "builtin_annotate") 'int64))
@@ -153,6 +170,7 @@
  (derefw2 derefw2)
  (dlsym dlsym)
  (c-function-or-panic c-function-or-panic)
+ (c-function-or-panic-new c-function-or-panic-new)
  (eq eq)
  (annotate annotate)
  (is-constant is-constant)
