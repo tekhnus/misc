@@ -188,7 +188,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     compdata_give_names(names, compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "builtin.defn") || datum_is_the_symbol(op, "builtin.defun")) {
+  if (datum_is_the_symbol(op, "builtin.defun")) {
     datum *name = list_at(stmt, 1);
     datum *args;
     datum *body;
@@ -205,39 +205,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       return err;
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
-    if (datum_is_the_symbol(op, "builtin.defn")) {
-      prog_append_resolve(sl, begin);
-    }
     compdata_give_names(datum_make_list_1(name), compdata);
-    return NULL;
-  }
-  if (datum_is_the_symbol(op, "builtin.fn")) {
-    datum *args;
-    datum *body;
-    if (list_length(stmt->list_tail) != 2) {
-      return "wrong fn";
-    }
-    args = list_at(stmt, 1);
-    body = list_at(stmt, 2);
-    size_t s_off = prog_slice_append_new(sl);
-    datum *routine_compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-    routine_compdata = compdata_start_new_section(routine_compdata);
-    char *err =
-      prog_init_routine(sl, s_off, args, body, &routine_compdata, datum_make_list(datum_make_symbol("lambda"), info));
-    if (err != NULL) {
-      return err;
-    }
-    prog_append_put_prog(sl, begin, s_off, 2, compdata);
-    prog_append_resolve(sl, begin);
-    return NULL;
-  }
-  if (datum_is_the_symbol(op, "resolve")) {
-    if (list_length(stmt->list_tail) != 1) {
-      return "resolve takes a single argument";
-    }
-    datum *arg = list_at(stmt, 1);
-    prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
-    prog_append_resolve(sl, begin);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
