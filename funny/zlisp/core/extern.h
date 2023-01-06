@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include <stddef.h>
 #define LOCAL static
-typedef struct datum datum;
-LOCAL datum *list_cut(datum *xs,size_t rest_length);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
+typedef struct datum datum;
+datum *state_stack_top(routine *r);
 LOCAL size_t routine_get_stack_size(routine *r);
 typedef struct prog_slice prog_slice;
 #include <inttypes.h>
@@ -20,8 +20,6 @@ struct prog_slice {
 LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
 LOCAL datum *routine_get_shape(routine *r);
-LOCAL routine *routine_merge(routine *r,routine *rt_tail);
-datum *state_stack_top(routine *r);
 void state_stack_put(routine *r,datum *value);
 LOCAL size_t routine_get_count(routine *r);
 datum *state_stack_collect(routine *r,size_t count);

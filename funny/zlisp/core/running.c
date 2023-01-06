@@ -13,7 +13,6 @@ enum prog_type {
   PROG_CALL,
   PROG_COLLECT,
   PROG_PUT_PROG,
-  PROG_RESOLVE,
   PROG_YIELD,
 };
 
@@ -58,7 +57,6 @@ struct prog {
       int put_prog_capture;
       ptrdiff_t put_prog_next;
     };
-    ptrdiff_t resolve_next;
     struct {
       struct datum *yield_type;
       size_t yield_count;
@@ -197,17 +195,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       *routine_offset(r) = prg.put_prog_next;
       continue;
     }
-    if (prg.type == PROG_RESOLVE) {
-      // we don't pop immediately because the pointer might want to reference itself
-      // (this happens with lambdas).
-      datum *fnptr = state_stack_top(r);
-      routine *rt_tail = get_routine_from_datum(fnptr);
-      routine *rt = routine_merge(r, rt_tail);
-      state_stack_pop(r);
-      state_stack_put(r, datum_make_frame(rt));
-      *routine_offset(r) = prg.resolve_next;
-      continue;
-    }
     if (prg.type == PROG_NOP) {
       if (datum_is_list(prg.nop_info) && list_length(prg.nop_info) == 2 &&
           datum_is_symbol(prg.nop_info->list_head)) {
@@ -306,9 +293,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_prog_value = (list_at(d, 1)->integer_value);
     res.put_prog_capture = list_at(d, 2)->integer_value;
     res.put_prog_next = (list_at(d, 3)->integer_value);
-  } else if (!strcmp(opsym, ":resolve")) {
-    res.type = PROG_RESOLVE;
-    res.resolve_next = list_at(d, 1)->integer_value;
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);
@@ -450,21 +434,6 @@ LOCAL datum *routine_get_shape(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  int rest_vars = rt_tail->extvars;
-  routine *rt = malloc(sizeof(routine));
-  for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
-    rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
-    *rt->frames[rt->cnt - 1] = *r->frames[i];
-    rest_vars -= 1;
-  }
-  for (size_t j = 0; j < rt_tail->cnt; ++j) {
-    rt->frames[rt->cnt++] = malloc(sizeof(struct frame));
-    *rt->frames[rt->cnt - 1] = *rt_tail->frames[j];
-  }
-  return rt;
-}
-
 LOCAL routine *routine_merge_new(routine *r, routine *rt_tail) {
   int rest_vars = rt_tail->extvars;
   routine *rt = malloc(sizeof(routine));
@@ -496,18 +465,6 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(r->cnt > 0);
   return &r->frames[r->cnt - 1]->offset;
-}
-
-LOCAL datum *list_cut(datum *xs, size_t rest_length) {
-  size_t len = list_length(xs);
-  if (len < rest_length) {
-    return NULL;
-  }
-  size_t cut_cnt = len - rest_length;
-  for (size_t i = 0; i < cut_cnt; ++i) {
-    xs = xs->list_tail;
-  }
-  return xs;
 }
 
 LOCAL datum *datum_make_frame(routine *r) {

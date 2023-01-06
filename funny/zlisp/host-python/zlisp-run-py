@@ -212,23 +212,6 @@ def main():
             p = make_list_with_items(pr, [[]], capture_size)
             pdata[-1][-1].varz[-1].append(p)
             ip = nex
-        elif op == sexpdata.Symbol(":resolve"):
-            nex, = args
-            fnptr = pdata[-1][-1].varz[-1][-1]
-            pr, topvarz, stateptr = fnptr
-            cutvarz = []
-            count = 0
-            for frame in pdata[-1][-1].varz:
-                if count >= stateptr:
-                    break
-                cutvarz.append(copy.copy(frame))
-                count += 1
-            if count < stateptr:
-                raise RuntimeError('resolution error')
-            cutvarz.extend(topvarz)
-            pop_stack()
-            pdata[-1][-1].varz[-1].append(make_list_with_items(pr, cutvarz, 0))
-            ip = nex
         elif op == sexpdata.Symbol(":yield"):
             hat, cnt, recieve_cnt, meta, nex = args
             if hat == sexpdata.Symbol("plain"):
