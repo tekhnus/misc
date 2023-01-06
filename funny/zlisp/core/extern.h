@@ -6,12 +6,11 @@
 #define LOCAL static
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
-typedef struct datum datum;
-datum *state_stack_top(routine *r);
 LOCAL size_t routine_get_stack_size(routine *r);
 typedef struct prog_slice prog_slice;
 #include <inttypes.h>
 #include <stdio.h>
+typedef struct datum datum;
 struct prog_slice {
   datum *begin;
   size_t length;

@@ -391,11 +391,6 @@ EXPORT datum *state_stack_pop(routine *r) {
   return res;
 }
 
-EXPORT datum *state_stack_top(routine *r) {
-  assert(r->cnt > 0);
-  return list_at(r->frames[r->cnt - 1]->state, 0);
-}
-
 EXPORT datum *state_stack_collect(routine *r, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {

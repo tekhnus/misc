@@ -95,7 +95,6 @@ datum *state_stack_at_poly(routine *r,datum *offset);
 void state_stack_put(routine *r,datum *value);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
-datum *state_stack_top(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 enum datum_type {
   DATUM_NIL,
