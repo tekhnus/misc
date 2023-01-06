@@ -82,36 +82,6 @@
                       (return (head xs)))
                   (panic "nth fail"))))
 
-(builtin.defun get-pcads (fn-ptr signature) (progn
-(builtin.defn pointer-call-and-deserialize-0 () (return (pointer-call-and-deserialize fn-ptr signature `())))
-(builtin.defn pointer-call-and-deserialize-1 (arg1) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1))))
-(builtin.defn pointer-call-and-deserialize-2 (arg1 arg2) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2))))
-(builtin.defn pointer-call-and-deserialize-3 (arg1 arg2 a3) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3))))
-(builtin.defn pointer-call-and-deserialize-4 (arg1 arg2 a3 a4) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1  ~arg2 ~a3 ~a4))))
-(builtin.defn pointer-call-and-deserialize-5 (arg1 arg2 a3 a4 a5) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5))))
-(builtin.defn pointer-call-and-deserialize-6 (arg1 arg2 a3 a4 a5 a6) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6))))
-(builtin.defn pointer-call-and-deserialize-7 (arg1 arg2 a3 a4 a5 a6 a7) (return (pointer-call-and-deserialize fn-ptr signature `(~arg1 ~arg2 ~a3 ~a4 ~a5 ~a6 ~a7))))
-(return `(~pointer-call-and-deserialize-0
-             ~pointer-call-and-deserialize-1
-             ~pointer-call-and-deserialize-2
-             ~pointer-call-and-deserialize-3
-             ~pointer-call-and-deserialize-4
-             ~pointer-call-and-deserialize-5
-             ~pointer-call-and-deserialize-6
-             ~pointer-call-and-deserialize-7))))
-
-(builtin.defun c-function-or-panic (handle c-name signature)
-              (progn
-                (def argssig (head signature))
-                (def fn-pointer-pointer (dlsym handle c-name))
-                (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
-                (if (eq fn-ptr 0)
-                    (panic "couldn't load C function")
-                  (progn
-                    (def pcadfns (get-pcads fn-ptr signature))
-                    (def pcadfn (nth argssig pcadfns))
-                    (return pcadfn)))))
-
 (builtin.defun get-fn-ptr (handle c-name)
                (progn
                  (def fn-pointer-pointer (dlsym handle c-name))
@@ -203,7 +173,6 @@
  (eq eq)
  (derefw2 derefw2)
  (dlsym dlsym)
- (c-function-or-panic c-function-or-panic)
  (c-function-or-panic-new c-function-or-panic-new)
  (eq eq)
  (annotate annotate)
