@@ -48,7 +48,6 @@ int compdata_get_top_index(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();
-void prog_append_resolve(prog_slice *sl,size_t *begin);
 LOCAL void prog_append_collect(prog_slice *sl,size_t count,size_t *begin,datum **compdata);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(prog_slice *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
