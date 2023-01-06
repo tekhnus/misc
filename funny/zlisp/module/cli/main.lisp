@@ -38,26 +38,26 @@
 (builtin.defun repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
-  (def tmp (fprintf stdout "> "))
+  (def tmp (prelude @slash fprintf stdout "> "))
   !(#stdmacro @slash switchx2 (zlisp @slash rd stdin) (
 	  ((:eof)
-	   (return (fprintf stdout "\n")))
+	   (return (prelude @slash fprintf stdout "\n")))
 	  ((:ok datum)
            (def maybe-prog (zlisp @slash comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
            !(#stdmacro @slash switchx2 maybe-prog (
                       ((:ok progxxx)
                        !(#stdmacro @slash switchx2 (zlisp @slash eval-new sl nsp) (
 		                  ((:ok val ctxt)
-		                   !(#ignore (fprintf-bytestring stdout "%s\n" (zlisp @slash repr-pointer val)))
+		                   !(#ignore (prelude @slash fprintf-bytestring stdout "%s\n" (zlisp @slash repr-pointer val)))
 		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
 		                  ((:err msg)
-		                   !(#ignore (fprintf-bytestring stderr "eval error: %s\n" msg))
+		                   !(#ignore (prelude @slash fprintf-bytestring stderr "eval error: %s\n" msg))
 		                   (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
                       ((:err msg)
-                       !(#ignore (fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
+                       !(#ignore (prelude @slash fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
                        (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
 	  ((:err msg)
-	   !(#ignore (fprintf-bytestring stderr "read error: %s\n" msg))
+	   !(#ignore (prelude @slash fprintf-bytestring stderr "read error: %s\n" msg))
 	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
 (def sl (prelude @slash psm 20000))

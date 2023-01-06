@@ -1,4 +1,5 @@
 (req
+ (prelude "prelude")
  (fprintf "libc" fprintf)
  (stderr "libc" stderr)
  (std "std")
@@ -109,7 +110,7 @@
 
 !(#testing @slash fntest
   (progn
-    (fprintf stderr "hello")
+    (prelude @slash fprintf stderr "hello")
     (return 42))
   42)
 
