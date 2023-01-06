@@ -1,7 +1,6 @@
 (req
  (prelude "prelude")
  (shared-library "prelude" shared-library)
- (c-function-or-panic "prelude" c-function-or-panic)
  (c-function-or-panic-new "prelude" c-function-or-panic-new)
  (selflib "prelude" selflib)
  (dlsym "prelude" dlsym)
@@ -42,8 +41,8 @@
        (return `(:err ~(prelude @slash derefw2 e 'string))))))
 
 
-(def routine-run-and-get-value-c-host-new (prelude @slash c-function-or-panic selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
-(def fdatum-is-panic (prelude @slash c-function-or-panic selflib "fdatum_is_panic" '((fdatum) int)))
+(def routine-run-and-get-value-c-host-new (prelude @slash c-function-or-panic-new selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
+(def fdatum-is-panic (prelude @slash c-function-or-panic-new selflib "fdatum_is_panic" '((fdatum) int)))
 
 (def fdatum-get-value-ptr (prelude @slash dlsym selflib "fdatum_get_value"))
 (builtin.defun fdatum-get-value (x) (return (host "call-extension" (prelude @slash derefw2 fdatum-get-value-ptr 'int64) x)))
@@ -57,8 +56,8 @@
 (builtin.defun eval-new (sl rt0)
    (progn
      (def rt-ptr (prelude @slash wrap-pointer-into-pointer rt0))
-     (def res (routine-run-and-get-value-c-host-new sl rt-ptr))
-     (if (std @slash eq (fdatum-is-panic res) 1)
+     (def res (prelude @slash routine-run-and-get-value-c-host-new sl rt-ptr))
+     (if (std @slash eq (prelude @slash fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
            (return `(:err ~msg)))
@@ -67,11 +66,11 @@
          (def new-rt (prelude @slash derefw2 rt-ptr 'int64))
          (return `(:ok ~val ~new-rt))))))
 
-(def datum-read-one (prelude @slash c-function-or-panic selflib "datum_read_one" '((pointer) fdatum)))
+(def datum-read-one (prelude @slash c-function-or-panic-new selflib "datum_read_one" '((pointer) fdatum)))
 (builtin.defun read (strm)
    (progn
-     (def res (datum-read-one strm))
-     (if (std @slash eq (fdatum-is-panic res) 1)
+     (def res (prelude @slash datum-read-one strm))
+     (if (std @slash eq (prelude @slash fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
            (if (std @slash eq msg "eof")
