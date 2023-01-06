@@ -119,7 +119,26 @@
                  (if (eq fn-ptr 0)
                      (panic "couldn't load C function")
                    (return fn-ptr))))
-                                                 
+(builtin.defun c-function-or-panic-new-0 (fn-ptr signature)
+              (progn
+                (def () (return @0 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `()))))
+(builtin.defun c-function-or-panic-new-1 (fn-ptr signature)
+              (progn
+                (def (a1) (return @1 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1)))))
+(builtin.defun c-function-or-panic-new-2 (fn-ptr signature)
+              (progn
+                (def (a1 a2) (return @2 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2)))))
+(builtin.defun c-function-or-panic-new-3 (fn-ptr signature)
+              (progn
+                (def (a1 a2 a3) (return @3 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3)))))
+(builtin.defun c-function-or-panic-new-4 (fn-ptr signature)
+              (progn
+                (def (a1 a2 a3 a4) (return @4 :ready))
+                (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4)))))
 (builtin.defun c-function-or-panic-new-5 (fn-ptr signature)
               (progn
                 (def (a1 a2 a3 a4 a5) (return @5 :ready))
@@ -138,7 +157,7 @@
 (builtin.defun c-function-or-panic-new (handle c-name signature)
                (progn
                  (def argssig (head signature))
-                 (def objs `(() () () () () ~c-function-or-panic-new-5 ~c-function-or-panic-new-6 ~c-function-or-panic-new-7))
+                 (def objs `( ~c-function-or-panic-new-0 ~c-function-or-panic-new-1 ~c-function-or-panic-new-2 ~c-function-or-panic-new-3 ~c-function-or-panic-new-4 ~c-function-or-panic-new-5 ~c-function-or-panic-new-6 ~c-function-or-panic-new-7))
                  (def obj (nth argssig objs))
                  (def fn-ptr (get-fn-ptr handle c-name))
                  (@obj fn-ptr signature)

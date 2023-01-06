@@ -24,7 +24,7 @@
 (def prog-slice-append-new- (prelude @slash c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (prelude @slash c-function-or-panic-new buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (prelude @slash c-function-or-panic-new buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
-(def get-host-ffi-settings (prelude @slash c-function-or-panic buildlib "get_host_ffi_settings" '(() pointer)))
+(def get-host-ffi-settings (prelude @slash c-function-or-panic-new buildlib "get_host_ffi_settings" '(() pointer)))
 
 (builtin.defun prog-slice-append-new (sl)
    (return (prog-slice-append-new- (prelude @slash wrap-pointer-into-pointer sl))))
@@ -36,7 +36,7 @@
 
 (builtin.defun compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prelude @slash prog-build-one-c-host (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer src) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata) (get-host-ffi-settings)))
+     (def e (prelude @slash prog-build-one-c-host (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer src) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata) (prelude @slash get-host-ffi-settings)))
      (if (std @slash eq 0 (prelude @slash derefw2 e 'int64))
          (return `(:ok :nothing))
        (return `(:err ~(prelude @slash derefw2 e 'string))))))
