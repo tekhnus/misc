@@ -143,13 +143,15 @@
 
 (def switch-defines '((std @slash list-at args 0) (std @slash list-at args 1) (std @slash list-at args 2) (std @slash list-at args 3) (std @slash list-at args 4) (std @slash list-at args 5)))
 
+(builtin.defun make-def (x) (return (cons 'def x)))
+
 (builtin.defun switch-clause (a0)
     (progn
       (def sig (head a0))
       (def cmds (tail a0))
       (def checker `(std @slash decons-pat (quote ~sig) args))
       (def vars (decons-vars sig))
-      (def body (cons 'progn (concat (map (builtin.fn (x) (return (cons 'def x))) (zip vars switch-defines)) cmds)))
+      (def body (cons 'progn (concat (map make-def (zip vars switch-defines)) cmds)))
       (return `(~checker ~body))))
 
 (builtin.defun switch-fun (a0)
