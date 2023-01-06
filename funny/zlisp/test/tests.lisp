@@ -122,6 +122,19 @@
   '(42 34))
 
 !(#testing @slash fntest
+           (progn
+             (builtin.defun foo (x) (progn
+                            (def y (return (std @slash + x 1)))
+                            (def (z t) (return @2 (std @slash + y 1)))
+                            (return :done)))
+             (def fee foo)
+             (def a (@fee 41))
+             (def b (@fee 33))
+             (def c (@fee 14 15))
+             (return `(~a ~b ~c)))
+           '(42 34 :done))
+
+!(#testing @slash fntest
   (progn
     (builtin.defun cl-holder (x xs) (progn
                                     (return :nothing)

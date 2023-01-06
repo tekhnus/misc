@@ -243,14 +243,29 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   if (datum_is_the_symbol(op, "return") ||
       datum_is_the_symbol_pair(op, "hat", "return")) {
     bool hat = datum_is_the_symbol_pair(op, "hat", "return");
-    for (datum *rest = stmt->list_tail; !datum_is_nil(rest); rest=rest->list_tail) {
+    size_t recieve_count = 1;
+    datum *rest_args = stmt->list_tail;
+    while (!datum_is_nil(rest_args)) {
+      datum *tag = rest_args->list_head;
+      if (!datum_is_list(tag) || list_length(tag) != 2 || !datum_is_the_symbol(tag->list_head, "at")) {
+        break;
+      }
+      datum *content = list_at(tag, 1);
+      if (datum_is_integer(content)) {
+        recieve_count = content->integer_value;
+        rest_args = rest_args->list_tail;
+      } else {
+        return "unknown return tag";
+      }
+    }
+    for (datum *rest = rest_args; !datum_is_nil(rest); rest=rest->list_tail) {
       datum *component = rest->list_head;
       char *err = prog_append_statement(sl, begin, component, compdata, datum_make_nil());
       if (err != NULL) {
         return err;
       }
     }
-    prog_append_yield(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), list_length(stmt->list_tail), 1, datum_make_nil(), compdata);
+    prog_append_yield(sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"), list_length(rest_args), recieve_count, datum_make_nil(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
