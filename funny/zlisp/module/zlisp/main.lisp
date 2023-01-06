@@ -18,16 +18,16 @@
 (def buildlib (std @slash first-good-value `(
   ~(prelude @slash shared-library "libzlisp-build-lib.so"))))
 
-(def compdata-make (prelude @slash c-function-or-panic selflib "compdata_make" '(() pointer)))
-(def make-routine-with-empty-state (prelude @slash c-function-or-panic selflib "routine_make_new" '((sizet) pointer)))
-(def prog-slice-make (prelude @slash c-function-or-panic selflib "prog_slice_make" '((sizet) progslice)))
-(def prog-slice-append-new- (prelude @slash c-function-or-panic selflib "prog_slice_append_new" '((pointer) sizet)))
+(def compdata-make (prelude @slash c-function-or-panic-new selflib "compdata_make" '(() pointer)))
+(def make-routine-with-empty-state (prelude @slash c-function-or-panic-new selflib "routine_make_new" '((sizet) pointer)))
+(def prog-slice-make (prelude @slash c-function-or-panic-new selflib "prog_slice_make" '((sizet) progslice)))
+(def prog-slice-append-new- (prelude @slash c-function-or-panic-new selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (prelude @slash c-function-or-panic-new buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (prelude @slash c-function-or-panic-new buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def get-host-ffi-settings (prelude @slash c-function-or-panic-new buildlib "get_host_ffi_settings" '(() pointer)))
 
 (builtin.defun prog-slice-append-new (sl)
-   (return (prog-slice-append-new- (prelude @slash wrap-pointer-into-pointer sl))))
+   (return (prelude @slash prog-slice-append-new- (prelude @slash wrap-pointer-into-pointer sl))))
 
 (builtin.defun init-prog (sl pptr bpptr compdata bdrcompdata)
    (progn
