@@ -258,7 +258,16 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     return NULL;
   }
 
-  datum *fn = stmt->list_head;
+  datum *fn;
+  datum *subname;
+  if (datum_is_list(stmt->list_head) && !datum_is_nil(stmt->list_head) && datum_is_the_symbol(stmt->list_head->list_head, "polysym")) {
+    datum *components = stmt->list_head->list_tail;
+    fn = list_at(components, 0);
+    subname = list_at(components, 1);
+  } else {
+    fn = stmt->list_head;
+    subname = NULL;
+  }
   bool hash = false;
   bool hat = false;
   bool at = false;
@@ -277,7 +286,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
       break;
     }
   }
-  datum *subname = NULL;
   datum *rest_args = stmt->list_tail;
   while (!datum_is_nil(rest_args)) {
     datum *tag = rest_args->list_head;

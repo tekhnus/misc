@@ -43,7 +43,7 @@ LOCAL read_result read_result_make_right_paren(void) {
 LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
 LOCAL bool is_allowed_inside_symbol(char c) {
-  return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' || c == '+';
+  return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' || c == '+' || c == '/';
 }
 
 LOCAL bool consume_control_sequence(char c, datum **form) {
@@ -133,18 +133,34 @@ LOCAL struct token token_read(FILE *strm) {
                           .datum_value = datum_make_int(sign * val)};
   }
   if (is_allowed_inside_symbol(c)) {
-    char *nm = malloc(128);
-    nm[0] = c;
+    char **nm = malloc(128);
+    nm[0] = malloc(128);
+    nm[0][0] = c;
+    int c = 0;
     int i;
     char x;
-    for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));
-         nm[i++] = x) {
+    for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
+      if (x == '/') {
+        nm[c++][i] = '\0';
+        nm[c] = malloc(128);
+        i = 0;
+      } else {
+        nm[c][i++] = x;
+      }
     }
     if (!feof(strm)) {
       ungetc(x, strm);
     }
-    nm[i] = '\0';
-    datum *sym = datum_make_symbol(nm);
+    nm[c][i] = '\0';
+    datum *sym;
+    if (c == 0) {
+      sym = datum_make_symbol(nm[0]);
+    } else {
+      sym = datum_make_list_1(datum_make_symbol("polysym"));
+      for (int cc = 0; cc <= c; ++cc) {
+        sym = list_append(sym, datum_make_symbol(nm[cc]));
+      }
+    }
     return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
   }
   if (c == '"') {
