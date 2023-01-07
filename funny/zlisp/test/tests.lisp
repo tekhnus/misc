@@ -57,17 +57,17 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun twice (arg) (return (std @slash + arg arg)))
+    (defn twice (arg) (return (std @slash + arg arg)))
     (return (twice 35)))
   70)
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun adderf (n)
+    (defn adderf (n)
                    (progn
                      (def m (return :ready))
                      (return (std @slash + n m))))
-    (builtin.defun adder (n)
+    (defn adder (n)
                    (progn
                      (def a adderf)
                      (@a n)
@@ -77,7 +77,7 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun fib () (progn
+    (defn fib () (progn
        (return 3)
        (return 5)
        (return 8)
@@ -91,12 +91,12 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun far-fib () (progn
+    (defn far-fib () (progn
        (^return 3)
        (^return 5)
        (return 8)))
 
-    (builtin.defun more-far-fib () (progn
+    (defn more-far-fib () (progn
        (def x (far-fib))
        (^return x)
        (^return 13)))
@@ -117,14 +117,14 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun multi-ret () (return 42 34))
+    (defn multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
 !(#testing @slash fntest
            (progn
-             (builtin.defun foo (x) (progn
+             (defn foo (x) (progn
                             (def y (return (std @slash + x 1)))
                             (def (z t) (return @2 (std @slash + y 1)))
                             (return :done)))
@@ -137,21 +137,21 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun cl-holder (x xs) (progn
+    (defn cl-holder (x xs) (progn
                                     (return :nothing)
                                     (return x xs)))
 
-    (builtin.defun cl-cons (x xs) (progn
+    (defn cl-cons (x xs) (progn
                                     (def holder cl-holder)
                                     (@holder x xs)
                                     (return holder)))
 
-    (builtin.defun cl-head (xs)
+    (defn cl-head (xs)
                   (progn
                     (def (h r) (xs @2 :nuthing))
                     (return h)))
 
-    (builtin.defun cl-tail (xs)
+    (defn cl-tail (xs)
                   (progn
                     (def (h r) (xs @2 :nuthin))
                     (return r)))
@@ -169,17 +169,17 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun fff (x) (return (std @slash + x 42)))
+    (defn fff (x) (return (std @slash + x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun fff ()
+    (defn fff ()
                    (progn
                      (def x 2)
-                     (builtin.defun ggg ()
+                     (defn ggg ()
                                     (return (std @slash + x 40)))
                      (return ggg)))
     (def ggg-in-fff (@fff))
@@ -192,7 +192,7 @@
     (return 33))
   33)
 
-(builtin.defun print-all (xs)
+(defn print-all (xs)
    (if xs
        (progn
          (libc @slash print (std @slash head xs))

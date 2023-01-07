@@ -35,7 +35,7 @@
 
 (def readme "A basic REPL for zlisp.")
 
-(builtin.defun repl
+(defn repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
   (def tmp (prelude @slash fprintf stdout "> "))

@@ -1,30 +1,30 @@
 (req)
 
 (def deref-pointer (host "deref-pointer" '()))
-(builtin.defun deref (x y) (return (host "call-extension" deref-pointer x y)))
+(defn deref (x y) (return (host "call-extension" deref-pointer x y)))
 
 (def mkptr-pointer (host "mkptr-pointer" '()))
-(builtin.defun mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
+(defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
 
 (def pointer-call-pointer (host "pointer-call-pointer" '()))
-(builtin.defun pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
+(defn pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
 
 (def panic-pointer (host "panic" '()))
-(builtin.defun panic (x) (return (host "call-extension" panic-pointer x)))
+(defn panic (x) (return (host "call-extension" panic-pointer x)))
 
 (def head-pointer (host "head" '()))
-(builtin.defun head (x) (return (host "call-extension" head-pointer x)))
+(defn head (x) (return (host "call-extension" head-pointer x)))
 
 (def tail-pointer (host "tail" '()))
-(builtin.defun tail (x) (return (host "call-extension" tail-pointer x)))
+(defn tail (x) (return (host "call-extension" tail-pointer x)))
 
 (def cons-pointer (host "cons" '()))
-(builtin.defun cons (x xs) (return (host "call-extension" cons-pointer x xs)))
+(defn cons (x xs) (return (host "call-extension" cons-pointer x xs)))
 
 (def eq-pointer (host "eq" '()))
-(builtin.defun eq (x y) (return (host "call-extension" eq-pointer x y)))
+(defn eq (x y) (return (host "call-extension" eq-pointer x y)))
 
-(builtin.defun serialize-param (param signature)
+(defn serialize-param (param signature)
               (progn
                 (if (eq signature 'pointer)
                     (return param)
@@ -34,13 +34,13 @@
                         (return param)
                       (return (mkptr param signature)))))))
 
-(builtin.defun serialize-params (params signature)
+(defn serialize-params (params signature)
               (progn
                 (if params
                     (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
                   (return '()))))
 
-(builtin.defun  derefw2 (what how)
+(defn  derefw2 (what how)
               (progn
                 (if (eq how 'pointer)
                     (return what)
@@ -50,7 +50,7 @@
                         (return what)
                       (return (deref what how)))))))
 
-(builtin.defun pointer-call-and-deserialize (fn-ptr signature params)
+(defn pointer-call-and-deserialize (fn-ptr signature params)
               (progn
                 (def fnparamst (head signature))
                 (def rettype (head (tail signature)))
@@ -62,19 +62,19 @@
 
 (def dlopen-pointer (host "dlopen" '()))
 "TODO: dlopen actually has an int argument, not a size_t."
-(builtin.defun dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
-(builtin.defun dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
+(defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
+(defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
 
 (def dlsym-pointer (host "dlsym" '()))
-(builtin.defun dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
+(defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
 
-(builtin.defun c-data-pointer (handle c-name signature)
+(defn c-data-pointer (handle c-name signature)
             (progn
                 (def fn-pointer-pointer (dlsym handle c-name))
                 (def fn-pointer (derefw2 fn-pointer-pointer 'int64))
                 (return fn-pointer)))    
 
-(builtin.defun nth (n xs)
+(defn nth (n xs)
               (progn
                 (if xs
                     (if n
@@ -82,49 +82,49 @@
                       (return (head xs)))
                   (panic "nth fail"))))
 
-(builtin.defun get-fn-ptr (handle c-name)
+(defn get-fn-ptr (handle c-name)
                (progn
                  (def fn-pointer-pointer (dlsym handle c-name))
                  (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
                  (if (eq fn-ptr 0)
                      (panic "couldn't load C function")
                    (return fn-ptr))))
-(builtin.defun c-function-or-panic-new-0 (fn-ptr signature)
+(defn c-function-or-panic-new-0 (fn-ptr signature)
               (progn
                 (def () (return @0 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `()))))
-(builtin.defun c-function-or-panic-new-1 (fn-ptr signature)
+(defn c-function-or-panic-new-1 (fn-ptr signature)
               (progn
                 (def (a1) (return @1 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1)))))
-(builtin.defun c-function-or-panic-new-2 (fn-ptr signature)
+(defn c-function-or-panic-new-2 (fn-ptr signature)
               (progn
                 (def (a1 a2) (return @2 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2)))))
-(builtin.defun c-function-or-panic-new-3 (fn-ptr signature)
+(defn c-function-or-panic-new-3 (fn-ptr signature)
               (progn
                 (def (a1 a2 a3) (return @3 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3)))))
-(builtin.defun c-function-or-panic-new-4 (fn-ptr signature)
+(defn c-function-or-panic-new-4 (fn-ptr signature)
               (progn
                 (def (a1 a2 a3 a4) (return @4 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4)))))
-(builtin.defun c-function-or-panic-new-5 (fn-ptr signature)
+(defn c-function-or-panic-new-5 (fn-ptr signature)
               (progn
                 (def (a1 a2 a3 a4 a5) (return @5 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))
 
-(builtin.defun c-function-or-panic-new-6 (fn-ptr signature)
+(defn c-function-or-panic-new-6 (fn-ptr signature)
               (progn
                 (def (a1 a2 a3 a4 a5 a6) (return @6 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6)))))
 
-(builtin.defun c-function-or-panic-new-7 (fn-ptr signature)
+(defn c-function-or-panic-new-7 (fn-ptr signature)
               (progn
                 (def (a1 a2 a3 a4 a5 a6 a7) (return @7 :ready))
                 (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
 
-(builtin.defun c-function-or-panic-new (handle c-name signature)
+(defn c-function-or-panic-new (handle c-name signature)
                (progn
                  (def argssig (head signature))
                  (def objs `( ~c-function-or-panic-new-0 ~c-function-or-panic-new-1 ~c-function-or-panic-new-2 ~c-function-or-panic-new-3 ~c-function-or-panic-new-4 ~c-function-or-panic-new-5 ~c-function-or-panic-new-6 ~c-function-or-panic-new-7))
@@ -136,30 +136,30 @@
 (def selflib (dlopen-null))
 
 (def annotate-pointer (derefw2 (dlsym selflib "builtin_annotate") 'int64))
-(builtin.defun annotate (x) (return (host "call-extension" annotate-pointer x)))
+(defn annotate (x) (return (host "call-extension" annotate-pointer x)))
 
 (def is-constant-pointer (derefw2 (dlsym selflib "builtin_is_constant") 'int64))
-(builtin.defun is-constant (x) (return (host "call-extension" is-constant-pointer x)))
+(defn is-constant (x) (return (host "call-extension" is-constant-pointer x)))
 
 (def repr-pointer (derefw2 (dlsym selflib "builtin_repr") 'int64))
-(builtin.defun repr (x) (return (host "call-extension" repr-pointer x)))
+(defn repr (x) (return (host "call-extension" repr-pointer x)))
 
 (def concat-bytestrings-pointer (derefw2 (dlsym selflib "builtin_concat_bytestrings") 'int64))
-(builtin.defun concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
+(defn concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
 
 (def +-pointer (derefw2 (dlsym selflib "builtin_add") 'int64))
-(builtin.defun + (x y) (return (host "call-extension" +-pointer x y)))
+(defn + (x y) (return (host "call-extension" +-pointer x y)))
 
-(builtin.defun wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
+(defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
 
 
-(builtin.defun shared-library (path) (progn
+(defn shared-library (path) (progn
                                (def r (dlopen path))
                                (if (eq 0 (derefw2 r 'int64))
                                    (return `(:err "shared-library failed"))
                                  (return `(:ok ~r)))))
 
-(builtin.defun extern-pointer (handle c-name signature) (progn
+(defn extern-pointer (handle c-name signature) (progn
                                (def res (c-data-pointer handle c-name signature))
                                (if (eq 0 res)
                                    (return `(:err "extern-pointer failed"))

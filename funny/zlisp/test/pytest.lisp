@@ -68,17 +68,17 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun twice (arg) (return (std @slash + arg arg)))
+    (defn twice (arg) (return (std @slash + arg arg)))
     (return (twice 35)))
   70)
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun adderf (n)
+    (defn adderf (n)
                    (progn
                      (def m (return :ready))
                      (return (std @slash + n m))))
-    (builtin.defun adder (n)
+    (defn adder (n)
                    (progn
                      (def a adderf)
                      (@a n)
@@ -88,7 +88,7 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun fib () (progn
+    (defn fib () (progn
        (return 3)
        (return 5)
        (return 8)
@@ -102,14 +102,14 @@
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun fff (x) (return (std @slash + x 42)))
+    (defn fff (x) (return (std @slash + x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
 !(#testing @slash fntest
   (progn
-    (builtin.defun multi-ret () (return 42 34))
+    (defn multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
@@ -117,10 +117,10 @@
 !(#testing @slash fntest
   (progn
     (def y 3)
-    (builtin.defun fff ()
+    (defn fff ()
                    (progn
                      (def x 2)
-                     (builtin.defun ggg ()
+                     (defn ggg ()
                                     (progn
                                                            (return (std @slash + x 40))))
                      (return ggg)))
@@ -128,7 +128,7 @@
     (return (fff @slash ggg-in-fff)))
   42)
 
-(builtin.defun print-all (xs)
+(defn print-all (xs)
    (if xs
        (progn
          (print (std @slash head xs))

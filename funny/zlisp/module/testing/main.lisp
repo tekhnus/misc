@@ -6,9 +6,9 @@
  (concat-bytestrings "std" concat-bytestrings)
  (panic "std" panic))
 
-(builtin.defun fntest (body expect)
+(defn fntest (body expect)
    (return `(progn
-              (builtin.defun calltest () ~body)
+              (defn calltest () ~body)
               (def val (calltest))
               (if (std @slash eq val ~expect)
                   (def panics panics)

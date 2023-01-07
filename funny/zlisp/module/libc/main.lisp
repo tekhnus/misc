@@ -35,7 +35,7 @@
   ~(prelude @slash extern-pointer libc "stderr" 'pointer)
   ~(prelude @slash extern-pointer libc "__stderrp" 'pointer))))
 
-(builtin.defun print (val)
+(defn print (val)
   (return (prelude @slash fprintf-bytestring stdout "%s\n" (std @slash repr val))))
 
 (export

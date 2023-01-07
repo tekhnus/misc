@@ -11,26 +11,26 @@
  (concat-bytestrings- "prelude" concat-bytestrings)
  (+- "prelude" +))
 
-(builtin.defun panic (x) (return (prelude @slash panic- x)))
-(builtin.defun head (x) (return (prelude @slash head- x)))
-(builtin.defun tail (x) (return (prelude @slash tail- x)))
-(builtin.defun cons (x xs) (return (prelude @slash cons- x xs)))
-(builtin.defun eq (x y) (return (prelude @slash eq- x y)))
-(builtin.defun annotate (x) (return (prelude @slash annotate- x)))
-(builtin.defun is-constant (x) (return (prelude @slash is-constant- x)))
-(builtin.defun repr (x) (return (prelude @slash repr- x)))
-(builtin.defun concat-bytestrings (x y) (return (prelude @slash concat-bytestrings- x y)))
-(builtin.defun + (x y) (return (prelude @slash +- x y)))
+(defn panic (x) (return (prelude @slash panic- x)))
+(defn head (x) (return (prelude @slash head- x)))
+(defn tail (x) (return (prelude @slash tail- x)))
+(defn cons (x xs) (return (prelude @slash cons- x xs)))
+(defn eq (x y) (return (prelude @slash eq- x y)))
+(defn annotate (x) (return (prelude @slash annotate- x)))
+(defn is-constant (x) (return (prelude @slash is-constant- x)))
+(defn repr (x) (return (prelude @slash repr- x)))
+(defn concat-bytestrings (x y) (return (prelude @slash concat-bytestrings- x y)))
+(defn + (x y) (return (prelude @slash +- x y)))
 
-(builtin.defun last (a0)
+(defn last (a0)
 	      
 	 (if (tail a0)
 	     (return (last (tail a0)))
 	   (return (head a0))))
 
-(builtin.defun type (x) (return (head (annotate x))))
+(defn type (x) (return (head (annotate x))))
 
-(builtin.defun concat (a0 a1)
+(defn concat (a0 a1)
 	     
     (if a0
 	(return (cons (head a0) (concat (tail a0) a1)))
@@ -38,13 +38,13 @@
 
 
 
-(builtin.defun zip (a0 a1)
+(defn zip (a0 a1)
 	      
     (if a0
 	(return (cons `(~(head a0) ~(head a1)) (zip (tail a0) (tail a1))))
       (return '())))
 
-(builtin.defun map	     (a0 a1)
+(defn map	     (a0 a1)
   (if a1
       (return (cons
        (a0
@@ -54,16 +54,16 @@
 	(tail a1))))
     (return '())))
 
-(builtin.defun ignore (x) (return `(def throwaway ~x)))
+(defn ignore (x) (return `(def throwaway ~x)))
 
 (def panic-block '(argz (std @slash panic "wrong fn call")))
 
-(builtin.defun list-at (xs n) (progn
+(defn list-at (xs n) (progn
                                (if (eq n 0)
                                    (return (head xs))
                                  (return (list-at (tail xs) (+ n -1))))))
 
-(builtin.defun swtchone (a0)
+(defn swtchone (a0)
 	      (if a0
 		  (progn
 		    (def firstarg (head a0))
@@ -85,7 +85,7 @@
                   (return '(std @slash panic "nothing matched")))))
 
 
-(builtin.defun decons-pat (a0 a1)
+(defn decons-pat (a0 a1)
 	      (progn
 		(def pat a0)
 		(def val a1)
@@ -130,7 +130,7 @@
                         (def rest-decons "ifhack")
                         (panic "decons-pat met an unsupported type")))))))
 
-(builtin.defun decons-vars (a0)
+(defn decons-vars (a0)
      (if (is-constant a0)
 	(return '())
       (if (eq (type a0) :symbol)
@@ -143,9 +143,9 @@
 
 (def switch-defines '((std @slash list-at args 0) (std @slash list-at args 1) (std @slash list-at args 2) (std @slash list-at args 3) (std @slash list-at args 4) (std @slash list-at args 5)))
 
-(builtin.defun make-def (x) (return (cons 'def x)))
+(defn make-def (x) (return (cons 'def x)))
 
-(builtin.defun switch-clause (a0)
+(defn switch-clause (a0)
     (progn
       (def sig (head a0))
       (def cmds (tail a0))
@@ -154,10 +154,10 @@
       (def body (cons 'progn (concat (map make-def (zip vars switch-defines)) cmds)))
       (return `(~checker ~body))))
 
-(builtin.defun switch-fun (a0)
+(defn switch-fun (a0)
     (return (swtchone (map switch-clause a0))))
 
-(builtin.defun append (x xs)
+(defn append (x xs)
   (if xs
       (return (cons
        (head xs)
@@ -166,7 +166,7 @@
 	(tail xs))))
     (return `(~x))))
 
-(builtin.defun first-good-value (x) (progn
+(defn first-good-value (x) (progn
                                  (if x
                                      (progn
                                        (def first-arg (head x))
