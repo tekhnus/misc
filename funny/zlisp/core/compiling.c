@@ -258,16 +258,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     return NULL;
   }
 
-  datum *fn;
-  datum *subname;
-  if (datum_is_list(stmt->list_head) && !datum_is_nil(stmt->list_head) && datum_is_the_symbol(stmt->list_head->list_head, "polysym")) {
-    datum *components = stmt->list_head->list_tail;
-    fn = list_at(components, 0);
-    subname = list_at(components, 1);
-  } else {
-    fn = stmt->list_head;
-    subname = NULL;
-  }
+  datum *fn = stmt->list_head;
   bool hash = false;
   bool hat = false;
   bool at = false;
@@ -285,6 +276,16 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     } else {
       break;
     }
+  }
+  datum *mainname;
+  datum *subname;
+  if (datum_is_list(fn) && !datum_is_nil(fn) && datum_is_the_symbol(fn->list_head, "polysym")) {
+    datum *components = fn->list_tail;
+    mainname = list_at(components, 0);
+    subname = list_at(components, 1);
+  } else {
+    mainname = fn;
+    subname = NULL;
   }
   datum *rest_args = stmt->list_tail;
   while (!datum_is_nil(rest_args)) {
@@ -310,18 +311,18 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
   datum *fn_index;
   datum *subfn_index = datum_make_nil();
   if (at || subname != NULL) {
-    if (!datum_is_symbol(fn)) {
+    if (!datum_is_symbol(mainname)) {
       return "expected an lvalue";
     }
-    fn_index = compdata_get_polyindex(*compdata, fn);
+    fn_index = compdata_get_polyindex(*compdata, mainname);
     if (datum_is_nil(fn_index)) {
       char *err = malloc(256);
       *err = 0;
-      sprintf(err, "function not found: %s", datum_repr(fn));
+      sprintf(err, "function not found: %s", datum_repr(mainname));
       return err;
     }
   } else {
-    char *err = prog_append_statement(sl, begin, fn, compdata, datum_make_nil());
+    char *err = prog_append_statement(sl, begin, mainname, compdata, datum_make_nil());
     if (err != NULL) {
       return err;
     }

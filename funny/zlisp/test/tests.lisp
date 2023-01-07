@@ -46,7 +46,7 @@
     (return (std @slash eq :foo bar)))
   '(()))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (return (std/append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
