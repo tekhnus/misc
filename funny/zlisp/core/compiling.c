@@ -297,13 +297,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt, da
     if (datum_is_integer(content)) {
       ret_count = content->integer_value;
       rest_args = rest_args->list_tail;
-    } else if (datum_is_the_symbol(content, "slash")) {
-      rest_args = rest_args->list_tail;
-      if (datum_is_nil(rest_args)) {
-        return "bad slash tag";
-      }
-      subname = rest_args->list_head;
-      rest_args = rest_args->list_tail;
     } else {
       return "unknown tag";
     }
