@@ -24,26 +24,26 @@
 
 (def panics '())
 
-!(#testing @slash fntest
+!(#testing/fntest
  (return "hello, world!")
  "hello, world!")
 
-!(#testing @slash fntest
-  (return (std @slash + 4 3))
+!(#testing/fntest
+  (return (std/+ 4 3))
   7)
 
-!(#testing @slash fntest
-  (return (std @slash list-at '(1 2) 1))
+!(#testing/fntest
+  (return (std/list-at '(1 2) 1))
   2)
 
-!(#testing @slash fntest
-  (return (std @slash eq :foo :bar))
+!(#testing/fntest
+  (return (std/eq :foo :bar))
   '())
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (def bar :foo)
-    (return (std @slash eq :foo bar)))
+    (return (std/eq :foo bar)))
   '(()))
 
 !(#testing/fntest
@@ -51,22 +51,22 @@
     (return (std/append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#testing @slash fntest
-  (return `(1 2 ~(std @slash + 1 2)))
+!(#testing/fntest
+  (return `(1 2 ~(std/+ 1 2)))
   '(1 2 3))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (defn twice (arg) (return (std @slash + arg arg)))
+    (defn twice (arg) (return (std/+ arg arg)))
     (return (twice 35)))
   70)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn adderf (n)
                    (progn
                      (def m (return :ready))
-                     (return (std @slash + n m))))
+                     (return (std/+ n m))))
     (defn adder (n)
                    (progn
                      (def a adderf)
@@ -75,7 +75,7 @@
     (return ((adder 3) 4)))
   7)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn fib () (progn
        (return 3)
@@ -89,7 +89,7 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn far-fib () (progn
        (^return 3)
@@ -108,25 +108,25 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (prelude @slash fprintf stderr "hello")
+    (prelude/fprintf stderr "hello")
     (return 42))
   42)
 
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
-!(#testing @slash fntest
+!(#testing/fntest
            (progn
              (defn foo (x) (progn
-                            (def y (return (std @slash + x 1)))
-                            (def (z t) (return @2 (std @slash + y 1)))
+                            (def y (return (std/+ x 1)))
+                            (def (z t) (return @2 (std/+ y 1)))
                             (return :done)))
              (def fee foo)
              (def a (@fee 41))
@@ -135,7 +135,7 @@
              (return `(~a ~b ~c)))
            '(42 34 :done))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn cl-holder (x xs) (progn
                                     (return :nothing)
@@ -167,43 +167,43 @@
     (return `(~a ~b)))
   '(34 42))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (defn fff (x) (return (std @slash + x 42)))
+    (defn fff (x) (return (std/+ x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn fff ()
                    (progn
                      (def x 2)
                      (defn ggg ()
-                                    (return (std @slash + x 40)))
+                                    (return (std/+ x 40)))
                      (return ggg)))
     (def ggg-in-fff (@fff))
-    (return (fff @slash ggg-in-fff)))
+    (return (fff/ggg-in-fff)))
   42)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (libc @slash print 42)
+    (libc/print 42)
     (return 33))
   33)
 
 (defn print-all (xs)
    (if xs
        (progn
-         (libc @slash print (std @slash head xs))
-         (print-all (std @slash tail xs))
+         (libc/print (std/head xs))
+         (print-all (std/tail xs))
          (return '()))
      (return '())))
 
 (if panics
     (progn
       (print-all panics)
-      (std @slash panic "FAILED"))
+      (std/panic "FAILED"))
   (progn))
 
 (def x "if at the end of the module doesn't work well, so here is this statement:)")

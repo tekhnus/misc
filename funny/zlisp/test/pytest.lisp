@@ -19,65 +19,65 @@
 
 (def panics '())
 
-!(#testing @slash fntest
-  (return (std @slash head '(42 5 3)))
+!(#testing/fntest
+  (return (std/head '(42 5 3)))
   42)
 
-!(#testing @slash fntest
-  (return (std @slash tail '(42 5 3)))
+!(#testing/fntest
+  (return (std/tail '(42 5 3)))
   '(5 3))
 
-!(#testing @slash fntest
-  (return (std @slash head (std @slash tail '(42 5 3))))
+!(#testing/fntest
+  (return (std/head (std/tail '(42 5 3))))
   5)
 
-!(#testing @slash fntest
-  (return (std @slash list-at '(42 5 3) 1))
+!(#testing/fntest
+  (return (std/list-at '(42 5 3) 1))
   5)
 
-!(#testing @slash fntest
+!(#testing/fntest
  (return "hello, world!")
  "hello, world!")
 
-!(#testing @slash fntest
-  (return (std @slash + 4 3))
+!(#testing/fntest
+  (return (std/+ 4 3))
   7)
 
-!(#testing @slash fntest
-  (return (std @slash list-at '(1 2) 1))
+!(#testing/fntest
+  (return (std/list-at '(1 2) 1))
   2)
 
-!(#testing @slash fntest
-  (return (std @slash eq :foo :bar))
+!(#testing/fntest
+  (return (std/eq :foo :bar))
   '())
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (def bar :foo)
-    (return (std @slash eq :foo bar)))
+    (return (std/eq :foo bar)))
   '(()))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (return (std @slash append 5 '(1 2 3 4))))
+    (return (std/append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#testing @slash fntest
-  (return `(1 2 ~(std @slash + 1 2)))
+!(#testing/fntest
+  (return `(1 2 ~(std/+ 1 2)))
   '(1 2 3))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (defn twice (arg) (return (std @slash + arg arg)))
+    (defn twice (arg) (return (std/+ arg arg)))
     (return (twice 35)))
   70)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn adderf (n)
                    (progn
                      (def m (return :ready))
-                     (return (std @slash + n m))))
+                     (return (std/+ n m))))
     (defn adder (n)
                    (progn
                      (def a adderf)
@@ -86,7 +86,7 @@
     (return ((adder 3) 4)))
   7)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn fib () (progn
        (return 3)
@@ -100,21 +100,21 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
-    (defn fff (x) (return (std @slash + x 42)))
+    (defn fff (x) (return (std/+ x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (defn multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
-!(#testing @slash fntest
+!(#testing/fntest
   (progn
     (def y 3)
     (defn fff ()
@@ -122,22 +122,22 @@
                      (def x 2)
                      (defn ggg ()
                                     (progn
-                                                           (return (std @slash + x 40))))
+                                                           (return (std/+ x 40))))
                      (return ggg)))
     (def ggg-in-fff (@fff))
-    (return (fff @slash ggg-in-fff)))
+    (return (fff/ggg-in-fff)))
   42)
 
 (defn print-all (xs)
    (if xs
        (progn
-         (print (std @slash head xs))
-         (print-all (std @slash tail xs))
+         (print (std/head xs))
+         (print-all (std/tail xs))
          (return '()))
      (return '())))
 
 (if panics
     (progn
       (print-all panics)
-      (std @slash panic "FAILED"))
+      (std/panic "FAILED"))
   (progn '() '()))

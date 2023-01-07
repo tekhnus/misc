@@ -38,33 +38,33 @@
 (defn repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
-  (def tmp (prelude @slash fprintf stdout "> "))
-  !(#stdmacro @slash switchx2 (zlisp @slash rd stdin) (
+  (def tmp (prelude/fprintf stdout "> "))
+  !(#stdmacro/switchx2 (zlisp/rd stdin) (
 	  ((:eof)
-	   (return (prelude @slash fprintf stdout "\n")))
+	   (return (prelude/fprintf stdout "\n")))
 	  ((:ok datum)
-           (def maybe-prog (zlisp @slash comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
-           !(#stdmacro @slash switchx2 maybe-prog (
+           (def maybe-prog (zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
+           !(#stdmacro/switchx2 maybe-prog (
                       ((:ok progxxx)
-                       !(#stdmacro @slash switchx2 (zlisp @slash eval-new sl nsp) (
+                       !(#stdmacro/switchx2 (zlisp/eval-new sl nsp) (
 		                  ((:ok val ctxt)
-		                   !(#ignore (prelude @slash fprintf-bytestring stdout "%s\n" (zlisp @slash repr-pointer val)))
+		                   !(#ignore (prelude/fprintf-bytestring stdout "%s\n" (zlisp/repr-pointer val)))
 		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
 		                  ((:err msg)
-		                   !(#ignore (prelude @slash fprintf-bytestring stderr "eval error: %s\n" msg))
+		                   !(#ignore (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
 		                   (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
                       ((:err msg)
-                       !(#ignore (prelude @slash fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
+                       !(#ignore (prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
                        (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
 	  ((:err msg)
-	   !(#ignore (prelude @slash fprintf-bytestring stderr "read error: %s\n" msg))
+	   !(#ignore (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
 	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
-(def sl (prelude @slash psm 20000))
-(def pptr (prelude @slash wrap-pointer-into-pointer (zlisp @slash psan sl)))
-(def bpptr (prelude @slash wrap-pointer-into-pointer (zlisp @slash psan sl)))
-(def rt (prelude @slash mres (prelude @slash derefw2 bpptr 'int64)))
-(def compdata (prelude @slash cdm))
-(def bdrcompdata (prelude @slash cdm))
-(def xxx (zlisp @slash iprog sl pptr bpptr compdata bdrcompdata))
+(def sl (prelude/psm 20000))
+(def pptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))
+(def bpptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))
+(def rt (prelude/mres (prelude/derefw2 bpptr 'int64)))
+(def compdata (prelude/cdm))
+(def bdrcompdata (prelude/cdm))
+(def xxx (zlisp/iprog sl pptr bpptr compdata bdrcompdata))
 !(#ignore (repl sl rt pptr bpptr compdata bdrcompdata))

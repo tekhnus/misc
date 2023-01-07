@@ -11,16 +11,16 @@
  (concat-bytestrings- "prelude" concat-bytestrings)
  (+- "prelude" +))
 
-(defn panic (x) (return (prelude @slash panic- x)))
-(defn head (x) (return (prelude @slash head- x)))
-(defn tail (x) (return (prelude @slash tail- x)))
-(defn cons (x xs) (return (prelude @slash cons- x xs)))
-(defn eq (x y) (return (prelude @slash eq- x y)))
-(defn annotate (x) (return (prelude @slash annotate- x)))
-(defn is-constant (x) (return (prelude @slash is-constant- x)))
-(defn repr (x) (return (prelude @slash repr- x)))
-(defn concat-bytestrings (x y) (return (prelude @slash concat-bytestrings- x y)))
-(defn + (x y) (return (prelude @slash +- x y)))
+(defn panic (x) (return (prelude/panic- x)))
+(defn head (x) (return (prelude/head- x)))
+(defn tail (x) (return (prelude/tail- x)))
+(defn cons (x xs) (return (prelude/cons- x xs)))
+(defn eq (x y) (return (prelude/eq- x y)))
+(defn annotate (x) (return (prelude/annotate- x)))
+(defn is-constant (x) (return (prelude/is-constant- x)))
+(defn repr (x) (return (prelude/repr- x)))
+(defn concat-bytestrings (x y) (return (prelude/concat-bytestrings- x y)))
+(defn + (x y) (return (prelude/+- x y)))
 
 (defn last (a0)
 	      
@@ -56,7 +56,7 @@
 
 (defn ignore (x) (return `(def throwaway ~x)))
 
-(def panic-block '(argz (std @slash panic "wrong fn call")))
+(def panic-block '(argz (std/panic "wrong fn call")))
 
 (defn list-at (xs n) (progn
                                (if (eq n 0)
@@ -72,9 +72,9 @@
 		    (def rest (swtchone (tail a0)))
 		    (return `(progn
 			       (def prearg ~cond)
-			       (if (std @slash eq (std @slash head prearg) :ok)
+			       (if (std/eq (std/head prearg) :ok)
 				   (progn
-				     (def args (std @slash list-at prearg 1))
+				     (def args (std/list-at prearg 1))
 				     ~body)
 				 ~rest))))
 		(progn
@@ -82,7 +82,7 @@
                   (def cond "ifhack")
                   (def body "ifhack")
                   (def rest "ifhack")
-                  (return '(std @slash panic "nothing matched")))))
+                  (return '(std/panic "nothing matched")))))
 
 
 (defn decons-pat (a0 a1)
@@ -141,7 +141,7 @@
 	      (return `()))
 	  (panic "decons-var met an unsupported type")))))
 
-(def switch-defines '((std @slash list-at args 0) (std @slash list-at args 1) (std @slash list-at args 2) (std @slash list-at args 3) (std @slash list-at args 4) (std @slash list-at args 5)))
+(def switch-defines '((std/list-at args 0) (std/list-at args 1) (std/list-at args 2) (std/list-at args 3) (std/list-at args 4) (std/list-at args 5)))
 
 (defn make-def (x) (return (cons 'def x)))
 
@@ -149,7 +149,7 @@
     (progn
       (def sig (head a0))
       (def cmds (tail a0))
-      (def checker `(std @slash decons-pat (quote ~sig) args))
+      (def checker `(std/decons-pat (quote ~sig) args))
       (def vars (decons-vars sig))
       (def body (cons 'progn (concat (map make-def (zip vars switch-defines)) cmds)))
       (return `(~checker ~body))))

@@ -14,66 +14,66 @@
  (tail "std" tail)
  (panic "std" panic))
 
-(def buildlib (std @slash first-good-value `(
-  ~(prelude @slash shared-library "libzlisp-build-lib.so"))))
+(def buildlib (std/first-good-value `(
+  ~(prelude/shared-library "libzlisp-build-lib.so"))))
 
-(def compdata-make (prelude @slash c-function-or-panic-new selflib "compdata_make" '(() pointer)))
-(def make-routine-with-empty-state (prelude @slash c-function-or-panic-new selflib "routine_make_new" '((sizet) pointer)))
-(def prog-slice-make (prelude @slash c-function-or-panic-new selflib "prog_slice_make" '((sizet) progslice)))
-(def prog-slice-append-new- (prelude @slash c-function-or-panic-new selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-build-one-c-host (prelude @slash c-function-or-panic-new buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
-(def prog-build-init (prelude @slash c-function-or-panic-new buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
-(def get-host-ffi-settings (prelude @slash c-function-or-panic-new buildlib "get_host_ffi_settings" '(() pointer)))
+(def compdata-make (prelude/c-function-or-panic-new selflib "compdata_make" '(() pointer)))
+(def make-routine-with-empty-state (prelude/c-function-or-panic-new selflib "routine_make_new" '((sizet) pointer)))
+(def prog-slice-make (prelude/c-function-or-panic-new selflib "prog_slice_make" '((sizet) progslice)))
+(def prog-slice-append-new- (prelude/c-function-or-panic-new selflib "prog_slice_append_new" '((pointer) sizet)))
+(def prog-build-one-c-host (prelude/c-function-or-panic-new buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
+(def prog-build-init (prelude/c-function-or-panic-new buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
+(def get-host-ffi-settings (prelude/c-function-or-panic-new buildlib "get_host_ffi_settings" '(() pointer)))
 
 (defn prog-slice-append-new (sl)
-   (return (prelude @slash prog-slice-append-new- (prelude @slash wrap-pointer-into-pointer sl))))
+   (return (prelude/prog-slice-append-new- (prelude/wrap-pointer-into-pointer sl))))
 
 (defn init-prog (sl pptr bpptr compdata bdrcompdata)
    (progn
-     (def nothing (prelude @slash prog-build-init (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata)))
+     (def nothing (prelude/prog-build-init (prelude/wrap-pointer-into-pointer sl) (prelude/wrap-pointer-into-pointer pptr) (prelude/wrap-pointer-into-pointer bpptr) (prelude/wrap-pointer-into-pointer compdata) (prelude/wrap-pointer-into-pointer bdrcompdata)))
      (return 42)))
 
 (defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
    (progn
-     (def e (prelude @slash prog-build-one-c-host (prelude @slash wrap-pointer-into-pointer sl) (prelude @slash wrap-pointer-into-pointer pptr) (prelude @slash wrap-pointer-into-pointer bpptr) (prelude @slash wrap-pointer-into-pointer src) (prelude @slash wrap-pointer-into-pointer compdata) (prelude @slash wrap-pointer-into-pointer bdrcompdata) (prelude @slash get-host-ffi-settings)))
-     (if (std @slash eq 0 (prelude @slash derefw2 e 'int64))
+     (def e (prelude/prog-build-one-c-host (prelude/wrap-pointer-into-pointer sl) (prelude/wrap-pointer-into-pointer pptr) (prelude/wrap-pointer-into-pointer bpptr) (prelude/wrap-pointer-into-pointer src) (prelude/wrap-pointer-into-pointer compdata) (prelude/wrap-pointer-into-pointer bdrcompdata) (prelude/get-host-ffi-settings)))
+     (if (std/eq 0 (prelude/derefw2 e 'int64))
          (return `(:ok :nothing))
-       (return `(:err ~(prelude @slash derefw2 e 'string))))))
+       (return `(:err ~(prelude/derefw2 e 'string))))))
 
 
-(def routine-run-and-get-value-c-host-new (prelude @slash c-function-or-panic-new selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
-(def fdatum-is-panic (prelude @slash c-function-or-panic-new selflib "fdatum_is_panic" '((fdatum) int)))
+(def routine-run-and-get-value-c-host-new (prelude/c-function-or-panic-new selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
+(def fdatum-is-panic (prelude/c-function-or-panic-new selflib "fdatum_is_panic" '((fdatum) int)))
 
-(def fdatum-get-value-ptr (prelude @slash dlsym selflib "fdatum_get_value"))
-(defn fdatum-get-value (x) (return (host "call-extension" (prelude @slash derefw2 fdatum-get-value-ptr 'int64) x)))
+(def fdatum-get-value-ptr (prelude/dlsym selflib "fdatum_get_value"))
+(defn fdatum-get-value (x) (return (host "call-extension" (prelude/derefw2 fdatum-get-value-ptr 'int64) x)))
 
-(def fdatum-get-panic-message-ptr (prelude @slash dlsym selflib "fdatum_get_panic_message"))
-(defn fdatum-get-panic-message (x) (return (host "call-extension" (prelude @slash derefw2 fdatum-get-panic-message-ptr 'int64) x)))
+(def fdatum-get-panic-message-ptr (prelude/dlsym selflib "fdatum_get_panic_message"))
+(defn fdatum-get-panic-message (x) (return (host "call-extension" (prelude/derefw2 fdatum-get-panic-message-ptr 'int64) x)))
 
-(def fdatum-repr-datum-pointer-ptr (prelude @slash dlsym selflib "fdatum_repr_datum_pointer"))
-(defn repr-pointer (x) (return (host "call-extension" (prelude @slash derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
+(def fdatum-repr-datum-pointer-ptr (prelude/dlsym selflib "fdatum_repr_datum_pointer"))
+(defn repr-pointer (x) (return (host "call-extension" (prelude/derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
 
 (defn eval-new (sl rt0)
    (progn
-     (def rt-ptr (prelude @slash wrap-pointer-into-pointer rt0))
-     (def res (prelude @slash routine-run-and-get-value-c-host-new sl rt-ptr))
-     (if (std @slash eq (prelude @slash fdatum-is-panic res) 1)
+     (def rt-ptr (prelude/wrap-pointer-into-pointer rt0))
+     (def res (prelude/routine-run-and-get-value-c-host-new sl rt-ptr))
+     (if (std/eq (prelude/fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
            (return `(:err ~msg)))
        (progn
          (def val (fdatum-get-value res))
-         (def new-rt (prelude @slash derefw2 rt-ptr 'int64))
+         (def new-rt (prelude/derefw2 rt-ptr 'int64))
          (return `(:ok ~val ~new-rt))))))
 
-(def datum-read-one (prelude @slash c-function-or-panic-new selflib "datum_read_one" '((pointer) fdatum)))
+(def datum-read-one (prelude/c-function-or-panic-new selflib "datum_read_one" '((pointer) fdatum)))
 (defn read (strm)
    (progn
-     (def res (prelude @slash datum-read-one strm))
-     (if (std @slash eq (prelude @slash fdatum-is-panic res) 1)
+     (def res (prelude/datum-read-one strm))
+     (if (std/eq (prelude/fdatum-is-panic res) 1)
          (progn
            (def msg (fdatum-get-panic-message res))
-           (if (std @slash eq msg "eof")
+           (if (std/eq msg "eof")
                (return '(:eof))
              (return `(:err ~msg))))
        (progn

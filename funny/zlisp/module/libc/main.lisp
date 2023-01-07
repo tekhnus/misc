@@ -11,32 +11,32 @@
  (panic "std" panic)
  (first-good-value "std" first-good-value))
 
-(def libc (std @slash first-good-value `(
-  ~(prelude @slash shared-library "libc.so.6")
-  ~(prelude @slash shared-library "libSystem.B.dylib"))))
+(def libc (std/first-good-value `(
+  ~(prelude/shared-library "libc.so.6")
+  ~(prelude/shared-library "libSystem.B.dylib"))))
 
-(def malloc (prelude @slash c-function-or-panic-new libc "malloc" '((sizet) pointer)))
-(def fopen (prelude @slash c-function-or-panic-new libc "fopen" '((string string) pointer)))
-(def fread (prelude @slash c-function-or-panic-new libc "fread" '((pointer sizet sizet pointer) sizet)))
-(def feof (prelude @slash c-function-or-panic-new libc "feof" '((pointer) int)))
-(def fprintf (prelude @slash c-function-or-panic-new libc "fprintf" '((pointer string) sizet)))
-(def fprintf-bytestring (prelude @slash c-function-or-panic-new libc "fprintf" '((pointer string string) sizet)))
-(def printfptr (prelude @slash c-function-or-panic-new libc "printf" '((string pointer) sizet)))
+(def malloc (prelude/c-function-or-panic-new libc "malloc" '((sizet) pointer)))
+(def fopen (prelude/c-function-or-panic-new libc "fopen" '((string string) pointer)))
+(def fread (prelude/c-function-or-panic-new libc "fread" '((pointer sizet sizet pointer) sizet)))
+(def feof (prelude/c-function-or-panic-new libc "feof" '((pointer) int)))
+(def fprintf (prelude/c-function-or-panic-new libc "fprintf" '((pointer string) sizet)))
+(def fprintf-bytestring (prelude/c-function-or-panic-new libc "fprintf" '((pointer string string) sizet)))
+(def printfptr (prelude/c-function-or-panic-new libc "printf" '((string pointer) sizet)))
 
-(def stdin (std @slash first-good-value `(
-  ~(prelude @slash extern-pointer libc "stdin" 'pointer)
-  ~(prelude @slash extern-pointer libc "__stdinp" 'pointer))))
+(def stdin (std/first-good-value `(
+  ~(prelude/extern-pointer libc "stdin" 'pointer)
+  ~(prelude/extern-pointer libc "__stdinp" 'pointer))))
 
-(def stdout (std @slash first-good-value `(
-  ~(prelude @slash extern-pointer libc "stdout" 'pointer)
-  ~(prelude @slash extern-pointer libc "__stdoutp" 'pointer))))
+(def stdout (std/first-good-value `(
+  ~(prelude/extern-pointer libc "stdout" 'pointer)
+  ~(prelude/extern-pointer libc "__stdoutp" 'pointer))))
 
-(def stderr (std @slash first-good-value `(
-  ~(prelude @slash extern-pointer libc "stderr" 'pointer)
-  ~(prelude @slash extern-pointer libc "__stderrp" 'pointer))))
+(def stderr (std/first-good-value `(
+  ~(prelude/extern-pointer libc "stderr" 'pointer)
+  ~(prelude/extern-pointer libc "__stderrp" 'pointer))))
 
 (defn print (val)
-  (return (prelude @slash fprintf-bytestring stdout "%s\n" (std @slash repr val))))
+  (return (prelude/fprintf-bytestring stdout "%s\n" (std/repr val))))
 
 (export
  (malloc malloc)
