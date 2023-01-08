@@ -6,12 +6,13 @@ for educational purposes.
 Currently it's barely usable.
 
 Things I'm trying to figure out experimentally:
-- How small can an implementation be?
+- Can a programming language specification be very general yet useful?
+  Can we get a language that is adequate for writing algorithms of any kind:
+  bare-metal programs, shell scripts, package managing scripts,
+  abstract programs in CS papers, math proofs?
+- How small can a language implementation be?
   How much can be internalized, i.e. implemented via macros
   and/or compiler extensions?
-- How small can a language specification get?
-  Is it a good idea to specify only the most fundamental stuff,
-  deferring most of decisions to implementations?
 - Can we have imperative syntax and statefulness
   yet be able to reason about side-effects with simplicity
   inherent to pure-functional programs?
