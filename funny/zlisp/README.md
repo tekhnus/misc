@@ -1,32 +1,33 @@
 ### About
 
-This is a playground where I'm experimenting with programming language design
-by creating a small lisp-like language.
+This is a playground where I'm toying with a small lisp-like language
+for educational purposes.
 
-Here are some questions I'm trying to figure out experimentally:
-- How small can a reasonable language implementation get?
-  How many concepts can be internalized, i.e.
-  implemented via macros and/or compiler extensions?
-- How small can a reasonable language specification get?
-  Is it a good idea to specify only the most fundamental notions,
-  deferring the most of decisions to implementations?
-- Can we have an imperative syntax and statefulness
+Currently it's barely usable.
+
+Things I'm trying to figure out experimentally:
+- How small can an implementation be?
+  How much can be internalized, i.e. implemented via macros
+  and/or compiler extensions?
+- How small can a language specification get?
+  Is it a good idea to specify only the most fundamental stuff,
+  deferring most of decisions to implementations?
+- Can we have imperative syntax and statefulness
   yet be able to reason about side-effects with simplicity
   inherent to pure-functional programs?
 - Can we avoid garbage collection and reference counting
   yet still have fun?
 - Coroutines are such a great idea, can we have them everywhere?
 
-I have an implementation-agnostic bytecode compiler (written in C)
-and two implementations: host-ffi (written in C, allows to call native
-functions via FFI) and host-python (written in Python, allows to call Python).
-
-**It's barely usable.**
+There is an implementation-agnostic bytecode compiler (written in C)
+and two implementations:
+- host-ffi: written in C, allows to call native functions via FFI;
+- host-python: written in Python, allows to call Python.
 
 ### Stuff to be done yet
 
 - Implement loops and/or tail recursive calls
-- Implement a way to intercept arbitrary yields from called routine, i.e. host calls
+- Implement intercepting arbitrary yields from called routine, for example, host calls
 
 - Unite preprocessor with quasiquotes
 - Come up with a less awkward macro syntax
@@ -45,15 +46,16 @@ functions via FFI) and host-python (written in Python, allows to call Python).
 
 ### Building and running
 
-Mandatory requirements: C compiler and cmake.
-Optional requirements: Python 3 with some libraries (`pip install -r requirements.txt`).
+**Mandatory requirements:** C compiler and cmake.
 
-To build and test:
+**Optional requirements:** Python 3 with some libraries (`pip install -r requirements.txt`).
+
+**To build and test:**
 ```
 ./scripts/build-and-test
 ```
 
-After this one can run the repl:
+**To run the repl:**
 ```
 LD_LIBRARY_PATH=./build/builder ./build/host-ffi/zlisp-run <(ZLISP=./module ./build/builder/zlisp-build c-prelude module/cli/main.lisp)
 ```
