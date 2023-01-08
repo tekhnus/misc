@@ -7,9 +7,9 @@
 #include <zlisp/common.h>
 #endif
 
-EXPORT fdatum routine_run_and_get_value_c_host_new_new(prog_slice sl,
+EXPORT fdatum routine_run_in_ffi_host(prog_slice sl,
                                                        datum **r0d) {
-  return routine_run_new(sl, r0d, perform_host_instruction);
+  return routine_run_with_handler(sl, r0d, perform_host_instruction);
 }
 
 LOCAL fdatum perform_host_instruction(datum *name, datum *args) {

@@ -14,86 +14,6 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   return fdatum_make_ok(prog_slice_to_datum(sl));
 }
 
-EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *fn_index,
-                             datum *subfn_index, bool pop_one, datum *type,
-                             int arg_count, int return_count,
-                             datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(8, 
-      datum_make_symbol(":call"), fn_index, subfn_index,
-      datum_make_int(pop_one), type, datum_make_int(arg_count),
-      datum_make_int(return_count), datum_make_int(next)));
-  for (int i = 0; i < arg_count; ++i) {
-    *compdata = compdata_del(*compdata);
-  }
-  if (pop_one) {
-    *compdata = compdata_del(*compdata);
-  }
-  for (int i = 0; i < return_count; ++i) {
-    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-  }
-  *begin = next;
-}
-
-EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val,
-                                datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  if (!datum_is_symbol(val)) {
-    fprintf(stderr, "expected a symbol in put-var\n");
-    exit(1);
-  }
-  datum *polyindex = compdata_get_polyindex(*compdata, val);
-  if (datum_is_nil(polyindex)) {
-    fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
-    exit(1);
-  }
-  prog_append_nop(sl, begin,
-                  datum_make_list_of(2, datum_make_symbol("putting-var"), val));
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(3, 
-      datum_make_symbol(":put-var"), polyindex, datum_make_int(next)));
-  *begin = next;
-  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-}
-
-EXPORT void compdata_give_names(datum *var, datum **compdata) {
-  if (!datum_is_list(var)) {
-    fprintf(stderr, "error: compdata_give_names\n");
-    exit(EXIT_FAILURE);
-  }
-  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-    *compdata = compdata_del(*compdata);
-  }
-  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-    *compdata = compdata_put(*compdata, rest->list_head);
-  }
-}
-
-EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val,
-                                 int capture, datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) =
-      *(datum_make_list_of(4, datum_make_symbol(":put-prog"), datum_make_int(val),
-                          datum_make_int(capture), datum_make_int(next)));
-  *begin = next;
-  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-}
-
-EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type,
-                              size_t count, size_t recieve_count, datum *meta,
-                              datum **compdata) {
-  size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(6, 
-      datum_make_symbol(":yield"), type, datum_make_int(count),
-      datum_make_int(recieve_count), meta, datum_make_int(next)));
-  *begin = next;
-  for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_del(*compdata);
-  }
-  for (size_t i = 0; i < recieve_count; ++i) {
-    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
-  }
-}
-
 LOCAL char *prog_append_statements(prog_slice *sl, size_t *off, datum *source,
                                    datum **compdata, datum *info) {
   for (datum *rest = source; !datum_is_nil(rest); rest = rest->list_tail) {
@@ -456,6 +376,73 @@ LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec,
   return NULL;
 }
 
+EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *fn_index,
+                             datum *subfn_index, bool pop_one, datum *type,
+                             int arg_count, int return_count,
+                             datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(8, 
+      datum_make_symbol(":call"), fn_index, subfn_index,
+      datum_make_int(pop_one), type, datum_make_int(arg_count),
+      datum_make_int(return_count), datum_make_int(next)));
+  for (int i = 0; i < arg_count; ++i) {
+    *compdata = compdata_del(*compdata);
+  }
+  if (pop_one) {
+    *compdata = compdata_del(*compdata);
+  }
+  for (int i = 0; i < return_count; ++i) {
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+  }
+  *begin = next;
+}
+
+EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val,
+                                datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  if (!datum_is_symbol(val)) {
+    fprintf(stderr, "expected a symbol in put-var\n");
+    exit(1);
+  }
+  datum *polyindex = compdata_get_polyindex(*compdata, val);
+  if (datum_is_nil(polyindex)) {
+    fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
+    exit(1);
+  }
+  prog_append_nop(sl, begin,
+                  datum_make_list_of(2, datum_make_symbol("putting-var"), val));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(3, 
+      datum_make_symbol(":put-var"), polyindex, datum_make_int(next)));
+  *begin = next;
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+}
+
+EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val,
+                                 int capture, datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) =
+      *(datum_make_list_of(4, datum_make_symbol(":put-prog"), datum_make_int(val),
+                          datum_make_int(capture), datum_make_int(next)));
+  *begin = next;
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+}
+
+EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type,
+                              size_t count, size_t recieve_count, datum *meta,
+                              datum **compdata) {
+  size_t next = prog_slice_append_new(sl);
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(6, 
+      datum_make_symbol(":yield"), type, datum_make_int(count),
+      datum_make_int(recieve_count), meta, datum_make_int(next)));
+  *begin = next;
+  for (size_t i = 0; i < count; ++i) {
+    *compdata = compdata_del(*compdata);
+  }
+  for (size_t i = 0; i < recieve_count; ++i) {
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
+  }
+}
+
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl, size_t *begin,
                                              datum *stmt, datum **compdata) {
   if (!datum_is_list(stmt)) {
@@ -637,6 +624,19 @@ EXPORT datum *compdata_get_shape(datum *compdata) {
   datum *c = compdata->list_head;
   return list_append(compdata_get_shape(compdata->list_tail),
                      datum_make_int(list_length(c)));
+}
+
+EXPORT void compdata_give_names(datum *var, datum **compdata) {
+  if (!datum_is_list(var)) {
+    fprintf(stderr, "error: compdata_give_names\n");
+    exit(EXIT_FAILURE);
+  }
+  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
+    *compdata = compdata_del(*compdata);
+  }
+  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
+    *compdata = compdata_put(*compdata, rest->list_head);
+  }
 }
 
 LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {

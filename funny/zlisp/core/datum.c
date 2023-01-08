@@ -14,21 +14,6 @@ enum fdatumype {
   FDATUM_PANIC,
 };
 
-EXPORT bool datum_is_the_symbol(datum *d, char *val) {
-  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
-}
-
-EXPORT int list_length(datum *seq) {
-  if (!datum_is_list(seq)) {
-    fprintf(stderr, "not a list\n");
-    exit(EXIT_FAILURE);
-  }
-  int res;
-  for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
-  }
-  return res;
-}
-
 EXPORT bool datum_is_nil(datum *e) { return e->type == DATUM_NIL; }
 
 EXPORT bool datum_is_list(datum *e) {
@@ -215,6 +200,10 @@ EXPORT bool datum_is_constant(datum *d) {
           (datum_is_symbol(d) && d->symbol_value[0] == ':'));
 }
 
+EXPORT bool datum_is_the_symbol(datum *d, char *val) {
+  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
+}
+
 EXPORT prog_slice prog_slice_make(size_t capacity) {
   prog_slice res;
   res.begin = malloc(capacity * sizeof(datum));
@@ -259,6 +248,17 @@ EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   for (size_t i = 0; i < prog_slice_length(sl); ++i) {
     *tail = datum_make_list_of(1, prog_slice_datum_at(sl, i));
     tail = &((*tail)->list_tail);
+  }
+  return res;
+}
+
+EXPORT int list_length(datum *seq) {
+  if (!datum_is_list(seq)) {
+    fprintf(stderr, "not a list\n");
+    exit(EXIT_FAILURE);
+  }
+  int res;
+  for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
   }
   return res;
 }

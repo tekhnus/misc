@@ -83,21 +83,21 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT datum *routine_make_new(ptrdiff_t prg) {
+EXPORT datum *routine_make(ptrdiff_t prg) {
   routine *r = routine_make_empty(prg);
   return datum_make_frame(r);
 }
 
-EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
-                              fdatum (*perform_host_instruction)(datum *,
-                                                                 datum *)) {
+EXPORT fdatum routine_run_with_handler(prog_slice sl, datum **r0d,
+                              fdatum (*yield_handler)(datum *,
+                                                      datum *)) {
   routine *r = get_routine_from_datum(*r0d);
   datum *args = datum_make_nil();
   datum *result = datum_make_nil();
   for (;;) {
     fdatum rerr = routine_run(sl, r, args);
     if (fdatum_is_panic(rerr)) {
-      print_backtrace_new(sl, r);
+      print_backtrace(sl, r);
       return rerr;
     }
     datum *yield_type = list_at(rerr.ok_value, 0);
@@ -111,21 +111,13 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
     }
     datum *name = list_at(yield_type, 1);
     datum *arg = list_at(rerr.ok_value, 1);
-    fdatum res = perform_host_instruction(name, arg);
+    fdatum res = yield_handler(name, arg);
     if (fdatum_is_panic(res)) {
       return res;
     }
     args = res.ok_value;
   }
   return fdatum_make_ok(result);
-}
-
-LOCAL routine *get_routine_from_datum(datum *d) {
-  if (!datum_is_frame(d)) {
-    fprintf(stderr, "get_routine_from_datum: not a routine\n");
-    exit(EXIT_FAILURE);
-  }
-  return (routine *)d->frame_value;
 }
 
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
@@ -135,9 +127,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       datum *recieve_type = prg.call_type;
       routine *child =
           get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index));
-      routine *rt = routine_merge_new(r, child);
+      routine *rt = routine_merge(r, child);
       if (!datum_is_nil(prg.call_subfn_index)) {
-        rt = routine_merge_new(rt, get_routine_from_datum(state_stack_at_poly(
+        rt = routine_merge(rt, get_routine_from_datum(state_stack_at_poly(
                                        r, prg.call_subfn_index)));
       }
       fdatum err;
@@ -320,10 +312,10 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  routine *child = routine_merge_new(
+  routine *child = routine_merge(
       r, get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index)));
   if (!datum_is_nil(prg.call_subfn_index)) {
-    child = routine_merge_new(child, get_routine_from_datum(state_stack_at_poly(
+    child = routine_merge(child, get_routine_from_datum(state_stack_at_poly(
                                          r, prg.call_subfn_index)));
   }
   prog child_prg =
@@ -335,7 +327,7 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   return child;
 }
 
-LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
+LOCAL void print_backtrace(prog_slice sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
@@ -441,7 +433,7 @@ LOCAL datum *routine_get_shape(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_merge_new(routine *r, routine *rt_tail) {
+LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   int rest_vars = rt_tail->extvars;
   routine *rt = malloc(sizeof(routine));
   rt->extvars = 0;
@@ -479,6 +471,14 @@ LOCAL datum *datum_make_frame(routine *r) {
   e->type = DATUM_FRAME;
   e->frame_value = r;
   return e;
+}
+
+LOCAL routine *get_routine_from_datum(datum *d) {
+  if (!datum_is_frame(d)) {
+    fprintf(stderr, "get_routine_from_datum: not a routine\n");
+    exit(EXIT_FAILURE);
+  }
+  return (routine *)d->frame_value;
 }
 
 LOCAL datum *datum_copy(datum *d) {

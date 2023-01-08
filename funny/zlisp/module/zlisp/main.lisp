@@ -18,7 +18,7 @@
                                       ~(prelude/shared-library "libzlisp-build-lib.so"))))
 
 (def compdata-make (prelude/c-function-or-panic-new selflib "compdata_make" '(() pointer)))
-(def make-routine-with-empty-state (prelude/c-function-or-panic-new selflib "routine_make_new" '((sizet) pointer)))
+(def make-routine-with-empty-state (prelude/c-function-or-panic-new selflib "routine_make" '((sizet) pointer)))
 (def prog-slice-make (prelude/c-function-or-panic-new selflib "prog_slice_make" '((sizet) progslice)))
 (def prog-slice-append-new- (prelude/c-function-or-panic-new selflib "prog_slice_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (prelude/c-function-or-panic-new buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
@@ -41,7 +41,7 @@
       (return `(:err ~(prelude/derefw2 e 'string))))))
 
 
-(def routine-run-and-get-value-c-host-new (prelude/c-function-or-panic-new selflib "routine_run_and_get_value_c_host_new_new" '((progslice pointer) fdatum)))
+(def routine-run-and-get-value-c-host-new (prelude/c-function-or-panic-new selflib "routine_run_in_ffi_host" '((progslice pointer) fdatum)))
 (def fdatum-is-panic (prelude/c-function-or-panic-new selflib "fdatum_is_panic" '((fdatum) int)))
 
 (def fdatum-get-value-ptr (prelude/dlsym selflib "fdatum_get_value"))

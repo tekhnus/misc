@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 typedef struct datum datum;
-bool datum_is_the_symbol(datum *d,char *val);
-int list_length(datum *seq);
 bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
 bool datum_is_symbol(datum *e);
@@ -33,6 +31,7 @@ fdatum fdatum_make_ok(datum *v);
 fdatum fdatum_make_panic(char *message);
 bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
+bool datum_is_the_symbol(datum *d,char *val);
 typedef struct prog_slice prog_slice;
 struct prog_slice {
   datum *begin;
@@ -45,6 +44,7 @@ void prog_slice_extend(prog_slice *s,datum *instructions);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_to_datum(prog_slice sl);
+int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_tail(datum *list);
 datum *list_append(datum *list,datum *value);
@@ -72,7 +72,6 @@ read_result datum_read(FILE *strm);
 fdatum prog_compile(datum *source,datum **compdata,datum *info);
 void prog_append_call(prog_slice *sl,size_t *begin,datum *fn_index,datum *subfn_index,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
-void compdata_give_names(datum *var,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
@@ -82,8 +81,9 @@ datum *compdata_get_polyindex(datum *compdata,datum *var);
 int compdata_get_top_index(datum *compdata);
 datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_shape(datum *compdata);
-datum *routine_make_new(ptrdiff_t prg);
-fdatum routine_run_new(prog_slice sl,datum **r0d,fdatum(*perform_host_instruction)(datum *,datum *));
+void compdata_give_names(datum *var,datum **compdata);
+datum *routine_make(ptrdiff_t prg);
+fdatum routine_run_with_handler(prog_slice sl,datum **r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
 datum *state_stack_at_poly(routine *r,datum *offset);
 void state_stack_put(routine *r,datum *value);
