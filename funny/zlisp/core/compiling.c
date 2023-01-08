@@ -379,7 +379,6 @@ LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec,
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
   prog_append_nop(sl, begin, datum_make_nil());
-  // probably should change hat=false to true.
   prog_append_yield(sl, begin, datum_make_symbol("plain"),
                     list_length(re->list_head), 1, re->list_head, compdata);
   return NULL;
@@ -479,7 +478,6 @@ LOCAL char *prog_append_backquoted_statement(prog_slice *sl, size_t *begin,
 
 LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args,
                                datum *meta, datum **compdata) {
-  // fix hat=false; sometimes it should be true.
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
   compdata_give_names(args, compdata);

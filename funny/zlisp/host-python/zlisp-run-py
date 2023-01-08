@@ -107,7 +107,7 @@ def main():
     ins = prog[ip]
     op, args = ins[0], ins[1:]
     if op == sexpdata.Symbol(":yield"):
-        hat, cnt, recieve_cnt, meta, nex = args
+        _, cnt, recieve_cnt, meta, nex = args
         pdata[-1][-1].ip = nex
     else:
         pass
@@ -137,11 +137,9 @@ def main():
             )
             ip = nex
         elif op == sexpdata.Symbol(":call"):
-            fn_index, subfn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
-            if hat == sexpdata.Symbol("hat"):
-                raise RuntimeError("routine-1 call is not supported yet")
-            if hat != sexpdata.Symbol("plain"):
-                raise RuntimeError("unknown type of the call")
+            fn_index, subfn_index, pop_one, target, arg_cnt, ret_cnt, nex = args
+            if target != sexpdata.Symbol("plain"):
+                raise RuntimeError("only plain targets are currently supported")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
             frame, indx = fn_index
             rout = pdata[-1][-1].varz[frame][indx]
@@ -162,7 +160,7 @@ def main():
             op, args = ins[0], ins[1:]
             if op != sexpdata.Symbol(":yield"):
                 raise RuntimeError("expected a yield-reciever")
-            hat, cnt, recieve_cnt, meta, nex = args
+            _, cnt, recieve_cnt, meta, nex = args
             if arg_cnt != recieve_cnt:
                 raise RuntimeError(
                     f"arg count {arg_cnt} and recieve count {recieve_cnt} are different"
@@ -186,8 +184,8 @@ def main():
             pdata[-1][-1].varz[-1].append(p)
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
-            hat, cnt, recieve_cnt, meta, nex = args
-            if hat == sexpdata.Symbol("plain"):
+            target, cnt, recieve_cnt, meta, nex = args
+            if target == sexpdata.Symbol("plain"):
                 rvalues = [pop_stack() for _ in range(cnt)]
 
                 contvarz = list(list(x) for x in pdata[-1][-1].varz)
@@ -200,7 +198,7 @@ def main():
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
                     raise RuntimeError("expected a call")
-                fn_index, subfn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
+                fn_index, subfn_index, pop_one, _, arg_cnt, ret_cnt, nex = args
 
                 frame, indx = fn_index
                 # update the routine
@@ -211,11 +209,11 @@ def main():
 
                 ip = nex
             elif (
-                isinstance(hat, list)
-                and len(hat) == 2
-                and hat[0] == sexpdata.Symbol("host")
+                isinstance(target, list)
+                and len(target) == 2
+                and target[0] == sexpdata.Symbol("host")
             ):
-                instruction = hat[1]
+                instruction = target[1]
                 arg = pop_stack()
                 if (
                     isinstance(instruction, list)
@@ -227,7 +225,7 @@ def main():
                 else:
                     raise RuntimeError(f"host not implemented: {instruction}")
                 ip = nex
-            elif hat == sexpdata.Symbol("halt"):
+            elif target == sexpdata.Symbol("halt"):
                 break
             else:
                 raise RuntimeError("invalid yield")

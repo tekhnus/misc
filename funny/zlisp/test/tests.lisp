@@ -92,19 +92,19 @@
 !(#testing/fntest
   (progn
     (defn far-fib () (progn
-                       (return @hat 3)
-                       (return @hat 5)
+                       (return @event-loop 3)
+                       (return @event-loop 5)
                        (return 8)))
 
     (defn more-far-fib () (progn
                             (def x (far-fib))
-                            (return @hat x)
-                            (return @hat 13)))
+                            (return @event-loop x)
+                            (return @event-loop 13)))
 
-    (def (x) (@more-far-fib @hat))
-    (def (y) (@more-far-fib @hat '()))
-    (def (z) (@more-far-fib @hat '()))
-    (def (t) (@more-far-fib @hat '()))
+    (def (x) (@more-far-fib @event-loop))
+    (def (y) (@more-far-fib @event-loop '()))
+    (def (z) (@more-far-fib @event-loop '()))
+    (def (t) (@more-far-fib @event-loop '()))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
