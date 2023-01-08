@@ -11,67 +11,41 @@ class State:
     ip: int = 0
 
 
-def is_true(tagged_value):
-    return bool((tagged_value))
-
-
-def check_is_routine_0(tagged_value):
-    offset, varz, extvars = tagged_value
-    return offset, varz, extvars
-
-
-def check_is_cons(val):
-    return val[0], (val[1:])
-
-
-def make_list_with_items(*args):
-    return list(args)
-
-
-def make_routine_0(ip, varz):
-    return make_list_with_items(ip, varz, 0)
-
-
-def make_symbol(s):
-    return sexpdata.Symbol(s)
-
-
 def head(args):
-    a1, ar = check_is_cons(args)
-    h, t = check_is_cons(a1)
+    (a1,) = args
+    h, *t = a1
     return h
 
 
 def tail(args):
-    a1, ar = check_is_cons(args)
-    h, t = check_is_cons(a1)
+    (a1,) = args
+    h, *t = a1
     return t
 
 
 def is_constant(args):
-    v, ar = check_is_cons(args)
+    (v,) = args
     if isinstance(v, list):
-        return make_list_with_items()
+        return []
     if isinstance(v, sexpdata.Symbol) and str(v)[0] != ":":
-        return make_list_with_items()
-    return make_list_with_items(make_list_with_items())
+        return []
+    return [[]]
 
 
 def eq(args):
-    a1, ar = check_is_cons(args)
-    a2, arr = check_is_cons(ar)
+    a1, a2 = args
     if a1 == a2:
-        return make_list_with_items(make_list_with_items())
-    return make_list_with_items()
+        return [[]]
+    return []
 
 
 def panic(args):
-    a1, ar = check_is_cons(args)
+    (a1,) = args
     raise RuntimeError("Panic! {}".format(repr(a1)))
 
 
 def annotate(args):
-    val, ar = check_is_cons(args)
+    (val,) = args
     if isinstance(val, list):
         r = ":list"
     elif isinstance(val, sexpdata.Symbol):
@@ -82,32 +56,28 @@ def annotate(args):
         r = ":integer"
     else:
         raise RuntimeError("cannot annotate {}".format(repr(a1)))
-    return make_list_with_items(make_symbol(r), val)
+    return [sexpdata.Symbol(r), val]
 
 
 def add(args):
-    a1, ar = check_is_cons(args)
-    a2, arr = check_is_cons(ar)
+    a1, a2 = args
     return a1 + a2
 
 
 def cons(args):
-    a1, ar = check_is_cons(args)
-    a2, arr = check_is_cons(ar)
-    if a1 == a2:
-        return make_list_with_items(make_list_with_items())
-    return make_list_with_items(a1, *a2)
+    a1, a2 = args
+    return [a1, *a2]
 
 
 def concat_bytestrings(args):
-    x, ar = check_is_cons(args)
-    y, arr = check_is_cons(ar)
+    x, y = args
     return x + y
 
 
 def repre(args):
-    a1, ar = check_is_cons(args)
+    (a1,) = args
     return repr(a1)
+
 
 def merge(x, y, extvars):
     rtvarz = []
@@ -121,6 +91,7 @@ def merge(x, y, extvars):
     for fram in y:
         rtvarz.append(copy.copy(fram))
     return rtvarz
+
 
 def main():
     bc = sys.stdin.read()
@@ -147,7 +118,7 @@ def main():
         op, args = ins[0], ins[1:]
         if op == sexpdata.Symbol(":if"):
             if_true, if_false = args
-            if is_true(pop_stack()):
+            if pop_stack():
                 ip = if_true
             else:
                 ip = if_false
@@ -161,7 +132,9 @@ def main():
         elif op == sexpdata.Symbol(":put-var"):
             offset, nex = args
             frame, indx = offset
-            pdata[-1][-1].varz[-1].append(copy.deepcopy(pdata[-1][-1].varz[frame][indx]))
+            pdata[-1][-1].varz[-1].append(
+                copy.deepcopy(pdata[-1][-1].varz[frame][indx])
+            )
             ip = nex
         elif op == sexpdata.Symbol(":call"):
             fn_index, subfn_index, pop_one, hat, arg_cnt, ret_cnt, nex = args
@@ -172,20 +145,18 @@ def main():
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
             frame, indx = fn_index
             rout = pdata[-1][-1].varz[frame][indx]
-            offset, varz, extvars = check_is_routine_0(rout)
+            offset, varz, extvars = rout
             assert varz
             rtvarz = merge(pdata[-1][-1].varz, varz, extvars)
             ip = offset
             if len(subfn_index) > 0:
                 subframe, subindx = subfn_index
                 subrout = pdata[-1][-1].varz[subframe][subindx]
-                suboff, subvarz, subext = check_is_routine_0(subrout)
+                suboff, subvarz, subext = subrout
                 rtvarz = merge(rtvarz, subvarz, subext)
                 ip = suboff
             rtvarz[-1].extend(arg for arg in args)
-            pdata[-1].append(
-                State(varz=rtvarz, ip=0)
-            )  # ip set after endif
+            pdata[-1].append(State(varz=rtvarz, ip=0))  # ip set after endif
             # check that first instruction is yield and skip it
             ins = prog[ip]
             op, args = ins[0], ins[1:]
@@ -193,7 +164,9 @@ def main():
                 raise RuntimeError("expected a yield-reciever")
             hat, cnt, recieve_cnt, meta, nex = args
             if arg_cnt != recieve_cnt:
-                raise RuntimeError(f"arg count {arg_cnt} and recieve count {recieve_cnt} are different")
+                raise RuntimeError(
+                    f"arg count {arg_cnt} and recieve count {recieve_cnt} are different"
+                )
             ip = nex
         elif op == sexpdata.Symbol(":collect"):
             cnt, nex = args
@@ -209,7 +182,7 @@ def main():
                 capture_size = 0
             else:
                 capture_size = len(pdata[-1][-1].varz)
-            p = make_list_with_items(pr, [[]], capture_size)
+            p = [pr, [[]], capture_size]
             pdata[-1][-1].varz[-1].append(p)
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
@@ -218,7 +191,7 @@ def main():
                 rvalues = [pop_stack() for _ in range(cnt)]
 
                 contvarz = list(list(x) for x in pdata[-1][-1].varz)
-                cont = make_routine_0(varz=contvarz, ip=ip)
+                cont = [ip, contvarz, 0]
 
                 pdata[-1].pop()
 
@@ -234,16 +207,20 @@ def main():
                 pdata[-1][-1].varz[frame][indx] = cont
                 if pop_one:
                     pop_stack()
-                pdata[-1][-1].varz[-1].extend((make_list_with_items(*reversed(rvalues))))
+                pdata[-1][-1].varz[-1].extend(reversed(rvalues))
 
                 ip = nex
-            elif isinstance(hat, list) and len(hat) == 2 and hat[0] == sexpdata.Symbol("host"):
+            elif (
+                isinstance(hat, list)
+                and len(hat) == 2
+                and hat[0] == sexpdata.Symbol("host")
+            ):
                 instruction = hat[1]
                 arg = pop_stack()
                 if (
-                        isinstance(instruction, list)
-                        and len(instruction) == 2
-                        and instruction[0] == "eval"
+                    isinstance(instruction, list)
+                    and len(instruction) == 2
+                    and instruction[0] == "eval"
                 ):
                     res = eval(instruction[1], globals(), {"x": arg})
                     pdata[-1][-1].varz[-1].append((res))
