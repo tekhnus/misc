@@ -1,8 +1,8 @@
 #include <assert.h>
+#include <extern.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <extern.h>
 
 enum prog_type {
   PROG_END,
@@ -89,8 +89,8 @@ EXPORT datum *routine_make_new(ptrdiff_t prg) {
 }
 
 EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
-                                 fdatum (*perform_host_instruction)(datum *,
-                                                                    datum *)) {
+                              fdatum (*perform_host_instruction)(datum *,
+                                                                 datum *)) {
   routine *r = get_routine_from_datum(*r0d);
   datum *args = datum_make_nil();
   datum *result = datum_make_nil();
@@ -105,7 +105,8 @@ EXPORT fdatum routine_run_new(prog_slice sl, datum **r0d,
       result = list_at(rerr.ok_value, 1);
       break;
     }
-    if (!datum_is_list(yield_type) || !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
+    if (!datum_is_list(yield_type) ||
+        !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
       return fdatum_make_panic("execution stopped at wrong place");
     }
     datum *name = list_at(yield_type, 1);
@@ -128,14 +129,16 @@ LOCAL routine *get_routine_from_datum(datum *d) {
 }
 
 LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
-  for(;;) {
+  for (;;) {
     prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
-      routine *child = get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index));
+      routine *child =
+          get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index));
       routine *rt = routine_merge_new(r, child);
       if (!datum_is_nil(prg.call_subfn_index)) {
-        rt = routine_merge_new(rt, get_routine_from_datum(state_stack_at_poly(r, prg.call_subfn_index)));
+        rt = routine_merge_new(rt, get_routine_from_datum(state_stack_at_poly(
+                                       r, prg.call_subfn_index)));
       }
       fdatum err;
       err = routine_run(sl, rt, args);
@@ -162,7 +165,9 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     if (prg.type == PROG_YIELD && args != NULL) {
       if (list_length(args) != (int)prg.yield_recieve_count) {
         char *err = malloc(256);
-        sprintf(err, "recieved incorrect number of arguments: expected %zu, got %d", prg.yield_recieve_count, list_length(args));
+        sprintf(err,
+                "recieved incorrect number of arguments: expected %zu, got %d",
+                prg.yield_recieve_count, list_length(args));
         return fdatum_make_panic(err);
       }
       state_stack_put_all(r, args);
@@ -203,12 +208,15 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
           datum *compdata_shape = compdata_get_shape(compdata);
           datum *state_shape = routine_get_shape(r);
           if (list_length(compdata_shape) != list_length(state_shape)) {
-            fprintf(stderr, "compdata mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
+            fprintf(stderr, "compdata mismatch: %s != %s\n",
+                    datum_repr(compdata_shape), datum_repr(state_shape));
             exit(EXIT_FAILURE);
           }
           int len = list_length(compdata_shape);
-          if (!datum_eq(list_at(compdata_shape, len - 1), list_at(state_shape, len - 1))) {
-            fprintf(stderr, "compdata mismatch: %s != %s\n", datum_repr(compdata_shape), datum_repr(state_shape));
+          if (!datum_eq(list_at(compdata_shape, len - 1),
+                        list_at(state_shape, len - 1))) {
+            fprintf(stderr, "compdata mismatch: %s != %s\n",
+                    datum_repr(compdata_shape), datum_repr(state_shape));
             exit(EXIT_FAILURE);
           }
         }
@@ -312,11 +320,14 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  routine *child = routine_merge_new(r, get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index)));
+  routine *child = routine_merge_new(
+      r, get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index)));
   if (!datum_is_nil(prg.call_subfn_index)) {
-    child = routine_merge_new(child, get_routine_from_datum(state_stack_at_poly(r, prg.call_subfn_index)));
+    child = routine_merge_new(child, get_routine_from_datum(state_stack_at_poly(
+                                         r, prg.call_subfn_index)));
   }
-  prog child_prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(child)));
+  prog child_prg =
+      datum_to_prog(prog_slice_datum_at(sl, *routine_offset(child)));
   if (child_prg.type == PROG_YIELD) {
     // it's not currently being called
     return NULL;
@@ -329,32 +340,34 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
   for (routine *z = r; z != NULL && i < 10; z = get_child(sl, z), ++i) {
-    for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3; ++i) {
-        if (i < 0) {
-          continue;
-        }
-        if (i >= (ptrdiff_t)prog_slice_length(sl)) {
-          break;
-        }
-        if (i == *routine_offset(z)) {
-          fprintf(stderr, "> ");
-        } else {
-          fprintf(stderr, "  ");
-        }
-        fprintf(stderr, "%ld ", i);
-        datum *ins = prog_slice_datum_at(sl, i);
-        char *meta = "";
-        if (datum_is_the_symbol(ins->list_head, ":nop")) {
-          meta = datum_repr(ins->list_tail->list_head);
-          ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(), ins->list_tail->list_tail->list_head);
-        }
-        fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
+    for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3;
+         ++i) {
+      if (i < 0) {
+        continue;
       }
-      fprintf(stderr, "**********\n");
-      fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));
-      fprintf(stderr, "**********\n");
+      if (i >= (ptrdiff_t)prog_slice_length(sl)) {
+        break;
+      }
+      if (i == *routine_offset(z)) {
+        fprintf(stderr, "> ");
+      } else {
+        fprintf(stderr, "  ");
+      }
+      fprintf(stderr, "%ld ", i);
+      datum *ins = prog_slice_datum_at(sl, i);
+      char *meta = "";
+      if (datum_is_the_symbol(ins->list_head, ":nop")) {
+        meta = datum_repr(ins->list_tail->list_head);
+        ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(),
+                                ins->list_tail->list_tail->list_head);
+      }
+      fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
+    }
+    fprintf(stderr, "**********\n");
+    fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));
+    fprintf(stderr, "**********\n");
   }
- 
+
   fprintf(stderr, "=========\n");
 }
 
@@ -371,7 +384,8 @@ EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
 
 EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
-  r->frames[r->cnt - 1]->state = datum_make_list(value, r->frames[r->cnt - 1]->state);
+  r->frames[r->cnt - 1]->state =
+      datum_make_list(value, r->frames[r->cnt - 1]->state);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum *list) {
@@ -417,9 +431,7 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   return res;
 }
 
-LOCAL size_t routine_get_count(routine *r) {
-  return r->cnt;
-}
+LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();

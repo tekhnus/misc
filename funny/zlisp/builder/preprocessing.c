@@ -16,19 +16,24 @@ EXPORT fdatum file_source(char *fname) {
   datum *expander_routine = routine_make_new(expander_builder_prg);
   datum *expander_compdata = compdata_make();
   datum *expander_builder_compdata = compdata_make();
-  prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg, &expander_compdata, &expander_builder_compdata);
+  prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg,
+                  &expander_compdata, &expander_builder_compdata);
   read_result rr;
   datum *res = datum_make_nil();
   datum **resend = &res;
   for (; read_result_is_ok(rr = datum_read(stre));) {
-    fdatum val = datum_expand(rr.ok_value, &expander_sl, &expander_routine, &expander_prg, &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
+    fdatum val = datum_expand(
+        rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
+        &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
     if (fdatum_is_panic(val)) {
       char *err = malloc(1024);
       char *end = err;
-      end += sprintf(end, "while expanding %s: %s", datum_repr(rr.ok_value), val.panic_message);
+      end += sprintf(end, "while expanding %s: %s", datum_repr(rr.ok_value),
+                     val.panic_message);
       return fdatum_make_panic(err);
     }
-    // fprintf(stderr, "exp\n  from %s\n  to   %s\n", datum_repr(rr.ok_value), datum_repr(val.ok_value));
+    // fprintf(stderr, "exp\n  from %s\n  to   %s\n", datum_repr(rr.ok_value),
+    // datum_repr(val.ok_value));
     if (datum_is_the_symbol(val.ok_value, ":void-value")) {
       continue;
     }
@@ -44,7 +49,9 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, datum **compdata, size_t *bp, datum **builder_compdata) {
+LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p,
+                          datum **compdata, size_t *bp,
+                          datum **builder_compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(e);
   }
@@ -55,7 +62,8 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
 
     for (datum *rest = e; !datum_is_nil(rest); rest = rest->list_tail) {
       datum *x = rest->list_head;
-      fdatum nxt = datum_expand(x, sl, routine, p, compdata, bp, builder_compdata);
+      fdatum nxt =
+          datum_expand(x, sl, routine, p, compdata, bp, builder_compdata);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
@@ -67,12 +75,13 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p, 
   if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(e->list_tail->list_head, sl, routine, p, compdata, bp, builder_compdata);
+  fdatum exp = datum_expand(e->list_tail->list_head, sl, routine, p, compdata,
+                            bp, builder_compdata);
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  char *err = prog_build(
-                                sl, p, bp, datum_make_list_1(exp.ok_value), compdata, builder_compdata, datum_make_bytestring("c-prelude"));
+  char *err = prog_build(sl, p, bp, datum_make_list_1(exp.ok_value), compdata,
+                         builder_compdata, datum_make_bytestring("c-prelude"));
   if (err != NULL) {
     char *err2 = malloc(256);
     err2[0] = 0;

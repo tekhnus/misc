@@ -1,8 +1,8 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #define LOCAL static
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);

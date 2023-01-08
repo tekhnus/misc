@@ -2,8 +2,8 @@
 #include <extern.h>
 #if INTERFACE
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
@@ -42,9 +42,7 @@ EXPORT bool datum_is_bytestring(datum *e) {
   return e->type == DATUM_BYTESTRING;
 }
 
-EXPORT bool datum_is_frame(datum *e) {
-  return e->type == DATUM_FRAME;
-}
+EXPORT bool datum_is_frame(datum *e) { return e->type == DATUM_FRAME; }
 
 EXPORT datum *datum_make_nil() {
   datum *e = malloc(sizeof(datum));
@@ -73,15 +71,13 @@ EXPORT datum *datum_make_list_3(datum *head, datum *second, datum *third) {
 }
 
 EXPORT datum *datum_make_list_4(datum *head, datum *second, datum *third,
-                         datum *fourth) {
+                                datum *fourth) {
   return datum_make_list(
-      head,
-      datum_make_list(
-                      second, datum_make_list_2(third, fourth)));
+      head, datum_make_list(second, datum_make_list_2(third, fourth)));
 }
 
 EXPORT datum *datum_make_list_5(datum *head, datum *second, datum *third,
-                         datum *fourth, datum *fifth) {
+                                datum *fourth, datum *fifth) {
   return datum_make_list(
       head,
       datum_make_list(
@@ -90,17 +86,22 @@ EXPORT datum *datum_make_list_5(datum *head, datum *second, datum *third,
 
 EXPORT datum *datum_make_list_6(datum *head, datum *second, datum *third,
                                 datum *fourth, datum *fifth, datum *sixth) {
-  return datum_make_list(head, datum_make_list_5(second, third, fourth, fifth, sixth));
+  return datum_make_list(
+      head, datum_make_list_5(second, third, fourth, fifth, sixth));
 }
 
 EXPORT datum *datum_make_list_7(datum *head, datum *second, datum *third,
-                                datum *fourth, datum *fifth, datum *sixth, datum *seventh) {
-  return datum_make_list(head, datum_make_list_6(second, third, fourth, fifth, sixth, seventh));
+                                datum *fourth, datum *fifth, datum *sixth,
+                                datum *seventh) {
+  return datum_make_list(
+      head, datum_make_list_6(second, third, fourth, fifth, sixth, seventh));
 }
 
 EXPORT datum *datum_make_list_8(datum *head, datum *second, datum *third,
-                                datum *fourth, datum *fifth, datum *sixth, datum *seventh, datum *eigth) {
-  return datum_make_list(head, datum_make_list_7(second, third, fourth, fifth, sixth, seventh, eigth));
+                                datum *fourth, datum *fifth, datum *sixth,
+                                datum *seventh, datum *eigth) {
+  return datum_make_list(head, datum_make_list_7(second, third, fourth, fifth,
+                                                 sixth, seventh, eigth));
 }
 
 EXPORT datum *datum_make_symbol(char *name) {
@@ -132,9 +133,7 @@ EXPORT datum *datum_make_int(int64_t value) {
   return e;
 }
 
-EXPORT char *datum_repr(datum *e) {
-  return datum_repr_bounded(e, 8);
-}
+EXPORT char *datum_repr(datum *e) { return datum_repr_bounded(e, 8); }
 
 EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
   char *buf = malloc(1024 * sizeof(char));
@@ -146,7 +145,8 @@ EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
   } else if (datum_is_list(e)) {
     end += sprintf(end, "(");
     for (datum *item = e; !datum_is_nil(item); item = item->list_tail) {
-      end += sprintf(end, "%s ", datum_repr_bounded(item->list_head, depth - 1));
+      end +=
+          sprintf(end, "%s ", datum_repr_bounded(item->list_head, depth - 1));
     }
     end += sprintf(end, ")");
   } else if (datum_is_symbol(e)) {
@@ -184,7 +184,8 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
   if (fdatum_is_panic(val)) {
     return val;
   }
-  return fdatum_make_ok(datum_make_list_1(datum_make_int((int64_t)val.ok_value)));
+  return fdatum_make_ok(
+      datum_make_list_1(datum_make_int((int64_t)val.ok_value)));
 }
 
 fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
@@ -206,7 +207,8 @@ fdatum fdatum_get_panic_message(datum *args) { // used in lisp
   if (!fdatum_is_panic(val)) {
     return fdatum_make_panic("fdatum_get_panic_message expected a panic");
   }
-  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(val.panic_message)));
+  return fdatum_make_ok(
+      datum_make_list_1(datum_make_bytestring(val.panic_message)));
 }
 
 EXPORT bool datum_eq(datum *x, datum *y) {
@@ -266,7 +268,8 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
 }
 
 EXPORT void prog_slice_extend(prog_slice *s, datum *instructions) {
-  for (datum *rest = instructions; !datum_is_nil(rest); rest = rest->list_tail) {
+  for (datum *rest = instructions; !datum_is_nil(rest);
+       rest = rest->list_tail) {
     datum *i = rest->list_head;
     size_t index = prog_slice_append_new(s);
     *prog_slice_datum_at(*s, index) = *i;

@@ -14,7 +14,9 @@ EXPORT bool read_result_is_panic(read_result x) {
   return x.type == READ_RESULT_PANIC;
 }
 
-LOCAL bool read_result_is_eof(read_result x) { return x.type == READ_RESULT_EOF; }
+LOCAL bool read_result_is_eof(read_result x) {
+  return x.type == READ_RESULT_EOF;
+}
 
 EXPORT bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
@@ -43,7 +45,8 @@ LOCAL read_result read_result_make_right_paren(void) {
 LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
 LOCAL bool is_allowed_inside_symbol(char c) {
-  return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' || c == '+' || c == '/';
+  return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' ||
+         c == '+' || c == '/';
 }
 
 LOCAL bool consume_control_sequence(char c, datum **form) {

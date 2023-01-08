@@ -31,13 +31,15 @@ fdatum builtin_annotate(datum *args) {
   } else {
     return fdatum_make_panic("incomplete implementation of type");
   }
-  return fdatum_make_ok(datum_make_list_1(datum_make_list_2(datum_make_symbol(type), arg_value)));
+  return fdatum_make_ok(
+      datum_make_list_1(datum_make_list_2(datum_make_symbol(type), arg_value)));
 }
 
 fdatum builtin_is_constant(datum *args) {
   datum *arg_value = list_at(args, 0);
   if (datum_is_constant(arg_value)) {
-    return fdatum_make_ok(datum_make_list_1(datum_make_list_1(datum_make_nil())));
+    return fdatum_make_ok(
+        datum_make_list_1(datum_make_list_1(datum_make_nil())));
   }
   return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
 }
@@ -49,7 +51,8 @@ fdatum builtin_panic(datum *args) {
 
 fdatum builtin_repr(datum *args) {
   datum *v = list_at(args, 0);
-  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(datum_repr(v))));
+  return fdatum_make_ok(
+      datum_make_list_1(datum_make_bytestring(datum_repr(v))));
 }
 
 fdatum builtin_concat_bytestrings(datum *args) {
@@ -72,7 +75,8 @@ fdatum builtin_add(datum *args) {
   if (!datum_is_integer(x) || !datum_is_integer(y)) {
     return fdatum_make_panic("expected integers");
   }
-  return fdatum_make_ok(datum_make_list_1(datum_make_int(x->integer_value + y->integer_value)));
+  return fdatum_make_ok(
+      datum_make_list_1(datum_make_int(x->integer_value + y->integer_value)));
 }
 
 fdatum builtin_cons(datum *args) {

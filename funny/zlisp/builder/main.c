@@ -4,10 +4,10 @@
 #include <zlisp/host-ffi.h>
 #endif
 #include <main.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 int main(int argc, char **argv) {
   if (argc != 3) {
@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
   datum *compdata = compdata_make();
   datum *builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
-  char *err = prog_build(&sl, &p, &bp, src.ok_value, &compdata, &builder_compdata, datum_make_bytestring(argv[1]));
+  char *err = prog_build(&sl, &p, &bp, src.ok_value, &compdata,
+                         &builder_compdata, datum_make_bytestring(argv[1]));
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -47,20 +48,26 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return datum_make_bytestring("c-prelude");
 }
 
-EXPORT char *prog_build(prog_slice *sl, size_t *p, size_t *bp, datum *source, datum **compdata, datum **builder_compdata, datum *settings) {
-  fdatum bytecode = prog_compile(source, compdata, datum_make_list_1(datum_make_symbol("main")));
+EXPORT char *prog_build(prog_slice *sl, size_t *p, size_t *bp, datum *source,
+                        datum **compdata, datum **builder_compdata,
+                        datum *settings) {
+  fdatum bytecode = prog_compile(source, compdata,
+                                 datum_make_list_1(datum_make_symbol("main")));
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
-  prog_append_nop(sl, p, datum_make_symbol("this_is_so_that_relocation_is_possible"));
+  prog_append_nop(sl, p,
+                  datum_make_symbol("this_is_so_that_relocation_is_possible"));
   size_t start_p = *p;
   char *res = prog_slice_relocate(sl, p, bytecode.ok_value);
   if (res != NULL) {
     return res;
   }
   int yield_count = compdata_has_value(*compdata) ? 1 : 0;
-  prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0, datum_make_nil(), compdata);
-  return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module, settings);
+  prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0,
+                    datum_make_nil(), compdata);
+  return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
+                        settings);
 }
 
 LOCAL fdatum compile_module(char *module, datum *settings) {
@@ -76,7 +83,8 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum *compdata = compdata_make();
-  return prog_compile(src.ok_value, &compdata, datum_make_list_1(datum_make_symbol(module)));
+  return prog_compile(src.ok_value, &compdata,
+                      datum_make_list_1(datum_make_symbol(module)));
 }
 
 LOCAL char *module_to_filename(char *module) {
@@ -92,4 +100,3 @@ LOCAL char *module_to_filename(char *module) {
   strcat(fname, "/main.lisp");
   return fname;
 }
-
