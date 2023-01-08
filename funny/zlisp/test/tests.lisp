@@ -92,14 +92,14 @@
 !(#testing/fntest
   (progn
     (defn far-fib () (progn
-                       (^return 3)
-                       (^return 5)
+                       (return @hat 3)
+                       (return @hat 5)
                        (return 8)))
 
     (defn more-far-fib () (progn
                             (def x (far-fib))
-                            (^return x)
-                            (^return 13)))
+                            (return @hat x)
+                            (return @hat 13)))
 
     (def (x) (@^more-far-fib))
     (def (y) (@^more-far-fib '()))

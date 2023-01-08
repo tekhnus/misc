@@ -43,6 +43,7 @@ fdatum routine_run_with_handler(prog_slice sl,datum **r0d,fdatum(*yield_handler)
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make(ptrdiff_t prg);
+LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 datum *compdata_get_shape(datum *compdata);
 int compdata_get_top_index(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
@@ -57,7 +58,6 @@ datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
-LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,datum *info);
 LOCAL datum *compdata_start_new_section(datum *compdata);

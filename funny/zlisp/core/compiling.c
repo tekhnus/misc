@@ -158,9 +158,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     compdata_give_names(datum_make_list_of(1, name), compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "return") ||
-      datum_is_the_symbol_pair(op, "hat", "return")) {
-    bool hat = datum_is_the_symbol_pair(op, "hat", "return");
+  if (datum_is_the_symbol(op, "return")) {
+    datum *target = NULL;
     size_t recieve_count = 1;
     datum *rest_args = stmt->list_tail;
     while (!datum_is_nil(rest_args)) {
@@ -172,6 +171,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
       datum *content = list_at(tag, 1);
       if (datum_is_integer(content)) {
         recieve_count = content->integer_value;
+        rest_args = rest_args->list_tail;
+      } else if (target == NULL) {
+        target = content;
         rest_args = rest_args->list_tail;
       } else {
         return "unknown return tag";
@@ -185,8 +187,11 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
         return err;
       }
     }
+    if (target == NULL) {
+      target = datum_make_symbol("plain");
+    }
     prog_append_yield(
-        sl, begin, hat ? datum_make_symbol("hat") : datum_make_symbol("plain"),
+        sl, begin, target,
         list_length(rest_args), recieve_count, datum_make_nil(), compdata);
     return NULL;
   }
