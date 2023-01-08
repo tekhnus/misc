@@ -105,6 +105,30 @@ EXPORT fdatum routine_run_with_handler(prog_slice sl, datum **r0d,
       result = list_at(rerr.ok_value, 1);
       break;
     }
+    if (datum_is_list(yield_type) && list_length(yield_type) == 2 && datum_is_the_symbol(list_at(yield_type, 0), "compdata-debug")) {
+      datum *compdata = list_at(yield_type, 1);
+      datum *compdata_shape = compdata_get_shape(compdata);
+      routine *rt = r;
+      routine *ch;
+      while ((ch = get_child(sl, rt)) != NULL) {
+        rt = ch;
+      }
+      datum *state_shape = routine_get_shape(rt);
+      if (list_length(compdata_shape) != list_length(state_shape)) {
+        fprintf(stderr, "compdata mismatch: %s != %s\n",
+                datum_repr(compdata_shape), datum_repr(state_shape));
+        // exit(EXIT_FAILURE);
+      }
+      int len = list_length(compdata_shape);
+      if (!datum_eq(list_at(compdata_shape, len - 1),
+                    list_at(state_shape, len - 1))) {
+        fprintf(stderr, "compdata mismatch: %s != %s\n",
+                datum_repr(compdata_shape), datum_repr(state_shape));
+        // exit(EXIT_FAILURE);
+      }
+      args = datum_make_nil();
+      continue;
+    }
     if (!datum_is_list(yield_type) ||
         !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
       return fdatum_make_panic("execution stopped at wrong place");
@@ -193,29 +217,6 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_NOP) {
-      if (datum_is_list(prg.nop_info) && list_length(prg.nop_info) == 2 &&
-          datum_is_symbol(prg.nop_info->list_head)) {
-        if (datum_is_the_symbol(prg.nop_info->list_head, "compdata")) {
-          datum *compdata = prg.nop_info->list_tail->list_head;
-          datum *compdata_shape = compdata_get_shape(compdata);
-          datum *state_shape = routine_get_shape(r);
-          if (list_length(compdata_shape) != list_length(state_shape)) {
-            fprintf(stderr, "compdata mismatch: %s != %s\n",
-                    datum_repr(compdata_shape), datum_repr(state_shape));
-            exit(EXIT_FAILURE);
-          }
-          int len = list_length(compdata_shape);
-          if (!datum_eq(list_at(compdata_shape, len - 1),
-                        list_at(state_shape, len - 1))) {
-            fprintf(stderr, "compdata mismatch: %s != %s\n",
-                    datum_repr(compdata_shape), datum_repr(state_shape));
-            exit(EXIT_FAILURE);
-          }
-        }
-      }
-      if (datum_is_the_symbol(prg.nop_info, "recieve")) {
-        return fdatum_make_panic("nop-reciever");
-      }
       *routine_offset(r) = prg.nop_next;
       continue;
     }
@@ -317,12 +318,6 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   if (!datum_is_nil(prg.call_subfn_index)) {
     child = routine_merge(child, get_routine_from_datum(state_stack_at_poly(
                                          r, prg.call_subfn_index)));
-  }
-  prog child_prg =
-      datum_to_prog(prog_slice_datum_at(sl, *routine_offset(child)));
-  if (child_prg.type == PROG_YIELD) {
-    // it's not currently being called
-    return NULL;
   }
   return child;
 }

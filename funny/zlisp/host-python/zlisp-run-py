@@ -225,6 +225,12 @@ def main():
                 else:
                     raise RuntimeError(f"host not implemented: {instruction}")
                 ip = nex
+            elif (
+                isinstance(target, list)
+                and len(target) == 2
+                and target[0] == sexpdata.Symbol("compdata-debug")
+            ):
+                ip = nex
             elif target == sexpdata.Symbol("halt"):
                 break
             else:

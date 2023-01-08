@@ -8,18 +8,8 @@
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL size_t routine_get_stack_size(routine *r);
-typedef struct prog_slice prog_slice;
-#include <inttypes.h>
-#include <stdio.h>
 typedef struct datum datum;
-struct prog_slice {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL datum *datum_copy(datum *d);
-LOCAL datum *routine_get_shape(routine *r);
 void state_stack_put(routine *r,datum *value);
 LOCAL size_t routine_get_count(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
@@ -30,6 +20,16 @@ datum *state_stack_at_poly(routine *r,datum *offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+LOCAL datum *routine_get_shape(routine *r);
+typedef struct prog_slice prog_slice;
+#include <inttypes.h>
+#include <stdio.h>
+struct prog_slice {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+LOCAL routine *get_child(prog_slice sl,routine *r);
 LOCAL void print_backtrace(prog_slice sl,routine *r);
 typedef struct fdatum fdatum;
 struct fdatum {
@@ -56,7 +56,6 @@ void prog_append_call(prog_slice *sl,size_t *begin,datum *fn_index,datum *subfn_
 datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
 LOCAL char *prog_append_backquoted_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata);
-void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_put_prog(prog_slice *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL char *prog_init_routine(prog_slice *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,datum *info);
 LOCAL datum *compdata_start_new_section(datum *compdata);
@@ -67,6 +66,7 @@ LOCAL datum *compdata_del(datum *compdata);
 LOCAL char *prog_append_exports(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 LOCAL char *prog_append_usages(prog_slice *sl,size_t *begin,datum *spec,datum **compdata);
 void prog_append_put_var(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
+void prog_append_yield(prog_slice *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 LOCAL void prog_append_put_const(prog_slice *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL char *prog_append_statement(prog_slice *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
 void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);

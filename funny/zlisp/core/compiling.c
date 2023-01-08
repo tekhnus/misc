@@ -38,8 +38,8 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
-    prog_append_nop(
-        sl, begin, datum_make_list_of(2, datum_make_symbol("compdata"), *compdata));
+    prog_append_yield(
+                      sl, begin, datum_make_list_of(2, datum_make_symbol("compdata-debug"), *compdata), 0, 0, datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
