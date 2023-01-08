@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 typedef struct datum datum;
 bool datum_is_the_symbol(datum *d,char *val);
 int list_length(datum *seq);
@@ -13,6 +14,7 @@ bool datum_is_bytestring(datum *e);
 bool datum_is_frame(datum *e);
 datum *datum_make_nil();
 datum *datum_make_list(datum *head,datum *tail);
+datum *datum_make_list_impl(size_t count,...);
 datum *datum_make_list_1(datum *head);
 datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
@@ -56,6 +57,18 @@ EXPORT datum *datum_make_list(datum *head, datum *tail) {
   e->list_head = head;
   e->list_tail = tail;
   return e;
+}
+
+EXPORT datum *datum_make_list_impl(size_t count, ...) {
+  datum *res = datum_make_nil();
+  va_list args;
+  va_start(args, count);
+  for (size_t i = 0; i < count; ++i) {
+    datum *elem = va_arg(args, datum *);
+    res = list_append(res, elem);
+  }
+  va_end(args);
+  return res;
 }
 
 EXPORT datum *datum_make_list_1(datum *head) {

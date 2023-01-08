@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdarg.h>
 #define LOCAL static
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
@@ -103,7 +104,6 @@ bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 int list_index_of(datum *xs,datum *x);
 datum *list_chop_last(datum *list);
-datum *list_append(datum *list,datum *value);
 datum *prog_slice_to_datum(prog_slice sl);
 size_t prog_slice_length(prog_slice s);
 datum *prog_slice_datum_at(prog_slice s,size_t index);
@@ -132,6 +132,8 @@ datum *datum_make_list_4(datum *head,datum *second,datum *third,datum *fourth);
 datum *datum_make_list_3(datum *head,datum *second,datum *third);
 datum *datum_make_list_2(datum *head,datum *second);
 datum *datum_make_list_1(datum *head);
+datum *list_append(datum *list,datum *value);
+datum *datum_make_list_impl(size_t count,...);
 datum *datum_make_list(datum *head,datum *tail);
 datum *datum_make_nil();
 bool datum_is_frame(datum *e);
