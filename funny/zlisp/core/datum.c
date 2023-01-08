@@ -59,7 +59,7 @@ EXPORT datum *datum_make_list(datum *head, datum *tail) {
   return e;
 }
 
-EXPORT datum *datum_make_list_impl(size_t count, ...) {
+EXPORT datum *datum_make_list_of(size_t count, ...) {
   datum *res = datum_make_nil();
   va_list args;
   va_start(args, count);
@@ -69,52 +69,6 @@ EXPORT datum *datum_make_list_impl(size_t count, ...) {
   }
   va_end(args);
   return res;
-}
-
-EXPORT datum *datum_make_list_1(datum *head) {
-  return datum_make_list(head, datum_make_nil());
-}
-
-EXPORT datum *datum_make_list_2(datum *head, datum *second) {
-  return datum_make_list(head, datum_make_list_1(second));
-}
-
-EXPORT datum *datum_make_list_3(datum *head, datum *second, datum *third) {
-  return datum_make_list(head, datum_make_list_2(second, third));
-}
-
-EXPORT datum *datum_make_list_4(datum *head, datum *second, datum *third,
-                                datum *fourth) {
-  return datum_make_list(
-      head, datum_make_list(second, datum_make_list_2(third, fourth)));
-}
-
-EXPORT datum *datum_make_list_5(datum *head, datum *second, datum *third,
-                                datum *fourth, datum *fifth) {
-  return datum_make_list(
-      head,
-      datum_make_list(
-          second, datum_make_list(third, datum_make_list_2(fourth, fifth))));
-}
-
-EXPORT datum *datum_make_list_6(datum *head, datum *second, datum *third,
-                                datum *fourth, datum *fifth, datum *sixth) {
-  return datum_make_list(
-      head, datum_make_list_5(second, third, fourth, fifth, sixth));
-}
-
-EXPORT datum *datum_make_list_7(datum *head, datum *second, datum *third,
-                                datum *fourth, datum *fifth, datum *sixth,
-                                datum *seventh) {
-  return datum_make_list(
-      head, datum_make_list_6(second, third, fourth, fifth, sixth, seventh));
-}
-
-EXPORT datum *datum_make_list_8(datum *head, datum *second, datum *third,
-                                datum *fourth, datum *fifth, datum *sixth,
-                                datum *seventh, datum *eigth) {
-  return datum_make_list(head, datum_make_list_7(second, third, fourth, fifth,
-                                                 sixth, seventh, eigth));
 }
 
 EXPORT datum *datum_make_symbol(char *name) {
@@ -198,7 +152,7 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
     return val;
   }
   return fdatum_make_ok(
-      datum_make_list_1(datum_make_int((int64_t)val.ok_value)));
+      datum_make_list_of(1, datum_make_int((int64_t)val.ok_value)));
 }
 
 fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
@@ -208,7 +162,7 @@ fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
   }
   datum *val = (datum *)arg->integer_value;
   char *res = datum_repr(val);
-  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(res)));
+  return fdatum_make_ok(datum_make_list_of(1, datum_make_bytestring(res)));
 }
 
 fdatum fdatum_get_panic_message(datum *args) { // used in lisp
@@ -221,7 +175,7 @@ fdatum fdatum_get_panic_message(datum *args) { // used in lisp
     return fdatum_make_panic("fdatum_get_panic_message expected a panic");
   }
   return fdatum_make_ok(
-      datum_make_list_1(datum_make_bytestring(val.panic_message)));
+      datum_make_list_of(1, datum_make_bytestring(val.panic_message)));
 }
 
 EXPORT bool datum_eq(datum *x, datum *y) {
@@ -276,7 +230,7 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
   }
   size_t res = s->length++;
   datum *p = s->begin + res;
-  *p = *datum_make_list_1(datum_make_symbol(":end"));
+  *p = *datum_make_list_of(1, datum_make_symbol(":end"));
   return res;
 }
 
@@ -303,7 +257,7 @@ EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   datum *res = datum_make_nil();
   datum **tail = &res;
   for (size_t i = 0; i < prog_slice_length(sl); ++i) {
-    *tail = datum_make_list_1(prog_slice_datum_at(sl, i));
+    *tail = datum_make_list_of(1, prog_slice_datum_at(sl, i));
     tail = &((*tail)->list_tail);
   }
   return res;
@@ -330,7 +284,7 @@ EXPORT datum *list_tail(datum *list) {
 
 EXPORT datum *list_append(datum *list, datum *value) {
   if (datum_is_nil(list)) {
-    return datum_make_list_1(value);
+    return datum_make_list(value, datum_make_nil());
   }
   return datum_make_list(list->list_head, list_append(list->list_tail, value));
 }

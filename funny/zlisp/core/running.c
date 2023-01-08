@@ -180,7 +180,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
     }
     if (prg.type == PROG_YIELD) {
       datum *res = state_stack_collect(r, prg.yield_count);
-      return fdatum_make_ok(datum_make_list_2(prg.yield_type, res));
+      return fdatum_make_ok(datum_make_list_of(2, prg.yield_type, res));
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);
@@ -358,7 +358,7 @@ LOCAL void print_backtrace_new(prog_slice sl, routine *r) {
       char *meta = "";
       if (datum_is_the_symbol(ins->list_head, ":nop")) {
         meta = datum_repr(ins->list_tail->list_head);
-        ins = datum_make_list_3(datum_make_symbol(":nop"), datum_make_nil(),
+        ins = datum_make_list_of(3, datum_make_symbol(":nop"), datum_make_nil(),
                                 ins->list_tail->list_tail->list_head);
       }
       fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);

@@ -19,7 +19,7 @@ EXPORT void prog_append_call(prog_slice *sl, size_t *begin, datum *fn_index,
                              int arg_count, int return_count,
                              datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_8(
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(8, 
       datum_make_symbol(":call"), fn_index, subfn_index,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next)));
@@ -48,8 +48,8 @@ EXPORT void prog_append_put_var(prog_slice *sl, size_t *begin, datum *val,
     exit(1);
   }
   prog_append_nop(sl, begin,
-                  datum_make_list_2(datum_make_symbol("putting-var"), val));
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(
+                  datum_make_list_of(2, datum_make_symbol("putting-var"), val));
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(3, 
       datum_make_symbol(":put-var"), polyindex, datum_make_int(next)));
   *begin = next;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
@@ -72,7 +72,7 @@ EXPORT void prog_append_put_prog(prog_slice *sl, size_t *begin, size_t val,
                                  int capture, datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) =
-      *(datum_make_list_4(datum_make_symbol(":put-prog"), datum_make_int(val),
+      *(datum_make_list_of(4, datum_make_symbol(":put-prog"), datum_make_int(val),
                           datum_make_int(capture), datum_make_int(next)));
   *begin = next;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
@@ -82,7 +82,7 @@ EXPORT void prog_append_yield(prog_slice *sl, size_t *begin, datum *type,
                               size_t count, size_t recieve_count, datum *meta,
                               datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_6(
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(6, 
       datum_make_symbol(":yield"), type, datum_make_int(count),
       datum_make_int(recieve_count), meta, datum_make_int(next)));
   *begin = next;
@@ -100,7 +100,7 @@ LOCAL char *prog_append_statements(prog_slice *sl, size_t *off, datum *source,
     datum *stmt = rest->list_head;
     if (rest != source) {
       prog_append_nop(sl, off,
-                      datum_make_list_2(datum_make_symbol("info"),
+                      datum_make_list_of(2, datum_make_symbol("info"),
                                         datum_make_list(stmt, info)));
     }
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
@@ -119,7 +119,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_symbol(stmt)) {
     prog_append_nop(
-        sl, begin, datum_make_list_2(datum_make_symbol("compdata"), *compdata));
+        sl, begin, datum_make_list_of(2, datum_make_symbol("compdata"), *compdata));
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -152,7 +152,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
            false_end = prog_slice_append_new(sl);
 
     *prog_slice_datum_at(*sl, *begin) =
-        *datum_make_list_3(datum_make_symbol(":if"), datum_make_int(true_end),
+        *datum_make_list_of(3, datum_make_symbol(":if"), datum_make_int(true_end),
                            datum_make_int(false_end));
     *begin = prog_slice_append_new(sl); // ???
 
@@ -182,7 +182,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
          rest = rest->list_tail) {
       datum *step = rest->list_head;
       prog_append_nop(sl, begin,
-                      datum_make_list_2(datum_make_symbol("info"),
+                      datum_make_list_of(2, datum_make_symbol("info"),
                                         datum_make_list(step, info)));
       char *err = prog_append_statement(sl, begin, step, compdata, info);
       if (err != NULL) {
@@ -212,7 +212,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     if (datum_is_list(stmt->list_tail->list_head)) {
       names = stmt->list_tail->list_head;
     } else {
-      names = datum_make_list_1(stmt->list_tail->list_head);
+      names = datum_make_list_of(1, stmt->list_tail->list_head);
     }
     compdata_give_names(names, compdata);
     return NULL;
@@ -235,7 +235,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
       return err;
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
-    compdata_give_names(datum_make_list_1(name), compdata);
+    compdata_give_names(datum_make_list_of(1, name), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return") ||
@@ -289,7 +289,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
       prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
     }
     prog_append_yield(sl, begin,
-                      datum_make_list_2(datum_make_symbol("host"), name), nargs,
+                      datum_make_list_of(2, datum_make_symbol("host"), name), nargs,
                       1, datum_make_nil(), compdata);
     return NULL;
   }
@@ -423,12 +423,12 @@ LOCAL fdatum prog_read_usages(datum *spec) {
       return fdatum_make_panic("wrong usage spec");
     }
     datum *item_spec = item->list_tail;
-    *vars_tail = datum_make_list_1(item_var);
+    *vars_tail = datum_make_list_of(1, item_var);
     vars_tail = &((*vars_tail)->list_tail);
-    *specs_tail = datum_make_list_1(item_spec);
+    *specs_tail = datum_make_list_of(1, item_spec);
     specs_tail = &((*specs_tail)->list_tail);
   }
-  return fdatum_make_ok(datum_make_list_2(vars, specs));
+  return fdatum_make_ok(datum_make_list_of(2, vars, specs));
 }
 
 LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec,
@@ -509,12 +509,12 @@ LOCAL fdatum prog_read_exports(datum *spec) {
       return fdatum_make_panic("wrong export spec");
     }
     datum *item_expression = item->list_tail->list_head;
-    *names_tail = datum_make_list_1(item_name);
+    *names_tail = datum_make_list_of(1, item_name);
     names_tail = &((*names_tail)->list_tail);
-    *expressions_tail = datum_make_list_1(item_expression);
+    *expressions_tail = datum_make_list_of(1, item_expression);
     expressions_tail = &((*expressions_tail)->list_tail);
   }
-  return fdatum_make_ok(datum_make_list_2(names, expressions));
+  return fdatum_make_ok(datum_make_list_of(2, names, expressions));
 }
 
 LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args,
@@ -525,14 +525,14 @@ LOCAL char *prog_init_routine(prog_slice *sl, size_t s, datum *args,
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
-  prog_append_nop(sl, &s, datum_make_list_2(datum_make_symbol("info"), info));
+  prog_append_nop(sl, &s, datum_make_list_of(2, datum_make_symbol("info"), info));
   return prog_append_statement(sl, &s, stmt, routine_compdata, info);
 }
 
 LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val,
                                  datum **compdata) {
   size_t next = prog_slice_append_new(sl);
-  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_3(
+  *prog_slice_datum_at(*sl, *begin) = *(datum_make_list_of(3, 
       datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
@@ -541,7 +541,7 @@ LOCAL void prog_append_put_const(prog_slice *sl, size_t *begin, datum *val,
 EXPORT void prog_append_nop(prog_slice *sl, size_t *begin, datum *info) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) = *(
-      datum_make_list_3(datum_make_symbol(":nop"), info, datum_make_int(next)));
+      datum_make_list_of(3, datum_make_symbol(":nop"), info, datum_make_int(next)));
   *begin = next;
 }
 
@@ -549,7 +549,7 @@ LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin,
                                datum **compdata) {
   size_t next = prog_slice_append_new(sl);
   *prog_slice_datum_at(*sl, *begin) =
-      *(datum_make_list_3(datum_make_symbol(":collect"), datum_make_int(count),
+      *(datum_make_list_of(3, datum_make_symbol(":collect"), datum_make_int(count),
                           datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
@@ -559,13 +559,13 @@ LOCAL void prog_append_collect(prog_slice *sl, size_t count, size_t *begin,
 }
 
 LOCAL void prog_join(prog_slice *sl, size_t a, size_t b, size_t e) {
-  *prog_slice_datum_at(*sl, a) = *(datum_make_list_3(
+  *prog_slice_datum_at(*sl, a) = *(datum_make_list_of(3, 
       datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
-  *prog_slice_datum_at(*sl, b) = *(datum_make_list_3(
+  *prog_slice_datum_at(*sl, b) = *(datum_make_list_of(3, 
       datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
 }
 
-EXPORT datum *compdata_make() { return datum_make_list_1(datum_make_nil()); }
+EXPORT datum *compdata_make() { return datum_make_list_of(1, datum_make_nil()); }
 
 EXPORT bool compdata_has_value(datum *compdata) {
   compdata_validate(compdata);
@@ -601,7 +601,7 @@ EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
     datum *comp = rest->list_head;
     int idx = list_index_of(comp, var);
     if (idx != -1) {
-      return datum_make_list_2(datum_make_int(frames - 1 - frame),
+      return datum_make_list_of(2, datum_make_int(frames - 1 - frame),
                                datum_make_int(list_length(comp) - 1 - idx));
     }
     ++frame;
@@ -626,7 +626,7 @@ EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
   size_t frames = list_length(compdata);
   size_t indices = list_length(compdata->list_head);
   assert(frames > 0 && indices > 0);
-  return datum_make_list_2(datum_make_int(frames - 1),
+  return datum_make_list_of(2, datum_make_int(frames - 1),
                            datum_make_int(indices - 1));
 }
 

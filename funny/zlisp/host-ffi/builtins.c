@@ -9,12 +9,12 @@
 fdatum builtin_eq(datum *args) {
   datum *x = list_at(args, 0);
   datum *y = list_at(args, 1);
-  datum *t = datum_make_list_1(datum_make_nil());
+  datum *t = datum_make_list_of(1, datum_make_nil());
   datum *f = datum_make_nil();
   if (datum_eq(x, y)) {
-    return fdatum_make_ok(datum_make_list_1(t));
+    return fdatum_make_ok(datum_make_list_of(1, t));
   }
-  return fdatum_make_ok(datum_make_list_1(f));
+  return fdatum_make_ok(datum_make_list_of(1, f));
 }
 
 fdatum builtin_annotate(datum *args) {
@@ -32,16 +32,16 @@ fdatum builtin_annotate(datum *args) {
     return fdatum_make_panic("incomplete implementation of type");
   }
   return fdatum_make_ok(
-      datum_make_list_1(datum_make_list_2(datum_make_symbol(type), arg_value)));
+      datum_make_list_of(1, datum_make_list_of(2, datum_make_symbol(type), arg_value)));
 }
 
 fdatum builtin_is_constant(datum *args) {
   datum *arg_value = list_at(args, 0);
   if (datum_is_constant(arg_value)) {
     return fdatum_make_ok(
-        datum_make_list_1(datum_make_list_1(datum_make_nil())));
+        datum_make_list_of(1, datum_make_list_of(1, datum_make_nil())));
   }
-  return fdatum_make_ok(datum_make_list_1(datum_make_nil()));
+  return fdatum_make_ok(datum_make_list_of(1, datum_make_nil()));
 }
 
 fdatum builtin_panic(datum *args) {
@@ -52,7 +52,7 @@ fdatum builtin_panic(datum *args) {
 fdatum builtin_repr(datum *args) {
   datum *v = list_at(args, 0);
   return fdatum_make_ok(
-      datum_make_list_1(datum_make_bytestring(datum_repr(v))));
+      datum_make_list_of(1, datum_make_bytestring(datum_repr(v))));
 }
 
 fdatum builtin_concat_bytestrings(datum *args) {
@@ -66,7 +66,7 @@ fdatum builtin_concat_bytestrings(datum *args) {
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);
-  return fdatum_make_ok(datum_make_list_1(datum_make_bytestring(buf)));
+  return fdatum_make_ok(datum_make_list_of(1, datum_make_bytestring(buf)));
 }
 
 fdatum builtin_add(datum *args) {
@@ -76,7 +76,7 @@ fdatum builtin_add(datum *args) {
     return fdatum_make_panic("expected integers");
   }
   return fdatum_make_ok(
-      datum_make_list_1(datum_make_int(x->integer_value + y->integer_value)));
+      datum_make_list_of(1, datum_make_int(x->integer_value + y->integer_value)));
 }
 
 fdatum builtin_cons(datum *args) {
@@ -85,7 +85,7 @@ fdatum builtin_cons(datum *args) {
   if (!datum_is_list(tail)) {
     return fdatum_make_panic("cons requires a list as a second argument");
   }
-  return fdatum_make_ok(datum_make_list_1(datum_make_list(head, tail)));
+  return fdatum_make_ok(datum_make_list_of(1, datum_make_list(head, tail)));
 }
 
 fdatum builtin_head(datum *args) {
@@ -93,7 +93,7 @@ fdatum builtin_head(datum *args) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("car expects a nonempty list");
   }
-  return fdatum_make_ok(datum_make_list_1(list->list_head));
+  return fdatum_make_ok(datum_make_list_of(1, list->list_head));
 }
 
 fdatum builtin_tail(datum *args) {
@@ -101,5 +101,5 @@ fdatum builtin_tail(datum *args) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("cdr expects a nonempty list");
   }
-  return fdatum_make_ok(datum_make_list_1(list->list_tail));
+  return fdatum_make_ok(datum_make_list_of(1, list->list_tail));
 }

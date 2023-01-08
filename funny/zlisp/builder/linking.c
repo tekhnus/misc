@@ -25,7 +25,7 @@ EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p,
   if (input_meta == NULL) {
     return NULL;
   }
-  compdata_give_names(datum_make_list_1(datum_make_symbol("__main__")),
+  compdata_give_names(datum_make_list_of(1, datum_make_symbol("__main__")),
                       builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
                               builder_compdata);
@@ -91,20 +91,20 @@ LOCAL datum *offset_relocate(datum *ins, size_t delta) {
 
 LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
   if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
-    return datum_make_list_1(list_at(ins, 0));
+    return datum_make_list_of(1, list_at(ins, 0));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
-    return datum_make_list_3(list_at(ins, 0),
+    return datum_make_list_of(3, list_at(ins, 0),
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return datum_make_list_4(
+    return datum_make_list_of(4, 
         list_at(ins, 0), offset_relocate(list_at(ins, 1), delta),
         list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return datum_make_list_3(list_at(ins, 0),
+    return datum_make_list_of(3, list_at(ins, 0),
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
@@ -182,12 +182,12 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym,
                    list_length(syms), compdata);
   datum *names = datum_make_nil();
   names = list_append(names,
-                      datum_make_symbol(get_varname(datum_make_list_1(dep))));
+                      datum_make_symbol(get_varname(datum_make_list_of(1, dep))));
   for (datum *rest_syms = syms; !datum_is_nil(rest_syms);
        rest_syms = rest_syms->list_tail) {
     datum *sym = rest_syms->list_head;
     names = list_append(
-        names, datum_make_symbol(get_varname(datum_make_list_2(dep, sym))));
+        names, datum_make_symbol(get_varname(datum_make_list_of(2, dep, sym))));
   }
   compdata_give_names(names, compdata);
   return NULL;

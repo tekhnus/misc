@@ -159,7 +159,7 @@ LOCAL struct token token_read(FILE *strm) {
     if (c == 0) {
       sym = datum_make_symbol(nm[0]);
     } else {
-      sym = datum_make_list_1(datum_make_symbol("polysym"));
+      sym = datum_make_list_of(1, datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
         sym = list_append(sym, datum_make_symbol(nm[cc]));
       }
@@ -216,7 +216,7 @@ EXPORT read_result datum_read(FILE *strm) {
     datum **end_marker = &list;
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
-        *end_marker = datum_make_list_1(elem.ok_value);
+        *end_marker = datum_make_list_of(1, elem.ok_value);
         end_marker = &((*end_marker)->list_tail);
       }
       if (read_result_is_right_paren(elem)) {
@@ -239,8 +239,8 @@ EXPORT read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum *res = datum_make_list_1(tok.control_sequence_symbol);
-    res->list_tail = datum_make_list_1(v.ok_value);
+    datum *res = datum_make_list_of(1, tok.control_sequence_symbol);
+    res->list_tail = datum_make_list_of(1, v.ok_value);
     return read_result_make_ok(res);
   }
   return read_result_make_panic("unhandled token type");
@@ -257,5 +257,5 @@ fdatum datum_read_one(FILE *stre) { // used in lisp
   if (read_result_is_eof(rr)) {
     return fdatum_make_panic("eof");
   }
-  return fdatum_make_ok(datum_make_list_1(rr.ok_value));
+  return fdatum_make_ok(datum_make_list_of(1, rr.ok_value));
 }
