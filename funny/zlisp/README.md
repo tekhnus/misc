@@ -1,4 +1,4 @@
-##### About
+### About
 
 This is a playground where I'm experimenting with programming language design
 by creating a small lisp-like language.
@@ -23,7 +23,7 @@ functions via FFI) and host-python (written in Python, allows to call Python).
 
 **It's barely usable.**
 
-##### Stuff to be done yet
+### Stuff to be done yet
 
 - Implement loops and/or tail recursive calls
 - Implement a way to intercept arbitrary yields from called routine, i.e. host calls
@@ -43,7 +43,7 @@ functions via FFI) and host-python (written in Python, allows to call Python).
 - Try hosting by a compiled language
 - Try hosting by a constrained environment like bare metal or shader
 
-##### Building and running
+### Building and running
 
 Mandatory requirements: C compiler and cmake.
 Optional requirements: Python 3 with some libraries (`pip install -r requirements.txt`).
@@ -58,7 +58,7 @@ After this one can run the repl:
 LD_LIBRARY_PATH=./build/builder ./build/host-ffi/zlisp-run <(ZLISP=./module ./build/builder/zlisp-build c-prelude module/cli/main.lisp)
 ```
 
-##### Project structure
+### Project structure
 
 ```
 core/
