@@ -25,8 +25,8 @@
 (def panics '())
 
 !(#testing/fntest
- (return "hello, world!")
- "hello, world!")
+  (return "hello, world!")
+  "hello, world!")
 
 !(#testing/fntest
   (return (std/+ 4 3))
@@ -64,24 +64,24 @@
 !(#testing/fntest
   (progn
     (defn adderf (n)
-                   (progn
-                     (def m (return :ready))
-                     (return (std/+ n m))))
+      (progn
+        (def m (return :ready))
+        (return (std/+ n m))))
     (defn adder (n)
-                   (progn
-                     (def a adderf)
-                     (@a n)
-                     (return a)))
+      (progn
+        (def a adderf)
+        (@a n)
+        (return a)))
     (return ((adder 3) 4)))
   7)
 
 !(#testing/fntest
   (progn
     (defn fib () (progn
-       (return 3)
-       (return 5)
-       (return 8)
-       (return 13)))
+                   (return 3)
+                   (return 5)
+                   (return 8)
+                   (return 13)))
     (def (x) (@fib))
     (def (y) (@fib '()))
     (def (z) (@fib '()))
@@ -92,14 +92,14 @@
 !(#testing/fntest
   (progn
     (defn far-fib () (progn
-       (^return 3)
-       (^return 5)
-       (return 8)))
+                       (^return 3)
+                       (^return 5)
+                       (return 8)))
 
     (defn more-far-fib () (progn
-       (def x (far-fib))
-       (^return x)
-       (^return 13)))
+                            (def x (far-fib))
+                            (^return x)
+                            (^return 13)))
 
     (def (x) (@^more-far-fib))
     (def (y) (@^more-far-fib '()))
@@ -123,38 +123,38 @@
   '(42 34))
 
 !(#testing/fntest
-           (progn
-             (defn foo (x) (progn
-                            (def y (return (std/+ x 1)))
-                            (def (z t) (return @2 (std/+ y 1)))
-                            (return :done)))
-             (def fee foo)
-             (def a (@fee 41))
-             (def b (@fee 33))
-             (def c (@fee 14 15))
-             (return `(~a ~b ~c)))
-           '(42 34 :done))
+  (progn
+    (defn foo (x) (progn
+                    (def y (return (std/+ x 1)))
+                    (def (z t) (return @2 (std/+ y 1)))
+                    (return :done)))
+    (def fee foo)
+    (def a (@fee 41))
+    (def b (@fee 33))
+    (def c (@fee 14 15))
+    (return `(~a ~b ~c)))
+  '(42 34 :done))
 
 !(#testing/fntest
   (progn
     (defn cl-holder (x xs) (progn
-                                    (return :nothing)
-                                    (return x xs)))
+                             (return :nothing)
+                             (return x xs)))
 
     (defn cl-cons (x xs) (progn
-                                    (def holder cl-holder)
-                                    (@holder x xs)
-                                    (return holder)))
+                           (def holder cl-holder)
+                           (@holder x xs)
+                           (return holder)))
 
     (defn cl-head (xs)
-                  (progn
-                    (def (h r) (xs @2 :nuthing))
-                    (return h)))
+      (progn
+        (def (h r) (xs @2 :nuthing))
+        (return h)))
 
     (defn cl-tail (xs)
-                  (progn
-                    (def (h r) (xs @2 :nuthin))
-                    (return r)))
+      (progn
+        (def (h r) (xs @2 :nuthin))
+        (return r)))
 
     (def cl-nil :nil)
 
@@ -177,11 +177,11 @@
 !(#testing/fntest
   (progn
     (defn fff ()
-                   (progn
-                     (def x 2)
-                     (defn ggg ()
-                                    (return (std/+ x 40)))
-                     (return ggg)))
+      (progn
+        (def x 2)
+        (defn ggg ()
+          (return (std/+ x 40)))
+        (return ggg)))
     (def ggg-in-fff (@fff))
     (return (fff/ggg-in-fff)))
   42)
@@ -193,12 +193,12 @@
   33)
 
 (defn print-all (xs)
-   (if xs
-       (progn
-         (libc/print (std/head xs))
-         (print-all (std/tail xs))
-         (return '()))
-     (return '())))
+  (if xs
+      (progn
+        (libc/print (std/head xs))
+        (print-all (std/tail xs))
+        (return '()))
+    (return '())))
 
 (if panics
     (progn

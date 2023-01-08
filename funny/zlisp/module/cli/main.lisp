@@ -38,27 +38,27 @@
 (defn repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
-  (def tmp (prelude/fprintf stdout "> "))
-  !(#stdmacro/switchx2 (zlisp/rd stdin) (
-	  ((:eof)
-	   (return (prelude/fprintf stdout "\n")))
-	  ((:ok datum)
-           (def maybe-prog (zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
-           !(#stdmacro/switchx2 maybe-prog (
-                      ((:ok progxxx)
-                       !(#stdmacro/switchx2 (zlisp/eval-new sl nsp) (
-		                  ((:ok val ctxt)
-		                   !(#ignore (prelude/fprintf-bytestring stdout "%s\n" (zlisp/repr-pointer val)))
-		                   (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
-		                  ((:err msg)
-		                   !(#ignore (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
-		                   (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
-                      ((:err msg)
-                       !(#ignore (prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
-                       (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
-	  ((:err msg)
-	   !(#ignore (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
-	   (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
+    (def tmp (prelude/fprintf stdout "> "))
+    !(#stdmacro/switchx2 (zlisp/rd stdin) (
+	                                   ((:eof)
+	                                    (return (prelude/fprintf stdout "\n")))
+	                                   ((:ok datum)
+                                            (def maybe-prog (zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
+                                            !(#stdmacro/switchx2 maybe-prog (
+                                                                             ((:ok progxxx)
+                                                                              !(#stdmacro/switchx2 (zlisp/eval-new sl nsp) (
+		                                                                                                            ((:ok val ctxt)
+		                                                                                                             !(#ignore (prelude/fprintf-bytestring stdout "%s\n" (zlisp/repr-pointer val)))
+		                                                                                                             (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
+		                                                                                                            ((:err msg)
+		                                                                                                             !(#ignore (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
+		                                                                                                             (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+                                                                             ((:err msg)
+                                                                              !(#ignore (prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
+                                                                              (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+	                                   ((:err msg)
+	                                    !(#ignore (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
+	                                    (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
 (def sl (prelude/psm 20000))
 (def pptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))

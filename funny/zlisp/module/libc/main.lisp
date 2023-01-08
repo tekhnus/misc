@@ -12,8 +12,8 @@
  (first-good-value "std" first-good-value))
 
 (def libc (std/first-good-value `(
-  ~(prelude/shared-library "libc.so.6")
-  ~(prelude/shared-library "libSystem.B.dylib"))))
+                                  ~(prelude/shared-library "libc.so.6")
+                                  ~(prelude/shared-library "libSystem.B.dylib"))))
 
 (def malloc (prelude/c-function-or-panic-new libc "malloc" '((sizet) pointer)))
 (def fopen (prelude/c-function-or-panic-new libc "fopen" '((string string) pointer)))
@@ -24,16 +24,16 @@
 (def printfptr (prelude/c-function-or-panic-new libc "printf" '((string pointer) sizet)))
 
 (def stdin (std/first-good-value `(
-  ~(prelude/extern-pointer libc "stdin" 'pointer)
-  ~(prelude/extern-pointer libc "__stdinp" 'pointer))))
+                                   ~(prelude/extern-pointer libc "stdin" 'pointer)
+                                   ~(prelude/extern-pointer libc "__stdinp" 'pointer))))
 
 (def stdout (std/first-good-value `(
-  ~(prelude/extern-pointer libc "stdout" 'pointer)
-  ~(prelude/extern-pointer libc "__stdoutp" 'pointer))))
+                                    ~(prelude/extern-pointer libc "stdout" 'pointer)
+                                    ~(prelude/extern-pointer libc "__stdoutp" 'pointer))))
 
 (def stderr (std/first-good-value `(
-  ~(prelude/extern-pointer libc "stderr" 'pointer)
-  ~(prelude/extern-pointer libc "__stderrp" 'pointer))))
+                                    ~(prelude/extern-pointer libc "stderr" 'pointer)
+                                    ~(prelude/extern-pointer libc "__stderrp" 'pointer))))
 
 (defn print (val)
   (return (prelude/fprintf-bytestring stdout "%s\n" (std/repr val))))
