@@ -221,7 +221,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
 
   datum *fn = stmt->list_head;
   bool hash = false;
-  bool hat = false;
+  datum *target = NULL;
   bool at = false;
   size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
@@ -230,8 +230,6 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     char *tag = fn->list_head->symbol_value;
     if (!strcmp(tag, "hash")) {
       hash = true;
-    } else if (!strcmp(tag, "hat")) {
-      hat = true;
     } else if (!strcmp(tag, "at")) {
       at = true;
     } else {
@@ -259,6 +257,9 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     datum *content = list_at(tag, 1);
     if (datum_is_integer(content)) {
       ret_count = content->integer_value;
+      rest_args = rest_args->list_tail;
+    } else if (target == NULL) {
+      target = content;
       rest_args = rest_args->list_tail;
     } else {
       return "unknown tag";
@@ -306,8 +307,11 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
       }
     }
   }
+  if (target == NULL) {
+    target = datum_make_symbol("plain");
+  }
   prog_append_call(sl, begin, fn_index, subfn_index, !at,
-                   hat ? datum_make_symbol("hat") : datum_make_symbol("plain"),
+                   target,
                    arg_count, ret_count, compdata);
   return NULL;
 }
@@ -642,10 +646,4 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
   for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
     *compdata = compdata_put(*compdata, rest->list_head);
   }
-}
-
-LOCAL bool datum_is_the_symbol_pair(datum *d, char *val1, char *val2) {
-  return datum_is_list(d) && list_length(d) == 2 &&
-         datum_is_the_symbol(d->list_head, val1) &&
-         datum_is_the_symbol(d->list_tail->list_head, val2);
 }

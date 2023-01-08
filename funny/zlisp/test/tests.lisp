@@ -101,10 +101,10 @@
                             (return @hat x)
                             (return @hat 13)))
 
-    (def (x) (@^more-far-fib))
-    (def (y) (@^more-far-fib '()))
-    (def (z) (@^more-far-fib '()))
-    (def (t) (@^more-far-fib '()))
+    (def (x) (@more-far-fib @hat))
+    (def (y) (@more-far-fib @hat '()))
+    (def (z) (@more-far-fib @hat '()))
+    (def (t) (@more-far-fib @hat '()))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 

@@ -43,7 +43,6 @@ fdatum routine_run_with_handler(prog_slice sl,datum **r0d,fdatum(*yield_handler)
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 datum *routine_make(ptrdiff_t prg);
-LOCAL bool datum_is_the_symbol_pair(datum *d,char *val1,char *val2);
 datum *compdata_get_shape(datum *compdata);
 int compdata_get_top_index(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
