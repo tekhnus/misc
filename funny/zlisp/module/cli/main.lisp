@@ -1,7 +1,7 @@
 (req
  (prelude "prelude")
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
- (derefw2 "prelude" derefw2)
+ (dereference "prelude" dereference)
  (std "std")
  (decons-pat "std" decons-pat)
  (eq "std" eq)
@@ -31,7 +31,7 @@
 
 !(req
   (stdmacro "stdmacro")
-  (switchx2 "stdmacro" switch))
+  (switch "stdmacro" switch))
 
 (def readme "A basic REPL for zlisp.")
 
@@ -39,31 +39,36 @@
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
     (def tmp (prelude/fprintf stdout "> "))
-    !(#stdmacro/switchx2 (zlisp/rd stdin) (
-	                                   ((:eof)
-	                                    (return (prelude/fprintf stdout "\n")))
-	                                   ((:ok datum)
-                                            (def maybe-prog (zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
-                                            !(#stdmacro/switchx2 maybe-prog (
-                                                                             ((:ok progxxx)
-                                                                              !(#stdmacro/switchx2 (zlisp/eval-new sl nsp) (
-		                                                                                                            ((:ok val ctxt)
-		                                                                                                             !(#ignore (prelude/fprintf-bytestring stdout "%s\n" (zlisp/repr-pointer val)))
-		                                                                                                             (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
-		                                                                                                            ((:err msg)
-		                                                                                                             !(#ignore (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
-		                                                                                                             (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
-                                                                             ((:err msg)
-                                                                              !(#ignore (prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg))
-                                                                              (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
-	                                   ((:err msg)
-	                                    !(#ignore (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
-	                                    (return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
+    !(#stdmacro/switch
+      (zlisp/rd stdin)
+      (((:eof)
+	(return (prelude/fprintf stdout "\n")))
+       ((:ok datum)
+        (def maybe-prog (zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
+        !(#stdmacro/switch
+          maybe-prog
+          (((:ok progxxx)
+            !(#stdmacro/switch
+              (zlisp/eval-new sl nsp)
+              (((:ok val ctxt)
+                !(#ignore (prelude/fprintf-bytestring
+                           stdout "%s\n" (zlisp/repr-pointer val)))
+                (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
+               ((:err msg)
+		!(#ignore (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
+		(return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+           ((:err msg)
+            !(#ignore (prelude/fprintf-bytestring
+                       stderr "compilation error at repl: %s\n" msg))
+            (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+       ((:err msg)
+	!(#ignore (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
+	(return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
 (def sl (prelude/psm 20000))
 (def pptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))
 (def bpptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))
-(def rt (prelude/mres (prelude/derefw2 bpptr 'int64)))
+(def rt (prelude/mres (prelude/dereference bpptr 'int64)))
 (def compdata (prelude/cdm))
 (def bdrcompdata (prelude/cdm))
 (def xxx (zlisp/iprog sl pptr bpptr compdata bdrcompdata))

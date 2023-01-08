@@ -1,10 +1,10 @@
 (req
  (prelude "prelude")
  (shared-library "prelude" shared-library)
- (c-function-or-panic-new "prelude" c-function-or-panic-new)
+ (c-function "prelude" c-function)
  (selflib "prelude" selflib)
  (dlsym "prelude" dlsym)
- (derefw2 "prelude" derefw2)
+ (dereference "prelude" dereference)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
  (std "std")
  (decons-pat "std" decons-pat)
@@ -17,13 +17,13 @@
 (def buildlib (std/first-good-value `(
                                       ~(prelude/shared-library "libzlisp-build-lib.so"))))
 
-(def compdata-make (prelude/c-function-or-panic-new selflib "compdata_make" '(() pointer)))
-(def make-routine-with-empty-state (prelude/c-function-or-panic-new selflib "routine_make" '((sizet) pointer)))
-(def prog-slice-make (prelude/c-function-or-panic-new selflib "prog_slice_make" '((sizet) progslice)))
-(def prog-slice-append-new- (prelude/c-function-or-panic-new selflib "prog_slice_append_new" '((pointer) sizet)))
-(def prog-build-one-c-host (prelude/c-function-or-panic-new buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
-(def prog-build-init (prelude/c-function-or-panic-new buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
-(def get-host-ffi-settings (prelude/c-function-or-panic-new buildlib "get_host_ffi_settings" '(() pointer)))
+(def compdata-make (prelude/c-function selflib "compdata_make" '(() pointer)))
+(def make-routine-with-empty-state (prelude/c-function selflib "routine_make" '((sizet) pointer)))
+(def prog-slice-make (prelude/c-function selflib "prog_slice_make" '((sizet) progslice)))
+(def prog-slice-append-new- (prelude/c-function selflib "prog_slice_append_new" '((pointer) sizet)))
+(def prog-build-one-c-host (prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
+(def prog-build-init (prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
+(def get-host-ffi-settings (prelude/c-function buildlib "get_host_ffi_settings" '(() pointer)))
 
 (defn prog-slice-append-new (sl)
   (return (prelude/prog-slice-append-new- (prelude/wrap-pointer-into-pointer sl))))
@@ -36,22 +36,22 @@
 (defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
   (progn
     (def e (prelude/prog-build-one-c-host (prelude/wrap-pointer-into-pointer sl) (prelude/wrap-pointer-into-pointer pptr) (prelude/wrap-pointer-into-pointer bpptr) (prelude/wrap-pointer-into-pointer src) (prelude/wrap-pointer-into-pointer compdata) (prelude/wrap-pointer-into-pointer bdrcompdata) (prelude/get-host-ffi-settings)))
-    (if (std/eq 0 (prelude/derefw2 e 'int64))
+    (if (std/eq 0 (prelude/dereference e 'int64))
         (return `(:ok :nothing))
-      (return `(:err ~(prelude/derefw2 e 'string))))))
+      (return `(:err ~(prelude/dereference e 'string))))))
 
 
-(def routine-run-and-get-value-c-host-new (prelude/c-function-or-panic-new selflib "routine_run_in_ffi_host" '((progslice pointer) fdatum)))
-(def fdatum-is-panic (prelude/c-function-or-panic-new selflib "fdatum_is_panic" '((fdatum) int)))
+(def routine-run-and-get-value-c-host-new (prelude/c-function selflib "routine_run_in_ffi_host" '((progslice pointer) fdatum)))
+(def fdatum-is-panic (prelude/c-function selflib "fdatum_is_panic" '((fdatum) int)))
 
 (def fdatum-get-value-ptr (prelude/dlsym selflib "fdatum_get_value"))
-(defn fdatum-get-value (x) (return (host "call-extension" (prelude/derefw2 fdatum-get-value-ptr 'int64) x)))
+(defn fdatum-get-value (x) (return (host "call-extension" (prelude/dereference fdatum-get-value-ptr 'int64) x)))
 
 (def fdatum-get-panic-message-ptr (prelude/dlsym selflib "fdatum_get_panic_message"))
-(defn fdatum-get-panic-message (x) (return (host "call-extension" (prelude/derefw2 fdatum-get-panic-message-ptr 'int64) x)))
+(defn fdatum-get-panic-message (x) (return (host "call-extension" (prelude/dereference fdatum-get-panic-message-ptr 'int64) x)))
 
 (def fdatum-repr-datum-pointer-ptr (prelude/dlsym selflib "fdatum_repr_datum_pointer"))
-(defn repr-pointer (x) (return (host "call-extension" (prelude/derefw2 fdatum-repr-datum-pointer-ptr 'int64) x)))
+(defn repr-pointer (x) (return (host "call-extension" (prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)))
 
 (defn eval-new (sl rt0)
   (progn
@@ -63,10 +63,10 @@
           (return `(:err ~msg)))
       (progn
         (def val (fdatum-get-value res))
-        (def new-rt (prelude/derefw2 rt-ptr 'int64))
+        (def new-rt (prelude/dereference rt-ptr 'int64))
         (return `(:ok ~val ~new-rt))))))
 
-(def datum-read-one (prelude/c-function-or-panic-new selflib "datum_read_one" '((pointer) fdatum)))
+(def datum-read-one (prelude/c-function selflib "datum_read_one" '((pointer) fdatum)))
 (defn read (strm)
   (progn
     (def res (prelude/datum-read-one strm))

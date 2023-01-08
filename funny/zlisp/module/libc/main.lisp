@@ -1,7 +1,7 @@
 (req
  (prelude "prelude")
  (shared-library "prelude" shared-library)
- (c-function-or-panic-new "prelude" c-function-or-panic-new)
+ (c-function "prelude" c-function)
  (extern-pointer "prelude" extern-pointer)
  (std "std")
  (decons-pat "std" decons-pat)
@@ -15,13 +15,13 @@
                                   ~(prelude/shared-library "libc.so.6")
                                   ~(prelude/shared-library "libSystem.B.dylib"))))
 
-(def malloc (prelude/c-function-or-panic-new libc "malloc" '((sizet) pointer)))
-(def fopen (prelude/c-function-or-panic-new libc "fopen" '((string string) pointer)))
-(def fread (prelude/c-function-or-panic-new libc "fread" '((pointer sizet sizet pointer) sizet)))
-(def feof (prelude/c-function-or-panic-new libc "feof" '((pointer) int)))
-(def fprintf (prelude/c-function-or-panic-new libc "fprintf" '((pointer string) sizet)))
-(def fprintf-bytestring (prelude/c-function-or-panic-new libc "fprintf" '((pointer string string) sizet)))
-(def printfptr (prelude/c-function-or-panic-new libc "printf" '((string pointer) sizet)))
+(def malloc (prelude/c-function libc "malloc" '((sizet) pointer)))
+(def fopen (prelude/c-function libc "fopen" '((string string) pointer)))
+(def fread (prelude/c-function libc "fread" '((pointer sizet sizet pointer) sizet)))
+(def feof (prelude/c-function libc "feof" '((pointer) int)))
+(def fprintf (prelude/c-function libc "fprintf" '((pointer string) sizet)))
+(def fprintf-bytestring (prelude/c-function libc "fprintf" '((pointer string string) sizet)))
+(def printfptr (prelude/c-function libc "printf" '((string pointer) sizet)))
 
 (def stdin (std/first-good-value `(
                                    ~(prelude/extern-pointer libc "stdin" 'pointer)

@@ -40,7 +40,7 @@
         (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
       (return '()))))
 
-(defn  derefw2 (what how)
+(defn  dereference (what how)
   (progn
     (if (eq how 'pointer)
         (return what)
@@ -56,7 +56,7 @@
     (def rettype (head (tail signature)))
     (def s (serialize-params params fnparamst))
     (def rawres (pointer-call fn-ptr `(~fnparamst ~rettype) s))
-    (return (derefw2 rawres rettype))))
+    (return (dereference rawres rettype))))
 
 (def rtld-lazy (host "RTLD_LAZY" '()))
 
@@ -71,7 +71,7 @@
 (defn c-data-pointer (handle c-name signature)
   (progn
     (def fn-pointer-pointer (dlsym handle c-name))
-    (def fn-pointer (derefw2 fn-pointer-pointer 'int64))
+    (def fn-pointer (dereference fn-pointer-pointer 'int64))
     (return fn-pointer)))    
 
 (defn nth (n xs)
@@ -85,49 +85,49 @@
 (defn get-fn-ptr (handle c-name)
   (progn
     (def fn-pointer-pointer (dlsym handle c-name))
-    (def fn-ptr (derefw2 fn-pointer-pointer 'int64))
+    (def fn-ptr (dereference fn-pointer-pointer 'int64))
     (if (eq fn-ptr 0)
         (panic "couldn't load C function")
       (return fn-ptr))))
-(defn c-function-or-panic-new-0 (fn-ptr signature)
+(defn c-function-0 (fn-ptr signature)
   (progn
     (def () (return @0 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `()))))
-(defn c-function-or-panic-new-1 (fn-ptr signature)
+(defn c-function-1 (fn-ptr signature)
   (progn
     (def (a1) (return @1 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1)))))
-(defn c-function-or-panic-new-2 (fn-ptr signature)
+(defn c-function-2 (fn-ptr signature)
   (progn
     (def (a1 a2) (return @2 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2)))))
-(defn c-function-or-panic-new-3 (fn-ptr signature)
+(defn c-function-3 (fn-ptr signature)
   (progn
     (def (a1 a2 a3) (return @3 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3)))))
-(defn c-function-or-panic-new-4 (fn-ptr signature)
+(defn c-function-4 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4) (return @4 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4)))))
-(defn c-function-or-panic-new-5 (fn-ptr signature)
+(defn c-function-5 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4 a5) (return @5 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))
 
-(defn c-function-or-panic-new-6 (fn-ptr signature)
+(defn c-function-6 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4 a5 a6) (return @6 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6)))))
 
-(defn c-function-or-panic-new-7 (fn-ptr signature)
+(defn c-function-7 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4 a5 a6 a7) (return @7 :ready))
     (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
 
-(defn c-function-or-panic-new (handle c-name signature)
+(defn c-function (handle c-name signature)
   (progn
     (def argssig (head signature))
-    (def objs `( ~c-function-or-panic-new-0 ~c-function-or-panic-new-1 ~c-function-or-panic-new-2 ~c-function-or-panic-new-3 ~c-function-or-panic-new-4 ~c-function-or-panic-new-5 ~c-function-or-panic-new-6 ~c-function-or-panic-new-7))
+    (def objs `( ~c-function-0 ~c-function-1 ~c-function-2 ~c-function-3 ~c-function-4 ~c-function-5 ~c-function-6 ~c-function-7))
     (def obj (nth argssig objs))
     (def fn-ptr (get-fn-ptr handle c-name))
     (@obj fn-ptr signature)
@@ -135,19 +135,19 @@
 
 (def selflib (dlopen-null))
 
-(def annotate-pointer (derefw2 (dlsym selflib "builtin_annotate") 'int64))
+(def annotate-pointer (dereference (dlsym selflib "builtin_annotate") 'int64))
 (defn annotate (x) (return (host "call-extension" annotate-pointer x)))
 
-(def is-constant-pointer (derefw2 (dlsym selflib "builtin_is_constant") 'int64))
+(def is-constant-pointer (dereference (dlsym selflib "builtin_is_constant") 'int64))
 (defn is-constant (x) (return (host "call-extension" is-constant-pointer x)))
 
-(def repr-pointer (derefw2 (dlsym selflib "builtin_repr") 'int64))
+(def repr-pointer (dereference (dlsym selflib "builtin_repr") 'int64))
 (defn repr (x) (return (host "call-extension" repr-pointer x)))
 
-(def concat-bytestrings-pointer (derefw2 (dlsym selflib "builtin_concat_bytestrings") 'int64))
+(def concat-bytestrings-pointer (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64))
 (defn concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
 
-(def +-pointer (derefw2 (dlsym selflib "builtin_add") 'int64))
+(def +-pointer (dereference (dlsym selflib "builtin_add") 'int64))
 (defn + (x y) (return (host "call-extension" +-pointer x y)))
 
 (defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
@@ -155,7 +155,7 @@
 
 (defn shared-library (path) (progn
                               (def r (dlopen path))
-                              (if (eq 0 (derefw2 r 'int64))
+                              (if (eq 0 (dereference r 'int64))
                                   (return `(:err "shared-library failed"))
                                 (return `(:ok ~r)))))
 
@@ -171,9 +171,9 @@
  (tail tail)
  (cons cons)
  (eq eq)
- (derefw2 derefw2)
+ (dereference dereference)
  (dlsym dlsym)
- (c-function-or-panic-new c-function-or-panic-new)
+ (c-function c-function)
  (eq eq)
  (annotate annotate)
  (is-constant is-constant)
