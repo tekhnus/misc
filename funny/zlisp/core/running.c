@@ -248,7 +248,7 @@ LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
 
 LOCAL prog datum_to_prog(datum *d) {
   prog res;
-  if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(d->list_head)) {
+  if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(list_at(d, 0))) {
     fprintf(stderr, "datum_to_prog panic\n");
     exit(EXIT_FAILURE);
   }
@@ -338,10 +338,10 @@ LOCAL void print_backtrace(prog_slice sl, routine *r) {
       fprintf(stderr, "%ld ", i);
       datum *ins = prog_slice_datum_at(sl, i);
       char *meta = "";
-      if (datum_is_the_symbol(ins->list_head, ":nop")) {
-        meta = datum_repr(ins->list_tail->list_head);
+      if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
+        meta = datum_repr(list_at(ins, 1));
         ins = datum_make_list_of(3, datum_make_symbol(":nop"), datum_make_nil(),
-                                ins->list_tail->list_tail->list_head);
+                                 list_at(ins, 2));
       }
       fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
     }
@@ -375,15 +375,15 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
   }
-  for (datum *rest = list; !datum_is_nil(rest); rest = rest->list_tail) {
-    state_stack_put(r, rest->list_head);
+  for (int i = 0; i < list_length(list); ++i) {
+    state_stack_put(r, list_at(list, i));
   }
 }
 
 EXPORT datum *state_stack_pop(routine *r) {
   assert(r->cnt > 0);
   datum *res = list_at(r->frames[r->cnt - 1]->state, 0);
-  r->frames[r->cnt - 1]->state = list_tail(r->frames[r->cnt - 1]->state);
+  r->frames[r->cnt - 1]->state = list_get_tail(r->frames[r->cnt - 1]->state);
   return res;
 }
 

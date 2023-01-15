@@ -278,7 +278,7 @@ EXPORT datum **list_at_new(datum *list, unsigned index) {
   return list_at_new(list->list_tail, index - 1);
 }
 
-EXPORT datum *list_tail(datum *list) {
+EXPORT datum *list_get_tail(datum *list) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     fprintf(stderr, "list_tail panic\n");
     exit(EXIT_FAILURE);
