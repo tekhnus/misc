@@ -215,26 +215,29 @@ EXPORT vec vec_make(size_t capacity) {
   return res;
 }
 
-EXPORT size_t vec_append_new(vec *s) {
+EXPORT size_t vec_append(vec *s, datum *x) {
   if (s->length == s->capacity) {
     fprintf(stderr, "prog slice capacity overflow %zu\n", s->capacity);
     exit(EXIT_FAILURE);
   }
   size_t res = s->length++;
-  datum *p = s->begin + res;
-  *p = *datum_make_list_of(1, datum_make_symbol(":end"));
+  (s->begin)[res] = *x;
   return res;
+}
+
+EXPORT size_t vec_append_new(vec *s) {
+  return vec_append(s, datum_make_list_of(1, datum_make_symbol(":end")));
 }
 
 EXPORT void vec_extend(vec *s, datum *instructions) {
   for (int i = 0; i < list_length(instructions); ++i) {
     datum *ins = list_at(instructions, i);
     size_t index = vec_append_new(s);
-    *vec_datum_at(*s, index) = *ins;
+    *vec_at(*s, index) = *ins;
   }
 }
 
-EXPORT datum *vec_datum_at(vec s, size_t index) {
+EXPORT datum *vec_at(vec s, size_t index) {
   if (index >= s.length) {
     fprintf(stderr, "prog slice index overflow\n");
     exit(EXIT_FAILURE);
@@ -247,7 +250,7 @@ EXPORT size_t vec_length(vec s) { return s.length; }
 EXPORT datum *vec_to_datum(vec sl) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < vec_length(sl); ++i) {
-    res = list_append(res, vec_datum_at(sl, i));
+    res = list_append(res, vec_at(sl, i));
   }
   return res;
 }

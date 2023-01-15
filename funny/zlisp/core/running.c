@@ -141,7 +141,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
 
 LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
   for (;;) {
-    prog prg = datum_to_prog(vec_datum_at(sl, *routine_offset(r)));
+    prog prg = datum_to_prog(vec_at(sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
       routine *child =
@@ -304,7 +304,7 @@ LOCAL prog datum_to_prog(datum *d) {
 }
 
 LOCAL routine *get_child(vec sl, routine *r) {
-  prog prg = datum_to_prog(vec_datum_at(sl, *routine_offset(r)));
+  prog prg = datum_to_prog(vec_at(sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
     return NULL;
   }
@@ -336,7 +336,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
         fprintf(stderr, "  ");
       }
       fprintf(stderr, "%ld ", i);
-      datum *ins = vec_datum_at(sl, i);
+      datum *ins = vec_at(sl, i);
       char *meta = "";
       if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
         meta = datum_repr(list_at(ins, 1));

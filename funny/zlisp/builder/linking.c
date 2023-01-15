@@ -124,7 +124,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   // the "+ 1" comes because of the final :end
   for (int i = 0; i + 1 < list_length(src); ++i) {
     datum *ins = list_at(src, i);
-    *vec_datum_at(*dst, *p) = *instruction_relocate(ins, delta);
+    *vec_at(*dst, *p) = *instruction_relocate(ins, delta);
     *p = vec_append_new(dst);
   }
   return NULL;
@@ -191,7 +191,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
 }
 
 LOCAL datum *extract_meta(vec sl, size_t run_main_off) {
-  datum *first_main_instruction = vec_datum_at(sl, run_main_off);
+  datum *first_main_instruction = vec_at(sl, run_main_off);
   if (!datum_is_list(first_main_instruction) ||
       list_length(first_main_instruction) != 6 ||
       !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield") ||

@@ -39,9 +39,10 @@ struct vec {
   size_t capacity;
 };
 vec vec_make(size_t capacity);
+size_t vec_append(vec *s,datum *x);
 size_t vec_append_new(vec *s);
 void vec_extend(vec *s,datum *instructions);
-datum *vec_datum_at(vec s,size_t index);
+datum *vec_at(vec s,size_t index);
 size_t vec_length(vec s);
 datum *vec_to_datum(vec sl);
 int list_length(datum *seq);
