@@ -103,6 +103,7 @@ bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 int list_index_of(datum *xs,datum *x);
 datum *list_chop_last(datum *list);
+datum **list_at_new(datum *list,unsigned index);
 int list_length(datum *seq);
 datum *prog_slice_to_datum(prog_slice sl);
 size_t prog_slice_length(prog_slice s);

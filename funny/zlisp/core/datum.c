@@ -264,14 +264,18 @@ EXPORT int list_length(datum *seq) {
 }
 
 EXPORT datum *list_at(datum *list, unsigned index) {
+  return *list_at_new(list, index);
+}
+
+EXPORT datum **list_at_new(datum *list, unsigned index) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     fprintf(stderr, "list_at panic\n");
     exit(EXIT_FAILURE);
   }
   if (index == 0) {
-    return list->list_head;
+    return &list->list_head;
   }
-  return list_at(list->list_tail, index - 1);
+  return list_at_new(list->list_tail, index - 1);
 }
 
 EXPORT datum *list_tail(datum *list) {
