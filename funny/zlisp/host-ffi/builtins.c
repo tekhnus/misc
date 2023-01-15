@@ -101,5 +101,5 @@ fdatum builtin_tail(datum *args) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("cdr expects a nonempty list");
   }
-  return fdatum_make_ok(datum_make_list_of(1, list->list_tail));
+  return fdatum_make_ok(datum_make_list_of(1, list_get_tail(list)));
 }

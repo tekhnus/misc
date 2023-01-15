@@ -21,8 +21,8 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
     if (!datum_is_list(args) || list_length(args) == 0) {
       return fdatum_make_panic("call-extension expected at least a single arg");
     }
-    datum *fn = args->list_head;
-    datum *callargs = args->list_tail;
+    datum *fn = list_at(args, 0);
+    datum *callargs = list_get_tail(args);
     if (!datum_is_integer(fn)) {
       return fdatum_make_panic("call-extension expected a pointer to function");
     }
@@ -110,23 +110,19 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
 }
 
 LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
-  if (!datum_is_list(sig) || datum_is_nil(sig) ||
-      datum_is_nil(sig->list_tail) ||
-      !datum_is_nil(sig->list_tail->list_tail)) {
+  if (list_length(sig) != 2) {
     return "the signature should be a two-item list";
   }
   ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
-  int arg_count = 0;
-  datum *arg_def;
-  for (arg_def = sig->list_head; !datum_is_nil(arg_def);
-       arg_def = arg_def->list_tail) {
-    if (!ffi_type_init(arg_types + arg_count, arg_def->list_head)) {
+  datum *arg_defs = list_at(sig, 0);
+  int arg_count;
+  for (arg_count = 0; arg_count < list_length(arg_defs); ++arg_count) {
+    if (!ffi_type_init(arg_types + arg_count, list_at(arg_defs, arg_count))) {
       return "something wrong with the argument type signature";
     }
-    ++arg_count;
   }
   ffi_type *ret_type;
-  if (!ffi_type_init(&ret_type, sig->list_tail->list_head)) {
+  if (!ffi_type_init(&ret_type, list_at(sig, 1))) {
     return "something wrong with the return type signature";
   }
   ffi_status status;
@@ -138,22 +134,17 @@ LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
 }
 
 LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
+  if (list_length(args) != nargs) {
+    return "incorrect number of args for FFI call";
+  }
   int arg_cnt = 0;
-  datum *arg = args;
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
-    if (datum_is_nil(arg)) {
-      return "too few arguments";
-    }
+    datum *a = list_at(args, arg_cnt);
 
-    if (!datum_is_integer(arg->list_head)) {
+    if (!datum_is_integer(a)) {
       return "int pointer expected, got something else";
     }
-    cargs[arg_cnt] = (void *)arg->list_head->integer_value;
-
-    arg = arg->list_tail;
-  }
-  if (!datum_is_nil(arg)) {
-    return "too much arguments";
+    cargs[arg_cnt] = (void *)a->integer_value;
   }
   return NULL;
 }
@@ -163,8 +154,8 @@ LOCAL fdatum datum_mkptr(datum *args) {
   if (!datum_is_list(form) || list_length(form) != 2) {
     return fdatum_make_panic("mkptr expected a pair on stack");
   }
-  datum *d = form->list_head;
-  datum *desc = form->list_tail->list_head;
+  datum *d = list_at(form, 0);
+  datum *desc = list_at(form, 1);
   if (!datum_is_symbol(desc)) {
     return fdatum_make_panic("mkptr expected a symbol");
   }
@@ -191,8 +182,8 @@ LOCAL fdatum datum_deref(datum *args) {
   if (!datum_is_list(form) || list_length(form) != 2) {
     return fdatum_make_panic("deref expected a pair on stack");
   }
-  datum *what = form->list_head;
-  datum *how = form->list_tail->list_head;
+  datum *what = list_at(form, 0);
+  datum *how = list_at(form, 1);
   if (!datum_is_integer(what)) {
     return fdatum_make_panic("deref expected a pointer");
   }
@@ -218,7 +209,7 @@ LOCAL fdatum datum_deref(datum *args) {
 }
 
 LOCAL void *allocate_space_for_return_value(datum *sig) {
-  char *rettype = sig->list_tail->list_head->symbol_value;
+  char *rettype = list_at(sig, 1)->symbol_value;
   void *res;
   if (!strcmp(rettype, "pointer")) {
     res = malloc(sizeof(void *));
@@ -255,7 +246,7 @@ LOCAL fdatum pointer_call(datum *argz) {
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  int nargs = list_length(sig->list_head);
+  int nargs = list_length(list_at(sig, 0));
   void *cargs[32];
   err = pointer_ffi_serialize_args(args, cargs, nargs);
   if (err != NULL) {
