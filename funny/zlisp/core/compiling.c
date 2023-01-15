@@ -561,12 +561,12 @@ EXPORT bool compdata_has_value(datum *compdata) {
   compdata_validate(compdata);
   return !datum_is_nil(compdata) && datum_is_list(compdata->list_head) &&
          !datum_is_nil(compdata->list_head) &&
-         datum_is_the_symbol(compdata->list_head->list_head, ":anon");
+      datum_is_the_symbol(list_at(compdata->list_head, list_length(compdata->list_head) - 1), ":anon");
 }
 
 LOCAL void compdata_validate(datum *compdata) {
   if (!datum_is_nil(compdata) && !datum_is_nil(compdata->list_head) &&
-      datum_is_the_symbol(compdata->list_head->list_head,
+      datum_is_the_symbol(list_at(compdata->list_head, list_length(compdata->list_head) - 1),
                           "__different_if_branches")) {
     fprintf(stderr, "compdata_del: if branches had different compdata\n");
     fprintf(stderr, "%s\n", datum_repr(compdata));
@@ -575,13 +575,13 @@ LOCAL void compdata_validate(datum *compdata) {
 }
 
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
-  return datum_make_list(datum_make_list(var, compdata->list_head),
+  return datum_make_list(list_append(compdata->list_head, var),
                          compdata->list_tail);
 }
 
 LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
-  return datum_make_list(compdata->list_head->list_tail, compdata->list_tail);
+  return datum_make_list(list_chop_last(compdata->list_head), compdata->list_tail);
 }
 
 EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
@@ -592,7 +592,7 @@ EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
     int idx = list_index_of(comp, var);
     if (idx != -1) {
       return datum_make_list_of(2, datum_make_int(frames - 1 - frame),
-                               datum_make_int(list_length(comp) - 1 - idx));
+                               datum_make_int(idx));
     }
     ++frame;
   }
@@ -601,15 +601,6 @@ EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
 
 LOCAL datum *compdata_start_new_section(datum *compdata) {
   return datum_make_list(datum_make_nil(), compdata);
-}
-
-EXPORT int compdata_get_top_index(datum *compdata) {
-  int res = 0;
-  for (datum *rest = compdata; !datum_is_nil(rest); rest = rest->list_tail) {
-    datum *comp = rest->list_head;
-    res += list_length(comp);
-  }
-  return res - 1;
 }
 
 EXPORT datum *compdata_get_top_polyindex(datum *compdata) {

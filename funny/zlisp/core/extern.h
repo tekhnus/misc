@@ -44,7 +44,6 @@ LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
 fdatum routine_run_with_handler(prog_slice sl,datum **r0d,fdatum(*yield_handler)(datum *,datum *));
 datum *compdata_get_shape(datum *compdata);
-int compdata_get_top_index(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();

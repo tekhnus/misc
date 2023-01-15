@@ -79,7 +79,6 @@ void prog_append_nop(prog_slice *sl,size_t *begin,datum *info);
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
-int compdata_get_top_index(datum *compdata);
 datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_shape(datum *compdata);
 void compdata_give_names(datum *var,datum **compdata);

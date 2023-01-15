@@ -305,12 +305,11 @@ EXPORT datum *list_chop_last(datum *list) {
 }
 
 EXPORT int list_index_of(datum *xs, datum *x) {
-  int i = 0;
-  for (datum *rest = xs; !datum_is_nil(rest); rest = rest->list_tail) {
-    if (datum_eq(rest->list_head, x)) {
+  int i = list_length(xs) - 1;
+  for (; i >= 0; --i) {
+    if (datum_eq(list_at(xs, i), x)) {
       return i;
     }
-    ++i;
   }
   return -1;
 }
