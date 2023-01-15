@@ -255,12 +255,12 @@ EXPORT datum *vec_to_datum(vec sl) {
   return res;
 }
 
-EXPORT datum *vec_pop(vec *v) {
+EXPORT datum vec_pop(vec *v) {
   size_t len = vec_length(*v);
   assert(len > 0);
   datum *res = vec_at(*v, len - 1);
   --v->length;
-  return res;
+  return *res;
 }
 
 EXPORT int list_length(datum *seq) {

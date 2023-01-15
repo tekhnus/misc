@@ -70,6 +70,7 @@ struct prog {
 struct frame {
   ptrdiff_t offset;
   datum *state;
+  vec new_state;
 };
 
 struct routine {
@@ -81,6 +82,7 @@ struct routine {
 #if INTERFACE
 typedef struct prog prog;
 typedef struct routine routine;
+typedef struct frame frame;
 #endif
 
 EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
@@ -368,6 +370,7 @@ EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
   r->frames[r->cnt - 1]->state =
     list_append(r->frames[r->cnt - 1]->state, value);
+  vec_append(&r->frames[r->cnt - 1]->new_state, value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum *list) {
@@ -384,9 +387,11 @@ EXPORT datum *state_stack_pop(routine *r) {
   assert(r->cnt > 0);
   size_t len = list_length(r->frames[r->cnt - 1]->state);
   assert(len > 0);
-  datum *res = list_at(r->frames[r->cnt - 1]->state, len - 1);
+  //datum *res = list_at(r->frames[r->cnt - 1]->state, len - 1);
   r->frames[r->cnt - 1]->state = list_chop_last(r->frames[r->cnt - 1]->state);
-  return res;
+  datum *vec_res = malloc(sizeof(datum));
+  *vec_res = vec_pop(&r->frames[r->cnt - 1]->new_state);
+  return vec_res;
 }
 
 EXPORT datum *state_stack_collect(routine *r, size_t count) {
@@ -402,18 +407,24 @@ LOCAL void routine_copy(routine *dst, routine *src) {
   dst->cnt = src->cnt;
   for (size_t i = 0; i < dst->cnt; ++i) {
     dst->frames[i] = malloc(sizeof(struct frame));
-    *dst->frames[i] = *src->frames[i];
+    frame_copy(dst->frames[i], src->frames[i]);
   }
   dst->extvars = src->extvars;
 }
 
-LOCAL vec vec_copy(vec *x) {
-  vec res = vec_make(x->capacity);
-  res.length = x->length;
-  for (size_t i = 0; i < vec_length(*x); ++i) {
-    res.begin[i] = *datum_copy(vec_at(*x, i));
+LOCAL void frame_copy(frame *dst, frame *src) {
+  dst->offset = src->offset;
+  dst->state = src->state;
+  vec_copy(&dst->new_state, &src->new_state);
+}
+
+LOCAL void vec_copy(vec *dst, vec *src) {
+  dst->capacity = src->capacity;
+  dst->length = src->length;
+  dst->begin = malloc(src->capacity * sizeof(datum));
+  for (size_t i = 0; i < dst->length; ++i) {
+    dst->begin[i] = *datum_copy(vec_at(*src, i));
   }
-  return res;
 }
 
 LOCAL size_t routine_get_stack_size(routine *r) {
@@ -462,6 +473,7 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->offset = prg;
   r->frames[0]->state = datum_make_nil();
+  r->frames[0]->new_state = vec_make(1024);
   r->cnt = 1;
   r->extvars = 0;
   return r;

@@ -45,7 +45,29 @@ void vec_extend(vec *s,datum *instructions);
 datum *vec_at(vec s,size_t index);
 size_t vec_length(vec s);
 datum *vec_to_datum(vec sl);
-datum *vec_pop(vec *v);
+enum datum_type {
+  DATUM_NIL,
+  DATUM_LIST,
+  DATUM_SYMBOL,
+  DATUM_BYTESTRING,
+  DATUM_INTEGER,
+  DATUM_FRAME,
+};
+typedef enum datum_type datum_type;
+struct datum {
+  enum datum_type type;
+  union {
+    struct {
+      struct datum *list_head;
+      struct datum *list_tail;
+    };
+    char *symbol_value;
+    char *bytestring_value;
+    int64_t integer_value;
+    void *frame_value;
+  };
+};
+datum vec_pop(vec *v);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);
@@ -92,25 +114,3 @@ void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 datum *routine_make(ptrdiff_t prg);
-enum datum_type {
-  DATUM_NIL,
-  DATUM_LIST,
-  DATUM_SYMBOL,
-  DATUM_BYTESTRING,
-  DATUM_INTEGER,
-  DATUM_FRAME,
-};
-typedef enum datum_type datum_type;
-struct datum {
-  enum datum_type type;
-  union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
-    char *symbol_value;
-    char *bytestring_value;
-    int64_t integer_value;
-    void *frame_value;
-  };
-};
