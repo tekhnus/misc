@@ -69,7 +69,6 @@ struct prog {
 
 struct frame {
   ptrdiff_t offset;
-  datum *state;
   vec new_state;
 };
 
@@ -368,8 +367,6 @@ EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
 
 EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
-  r->frames[r->cnt - 1]->state =
-    list_append(r->frames[r->cnt - 1]->state, value);
   vec_append(&r->frames[r->cnt - 1]->new_state, value);
 }
 
@@ -385,10 +382,6 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
 
 EXPORT datum *state_stack_pop(routine *r) {
   assert(r->cnt > 0);
-  size_t len = list_length(r->frames[r->cnt - 1]->state);
-  assert(len > 0);
-  //datum *res = list_at(r->frames[r->cnt - 1]->state, len - 1);
-  r->frames[r->cnt - 1]->state = list_chop_last(r->frames[r->cnt - 1]->state);
   datum *vec_res = malloc(sizeof(datum));
   *vec_res = vec_pop(&r->frames[r->cnt - 1]->new_state);
   return vec_res;
@@ -414,7 +407,6 @@ LOCAL void routine_copy(routine *dst, routine *src) {
 
 LOCAL void frame_copy(frame *dst, frame *src) {
   dst->offset = src->offset;
-  dst->state = src->state;
   vec_copy(&dst->new_state, &src->new_state);
 }
 
@@ -430,7 +422,7 @@ LOCAL void vec_copy(vec *dst, vec *src) {
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < r->cnt; ++i) {
-    res += list_length(r->frames[i]->state);
+    res += vec_length(r->frames[i]->new_state);
   }
   return res;
 }
@@ -440,7 +432,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
-    res = list_append(res, datum_make_int(list_length(r->frames[i]->state)));
+    res = list_append(res, datum_make_int(vec_length(r->frames[i]->new_state)));
   }
   return res;
 }
@@ -472,7 +464,6 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->offset = prg;
-  r->frames[0]->state = datum_make_nil();
   r->frames[0]->new_state = vec_make(1024);
   r->cnt = 1;
   r->extvars = 0;
