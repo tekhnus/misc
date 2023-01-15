@@ -93,7 +93,7 @@ fdatum builtin_head(datum *args) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("car expects a nonempty list");
   }
-  return fdatum_make_ok(datum_make_list_of(1, list->list_head));
+  return fdatum_make_ok(datum_make_list_of(1, list_at(list, 0)));
 }
 
 fdatum builtin_tail(datum *args) {
