@@ -587,8 +587,8 @@ LOCAL datum *compdata_del(datum *compdata) {
 EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
   int frame = 0;
   size_t frames = list_length(compdata);
-  for (datum *rest = compdata; !datum_is_nil(rest); rest = rest->list_tail) {
-    datum *comp = rest->list_head;
+  for (size_t i = 0; i < frames; ++i) {
+    datum *comp = list_at(compdata, i);
     int idx = list_index_of(comp, var);
     if (idx != -1) {
       return datum_make_list_of(2, datum_make_int(frames - 1 - frame),
@@ -625,10 +625,10 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
   }
-  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
+  for (int i = 0; i < list_length(var); ++i) {
     *compdata = compdata_del(*compdata);
   }
-  for (datum *rest = var; !datum_is_nil(rest); rest = rest->list_tail) {
-    *compdata = compdata_put(*compdata, rest->list_head);
+  for (int i = 0; i < list_length(var); ++i) {
+    *compdata = compdata_put(*compdata, list_at(var, i));
   }
 }
