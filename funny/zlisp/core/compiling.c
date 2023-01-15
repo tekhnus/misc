@@ -559,12 +559,12 @@ EXPORT datum *compdata_make() { return datum_make_list_of(1, datum_make_nil()); 
 
 EXPORT bool compdata_has_value(datum *compdata) {
   compdata_validate(compdata);
-  datum *outer_frame = list_at(compdata, 0);
+  datum *outer_frame = list_get_last(compdata);
   return !datum_is_nil(outer_frame) && datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
 LOCAL void compdata_validate(datum *compdata) {
-  datum *outer_frame = list_at(compdata, 0);
+  datum *outer_frame = list_get_last(compdata);
   if (!datum_is_nil(outer_frame) &&
       datum_is_the_symbol(list_get_last(outer_frame), "__different_if_branches")) {
     fprintf(stderr, "compdata_del: if branches had different compdata\n");
@@ -574,37 +574,35 @@ LOCAL void compdata_validate(datum *compdata) {
 }
 
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
-  return datum_make_list(list_append(compdata->list_head, var),
-                         compdata->list_tail);
+  return list_append(list_chop_last(compdata), list_append(list_get_last(compdata), var));
 }
 
 LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
-  return datum_make_list(list_chop_last(compdata->list_head), compdata->list_tail);
+  return list_append(list_chop_last(compdata), list_chop_last(list_get_last(compdata)));
 }
 
 EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
-  int frame = 0;
-  size_t frames = list_length(compdata);
-  for (size_t i = 0; i < frames; ++i) {
-    datum *comp = list_at(compdata, i);
+  int frames = list_length(compdata);
+  assert(frames > 0);
+  for (int frame = frames - 1; frame >= 0; --frame) {
+    datum *comp = list_at(compdata, frame);
     int idx = list_index_of(comp, var);
     if (idx != -1) {
-      return datum_make_list_of(2, datum_make_int(frames - 1 - frame),
+      return datum_make_list_of(2, datum_make_int(frame),
                                datum_make_int(idx));
     }
-    ++frame;
   }
   return datum_make_nil();
 }
 
 LOCAL datum *compdata_start_new_section(datum *compdata) {
-  return datum_make_list(datum_make_nil(), compdata);
+  return list_append(compdata, datum_make_nil());
 }
 
 EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
   size_t frames = list_length(compdata);
-  size_t indices = list_length(compdata->list_head);
+  size_t indices = list_length(list_get_last(compdata));
   assert(frames > 0 && indices > 0);
   return datum_make_list_of(2, datum_make_int(frames - 1),
                            datum_make_int(indices - 1));
@@ -613,7 +611,7 @@ EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
 EXPORT datum *compdata_get_shape(datum *compdata) {
   datum *res = datum_make_nil();
   for (int i = 0; i < list_length(compdata); ++i) {
-    res = datum_make_list(datum_make_int(list_length(list_at(compdata, i))), res);
+    res = list_append(res, datum_make_int(list_length(list_at(compdata, i))));
   }
   return res;
 }
