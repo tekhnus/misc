@@ -213,11 +213,9 @@ EXPORT read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_LEFT_PAREN) {
     read_result elem;
     datum *list = datum_make_nil();
-    datum **end_marker = &list;
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
-        *end_marker = datum_make_list_of(1, elem.ok_value);
-        end_marker = &((*end_marker)->list_tail);
+        list = list_append(list, elem.ok_value);
       }
       if (read_result_is_right_paren(elem)) {
         return read_result_make_ok(list);
@@ -239,8 +237,7 @@ EXPORT read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum *res = datum_make_list_of(1, tok.control_sequence_symbol);
-    res->list_tail = datum_make_list_of(1, v.ok_value);
+    datum *res = datum_make_list_of(2, tok.control_sequence_symbol, v.ok_value);
     return read_result_make_ok(res);
   }
   return read_result_make_panic("unhandled token type");
