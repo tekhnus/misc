@@ -42,9 +42,9 @@ vec vec_make(size_t capacity);
 size_t vec_append(vec *s,datum *x);
 size_t vec_append_new(vec *s);
 void vec_extend(vec *s,datum *instructions);
-datum *vec_at(vec s,size_t index);
-size_t vec_length(vec s);
-datum *vec_to_datum(vec sl);
+datum *vec_at(vec *s,size_t index);
+size_t vec_length(vec *s);
+datum *vec_to_datum(vec *sl);
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  printf("%s\n", datum_repr_bounded(vec_to_datum(sl), 128));
+  printf("%s\n", datum_repr_bounded(vec_to_datum(&sl), 128));
   return EXIT_SUCCESS;
 }
 

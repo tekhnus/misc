@@ -130,9 +130,9 @@ struct datum {
   };
 };
 datum vec_pop(vec *v);
-datum *vec_to_datum(vec sl);
-size_t vec_length(vec s);
-datum *vec_at(vec s,size_t index);
+datum *vec_to_datum(vec *sl);
+size_t vec_length(vec *s);
+datum *vec_at(vec *s,size_t index);
 void vec_extend(vec *s,datum *instructions);
 size_t vec_append_new(vec *s);
 size_t vec_append(vec *s,datum *x);

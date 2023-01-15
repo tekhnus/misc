@@ -142,7 +142,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
 
 LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
   for (;;) {
-    prog prg = datum_to_prog(vec_at(sl, *routine_offset(r)));
+    prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
       routine *child =
@@ -305,7 +305,7 @@ LOCAL prog datum_to_prog(datum *d) {
 }
 
 LOCAL routine *get_child(vec sl, routine *r) {
-  prog prg = datum_to_prog(vec_at(sl, *routine_offset(r)));
+  prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
     return NULL;
   }
@@ -328,7 +328,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
       if (i < 0) {
         continue;
       }
-      if (i >= (ptrdiff_t)vec_length(sl)) {
+      if (i >= (ptrdiff_t)vec_length(&sl)) {
         break;
       }
       if (i == *routine_offset(z)) {
@@ -337,7 +337,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
         fprintf(stderr, "  ");
       }
       fprintf(stderr, "%ld ", i);
-      datum *ins = vec_at(sl, i);
+      datum *ins = vec_at(&sl, i);
       char *meta = "";
       if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
         meta = datum_repr(list_at(ins, 1));
@@ -361,8 +361,8 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
   assert(datum_is_integer(frame) && datum_is_integer(idx));
   assert(frame->integer_value < (int)r->cnt);
   vec vars = r->frames[frame->integer_value]->state;
-  assert((size_t)idx->integer_value < vec_length(vars));
-  return vec_at(vars, idx->integer_value);
+  assert((size_t)idx->integer_value < vec_length(&vars));
+  return vec_at(&vars, idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
@@ -415,14 +415,14 @@ LOCAL void vec_copy(vec *dst, vec *src) {
   dst->length = src->length;
   dst->begin = malloc(src->capacity * sizeof(datum));
   for (size_t i = 0; i < dst->length; ++i) {
-    dst->begin[i] = *datum_copy(vec_at(*src, i));
+    dst->begin[i] = *datum_copy(vec_at(src, i));
   }
 }
 
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < r->cnt; ++i) {
-    res += vec_length(r->frames[i]->state);
+    res += vec_length(&r->frames[i]->state);
   }
   return res;
 }
@@ -432,7 +432,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
-    res = list_append(res, datum_make_int(vec_length(r->frames[i]->state)));
+    res = list_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
   }
   return res;
 }

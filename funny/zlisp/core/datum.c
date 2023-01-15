@@ -233,21 +233,21 @@ EXPORT void vec_extend(vec *s, datum *instructions) {
   for (int i = 0; i < list_length(instructions); ++i) {
     datum *ins = list_at(instructions, i);
     size_t index = vec_append_new(s);
-    *vec_at(*s, index) = *ins;
+    *vec_at(s, index) = *ins;
   }
 }
 
-EXPORT datum *vec_at(vec s, size_t index) {
-  if (index >= s.length) {
+EXPORT datum *vec_at(vec *s, size_t index) {
+  if (index >= s->length) {
     fprintf(stderr, "prog slice index overflow\n");
     exit(EXIT_FAILURE);
   }
-  return s.begin + index;
+  return s->begin + index;
 }
 
-EXPORT size_t vec_length(vec s) { return s.length; }
+EXPORT size_t vec_length(vec *s) { return s->length; }
 
-EXPORT datum *vec_to_datum(vec sl) {
+EXPORT datum *vec_to_datum(vec *sl) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < vec_length(sl); ++i) {
     res = list_append(res, vec_at(sl, i));
@@ -256,9 +256,9 @@ EXPORT datum *vec_to_datum(vec sl) {
 }
 
 EXPORT datum vec_pop(vec *v) {
-  size_t len = vec_length(*v);
+  size_t len = vec_length(v);
   assert(len > 0);
-  datum *res = vec_at(*v, len - 1);
+  datum *res = vec_at(v, len - 1);
   --v->length;
   return *res;
 }
