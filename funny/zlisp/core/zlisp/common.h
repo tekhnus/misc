@@ -111,6 +111,4 @@ typedef struct routine routine;
 datum *state_stack_at(routine *r,datum *offset);
 void state_stack_put(routine *r,datum *value);
 void state_stack_put_all(routine *r,datum *list);
-datum *state_stack_pop(routine *r);
-datum *state_stack_collect(routine *r,size_t count);
 datum *routine_make(ptrdiff_t prg);

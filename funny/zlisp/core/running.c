@@ -217,8 +217,8 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_IF) {
-      datum *v = state_stack_pop(r);
-      if (!datum_is_nil(v)) {
+      datum v = state_stack_pop(r);
+      if (!datum_is_nil(&v)) {
         *routine_offset(r) = prg.if_true;
       } else {
         *routine_offset(r) = prg.if_false;
@@ -380,17 +380,16 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
   }
 }
 
-EXPORT datum *state_stack_pop(routine *r) {
+LOCAL datum state_stack_pop(routine *r) {
   assert(r->cnt > 0);
-  datum *vec_res = malloc(sizeof(datum));
-  *vec_res = vec_pop(&r->frames[r->cnt - 1]->state);
-  return vec_res;
+  return vec_pop(&r->frames[r->cnt - 1]->state);
 }
 
-EXPORT datum *state_stack_collect(routine *r, size_t count) {
+LOCAL datum *state_stack_collect(routine *r, size_t count) {
   datum *form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
-    datum *arg = state_stack_pop(r);
+    datum *arg = malloc(sizeof(datum));
+    *arg = state_stack_pop(r);
     form = datum_make_list(arg, form);
   }
   return form;

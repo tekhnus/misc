@@ -19,17 +19,39 @@ void state_stack_put(routine *r,datum *value);
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 LOCAL size_t routine_get_count(routine *r);
-datum *state_stack_collect(routine *r,size_t count);
+LOCAL datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
-datum *state_stack_pop(routine *r);
+#include <inttypes.h>
+#include <stdio.h>
+enum datum_type {
+  DATUM_NIL,
+  DATUM_LIST,
+  DATUM_SYMBOL,
+  DATUM_BYTESTRING,
+  DATUM_INTEGER,
+  DATUM_FRAME,
+};
+typedef enum datum_type datum_type;
+struct datum {
+  enum datum_type type;
+  union {
+    struct {
+      struct datum *list_head;
+      struct datum *list_tail;
+    };
+    char *symbol_value;
+    char *bytestring_value;
+    int64_t integer_value;
+    void *frame_value;
+  };
+};
+LOCAL datum state_stack_pop(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_at(routine *r,datum *offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL datum *routine_get_shape(routine *r);
-#include <inttypes.h>
-#include <stdio.h>
 struct vec {
   datum *begin;
   size_t length;
@@ -107,28 +129,6 @@ int list_index_of(datum *xs,datum *x);
 datum *list_chop_last(datum *list);
 datum *list_get_tail(datum *list);
 datum *list_get_last(datum *list);
-enum datum_type {
-  DATUM_NIL,
-  DATUM_LIST,
-  DATUM_SYMBOL,
-  DATUM_BYTESTRING,
-  DATUM_INTEGER,
-  DATUM_FRAME,
-};
-typedef enum datum_type datum_type;
-struct datum {
-  enum datum_type type;
-  union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
-    char *symbol_value;
-    char *bytestring_value;
-    int64_t integer_value;
-    void *frame_value;
-  };
-};
 datum vec_pop(vec *v);
 datum *vec_to_datum(vec *sl);
 size_t vec_length(vec *s);
