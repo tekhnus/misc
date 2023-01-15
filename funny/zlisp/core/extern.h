@@ -7,6 +7,15 @@
 typedef struct datum datum;
 datum *routine_make(ptrdiff_t prg);
 #define LOCAL static
+typedef struct vec vec;
+#include <inttypes.h>
+#include <stdio.h>
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+LOCAL vec vec_copy(vec *x);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL size_t routine_get_stack_size(routine *r);
@@ -24,14 +33,6 @@ LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL datum *routine_get_shape(routine *r);
-typedef struct vec vec;
-#include <inttypes.h>
-#include <stdio.h>
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
 LOCAL routine *get_child(vec sl,routine *r);
 LOCAL void print_backtrace(vec sl,routine *r);
 typedef struct fdatum fdatum;
@@ -104,6 +105,7 @@ int list_index_of(datum *xs,datum *x);
 datum *list_chop_last(datum *list);
 datum *list_get_tail(datum *list);
 datum *list_get_last(datum *list);
+datum *vec_pop(vec *v);
 datum *vec_to_datum(vec sl);
 size_t vec_length(vec s);
 datum *vec_at(vec s,size_t index);

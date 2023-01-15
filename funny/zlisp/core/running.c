@@ -407,6 +407,15 @@ LOCAL void routine_copy(routine *dst, routine *src) {
   dst->extvars = src->extvars;
 }
 
+LOCAL vec vec_copy(vec *x) {
+  vec res = vec_make(x->capacity);
+  res.length = x->length;
+  for (size_t i = 0; i < vec_length(*x); ++i) {
+    res.begin[i] = *datum_copy(vec_at(*x, i));
+  }
+  return res;
+}
+
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < r->cnt; ++i) {

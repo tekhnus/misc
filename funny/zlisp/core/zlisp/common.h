@@ -45,6 +45,7 @@ void vec_extend(vec *s,datum *instructions);
 datum *vec_at(vec s,size_t index);
 size_t vec_length(vec s);
 datum *vec_to_datum(vec sl);
+datum *vec_pop(vec *v);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);
