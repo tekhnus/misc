@@ -49,7 +49,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
   if (datum_is_nil(stmt)) {
     return "an empty list is not a statement";
   }
-  datum *op = stmt->list_head;
+  datum *op = list_at(stmt, 0);
 
   if (datum_is_the_symbol(op, "req")) {
     return prog_append_usages(sl, begin, stmt, compdata);
@@ -164,7 +164,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     while (index < list_length(stmt)) {
       datum *tag = list_at(stmt, index);
       if (!datum_is_list(tag) || list_length(tag) != 2 ||
-          !datum_is_the_symbol(tag->list_head, "at")) {
+          !datum_is_the_symbol(list_at(tag, 0), "at")) {
         break;
       }
       datum *content = list_at(tag, 1);
@@ -218,7 +218,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
     return NULL;
   }
 
-  datum *fn = stmt->list_head;
+  datum *fn = list_at(stmt, 0);
   bool hash = false;
   datum *target = NULL;
   bool at = false;
@@ -226,7 +226,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
            datum_is_symbol(list_at(fn, 0));
        fn = list_at(fn, 1)) {
-    char *tag = fn->list_head->symbol_value;
+    char *tag = list_at(fn, 0)->symbol_value;
     if (!strcmp(tag, "hash")) {
       hash = true;
     } else if (!strcmp(tag, "at")) {
@@ -238,7 +238,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
   datum *mainname;
   datum *subname;
   if (datum_is_list(fn) && !datum_is_nil(fn) &&
-      datum_is_the_symbol(fn->list_head, "polysym")) {
+      datum_is_the_symbol(list_at(fn, 0), "polysym")) {
     mainname = list_at(fn, 1);
     subname = list_at(fn, 2);
   } else {
@@ -249,7 +249,7 @@ LOCAL char *prog_append_statement(prog_slice *sl, size_t *begin, datum *stmt,
   while (index < list_length(stmt)) {
     datum *tag = list_at(stmt, index);
     if (!datum_is_list(tag) || list_length(tag) != 2 ||
-        !datum_is_the_symbol(tag->list_head, "at")) {
+        !datum_is_the_symbol(list_at(tag, 0), "at")) {
       break;
     }
     datum *content = list_at(tag, 1);
@@ -324,14 +324,14 @@ LOCAL char *prog_append_usages(prog_slice *sl, size_t *begin, datum *spec,
   if (!datum_is_list(re) || list_length(re) != 2) {
     return "not gonna happen";
   }
-  datum *vars = re->list_head;
+  datum *vars = list_at(re, 0);
   prog_append_recieve(sl, begin, vars, list_at(re, 1), compdata);
   return NULL;
 }
 
 LOCAL fdatum prog_read_usages(datum *spec) {
   if (!datum_is_list(spec) || list_length(spec) == 0 ||
-      !datum_is_the_symbol(spec->list_head, "req")) {
+      !datum_is_the_symbol(list_at(spec, 0), "req")) {
     return fdatum_make_panic("wrong usage spec");
   }
   int index = 1;
@@ -343,7 +343,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
         list_length(item) > 3) {
       return fdatum_make_panic("wrong usage spec");
     }
-    datum *item_var = item->list_head;
+    datum *item_var = list_at(item, 0);
     if (!datum_is_symbol(item_var)) {
       return fdatum_make_panic("wrong usage spec");
     }
@@ -381,7 +381,7 @@ LOCAL char *prog_append_exports(prog_slice *sl, size_t *begin, datum *spec,
    * on the slice. */
   prog_append_nop(sl, begin, datum_make_nil());
   prog_append_yield(sl, begin, datum_make_symbol("plain"),
-                    list_length(re->list_head), 1, re->list_head, compdata);
+                    list_length(list_at(re, 0)), 1, list_at(re, 0), compdata);
   return NULL;
 }
 
@@ -462,7 +462,7 @@ LOCAL char *prog_append_backquoted_statement(prog_slice *sl, size_t *begin,
     datum *elem = list_at(stmt, i);
     char *err;
     if (datum_is_list(elem) && list_length(elem) == 2 &&
-        datum_is_the_symbol(elem->list_head, "tilde")) {
+        datum_is_the_symbol(list_at(elem, 0), "tilde")) {
       err = prog_append_statement(sl, begin, list_at(elem, 1),
                                   compdata, datum_make_nil());
     } else {
@@ -485,7 +485,7 @@ LOCAL void prog_append_recieve(prog_slice *sl, size_t *begin, datum *args,
 
 LOCAL fdatum prog_read_exports(datum *spec) {
   if (!datum_is_list(spec) || list_length(spec) == 0 ||
-      !datum_is_the_symbol(spec->list_head, "export")) {
+      !datum_is_the_symbol(list_at(spec, 0), "export")) {
     return fdatum_make_panic("wrong export spec");
   }
   int index = 1;
@@ -496,7 +496,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
     if (!datum_is_list(item) || list_length(item) != 2) {
       return fdatum_make_panic("wrong export spec");
     }
-    datum *item_name = item->list_head;
+    datum *item_name = list_at(item, 0);
     if (!datum_is_symbol(item_name)) {
       return fdatum_make_panic("wrong export spec");
     }
