@@ -361,9 +361,9 @@ EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(frame) && datum_is_integer(idx));
   assert(frame->integer_value < (int)r->cnt);
-  datum *vars = r->frames[frame->integer_value]->state;
-  assert(idx->integer_value < list_length(vars));
-  return list_at(vars, idx->integer_value);
+  vec vars = r->frames[frame->integer_value]->new_state;
+  assert((size_t)idx->integer_value < vec_length(vars));
+  return vec_at(vars, idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
