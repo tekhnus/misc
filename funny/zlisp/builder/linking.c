@@ -64,7 +64,7 @@ LOCAL void prog_put_deps(prog_slice *sl, size_t *p, datum *deps,
 }
 
 LOCAL char *get_varname(datum *dep_and_sym) {
-  char *dep = dep_and_sym->list_head->bytestring_value;
+  char *dep = list_at(dep_and_sym, 0)->bytestring_value;
   char *sym;
   if (list_length(dep_and_sym) > 1) {
     sym = list_at(dep_and_sym, 1)->symbol_value;
@@ -134,10 +134,10 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *),
                            datum *settings, datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
-      !datum_is_bytestring(dep_and_sym->list_head)) {
+      !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     return "req expects bytestrings";
   }
-  datum *dep = dep_and_sym->list_head;
+  datum *dep = list_at(dep_and_sym, 0);
 
   bool already_built = !datum_is_nil(compdata_get_polyindex(
       *compdata, datum_make_symbol(get_varname(dep_and_sym))));
