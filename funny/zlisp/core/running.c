@@ -361,13 +361,13 @@ EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
   assert(frame->integer_value < (int)r->cnt);
   datum *vars = r->frames[frame->integer_value]->state;
   assert(idx->integer_value < list_length(vars));
-  return list_at(vars, list_length(vars) - 1 - idx->integer_value);
+  return list_at(vars, idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
   r->frames[r->cnt - 1]->state =
-      datum_make_list(value, r->frames[r->cnt - 1]->state);
+    list_append(r->frames[r->cnt - 1]->state, value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum *list) {
@@ -382,8 +382,10 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
 
 EXPORT datum *state_stack_pop(routine *r) {
   assert(r->cnt > 0);
-  datum *res = list_at(r->frames[r->cnt - 1]->state, 0);
-  r->frames[r->cnt - 1]->state = list_get_tail(r->frames[r->cnt - 1]->state);
+  size_t len = list_length(r->frames[r->cnt - 1]->state);
+  assert(len > 0);
+  datum *res = list_at(r->frames[r->cnt - 1]->state, len - 1);
+  r->frames[r->cnt - 1]->state = list_chop_last(r->frames[r->cnt - 1]->state);
   return res;
 }
 
