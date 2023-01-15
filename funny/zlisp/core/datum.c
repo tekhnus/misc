@@ -1,4 +1,5 @@
 // zlisp interpreter.
+#include <assert.h>
 #include <extern.h>
 #if INTERFACE
 #include <stdbool.h>
@@ -265,6 +266,11 @@ EXPORT int list_length(datum *seq) {
 
 EXPORT datum *list_at(datum *list, unsigned index) {
   return *list_at_new(list, index);
+}
+
+EXPORT datum *list_get_last(datum *list) {
+  assert(list_length(list) > 0);
+  return list_at(list, list_length(list) - 1);
 }
 
 EXPORT datum **list_at_new(datum *list, unsigned index) {

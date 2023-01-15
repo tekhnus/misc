@@ -559,15 +559,14 @@ EXPORT datum *compdata_make() { return datum_make_list_of(1, datum_make_nil()); 
 
 EXPORT bool compdata_has_value(datum *compdata) {
   compdata_validate(compdata);
-  return !datum_is_nil(compdata) && datum_is_list(compdata->list_head) &&
-         !datum_is_nil(compdata->list_head) &&
-      datum_is_the_symbol(list_at(compdata->list_head, list_length(compdata->list_head) - 1), ":anon");
+  datum *outer_frame = list_at(compdata, 0);
+  return !datum_is_nil(outer_frame) && datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
 LOCAL void compdata_validate(datum *compdata) {
-  if (!datum_is_nil(compdata) && !datum_is_nil(compdata->list_head) &&
-      datum_is_the_symbol(list_at(compdata->list_head, list_length(compdata->list_head) - 1),
-                          "__different_if_branches")) {
+  datum *outer_frame = list_at(compdata, 0);
+  if (!datum_is_nil(outer_frame) &&
+      datum_is_the_symbol(list_get_last(outer_frame), "__different_if_branches")) {
     fprintf(stderr, "compdata_del: if branches had different compdata\n");
     fprintf(stderr, "%s\n", datum_repr(compdata));
     exit(EXIT_FAILURE);
@@ -612,12 +611,11 @@ EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
 }
 
 EXPORT datum *compdata_get_shape(datum *compdata) {
-  if (datum_is_nil(compdata)) {
-    return datum_make_nil();
+  datum *res = datum_make_nil();
+  for (int i = 0; i < list_length(compdata); ++i) {
+    res = datum_make_list(datum_make_int(list_length(list_at(compdata, i))), res);
   }
-  datum *c = compdata->list_head;
-  return list_append(compdata_get_shape(compdata->list_tail),
-                     datum_make_int(list_length(c)));
+  return res;
 }
 
 EXPORT void compdata_give_names(datum *var, datum **compdata) {
