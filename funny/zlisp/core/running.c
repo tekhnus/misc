@@ -83,7 +83,7 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT fdatum routine_run_with_handler(prog_slice sl, datum **r0d,
+EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
   routine *r = get_routine_from_datum(*r0d);
@@ -139,9 +139,9 @@ EXPORT fdatum routine_run_with_handler(prog_slice sl, datum **r0d,
   return fdatum_make_ok(result);
 }
 
-LOCAL fdatum routine_run(prog_slice sl, routine *r, datum *args) {
+LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
   for (;;) {
-    prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
+    prog prg = datum_to_prog(vec_datum_at(sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
       routine *child =
@@ -303,8 +303,8 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
-LOCAL routine *get_child(prog_slice sl, routine *r) {
-  prog prg = datum_to_prog(prog_slice_datum_at(sl, *routine_offset(r)));
+LOCAL routine *get_child(vec sl, routine *r) {
+  prog prg = datum_to_prog(vec_datum_at(sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
     return NULL;
   }
@@ -317,7 +317,7 @@ LOCAL routine *get_child(prog_slice sl, routine *r) {
   return child;
 }
 
-LOCAL void print_backtrace(prog_slice sl, routine *r) {
+LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
@@ -327,7 +327,7 @@ LOCAL void print_backtrace(prog_slice sl, routine *r) {
       if (i < 0) {
         continue;
       }
-      if (i >= (ptrdiff_t)prog_slice_length(sl)) {
+      if (i >= (ptrdiff_t)vec_length(sl)) {
         break;
       }
       if (i == *routine_offset(z)) {
@@ -336,7 +336,7 @@ LOCAL void print_backtrace(prog_slice sl, routine *r) {
         fprintf(stderr, "  ");
       }
       fprintf(stderr, "%ld ", i);
-      datum *ins = prog_slice_datum_at(sl, i);
+      datum *ins = vec_datum_at(sl, i);
       char *meta = "";
       if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
         meta = datum_repr(list_at(ins, 1));

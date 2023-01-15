@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p,
+EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum **compdata, datum **builder_compdata) {
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
                     datum_make_nil(), builder_compdata);
@@ -17,7 +17,7 @@ EXPORT size_t prog_build_init(prog_slice *sl, size_t *ep, size_t *bdr_p,
   return 42;
 }
 
-EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p,
+EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
                             datum **builder_compdata, size_t p,
                             fdatum (*module_bytecode)(char *, datum *),
                             datum *settings) {
@@ -42,7 +42,7 @@ EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p,
   return NULL;
 }
 
-LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps,
+LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
                             fdatum (*module_bytecode)(char *, datum *),
                             datum *settings, datum **compdata) {
   for (int i = 0; i < list_length(deps); ++i) {
@@ -55,7 +55,7 @@ LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps,
   return NULL;
 }
 
-LOCAL void prog_put_deps(prog_slice *sl, size_t *p, datum *deps,
+LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps,
                          datum **compdata) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
@@ -116,21 +116,21 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
   return res;
 }
 
-EXPORT char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
-  if (*p + 1 != prog_slice_length(*dst)) {
+EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
+  if (*p + 1 != vec_length(*dst)) {
     return "relocation can only be done to the slice end";
   }
   size_t delta = *p;
   // the "+ 1" comes because of the final :end
   for (int i = 0; i + 1 < list_length(src); ++i) {
     datum *ins = list_at(src, i);
-    *prog_slice_datum_at(*dst, *p) = *instruction_relocate(ins, delta);
-    *p = prog_slice_append_new(dst);
+    *vec_datum_at(*dst, *p) = *instruction_relocate(ins, delta);
+    *p = vec_append_new(dst);
   }
   return NULL;
 }
 
-LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym,
+LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *),
                            datum *settings, datum **compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
@@ -144,14 +144,14 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym,
   if (already_built) {
     return NULL;
   }
-  size_t run_dep_off = prog_slice_append_new(sl);
+  size_t run_dep_off = vec_append_new(sl);
   size_t run_dep_end = run_dep_off;
 
   fdatum stts = module_bytecode(dep->bytestring_value, settings);
   if (fdatum_is_panic(stts)) {
     return stts.panic_message;
   }
-  char *er = prog_slice_relocate(sl, &run_dep_end, stts.ok_value);
+  char *er = vec_relocate(sl, &run_dep_end, stts.ok_value);
 
   if (er != NULL) {
     return er;
@@ -190,8 +190,8 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym,
   return NULL;
 }
 
-LOCAL datum *extract_meta(prog_slice sl, size_t run_main_off) {
-  datum *first_main_instruction = prog_slice_datum_at(sl, run_main_off);
+LOCAL datum *extract_meta(vec sl, size_t run_main_off) {
+  datum *first_main_instruction = vec_datum_at(sl, run_main_off);
   if (!datum_is_list(first_main_instruction) ||
       list_length(first_main_instruction) != 6 ||
       !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield") ||

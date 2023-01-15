@@ -47,7 +47,7 @@ struct fdatum {
   char *panic_message;
 };
 
-struct prog_slice {
+struct vec {
   datum *begin;
   size_t length;
   size_t capacity;

@@ -7,7 +7,7 @@
 #include <zlisp/common.h>
 #endif
 
-EXPORT fdatum routine_run_in_ffi_host(prog_slice sl,
+EXPORT fdatum routine_run_in_ffi_host(vec sl,
                                                        datum **r0d) {
   return routine_run_with_handler(sl, r0d, perform_host_instruction);
 }
@@ -222,7 +222,7 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
   } else if (!strcmp(rettype, "fdatum")) {
     res = malloc(sizeof(fdatum));
   } else if (!strcmp(rettype, "progslice")) {
-    res = malloc(sizeof(prog_slice));
+    res = malloc(sizeof(vec));
   } else if (!strcmp(rettype, "val")) {
     res = malloc(sizeof(fdatum));
   } else {

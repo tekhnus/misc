@@ -14,7 +14,7 @@ fdatum builtin_head(datum *args);
 fdatum builtin_tail(datum *args);
 #include <dlfcn.h>
 #include <ffi.h>
-fdatum routine_run_in_ffi_host(prog_slice sl,datum **r0d);
+fdatum routine_run_in_ffi_host(vec sl,datum **r0d);
 #define INTERFACE 0
 #define EXPORT_INTERFACE 0
 #define LOCAL_INTERFACE 0

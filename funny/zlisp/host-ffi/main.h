@@ -5,4 +5,4 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-fdatum routine_run_in_ffi_host(prog_slice sl,datum **r0d);
+fdatum routine_run_in_ffi_host(vec sl,datum **r0d);

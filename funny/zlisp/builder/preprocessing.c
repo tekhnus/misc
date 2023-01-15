@@ -10,9 +10,9 @@ EXPORT fdatum file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  prog_slice expander_sl = prog_slice_make(16 * 1024);
-  size_t expander_prg = prog_slice_append_new(&expander_sl);
-  size_t expander_builder_prg = prog_slice_append_new(&expander_sl);
+  vec expander_sl = vec_make(16 * 1024);
+  size_t expander_prg = vec_append_new(&expander_sl);
+  size_t expander_builder_prg = vec_append_new(&expander_sl);
   datum *expander_routine = routine_make(expander_builder_prg);
   datum *expander_compdata = compdata_make();
   datum *expander_builder_compdata = compdata_make();
@@ -47,7 +47,7 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p,
+LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
                           datum **compdata, size_t *bp,
                           datum **builder_compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {

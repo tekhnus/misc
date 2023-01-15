@@ -207,15 +207,15 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-EXPORT prog_slice prog_slice_make(size_t capacity) {
-  prog_slice res;
+EXPORT vec vec_make(size_t capacity) {
+  vec res;
   res.begin = malloc(capacity * sizeof(datum));
   res.length = 0;
   res.capacity = capacity;
   return res;
 }
 
-EXPORT size_t prog_slice_append_new(prog_slice *s) {
+EXPORT size_t vec_append_new(vec *s) {
   if (s->length == s->capacity) {
     fprintf(stderr, "prog slice capacity overflow %zu\n", s->capacity);
     exit(EXIT_FAILURE);
@@ -226,15 +226,15 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
   return res;
 }
 
-EXPORT void prog_slice_extend(prog_slice *s, datum *instructions) {
+EXPORT void vec_extend(vec *s, datum *instructions) {
   for (int i = 0; i < list_length(instructions); ++i) {
     datum *ins = list_at(instructions, i);
-    size_t index = prog_slice_append_new(s);
-    *prog_slice_datum_at(*s, index) = *ins;
+    size_t index = vec_append_new(s);
+    *vec_datum_at(*s, index) = *ins;
   }
 }
 
-EXPORT datum *prog_slice_datum_at(prog_slice s, size_t index) {
+EXPORT datum *vec_datum_at(vec s, size_t index) {
   if (index >= s.length) {
     fprintf(stderr, "prog slice index overflow\n");
     exit(EXIT_FAILURE);
@@ -242,12 +242,12 @@ EXPORT datum *prog_slice_datum_at(prog_slice s, size_t index) {
   return s.begin + index;
 }
 
-EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
+EXPORT size_t vec_length(vec s) { return s.length; }
 
-EXPORT datum *prog_slice_to_datum(prog_slice sl) {
+EXPORT datum *vec_to_datum(vec sl) {
   datum *res = datum_make_nil();
-  for (size_t i = 0; i < prog_slice_length(sl); ++i) {
-    res = list_append(res, prog_slice_datum_at(sl, i));
+  for (size_t i = 0; i < vec_length(sl); ++i) {
+    res = list_append(res, vec_datum_at(sl, i));
   }
   return res;
 }

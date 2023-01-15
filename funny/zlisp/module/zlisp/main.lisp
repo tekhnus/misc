@@ -19,8 +19,8 @@
 
 (def compdata-make (prelude/c-function selflib "compdata_make" '(() pointer)))
 (def make-routine-with-empty-state (prelude/c-function selflib "routine_make" '((sizet) pointer)))
-(def prog-slice-make (prelude/c-function selflib "prog_slice_make" '((sizet) progslice)))
-(def prog-slice-append-new- (prelude/c-function selflib "prog_slice_append_new" '((pointer) sizet)))
+(def prog-slice-make (prelude/c-function selflib "vec_make" '((sizet) progslice)))
+(def prog-slice-append-new- (prelude/c-function selflib "vec_append_new" '((pointer) sizet)))
 (def prog-build-one-c-host (prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def get-host-ffi-settings (prelude/c-function buildlib "get_host_ffi_settings" '(() pointer)))

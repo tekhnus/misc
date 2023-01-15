@@ -26,11 +26,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "file error: %s\n", src.panic_message);
     return EXIT_FAILURE;
   }
-  prog_slice sl = prog_slice_make(16 * 1024);
+  vec sl = vec_make(16 * 1024);
   // the interpreter will start from the first instruction,
   // so the first call of append_new must be for the starting point.
-  size_t bp = prog_slice_append_new(&sl);
-  size_t p = prog_slice_append_new(&sl);
+  size_t bp = vec_append_new(&sl);
+  size_t p = vec_append_new(&sl);
   datum *compdata = compdata_make();
   datum *builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  printf("%s\n", datum_repr_bounded(prog_slice_to_datum(sl), 128));
+  printf("%s\n", datum_repr_bounded(vec_to_datum(sl), 128));
   return EXIT_SUCCESS;
 }
 
@@ -48,7 +48,7 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return datum_make_bytestring("c-prelude");
 }
 
-EXPORT char *prog_build(prog_slice *sl, size_t *p, size_t *bp, datum *source,
+EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum **compdata, datum **builder_compdata,
                         datum *settings) {
   fdatum bytecode = prog_compile(source, compdata,
@@ -59,7 +59,7 @@ EXPORT char *prog_build(prog_slice *sl, size_t *p, size_t *bp, datum *source,
   prog_append_nop(sl, p,
                   datum_make_symbol("this_is_so_that_relocation_is_possible"));
   size_t start_p = *p;
-  char *res = prog_slice_relocate(sl, p, bytecode.ok_value);
+  char *res = vec_relocate(sl, p, bytecode.ok_value);
   if (res != NULL) {
     return res;
   }
