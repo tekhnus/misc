@@ -47,7 +47,6 @@ datum *prog_slice_to_datum(prog_slice sl);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);
-datum **list_at_new(datum *list,unsigned index);
 datum *list_get_tail(datum *list);
 datum *list_append(datum *list,datum *value);
 datum *list_chop_last(datum *list);

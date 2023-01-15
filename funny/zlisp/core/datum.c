@@ -97,9 +97,10 @@ EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
     sprintf(buf, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     end += sprintf(end, "(");
-    for (datum *item = e; !datum_is_nil(item); item = item->list_tail) {
+    for (int i = 0; i < list_length(e); ++i) {
+      datum *item = list_at(e, i);
       end +=
-          sprintf(end, "%s ", datum_repr_bounded(item->list_head, depth - 1));
+          sprintf(end, "%s ", datum_repr_bounded(item, depth - 1));
     }
     end += sprintf(end, ")");
   } else if (datum_is_symbol(e)) {
@@ -184,14 +185,15 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     return false;
   }
   if (datum_is_list(x) && datum_is_list(y)) {
-    if (datum_is_nil(x) && datum_is_nil(y)) {
-      return true;
-    }
-    if (datum_is_nil(x) || datum_is_nil(y)) {
+    if (list_length(x) != list_length(y)) {
       return false;
     }
-    return datum_eq(x->list_head, y->list_head) &&
-           datum_eq(x->list_tail, y->list_tail);
+    for (int i = 0; i < list_length(x); ++i) {
+      if (!datum_eq(list_at(x, i), list_at(y, i))) {
+        return false;
+      }
+    }
+    return true;
   }
   return false;
 }
@@ -225,11 +227,10 @@ EXPORT size_t prog_slice_append_new(prog_slice *s) {
 }
 
 EXPORT void prog_slice_extend(prog_slice *s, datum *instructions) {
-  for (datum *rest = instructions; !datum_is_nil(rest);
-       rest = rest->list_tail) {
-    datum *i = rest->list_head;
+  for (int i = 0; i < list_length(instructions); ++i) {
+    datum *ins = list_at(instructions, i);
     size_t index = prog_slice_append_new(s);
-    *prog_slice_datum_at(*s, index) = *i;
+    *prog_slice_datum_at(*s, index) = *ins;
   }
 }
 
@@ -245,10 +246,8 @@ EXPORT size_t prog_slice_length(prog_slice s) { return s.length; }
 
 EXPORT datum *prog_slice_to_datum(prog_slice sl) {
   datum *res = datum_make_nil();
-  datum **tail = &res;
   for (size_t i = 0; i < prog_slice_length(sl); ++i) {
-    *tail = datum_make_list_of(1, prog_slice_datum_at(sl, i));
-    tail = &((*tail)->list_tail);
+    res = list_append(res, prog_slice_datum_at(sl, i));
   }
   return res;
 }
@@ -265,23 +264,19 @@ EXPORT int list_length(datum *seq) {
 }
 
 EXPORT datum *list_at(datum *list, unsigned index) {
-  return *list_at_new(list, index);
-}
-
-EXPORT datum *list_get_last(datum *list) {
-  assert(list_length(list) > 0);
-  return list_at(list, list_length(list) - 1);
-}
-
-EXPORT datum **list_at_new(datum *list, unsigned index) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     fprintf(stderr, "list_at panic\n");
     exit(EXIT_FAILURE);
   }
   if (index == 0) {
-    return &list->list_head;
+    return list->list_head;
   }
-  return list_at_new(list->list_tail, index - 1);
+  return list_at(list->list_tail, index - 1);
+}
+
+EXPORT datum *list_get_last(datum *list) {
+  assert(list_length(list) > 0);
+  return list_at(list, list_length(list) - 1);
 }
 
 EXPORT datum *list_get_tail(datum *list) {
