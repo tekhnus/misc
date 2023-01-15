@@ -45,9 +45,8 @@ EXPORT char *prog_link_deps(prog_slice *sl, size_t *bdr_p,
 LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps,
                             fdatum (*module_bytecode)(char *, datum *),
                             datum *settings, datum **compdata) {
-  for (datum *rest_deps = deps; !datum_is_nil(rest_deps);
-       rest_deps = rest_deps->list_tail) {
-    datum *dep = rest_deps->list_head;
+  for (int i = 0; i < list_length(deps); ++i) {
+    datum *dep = list_at(deps, i);
     char *err = prog_build_dep(sl, p, dep, module_bytecode, settings, compdata);
     if (err != NULL) {
       return err;
@@ -58,9 +57,8 @@ LOCAL char *prog_build_deps(prog_slice *sl, size_t *p, datum *deps,
 
 LOCAL void prog_put_deps(prog_slice *sl, size_t *p, datum *deps,
                          datum **compdata) {
-  for (datum *rest_deps = deps; !datum_is_nil(rest_deps);
-       rest_deps = rest_deps->list_tail) {
-    datum *dep = rest_deps->list_head;
+  for (int i = 0; i < list_length(deps); ++i) {
+    datum *dep = list_at(deps, i);
     prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep)), compdata);
   }
 }
@@ -68,8 +66,8 @@ LOCAL void prog_put_deps(prog_slice *sl, size_t *p, datum *deps,
 LOCAL char *get_varname(datum *dep_and_sym) {
   char *dep = dep_and_sym->list_head->bytestring_value;
   char *sym;
-  if (!datum_is_nil(dep_and_sym->list_tail)) {
-    sym = dep_and_sym->list_tail->list_head->symbol_value;
+  if (list_length(dep_and_sym) > 1) {
+    sym = list_at(dep_and_sym, 1)->symbol_value;
   } else {
     sym = "";
   }
@@ -123,9 +121,9 @@ EXPORT char *prog_slice_relocate(prog_slice *dst, size_t *p, datum *src) {
     return "relocation can only be done to the slice end";
   }
   size_t delta = *p;
-  // the ">1" comes because of the final :end
-  for (datum *rest = src; list_length(rest) > 1; rest = rest->list_tail) {
-    datum *ins = rest->list_head;
+  // the "+ 1" comes because of the final :end
+  for (int i = 0; i + 1 < list_length(src); ++i) {
+    datum *ins = list_at(src, i);
     *prog_slice_datum_at(*dst, *p) = *instruction_relocate(ins, delta);
     *p = prog_slice_append_new(dst);
   }
@@ -183,9 +181,8 @@ LOCAL char *prog_build_dep(prog_slice *sl, size_t *p, datum *dep_and_sym,
   datum *names = datum_make_nil();
   names = list_append(names,
                       datum_make_symbol(get_varname(datum_make_list_of(1, dep))));
-  for (datum *rest_syms = syms; !datum_is_nil(rest_syms);
-       rest_syms = rest_syms->list_tail) {
-    datum *sym = rest_syms->list_head;
+  for (int i = 0; i < list_length(syms); ++i) {
+    datum *sym = list_at(syms, i);
     names = list_append(
         names, datum_make_symbol(get_varname(datum_make_list_of(2, dep, sym))));
   }

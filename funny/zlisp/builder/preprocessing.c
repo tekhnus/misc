@@ -20,7 +20,6 @@ EXPORT fdatum file_source(char *fname) {
                   &expander_compdata, &expander_builder_compdata);
   read_result rr;
   datum *res = datum_make_nil();
-  datum **resend = &res;
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
         rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
@@ -37,8 +36,7 @@ EXPORT fdatum file_source(char *fname) {
     if (datum_is_the_symbol(val.ok_value, ":void-value")) {
       continue;
     }
-    *resend = datum_make_list(val.ok_value, datum_make_nil());
-    resend = &((*resend)->list_tail);
+    res = list_append(res, val.ok_value);
   }
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
@@ -55,27 +53,24 @@ LOCAL fdatum datum_expand(datum *e, prog_slice *sl, datum **routine, size_t *p,
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(e);
   }
-  if (!datum_is_symbol(e->list_head) ||
-      strcmp(e->list_head->symbol_value, "bang")) {
+  if (!datum_is_the_symbol(list_at(e, 0), "bang")) {
     datum *res = datum_make_nil();
-    datum **end = &res;
 
-    for (datum *rest = e; !datum_is_nil(rest); rest = rest->list_tail) {
-      datum *x = rest->list_head;
+    for (int i = 0; i < list_length(e); ++i) {
+      datum *x = list_at(e, i);
       fdatum nxt =
           datum_expand(x, sl, routine, p, compdata, bp, builder_compdata);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
-      *end = datum_make_list(nxt.ok_value, datum_make_nil());
-      end = &((*end)->list_tail);
+      res = list_append(res, nxt.ok_value);
     }
     return fdatum_make_ok(res);
   }
-  if (datum_is_nil(e->list_tail) || !datum_is_nil(e->list_tail->list_tail)) {
+  if (list_length(e) != 2) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(e->list_tail->list_head, sl, routine, p, compdata,
+  fdatum exp = datum_expand(list_at(e, 1), sl, routine, p, compdata,
                             bp, builder_compdata);
   if (fdatum_is_panic(exp)) {
     return exp;
