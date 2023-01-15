@@ -83,11 +83,6 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT datum *routine_make(ptrdiff_t prg) {
-  routine *r = routine_make_empty(prg);
-  return datum_make_frame(r);
-}
-
 EXPORT fdatum routine_run_with_handler(prog_slice sl, datum **r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
@@ -446,6 +441,11 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   return rt;
 }
 
+EXPORT datum *routine_make(ptrdiff_t prg) {
+  routine *r = routine_make_empty(prg);
+  return datum_make_frame(r);
+}
+
 LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
   r->frames[0] = malloc(sizeof(struct frame));
@@ -462,6 +462,10 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 }
 
 LOCAL datum *datum_make_frame(routine *r) {
+  if (r->cnt != 1) {
+    fprintf(stderr, "multiframe datums are deprecated\n");
+    exit(EXIT_FAILURE);
+  }
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value = r;

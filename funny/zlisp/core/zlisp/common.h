@@ -82,7 +82,6 @@ int compdata_get_top_index(datum *compdata);
 datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_shape(datum *compdata);
 void compdata_give_names(datum *var,datum **compdata);
-datum *routine_make(ptrdiff_t prg);
 fdatum routine_run_with_handler(prog_slice sl,datum **r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
 datum *state_stack_at_poly(routine *r,datum *offset);
@@ -90,6 +89,7 @@ void state_stack_put(routine *r,datum *value);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
+datum *routine_make(ptrdiff_t prg);
 enum datum_type {
   DATUM_NIL,
   DATUM_LIST,

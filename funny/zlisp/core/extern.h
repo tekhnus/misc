@@ -4,13 +4,16 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
+typedef struct datum datum;
+datum *routine_make(ptrdiff_t prg);
 #define LOCAL static
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL size_t routine_get_stack_size(routine *r);
-typedef struct datum datum;
 LOCAL datum *datum_copy(datum *d);
 void state_stack_put(routine *r,datum *value);
+LOCAL datum *datum_make_frame(routine *r);
+LOCAL routine *routine_make_empty(ptrdiff_t prg);
 LOCAL size_t routine_get_count(routine *r);
 datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
@@ -40,9 +43,6 @@ struct fdatum {
 LOCAL fdatum routine_run(prog_slice sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
 fdatum routine_run_with_handler(prog_slice sl,datum **r0d,fdatum(*yield_handler)(datum *,datum *));
-LOCAL datum *datum_make_frame(routine *r);
-LOCAL routine *routine_make_empty(ptrdiff_t prg);
-datum *routine_make(ptrdiff_t prg);
 datum *compdata_get_shape(datum *compdata);
 int compdata_get_top_index(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
