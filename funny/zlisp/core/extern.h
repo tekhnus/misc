@@ -23,7 +23,7 @@ datum *state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum *list);
 datum *state_stack_pop(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
-datum *state_stack_at_poly(routine *r,datum *offset);
+datum *state_stack_at(routine *r,datum *offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);

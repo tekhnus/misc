@@ -69,7 +69,7 @@ struct prog {
 
 struct frame {
   ptrdiff_t offset;
-  vec new_state;
+  vec state;
 };
 
 struct routine {
@@ -146,10 +146,10 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
     if (prg.type == PROG_CALL && args != NULL) {
       datum *recieve_type = prg.call_type;
       routine *child =
-          get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index));
+          get_routine_from_datum(state_stack_at(r, prg.call_fn_index));
       routine *rt = routine_merge(r, child);
       if (!datum_is_nil(prg.call_subfn_index)) {
-        rt = routine_merge(rt, get_routine_from_datum(state_stack_at_poly(
+        rt = routine_merge(rt, get_routine_from_datum(state_stack_at(
                                        r, prg.call_subfn_index)));
       }
       fdatum err;
@@ -231,7 +231,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
-      datum *er = state_stack_at_poly(r, prg.put_var_offset);
+      datum *er = state_stack_at(r, prg.put_var_offset);
       state_stack_put(r, datum_copy(er));
       *routine_offset(r) = prg.put_var_next;
       continue;
@@ -310,9 +310,9 @@ LOCAL routine *get_child(vec sl, routine *r) {
     return NULL;
   }
   routine *child = routine_merge(
-      r, get_routine_from_datum(state_stack_at_poly(r, prg.call_fn_index)));
+      r, get_routine_from_datum(state_stack_at(r, prg.call_fn_index)));
   if (!datum_is_nil(prg.call_subfn_index)) {
-    child = routine_merge(child, get_routine_from_datum(state_stack_at_poly(
+    child = routine_merge(child, get_routine_from_datum(state_stack_at(
                                          r, prg.call_subfn_index)));
   }
   return child;
@@ -354,20 +354,20 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
-EXPORT datum *state_stack_at_poly(routine *r, datum *offset) {
+EXPORT datum *state_stack_at(routine *r, datum *offset) {
   assert(datum_is_list(offset) && list_length(offset) == 2);
   datum *frame = list_at(offset, 0);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(frame) && datum_is_integer(idx));
   assert(frame->integer_value < (int)r->cnt);
-  vec vars = r->frames[frame->integer_value]->new_state;
+  vec vars = r->frames[frame->integer_value]->state;
   assert((size_t)idx->integer_value < vec_length(vars));
   return vec_at(vars, idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
-  vec_append(&r->frames[r->cnt - 1]->new_state, value);
+  vec_append(&r->frames[r->cnt - 1]->state, value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum *list) {
@@ -383,7 +383,7 @@ EXPORT void state_stack_put_all(routine *r, datum *list) {
 EXPORT datum *state_stack_pop(routine *r) {
   assert(r->cnt > 0);
   datum *vec_res = malloc(sizeof(datum));
-  *vec_res = vec_pop(&r->frames[r->cnt - 1]->new_state);
+  *vec_res = vec_pop(&r->frames[r->cnt - 1]->state);
   return vec_res;
 }
 
@@ -407,7 +407,7 @@ LOCAL void routine_copy(routine *dst, routine *src) {
 
 LOCAL void frame_copy(frame *dst, frame *src) {
   dst->offset = src->offset;
-  vec_copy(&dst->new_state, &src->new_state);
+  vec_copy(&dst->state, &src->state);
 }
 
 LOCAL void vec_copy(vec *dst, vec *src) {
@@ -422,7 +422,7 @@ LOCAL void vec_copy(vec *dst, vec *src) {
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < r->cnt; ++i) {
-    res += vec_length(r->frames[i]->new_state);
+    res += vec_length(r->frames[i]->state);
   }
   return res;
 }
@@ -432,7 +432,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
-    res = list_append(res, datum_make_int(vec_length(r->frames[i]->new_state)));
+    res = list_append(res, datum_make_int(vec_length(r->frames[i]->state)));
   }
   return res;
 }
@@ -464,7 +464,7 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->offset = prg;
-  r->frames[0]->new_state = vec_make(1024);
+  r->frames[0]->state = vec_make(1024);
   r->cnt = 1;
   r->extvars = 0;
   return r;
