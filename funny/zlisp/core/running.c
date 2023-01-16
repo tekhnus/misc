@@ -390,9 +390,15 @@ LOCAL datum *state_stack_collect(routine *r, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     datum *arg = malloc(sizeof(datum));
     *arg = state_stack_pop(r);
-    form = datum_make_list(arg, form);
+    form = list_append(form, arg);
   }
-  return form;
+  datum *res = datum_make_nil();
+  for (size_t i = 0; i < count; ++i) {
+    datum *x = list_get_last(form);
+    form = list_chop_last(form);
+    res = list_append(res, x);
+  }
+  return res;
 }
 
 LOCAL void routine_copy(routine *dst, routine *src) {

@@ -19,9 +19,10 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (i > 0) {
+      datum *new_info = list_append(info, stmt);
       prog_append_nop(sl, off,
                       datum_make_list_of(2, datum_make_symbol("info"),
-                                        datum_make_list(stmt, info)));
+                                        new_info));
     }
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
     if (err != NULL) {
@@ -100,9 +101,10 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_the_symbol(op, "progn")) {
     for (int i = 1; i < list_length(stmt); ++i) {
       datum *step = list_at(stmt, i);
+      datum *new_info = list_append(info, step);
       prog_append_nop(sl, begin,
                       datum_make_list_of(2, datum_make_symbol("info"),
-                                        datum_make_list(step, info)));
+                                        new_info));
       char *err = prog_append_statement(sl, begin, step, compdata, info);
       if (err != NULL) {
         return err;
@@ -148,8 +150,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t s_off = vec_append_new(sl);
     datum *routine_compdata = compdata_put(*compdata, name);
     routine_compdata = compdata_start_new_section(routine_compdata);
+    datum *new_info = list_append(info, name);
     char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata,
-                                  datum_make_list(name, info));
+                                  new_info);
     if (err != NULL) {
       return err;
     }
