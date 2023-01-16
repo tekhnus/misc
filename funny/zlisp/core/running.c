@@ -506,5 +506,11 @@ LOCAL datum *datum_copy(datum *d) {
     routine_copy(fn_copy, fn_r);
     return datum_make_frame(fn_copy);
   }
+  if (datum_is_nil(d)) {
+    return datum_make_nil();
+  }
+  if (datum_is_list(d)) {
+    return datum_make_list(datum_copy(d->list_head), datum_copy(d->list_tail));
+  }
   return d;
 }
