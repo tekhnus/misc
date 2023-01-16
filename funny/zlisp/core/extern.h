@@ -24,7 +24,6 @@ void state_stack_put_all(routine *r,datum *list);
 #include <inttypes.h>
 #include <stdio.h>
 enum datum_type {
-  DATUM_NIL,
   DATUM_LIST,
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
@@ -32,13 +31,15 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
 struct datum {
   enum datum_type type;
   union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
+    vec list_value;
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
@@ -52,11 +53,6 @@ LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL datum *routine_get_shape(routine *r);
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
 LOCAL routine *get_child(vec sl,routine *r);
 LOCAL void print_backtrace(vec sl,routine *r);
 typedef struct fdatum fdatum;

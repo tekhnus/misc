@@ -506,11 +506,14 @@ LOCAL datum *datum_copy(datum *d) {
     routine_copy(fn_copy, fn_r);
     return datum_make_frame(fn_copy);
   }
-  if (datum_is_nil(d)) {
-    return datum_make_nil();
-  }
   if (datum_is_list(d)) {
-    return datum_make_list(datum_copy(d->list_head), datum_copy(d->list_tail));
+    datum *e = malloc(sizeof(datum));
+    e->type = DATUM_LIST;
+    e->list_value = vec_make(list_length(d));
+    for (int i = 0; i < list_length(d); ++i) {
+      vec_append(&e->list_value, datum_copy(list_at(d, i)));
+    }
+    return d;
   }
   return d;
 }

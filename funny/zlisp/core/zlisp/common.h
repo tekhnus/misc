@@ -41,7 +41,6 @@ datum *vec_at(vec *s,size_t index);
 size_t vec_length(vec *s);
 datum *vec_to_datum(vec *sl);
 enum datum_type {
-  DATUM_NIL,
   DATUM_LIST,
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
@@ -52,10 +51,7 @@ typedef enum datum_type datum_type;
 struct datum {
   enum datum_type type;
   union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
+    vec list_value;
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
@@ -65,8 +61,8 @@ struct datum {
 datum vec_pop(vec *v);
 datum *datum_make_nil();
 datum *datum_make_list(datum *head,datum *tail);
-bool datum_is_nil(datum *e);
 bool datum_is_list(datum *e);
+bool datum_is_nil(datum *e);
 datum *datum_make_list_of(size_t count,...);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);

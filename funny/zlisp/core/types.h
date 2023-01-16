@@ -4,7 +4,6 @@
 
 #if EXPORT_INTERFACE
 enum datum_type {
-  DATUM_NIL,
   DATUM_LIST,
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
@@ -15,10 +14,7 @@ enum datum_type {
 struct datum {
   enum datum_type type;
   union {
-    struct {
-      struct datum *list_head;
-      struct datum *list_tail;
-    };
+    vec list_value;
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
