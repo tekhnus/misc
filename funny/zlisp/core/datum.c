@@ -15,12 +15,6 @@ enum fdatumype {
   FDATUM_PANIC,
 };
 
-EXPORT bool datum_is_nil(datum *e) { return e->type == DATUM_NIL; }
-
-EXPORT bool datum_is_list(datum *e) {
-  return e->type == DATUM_NIL || e->type == DATUM_LIST;
-}
-
 EXPORT bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
 
 EXPORT bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
@@ -30,32 +24,6 @@ EXPORT bool datum_is_bytestring(datum *e) {
 }
 
 EXPORT bool datum_is_frame(datum *e) { return e->type == DATUM_FRAME; }
-
-EXPORT datum *datum_make_nil() {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_NIL;
-  return e;
-}
-
-EXPORT datum *datum_make_list(datum *head, datum *tail) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_head = head;
-  e->list_tail = tail;
-  return e;
-}
-
-EXPORT datum *datum_make_list_of(size_t count, ...) {
-  datum *res = datum_make_nil();
-  va_list args;
-  va_start(args, count);
-  for (size_t i = 0; i < count; ++i) {
-    datum *elem = va_arg(args, datum *);
-    res = list_append(res, elem);
-  }
-  va_end(args);
-  return res;
-}
 
 EXPORT datum *datum_make_symbol(char *name) {
   datum *e = malloc(sizeof(datum));
@@ -263,11 +231,40 @@ EXPORT datum vec_pop(vec *v) {
   return *res;
 }
 
-EXPORT int list_length(datum *seq) {
-  if (!datum_is_list(seq)) {
-    fprintf(stderr, "not a list\n");
-    exit(EXIT_FAILURE);
+EXPORT datum *datum_make_nil() {
+  datum *e = malloc(sizeof(datum));
+  e->type = DATUM_NIL;
+  return e;
+}
+
+EXPORT datum *datum_make_list(datum *head, datum *tail) {
+  datum *e = malloc(sizeof(datum));
+  e->type = DATUM_LIST;
+  e->list_head = head;
+  e->list_tail = tail;
+  return e;
+}
+
+EXPORT bool datum_is_nil(datum *e) { return e->type == DATUM_NIL; }
+
+EXPORT bool datum_is_list(datum *e) {
+  return e->type == DATUM_NIL || e->type == DATUM_LIST;
+}
+
+EXPORT datum *datum_make_list_of(size_t count, ...) {
+  datum *res = datum_make_nil();
+  va_list args;
+  va_start(args, count);
+  for (size_t i = 0; i < count; ++i) {
+    datum *elem = va_arg(args, datum *);
+    res = list_append(res, elem);
   }
+  va_end(args);
+  return res;
+}
+
+EXPORT int list_length(datum *seq) {
+  assert(datum_is_list(seq));
   int res;
   for (res = 0; !datum_is_nil(seq); seq = seq->list_tail, ++res) {
   }
@@ -275,6 +272,7 @@ EXPORT int list_length(datum *seq) {
 }
 
 EXPORT datum *list_at(datum *list, unsigned index) {
+  assert(datum_is_list(list));
   if (!datum_is_list(list) || datum_is_nil(list)) {
     fprintf(stderr, "list_at panic\n");
     exit(EXIT_FAILURE);
@@ -286,11 +284,13 @@ EXPORT datum *list_at(datum *list, unsigned index) {
 }
 
 EXPORT datum *list_get_last(datum *list) {
+  assert(datum_is_list(list));
   assert(list_length(list) > 0);
   return list_at(list, list_length(list) - 1);
 }
 
 EXPORT datum *list_get_tail(datum *list) {
+  assert(datum_is_list(list));
   if (!datum_is_list(list) || datum_is_nil(list)) {
     fprintf(stderr, "list_tail panic\n");
     exit(EXIT_FAILURE);
@@ -299,6 +299,7 @@ EXPORT datum *list_get_tail(datum *list) {
 }
 
 EXPORT datum *list_append(datum *list, datum *value) {
+  assert(datum_is_list(list));
   if (datum_is_nil(list)) {
     return datum_make_list(value, datum_make_nil());
   }
@@ -306,6 +307,7 @@ EXPORT datum *list_append(datum *list, datum *value) {
 }
 
 EXPORT datum *list_chop_last(datum *list) {
+  assert(datum_is_list(list));
   if (datum_is_nil(list)) {
     fprintf(stderr, "list_chop_last error\n");
     exit(EXIT_FAILURE);
@@ -317,6 +319,7 @@ EXPORT datum *list_chop_last(datum *list) {
 }
 
 EXPORT int list_index_of(datum *xs, datum *x) {
+  assert(datum_is_list(xs));
   int i = list_length(xs) - 1;
   for (; i >= 0; --i) {
     if (datum_eq(list_at(xs, i), x)) {

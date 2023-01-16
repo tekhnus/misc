@@ -4,15 +4,10 @@
 #include <stdint.h>
 #include <stdarg.h>
 typedef struct datum datum;
-bool datum_is_nil(datum *e);
-bool datum_is_list(datum *e);
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);
 bool datum_is_frame(datum *e);
-datum *datum_make_nil();
-datum *datum_make_list(datum *head,datum *tail);
-datum *datum_make_list_of(size_t count,...);
 datum *datum_make_symbol(char *name);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_int(int64_t value);
@@ -68,6 +63,11 @@ struct datum {
   };
 };
 datum vec_pop(vec *v);
+datum *datum_make_nil();
+datum *datum_make_list(datum *head,datum *tail);
+bool datum_is_nil(datum *e);
+bool datum_is_list(datum *e);
+datum *datum_make_list_of(size_t count,...);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);
