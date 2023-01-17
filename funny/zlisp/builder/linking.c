@@ -112,7 +112,7 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
     exit(EXIT_FAILURE);
   }
   datum *nxt = list_at(res, list_length(res) - 1);
-  res = list_chop_last(res);
+  list_pop(res);
   list_append(res, offset_relocate(nxt, delta));
   return res;
 }

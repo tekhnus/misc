@@ -577,12 +577,18 @@ LOCAL void compdata_validate(datum *compdata) {
 }
 
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
-  return list_copy_and_append(list_chop_last(compdata), list_copy_and_append(list_get_last(compdata), var));
+  compdata = datum_copy(compdata);
+  datum *last_frame = list_get_last(compdata);
+  list_append(last_frame, var);
+  return compdata;
 }
 
 LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
-  return list_copy_and_append(list_chop_last(compdata), list_chop_last(list_get_last(compdata)));
+  compdata = datum_copy(compdata);
+  datum *last_frame = list_get_last(compdata);
+  list_pop(last_frame);
+  return compdata;
 }
 
 EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {

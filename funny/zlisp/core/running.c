@@ -395,7 +395,7 @@ LOCAL datum *state_stack_collect(routine *r, size_t count) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *x = list_get_last(form);
-    form = list_chop_last(form);
+    list_pop(form);
     list_append(res, x);
   }
   return res;

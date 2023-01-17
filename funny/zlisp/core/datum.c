@@ -310,16 +310,9 @@ EXPORT void list_append(datum *list, datum *value) {
   vec_append(&list->list_value, value);
 }
 
-EXPORT datum *list_chop_last(datum *list) {
+EXPORT datum list_pop(datum *list) {
   assert(datum_is_list(list));
-  assert(list_length(list) > 0);
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_value = vec_make(list_length(list) - 1);
-  for (int i = 0; i + 1 < list_length(list); ++i) {
-    vec_append(&e->list_value, list_at(list, i));
-  }
-  return e;
+  return vec_pop(&list->list_value);
 }
 
 EXPORT int list_index_of(datum *xs, datum *x) {
