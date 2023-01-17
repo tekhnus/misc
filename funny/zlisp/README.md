@@ -7,17 +7,16 @@ Currently it's barely usable.
 
 Things I'm trying to figure out experimentally:
 - Can a programming language specification be very general yet useful?
-  Can we get a language that is adequate for writing algorithms of any kind:
-  bare-metal programs, shell scripts, package managing scripts,
-  abstract programs in CS papers, math proofs?
+  What will we end up with if we'll specify only things which are meaningful
+  for any kind of computation, be it bare-metal programs, distributed programs,
+  package definitions, algorithms from mathematical logic books or math proofs?
 - How small can a language implementation be?
   How much can be internalized, i.e. implemented via macros
-  and/or compiler extensions?
+  and/or compiler extensions written in the same language?
 - Can we have imperative syntax and statefulness
-  yet be able to reason about side-effects with simplicity
-  inherent to pure-functional programs?
+  yet be able to easily reason about side-effects of any line of the code?
 - Can we avoid garbage collection and reference counting
-  yet still have fun?
+  yet end up with fun-to-use and fast language?
 - Coroutines are such a great idea, can we have them everywhere?
 
 There is an implementation-agnostic bytecode compiler (written in C)
@@ -29,6 +28,7 @@ and two implementations:
 
 - Implement loops and/or tail recursive calls
 - Implement intercepting arbitrary yields from called routine, for example, host calls
+- Implement program hashing, e.g. getting a hash of the given computation
 
 - Unite preprocessor with quasiquotes
 - Come up with a less awkward macro syntax
