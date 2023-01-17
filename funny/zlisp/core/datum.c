@@ -246,12 +246,10 @@ EXPORT datum *datum_make_nil() {
 
 EXPORT datum *datum_make_list(datum *head, datum *tail) {
   assert(datum_is_list(tail));
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_value = vec_make(1 + list_length(tail));
-  vec_append(&e->list_value, head);
+  datum *e = datum_make_nil();
+  list_append(e, head);
   for (size_t i = 0; i < vec_length(&tail->list_value); ++i) {
-    vec_append(&e->list_value, list_at(tail, i));
+    list_append(e, list_at(tail, i));
   }
   return e;
 }
@@ -265,14 +263,12 @@ EXPORT bool datum_is_nil(datum *e) {
 }
 
 EXPORT datum *datum_make_list_of(size_t count, ...) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_value = vec_make(count);
+  datum *e = datum_make_nil();
   va_list args;
   va_start(args, count);
   for (size_t i = 0; i < count; ++i) {
     datum *elem = va_arg(args, datum *);
-    vec_append(&e->list_value, elem);
+    list_append(e, elem);
   }
   va_end(args);
   return e;
@@ -297,11 +293,9 @@ EXPORT datum *list_get_last(datum *list) {
 EXPORT datum *list_get_tail(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_value = vec_make(list_length(list) - 1);
+  datum *e = datum_make_nil();
   for (int i = 1; i < list_length(list); ++i) {
-    vec_append(&e->list_value, list_at(list, i));
+    list_append(e, list_at(list, i));
   }
   return e;
 }
