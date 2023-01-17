@@ -69,7 +69,6 @@ datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);
 datum *list_get_tail(datum *list);
 void list_append(datum *list,datum *value);
-datum *list_copy_and_append(datum *list,datum *value);
 datum *list_chop_last(datum *list);
 int list_index_of(datum *xs,datum *x);
 typedef struct read_result read_result;

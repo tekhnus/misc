@@ -310,15 +310,6 @@ EXPORT void list_append(datum *list, datum *value) {
   vec_append(&list->list_value, value);
 }
 
-EXPORT datum *list_copy_and_append(datum *list, datum *value) {
-  assert(datum_is_list(list));
-  
-  datum *e = malloc(sizeof(datum));
-  *e = *list; // ewwww
-  list_append(e, value);
-  return e;
-}
-
 EXPORT datum *list_chop_last(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);

@@ -90,6 +90,7 @@ void prog_append_yield(vec *sl,size_t *begin,datum *type,size_t count,size_t rec
 LOCAL void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata,datum *info);
 void prog_append_nop(vec *sl,size_t *begin,datum *info);
+LOCAL datum *list_copy_and_append(datum *list,datum *value);
 LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source,datum **compdata,datum *info);
 fdatum prog_compile(datum *source,datum **compdata,datum *info);
 fdatum datum_read_one(FILE *stre);
@@ -123,7 +124,6 @@ bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 int list_index_of(datum *xs,datum *x);
 datum *list_chop_last(datum *list);
-datum *list_copy_and_append(datum *list,datum *value);
 datum *list_get_tail(datum *list);
 datum *list_get_last(datum *list);
 bool datum_is_nil(datum *e);
