@@ -19,7 +19,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (i > 0) {
-      datum *new_info = list_append(info, stmt);
+      datum *new_info = list_copy_and_append(info, stmt);
       prog_append_nop(sl, off,
                       datum_make_list_of(2, datum_make_symbol("info"),
                                         new_info));
@@ -101,7 +101,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_the_symbol(op, "progn")) {
     for (int i = 1; i < list_length(stmt); ++i) {
       datum *step = list_at(stmt, i);
-      datum *new_info = list_append(info, step);
+      datum *new_info = list_copy_and_append(info, step);
       prog_append_nop(sl, begin,
                       datum_make_list_of(2, datum_make_symbol("info"),
                                         new_info));
@@ -150,7 +150,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t s_off = vec_append_new(sl);
     datum *routine_compdata = compdata_put(*compdata, name);
     routine_compdata = compdata_start_new_section(routine_compdata);
-    datum *new_info = list_append(info, name);
+    datum *new_info = list_copy_and_append(info, name);
     char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata,
                                   new_info);
     if (err != NULL) {
@@ -359,8 +359,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     } else {
       return fdatum_make_panic("wrong usage spec");
     }
-    vars = list_append(vars, item_var);
-    specs = list_append(specs, item_spec);
+    vars = list_copy_and_append(vars, item_var);
+    specs = list_copy_and_append(specs, item_spec);
   }
   return fdatum_make_ok(datum_make_list_of(2, vars, specs));
 }
@@ -504,8 +504,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
       return fdatum_make_panic("wrong export spec");
     }
     datum *item_expression = list_at(item, 1);
-    names = list_append(names, item_name);
-    expressions = list_append(expressions, item_expression);
+    names = list_copy_and_append(names, item_name);
+    expressions = list_copy_and_append(expressions, item_expression);
   }
   return fdatum_make_ok(datum_make_list_of(2, names, expressions));
 }
@@ -577,12 +577,12 @@ LOCAL void compdata_validate(datum *compdata) {
 }
 
 LOCAL datum *compdata_put(datum *compdata, datum *var) {
-  return list_append(list_chop_last(compdata), list_append(list_get_last(compdata), var));
+  return list_copy_and_append(list_chop_last(compdata), list_copy_and_append(list_get_last(compdata), var));
 }
 
 LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
-  return list_append(list_chop_last(compdata), list_chop_last(list_get_last(compdata)));
+  return list_copy_and_append(list_chop_last(compdata), list_chop_last(list_get_last(compdata)));
 }
 
 EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
@@ -600,7 +600,7 @@ EXPORT datum *compdata_get_polyindex(datum *compdata, datum *var) {
 }
 
 LOCAL datum *compdata_start_new_section(datum *compdata) {
-  return list_append(compdata, datum_make_nil());
+  return list_copy_and_append(compdata, datum_make_nil());
 }
 
 EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
@@ -614,7 +614,7 @@ EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
 EXPORT datum *compdata_get_shape(datum *compdata) {
   datum *res = datum_make_nil();
   for (int i = 0; i < list_length(compdata); ++i) {
-    res = list_append(res, datum_make_int(list_length(list_at(compdata, i))));
+    res = list_copy_and_append(res, datum_make_int(list_length(list_at(compdata, i))));
   }
   return res;
 }

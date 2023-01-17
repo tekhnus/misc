@@ -390,13 +390,13 @@ LOCAL datum *state_stack_collect(routine *r, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     datum *arg = malloc(sizeof(datum));
     *arg = state_stack_pop(r);
-    form = list_append(form, arg);
+    form = list_copy_and_append(form, arg);
   }
   datum *res = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *x = list_get_last(form);
     form = list_chop_last(form);
-    res = list_append(res, x);
+    res = list_copy_and_append(res, x);
   }
   return res;
 }
@@ -437,7 +437,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
-    res = list_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
+    res = list_copy_and_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
   }
   return res;
 }
@@ -499,7 +499,7 @@ LOCAL routine *get_routine_from_datum(datum *d) {
   return (routine *)d->frame_value;
 }
 
-LOCAL datum *datum_copy(datum *d) {
+EXPORT datum *datum_copy(datum *d) {
   if (datum_is_frame(d)) {
     routine *fn_r = get_routine_from_datum(d);
     routine *fn_copy = malloc(sizeof(routine));

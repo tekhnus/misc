@@ -36,7 +36,7 @@ EXPORT fdatum file_source(char *fname) {
     if (datum_is_the_symbol(val.ok_value, ":void-value")) {
       continue;
     }
-    res = list_append(res, val.ok_value);
+    res = list_copy_and_append(res, val.ok_value);
   }
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
@@ -63,7 +63,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
-      res = list_append(res, nxt.ok_value);
+      res = list_copy_and_append(res, nxt.ok_value);
     }
     return fdatum_make_ok(res);
   }

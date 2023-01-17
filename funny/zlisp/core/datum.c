@@ -185,8 +185,14 @@ EXPORT vec vec_make(size_t capacity) {
 
 EXPORT size_t vec_append(vec *s, datum *x) {
   if (s->length == s->capacity) {
-    fprintf(stderr, "prog slice capacity overflow %zu\n", s->capacity);
-    exit(EXIT_FAILURE);
+    size_t new_capacity = (s->capacity + 1) * 2;
+    datum *new_begin = malloc(sizeof(datum) * new_capacity);
+    for (size_t i = 0; i < s->length; ++i) {
+      new_begin[i] = s->begin[i];
+    }
+    s->capacity = new_capacity;
+    // free(s->begin);
+    s->begin = new_begin;
   }
   size_t res = s->length++;
   (s->begin)[res] = *x;
@@ -218,7 +224,7 @@ EXPORT size_t vec_length(vec *s) { return s->length; }
 EXPORT datum *vec_to_datum(vec *sl) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < vec_length(sl); ++i) {
-    res = list_append(res, vec_at(sl, i));
+    res = list_copy_and_append(res, vec_at(sl, i));
   }
   return res;
 }
@@ -300,15 +306,16 @@ EXPORT datum *list_get_tail(datum *list) {
   return e;
 }
 
-EXPORT datum *list_append(datum *list, datum *value) {
+EXPORT void list_append(datum *list, datum *value) {
+  vec_append(&list->list_value, value);
+}
+
+EXPORT datum *list_copy_and_append(datum *list, datum *value) {
   assert(datum_is_list(list));
+  
   datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_value = vec_make(list_length(list) + 1);
-  for (int i = 0; i < list_length(list); ++i) {
-    vec_append(&e->list_value, list_at(list, i));
-  }
-  vec_append(&e->list_value, value);
+  *e = *list; // ewwww
+  list_append(e, value);
   return e;
 }
 
