@@ -14,7 +14,6 @@ LOCAL void frame_copy(frame *dst,frame *src);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL size_t routine_get_stack_size(routine *r);
-datum *datum_copy(datum *d);
 void state_stack_put(routine *r,datum *value);
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
@@ -64,6 +63,7 @@ struct fdatum {
 LOCAL fdatum routine_run(vec sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
 fdatum routine_run_with_handler(vec sl,datum **r0d,fdatum(*yield_handler)(datum *,datum *));
+datum *datum_copy(datum *d);
 datum *compdata_get_shape(datum *compdata);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);

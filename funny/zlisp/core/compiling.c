@@ -635,8 +635,7 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
 LOCAL datum *list_copy_and_append(datum *list, datum *value) {
   assert(datum_is_list(list));
   
-  datum *e = malloc(sizeof(datum));
-  *e = *list; // ewwww
+  datum *e = datum_copy(list);
   list_append(e, value);
   return e;
 }
