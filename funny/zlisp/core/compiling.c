@@ -359,8 +359,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     } else {
       return fdatum_make_panic("wrong usage spec");
     }
-    vars = list_copy_and_append(vars, item_var);
-    specs = list_copy_and_append(specs, item_spec);
+    list_append(vars, item_var);
+    list_append(specs, item_spec);
   }
   return fdatum_make_ok(datum_make_list_of(2, vars, specs));
 }
@@ -504,8 +504,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
       return fdatum_make_panic("wrong export spec");
     }
     datum *item_expression = list_at(item, 1);
-    names = list_copy_and_append(names, item_name);
-    expressions = list_copy_and_append(expressions, item_expression);
+    list_append(names, item_name);
+    list_append(expressions, item_expression);
   }
   return fdatum_make_ok(datum_make_list_of(2, names, expressions));
 }

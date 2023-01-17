@@ -112,7 +112,8 @@ LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
     exit(EXIT_FAILURE);
   }
   datum *nxt = list_at(res, list_length(res) - 1);
-  res = list_copy_and_append(list_chop_last(res), offset_relocate(nxt, delta));
+  res = list_chop_last(res);
+  list_append(res, offset_relocate(nxt, delta));
   return res;
 }
 
@@ -179,11 +180,11 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum *names = datum_make_nil();
-  names = list_copy_and_append(names,
+  list_append(names,
                       datum_make_symbol(get_varname(datum_make_list_of(1, dep))));
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
-    names = list_copy_and_append(
+    list_append(
         names, datum_make_symbol(get_varname(datum_make_list_of(2, dep, sym))));
   }
   compdata_give_names(names, compdata);

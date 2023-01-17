@@ -390,13 +390,13 @@ LOCAL datum *state_stack_collect(routine *r, size_t count) {
   for (size_t i = 0; i < count; ++i) {
     datum *arg = malloc(sizeof(datum));
     *arg = state_stack_pop(r);
-    form = list_copy_and_append(form, arg);
+    list_append(form, arg);
   }
   datum *res = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *x = list_get_last(form);
     form = list_chop_last(form);
-    res = list_copy_and_append(res, x);
+    list_append(res, x);
   }
   return res;
 }
@@ -437,7 +437,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < r->cnt; ++i) {
-    res = list_copy_and_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
+    list_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
   }
   return res;
 }

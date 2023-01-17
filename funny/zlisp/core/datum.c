@@ -224,7 +224,7 @@ EXPORT size_t vec_length(vec *s) { return s->length; }
 EXPORT datum *vec_to_datum(vec *sl) {
   datum *res = datum_make_nil();
   for (size_t i = 0; i < vec_length(sl); ++i) {
-    res = list_copy_and_append(res, vec_at(sl, i));
+    list_append(res, vec_at(sl, i));
   }
   return res;
 }
