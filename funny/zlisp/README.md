@@ -35,7 +35,7 @@ and two implementations:
 - Implement sanitized macros and/or self-describing identifiers and/or implicit imports
 
 - Achieve zero memory leakage
-- Switch from linked lists to slices in FFI implementation
+- Unite list type with frame type
 - Make environment handling in FFI impementation error-resistant and zero-cost
 - Implement closures by value
 - Implement references
