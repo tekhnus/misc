@@ -88,7 +88,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
   routine *r = get_routine_from_datum(r0d);
-  datum *args = datum_make_nil();
+  datum args = *datum_make_nil();
   datum *result = datum_make_nil();
   fdatum rerr;
   fdatum res;
@@ -124,7 +124,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                 datum_repr(compdata_shape), datum_repr(state_shape));
         // exit(EXIT_FAILURE);
       }
-      args = datum_make_nil();
+      args = *datum_make_nil();
       continue;
     }
     if (!datum_is_list(yield_type) ||
@@ -137,12 +137,12 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
     if (fdatum_is_panic(res)) {
       return res;
     }
-    args = &res.ok_value;
+    args = res.ok_value;
   }
   return fdatum_make_ok(*result);
 }
 
-LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
+LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
   bool pass_args = true;
   for (;;) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
@@ -178,14 +178,14 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       continue;
     }
     if (prg.type == PROG_YIELD && pass_args) {
-      if (list_length(args) != (int)prg.yield_recieve_count) {
+      if (list_length(&args) != (int)prg.yield_recieve_count) {
         char *err = malloc(256);
         sprintf(err,
                 "recieved incorrect number of arguments: expected %zu, got %d",
-                prg.yield_recieve_count, list_length(args));
+                prg.yield_recieve_count, list_length(&args));
         return fdatum_make_panic(err);
       }
-      state_stack_put_all(r, args);
+      state_stack_put_all(r, &args);
       pass_args = false;
       *routine_offset(r) = prg.yield_next;
       continue;
@@ -198,7 +198,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       return fdatum_make_ok(*datum_make_list_of(2, prg.yield_type, res));
     }
     if (prg.type == PROG_CALL) {
-      args = state_stack_collect(r, prg.call_arg_count);
+      args = *state_stack_collect(r, prg.call_arg_count);
       pass_args = true;
       continue;
     }
