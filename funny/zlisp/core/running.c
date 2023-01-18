@@ -143,9 +143,10 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
 }
 
 LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
+  bool pass_args = true;
   for (;;) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
-    if (prg.type == PROG_CALL && args != NULL) {
+    if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
       routine *child =
           get_routine_from_datum(state_stack_at(r, prg.call_fn_index));
@@ -156,7 +157,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       }
       fdatum err;
       err = routine_run(sl, rt, args);
-      args = NULL;
+      pass_args = false;
       if (fdatum_is_panic(err)) {
         return err;
       }
@@ -164,19 +165,19 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       if (!datum_eq(recieve_type, yield_type)) {
         return fdatum_make_ok(err.ok_value);
       }
-      datum *args = list_at(&err.ok_value, 1);
-      if (prg.call_return_count != (long unsigned int)list_length(args)) {
+      datum *argz = list_at(&err.ok_value, 1);
+      if (prg.call_return_count != (long unsigned int)list_length(argz)) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
 
       if (prg.call_pop_one) {
         state_stack_pop(r);
       }
-      state_stack_put_all(r, args);
+      state_stack_put_all(r, argz);
       *routine_offset(r) = prg.call_next;
       continue;
     }
-    if (prg.type == PROG_YIELD && args != NULL) {
+    if (prg.type == PROG_YIELD && pass_args) {
       if (list_length(args) != (int)prg.yield_recieve_count) {
         char *err = malloc(256);
         sprintf(err,
@@ -185,11 +186,11 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
         return fdatum_make_panic(err);
       }
       state_stack_put_all(r, args);
-      args = NULL;
+      pass_args = false;
       *routine_offset(r) = prg.yield_next;
       continue;
     }
-    if (args != NULL) {
+    if (pass_args) {
       return fdatum_make_panic("args passed to a wrong instruction");
     }
     if (prg.type == PROG_YIELD) {
@@ -198,6 +199,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);
+      pass_args = true;
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
