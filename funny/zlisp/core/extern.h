@@ -18,8 +18,6 @@ void state_stack_put(routine *r,datum *value);
 LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg);
 LOCAL size_t routine_get_count(routine *r);
-LOCAL datum *state_stack_collect(routine *r,size_t count);
-void state_stack_put_all(routine *r,datum *list);
 #include <inttypes.h>
 #include <stdio.h>
 enum datum_type {
@@ -45,6 +43,8 @@ struct datum {
     void *frame_value;
   };
 };
+LOCAL datum state_stack_collect(routine *r,size_t count);
+void state_stack_put_all(routine *r,datum list);
 LOCAL datum state_stack_pop(routine *r);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_at(routine *r,datum *offset);

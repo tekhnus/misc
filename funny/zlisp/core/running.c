@@ -165,8 +165,8 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       if (!datum_eq(recieve_type, yield_type)) {
         return fdatum_make_ok(err.ok_value);
       }
-      datum *argz = list_at(&err.ok_value, 1);
-      if (prg.call_return_count != (long unsigned int)list_length(argz)) {
+      datum argz = *list_at(&err.ok_value, 1);
+      if (prg.call_return_count != (long unsigned int)list_length(&argz)) {
         return fdatum_make_panic("call count and yield count are not equal");
       }
 
@@ -185,7 +185,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
                 prg.yield_recieve_count, list_length(&args));
         return fdatum_make_panic(err);
       }
-      state_stack_put_all(r, &args);
+      state_stack_put_all(r, args);
       pass_args = false;
       *routine_offset(r) = prg.yield_next;
       continue;
@@ -194,11 +194,11 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       return fdatum_make_panic("args passed to a wrong instruction");
     }
     if (prg.type == PROG_YIELD) {
-      datum *res = state_stack_collect(r, prg.yield_count);
-      return fdatum_make_ok(*datum_make_list_of(2, prg.yield_type, res));
+      datum res = state_stack_collect(r, prg.yield_count);
+      return fdatum_make_ok(*datum_make_list_of(2, prg.yield_type, datum_copy(&res)));
     }
     if (prg.type == PROG_CALL) {
-      args = *state_stack_collect(r, prg.call_arg_count);
+      args = state_stack_collect(r, prg.call_arg_count);
       pass_args = true;
       continue;
     }
@@ -241,8 +241,8 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_COLLECT) {
-      datum *form = state_stack_collect(r, prg.collect_count);
-      state_stack_put(r, form);
+      datum form = state_stack_collect(r, prg.collect_count);
+      state_stack_put(r, datum_copy(&form));
       *routine_offset(r) = prg.collect_next;
       continue;
     }
@@ -374,13 +374,13 @@ EXPORT void state_stack_put(routine *r, datum *value) {
   vec_append(&r->frames[r->cnt - 1]->state, value);
 }
 
-EXPORT void state_stack_put_all(routine *r, datum *list) {
-  if (!datum_is_list(list)) {
+EXPORT void state_stack_put_all(routine *r, datum list) {
+  if (!datum_is_list(&list)) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
   }
-  for (int i = 0; i < list_length(list); ++i) {
-    state_stack_put(r, list_at(list, i));
+  for (int i = 0; i < list_length(&list); ++i) {
+    state_stack_put(r, list_at(&list, i));
   }
 }
 
@@ -389,18 +389,16 @@ LOCAL datum state_stack_pop(routine *r) {
   return vec_pop(&r->frames[r->cnt - 1]->state);
 }
 
-LOCAL datum *state_stack_collect(routine *r, size_t count) {
-  datum *form = datum_make_nil();
+LOCAL datum state_stack_collect(routine *r, size_t count) {
+  datum form = *datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
-    datum *arg = malloc(sizeof(datum));
-    *arg = state_stack_pop(r);
-    list_append(form, arg);
+    datum arg = state_stack_pop(r);
+    list_append(&form, datum_copy(&arg));
   }
-  datum *res = datum_make_nil();
+  datum res = *datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
-    datum *x = list_get_last(form);
-    list_pop(form);
-    list_append(res, x);
+    datum x = list_pop(&form);
+    list_append(&res, datum_copy(&x));
   }
   return res;
 }

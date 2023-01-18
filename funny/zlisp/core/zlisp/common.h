@@ -106,6 +106,6 @@ fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *
 typedef struct routine routine;
 datum *state_stack_at(routine *r,datum *offset);
 void state_stack_put(routine *r,datum *value);
-void state_stack_put_all(routine *r,datum *list);
+void state_stack_put_all(routine *r,datum list);
 datum *routine_make(ptrdiff_t prg);
 datum *datum_copy(datum *d);
