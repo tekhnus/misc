@@ -7,8 +7,7 @@
 #include <zlisp/common.h>
 #endif
 
-EXPORT fdatum routine_run_in_ffi_host(vec sl,
-                                                       datum **r0d) {
+EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
   return routine_run_with_handler(sl, r0d, perform_host_instruction);
 }
 

@@ -55,16 +55,14 @@
 
 (defn eval-new (sl rt0)
   (progn
-    (def rt-ptr (prelude/wrap-pointer-into-pointer rt0))
-    (def res (prelude/routine-run-and-get-value-c-host-new sl rt-ptr))
+    (def res (prelude/routine-run-and-get-value-c-host-new sl rt0))
     (if (std/eq (prelude/fdatum-is-panic res) 1)
         (progn
           (def msg (fdatum-get-panic-message res))
           (return `(:err ~msg)))
       (progn
         (def val (fdatum-get-value res))
-        (def new-rt (prelude/dereference rt-ptr 'int64))
-        (return `(:ok ~val ~new-rt))))))
+        (return `(:ok ~val ~rt0))))))
 
 (def datum-read-one (prelude/c-function selflib "datum_read_one" '((pointer) fdatum)))
 (defn read (strm)

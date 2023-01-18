@@ -84,10 +84,10 @@ typedef struct routine routine;
 typedef struct frame frame;
 #endif
 
-EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
+EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
-  routine *r = get_routine_from_datum(*r0d);
+  routine *r = get_routine_from_datum(r0d);
   datum *args = datum_make_nil();
   datum *result = datum_make_nil();
   fdatum rerr;

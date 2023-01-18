@@ -22,7 +22,7 @@ EXPORT fdatum file_source(char *fname) {
   datum *res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
-        rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
+        rr.ok_value, &expander_sl, expander_routine, &expander_prg,
         &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
     if (fdatum_is_panic(val)) {
       char *err = malloc(1024);
@@ -47,7 +47,7 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(*res);
 }
 
-LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
+LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
                           datum **compdata, size_t *bp,
                           datum **builder_compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {

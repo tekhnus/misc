@@ -62,7 +62,7 @@ struct fdatum {
 };
 LOCAL fdatum routine_run(vec sl,routine *r,datum *args);
 LOCAL routine *get_routine_from_datum(datum *d);
-fdatum routine_run_with_handler(vec sl,datum **r0d,fdatum(*yield_handler)(datum *,datum *));
+fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 datum *compdata_get_shape(datum *compdata);
 datum *datum_copy(datum *d);
 LOCAL void compdata_validate(datum *compdata);
