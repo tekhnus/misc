@@ -88,7 +88,7 @@ EXPORT bool fdatum_is_panic(fdatum result) {
 }
 
 EXPORT fdatum fdatum_make_ok(datum *v) {
-  fdatum result = {.type = FDATUM_OK, .ok_value = v};
+  fdatum result = {.type = FDATUM_OK, .ok_value = *v};
   return result;
 }
 
@@ -107,7 +107,7 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
     return *val;
   }
   return fdatum_make_ok(
-      datum_make_list_of(1, datum_make_int((int64_t)val->ok_value)));
+      datum_make_list_of(1, datum_make_int((int64_t)&val->ok_value)));
 }
 
 fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp

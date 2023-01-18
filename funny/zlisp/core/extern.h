@@ -57,7 +57,7 @@ LOCAL void print_backtrace(vec sl,routine *r);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
-  struct datum *ok_value;
+  struct datum ok_value;
   char *panic_message;
 };
 LOCAL fdatum routine_run(vec sl,routine *r,datum *args);

@@ -323,7 +323,7 @@ LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
-  datum *re = res.ok_value;
+  datum *re = &res.ok_value;
   if (!datum_is_list(re) || list_length(re) != 2) {
     return "not gonna happen";
   }
@@ -371,7 +371,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }
-  datum *re = res.ok_value;
+  datum *re = &res.ok_value;
   if (!datum_is_list(re) || list_length(re) != 2) {
     return "not gonna happen";
   }

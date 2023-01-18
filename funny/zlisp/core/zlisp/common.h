@@ -16,30 +16,6 @@ char *datum_repr_bounded(datum *e,size_t depth);
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
-struct fdatum {
-  int type;
-  struct datum *ok_value;
-  char *panic_message;
-};
-bool fdatum_is_panic(fdatum result);
-fdatum fdatum_make_ok(datum *v);
-fdatum fdatum_make_panic(char *message);
-bool datum_eq(datum *x,datum *y);
-bool datum_is_constant(datum *d);
-bool datum_is_the_symbol(datum *d,char *val);
-typedef struct vec vec;
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-vec vec_make(size_t capacity);
-size_t vec_append(vec *s,datum *x);
-size_t vec_append_new(vec *s);
-void vec_extend(vec *s,datum *instructions);
-datum *vec_at(vec *s,size_t index);
-size_t vec_length(vec *s);
-datum *vec_to_datum(vec *sl);
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -48,6 +24,12 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
+typedef struct vec vec;
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
 struct datum {
   enum datum_type type;
   union {
@@ -58,6 +40,24 @@ struct datum {
     void *frame_value;
   };
 };
+struct fdatum {
+  int type;
+  struct datum ok_value;
+  char *panic_message;
+};
+bool fdatum_is_panic(fdatum result);
+fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_panic(char *message);
+bool datum_eq(datum *x,datum *y);
+bool datum_is_constant(datum *d);
+bool datum_is_the_symbol(datum *d,char *val);
+vec vec_make(size_t capacity);
+size_t vec_append(vec *s,datum *x);
+size_t vec_append_new(vec *s);
+void vec_extend(vec *s,datum *instructions);
+datum *vec_at(vec *s,size_t index);
+size_t vec_length(vec *s);
+datum *vec_to_datum(vec *sl);
 datum vec_pop(vec *v);
 datum *datum_make_nil();
 datum *datum_make_list(datum *head,datum *tail);

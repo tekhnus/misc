@@ -152,7 +152,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   if (fdatum_is_panic(stts)) {
     return stts.panic_message;
   }
-  char *er = vec_relocate(sl, &run_dep_end, stts.ok_value);
+  char *er = vec_relocate(sl, &run_dep_end, &stts.ok_value);
 
   if (er != NULL) {
     return er;

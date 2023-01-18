@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
   datum *compdata = compdata_make();
   datum *builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
-  char *err = prog_build(&sl, &p, &bp, src.ok_value, &compdata,
+  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
                          &builder_compdata, datum_make_bytestring(argv[1]));
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
@@ -59,7 +59,7 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   prog_append_nop(sl, p,
                   datum_make_symbol("this_is_so_that_relocation_is_possible"));
   size_t start_p = *p;
-  char *res = vec_relocate(sl, p, bytecode.ok_value);
+  char *res = vec_relocate(sl, p, &bytecode.ok_value);
   if (res != NULL) {
     return res;
   }
@@ -83,7 +83,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum *compdata = compdata_make();
-  return prog_compile(src.ok_value, &compdata,
+  return prog_compile(&src.ok_value, &compdata,
                       datum_make_list_of(1, datum_make_symbol(module)));
 }
 

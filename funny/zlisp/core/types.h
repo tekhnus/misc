@@ -39,7 +39,7 @@ struct read_result {
 
 struct fdatum {
   int type;
-  struct datum *ok_value;
+  struct datum ok_value;
   char *panic_message;
 };
 

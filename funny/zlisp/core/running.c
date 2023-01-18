@@ -90,15 +90,17 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
   routine *r = get_routine_from_datum(*r0d);
   datum *args = datum_make_nil();
   datum *result = datum_make_nil();
+  fdatum rerr;
+  fdatum res;
   for (;;) {
-    fdatum rerr = routine_run(sl, r, args);
+    rerr = routine_run(sl, r, args);
     if (fdatum_is_panic(rerr)) {
       print_backtrace(sl, r);
       return rerr;
     }
-    datum *yield_type = list_at(rerr.ok_value, 0);
+    datum *yield_type = list_at(&rerr.ok_value, 0);
     if (datum_is_the_symbol(yield_type, "halt")) {
-      result = list_at(rerr.ok_value, 1);
+      result = list_at(&rerr.ok_value, 1);
       break;
     }
     if (datum_is_list(yield_type) && list_length(yield_type) == 2 && datum_is_the_symbol(list_at(yield_type, 0), "compdata-debug")) {
@@ -130,12 +132,12 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
       return fdatum_make_panic("execution stopped at wrong place");
     }
     datum *name = list_at(yield_type, 1);
-    datum *arg = list_at(rerr.ok_value, 1);
-    fdatum res = yield_handler(name, arg);
+    datum *arg = list_at(&rerr.ok_value, 1);
+    res = yield_handler(name, arg);
     if (fdatum_is_panic(res)) {
       return res;
     }
-    args = res.ok_value;
+    args = &res.ok_value;
   }
   return fdatum_make_ok(result);
 }
@@ -158,11 +160,11 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       if (fdatum_is_panic(err)) {
         return err;
       }
-      datum *yield_type = list_at(err.ok_value, 0);
+      datum *yield_type = list_at(&err.ok_value, 0);
       if (!datum_eq(recieve_type, yield_type)) {
-        return fdatum_make_ok(err.ok_value);
+        return fdatum_make_ok(&err.ok_value);
       }
-      datum *args = list_at(err.ok_value, 1);
+      datum *args = list_at(&err.ok_value, 1);
       if (prg.call_return_count != (long unsigned int)list_length(args)) {
         return fdatum_make_panic("call count and yield count are not equal");
       }

@@ -33,10 +33,10 @@ EXPORT fdatum file_source(char *fname) {
     }
     // fprintf(stderr, "exp\n  from %s\n  to   %s\n", datum_repr(rr.ok_value),
     // datum_repr(val.ok_value));
-    if (datum_is_the_symbol(val.ok_value, ":void-value")) {
+    if (datum_is_the_symbol(&val.ok_value, ":void-value")) {
       continue;
     }
-    list_append(res, val.ok_value);
+    list_append(res, datum_copy(&val.ok_value));
   }
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
@@ -63,7 +63,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
-      list_append(res, nxt.ok_value);
+      list_append(res, datum_copy(&nxt.ok_value));
     }
     return fdatum_make_ok(res);
   }
@@ -75,7 +75,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  char *err = prog_build(sl, p, bp, datum_make_list_of(1, exp.ok_value), compdata,
+  char *err = prog_build(sl, p, bp, datum_make_list_of(1, &exp.ok_value), compdata,
                          builder_compdata, datum_make_bytestring("c-prelude"));
   if (err != NULL) {
     char *err2 = malloc(256);
@@ -88,11 +88,11 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
   if (fdatum_is_panic(res)) {
     return res;
   }
-  if (list_length(res.ok_value) == 0) {
+  if (list_length(&res.ok_value) == 0) {
     return fdatum_make_ok(datum_make_symbol(":void-value"));
   }
-  if (list_length(res.ok_value) != 1) {
+  if (list_length(&res.ok_value) != 1) {
     return fdatum_make_panic("expected a single result while preprocessing");
   }
-  return fdatum_make_ok(list_at(res.ok_value, 0));
+  return fdatum_make_ok(list_at(&res.ok_value, 0));
 }

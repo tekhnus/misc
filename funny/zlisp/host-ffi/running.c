@@ -77,6 +77,7 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
     *type = &ffi_type_sint;
     return true;
   }
+  // TODO: UPDATE THE FFI DEFINITIONS, THEY ARE INCORRECT.
   if (!strcmp(definition->symbol_value, "val") ||
       !strcmp(definition->symbol_value, "fdatum")) {
     *type = malloc(sizeof(ffi_type));
