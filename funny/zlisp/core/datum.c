@@ -102,12 +102,12 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
   if (!datum_is_integer(arg)) {
     return fdatum_make_panic("fdatum_get_value expected a pointer");
   }
-  fdatum val = *(fdatum *)arg->integer_value;
-  if (fdatum_is_panic(val)) {
-    return val;
+  fdatum *val = (fdatum *)arg->integer_value;
+  if (fdatum_is_panic(*val)) {
+    return *val;
   }
   return fdatum_make_ok(
-      datum_make_list_of(1, datum_make_int((int64_t)val.ok_value)));
+      datum_make_list_of(1, datum_make_int((int64_t)val->ok_value)));
 }
 
 fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
