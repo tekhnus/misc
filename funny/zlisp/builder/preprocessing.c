@@ -44,14 +44,14 @@ EXPORT fdatum file_source(char *fname) {
   if (read_result_is_right_paren(rr)) {
     return fdatum_make_panic("unmatched right paren");
   }
-  return fdatum_make_ok(res);
+  return fdatum_make_ok(*res);
 }
 
 LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
                           datum **compdata, size_t *bp,
                           datum **builder_compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
-    return fdatum_make_ok(e);
+    return fdatum_make_ok(*e);
   }
   if (!datum_is_the_symbol(list_at(e, 0), "bang")) {
     datum *res = datum_make_nil();
@@ -65,7 +65,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
       }
       list_append(res, datum_copy(&nxt.ok_value));
     }
-    return fdatum_make_ok(res);
+    return fdatum_make_ok(*res);
   }
   if (list_length(e) != 2) {
     return fdatum_make_panic("! should be used with a single arg");
@@ -89,10 +89,10 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum **routine, size_t *p,
     return res;
   }
   if (list_length(&res.ok_value) == 0) {
-    return fdatum_make_ok(datum_make_symbol(":void-value"));
+    return fdatum_make_ok(*datum_make_symbol(":void-value"));
   }
   if (list_length(&res.ok_value) != 1) {
     return fdatum_make_panic("expected a single result while preprocessing");
   }
-  return fdatum_make_ok(list_at(&res.ok_value, 0));
+  return fdatum_make_ok(*list_at(&res.ok_value, 0));
 }

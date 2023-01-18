@@ -139,7 +139,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum **r0d,
     }
     args = &res.ok_value;
   }
-  return fdatum_make_ok(result);
+  return fdatum_make_ok(*result);
 }
 
 LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
@@ -162,7 +162,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
       }
       datum *yield_type = list_at(&err.ok_value, 0);
       if (!datum_eq(recieve_type, yield_type)) {
-        return fdatum_make_ok(&err.ok_value);
+        return fdatum_make_ok(err.ok_value);
       }
       datum *args = list_at(&err.ok_value, 1);
       if (prg.call_return_count != (long unsigned int)list_length(args)) {
@@ -194,7 +194,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum *args) {
     }
     if (prg.type == PROG_YIELD) {
       datum *res = state_stack_collect(r, prg.yield_count);
-      return fdatum_make_ok(datum_make_list_of(2, prg.yield_type, res));
+      return fdatum_make_ok(*datum_make_list_of(2, prg.yield_type, res));
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);

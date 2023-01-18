@@ -11,7 +11,7 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  return fdatum_make_ok(vec_to_datum(&sl));
+  return fdatum_make_ok(*vec_to_datum(&sl));
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
@@ -362,7 +362,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     list_append(vars, item_var);
     list_append(specs, item_spec);
   }
-  return fdatum_make_ok(datum_make_list_of(2, vars, specs));
+  return fdatum_make_ok(*datum_make_list_of(2, vars, specs));
 }
 
 LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
@@ -507,7 +507,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
     list_append(names, item_name);
     list_append(expressions, item_expression);
   }
-  return fdatum_make_ok(datum_make_list_of(2, names, expressions));
+  return fdatum_make_ok(*datum_make_list_of(2, names, expressions));
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,

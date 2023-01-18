@@ -46,7 +46,7 @@ struct fdatum {
   char *panic_message;
 };
 bool fdatum_is_panic(fdatum result);
-fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_ok(datum v);
 fdatum fdatum_make_panic(char *message);
 bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);

@@ -146,7 +146,7 @@ fdatum fdatum_repr_datum_pointer(datum *args);
 datum *datum_make_list_of(size_t count,...);
 fdatum fdatum_get_value(datum *args);
 fdatum fdatum_make_panic(char *message);
-fdatum fdatum_make_ok(datum *v);
+fdatum fdatum_make_ok(datum v);
 bool fdatum_is_panic(fdatum result);
 datum *list_at(datum *list,unsigned index);
 int list_length(datum *seq);

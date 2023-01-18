@@ -254,5 +254,5 @@ fdatum datum_read_one(FILE *stre) { // used in lisp
   if (read_result_is_eof(rr)) {
     return fdatum_make_panic("eof");
   }
-  return fdatum_make_ok(datum_make_list_of(1, rr.ok_value));
+  return fdatum_make_ok(*datum_make_list_of(1, rr.ok_value));
 }
