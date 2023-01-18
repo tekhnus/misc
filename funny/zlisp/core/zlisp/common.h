@@ -52,7 +52,7 @@ bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
 bool datum_is_the_symbol(datum *d,char *val);
 vec vec_make(size_t capacity);
-size_t vec_append(vec *s,datum *x);
+size_t vec_append(vec *s,datum x);
 size_t vec_append_new(vec *s);
 void vec_extend(vec *s,datum *instructions);
 datum *vec_at(vec *s,size_t index);

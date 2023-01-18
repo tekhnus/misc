@@ -371,7 +371,7 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
 
 EXPORT void state_stack_put(routine *r, datum *value) {
   assert(r->cnt > 0);
-  vec_append(&r->frames[r->cnt - 1]->state, value);
+  vec_append(&r->frames[r->cnt - 1]->state, *value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum list) {

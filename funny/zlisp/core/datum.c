@@ -183,7 +183,7 @@ EXPORT vec vec_make(size_t capacity) {
   return res;
 }
 
-EXPORT size_t vec_append(vec *s, datum *x) {
+EXPORT size_t vec_append(vec *s, datum x) {
   if (s->length == s->capacity) {
     size_t new_capacity = (s->capacity + 1) * 2;
     datum *new_begin = malloc(sizeof(datum) * new_capacity);
@@ -195,12 +195,12 @@ EXPORT size_t vec_append(vec *s, datum *x) {
     s->begin = new_begin;
   }
   size_t res = s->length++;
-  (s->begin)[res] = *x;
+  (s->begin)[res] = x;
   return res;
 }
 
 EXPORT size_t vec_append_new(vec *s) {
-  return vec_append(s, datum_make_list_of(1, datum_make_symbol(":end")));
+  return vec_append(s, *datum_make_list_of(1, datum_make_symbol(":end")));
 }
 
 EXPORT void vec_extend(vec *s, datum *instructions) {
@@ -301,7 +301,7 @@ EXPORT datum *list_get_tail(datum *list) {
 }
 
 EXPORT void list_append(datum *list, datum *value) {
-  vec_append(&list->list_value, value);
+  vec_append(&list->list_value, *value);
 }
 
 EXPORT datum list_pop(datum *list) {
