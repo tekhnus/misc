@@ -211,7 +211,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       }
       routine *rt = routine_make_empty(prg.put_prog_value);
       rt->extvars = capture_size;
-      datum *prog_ptr = datum_make_frame(rt);
+      datum prog_ptr = *datum_make_frame(rt);
       state_stack_put(r, prog_ptr);
       *routine_offset(r) = prg.put_prog_next;
       continue;
@@ -230,19 +230,19 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_PUT_CONST) {
-      state_stack_put(r, prg.put_const_value);
+      state_stack_put(r, *datum_copy(prg.put_const_value));
       *routine_offset(r) = prg.put_const_next;
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
       datum *er = state_stack_at(r, prg.put_var_offset);
-      state_stack_put(r, datum_copy(er));
+      state_stack_put(r, *datum_copy(er));
       *routine_offset(r) = prg.put_var_next;
       continue;
     }
     if (prg.type == PROG_COLLECT) {
       datum form = state_stack_collect(r, prg.collect_count);
-      state_stack_put(r, datum_copy(&form));
+      state_stack_put(r, form);
       *routine_offset(r) = prg.collect_next;
       continue;
     }
@@ -369,9 +369,9 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
   return vec_at(&vars, idx->integer_value);
 }
 
-EXPORT void state_stack_put(routine *r, datum *value) {
+EXPORT void state_stack_put(routine *r, datum value) {
   assert(r->cnt > 0);
-  vec_append(&r->frames[r->cnt - 1]->state, *value);
+  vec_append(&r->frames[r->cnt - 1]->state, value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum list) {
@@ -380,7 +380,7 @@ EXPORT void state_stack_put_all(routine *r, datum list) {
     exit(EXIT_FAILURE);
   }
   for (int i = 0; i < list_length(&list); ++i) {
-    state_stack_put(r, list_at(&list, i));
+    state_stack_put(r, *list_at(&list, i));
   }
 }
 
