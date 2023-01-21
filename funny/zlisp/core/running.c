@@ -410,11 +410,11 @@ LOCAL void routine_copy(routine *dst, routine *src) {
     dst->frames[i] = malloc(sizeof(struct frame));
     frame_copy(dst->frames[i], src->frames[i]);
   }
+  *routine_offset(dst) = *routine_offset(src);
   dst->extvars = src->extvars;
 }
 
 LOCAL void frame_copy(frame *dst, frame *src) {
-  dst->offset = src->offset;
   vec_copy(&dst->state, &src->state);
 }
 
