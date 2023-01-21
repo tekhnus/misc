@@ -160,8 +160,13 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
       for (size_t i = 1; i <= routine_get_count(rt); ++i) {
         if(!datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id)) {
-          //print_backtrace(sl, r);
-          //exit(EXIT_FAILURE);
+          print_backtrace(sl, r);
+          for (size_t j = 0; j <= routine_get_count(rt); ++j) {
+            fprintf(stderr, "frame %zu parent %s self %s vars %zu\n", j,
+                    datum_repr(&rt->frames[j]->parent_type_id), datum_repr(&rt->frames[j]->type_id),
+                    vec_length(&rt->frames[j]->state));
+          }
+          // exit(EXIT_FAILURE);
         }
       }
       fdatum err;
@@ -417,6 +422,8 @@ LOCAL void routine_copy(routine *dst, routine *src) {
 LOCAL void frame_copy(frame *dst, frame *src) {
   vec_copy(&dst->state, &src->state);
   dst->height = src->height;
+  dst->type_id = src->type_id;
+  dst->parent_type_id = src->parent_type_id;
 }
 
 LOCAL void vec_copy(vec *dst, vec *src) {
@@ -463,7 +470,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     assert(r->frames[height]->height == (int)height);
     rt->frames[rt->cnt++] = r->frames[height];
   }
-  for (size_t j = 0; j < routine_get_count(rt_tail) + 1; ++j) {  // +1 because of the last frame with offset.
+  for (size_t j = 0; j <= routine_get_count(rt_tail); ++j) {
     assert(rt_tail->frames[j]->height == (int)j + (int)tail_height);
     rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
@@ -482,7 +489,8 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
   r->frames[0]->state = vec_make(1024);
   r->frames[0]->height = context != NULL ? routine_get_count(context) : 0;
   r->frames[0]->type_id = *datum_make_int(prg);
-  r->frames[0]->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context)]->type_id) : *datum_make_nil();
+  assert(context == NULL || routine_get_count(context) > 0);
+  r->frames[0]->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context) - 1]->type_id) : *datum_make_nil();
   r->frames[1] = malloc(sizeof(struct frame));
   r->frames[1]->state = vec_make(1);
   vec_append(&r->frames[1]->state, *datum_make_int(prg));
