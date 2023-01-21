@@ -70,6 +70,8 @@ struct prog {
 struct frame {
   vec state;
   int height;
+  datum type_id;
+  datum parent_type_id;
 };
 
 struct routine {
@@ -458,6 +460,12 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     assert(rt_tail->frames[j]->height == (int)j + (int)tail_height);
     rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
+  assert(datum_is_nil(&r->frames[0]->parent_type_id));
+  for (size_t i = 1; i <= routine_get_count(r); ++i) {
+    if(!datum_eq(&r->frames[i]->parent_type_id, &r->frames[i - 1]->type_id)) {
+      // fprintf(stderr, "%s != %s\n", datum_repr(&r->frames[i]->parent_type_id), datum_repr(&r->frames[i - 1]->type_id));
+    }
+  }
   return rt;
 }
 
@@ -472,10 +480,14 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->state = vec_make(1024);
   r->frames[0]->height = context != NULL ? routine_get_count(context) : 0;
+  r->frames[0]->type_id = *datum_make_int(prg);
+  r->frames[0]->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context)]->type_id) : *datum_make_nil();
   r->frames[1] = malloc(sizeof(struct frame));
   r->frames[1]->state = vec_make(1);
   vec_append(&r->frames[1]->state, *datum_make_int(prg));
   r->frames[1]->height = r->frames[0]->height + 1;
+  r->frames[1]->type_id = *datum_make_nil();
+  r->frames[1]->parent_type_id = *datum_copy(&r->frames[0]->type_id);
   return r;
 }
 
