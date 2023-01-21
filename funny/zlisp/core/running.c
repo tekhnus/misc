@@ -157,6 +157,13 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
         rt = routine_merge(rt, get_routine_from_datum(state_stack_at(
                                        r, prg.call_subfn_index)));
       }
+      assert(datum_is_nil(&rt->frames[0]->parent_type_id));
+      for (size_t i = 1; i <= routine_get_count(rt); ++i) {
+        if(!datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id)) {
+          //print_backtrace(sl, r);
+          //exit(EXIT_FAILURE);
+        }
+      }
       fdatum err;
       err = routine_run(sl, rt, args);
       pass_args = false;
@@ -459,12 +466,6 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   for (size_t j = 0; j < routine_get_count(rt_tail) + 1; ++j) {  // +1 because of the last frame with offset.
     assert(rt_tail->frames[j]->height == (int)j + (int)tail_height);
     rt->frames[rt->cnt++] = rt_tail->frames[j];
-  }
-  assert(datum_is_nil(&r->frames[0]->parent_type_id));
-  for (size_t i = 1; i <= routine_get_count(r); ++i) {
-    if(!datum_eq(&r->frames[i]->parent_type_id, &r->frames[i - 1]->type_id)) {
-      // fprintf(stderr, "%s != %s\n", datum_repr(&r->frames[i]->parent_type_id), datum_repr(&r->frames[i - 1]->type_id));
-    }
   }
   return rt;
 }
