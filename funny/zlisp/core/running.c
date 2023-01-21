@@ -435,7 +435,10 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   return res;
 }
 
-LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
+LOCAL size_t routine_get_count(routine *r) {
+  assert(r->cnt > 0);
+  return r->cnt - 1;
+}
 
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
@@ -457,7 +460,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     fprintf(stderr, "routine_merge: not enough variables\n");
     exit(EXIT_FAILURE);
   }
-  for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {  // TODO
+  for (size_t j = 0; j < routine_get_count(rt_tail) + 1; ++j) {  // +1 because of the last frame with offset.
     rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
   return rt;
@@ -471,16 +474,17 @@ EXPORT datum *routine_make(ptrdiff_t prg) {
 LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   routine *r = malloc(sizeof(routine));
   r->frames[0] = malloc(sizeof(struct frame));
-  r->frames[0]->offset = prg;
   r->frames[0]->state = vec_make(1024);
-  r->cnt = 1;
+  r->frames[1] = malloc(sizeof(struct frame));
+  r->frames[1]->offset = prg;
+  r->cnt = 2;
   r->extvars = 0;
   return r;
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(routine_get_count(r) > 0);
-  return &r->frames[routine_get_count(r) - 1]->offset;
+  return &r->frames[routine_get_count(r)]->offset;
 }
 
 LOCAL datum *datum_make_frame(routine *r) {
