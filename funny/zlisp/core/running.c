@@ -69,12 +69,12 @@ struct prog {
 
 struct frame {
   vec state;
+  int height;
 };
 
 struct routine {
   struct frame *frames[10];
   size_t cnt;
-  int extvars;
 };
 
 #if INTERFACE
@@ -403,11 +403,11 @@ LOCAL void routine_copy(routine *dst, routine *src) {
     frame_copy(dst->frames[i], src->frames[i]);
   }
   *routine_offset(dst) = *routine_offset(src);
-  dst->extvars = src->extvars;
 }
 
 LOCAL void frame_copy(frame *dst, frame *src) {
   vec_copy(&dst->state, &src->state);
+  dst->height = src->height;
 }
 
 LOCAL void vec_copy(vec *dst, vec *src) {
@@ -441,9 +441,9 @@ LOCAL datum *routine_get_shape(routine *r) {
 }
 
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  int rest_vars = rt_tail->extvars;
+  assert(routine_get_count(rt_tail) > 0);
+  int rest_vars = rt_tail->frames[0]->height;
   routine *rt = malloc(sizeof(routine));
-  rt->extvars = 0;
   for (size_t i = 0; i < routine_get_count(r) && rest_vars > 0; ++i) {
     rt->frames[rt->cnt++] = r->frames[i];
     rest_vars -= 1;
@@ -465,13 +465,14 @@ EXPORT datum *routine_make(ptrdiff_t prg) {
 
 LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
   routine *r = malloc(sizeof(routine));
+  r->cnt = 2;
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->state = vec_make(1024);
+  r->frames[0]->height = context != NULL ? routine_get_count(context) : 0;
   r->frames[1] = malloc(sizeof(struct frame));
   r->frames[1]->state = vec_make(1);
   vec_append(&r->frames[1]->state, *datum_make_int(prg));
-  r->cnt = 2;
-  r->extvars = context != NULL ? routine_get_count(context) : 0;
+  r->frames[1]->height = r->frames[0]->height + 1;
   return r;
 }
 
