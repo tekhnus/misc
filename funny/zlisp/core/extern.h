@@ -13,6 +13,7 @@ typedef struct frame frame;
 LOCAL void frame_copy(frame *dst,frame *src);
 typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
+LOCAL size_t routine_get_count(routine *r);
 LOCAL size_t routine_get_stack_size(routine *r);
 #include <inttypes.h>
 #include <stdio.h>
@@ -41,8 +42,7 @@ struct datum {
 };
 void state_stack_put(routine *r,datum value);
 LOCAL datum *datum_make_frame(routine *r);
-LOCAL routine *routine_make_empty(ptrdiff_t prg);
-LOCAL size_t routine_get_count(routine *r);
+LOCAL routine *routine_make_empty(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum list);
 LOCAL datum state_stack_pop(routine *r);

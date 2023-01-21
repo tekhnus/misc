@@ -203,14 +203,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
-      size_t capture_size;
-      if (prg.put_prog_capture == 0) {
-        capture_size = 0;
-      } else {
-        capture_size = routine_get_count(r);
-      }
-      routine *rt = routine_make_empty(prg.put_prog_value);
-      rt->extvars = capture_size;
+      routine *rt = routine_make_empty(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
       datum prog_ptr = *datum_make_frame(rt);
       state_stack_put(r, prog_ptr);
       *routine_offset(r) = prg.put_prog_next;
@@ -466,11 +459,11 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
 }
 
 EXPORT datum *routine_make(ptrdiff_t prg) {
-  routine *r = routine_make_empty(prg);
+  routine *r = routine_make_empty(prg, NULL);
   return datum_make_frame(r);
 }
 
-LOCAL routine *routine_make_empty(ptrdiff_t prg) {
+LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
   routine *r = malloc(sizeof(routine));
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->state = vec_make(1024);
@@ -478,7 +471,7 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   r->frames[1]->state = vec_make(1);
   vec_append(&r->frames[1]->state, *datum_make_int(prg));
   r->cnt = 2;
-  r->extvars = 0;
+  r->extvars = context != NULL ? routine_get_count(context) : 0;
   return r;
 }
 
