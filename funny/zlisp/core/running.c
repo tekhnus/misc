@@ -68,7 +68,6 @@ struct prog {
 };
 
 struct frame {
-  ptrdiff_t offset;
   vec state;
 };
 
@@ -476,7 +475,8 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->state = vec_make(1024);
   r->frames[1] = malloc(sizeof(struct frame));
-  r->frames[1]->offset = prg;
+  r->frames[1]->state = vec_make(1);
+  vec_append(&r->frames[1]->state, *datum_make_int(prg));
   r->cnt = 2;
   r->extvars = 0;
   return r;
@@ -484,7 +484,11 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(routine_get_count(r) > 0);
-  return &r->frames[routine_get_count(r)]->offset;
+  frame *f = r->frames[routine_get_count(r)];
+  assert(vec_length(&f->state) == 1);
+  datum *offset_datum = vec_at(&f->state, 0);
+  assert(datum_is_integer(offset_datum));
+  return &offset_datum->integer_value;
 }
 
 LOCAL datum *datum_make_frame(routine *r) {
