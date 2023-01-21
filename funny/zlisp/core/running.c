@@ -364,15 +364,15 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
   datum *frame = list_at(offset, 0);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(frame) && datum_is_integer(idx));
-  assert(frame->integer_value < (int)r->cnt);
+  assert(frame->integer_value < (int)routine_get_count(r));
   vec vars = r->frames[frame->integer_value]->state;
   assert((size_t)idx->integer_value < vec_length(&vars));
   return vec_at(&vars, idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum value) {
-  assert(r->cnt > 0);
-  vec_append(&r->frames[r->cnt - 1]->state, value);
+  assert(routine_get_count(r) > 0);
+  vec_append(&r->frames[routine_get_count(r) - 1]->state, value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum list) {
@@ -386,8 +386,8 @@ EXPORT void state_stack_put_all(routine *r, datum list) {
 }
 
 LOCAL datum state_stack_pop(routine *r) {
-  assert(r->cnt > 0);
-  return vec_pop(&r->frames[r->cnt - 1]->state);
+  assert(routine_get_count(r) > 0);
+  return vec_pop(&r->frames[routine_get_count(r) - 1]->state);
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count) {
@@ -429,7 +429,7 @@ LOCAL void vec_copy(vec *dst, vec *src) {
 
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
-  for (size_t i = 0; i < r->cnt; ++i) {
+  for (size_t i = 0; i < routine_get_count(r); ++i) {
     res += vec_length(&r->frames[i]->state);
   }
   return res;
@@ -439,7 +439,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
-  for (size_t i = 0; i < r->cnt; ++i) {
+  for (size_t i = 0; i < routine_get_count(r); ++i) {
     list_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
   }
   return res;
@@ -449,7 +449,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   int rest_vars = rt_tail->extvars;
   routine *rt = malloc(sizeof(routine));
   rt->extvars = 0;
-  for (size_t i = 0; i < r->cnt && rest_vars > 0; ++i) {
+  for (size_t i = 0; i < routine_get_count(r) && rest_vars > 0; ++i) {
     rt->frames[rt->cnt++] = r->frames[i];
     rest_vars -= 1;
   }
@@ -457,7 +457,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     fprintf(stderr, "routine_merge: not enough variables\n");
     exit(EXIT_FAILURE);
   }
-  for (size_t j = 0; j < rt_tail->cnt; ++j) {
+  for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {  // TODO
     rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
   return rt;
@@ -479,15 +479,11 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg) {
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
-  assert(r->cnt > 0);
-  return &r->frames[r->cnt - 1]->offset;
+  assert(routine_get_count(r) > 0);
+  return &r->frames[routine_get_count(r) - 1]->offset;
 }
 
 LOCAL datum *datum_make_frame(routine *r) {
-  if (r->cnt != 1) {
-    fprintf(stderr, "multiframe datums are deprecated\n");
-    exit(EXIT_FAILURE);
-  }
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value = r;
