@@ -166,7 +166,8 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
                     datum_repr(&rt->frames[j]->parent_type_id), datum_repr(&rt->frames[j]->type_id),
                     vec_length(&rt->frames[j]->state));
           }
-          // exit(EXIT_FAILURE);
+          fprintf(stderr, "wrong call, frame types are wrong\n");
+          exit(EXIT_FAILURE);
         }
       }
       fdatum err;

@@ -51,18 +51,18 @@
             !(#stdmacro/switch
               (zlisp/eval-new sl nsp)
               (((:ok val ctxt)
-                !(#ignore (prelude/fprintf-bytestring
+                (def ignored (prelude/fprintf-bytestring
                            stdout "%s\n" (zlisp/repr-pointer val)))
                 (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
                ((:err msg)
-		!(#ignore (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
+		(def ignored (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
 		(return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
            ((:err msg)
-            !(#ignore (prelude/fprintf-bytestring
+            (def ignored (prelude/fprintf-bytestring
                        stderr "compilation error at repl: %s\n" msg))
             (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
        ((:err msg)
-	!(#ignore (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
+	(def ignored (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
 	(return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
 (def sl (prelude/psm 20000))
@@ -72,4 +72,4 @@
 (def compdata (prelude/cdm))
 (def bdrcompdata (prelude/cdm))
 (def xxx (zlisp/iprog sl pptr bpptr compdata bdrcompdata))
-!(#ignore (repl sl rt pptr bpptr compdata bdrcompdata))
+(def ignored (repl sl rt pptr bpptr compdata bdrcompdata))
