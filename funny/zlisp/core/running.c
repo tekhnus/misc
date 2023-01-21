@@ -441,18 +441,21 @@ LOCAL datum *routine_get_shape(routine *r) {
 }
 
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
+  assert(r->frames[0]->height == 0);
   assert(routine_get_count(rt_tail) > 0);
-  int rest_vars = rt_tail->frames[0]->height;
-  routine *rt = malloc(sizeof(routine));
-  for (size_t i = 0; i < routine_get_count(r) && rest_vars > 0; ++i) {
-    rt->frames[rt->cnt++] = r->frames[i];
-    rest_vars -= 1;
-  }
-  if (rest_vars > 0) {
+  size_t tail_height = rt_tail->frames[0]->height;
+  if (tail_height >= routine_get_count(r) + 1) {
     fprintf(stderr, "routine_merge: not enough variables\n");
     exit(EXIT_FAILURE);
   }
+  routine *rt = malloc(sizeof(routine));
+  rt->cnt = 0;
+  for (size_t height = 0; height < tail_height; ++height) {
+    assert(r->frames[height]->height == (int)height);
+    rt->frames[rt->cnt++] = r->frames[height];
+  }
   for (size_t j = 0; j < routine_get_count(rt_tail) + 1; ++j) {  // +1 because of the last frame with offset.
+    assert(rt_tail->frames[j]->height == (int)j + (int)tail_height);
     rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
   return rt;
