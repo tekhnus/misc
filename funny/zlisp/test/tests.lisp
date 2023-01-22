@@ -207,9 +207,9 @@
         (libc/print arg)
         (def host-res (return @(host "call-extension") ext-pointer arg))
         (interceptor @something host-res)))
-    (interceptor 'arg)
-    (return 'test-value))
-  'test-value)
+    (def res (interceptor 'arg))
+    (return res))
+  'do-something-value)
 
 (defn print-all (xs)
   (if xs
