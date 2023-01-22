@@ -15,10 +15,10 @@
 (defn panic (x) (return (return @(host "call-extension") panic-pointer x)))
 
 (def head-pointer (return @(host "head") '()))
-(defn head (x) (return (return @(host "call-extension") head-pointer x)))
+(defn head (x) (return (return @(host "call-extension-1") head-pointer x)))
 
 (def tail-pointer (return @(host "tail") '()))
-(defn tail (x) (return (return @(host "call-extension") tail-pointer x)))
+(defn tail (x) (return (return @(host "call-extension-1") tail-pointer x)))
 
 (def cons-pointer (return @(host "cons") '()))
 (defn cons (x xs) (return (return @(host "call-extension") cons-pointer x xs)))

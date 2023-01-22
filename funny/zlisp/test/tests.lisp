@@ -192,6 +192,25 @@
     (return 33))
   33)
 
+!(#testing/fntest
+  (progn
+    (defn do-something (x)
+      (progn
+        (libc/print x)
+        (return 'do-something-value)))
+    (defn interceptor (arg)
+      (progn
+        (def (ext-pointer arg) (@do-something @(host "call-extension-1") @2 arg))
+        (libc/print "extension:")
+        (libc/print ext-pointer)
+        (libc/print "argument:")
+        (libc/print arg)
+        (def host-res (return @(host "call-extension") ext-pointer arg))
+        (interceptor @something host-res)))
+    (interceptor 'arg)
+    (return 'test-value))
+  'test-value)
+
 (defn print-all (xs)
   (if xs
       (progn
