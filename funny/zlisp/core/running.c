@@ -89,21 +89,19 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                                                       datum *)) {
   routine *r = get_routine_from_datum(r0d);
   datum args = *datum_make_nil();
-  datum result = *datum_make_nil();
   fdatum rerr;
-  fdatum res;
+  fdatum res = fdatum_make_ok(*datum_make_nil());
   datum current_statement = *datum_make_nil();
   for (;;) {
     rerr = routine_run(sl, r, args);
     if (fdatum_is_panic(rerr)) {
-      print_backtrace(sl, r);
-      fprintf(stderr, "current statement: %s\n", datum_repr(&current_statement));
-      return rerr;
+      res = rerr;
+      break;
     }
     datum sec = list_pop(&rerr.ok_value);
     datum yield_type = list_pop(&rerr.ok_value);
     if (datum_is_the_symbol(&yield_type, "halt")) {
-      result = sec;
+      res = fdatum_make_ok(sec);
       break;
     }
     if (datum_is_list(&yield_type) && list_length(&yield_type) == 3 && datum_is_the_symbol(list_at(&yield_type, 0), "debugger")) {
@@ -140,17 +138,22 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
     }
     if (!datum_is_list(&yield_type) ||
         !datum_is_the_symbol(list_at(&yield_type, 0), "host")) {
-      return fdatum_make_panic("execution stopped at wrong place");
+      res = fdatum_make_panic("execution stopped at wrong place");
+      break;
     }
     datum *name = list_at(&yield_type, 1);
     datum arg = sec;
     res = yield_handler(name, &arg);
     if (fdatum_is_panic(res)) {
-      return res;
+      break;
     }
     args = res.ok_value;
   }
-  return fdatum_make_ok(result);
+  if (fdatum_is_panic(res)) {
+    print_backtrace(sl, r);
+    fprintf(stderr, "current statement: %s\n", datum_repr(&current_statement));
+  }
+  return res;
 }
 
 LOCAL fdatum routine_run(vec sl, routine *r, datum args) {

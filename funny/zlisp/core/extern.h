@@ -51,9 +51,9 @@ datum *state_stack_at(routine *r,datum *offset);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+LOCAL void print_backtrace(vec sl,routine *r);
 LOCAL datum *routine_get_shape(routine *r);
 LOCAL routine *get_child(vec sl,routine *r);
-LOCAL void print_backtrace(vec sl,routine *r);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
