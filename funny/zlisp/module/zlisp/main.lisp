@@ -6,6 +6,7 @@
  (dlsym "prelude" dlsym)
  (dereference "prelude" dereference)
  (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
+ (call-extension-1 "prelude" call-extension-1)
  (std "std")
  (decons-pat "std" decons-pat)
  (first-good-value "std" first-good-value)
@@ -45,13 +46,13 @@
 (def fdatum-is-panic (prelude/c-function selflib "fdatum_is_panic" '((fdatum) int)))
 
 (def fdatum-get-value-ptr (prelude/dlsym selflib "fdatum_get_value"))
-(defn fdatum-get-value (x) (return (host "call-extension" (prelude/dereference fdatum-get-value-ptr 'int64) x)))
+(defn fdatum-get-value (x) (return (prelude/call-extension-1 (prelude/dereference fdatum-get-value-ptr 'int64) x)))
 
 (def fdatum-get-panic-message-ptr (prelude/dlsym selflib "fdatum_get_panic_message"))
-(defn fdatum-get-panic-message (x) (return (host "call-extension" (prelude/dereference fdatum-get-panic-message-ptr 'int64) x)))
+(defn fdatum-get-panic-message (x) (return (prelude/call-extension-1 (prelude/dereference fdatum-get-panic-message-ptr 'int64) x)))
 
 (def fdatum-repr-datum-pointer-ptr (prelude/dlsym selflib "fdatum_repr_datum_pointer"))
-(defn repr-pointer (x) (return (host "call-extension" (prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)))
+(defn repr-pointer (x) (return (prelude/call-extension-1 (prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)))
 
 (defn eval-new (sl rt0)
   (progn

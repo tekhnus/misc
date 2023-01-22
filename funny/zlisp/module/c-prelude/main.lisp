@@ -1,5 +1,7 @@
 (req)
 
+(defn call-extension-1 (fnptr x) (return (return @(host "call-extension") fnptr x)))
+
 (def deref-pointer (return @(host "deref-pointer") '()))
 (defn deref (x y) (return (return @(host "call-extension") deref-pointer x y)))
 
@@ -166,6 +168,7 @@
                                                    (return `(:ok ~res)))))
 
 (export
+ (call-extension-1 call-extension-1)
  (panic panic)
  (head head)
  (tail tail)
