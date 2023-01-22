@@ -51,8 +51,7 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum **compdata, datum **builder_compdata,
                         datum *settings) {
-  fdatum bytecode = prog_compile(source, compdata,
-                                 datum_make_list_of(1, datum_make_symbol("main")));
+  fdatum bytecode = prog_compile(source, compdata);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
@@ -83,8 +82,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum *compdata = compdata_make();
-  return prog_compile(&src.ok_value, &compdata,
-                      datum_make_list_of(1, datum_make_symbol(module)));
+  return prog_compile(&src.ok_value, &compdata);
 }
 
 LOCAL char *module_to_filename(char *module) {

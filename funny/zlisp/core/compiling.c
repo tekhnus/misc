@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
+EXPORT fdatum prog_compile(datum *source, datum **compdata) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
-  char *err = prog_append_statements(&sl, &p, source, compdata, info);
+  char *err = prog_append_statements(&sl, &p, source, compdata);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -15,17 +15,13 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, datum *info) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum **compdata, datum *info) {
+                                   datum **compdata) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (i > 0) {
-      datum *new_info = list_copy_and_append(info, stmt);
-      prog_append_nop(sl, off,
-                      datum_make_list_of(2, datum_make_symbol("info"),
-                                        new_info));
       prog_append_yield(sl, off, datum_make_list_of(3, datum_make_symbol("debugger"), datum_make_symbol("statement"), stmt), 0, 0, datum_make_nil(), compdata);
     }
-    char *err = prog_append_statement(sl, off, stmt, compdata, info);
+    char *err = prog_append_statement(sl, off, stmt, compdata);
     if (err != NULL) {
       return err;
     }
@@ -34,7 +30,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
 }
 
 LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum **compdata, datum *info) {
+                                  datum **compdata) {
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -64,8 +60,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata,
-                                info);
+    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata);
     if (err != NULL) {
       return err;
     }
@@ -81,13 +76,13 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     *compdata = compdata_del(*compdata);
     datum *false_compdata = *compdata;
     err = prog_append_statement(
-        sl, &true_end, list_at(stmt, 2), compdata, info);
+        sl, &true_end, list_at(stmt, 2), compdata);
     if (err != NULL) {
       return err;
     }
     err = prog_append_statement(
         sl, &false_end, list_at(stmt, 3),
-        &false_compdata, info);
+        &false_compdata);
     if (err != NULL) {
       return err;
     }
@@ -100,7 +95,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    char *err = prog_append_statements(sl, begin, list_get_tail(stmt), compdata, info);
+    char *err = prog_append_statements(sl, begin, list_get_tail(stmt), compdata);
     if (err != NULL) {
       return err;
     }
@@ -119,7 +114,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     char *err =
         prog_append_statement(sl, begin, list_at(stmt, 2),
-                              compdata, datum_make_nil());
+                              compdata);
     if (err != NULL) {
       return err;
     }
@@ -144,9 +139,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t s_off = vec_append_new(sl);
     datum *routine_compdata = compdata_put(*compdata, name);
     routine_compdata = compdata_start_new_section(routine_compdata);
-    datum *new_info = list_copy_and_append(info, name);
-    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata,
-                                  new_info);
+    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata);
     if (err != NULL) {
       return err;
     }
@@ -178,8 +171,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t argcnt = list_length(stmt) - index;
     for (; index < list_length(stmt); ++index) {
       datum *component = list_at(stmt, index);
-      char *err = prog_append_statement(sl, begin, component, compdata,
-                                        datum_make_nil());
+      char *err = prog_append_statement(sl, begin, component, compdata);
       if (err != NULL) {
         return err;
       }
@@ -207,7 +199,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t nargs = list_length(stmt) - 2;
     for (int i = 2; i < list_length(stmt); ++i) {
       datum *arg = list_at(stmt, i);
-      prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
+      prog_append_statement(sl, begin, arg, compdata);
     }
     prog_append_yield(sl, begin,
                       datum_make_list_of(2, datum_make_symbol("host"), name), nargs,
@@ -275,7 +267,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
   } else {
     char *err =
-        prog_append_statement(sl, begin, mainname, compdata, datum_make_nil());
+        prog_append_statement(sl, begin, mainname, compdata);
     if (err != NULL) {
       return err;
     }
@@ -283,7 +275,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
   if (subname != NULL) {
     char *err =
-        prog_append_statement(sl, begin, subname, compdata, datum_make_nil());
+        prog_append_statement(sl, begin, subname, compdata);
     if (err != NULL) {
       return err;
     }
@@ -296,7 +288,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       prog_append_put_const(sl, begin, arg, compdata);
     } else {
       char *err =
-          prog_append_statement(sl, begin, arg, compdata, datum_make_nil());
+          prog_append_statement(sl, begin, arg, compdata);
       if (err != NULL) {
         return err;
       }
@@ -372,7 +364,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   datum *exprs = list_at(re, 1);
   for (int i = 0; i < list_length(exprs); ++i) {
     datum *expr = list_at(exprs, i);
-    prog_append_statement(sl, begin, expr, compdata, datum_make_nil());
+    prog_append_statement(sl, begin, expr, compdata);
   }
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
@@ -461,7 +453,7 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
     if (datum_is_list(elem) && list_length(elem) == 2 &&
         datum_is_the_symbol(list_at(elem, 0), "tilde")) {
       err = prog_append_statement(sl, begin, list_at(elem, 1),
-                                  compdata, datum_make_nil());
+                                  compdata);
     } else {
       err = prog_append_backquoted_statement(sl, begin, elem, compdata);
     }
@@ -505,15 +497,13 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
-                              datum *stmt, datum **routine_compdata,
-                              datum *info) {
+                              datum *stmt, datum **routine_compdata) {
   if (args == NULL) {
     return "args can't be null";
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
-  prog_append_nop(sl, &s, datum_make_list_of(2, datum_make_symbol("info"), info));
-  return prog_append_statement(sl, &s, stmt, routine_compdata, info);
+  return prog_append_statement(sl, &s, stmt, routine_compdata);
 }
 
 LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
