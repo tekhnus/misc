@@ -92,10 +92,12 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
   datum result = *datum_make_nil();
   fdatum rerr;
   fdatum res;
+  datum current_statement = *datum_make_nil();
   for (;;) {
     rerr = routine_run(sl, r, args);
     if (fdatum_is_panic(rerr)) {
       print_backtrace(sl, r);
+      fprintf(stderr, "current statement: %s\n", datum_repr(&current_statement));
       return rerr;
     }
     datum sec = list_pop(&rerr.ok_value);
@@ -127,6 +129,8 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                   datum_repr(compdata_shape), datum_repr(state_shape));
           exit(EXIT_FAILURE);
         }
+      } else if (datum_is_the_symbol(cmd, "statement")) {
+        current_statement = *list_at(&yield_type, 2);
       } else {
         fprintf(stderr, "unknown debugger cmd\n");
         exit(EXIT_FAILURE);

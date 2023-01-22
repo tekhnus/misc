@@ -23,6 +23,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
       prog_append_nop(sl, off,
                       datum_make_list_of(2, datum_make_symbol("info"),
                                         new_info));
+      prog_append_yield(sl, off, datum_make_list_of(3, datum_make_symbol("debugger"), datum_make_symbol("statement"), stmt), 0, 0, datum_make_nil(), compdata);
     }
     char *err = prog_append_statement(sl, off, stmt, compdata, info);
     if (err != NULL) {
@@ -99,16 +100,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    for (int i = 1; i < list_length(stmt); ++i) {
-      datum *step = list_at(stmt, i);
-      datum *new_info = list_copy_and_append(info, step);
-      prog_append_nop(sl, begin,
-                      datum_make_list_of(2, datum_make_symbol("info"),
-                                        new_info));
-      char *err = prog_append_statement(sl, begin, step, compdata, info);
-      if (err != NULL) {
-        return err;
-      }
+    char *err = prog_append_statements(sl, begin, list_get_tail(stmt), compdata, info);
+    if (err != NULL) {
+      return err;
     }
     return NULL;
   }
