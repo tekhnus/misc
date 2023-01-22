@@ -104,26 +104,32 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       result = sec;
       break;
     }
-    if (datum_is_list(&yield_type) && list_length(&yield_type) == 2 && datum_is_the_symbol(list_at(&yield_type, 0), "compdata-debug")) {
-      datum *compdata = list_at(&yield_type, 1);
-      datum *compdata_shape = compdata_get_shape(compdata);
-      routine *rt = r;
-      routine *ch;
-      while ((ch = get_child(sl, rt)) != NULL) {
-        rt = ch;
-      }
-      datum *state_shape = routine_get_shape(rt);
-      if (list_length(compdata_shape) != list_length(state_shape)) {
-        fprintf(stderr, "compdata mismatch: %s != %s\n",
-                datum_repr(compdata_shape), datum_repr(state_shape));
-        // exit(EXIT_FAILURE);
-      }
-      int len = list_length(compdata_shape);
-      if (!datum_eq(list_at(compdata_shape, len - 1),
-                    list_at(state_shape, len - 1))) {
-        fprintf(stderr, "compdata mismatch: %s != %s\n",
-                datum_repr(compdata_shape), datum_repr(state_shape));
-        // exit(EXIT_FAILURE);
+    if (datum_is_list(&yield_type) && list_length(&yield_type) == 3 && datum_is_the_symbol(list_at(&yield_type, 0), "debugger")) {
+      datum *cmd = list_at(&yield_type, 1);
+      if (datum_is_the_symbol(cmd, "compdata")) {
+        datum *compdata = list_at(&yield_type, 2);
+        datum *compdata_shape = compdata_get_shape(compdata);
+        routine *rt = r;
+        routine *ch;
+        while ((ch = get_child(sl, rt)) != NULL) {
+          rt = ch;
+        }
+        datum *state_shape = routine_get_shape(rt);
+        if (list_length(compdata_shape) != list_length(state_shape)) {
+          fprintf(stderr, "compdata mismatch: %s != %s\n",
+                  datum_repr(compdata_shape), datum_repr(state_shape));
+          exit(EXIT_FAILURE);
+        }
+        int len = list_length(compdata_shape);
+        if (!datum_eq(list_at(compdata_shape, len - 1),
+                      list_at(state_shape, len - 1))) {
+          fprintf(stderr, "compdata mismatch: %s != %s\n",
+                  datum_repr(compdata_shape), datum_repr(state_shape));
+          exit(EXIT_FAILURE);
+        }
+      } else {
+        fprintf(stderr, "unknown debugger cmd\n");
+        exit(EXIT_FAILURE);
       }
       args = *datum_make_nil();
       continue;

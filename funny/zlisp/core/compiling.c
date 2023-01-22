@@ -40,7 +40,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_symbol(stmt)) {
     prog_append_yield(
-                      sl, begin, datum_make_list_of(2, datum_make_symbol("compdata-debug"), *compdata), 0, 0, datum_make_nil(), compdata);
+                      sl, begin, datum_make_list_of(3, datum_make_symbol("debugger"), datum_make_symbol("compdata"), *compdata), 0, 0, datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }

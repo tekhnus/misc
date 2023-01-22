@@ -227,8 +227,8 @@ def main():
                 ip = nex
             elif (
                 isinstance(target, list)
-                and len(target) == 2
-                and target[0] == sexpdata.Symbol("compdata-debug")
+                and len(target) == 3
+                and target[0] == sexpdata.Symbol("debugger")
             ):
                 ip = nex
             elif target == sexpdata.Symbol("halt"):
