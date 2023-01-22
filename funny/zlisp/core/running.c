@@ -126,6 +126,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
         }
       } else if (datum_is_the_symbol(cmd, "statement")) {
         current_statement = *list_at(&yield_type, 2);
+      } else if (datum_is_the_symbol(cmd, "yield")) {
       } else {
         fprintf(stderr, "unknown debugger cmd\n");
         exit(EXIT_FAILURE);
