@@ -191,21 +191,6 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return prog_append_backquoted_statement(
         sl, begin, list_at(stmt, 1), compdata);
   }
-  if (datum_is_the_symbol(op, "host")) {
-    if (list_length(stmt) < 2) {
-      return "host should have at least one arg";
-    }
-    datum *name = list_at(stmt, 1);
-    size_t nargs = list_length(stmt) - 2;
-    for (int i = 2; i < list_length(stmt); ++i) {
-      datum *arg = list_at(stmt, i);
-      prog_append_statement(sl, begin, arg, compdata);
-    }
-    prog_append_yield(sl, begin,
-                      datum_make_list_of(2, datum_make_symbol("host"), name), nargs,
-                      1, datum_make_nil(), compdata);
-    return NULL;
-  }
 
   datum *fn = list_at(stmt, 0);
   bool hash = false;
