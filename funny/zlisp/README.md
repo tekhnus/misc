@@ -46,6 +46,8 @@ and two implementations:
 - Try hosting by a compiled language
 - Try hosting by a constrained environment like bare metal or shader
 
+- Make a DAP-powered debugger
+
 ### Building and running
 
 **Mandatory requirements:** C compiler and cmake.
