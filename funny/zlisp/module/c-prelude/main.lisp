@@ -1,28 +1,28 @@
 (req)
 
-(def deref-pointer (host "deref-pointer" '()))
-(defn deref (x y) (return (host "call-extension" deref-pointer x y)))
+(def deref-pointer (return @(host "deref-pointer") '()))
+(defn deref (x y) (return (return @(host "call-extension") deref-pointer x y)))
 
-(def mkptr-pointer (host "mkptr-pointer" '()))
-(defn mkptr (x y) (return (host "call-extension" mkptr-pointer x y)))
+(def mkptr-pointer (return @(host "mkptr-pointer") '()))
+(defn mkptr (x y) (return (return @(host "call-extension") mkptr-pointer x y)))
 
-(def pointer-call-pointer (host "pointer-call-pointer" '()))
-(defn pointer-call (x y z) (return (host "call-extension" pointer-call-pointer x y z)))
+(def pointer-call-pointer (return @(host "pointer-call-pointer") '()))
+(defn pointer-call (x y z) (return (return @(host "call-extension") pointer-call-pointer x y z)))
 
-(def panic-pointer (host "panic" '()))
-(defn panic (x) (return (host "call-extension" panic-pointer x)))
+(def panic-pointer (return @(host "panic") '()))
+(defn panic (x) (return (return @(host "call-extension") panic-pointer x)))
 
-(def head-pointer (host "head" '()))
-(defn head (x) (return (host "call-extension" head-pointer x)))
+(def head-pointer (return @(host "head") '()))
+(defn head (x) (return (return @(host "call-extension") head-pointer x)))
 
-(def tail-pointer (host "tail" '()))
-(defn tail (x) (return (host "call-extension" tail-pointer x)))
+(def tail-pointer (return @(host "tail") '()))
+(defn tail (x) (return (return @(host "call-extension") tail-pointer x)))
 
-(def cons-pointer (host "cons" '()))
-(defn cons (x xs) (return (host "call-extension" cons-pointer x xs)))
+(def cons-pointer (return @(host "cons") '()))
+(defn cons (x xs) (return (return @(host "call-extension") cons-pointer x xs)))
 
-(def eq-pointer (host "eq" '()))
-(defn eq (x y) (return (host "call-extension" eq-pointer x y)))
+(def eq-pointer (return @(host "eq") '()))
+(defn eq (x y) (return (return @(host "call-extension") eq-pointer x y)))
 
 (defn serialize-param (param signature)
   (progn
@@ -58,14 +58,14 @@
     (def rawres (pointer-call fn-ptr `(~fnparamst ~rettype) s))
     (return (dereference rawres rettype))))
 
-(def rtld-lazy (host "RTLD_LAZY" '()))
+(def rtld-lazy (return @(host "RTLD_LAZY") '()))
 
-(def dlopen-pointer (host "dlopen" '()))
+(def dlopen-pointer (return @(host "dlopen") '()))
 "TODO: dlopen actually has an int argument, not a size_t."
 (defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
 (defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
 
-(def dlsym-pointer (host "dlsym" '()))
+(def dlsym-pointer (return @(host "dlsym") '()))
 (defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
 
 (defn c-data-pointer (handle c-name signature)
@@ -136,19 +136,19 @@
 (def selflib (dlopen-null))
 
 (def annotate-pointer (dereference (dlsym selflib "builtin_annotate") 'int64))
-(defn annotate (x) (return (host "call-extension" annotate-pointer x)))
+(defn annotate (x) (return (return @(host "call-extension") annotate-pointer x)))
 
 (def is-constant-pointer (dereference (dlsym selflib "builtin_is_constant") 'int64))
-(defn is-constant (x) (return (host "call-extension" is-constant-pointer x)))
+(defn is-constant (x) (return (return @(host "call-extension") is-constant-pointer x)))
 
 (def repr-pointer (dereference (dlsym selflib "builtin_repr") 'int64))
-(defn repr (x) (return (host "call-extension" repr-pointer x)))
+(defn repr (x) (return (return @(host "call-extension") repr-pointer x)))
 
 (def concat-bytestrings-pointer (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64))
-(defn concat-bytestrings (x y) (return (host "call-extension" concat-bytestrings-pointer x y)))
+(defn concat-bytestrings (x y) (return (return @(host "call-extension") concat-bytestrings-pointer x y)))
 
 (def +-pointer (dereference (dlsym selflib "builtin_add") 'int64))
-(defn + (x y) (return (host "call-extension" +-pointer x y)))
+(defn + (x y) (return (return @(host "call-extension") +-pointer x y)))
 
 (defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
 
