@@ -78,7 +78,6 @@ void prog_append_call(vec *sl,size_t *begin,datum *fn_index,datum *subfn_index,b
 datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata);
-void prog_append_debug_and_yield(vec *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata);
 LOCAL datum *compdata_start_new_section(datum *compdata);

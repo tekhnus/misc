@@ -95,7 +95,6 @@ void prog_append_call(vec *sl,size_t *begin,datum *fn_index,datum *subfn_index,b
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_yield(vec *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
-void prog_append_debug_and_yield(vec *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);
 void prog_append_nop(vec *sl,size_t *begin);
 datum *compdata_make();
 bool compdata_has_value(datum *compdata);

@@ -179,7 +179,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     if (target == NULL) {
       target = datum_make_symbol("plain");
     }
-    prog_append_debug_and_yield(
+    prog_append_yield(
         sl, begin, target,
         argcnt, recieve_count, datum_make_nil(), compdata);
     return NULL;
@@ -354,7 +354,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
   prog_append_nop(sl, begin);
-  prog_append_debug_and_yield(sl, begin, datum_make_symbol("plain"),
+  prog_append_yield(sl, begin, datum_make_symbol("plain"),
                     list_length(list_at(re, 0)), 1, list_at(re, 0), compdata);
   return NULL;
 }
@@ -424,13 +424,6 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum *type,
   }
 }
 
-EXPORT void prog_append_debug_and_yield(vec *sl, size_t *begin, datum *type,
-                              size_t count, size_t recieve_count, datum *meta,
-                              datum **compdata) {
-  prog_append_yield(sl, begin, datum_make_list_of(3, datum_make_symbol("debugger"), datum_make_symbol("yield"), datum_make_nil()), 0, 0, datum_make_nil(), compdata);
-  prog_append_yield(sl, begin, type, count, recieve_count, meta, compdata);
-}
-
 LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
                                              datum *stmt, datum **compdata) {
   if (!datum_is_list(stmt)) {
@@ -457,7 +450,6 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 
 LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args,
                                datum *meta, datum **compdata) {
-  // TODO(me): debug and yield here
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
   compdata_give_names(args, compdata);
@@ -489,7 +481,11 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
                               datum *stmt, datum **routine_compdata) {
-  prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
+  if (args == NULL) {
+    return "args can't be null";
+  } else {
+    prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
+  }
   return prog_append_statement(sl, &s, stmt, routine_compdata);
 }
 
