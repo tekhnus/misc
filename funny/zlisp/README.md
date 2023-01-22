@@ -28,6 +28,7 @@ and two implementations:
 
 - Implement loops and/or tail recursive calls
 - Implement intercepting arbitrary yields from called routine, for example, host calls
+- Panic should be implemented via yielding
 - Implement program hashing, e.g. getting a hash of the given computation
 - Support parallelism
 
