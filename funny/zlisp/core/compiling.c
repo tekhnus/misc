@@ -368,7 +368,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   }
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
-  prog_append_nop(sl, begin, datum_make_nil());
+  prog_append_nop(sl, begin);
   prog_append_yield(sl, begin, datum_make_symbol("plain"),
                     list_length(list_at(re, 0)), 1, list_at(re, 0), compdata);
   return NULL;
@@ -407,8 +407,6 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
   }
-  prog_append_nop(sl, begin,
-                  datum_make_list_of(2, datum_make_symbol("putting-var"), val));
   *vec_at(sl, *begin) = *(datum_make_list_of(3, 
       datum_make_symbol(":put-var"), polyindex, datum_make_int(next)));
   *begin = next;
@@ -515,10 +513,10 @@ LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
   *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_nop(vec *sl, size_t *begin, datum *info) {
+EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *(
-      datum_make_list_of(3, datum_make_symbol(":nop"), info, datum_make_int(next)));
+                          datum_make_list_of(2, datum_make_symbol(":nop"), datum_make_int(next)));
   *begin = next;
 }
 
@@ -536,10 +534,10 @@ LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
 }
 
 LOCAL void prog_join(vec *sl, size_t a, size_t b, size_t e) {
-  *vec_at(sl, a) = *(datum_make_list_of(3, 
-      datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
-  *vec_at(sl, b) = *(datum_make_list_of(3, 
-      datum_make_symbol(":nop"), datum_make_nil(), datum_make_int(e)));
+  *vec_at(sl, a) = *(datum_make_list_of(2, 
+      datum_make_symbol(":nop"), datum_make_int(e)));
+  *vec_at(sl, b) = *(datum_make_list_of(2, 
+      datum_make_symbol(":nop"), datum_make_int(e)));
 }
 
 EXPORT datum *compdata_make() { return datum_make_list_of(1, datum_make_nil()); }

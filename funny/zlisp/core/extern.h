@@ -70,7 +70,7 @@ LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();
 LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum **compdata);
-void prog_append_nop(vec *sl,size_t *begin,datum *info);
+void prog_append_nop(vec *sl,size_t *begin);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(vec *sl,size_t *begin,datum *args,datum *meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);

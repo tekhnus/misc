@@ -23,10 +23,7 @@ struct prog {
       ptrdiff_t if_true;
       ptrdiff_t if_false;
     };
-    struct {
-      struct datum *nop_info;
-      ptrdiff_t nop_next;
-    };
+    ptrdiff_t nop_next;
     struct {
       struct datum *put_const_value;
       ptrdiff_t put_const_next;
@@ -286,8 +283,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.if_false = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":nop")) {
     res.type = PROG_NOP;
-    res.nop_info = list_at(d, 1);
-    res.nop_next = (list_at(d, 2)->integer_value);
+    res.nop_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
     res.put_const_value = list_at(d, 1);
@@ -362,13 +358,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
       }
       fprintf(stderr, "%ld ", i);
       datum *ins = vec_at(&sl, i);
-      char *meta = "";
-      if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
-        meta = datum_repr(list_at(ins, 1));
-        ins = datum_make_list_of(3, datum_make_symbol(":nop"), datum_make_nil(),
-                                 list_at(ins, 2));
-      }
-      fprintf(stderr, "%-40s%s\n", datum_repr(ins), meta);
+      fprintf(stderr, "%-40s\n", datum_repr(ins));
     }
     fprintf(stderr, "**********\n");
     fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));

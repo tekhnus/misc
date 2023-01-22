@@ -123,7 +123,7 @@ def main():
             else:
                 ip = if_false
         elif op == sexpdata.Symbol(":nop"):
-            info, nex = args
+            nex, = args
             ip = nex
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args

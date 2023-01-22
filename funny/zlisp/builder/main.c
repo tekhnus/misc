@@ -55,8 +55,8 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
-  prog_append_nop(sl, p,
-                  datum_make_symbol("this_is_so_that_relocation_is_possible"));
+  // this is a hack in order to make the relocation possible.
+  prog_append_nop(sl, p);
   size_t start_p = *p;
   char *res = vec_relocate(sl, p, &bytecode.ok_value);
   if (res != NULL) {
