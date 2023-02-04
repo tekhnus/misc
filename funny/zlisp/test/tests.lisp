@@ -70,7 +70,7 @@
     (defn adder (n)
       (progn
         (def a adderf)
-        (@a n)
+        (@a @mut n)
         (return a)))
     (return ((adder 3) 4)))
   7)
@@ -82,10 +82,10 @@
                    (return 5)
                    (return 8)
                    (return 13)))
-    (def (x) (@fib))
-    (def (y) (@fib '()))
-    (def (z) (@fib '()))
-    (def (t) (@fib '()))
+    (def (x) (@fib @mut))
+    (def (y) (@fib @mut '()))
+    (def (z) (@fib @mut '()))
+    (def (t) (@fib @mut '()))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -101,10 +101,10 @@
                             (return @event-loop x)
                             (return @event-loop 13)))
 
-    (def (x) (@more-far-fib @event-loop))
-    (def (y) (@more-far-fib @event-loop '()))
-    (def (z) (@more-far-fib @event-loop '()))
-    (def (t) (@more-far-fib @event-loop '()))
+    (def (x) (@more-far-fib @mut @event-loop))
+    (def (y) (@more-far-fib @mut @event-loop '()))
+    (def (z) (@more-far-fib @mut @event-loop '()))
+    (def (t) (@more-far-fib @mut @event-loop '()))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -129,9 +129,9 @@
                     (def (z t) (return @2 (std/+ y 1)))
                     (return :done)))
     (def fee foo)
-    (def a (@fee 41))
-    (def b (@fee 33))
-    (def c (@fee 14 15))
+    (def a (@fee @mut 41))
+    (def b (@fee @mut 33))
+    (def c (@fee @mut 14 15))
     (return `(~a ~b ~c)))
   '(42 34 :done))
 
@@ -143,7 +143,7 @@
 
     (defn cl-cons (x xs) (progn
                            (def holder cl-holder)
-                           (@holder x xs)
+                           (@holder @mut x xs)
                            (return holder)))
 
     (defn cl-head (xs)
@@ -182,7 +182,7 @@
         (defn ggg ()
           (return (std/+ x 40)))
         (return ggg)))
-    (def ggg-in-fff (@fff))
+    (def ggg-in-fff (@fff @mut))
     (return (fff/ggg-in-fff)))
   42)
 
@@ -200,7 +200,7 @@
         (return 'do-something-value)))
     (defn interceptor (arg)
       (progn
-        (def (ext-pointer arg) (@do-something @(host "call-extension-1") @2 arg))
+        (def (ext-pointer arg) (@do-something @mut @(host "call-extension-1") @2 arg))
         (libc/print "extension:")
         (libc/print ext-pointer)
         (libc/print "argument:")

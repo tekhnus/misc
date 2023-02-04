@@ -81,7 +81,7 @@
     (defn adder (n)
                    (progn
                      (def a adderf)
-                     (@a n)
+                     (@a @mut n)
                      (return a)))
     (return ((adder 3) 4)))
   7)
@@ -93,10 +93,10 @@
        (return 5)
        (return 8)
        (return 13)))
-    (def (x) (@fib))
-    (def (y) (@fib '()))
-    (def (z) (@fib '()))
-    (def (t) (@fib '()))
+    (def (x) (@fib @mut))
+    (def (y) (@fib @mut '()))
+    (def (z) (@fib @mut '()))
+    (def (t) (@fib @mut '()))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -124,7 +124,7 @@
                                     (progn
                                                            (return (std/+ x 40))))
                      (return ggg)))
-    (def ggg-in-fff (@fff))
+    (def ggg-in-fff (@fff @mut))
     (return (fff/ggg-in-fff)))
   42)
 

@@ -132,7 +132,7 @@
     (def objs `( ~c-function-0 ~c-function-1 ~c-function-2 ~c-function-3 ~c-function-4 ~c-function-5 ~c-function-6 ~c-function-7))
     (def obj (nth argssig objs))
     (def fn-ptr (get-fn-ptr handle c-name))
-    (@obj fn-ptr signature)
+    (@obj @mut fn-ptr signature)
     (return obj)))
 
 (def selflib (dlopen-null))

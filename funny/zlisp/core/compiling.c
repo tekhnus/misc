@@ -196,6 +196,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   bool hash = false;
   datum *target = NULL;
   bool at = false;
+  bool mut = false;
   size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
            datum_is_symbol(list_at(fn, 0));
@@ -230,12 +231,19 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     if (datum_is_integer(content)) {
       ret_count = content->integer_value;
       ++index;
+    } else if (datum_is_the_symbol(content, "mut")) {
+      mut = true;
+      ++index;
     } else if (target == NULL) {
       target = content;
       ++index;
     } else {
       return "unknown tag";
     }
+  }
+  if (at != mut) {
+    fprintf(stderr, "warning: %s\n", datum_repr(stmt));
+    exit(EXIT_FAILURE);
   }
   datum *fn_index;
   datum *subfn_index = datum_make_nil();
