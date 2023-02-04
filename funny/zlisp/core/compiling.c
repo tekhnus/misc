@@ -360,21 +360,9 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
                              bool pop_one, datum *type,
                              int arg_count, int return_count,
                              datum **compdata) {
-  datum *fn_index;
-  datum *subfn_index;
-  if (list_length(indices) == 1) {
-    fn_index = list_at(indices, 0);
-    subfn_index = datum_make_nil();
-  } else if (list_length(indices) == 2) {
-    fn_index = list_at(indices, 0);
-    subfn_index = list_at(indices, 1);
-  } else {
-    fprintf(stderr, "only two indices are supported\n");
-    exit(EXIT_FAILURE);
-  }
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = *(datum_make_list_of(8, 
-      datum_make_symbol(":call"), fn_index, subfn_index,
+  *vec_at(sl, *begin) = *(datum_make_list_of(7, 
+      datum_make_symbol(":call"), indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {

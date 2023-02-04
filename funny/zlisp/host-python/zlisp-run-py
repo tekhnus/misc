@@ -137,12 +137,9 @@ def main():
             )
             ip = nex
         elif op == sexpdata.Symbol(":call"):
-            fn_index, subfn_index, pop_one, target, arg_cnt, ret_cnt, nex = args
+            indices, pop_one, target, arg_cnt, ret_cnt, nex = args
             if target != sexpdata.Symbol("plain"):
                 raise RuntimeError("only plain targets are currently supported")
-            indices = [fn_index]
-            if len(subfn_index) > 0:
-                indices.append(subfn_index)
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
             rtvarz = pdata[-1].varz
             for fn_index in indices:
@@ -196,12 +193,9 @@ def main():
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
                     raise RuntimeError("expected a call")
-                fn_index, subfn_index, pop_one, _, arg_cnt, ret_cnt, nex = args
+                indices, pop_one, _, arg_cnt, ret_cnt, nex = args
 
                 # update the routine
-                indices = [fn_index]
-                if len(subfn_index) > 0:
-                    indices.append(subfn_index)
                 for frame, indx in indices:
                     pdata[-1].varz[frame][indx] = cont
                 if pop_one:
