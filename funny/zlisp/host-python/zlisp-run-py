@@ -84,12 +84,12 @@ def merge(x, y, extvars):
     for fra in x:
         if extvars <= 0:
             break
-        rtvarz.append(copy.copy(fra))
+        rtvarz.append(fra)
         extvars -= 1
     if extvars > 0:
         raise RuntimeError("not enough vars")
     for fram in y:
-        rtvarz.append(copy.copy(fram))
+        rtvarz.append(fram)
     return rtvarz
 
 
@@ -97,22 +97,22 @@ def main():
     bc = sys.stdin.read()
     prog = sexpdata.loads(bc)
     ip = 0
-    pdata = [[State()]]
+    pdata = [State()]
 
     def pop_stack():
-        v = pdata[-1][-1].varz[-1].pop()
+        v = pdata[-1].varz[-1].pop()
         return v
 
-    ip = pdata[-1][-1].ip
+    ip = pdata[-1].ip
     ins = prog[ip]
     op, args = ins[0], ins[1:]
     if op == sexpdata.Symbol(":yield"):
         _, cnt, recieve_cnt, meta, nex = args
-        pdata[-1][-1].ip = nex
+        pdata[-1].ip = nex
     else:
         pass
     while True:
-        ip = pdata[-1][-1].ip
+        ip = pdata[-1].ip
         ins = prog[ip]
         # print(ins)
         op, args = ins[0], ins[1:]
@@ -127,13 +127,13 @@ def main():
             ip = nex
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
-            pdata[-1][-1].varz[-1].append((value))
+            pdata[-1].varz[-1].append((value))
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
             offset, nex = args
             frame, indx = offset
-            pdata[-1][-1].varz[-1].append(
-                copy.deepcopy(pdata[-1][-1].varz[frame][indx])
+            pdata[-1].varz[-1].append(
+                copy.deepcopy(pdata[-1].varz[frame][indx])
             )
             ip = nex
         elif op == sexpdata.Symbol(":call"):
@@ -144,15 +144,15 @@ def main():
             if len(subfn_index) > 0:
                 indices.append(subfn_index)
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
-            rtvarz = pdata[-1][-1].varz
+            rtvarz = pdata[-1].varz
             for fn_index in indices:
                 frame, indx = fn_index
-                rout = pdata[-1][-1].varz[frame][indx]
+                rout = pdata[-1].varz[frame][indx]
                 offset, varz, extvars = rout
                 rtvarz = merge(rtvarz, varz, extvars)
                 ip = offset
             rtvarz[-1].extend(arg for arg in args)
-            pdata[-1].append(State(varz=rtvarz, ip=0))  # ip set after endif
+            pdata.append(State(varz=rtvarz, ip=0))  # ip set after endif
             # check that first instruction is yield and skip it
             ins = prog[ip]
             op, args = ins[0], ins[1:]
@@ -170,28 +170,28 @@ def main():
             for _ in range(cnt):
                 val = pop_stack()
                 form = [val] + form
-            pdata[-1][-1].varz[-1].append(form)
+            pdata[-1].varz[-1].append(form)
             ip = nex
         elif op == sexpdata.Symbol(":put-prog"):
             pr, capture, nex = args
             if capture == 0:
                 capture_size = 0
             else:
-                capture_size = len(pdata[-1][-1].varz)
+                capture_size = len(pdata[-1].varz)
             p = [pr, [[]], capture_size]
-            pdata[-1][-1].varz[-1].append(p)
+            pdata[-1].varz[-1].append(p)
             ip = nex
         elif op == sexpdata.Symbol(":yield"):
             target, cnt, recieve_cnt, meta, nex = args
             if target == sexpdata.Symbol("plain"):
                 rvalues = [pop_stack() for _ in range(cnt)]
 
-                contvarz = list(list(x) for x in pdata[-1][-1].varz)
+                contvarz = pdata[-1].varz
                 cont = [ip, contvarz, 0]
 
-                pdata[-1].pop()
+                pdata.pop()
 
-                ip = pdata[-1][-1].ip
+                ip = pdata[-1].ip
                 ins = prog[ip]
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
@@ -200,10 +200,10 @@ def main():
 
                 frame, indx = fn_index
                 # update the routine
-                pdata[-1][-1].varz[frame][indx] = cont
+                pdata[-1].varz[frame][indx] = cont
                 if pop_one:
                     pop_stack()
-                pdata[-1][-1].varz[-1].extend(reversed(rvalues))
+                pdata[-1].varz[-1].extend(reversed(rvalues))
 
                 ip = nex
             elif (
@@ -219,7 +219,7 @@ def main():
                     and instruction[0] == "eval"
                 ):
                     res = eval(instruction[1], globals(), {"x": arg})
-                    pdata[-1][-1].varz[-1].append((res))
+                    pdata[-1].varz[-1].append((res))
                 else:
                     raise RuntimeError(f"host not implemented: {instruction}")
                 ip = nex
@@ -235,7 +235,7 @@ def main():
                 raise RuntimeError("invalid yield")
         else:
             raise RuntimeError(op)
-        pdata[-1][-1].ip = ip
+        pdata[-1].ip = ip
 
 
 if __name__ == "__main__":
