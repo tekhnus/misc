@@ -195,7 +195,6 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   datum *fn = list_at(stmt, 0);
   bool hash = false;
   datum *target = NULL;
-  bool at = false;
   bool mut = false;
   size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
@@ -204,8 +203,6 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     char *tag = list_at(fn, 0)->symbol_value;
     if (!strcmp(tag, "hash")) {
       hash = true;
-    } else if (!strcmp(tag, "at")) {
-      at = true;
     } else {
       break;
     }
@@ -241,13 +238,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "unknown tag";
     }
   }
-  if (at != mut) {
-    fprintf(stderr, "warning: %s\n", datum_repr(stmt));
-    exit(EXIT_FAILURE);
-  }
   datum *fn_index;
   datum *subfn_index = datum_make_nil();
-  if (at || subname != NULL) {
+  if (mut || subname != NULL) {
     if (!datum_is_symbol(mainname)) {
       return "expected an lvalue";
     }
@@ -290,7 +283,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (target == NULL) {
     target = datum_make_symbol("plain");
   }
-  prog_append_call(sl, begin, fn_index, subfn_index, !at,
+  prog_append_call(sl, begin, fn_index, subfn_index, !mut,
                    target,
                    arg_count, ret_count, compdata);
   return NULL;
