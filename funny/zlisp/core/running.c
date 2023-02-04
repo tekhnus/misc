@@ -33,8 +33,7 @@ struct prog {
       ptrdiff_t put_var_next;
     };
     struct {
-      struct datum *call_fn_index;
-      struct datum *call_subfn_index;
+      struct datum *call_indices;
       bool call_pop_one;
       struct datum *call_type;
       size_t call_arg_count;
@@ -159,12 +158,9 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
-      routine *child =
-          get_routine_from_datum(state_stack_at(r, prg.call_fn_index));
-      routine *rt = routine_merge(r, child);
-      if (!datum_is_nil(prg.call_subfn_index)) {
-        rt = routine_merge(rt, get_routine_from_datum(state_stack_at(
-                                       r, prg.call_subfn_index)));
+      routine *rt = r;
+      for (int i = 0; i < list_length(prg.call_indices); ++i) {
+        rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
       }
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
       for (size_t i = 1; i <= routine_get_count(rt); ++i) {
@@ -294,8 +290,10 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_var_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
-    res.call_fn_index = list_at(d, 1);
-    res.call_subfn_index = list_at(d, 2);
+    res.call_indices = datum_make_list_of(1, list_at(d, 1));
+    if (!datum_is_nil(list_at(d, 2))) {
+      list_append(res.call_indices, list_at(d, 2));
+    }
     res.call_pop_one = list_at(d, 3)->integer_value;
     res.call_type = list_at(d, 4);
     res.call_arg_count = list_at(d, 5)->integer_value;
@@ -329,11 +327,10 @@ LOCAL routine *get_child(vec sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  routine *child = routine_merge(
-      r, get_routine_from_datum(state_stack_at(r, prg.call_fn_index)));
-  if (!datum_is_nil(prg.call_subfn_index)) {
-    child = routine_merge(child, get_routine_from_datum(state_stack_at(
-                                         r, prg.call_subfn_index)));
+  routine *child = r;
+  for (int i = 0; i < list_length(prg.call_indices); ++i) {
+    child = routine_merge(
+      child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
   }
   return child;
 }

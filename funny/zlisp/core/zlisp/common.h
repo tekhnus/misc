@@ -91,7 +91,7 @@ bool read_result_is_panic(read_result x);
 bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
 fdatum prog_compile(datum *source,datum **compdata);
-void prog_append_call(vec *sl,size_t *begin,datum *fn_index,datum *subfn_index,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
+void prog_append_call(vec *sl,size_t *begin,datum *indices,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum **compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
 void prog_append_yield(vec *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum *meta,datum **compdata);

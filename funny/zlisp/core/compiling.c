@@ -207,15 +207,12 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       break;
     }
   }
-  datum *mainname;
-  datum *subname;
+  datum *fns;
   if (datum_is_list(fn) && !datum_is_nil(fn) &&
       datum_is_the_symbol(list_at(fn, 0), "polysym")) {
-    mainname = list_at(fn, 1);
-    subname = list_at(fn, 2);
+    fns = list_get_tail(fn);
   } else {
-    mainname = fn;
-    subname = NULL;
+    fns = datum_make_list_of(1, fn);
   }
   int index = 1;
   while (index < list_length(stmt)) {
@@ -238,34 +235,33 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "unknown tag";
     }
   }
-  datum *fn_index;
-  datum *subfn_index = datum_make_nil();
-  if (mut || subname != NULL) {
-    if (!datum_is_symbol(mainname)) {
-      return "expected an lvalue";
+  datum *indices = datum_make_nil();
+  for (int i = 0; i < list_length(fns); ++i) {
+    datum *component = list_at(fns, i);
+    bool borrow = i + 1 < list_length(fns) || mut;
+    if (borrow) {
+      if (!datum_is_symbol(component)) {
+        return "expected an lvalue";
+      }
+      datum *idx = compdata_get_polyindex(*compdata, component);
+      if (datum_is_nil(idx)) {
+        if (datum_is_nil(idx)) {
+          char *err = malloc(256);
+          *err = 0;
+          sprintf(err, "function not found: %s", datum_repr(component));
+          return err;
+        }
+      }
+      list_append(indices, idx);
+    } else {
+      char *err =
+        prog_append_statement(sl, begin, component, compdata);
+      if (err != NULL) {
+        return err;
+      }
+      datum *idx = compdata_get_top_polyindex(*compdata);
+      list_append(indices, idx);
     }
-    fn_index = compdata_get_polyindex(*compdata, mainname);
-    if (datum_is_nil(fn_index)) {
-      char *err = malloc(256);
-      *err = 0;
-      sprintf(err, "function not found: %s", datum_repr(mainname));
-      return err;
-    }
-  } else {
-    char *err =
-        prog_append_statement(sl, begin, mainname, compdata);
-    if (err != NULL) {
-      return err;
-    }
-    fn_index = compdata_get_top_polyindex(*compdata);
-  }
-  if (subname != NULL) {
-    char *err =
-        prog_append_statement(sl, begin, subname, compdata);
-    if (err != NULL) {
-      return err;
-    }
-    subfn_index = compdata_get_top_polyindex(*compdata);
   }
   size_t arg_count = list_length(stmt) - index;
   for (; index < list_length(stmt); ++index) {
@@ -283,7 +279,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (target == NULL) {
     target = datum_make_symbol("plain");
   }
-  prog_append_call(sl, begin, fn_index, subfn_index, !mut,
+  prog_append_call(sl, begin, indices, !mut,
                    target,
                    arg_count, ret_count, compdata);
   return NULL;
@@ -360,10 +356,22 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   return NULL;
 }
 
-EXPORT void prog_append_call(vec *sl, size_t *begin, datum *fn_index,
-                             datum *subfn_index, bool pop_one, datum *type,
+EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
+                             bool pop_one, datum *type,
                              int arg_count, int return_count,
                              datum **compdata) {
+  datum *fn_index;
+  datum *subfn_index;
+  if (list_length(indices) == 1) {
+    fn_index = list_at(indices, 0);
+    subfn_index = datum_make_nil();
+  } else if (list_length(indices) == 2) {
+    fn_index = list_at(indices, 0);
+    subfn_index = list_at(indices, 1);
+  } else {
+    fprintf(stderr, "only two indices are supported\n");
+    exit(EXIT_FAILURE);
+  }
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *(datum_make_list_of(8, 
       datum_make_symbol(":call"), fn_index, subfn_index,

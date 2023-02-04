@@ -9,8 +9,8 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
                     datum_make_nil(), builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
-  prog_append_call(sl, bdr_p, compdata_get_top_polyindex(*builder_compdata),
-                   datum_make_nil(), false, datum_make_symbol("plain"), 0, 0,
+  prog_append_call(sl, bdr_p, datum_make_list_of(1, compdata_get_top_polyindex(*builder_compdata)),
+                   false, datum_make_symbol("plain"), 0, 0,
                    builder_compdata);
   prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, datum_make_nil(),
                     compdata);
@@ -36,7 +36,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
                       builder_compdata);
   datum *fn_index = compdata_get_top_polyindex(*builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, fn_index, datum_make_nil(), false,
+  prog_append_call(sl, bdr_p, datum_make_list_of(1, fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
   return NULL;
@@ -176,7 +176,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   datum *fn_index = compdata_get_top_polyindex(*compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, fn_index, datum_make_nil(), false,
+  prog_append_call(sl, p, datum_make_list_of(1, fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum *names = datum_make_nil();

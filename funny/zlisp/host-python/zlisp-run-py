@@ -140,19 +140,17 @@ def main():
             fn_index, subfn_index, pop_one, target, arg_cnt, ret_cnt, nex = args
             if target != sexpdata.Symbol("plain"):
                 raise RuntimeError("only plain targets are currently supported")
-            args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
-            frame, indx = fn_index
-            rout = pdata[-1][-1].varz[frame][indx]
-            offset, varz, extvars = rout
-            assert varz
-            rtvarz = merge(pdata[-1][-1].varz, varz, extvars)
-            ip = offset
+            indices = [fn_index]
             if len(subfn_index) > 0:
-                subframe, subindx = subfn_index
-                subrout = pdata[-1][-1].varz[subframe][subindx]
-                suboff, subvarz, subext = subrout
-                rtvarz = merge(rtvarz, subvarz, subext)
-                ip = suboff
+                indices.append(subfn_index)
+            args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
+            rtvarz = pdata[-1][-1].varz
+            for fn_index in indices:
+                frame, indx = fn_index
+                rout = pdata[-1][-1].varz[frame][indx]
+                offset, varz, extvars = rout
+                rtvarz = merge(rtvarz, varz, extvars)
+                ip = offset
             rtvarz[-1].extend(arg for arg in args)
             pdata[-1].append(State(varz=rtvarz, ip=0))  # ip set after endif
             # check that first instruction is yield and skip it
