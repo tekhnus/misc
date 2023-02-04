@@ -48,6 +48,7 @@ and two implementations:
 - Try hosting by a constrained environment like bare metal or shader
 
 - Make a DAP-powered debugger
+- Make an RPC
 
 ### Building and running
 
