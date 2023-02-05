@@ -158,15 +158,19 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
-      routine *rt = r;
+      routine *rt = malloc(sizeof(routine));
+      rt->cnt = 0;
+      for (size_t j = 0; j < routine_get_count(r); ++j) {
+        rt = routine_merge(rt, frame_to_routine(r->frames[j]));
+      }
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
         rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
       }
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
-      for (size_t i = 1; i <= routine_get_count(rt); ++i) {
+      for (size_t i = 1; i < routine_get_count(rt); ++i) {
         if(!datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id)) {
           print_backtrace(sl, r);
-          for (size_t j = 0; j <= routine_get_count(rt); ++j) {
+          for (size_t j = 0; j < routine_get_count(rt); ++j) {
             fprintf(stderr, "frame %zu parent %s self %s vars %zu\n", j,
                     datum_repr(&rt->frames[j]->parent_type_id), datum_repr(&rt->frames[j]->type_id),
                     vec_length(&rt->frames[j]->state));
@@ -362,20 +366,32 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
+LOCAL routine *frame_to_routine(frame *f) {
+  routine *rt = malloc(sizeof(routine));
+  rt->cnt = 1;
+  rt->frames[0] = f;
+  return rt;
+}
+
 EXPORT datum *state_stack_at(routine *r, datum *offset) {
-  assert(datum_is_list(offset) && list_length(offset) == 2);
+  assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
-  datum *idx = list_at(offset, 1);
-  assert(datum_is_integer(frame) && datum_is_integer(idx));
+  assert(datum_is_integer(frame));
   assert(frame->integer_value < (int)routine_get_count(r));
-  vec vars = r->frames[frame->integer_value]->state;
+  struct frame *f = r->frames[frame->integer_value];
+  if (list_length(offset) == 1) {
+    return datum_make_frame(frame_to_routine(f));
+  }
+  assert(list_length(offset) == 2);
+  datum *idx = list_at(offset, 1);
+  assert(datum_is_integer(idx));
+  vec vars = f->state;
   assert((size_t)idx->integer_value < vec_length(&vars));
   return vec_at(&vars, idx->integer_value);
 }
 
 EXPORT void state_stack_put(routine *r, datum value) {
-  assert(routine_get_count(r) > 0);
-  vec_append(&r->frames[routine_get_count(r) - 1]->state, value);
+  vec_append(&r->frames[routine_get_count(r) - 2]->state, value);
 }
 
 EXPORT void state_stack_put_all(routine *r, datum list) {
@@ -389,8 +405,7 @@ EXPORT void state_stack_put_all(routine *r, datum list) {
 }
 
 LOCAL datum state_stack_pop(routine *r) {
-  assert(routine_get_count(r) > 0);
-  return vec_pop(&r->frames[routine_get_count(r) - 1]->state);
+  return vec_pop(&r->frames[routine_get_count(r) - 2]->state);
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count) {
@@ -433,27 +448,26 @@ LOCAL void vec_copy(vec *dst, vec *src) {
 
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
-  for (size_t i = 0; i < routine_get_count(r); ++i) {
+  for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
     res += vec_length(&r->frames[i]->state);
   }
   return res;
 }
 
 LOCAL size_t routine_get_count(routine *r) {
-  assert(r->cnt > 0);
-  return r->cnt - 1;
+  return r->cnt;
 }
 
 LOCAL datum *routine_get_shape(routine *r) {
   datum *res = datum_make_nil();
-  for (size_t i = 0; i < routine_get_count(r); ++i) {
+  for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
     list_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
   }
   return res;
 }
 
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  assert(routine_get_count(rt_tail) > 0);
+  // assert(routine_get_count(rt_tail) > 0);
   datum *tail_parent_type = &rt_tail->frames[0]->parent_type_id;
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
@@ -468,7 +482,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   } else {
     assert(rt->cnt > 0 && datum_eq(&rt->frames[rt->cnt - 1]->type_id, tail_parent_type));
   }
-  for (size_t j = 0; j <= routine_get_count(rt_tail); ++j) {
+  for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
     rt->frames[rt->cnt++] = rt_tail->frames[j];
   }
   return rt;
@@ -485,8 +499,8 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
   r->frames[0] = malloc(sizeof(struct frame));
   r->frames[0]->state = vec_make(1024);
   r->frames[0]->type_id = *datum_make_int(prg);
-  assert(context == NULL || routine_get_count(context) > 0);
-  r->frames[0]->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context) - 1]->type_id) : *datum_make_nil();
+  assert(context == NULL || routine_get_count(context) > 1);
+  r->frames[0]->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context) - 2]->type_id) : *datum_make_nil();
   r->frames[1] = malloc(sizeof(struct frame));
   r->frames[1]->state = vec_make(1);
   vec_append(&r->frames[1]->state, *datum_make_int(prg));
@@ -496,8 +510,8 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
-  assert(routine_get_count(r) > 0);
-  frame *f = r->frames[routine_get_count(r)];
+  assert(routine_get_count(r) > 1);
+  frame *f = r->frames[routine_get_count(r) - 1];
   assert(vec_length(&f->state) == 1);
   datum *offset_datum = vec_at(&f->state, 0);
   assert(datum_is_integer(offset_datum));

@@ -236,6 +236,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
   }
   datum *indices = datum_make_nil();
+  for (int j = 0; j < list_length(compdata_get_shape(*compdata)); ++j) {
+    // list_append(indices, datum_make_list_of(1, datum_make_int(j)));
+  }
   for (int i = 0; i < list_length(fns); ++i) {
     datum *component = list_at(fns, i);
     bool borrow = i + 1 < list_length(fns) || mut;
