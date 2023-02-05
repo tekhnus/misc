@@ -160,9 +160,9 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       datum *recieve_type = prg.call_type;
       routine *rt = malloc(sizeof(routine));
       rt->cnt = 0;
-      for (size_t j = 0; j < routine_get_count(r); ++j) {
-        rt = routine_merge(rt, frame_to_routine(r->frames[j]));
-      }
+      /* for (size_t j = 0; j < routine_get_count(r); ++j) { */
+      /*   rt = routine_merge(rt, frame_to_routine(r->frames[j])); */
+      /* } */
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
         rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
       }

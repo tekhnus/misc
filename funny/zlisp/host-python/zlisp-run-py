@@ -141,11 +141,19 @@ def main():
             if target != sexpdata.Symbol("plain"):
                 raise RuntimeError("only plain targets are currently supported")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
-            rtvarz = pdata[-1].varz
+            rtvarz = []
             for fn_index in indices:
-                frame, indx = fn_index
-                rout = pdata[-1].varz[frame][indx]
-                offset, varz, extvars = rout
+                if len(fn_index) == 2:
+                    frame, indx = fn_index
+                    rout = pdata[-1].varz[frame][indx]
+                    offset, varz, extvars = rout
+                elif len(fn_index) == 1:
+                    frame, = fn_index
+                    offset = None
+                    varz = [pdata[-1].varz[frame]]
+                    extvars = frame
+                else:
+                    raise RuntimeError("wrong fn_index length")
                 rtvarz = merge(rtvarz, varz, extvars)
                 ip = offset
             rtvarz[-1].extend(arg for arg in args)
@@ -192,12 +200,12 @@ def main():
                 ins = prog[ip]
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
-                    raise RuntimeError("expected a call")
+                    raise RuntimeError ("expected a call")
                 indices, pop_one, _, arg_cnt, ret_cnt, nex = args
 
                 # update the routine
-                for frame, indx in indices:
-                    pdata[-1].varz[frame][indx] = cont
+                frame, indx = indices[-1]
+                pdata[-1].varz[frame][indx] = cont
                 if pop_one:
                     pop_stack()
                 pdata[-1].varz[-1].extend(reversed(rvalues))
