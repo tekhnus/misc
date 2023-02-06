@@ -160,11 +160,12 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       datum *recieve_type = prg.call_type;
       routine *rt = malloc(sizeof(routine));
       rt->cnt = 0;
-      /* for (size_t j = 0; j < routine_get_count(r); ++j) { */
-      /*   rt = routine_merge(rt, frame_to_routine(r->frames[j])); */
-      /* } */
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
         rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
+        if (rt == NULL) {
+          print_backtrace(sl, r);
+          exit(EXIT_FAILURE);
+        }
       }
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
       for (size_t i = 1; i < routine_get_count(rt); ++i) {
@@ -328,10 +329,15 @@ LOCAL routine *get_child(vec sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  routine *child = r;
+  routine *child = malloc(sizeof(routine));
+  child->cnt = 0;
   for (int i = 0; i < list_length(prg.call_indices); ++i) {
-    child = routine_merge(
-      child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
+    routine *new_child = routine_merge(
+                          child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
+    if (new_child == NULL) {
+      break;
+    }
+    child = new_child;
   }
   return child;
 }
@@ -467,7 +473,7 @@ LOCAL datum *routine_get_shape(routine *r) {
 }
 
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  // assert(routine_get_count(rt_tail) > 0);
+  assert(routine_get_count(rt_tail) > 0);
   datum *tail_parent_type = &rt_tail->frames[0]->parent_type_id;
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
@@ -476,6 +482,9 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
       break;
     }
     rt->frames[rt->cnt++] = r->frames[height];
+  }
+  if (routine_get_count(rt) != routine_get_count(r)) {
+    // return NULL;
   }
   if (datum_is_nil(tail_parent_type)) {
     assert(rt->cnt == 0);
