@@ -146,8 +146,8 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
     args = res.ok_value;
   }
   if (fdatum_is_panic(res)) {
+    fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
     print_backtrace(sl, r);
-    fprintf(stderr, "current statement: %s\n", datum_repr(&current_statement));
   }
   return res;
 }
@@ -163,21 +163,21 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
         rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
         if (rt == NULL) {
-          print_backtrace(sl, r);
-          exit(EXIT_FAILURE);
+          return fdatum_make_panic("bad routine merge");
         }
       }
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
       for (size_t i = 1; i < routine_get_count(rt); ++i) {
         if(!datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id)) {
-          print_backtrace(sl, r);
+          char *buf = malloc(2048);
+          buf[0] = '\0';
           for (size_t j = 0; j < routine_get_count(rt); ++j) {
-            fprintf(stderr, "frame %zu parent %s self %s vars %zu\n", j,
+            sprintf(buf, "frame %zu parent %s self %s vars %zu\n", j,
                     datum_repr(&rt->frames[j]->parent_type_id), datum_repr(&rt->frames[j]->type_id),
                     vec_length(&rt->frames[j]->state));
           }
-          fprintf(stderr, "wrong call, frame types are wrong\n");
-          exit(EXIT_FAILURE);
+          sprintf(buf, "wrong call, frame types are wrong\n");
+          return fdatum_make_panic(buf);
         }
       }
       fdatum err;
