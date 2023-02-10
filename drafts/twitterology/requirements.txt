@@ -14,7 +14,7 @@ gnureadline==8.0.0
 greenlet==1.1.0
 idna==2.10
 ipaddress==1.0.15
-ipython==4.0.1
+ipython==8.10.0
 ipython-genutils==0.1.0
 kiwisolver==1.1.0
 Mako==1.0.3
