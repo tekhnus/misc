@@ -7,7 +7,7 @@
 EXPORT fdatum prog_compile(datum *source, datum **compdata) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
-  char *err = prog_append_statements(&sl, &p, source, compdata);
+  char *err = prog_append_statements(&sl, &p, source, compdata, true);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -15,10 +15,10 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum **compdata) {
+                                   datum **compdata, bool skip_first_debug) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
-    if (i > 0) {
+    if (!(skip_first_debug && i == 0)) {
       prog_append_yield(sl, off, datum_make_list_of(3, datum_make_symbol("debugger"), datum_make_symbol("statement"), stmt), 0, 0, datum_make_nil(), compdata);
     }
     char *err = prog_append_statement(sl, off, stmt, compdata);
@@ -95,7 +95,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    char *err = prog_append_statements(sl, begin, list_get_tail(stmt), compdata);
+    char *err = prog_append_statements(sl, begin, list_get_tail(stmt), compdata, false);
     if (err != NULL) {
       return err;
     }
@@ -486,7 +486,7 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
-  return prog_append_statement(sl, &s, stmt, routine_compdata);
+  return prog_append_statements(sl, &s, datum_make_list_of(1, stmt), routine_compdata, false);
 }
 
 LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
