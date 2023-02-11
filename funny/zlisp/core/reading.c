@@ -136,25 +136,25 @@ LOCAL struct token token_read(FILE *strm) {
                           .datum_value = datum_make_int(sign * val)};
   }
   if (is_allowed_inside_symbol(c)) {
+    ungetc(c, strm);
     char **nm = malloc(128);
     nm[0] = malloc(128);
-    nm[0][0] = c;
+    nm[0][0] = '\0';
     int c = 0;
     int i;
     char x;
-    for (i = 1; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
+    for (i = 0; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
       if (x == '/') {
-        nm[c++][i] = '\0';
-        nm[c] = malloc(128);
+        nm[++c] = malloc(128);
         i = 0;
       } else {
         nm[c][i++] = x;
       }
+      nm[c][i] = '\0';
     }
     if (!feof(strm)) {
       ungetc(x, strm);
     }
-    nm[c][i] = '\0';
     datum *sym;
     if (c == 0) {
       sym = datum_make_symbol(nm[0]);
