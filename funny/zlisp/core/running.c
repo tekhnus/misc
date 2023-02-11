@@ -489,6 +489,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail, bool allow_inexact) {
     rt->frames[rt->cnt++] = r->frames[height];
   }
   if (routine_get_count(rt) != routine_get_count(r) && !allow_inexact) {
+    fprintf(stderr, "chopped a routine: got %zu from %zu\n", routine_get_count(rt), routine_get_count(r));
     return NULL;
   }
   if (datum_is_nil(tail_parent_type)) {
