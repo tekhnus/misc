@@ -152,26 +152,34 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
   return res;
 }
 
+LOCAL routine *make_routine_from_indices(routine *r, datum *call_indices) {
+  routine *rt = malloc(sizeof(routine));
+  rt->cnt = 0;
+  for (int i = 0; i < list_length(call_indices); ++i) {
+    routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
+    rt = routine_merge(rt, nr);
+    if (rt == NULL) {
+      return NULL;
+    }
+    // The following is a hack to chop of the program counter
+    // from the routines:(
+    if (list_length(list_at(call_indices, i)) > 1 && i + 1 < list_length(call_indices)) {
+      assert(routine_get_count(rt) > 0);
+      --rt->cnt;
+    }
+  }
+  return rt;
+}
+
 LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
   bool pass_args = true;
   for (;;) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
-      routine *rt = malloc(sizeof(routine));
-      rt->cnt = 0;
-      for (int i = 0; i < list_length(prg.call_indices); ++i) {
-        routine *nr = get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i)));
-        rt = routine_merge(rt, nr, false);
-        if (rt == NULL) {
-          return fdatum_make_panic("bad routine merge");
-        }
-        // The following is a hack to chop of the program counter
-        // from the routines:(
-        if (list_length(list_at(prg.call_indices, i)) > 1 && i + 1 < list_length(prg.call_indices)) {
-          assert(routine_get_count(rt) > 0);
-          --rt->cnt;
-        }
+      routine *rt = make_routine_from_indices(r, prg.call_indices);
+      if (rt == NULL) {
+        return fdatum_make_panic("bad routine merge");
       }
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
       for (size_t i = 1; i < routine_get_count(rt); ++i) {
@@ -331,23 +339,12 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
-#define BAD_ROUTINE (routine *)1
-
 LOCAL routine *get_child(vec sl, routine *r) {
   prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  routine *child = malloc(sizeof(routine));
-  child->cnt = 0;
-  for (int i = 0; i < list_length(prg.call_indices); ++i) {
-    routine *new_child = routine_merge(
-                                       child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))), true);
-    if (new_child == NULL) {
-      return BAD_ROUTINE;  // TODO(me)
-    }
-    child = new_child;
-  }
+  routine *child = make_routine_from_indices(r, prg.call_indices);
   return child;
 }
 
@@ -356,7 +353,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
   routine *z;
-  for (z = r; z != NULL && z != BAD_ROUTINE && i < 10; z = get_child(sl, z), ++i) {
+  for (z = r; z != NULL && i < 10; z = get_child(sl, z), ++i) {
     for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3;
          ++i) {
       if (i < 0) {
@@ -377,9 +374,6 @@ LOCAL void print_backtrace(vec sl, routine *r) {
     fprintf(stderr, "**********\n");
     fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));
     fprintf(stderr, "**********\n");
-  }
-  if (z == BAD_ROUTINE) {
-    fprintf(stderr, "BAD ROUTINE AT THE END\n");
   }
   fprintf(stderr, "=========\n");
 }
@@ -484,7 +478,7 @@ LOCAL datum *routine_get_shape(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_merge(routine *r, routine *rt_tail, bool allow_inexact) {
+LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   assert(routine_get_count(rt_tail) > 0);
   datum *tail_parent_type = &rt_tail->frames[0]->parent_type_id;
   routine *rt = malloc(sizeof(routine));
@@ -495,7 +489,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail, bool allow_inexact) {
     }
     rt->frames[rt->cnt++] = r->frames[height];
   }
-  if (routine_get_count(rt) != routine_get_count(r) && !allow_inexact) {
+  if (routine_get_count(rt) != routine_get_count(r)) {
     fprintf(stderr, "chopped a routine: got %zu from %zu\n", routine_get_count(rt), routine_get_count(r));
     return NULL;
   }
