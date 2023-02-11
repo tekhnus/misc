@@ -28,47 +28,47 @@
 
 (defn serialize-param (param signature)
   (progn
-    (if (eq signature 'pointer)
+    (if (../eq signature 'pointer)
         (return param)
-      (if (eq signature 'fdatum)
+      (if (../eq signature 'fdatum)
           (return param)
-        (if (eq signature 'progslice)
+        (if (../eq signature 'progslice)
             (return param)
-          (return (mkptr param signature)))))))
+          (return (../mkptr param signature)))))))
 
 (defn serialize-params (params signature)
   (progn
     (if params
-        (return (cons (serialize-param (head params) (head signature)) (serialize-params (tail params) (tail signature))))
+        (return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature))))
       (return '()))))
 
 (defn  dereference (what how)
   (progn
-    (if (eq how 'pointer)
+    (if (../eq how 'pointer)
         (return what)
-      (if (eq how 'fdatum)
+      (if (../eq how 'fdatum)
           (return what)
-        (if (eq how 'progslice)
+        (if (../eq how 'progslice)
             (return what)
-          (return (deref what how)))))))
+          (return (../deref what how)))))))
 
 (defn pointer-call-and-deserialize (fn-ptr signature params)
   (progn
-    (def fnparamst (head signature))
-    (def rettype (head (tail signature)))
-    (def s (serialize-params params fnparamst))
-    (def rawres (pointer-call fn-ptr `(~fnparamst ~rettype) s))
-    (return (dereference rawres rettype))))
+    (def fnparamst (../head signature))
+    (def rettype (../head (../tail signature)))
+    (def s (../serialize-params params fnparamst))
+    (def rawres (../pointer-call fn-ptr `(~fnparamst ~rettype) s))
+    (return (../dereference rawres rettype))))
 
 (def rtld-lazy (return @(host "RTLD_LAZY") '()))
 
 (def dlopen-pointer (return @(host "dlopen") '()))
 "TODO: dlopen actually has an int argument, not a size_t."
-(defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
+(defn dlopen (x) (return (../pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
 (defn dlopen-null () (return (../pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(../mkptr 0 'sizet) ~rtld-lazy))))
 
 (def dlsym-pointer (return @(host "dlsym") '()))
-(defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
+(defn dlsym (x y) (return (../pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))
 
 (defn c-data-pointer (handle c-name signature)
   (progn
