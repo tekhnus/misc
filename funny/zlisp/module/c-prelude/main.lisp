@@ -72,67 +72,68 @@
 
 (defn c-data-pointer (handle c-name signature)
   (progn
-    (def fn-pointer-pointer (dlsym handle c-name))
-    (def fn-pointer (dereference fn-pointer-pointer 'int64))
+    (def fn-pointer-pointer (../dlsym handle c-name))
+    (def fn-pointer (../dereference fn-pointer-pointer 'int64))
     (return fn-pointer)))    
 
 (defn nth (n xs)
   (progn
     (if xs
         (if n
-            (return (nth (tail n) (tail xs)))
-          (return (head xs)))
+            (return (../nth (../tail n) (../tail xs)))
+          (return (../head xs)))
       (panic "nth fail"))))
 
 (defn get-fn-ptr (handle c-name)
   (progn
-    (def fn-pointer-pointer (dlsym handle c-name))
-    (def fn-ptr (dereference fn-pointer-pointer 'int64))
-    (if (eq fn-ptr 0)
-        (panic "couldn't load C function")
+    (def fn-pointer-pointer (../dlsym handle c-name))
+    (def fn-ptr (../dereference fn-pointer-pointer 'int64))
+    (if (../eq fn-ptr 0)
+        (../panic "couldn't load C function")
       (return fn-ptr))))
+
 (defn c-function-0 (fn-ptr signature)
   (progn
     (def () (return @0 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `()))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `()))))
 (defn c-function-1 (fn-ptr signature)
   (progn
     (def (a1) (return @1 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1)))))
 (defn c-function-2 (fn-ptr signature)
   (progn
     (def (a1 a2) (return @2 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2)))))
 (defn c-function-3 (fn-ptr signature)
   (progn
     (def (a1 a2 a3) (return @3 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3)))))
 (defn c-function-4 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4) (return @4 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4)))))
 (defn c-function-5 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4 a5) (return @5 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5)))))
 
 (defn c-function-6 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4 a5 a6) (return @6 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6)))))
 
 (defn c-function-7 (fn-ptr signature)
   (progn
     (def (a1 a2 a3 a4 a5 a6 a7) (return @7 :ready))
-    (return (pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
 
 (defn c-function (handle c-name signature)
   (progn
-    (def argssig (head signature))
+    (def argssig (../head signature))
     (def objs `( ~c-function-0 ~c-function-1 ~c-function-2 ~c-function-3 ~c-function-4 ~c-function-5 ~c-function-6 ~c-function-7))
-    (def obj (nth argssig objs))
-    (def fn-ptr (get-fn-ptr handle c-name))
-    (obj @mut fn-ptr signature)
+    (def obj (../nth argssig objs))
+    (def fn-ptr (../get-fn-ptr handle c-name))
+    (../obj @mut fn-ptr signature)
     (return obj)))
 
 (def selflib (dlopen-null))
@@ -152,18 +153,18 @@
 (def +-pointer (dereference (dlsym selflib "builtin_add") 'int64))
 (defn + (x y) (return (return @(host "call-extension") +-pointer x y)))
 
-(defn wrap-pointer-into-pointer (p) (return (mkptr p 'sizet)))
+(defn wrap-pointer-into-pointer (p) (return (../mkptr p 'sizet)))
 
 
 (defn shared-library (path) (progn
-                              (def r (dlopen path))
-                              (if (eq 0 (dereference r 'int64))
+                              (def r (../dlopen path))
+                              (if (../eq 0 (../dereference r 'int64))
                                   (return `(:err "shared-library failed"))
                                 (return `(:ok ~r)))))
 
 (defn extern-pointer (handle c-name signature) (progn
-                                                 (def res (c-data-pointer handle c-name signature))
-                                                 (if (eq 0 res)
+                                                 (def res (../c-data-pointer handle c-name signature))
+                                                 (if (../eq 0 res)
                                                      (return `(:err "extern-pointer failed"))
                                                    (return `(:ok ~res)))))
 

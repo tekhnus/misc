@@ -38,38 +38,38 @@
 (defn repl
   (sl nsp pptr bpptr compdata bdrcompdata)
   (progn
-    (def tmp (prelude/fprintf stdout "> "))
-    !(#stdmacro/switch
-      (zlisp/rd stdin)
+    (def tmp (/prelude/fprintf stdout "> "))
+    !(#/stdmacro/switch
+      (/zlisp/rd stdin)
       (((:eof)
-	(return (prelude/fprintf stdout "\n")))
+	(return (/prelude/fprintf stdout "\n")))
        ((:ok datum)
-        (def maybe-prog (zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
-        !(#stdmacro/switch
+        (def maybe-prog (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata))
+        !(#/stdmacro/switch
           maybe-prog
           (((:ok progxxx)
-            !(#stdmacro/switch
-              (zlisp/eval-new sl nsp)
+            !(#/stdmacro/switch
+              (/zlisp/eval-new sl nsp)
               (((:ok val ctxt)
-                (def ignored (prelude/fprintf-bytestring
-                           stdout "%s\n" (zlisp/repr-pointer val)))
-                (return (repl sl ctxt pptr bpptr compdata bdrcompdata)))
+                (def ignored (/prelude/fprintf-bytestring
+                           stdout "%s\n" (/zlisp/repr-pointer val)))
+                (return (../repl sl ctxt pptr bpptr compdata bdrcompdata)))
                ((:err msg)
-		(def ignored (prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
-		(return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+		(def ignored (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
+		(return (../repl sl nsp pptr bpptr compdata bdrcompdata))))))
            ((:err msg)
-            (def ignored (prelude/fprintf-bytestring
+            (def ignored (/prelude/fprintf-bytestring
                        stderr "compilation error at repl: %s\n" msg))
-            (return (repl sl nsp pptr bpptr compdata bdrcompdata))))))
+            (return (../repl sl nsp pptr bpptr compdata bdrcompdata))))))
        ((:err msg)
-	(def ignored (prelude/fprintf-bytestring stderr "read error: %s\n" msg))
-	(return (repl sl nsp pptr bpptr compdata bdrcompdata)))))))
+	(def ignored (/prelude/fprintf-bytestring stderr "read error: %s\n" msg))
+	(return (../repl sl nsp pptr bpptr compdata bdrcompdata)))))))
 
-(def sl (prelude/psm 20000))
-(def pptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))
-(def bpptr (prelude/wrap-pointer-into-pointer (zlisp/psan sl)))
-(def rt (prelude/mres (prelude/dereference bpptr 'int64)))
-(def compdata (prelude/cdm))
-(def bdrcompdata (prelude/cdm))
-(def xxx (zlisp/iprog sl pptr bpptr compdata bdrcompdata))
+(def sl (/prelude/psm 20000))
+(def pptr (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
+(def bpptr (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
+(def rt (/prelude/mres (/prelude/dereference bpptr 'int64)))
+(def compdata (/prelude/cdm))
+(def bdrcompdata (/prelude/cdm))
+(def xxx (/zlisp/iprog sl pptr bpptr compdata bdrcompdata))
 (def ignored (repl sl rt pptr bpptr compdata bdrcompdata))
