@@ -158,9 +158,6 @@ LOCAL routine *make_routine_from_indices(routine *r, datum *call_indices) {
   for (int i = 0; i < list_length(call_indices); ++i) {
     routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
     rt = routine_merge(rt, nr);
-    if (rt == NULL) {
-      return NULL;
-    }
     // The following is a hack to chop of the program counter
     // from the routines:(
     if (list_length(list_at(call_indices, i)) > 1 && i + 1 < list_length(call_indices)) {
@@ -178,12 +175,8 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
       routine *rt = make_routine_from_indices(r, prg.call_indices);
-      if (rt == NULL) {
-        return fdatum_make_panic("bad routine merge");
-      }
-      assert(datum_is_nil(&rt->frames[0]->parent_type_id));
-      for (size_t i = 1; i < routine_get_count(rt); ++i) {
-        if(!datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id)) {
+      for (size_t i = 0; i < routine_get_count(rt); ++i) {
+        if((i == 0 && !datum_is_nil(&rt->frames[0]->parent_type_id)) || (i > 0 && !datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id))) {
           char *bufbeg = malloc(2048);
           char *buf = bufbeg;
           buf[0] = '\0';
