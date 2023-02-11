@@ -184,15 +184,16 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
       for (size_t i = 1; i < routine_get_count(rt); ++i) {
         if(!datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id)) {
-          char *buf = malloc(2048);
+          char *bufbeg = malloc(2048);
+          char *buf = bufbeg;
           buf[0] = '\0';
           for (size_t j = 0; j < routine_get_count(rt); ++j) {
-            sprintf(buf, "frame %zu parent %s self %s vars %zu\n", j,
+            buf += sprintf(buf, "frame %zu parent %s self %s vars %zu\n", j,
                     datum_repr(&rt->frames[j]->parent_type_id), datum_repr(&rt->frames[j]->type_id),
                     vec_length(&rt->frames[j]->state));
           }
-          sprintf(buf, "wrong call, frame types are wrong\n");
-          return fdatum_make_panic(buf);
+          buf += sprintf(buf, "wrong call, frame types are wrong\n");
+          return fdatum_make_panic(bufbeg);
         }
       }
       fdatum err;
@@ -479,24 +480,10 @@ LOCAL datum *routine_get_shape(routine *r) {
 }
 
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  assert(routine_get_count(rt_tail) > 0);
-  datum *tail_parent_type = &rt_tail->frames[0]->parent_type_id;
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
   for (size_t height = 0; height < routine_get_count(r); ++height) {
-    if (datum_is_nil(tail_parent_type) || (rt->cnt > 0 && datum_eq(tail_parent_type, &rt->frames[rt->cnt - 1]->type_id))) {
-      break;
-    }
     rt->frames[rt->cnt++] = r->frames[height];
-  }
-  if (routine_get_count(rt) != routine_get_count(r)) {
-    fprintf(stderr, "chopped a routine: got %zu from %zu\n", routine_get_count(rt), routine_get_count(r));
-    return NULL;
-  }
-  if (datum_is_nil(tail_parent_type)) {
-    assert(rt->cnt == 0);
-  } else {
-    assert(rt->cnt > 0 && datum_eq(&rt->frames[rt->cnt - 1]->type_id, tail_parent_type));
   }
   for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
     rt->frames[rt->cnt++] = rt_tail->frames[j];
