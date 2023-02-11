@@ -65,7 +65,7 @@
 (def dlopen-pointer (return @(host "dlopen") '()))
 "TODO: dlopen actually has an int argument, not a size_t."
 (defn dlopen (x) (return (pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) `(~x ~rtld-lazy))))
-(defn dlopen-null () (return (pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(mkptr 0 'sizet) ~rtld-lazy))))
+(defn dlopen-null () (return (../pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) `(~(../mkptr 0 'sizet) ~rtld-lazy))))
 
 (def dlsym-pointer (return @(host "dlsym") '()))
 (defn dlsym (x y) (return (pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) `(~x ~y))))

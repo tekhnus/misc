@@ -236,12 +236,18 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
   }
   datum *indices = datum_make_nil();
-  for (int j = 0; j < list_length(compdata_get_shape(*compdata)); ++j) {
+  int fn_index = 0;
+  int chop = 0;
+  if (list_length(fns) > 0 && datum_is_the_symbol(list_at(fns, 0), "..")) {
+    ++fn_index;
+    chop = 1;
+  }
+  for (int j = 0; j + chop < list_length(compdata_get_shape(*compdata)); ++j) {
     list_append(indices, datum_make_list_of(1, datum_make_int(j)));
   }
-  for (int i = 0; i < list_length(fns); ++i) {
-    datum *component = list_at(fns, i);
-    bool borrow = i + 1 < list_length(fns) || mut;
+  for (; fn_index < list_length(fns); ++fn_index) {
+    datum *component = list_at(fns, fn_index);
+    bool borrow = fn_index + 1 < list_length(fns) || mut;
     if (borrow) {
       if (!datum_is_symbol(component)) {
         return "expected an lvalue";

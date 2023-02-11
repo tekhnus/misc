@@ -484,7 +484,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     rt->frames[rt->cnt++] = r->frames[height];
   }
   if (routine_get_count(rt) != routine_get_count(r)) {
-    // return NULL;
+    //return NULL;
   }
   if (datum_is_nil(tail_parent_type)) {
     assert(rt->cnt == 0);
