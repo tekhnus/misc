@@ -162,7 +162,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       rt->cnt = 0;
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
         routine *nr = get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i)));
-        rt = routine_merge(rt, nr, true);
+        rt = routine_merge(rt, nr, false);
         if (rt == NULL) {
           return fdatum_make_panic("bad routine merge");
         }

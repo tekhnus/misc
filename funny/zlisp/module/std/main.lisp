@@ -159,11 +159,11 @@
 
 (defn append (x xs)
   (if xs
-      (return (cons
-               (head xs)
-               (append
+      (return (../cons
+               (../head xs)
+               (../append
 	        x
-	        (tail xs))))
+	        (../tail xs))))
     (return `(~x))))
 
 (defn first-good-value (x) (progn
