@@ -19,7 +19,7 @@
 
 (def panics '())
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/head '(42 5 3)))
   42)
 

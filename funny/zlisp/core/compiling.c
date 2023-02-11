@@ -238,9 +238,13 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   datum *indices = datum_make_nil();
   int fn_index = 0;
   int chop = 0;
-  if (list_length(fns) > 0 && datum_is_the_symbol(list_at(fns, 0), "..")) {
+  if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "..")) {
     ++fn_index;
     chop = 1;
+  }
+  if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "")) {
+    ++fn_index;
+    chop = list_length(compdata_get_shape(*compdata));
   }
   for (int j = 0; j + chop < list_length(compdata_get_shape(*compdata)); ++j) {
     list_append(indices, datum_make_list_of(1, datum_make_int(j)));
