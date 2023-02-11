@@ -161,9 +161,16 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       routine *rt = malloc(sizeof(routine));
       rt->cnt = 0;
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
-        rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))), true);
+        routine *nr = get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i)));
+        rt = routine_merge(rt, nr, true);
         if (rt == NULL) {
           return fdatum_make_panic("bad routine merge");
+        }
+        // The following is a hack to chop of the program counter
+        // from the routines:(
+        if (list_length(list_at(prg.call_indices, i)) > 1 && i + 1 < list_length(prg.call_indices)) {
+          assert(routine_get_count(rt) > 0);
+          --rt->cnt;
         }
       }
       assert(datum_is_nil(&rt->frames[0]->parent_type_id));
