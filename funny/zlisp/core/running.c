@@ -324,6 +324,8 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
+#define BAD_ROUTINE (routine *)1
+
 LOCAL routine *get_child(vec sl, routine *r) {
   prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
@@ -335,7 +337,7 @@ LOCAL routine *get_child(vec sl, routine *r) {
     routine *new_child = routine_merge(
                           child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
     if (new_child == NULL) {
-      break;
+      return BAD_ROUTINE;  // TODO(me)
     }
     child = new_child;
   }
@@ -346,7 +348,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
-  for (routine *z = r; z != NULL && i < 10; z = get_child(sl, z), ++i) {
+  for (routine *z = r; z != NULL && z != BAD_ROUTINE && i < 10; z = get_child(sl, z), ++i) {
     for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3;
          ++i) {
       if (i < 0) {
@@ -484,7 +486,7 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     rt->frames[rt->cnt++] = r->frames[height];
   }
   if (routine_get_count(rt) != routine_get_count(r)) {
-    //return NULL;
+    // return NULL;
   }
   if (datum_is_nil(tail_parent_type)) {
     assert(rt->cnt == 0);
@@ -519,7 +521,7 @@ LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
-  assert(routine_get_count(r) > 1);
+  assert(routine_get_count(r) > 0);
   frame *f = r->frames[routine_get_count(r) - 1];
   assert(vec_length(&f->state) == 1);
   datum *offset_datum = vec_at(&f->state, 0);
