@@ -161,7 +161,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       routine *rt = malloc(sizeof(routine));
       rt->cnt = 0;
       for (int i = 0; i < list_length(prg.call_indices); ++i) {
-        rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
+        rt = routine_merge(rt, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))), true);
         if (rt == NULL) {
           return fdatum_make_panic("bad routine merge");
         }
@@ -335,7 +335,7 @@ LOCAL routine *get_child(vec sl, routine *r) {
   child->cnt = 0;
   for (int i = 0; i < list_length(prg.call_indices); ++i) {
     routine *new_child = routine_merge(
-                          child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))));
+                                       child, get_routine_from_datum(state_stack_at(r, list_at(prg.call_indices, i))), true);
     if (new_child == NULL) {
       return BAD_ROUTINE;  // TODO(me)
     }
@@ -348,7 +348,8 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
-  for (routine *z = r; z != NULL && z != BAD_ROUTINE && i < 10; z = get_child(sl, z), ++i) {
+  routine *z;
+  for (z = r; z != NULL && z != BAD_ROUTINE && i < 10; z = get_child(sl, z), ++i) {
     for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3;
          ++i) {
       if (i < 0) {
@@ -370,7 +371,9 @@ LOCAL void print_backtrace(vec sl, routine *r) {
     fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));
     fprintf(stderr, "**********\n");
   }
-
+  if (z == BAD_ROUTINE) {
+    fprintf(stderr, "BAD ROUTINE AT THE END\n");
+  }
   fprintf(stderr, "=========\n");
 }
 
@@ -474,7 +477,7 @@ LOCAL datum *routine_get_shape(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
+LOCAL routine *routine_merge(routine *r, routine *rt_tail, bool allow_inexact) {
   assert(routine_get_count(rt_tail) > 0);
   datum *tail_parent_type = &rt_tail->frames[0]->parent_type_id;
   routine *rt = malloc(sizeof(routine));
@@ -485,8 +488,8 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
     }
     rt->frames[rt->cnt++] = r->frames[height];
   }
-  if (routine_get_count(rt) != routine_get_count(r)) {
-    // return NULL;
+  if (routine_get_count(rt) != routine_get_count(r) && !allow_inexact) {
+    return NULL;
   }
   if (datum_is_nil(tail_parent_type)) {
     assert(rt->cnt == 0);

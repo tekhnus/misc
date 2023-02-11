@@ -23,56 +23,56 @@
   (return (std/head '(42 5 3)))
   42)
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/tail '(42 5 3)))
   '(5 3))
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/head (std/tail '(42 5 3))))
   5)
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/list-at '(42 5 3) 1))
   5)
 
-!(#testing/fntest
+!(#/testing/fntest
  (return "hello, world!")
  "hello, world!")
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/+ 4 3))
   7)
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/list-at '(1 2) 1))
   2)
 
-!(#testing/fntest
+!(#/testing/fntest
   (return (std/eq :foo :bar))
   '())
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (def bar :foo)
     (return (std/eq :foo bar)))
   '(()))
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (return (std/append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#testing/fntest
+!(#/testing/fntest
   (return `(1 2 ~(std/+ 1 2)))
   '(1 2 3))
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (defn twice (arg) (return (std/+ arg arg)))
     (return (twice 35)))
   70)
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (defn adderf (n)
                    (progn
@@ -86,7 +86,7 @@
     (return ((adder 3) 4)))
   7)
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (defn fib () (progn
        (return 3)
@@ -100,21 +100,21 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (defn fff (x) (return (std/+ x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (defn multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
-!(#testing/fntest
+!(#/testing/fntest
   (progn
     (def y 3)
     (defn fff ()

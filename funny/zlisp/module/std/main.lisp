@@ -12,7 +12,7 @@
  (+- "prelude" +))
 
 (defn panic (x) (return (prelude/panic- x)))
-(defn head (x) (return (prelude/head- x)))
+(defn head (x) (return (/prelude/head- x)))
 (defn tail (x) (return (prelude/tail- x)))
 (defn cons (x xs) (return (prelude/cons- x xs)))
 (defn eq (x y) (return (prelude/eq- x y)))

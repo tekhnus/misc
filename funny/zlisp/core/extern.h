@@ -48,7 +48,7 @@ void state_stack_put_all(routine *r,datum list);
 LOCAL datum state_stack_pop(routine *r);
 LOCAL size_t routine_get_count(routine *r);
 datum *state_stack_at(routine *r,datum *offset);
-LOCAL routine *routine_merge(routine *r,routine *rt_tail);
+LOCAL routine *routine_merge(routine *r,routine *rt_tail,bool allow_inexact);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
