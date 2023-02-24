@@ -48,7 +48,9 @@ and two implementations:
 - Try hosting by a constrained environment like bare metal or shader
 
 - Make a DAP-powered debugger
+- Make an interceptor which records all host calls and can replay them during debugging
 - Make an RPC
+- Make a C++ debugger which is scriptable with zlisp
 
 ### Building and running
 
