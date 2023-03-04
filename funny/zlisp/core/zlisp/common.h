@@ -109,3 +109,18 @@ void state_stack_put(routine *r,datum value);
 void state_stack_put_all(routine *r,datum list);
 datum *routine_make(ptrdiff_t prg,routine *context);
 datum *datum_copy(datum *d);
+typedef struct frame frame;
+struct frame {
+  vec state;
+  datum type_id;
+  datum parent_type_id;
+};
+struct routine {
+  struct frame *frames[10];
+  size_t cnt;
+};
+typedef struct frame_with_routine frame_with_routine;
+struct frame_with_routine {
+  struct frame fr;
+  struct routine r;
+};

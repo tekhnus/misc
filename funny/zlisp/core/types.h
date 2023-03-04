@@ -49,4 +49,20 @@ struct vec {
   size_t capacity;
 };
 
+struct frame {
+  vec state;
+  datum type_id;
+  datum parent_type_id;
+};
+
+struct routine {
+  struct frame *frames[10];
+  size_t cnt;
+};
+
+struct frame_with_routine {
+  struct frame fr;
+  struct routine r;
+};
+
 #endif

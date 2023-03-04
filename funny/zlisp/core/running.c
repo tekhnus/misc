@@ -64,21 +64,8 @@ struct prog {
   };
 };
 
-struct frame {
-  vec state;
-  datum type_id;
-  datum parent_type_id;
-};
-
-struct routine {
-  struct frame *frames[10];
-  size_t cnt;
-};
-
 #if INTERFACE
 typedef struct prog prog;
-typedef struct routine routine;
-typedef struct frame frame;
 #endif
 
 EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
