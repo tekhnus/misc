@@ -468,7 +468,7 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   routine *vars_r = malloc(sizeof(routine));
   vars_r->cnt = 1;
   vars_r->frames[0] = vars;
-  datum *vars_datum = datum_make_frame_new(*vars, 1);
+  datum *vars_datum = datum_make_frame(*vars, 1);
   frame *exec = malloc(sizeof(struct frame));
   exec->state = vec_make(2);
   vec_append(&exec->state, *vars_datum);
@@ -479,7 +479,7 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   r->cnt = 2;
   r->frames[0] = vars;
   r->frames[1] = exec;
-  return datum_make_frame_new(*exec, 2);
+  return datum_make_frame(*exec, 2);
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
@@ -491,7 +491,7 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return &offset_datum->integer_value;
 }
 
-LOCAL datum *datum_make_frame_new(frame fr, size_t sz) {
+LOCAL datum *datum_make_frame(frame fr, size_t sz) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value.fr = fr;
@@ -523,7 +523,7 @@ EXPORT datum *datum_copy(datum *d) {
     routine *fn_r = get_routine_from_datum(d);
     frame f;
     frame_copy(&f, &d->frame_value.fr);
-    return datum_make_frame_new(f, fn_r->cnt);
+    return datum_make_frame(f, fn_r->cnt);
   }
   if (datum_is_list(d)) {
     datum *e = datum_make_nil();
