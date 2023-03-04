@@ -384,7 +384,7 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
     }
   }
   *vec_at(sl, *begin) = *(datum_make_list_of(8,
-      datum_make_symbol(":call"), datum_make_int(capture_size), indices,
+      datum_make_symbol(":call"), datum_make_int(capture_size), new_indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {

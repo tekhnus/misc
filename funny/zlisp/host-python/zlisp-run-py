@@ -142,6 +142,12 @@ def main():
                 raise RuntimeError("only plain targets are currently supported")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
             rtvarz = []
+            for frame in range(capture_cnt):
+                offset = None
+                varz = [pdata[-1].varz[frame]]
+                extvars = frame
+                rtvarz = merge(rtvarz, varz, extvars)
+                ip = offset
             for fn_index in indices:
                 if len(fn_index) == 2:
                     frame, indx = fn_index

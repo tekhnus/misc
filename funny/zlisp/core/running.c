@@ -153,9 +153,13 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
   return res;
 }
 
-LOCAL routine *make_routine_from_indices(routine *r, datum *call_indices) {
+LOCAL routine *make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
+  for (size_t i = 0; i < capture_count; ++i) {
+    routine *nr = get_routine_from_datum(state_stack_at(r, datum_make_list_of(1, datum_make_int(i))));
+    rt = routine_merge(rt, nr);
+  }
   for (int i = 0; i < list_length(call_indices); ++i) {
     routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
     rt = routine_merge(rt, nr);
@@ -175,7 +179,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
-      routine *rt = make_routine_from_indices(r, prg.call_indices);
+      routine *rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
       for (size_t i = 0; i < routine_get_count(rt); ++i) {
         if((i == 0 && !datum_is_nil(&rt->frames[0]->parent_type_id)) || (i > 0 && !datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id))) {
           char *bufbeg = malloc(2048);
@@ -339,7 +343,7 @@ LOCAL routine *get_child(vec sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return NULL;
   }
-  routine *child = make_routine_from_indices(r, prg.call_indices);
+  routine *child = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
   return child;
 }
 
