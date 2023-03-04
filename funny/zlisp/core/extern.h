@@ -5,16 +5,15 @@
 #include <stdint.h>
 #include <stdarg.h>
 #define LOCAL static
+typedef struct datum datum;
 typedef struct routine routine;
+LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *routine_make_empty(ptrdiff_t prg,routine *context);
 typedef struct vec vec;
 LOCAL void vec_copy(vec *dst,vec *src);
 typedef struct frame frame;
 LOCAL void frame_copy(frame *dst,frame *src);
 LOCAL void routine_copy(routine *dst,routine *src);
-typedef struct datum datum;
-LOCAL datum *datum_make_frame(routine *r);
-LOCAL routine *frame_to_routine(frame *f);
 LOCAL size_t routine_get_stack_size(routine *r);
 #include <inttypes.h>
 #include <stdio.h>
@@ -50,8 +49,9 @@ LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
 LOCAL size_t routine_get_count(routine *r);
-LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_at(routine *r,datum *offset);
+LOCAL routine *frame_to_routine(frame *f);
+LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 LOCAL routine *make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);
 LOCAL void print_backtrace(vec sl,routine *r);
 LOCAL datum *routine_get_shape(routine *r);

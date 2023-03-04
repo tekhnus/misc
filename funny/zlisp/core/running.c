@@ -156,16 +156,17 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
 LOCAL routine *make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
+  assert(capture_count <= r->cnt);
   for (size_t i = 0; i < capture_count; ++i) {
-    routine *nr = get_routine_from_datum(state_stack_at(r, datum_make_list_of(1, datum_make_int(i))));
-    rt = routine_merge(rt, nr);
+    frame *fr = r->frames[i];
+    rt = routine_merge(rt, frame_to_routine(fr));
   }
   for (int i = 0; i < list_length(call_indices); ++i) {
     routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
     rt = routine_merge(rt, nr);
     // The following is a hack to chop of the program counter
     // from the routines:(
-    if (list_length(list_at(call_indices, i)) > 1 && i + 1 < list_length(call_indices)) {
+    if (i + 1 < list_length(call_indices)) {
       assert(routine_get_count(rt) > 0);
       --rt->cnt;
     }
@@ -390,9 +391,6 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
   assert(datum_is_integer(frame));
   assert(frame->integer_value < (int)routine_get_count(r));
   struct frame *f = r->frames[frame->integer_value];
-  if (list_length(offset) == 1) {
-    return datum_make_frame(frame_to_routine(f));
-  }
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));

@@ -149,17 +149,10 @@ def main():
                 rtvarz = merge(rtvarz, varz, extvars)
                 ip = offset
             for fn_index in indices:
-                if len(fn_index) == 2:
-                    frame, indx = fn_index
-                    rout = pdata[-1].varz[frame][indx]
-                    offset, varz, extvars = rout
-                elif len(fn_index) == 1:
-                    frame, = fn_index
-                    offset = None
-                    varz = [pdata[-1].varz[frame]]
-                    extvars = frame
-                else:
-                    raise RuntimeError("wrong fn_index length")
+                assert len(fn_index) == 2
+                frame, indx = fn_index
+                rout = pdata[-1].varz[frame][indx]
+                offset, varz, extvars = rout
                 rtvarz = merge(rtvarz, varz, extvars)
                 ip = offset
             rtvarz[-1].extend(arg for arg in args)
