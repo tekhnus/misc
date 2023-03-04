@@ -34,6 +34,7 @@ struct prog {
     };
     struct {
       struct datum *call_indices;
+      size_t call_capture_count;
       bool call_pop_one;
       struct datum *call_type;
       size_t call_arg_count;
@@ -303,12 +304,13 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_var_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
-    res.call_indices = list_at(d, 1);
-    res.call_pop_one = list_at(d, 2)->integer_value;
-    res.call_type = list_at(d, 3);
-    res.call_arg_count = list_at(d, 4)->integer_value;
-    res.call_return_count = list_at(d, 5)->integer_value;
-    res.call_next = list_at(d, 6)->integer_value;
+    res.call_capture_count = list_at(d, 1)->integer_value;
+    res.call_indices = list_at(d, 2);
+    res.call_pop_one = list_at(d, 3)->integer_value;
+    res.call_type = list_at(d, 4);
+    res.call_arg_count = list_at(d, 5)->integer_value;
+    res.call_return_count = list_at(d, 6)->integer_value;
+    res.call_next = list_at(d, 7)->integer_value;
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;

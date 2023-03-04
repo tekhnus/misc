@@ -374,8 +374,17 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
                              int arg_count, int return_count,
                              datum **compdata) {
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = *(datum_make_list_of(7, 
-      datum_make_symbol(":call"), indices,
+  datum *new_indices = datum_make_nil();
+  size_t capture_size = 0;
+  for (int i = 0; i < list_length(indices); ++i) {
+    if (list_length(list_at(indices, i)) == 1) {
+      ++capture_size;
+    } else {
+      list_append(new_indices, list_at(indices, i));
+    }
+  }
+  *vec_at(sl, *begin) = *(datum_make_list_of(8,
+      datum_make_symbol(":call"), datum_make_int(capture_size), indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
