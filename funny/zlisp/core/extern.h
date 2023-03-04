@@ -21,7 +21,8 @@ struct frame {
   int parent_type_id;
 };
 typedef struct routine routine;
-LOCAL datum *datum_make_frame(frame fr,routine *r);
+LOCAL datum *datum_make_frame(frame fr,size_t sz,routine *r);
+LOCAL datum *datum_make_frame_new(frame fr,size_t sz);
 LOCAL void vec_copy(vec *dst,vec *src);
 LOCAL void frame_copy(frame *dst,frame *src);
 LOCAL void routine_copy(routine *dst,routine *src);

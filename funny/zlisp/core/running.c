@@ -477,11 +477,11 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   routine *vars_r = malloc(sizeof(routine));
   vars_r->cnt = 1;
   vars_r->frames[0] = vars;
-  datum *vars_datum = datum_make_frame(*vars, vars_r);
+  datum *vars_datum = datum_make_frame_new(*vars, 1);
   vars_datum = vars_datum;
   frame *exec = malloc(sizeof(struct frame));
   exec->state = vec_make(2);
-  vec_append(&exec->state, *datum_make_nil());
+  vec_append(&exec->state, *datum_make_int((size_t)vars));
   vec_append(&exec->state, *datum_make_int(prg));
   exec->type_id = -1;
   exec->parent_type_id = (vars->type_id);
@@ -489,7 +489,7 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   r->cnt = 2;
   r->frames[0] = vars;
   r->frames[1] = exec;
-  return datum_make_frame(*exec, r);
+  return datum_make_frame_new(*exec, 2);
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
@@ -501,11 +501,44 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return &offset_datum->integer_value;
 }
 
-LOCAL datum *datum_make_frame(frame fr, routine *r) {
+LOCAL datum *datum_make_frame(frame fr, size_t sz, routine *r) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value.fr = fr;
+  routine *rt = malloc(sizeof(routine));
+  rt->cnt = sz;
+  assert(sz == 1 || sz == 2);
+  rt->frames[sz - 1] = &e->frame_value.fr;
+  r->frames[sz - 1] = &e->frame_value.fr;
+  if (sz == 2) {
+    vec *st = &e->frame_value.fr.state;
+    assert(vec_length(st) == 2);
+    assert(datum_is_integer(vec_at(st, 0)));
+    frame *vars = (frame *)vec_at(st, 0)->integer_value;
+    rt->frames[0] = vars;
+    // r->frames[0] = vars;
+  }
   e->frame_value.r = r;
+  // e->frame_value.r = rt;
+  return e;
+}
+
+LOCAL datum *datum_make_frame_new(frame fr, size_t sz) {
+  datum *e = malloc(sizeof(datum));
+  e->type = DATUM_FRAME;
+  e->frame_value.fr = fr;
+  routine *rt = malloc(sizeof(routine));
+  rt->cnt = sz;
+  assert(sz == 1 || sz == 2);
+  rt->frames[sz - 1] = &e->frame_value.fr;
+  if (sz == 2) {
+    vec *st = &e->frame_value.fr.state;
+    assert(vec_length(st) == 2);
+    assert(datum_is_integer(vec_at(st, 0)));
+    frame *vars = (frame *)vec_at(st, 0)->integer_value;
+    rt->frames[0] = vars;
+  }
+  e->frame_value.r = rt;
   return e;
 }
 
@@ -521,10 +554,11 @@ EXPORT datum *datum_copy(datum *d) {
   if (datum_is_frame(d)) {
     routine *fn_r = get_routine_from_datum(d);
     assert(fn_r->cnt <= 2);
+    frame f;
+    frame_copy(&f, &d->frame_value.fr);
     routine *fn_copy = malloc(sizeof(routine));
     routine_copy(fn_copy, fn_r);
-    frame f = {};
-    return datum_make_frame(f, fn_copy);
+    return datum_make_frame(f, fn_r->cnt, fn_copy);
   }
   if (datum_is_list(d)) {
     datum *e = datum_make_nil();
