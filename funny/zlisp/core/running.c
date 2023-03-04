@@ -474,9 +474,14 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   vars->type_id = (prg);
   assert(context == NULL || routine_get_count(context) > 1);
   vars->parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1;
+  routine *vars_r = malloc(sizeof(routine));
+  vars_r->cnt = 1;
+  vars_r->frames[0] = vars;
+  datum *vars_datum = datum_make_frame(*vars, vars_r);
+  vars_datum = vars_datum;
   frame *exec = malloc(sizeof(struct frame));
   exec->state = vec_make(2);
-  vec_append(&exec->state, *datum_make_int((size_t)vars));
+  vec_append(&exec->state, *datum_make_nil());
   vec_append(&exec->state, *datum_make_int(prg));
   exec->type_id = -1;
   exec->parent_type_id = (vars->type_id);
@@ -515,7 +520,7 @@ LOCAL routine *get_routine_from_datum(datum *d) {
 EXPORT datum *datum_copy(datum *d) {
   if (datum_is_frame(d)) {
     routine *fn_r = get_routine_from_datum(d);
-    assert(fn_r->cnt == 2);
+    assert(fn_r->cnt <= 2);
     routine *fn_copy = malloc(sizeof(routine));
     routine_copy(fn_copy, fn_r);
     frame f = {};
