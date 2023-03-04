@@ -168,13 +168,13 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       datum *recieve_type = prg.call_type;
       routine *rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
       for (size_t i = 0; i < routine_get_count(rt); ++i) {
-        if((i == 0 && !datum_is_nil(&rt->frames[0]->parent_type_id)) || (i > 0 && !datum_eq(&rt->frames[i]->parent_type_id, &rt->frames[i - 1]->type_id))) {
+        if((i == 0 && -1 != (rt->frames[0]->parent_type_id)) || (i > 0 && (rt->frames[i]->parent_type_id != rt->frames[i - 1]->type_id))) {
           char *bufbeg = malloc(2048);
           char *buf = bufbeg;
           buf[0] = '\0';
           for (size_t j = 0; j < routine_get_count(rt); ++j) {
-            buf += sprintf(buf, "frame %zu parent %s self %s vars %zu\n", j,
-                    datum_repr(&rt->frames[j]->parent_type_id), datum_repr(&rt->frames[j]->type_id),
+            buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
+                    (rt->frames[j]->parent_type_id), (rt->frames[j]->type_id),
                     vec_length(&rt->frames[j]->state));
           }
           buf += sprintf(buf, "wrong call, frame types are wrong\n");
@@ -471,15 +471,15 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
 EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   frame *vars = malloc(sizeof(struct frame));
   vars->state = vec_make(1024);
-  vars->type_id = *datum_make_int(prg);
+  vars->type_id = (prg);
   assert(context == NULL || routine_get_count(context) > 1);
-  vars->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context) - 2]->type_id) : *datum_make_nil();
+  vars->parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1;
   frame *exec = malloc(sizeof(struct frame));
   exec->state = vec_make(2);
   vec_append(&exec->state, *datum_make_int((size_t)vars));
   vec_append(&exec->state, *datum_make_int(prg));
-  exec->type_id = *datum_make_nil();
-  exec->parent_type_id = *datum_copy(&vars->type_id);
+  exec->type_id = -1;
+  exec->parent_type_id = (vars->type_id);
   routine *r = malloc(sizeof(routine));
   r->cnt = 2;
   r->frames[0] = vars;

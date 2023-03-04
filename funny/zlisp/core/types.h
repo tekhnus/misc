@@ -51,8 +51,8 @@ struct vec {
 
 struct frame {
   vec state;
-  datum type_id;
-  datum parent_type_id;
+  int type_id;
+  int parent_type_id;
 };
 
 struct routine {

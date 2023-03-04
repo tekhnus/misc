@@ -112,8 +112,8 @@ datum *datum_copy(datum *d);
 typedef struct frame frame;
 struct frame {
   vec state;
-  datum type_id;
-  datum parent_type_id;
+  int type_id;
+  int parent_type_id;
 };
 struct routine {
   struct frame *frames[10];
