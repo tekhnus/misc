@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   }
   vec sl = vec_make(16 * 1024);
   vec_extend(&sl, rr.ok_value);
-  datum *s = routine_make(0); // running starts from the first instruction.
+  datum *s = routine_make(0, NULL); // running starts from the first instruction.
   fdatum res = routine_run_in_ffi_host(sl, s);
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "runtime error: %s\n", res.panic_message);

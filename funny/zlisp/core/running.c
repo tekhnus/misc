@@ -237,8 +237,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
-      routine *rt = routine_make_empty(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
-      datum prog_ptr = *datum_make_frame(rt);
+      datum prog_ptr = *routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
       state_stack_put(r, prog_ptr);
       *routine_offset(r) = prg.put_prog_next;
       continue;
@@ -484,8 +483,8 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   return rt;
 }
 
-EXPORT datum *routine_make(ptrdiff_t prg) {
-  routine *r = routine_make_empty(prg, NULL);
+EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
+  routine *r = routine_make_empty(prg, context);
   return datum_make_frame(r);
 }
 

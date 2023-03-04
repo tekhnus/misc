@@ -107,5 +107,5 @@ typedef struct routine routine;
 datum *state_stack_at(routine *r,datum *offset);
 void state_stack_put(routine *r,datum value);
 void state_stack_put_all(routine *r,datum list);
-datum *routine_make(ptrdiff_t prg);
+datum *routine_make(ptrdiff_t prg,routine *context);
 datum *datum_copy(datum *d);

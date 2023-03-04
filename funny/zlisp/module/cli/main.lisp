@@ -68,7 +68,7 @@
 (def sl (/prelude/psm 20000))
 (def pptr (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
 (def bpptr (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
-(def rt (/prelude/mres (/prelude/dereference bpptr 'int64)))
+(def rt (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0)))
 (def compdata (/prelude/cdm))
 (def bdrcompdata (/prelude/cdm))
 (def xxx (/zlisp/iprog sl pptr bpptr compdata bdrcompdata))

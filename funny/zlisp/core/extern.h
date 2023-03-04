@@ -4,15 +4,16 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
-typedef struct datum datum;
-datum *routine_make(ptrdiff_t prg);
 #define LOCAL static
+typedef struct routine routine;
+LOCAL routine *routine_make_empty(ptrdiff_t prg,routine *context);
 typedef struct vec vec;
 LOCAL void vec_copy(vec *dst,vec *src);
 typedef struct frame frame;
 LOCAL void frame_copy(frame *dst,frame *src);
-typedef struct routine routine;
 LOCAL void routine_copy(routine *dst,routine *src);
+typedef struct datum datum;
+LOCAL datum *datum_make_frame(routine *r);
 LOCAL routine *frame_to_routine(frame *f);
 LOCAL size_t routine_get_stack_size(routine *r);
 #include <inttypes.h>
@@ -41,8 +42,7 @@ struct datum {
   };
 };
 void state_stack_put(routine *r,datum value);
-LOCAL datum *datum_make_frame(routine *r);
-LOCAL routine *routine_make_empty(ptrdiff_t prg,routine *context);
+datum *routine_make(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum list);
 LOCAL datum state_stack_pop(routine *r);
