@@ -154,23 +154,22 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
 }
 
 LOCAL routine *make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
+  routine *rt = routine_get_prefix(r, capture_count + 1);
+  for (int i = 0; i < list_length(call_indices); ++i) {
+    routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
+    rt = routine_merge(rt, nr);
+  }
+  return rt;
+}
+
+LOCAL routine *routine_get_prefix(routine *r, size_t capture_count) {
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
   assert(capture_count <= r->cnt);
   for (size_t i = 0; i < capture_count; ++i) {
-    frame *fr = r->frames[i];
-    rt = routine_merge(rt, frame_to_routine(fr));
+    rt->frames[i] = r->frames[i];
   }
-  for (int i = 0; i < list_length(call_indices); ++i) {
-    routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
-    rt = routine_merge(rt, nr);
-    // The following is a hack to chop of the program counter
-    // from the routines:(
-    if (i + 1 < list_length(call_indices)) {
-      assert(routine_get_count(rt) > 0);
-      --rt->cnt;
-    }
-  }
+  rt->cnt = capture_count;
   return rt;
 }
 
@@ -378,13 +377,6 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
-LOCAL routine *frame_to_routine(frame *f) {
-  routine *rt = malloc(sizeof(routine));
-  rt->cnt = 1;
-  rt->frames[0] = f;
-  return rt;
-}
-
 EXPORT datum *state_stack_at(routine *r, datum *offset) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
@@ -478,7 +470,9 @@ LOCAL datum *routine_get_shape(routine *r) {
 LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
   routine *rt = malloc(sizeof(routine));
   rt->cnt = 0;
-  for (size_t height = 0; height < routine_get_count(r); ++height) {
+  assert(routine_get_count(r) > 0);
+  // The "+ 1" is because we want to chop off the program counter.
+  for (size_t height = 0; height + 1 < routine_get_count(r); ++height) {
     rt->frames[rt->cnt++] = r->frames[height];
   }
   for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
