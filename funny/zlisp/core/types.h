@@ -18,7 +18,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    void *frame_value;
+    frame_with_routine frame_value;
   };
 };
 
@@ -62,7 +62,7 @@ struct routine {
 
 struct frame_with_routine {
   struct frame fr;
-  struct routine r;
+  struct routine *r;
 };
 
 #endif

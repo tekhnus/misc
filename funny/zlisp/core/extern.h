@@ -6,16 +6,26 @@
 #include <stdarg.h>
 #define LOCAL static
 typedef struct datum datum;
-typedef struct routine routine;
-LOCAL datum *datum_make_frame(routine *r);
-typedef struct vec vec;
-LOCAL void vec_copy(vec *dst,vec *src);
 typedef struct frame frame;
+#include <inttypes.h>
+#include <stdio.h>
+typedef struct vec vec;
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+struct frame {
+  vec state;
+  int type_id;
+  int parent_type_id;
+};
+typedef struct routine routine;
+LOCAL datum *datum_make_frame(frame fr,routine *r);
+LOCAL void vec_copy(vec *dst,vec *src);
 LOCAL void frame_copy(frame *dst,frame *src);
 LOCAL void routine_copy(routine *dst,routine *src);
 LOCAL size_t routine_get_stack_size(routine *r);
-#include <inttypes.h>
-#include <stdio.h>
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -24,10 +34,10 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
+typedef struct frame_with_routine frame_with_routine;
+struct frame_with_routine {
+  struct frame fr;
+  struct routine *r;
 };
 struct datum {
   enum datum_type type;
@@ -36,7 +46,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    void *frame_value;
+    frame_with_routine frame_value;
   };
 };
 void state_stack_put(routine *r,datum value);
@@ -69,11 +79,6 @@ struct routine {
 };
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum *list_copy_and_append(datum *list,datum *value);
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
 datum *datum_copy(datum *d);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);

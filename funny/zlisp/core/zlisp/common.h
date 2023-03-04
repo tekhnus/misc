@@ -30,6 +30,18 @@ struct vec {
   size_t length;
   size_t capacity;
 };
+typedef struct frame_with_routine frame_with_routine;
+typedef struct frame frame;
+struct frame {
+  vec state;
+  int type_id;
+  int parent_type_id;
+};
+typedef struct routine routine;
+struct frame_with_routine {
+  struct frame fr;
+  struct routine *r;
+};
 struct datum {
   enum datum_type type;
   union {
@@ -37,7 +49,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    void *frame_value;
+    frame_with_routine frame_value;
   };
 };
 struct fdatum {
@@ -103,24 +115,12 @@ datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_shape(datum *compdata);
 void compdata_give_names(datum *var,datum **compdata);
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
-typedef struct routine routine;
 datum *state_stack_at(routine *r,datum *offset);
 void state_stack_put(routine *r,datum value);
 void state_stack_put_all(routine *r,datum list);
 datum *routine_make(ptrdiff_t prg,routine *context);
 datum *datum_copy(datum *d);
-typedef struct frame frame;
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
 struct routine {
   struct frame *frames[10];
   size_t cnt;
-};
-typedef struct frame_with_routine frame_with_routine;
-struct frame_with_routine {
-  struct frame fr;
-  struct routine r;
 };

@@ -484,7 +484,7 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
   r->cnt = 2;
   r->frames[0] = vars;
   r->frames[1] = exec;
-  return datum_make_frame(r);
+  return datum_make_frame(*exec, r);
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
@@ -496,10 +496,11 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return &offset_datum->integer_value;
 }
 
-LOCAL datum *datum_make_frame(routine *r) {
+LOCAL datum *datum_make_frame(frame fr, routine *r) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
-  e->frame_value = r;
+  e->frame_value.fr = fr;
+  e->frame_value.r = r;
   return e;
 }
 
@@ -508,15 +509,17 @@ LOCAL routine *get_routine_from_datum(datum *d) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
     exit(EXIT_FAILURE);
   }
-  return (routine *)d->frame_value;
+  return d->frame_value.r;
 }
 
 EXPORT datum *datum_copy(datum *d) {
   if (datum_is_frame(d)) {
     routine *fn_r = get_routine_from_datum(d);
+    assert(fn_r->cnt == 2);
     routine *fn_copy = malloc(sizeof(routine));
     routine_copy(fn_copy, fn_r);
-    return datum_make_frame(fn_copy);
+    frame f = {};
+    return datum_make_frame(f, fn_copy);
   }
   if (datum_is_list(d)) {
     datum *e = datum_make_nil();
