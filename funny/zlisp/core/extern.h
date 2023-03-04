@@ -8,7 +8,6 @@
 typedef struct datum datum;
 typedef struct routine routine;
 LOCAL datum *datum_make_frame(routine *r);
-LOCAL routine *routine_make_empty(ptrdiff_t prg,routine *context);
 typedef struct vec vec;
 LOCAL void vec_copy(vec *dst,vec *src);
 typedef struct frame frame;

@@ -482,24 +482,21 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
 }
 
 EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
-  routine *r = routine_make_empty(prg, context);
-  return datum_make_frame(r);
-}
-
-LOCAL routine *routine_make_empty(ptrdiff_t prg, routine *context) {
+  frame *vars = malloc(sizeof(struct frame));
+  vars->state = vec_make(1024);
+  vars->type_id = *datum_make_int(prg);
+  assert(context == NULL || routine_get_count(context) > 1);
+  vars->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context) - 2]->type_id) : *datum_make_nil();
+  frame *exec = malloc(sizeof(struct frame));
+  exec->state = vec_make(1);
+  vec_append(&exec->state, *datum_make_int(prg));
+  exec->type_id = *datum_make_nil();
+  exec->parent_type_id = *datum_copy(&vars->type_id);
   routine *r = malloc(sizeof(routine));
   r->cnt = 2;
-  r->frames[0] = malloc(sizeof(struct frame));
-  r->frames[0]->state = vec_make(1024);
-  r->frames[0]->type_id = *datum_make_int(prg);
-  assert(context == NULL || routine_get_count(context) > 1);
-  r->frames[0]->parent_type_id = context != NULL ? *datum_copy(&context->frames[routine_get_count(context) - 2]->type_id) : *datum_make_nil();
-  r->frames[1] = malloc(sizeof(struct frame));
-  r->frames[1]->state = vec_make(1);
-  vec_append(&r->frames[1]->state, *datum_make_int(prg));
-  r->frames[1]->type_id = *datum_make_nil();
-  r->frames[1]->parent_type_id = *datum_copy(&r->frames[0]->type_id);
-  return r;
+  r->frames[0] = vars;
+  r->frames[1] = exec;
+  return datum_make_frame(r);
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
