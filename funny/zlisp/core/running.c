@@ -144,23 +144,23 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
 }
 
 LOCAL routine make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
-  routine *rt = routine_get_prefix(r, capture_count + 1);
+  routine rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
     routine *nr = get_routine_from_datum(x);
-    rt = routine_merge(rt, nr);
+    rt = *routine_merge(&rt, nr);
   }
-  return *rt;
+  return rt;
 }
 
-LOCAL routine *routine_get_prefix(routine *r, size_t capture_count) {
-  routine *rt = malloc(sizeof(routine));
-  rt->cnt = 0;
+LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
+  routine rt;
+  rt.cnt = 0;
   assert(capture_count <= r->cnt);
   for (size_t i = 0; i < capture_count; ++i) {
-    rt->frames[i] = r->frames[i];
+    rt.frames[i] = r->frames[i];
   }
-  rt->cnt = capture_count;
+  rt.cnt = capture_count;
   return rt;
 }
 
