@@ -466,8 +466,13 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
     .type_id = prg,
     .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
   datum *vars_datum = datum_make_frame(vars, 1);
+  frame pc_frame = {
+    .state = vec_make_of(1, *datum_make_int(prg)),
+    .type_id = -1,
+    .parent_type_id = prg};
+  datum *pc_frame_datum = datum_make_frame(pc_frame, 1);
   frame exec = {
-    .state = vec_make_of(2, *vars_datum, *datum_make_int(prg)),
+    .state = vec_make_of(2, *vars_datum, *pc_frame_datum),
     .type_id = -1,
     .parent_type_id = prg};
   return datum_make_frame(exec, 2);
@@ -476,8 +481,8 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(routine_get_count(r) > 0);
   frame *f = r->frames[routine_get_count(r) - 1];
-  assert(vec_length(&f->state) == 2);
-  datum *offset_datum = vec_at(&f->state, 1);
+  assert(vec_length(&f->state) == 1);
+  datum *offset_datum = vec_at(&f->state, 0);
   assert(datum_is_integer(offset_datum));
   return &offset_datum->integer_value;
 }
@@ -489,10 +494,15 @@ LOCAL datum *datum_make_frame(frame fr, size_t sz) {
   routine *rt = malloc(sizeof(routine));
   rt->cnt = sz;
   assert(sz == 1 || sz == 2);
-  rt->frames[sz - 1] = &e->frame_value;
-  if (sz == 2) {
+  if (sz == 1) {
+    rt->frames[sz - 1] = &e->frame_value;
+  } else if (sz == 2) {
     vec *st = &e->frame_value.state;
     assert(vec_length(st) == 2);
+    assert(datum_is_frame(vec_at(st, 1)));
+    frame *pc_frame = &vec_at(st, 1)->frame_value;
+    assert(vec_length(&pc_frame->state) == 1);
+    rt->frames[1] = pc_frame;
     assert(datum_is_frame(vec_at(st, 0)));
     frame *vars = &vec_at(st, 0)->frame_value;
     rt->frames[0] = vars;
