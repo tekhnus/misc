@@ -74,6 +74,7 @@ struct routine {
   struct frame *frames[10];
   size_t cnt;
 };
+LOCAL void frame_fill_routine(datum *e,size_t sz);
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum *list_copy_and_append(datum *list,datum *value);
 datum *datum_copy(datum *d);

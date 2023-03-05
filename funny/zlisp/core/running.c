@@ -71,6 +71,7 @@ typedef struct prog prog;
 EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
+  frame_fill_routine(r0d, 2);
   routine *r = get_routine_from_datum(r0d);
   datum args = *datum_make_nil();
   fdatum rerr;
@@ -143,7 +144,9 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
 LOCAL routine *make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
   routine *rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
-    routine *nr = get_routine_from_datum(state_stack_at(r, list_at(call_indices, i)));
+    datum *x = state_stack_at(r, list_at(call_indices, i));
+    frame_fill_routine(x, 2);
+    routine *nr = get_routine_from_datum(x);
     rt = routine_merge(rt, nr);
   }
   return rt;
@@ -491,6 +494,11 @@ LOCAL datum *datum_make_frame(frame fr, size_t sz) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value = fr;
+  frame_fill_routine(e, sz);
+  return e;
+}
+
+LOCAL void frame_fill_routine(datum *e, size_t sz) {
   routine *rt = malloc(sizeof(routine));
   rt->cnt = sz;
   assert(sz == 1 || sz == 2);
@@ -508,7 +516,6 @@ LOCAL datum *datum_make_frame(frame fr, size_t sz) {
     rt->frames[0] = vars;
   }
   e->frame_pointers = rt;
-  return e;
 }
 
 LOCAL routine *get_routine_from_datum(datum *d) {
