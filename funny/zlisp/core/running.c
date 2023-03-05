@@ -507,22 +507,21 @@ LOCAL routine *get_routine_from_datum(datum *e) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
     exit(EXIT_FAILURE);
   }
-  size_t sz = 2;
   routine *rt = malloc(sizeof(routine));
-  rt->cnt = sz;
-  assert(sz == 1 || sz == 2);
-  if (sz == 1) {
-    rt->frames[sz - 1] = &e->frame_value;
-  } else if (sz == 2) {
-    vec *st = &e->frame_value.state;
-    assert(vec_length(st) == 2);
-    assert(datum_is_frame(vec_at(st, 1)));
-    frame *pc_frame = &vec_at(st, 1)->frame_value;
-    assert(vec_length(&pc_frame->state) == 1);
-    rt->frames[1] = pc_frame;
-    assert(datum_is_frame(vec_at(st, 0)));
-    frame *vars = &vec_at(st, 0)->frame_value;
-    rt->frames[0] = vars;
+  rt->cnt = 0;
+  frame *cell = &e->frame_value;
+  for (;;) {
+    if (vec_length(&cell->state) == 1) {
+      rt->frames[rt->cnt++] = cell;
+      break;
+    }
+    assert(vec_length(&cell->state) == 2);
+    datum *car = vec_at(&cell->state, 0);
+    datum *cdr = vec_at(&cell->state, 1);
+    assert(datum_is_frame(car));
+    rt->frames[rt->cnt++] = &car->frame_value;
+    assert(datum_is_frame(cdr));
+    cell = &cdr->frame_value;
   }
   return rt;
 }
