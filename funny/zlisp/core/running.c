@@ -77,13 +77,13 @@ typedef struct routine routine;
 EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
-  routine *r = get_routine_from_datum(r0d);
+  routine r = get_routine_from_datum(r0d);
   datum args = *datum_make_nil();
   fdatum rerr;
   fdatum res = fdatum_make_ok(*datum_make_nil());
   datum current_statement = *datum_make_nil();
   for (;;) {
-    rerr = routine_run(sl, r, args);
+    rerr = routine_run(sl, &r, args);
     if (fdatum_is_panic(rerr)) {
       res = rerr;
       break;
@@ -99,7 +99,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       if (datum_is_the_symbol(cmd, "compdata")) {
         datum *compdata = list_at(&yield_type, 2);
         datum *compdata_shape = compdata_get_shape(compdata);
-        routine rt = *r;
+        routine rt = r;
         while (get_child(sl, &rt)) {}
         datum *state_shape = routine_get_shape(&rt);
         if (list_length(compdata_shape) != list_length(state_shape)) {
@@ -138,7 +138,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
   }
   if (fdatum_is_panic(res)) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, r);
+    print_backtrace(sl, &r);
   }
   return res;
 }
@@ -147,8 +147,8 @@ LOCAL routine make_routine_from_indices(routine *r, size_t capture_count, datum 
   routine rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
-    routine *nr = get_routine_from_datum(x);
-    routine_merge(&rt, nr);
+    routine nr = get_routine_from_datum(x);
+    routine_merge(&rt, &nr);
   }
   return rt;
 }
@@ -498,24 +498,24 @@ LOCAL datum *datum_make_frame(frame fr) {
   return e;
 }
 
-LOCAL routine *get_routine_from_datum(datum *e) {
+LOCAL routine get_routine_from_datum(datum *e) {
   if (!datum_is_frame(e)) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
     exit(EXIT_FAILURE);
   }
-  routine *rt = malloc(sizeof(routine));
-  rt->cnt = 0;
+  routine rt;
+  rt.cnt = 0;
   frame *cell = &e->frame_value;
   for (;;) {
     if (vec_length(&cell->state) == 1) {
-      rt->frames[rt->cnt++] = cell;
+      rt.frames[rt.cnt++] = cell;
       break;
     }
     assert(vec_length(&cell->state) == 2);
     datum *car = vec_at(&cell->state, 0);
     datum *cdr = vec_at(&cell->state, 1);
     assert(datum_is_frame(car));
-    rt->frames[rt->cnt++] = &car->frame_value;
+    rt.frames[rt.cnt++] = &car->frame_value;
     assert(datum_is_frame(cdr));
     cell = &cdr->frame_value;
   }
