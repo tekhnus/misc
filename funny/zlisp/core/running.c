@@ -143,14 +143,14 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
   return res;
 }
 
-LOCAL routine *make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
+LOCAL routine make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
   routine *rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
     routine *nr = get_routine_from_datum(x);
     rt = routine_merge(rt, nr);
   }
-  return rt;
+  return *rt;
 }
 
 LOCAL routine *routine_get_prefix(routine *r, size_t capture_count) {
@@ -170,23 +170,23 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
-      routine *rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
-      for (size_t i = 0; i < routine_get_count(rt); ++i) {
-        if((i == 0 && -1 != (rt->frames[0]->parent_type_id)) || (i > 0 && (rt->frames[i]->parent_type_id != rt->frames[i - 1]->type_id))) {
+      routine rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
+      for (size_t i = 0; i < routine_get_count(&rt); ++i) {
+        if((i == 0 && -1 != (rt.frames[0]->parent_type_id)) || (i > 0 && (rt.frames[i]->parent_type_id != rt.frames[i - 1]->type_id))) {
           char *bufbeg = malloc(2048);
           char *buf = bufbeg;
           buf[0] = '\0';
-          for (size_t j = 0; j < routine_get_count(rt); ++j) {
+          for (size_t j = 0; j < routine_get_count(&rt); ++j) {
             buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
-                    (rt->frames[j]->parent_type_id), (rt->frames[j]->type_id),
-                    vec_length(&rt->frames[j]->state));
+                    (rt.frames[j]->parent_type_id), (rt.frames[j]->type_id),
+                    vec_length(&rt.frames[j]->state));
           }
           buf += sprintf(buf, "wrong call, frame types are wrong\n");
           return fdatum_make_panic(bufbeg);
         }
       }
       fdatum err;
-      err = routine_run(sl, rt, args);
+      err = routine_run(sl, &rt, args);
       pass_args = false;
       if (fdatum_is_panic(err)) {
         return err;
@@ -334,8 +334,8 @@ LOCAL bool get_child(vec sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return false;
   }
-  routine *child = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
-  *r = *child;
+  routine child = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
+  *r = child;
   return true;
 }
 

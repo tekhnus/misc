@@ -55,7 +55,7 @@ LOCAL prog datum_to_prog(datum *d);
 LOCAL routine *routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_at(routine *r,datum *offset);
 LOCAL routine *routine_get_prefix(routine *r,size_t capture_count);
-LOCAL routine *make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);
+LOCAL routine make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);
 LOCAL void print_backtrace(vec sl,routine *r);
 LOCAL datum *routine_get_shape(routine *r);
 LOCAL bool get_child(vec sl,routine *r);
