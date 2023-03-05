@@ -418,21 +418,6 @@ LOCAL datum state_stack_collect(routine *r, size_t count) {
   return res;
 }
 
-LOCAL void frame_copy(frame *dst, frame *src) {
-  vec_copy(&dst->state, &src->state);
-  dst->type_id = src->type_id;
-  dst->parent_type_id = src->parent_type_id;
-}
-
-LOCAL void vec_copy(vec *dst, vec *src) {
-  dst->capacity = src->capacity;
-  dst->length = src->length;
-  dst->begin = malloc(src->capacity * sizeof(datum));
-  for (size_t i = 0; i < dst->length; ++i) {
-    dst->begin[i] = *datum_copy(vec_at(src, i));
-  }
-}
-
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
@@ -491,13 +476,6 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return &offset_datum->integer_value;
 }
 
-LOCAL datum *datum_make_frame(frame fr) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_FRAME;
-  e->frame_value = fr;
-  return e;
-}
-
 LOCAL routine get_routine_from_datum(datum *e) {
   if (!datum_is_frame(e)) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
@@ -520,21 +498,4 @@ LOCAL routine get_routine_from_datum(datum *e) {
     cell = &cdr->frame_value;
   }
   return rt;
-}
-
-EXPORT datum *datum_copy(datum *d) {
-  if (datum_is_frame(d)) {
-    frame f;
-    frame_copy(&f, &d->frame_value);
-    datum *res = datum_make_frame(f);
-    return res;
-  }
-  if (datum_is_list(d)) {
-    datum *e = datum_make_nil();
-    for (int i = 0; i < list_length(d); ++i) {
-      list_append(e, datum_copy(list_at(d, i)));
-    }
-    return e;
-  }
-  return d;
 }

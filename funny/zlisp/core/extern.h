@@ -5,26 +5,11 @@
 #include <stdint.h>
 #include <stdarg.h>
 #define LOCAL static
-typedef struct datum datum;
-typedef struct frame frame;
-#include <inttypes.h>
-#include <stdio.h>
-typedef struct vec vec;
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
-LOCAL datum *datum_make_frame(frame fr);
-LOCAL void vec_copy(vec *dst,vec *src);
-LOCAL void frame_copy(frame *dst,frame *src);
 typedef struct routine routine;
 LOCAL size_t routine_get_stack_size(routine *r);
+typedef struct datum datum;
+#include <inttypes.h>
+#include <stdio.h>
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -33,6 +18,18 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
+typedef struct vec vec;
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+typedef struct frame frame;
+struct frame {
+  vec state;
+  int type_id;
+  int parent_type_id;
+};
 struct datum {
   enum datum_type type;
   union {
@@ -69,7 +66,6 @@ LOCAL fdatum routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum *list_copy_and_append(datum *list,datum *value);
-datum *datum_copy(datum *d);
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_make();
@@ -127,6 +123,9 @@ bool read_result_is_right_paren(read_result x);
 LOCAL bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
+void vec_copy(vec *dst,vec *src);
+void frame_copy(frame *dst,frame *src);
+datum *datum_copy(datum *d);
 int list_index_of(datum *xs,datum *x);
 datum list_pop(datum *list);
 datum *list_get_tail(datum *list);
@@ -159,6 +158,7 @@ int list_length(datum *seq);
 bool datum_is_list(datum *e);
 char *datum_repr_bounded(datum *e,size_t depth);
 char *datum_repr(datum *e);
+datum *datum_make_frame(frame fr);
 datum *datum_make_int(int64_t value);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_symbol(char *name);

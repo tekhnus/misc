@@ -11,11 +11,24 @@ bool datum_is_frame(datum *e);
 datum *datum_make_symbol(char *name);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_int(int64_t value);
+typedef struct frame frame;
+#include <inttypes.h>
+#include <stdio.h>
+typedef struct vec vec;
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+struct frame {
+  vec state;
+  int type_id;
+  int parent_type_id;
+};
+datum *datum_make_frame(frame fr);
 char *datum_repr(datum *e);
 char *datum_repr_bounded(datum *e,size_t depth);
 typedef struct fdatum fdatum;
-#include <inttypes.h>
-#include <stdio.h>
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -24,18 +37,6 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
-typedef struct vec vec;
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-typedef struct frame frame;
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
 struct datum {
   enum datum_type type;
   union {
@@ -78,6 +79,9 @@ datum *list_get_tail(datum *list);
 void list_append(datum *list,datum *value);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
+datum *datum_copy(datum *d);
+void frame_copy(frame *dst,frame *src);
+void vec_copy(vec *dst,vec *src);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,
@@ -115,4 +119,3 @@ datum *state_stack_at(routine *r,datum *offset);
 void state_stack_put(routine *r,datum value);
 void state_stack_put_all(routine *r,datum list);
 datum *routine_make(ptrdiff_t prg,routine *context);
-datum *datum_copy(datum *d);
