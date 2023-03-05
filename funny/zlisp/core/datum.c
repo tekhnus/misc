@@ -199,6 +199,18 @@ EXPORT size_t vec_append(vec *s, datum x) {
   return res;
 }
 
+EXPORT vec vec_make_of(size_t count, ...) {
+  vec e = vec_make(count);
+  va_list args;
+  va_start(args, count);
+  for (size_t i = 0; i < count; ++i) {
+    datum elem = va_arg(args, datum);
+    vec_append(&e, elem);
+  }
+  va_end(args);
+  return e;
+}
+
 EXPORT size_t vec_append_new(vec *s) {
   return vec_append(s, *datum_make_list_of(1, datum_make_symbol(":end")));
 }

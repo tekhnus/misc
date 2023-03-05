@@ -148,6 +148,7 @@ size_t vec_length(vec *s);
 datum *vec_at(vec *s,size_t index);
 void vec_extend(vec *s,datum *instructions);
 size_t vec_append_new(vec *s);
+vec vec_make_of(size_t count,...);
 size_t vec_append(vec *s,datum x);
 vec vec_make(size_t capacity);
 bool datum_is_the_symbol(datum *d,char *val);

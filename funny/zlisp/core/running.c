@@ -460,26 +460,17 @@ LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
 }
 
 EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
-  frame *vars = malloc(sizeof(struct frame));
-  vars->state = vec_make(1024);
-  vars->type_id = (prg);
   assert(context == NULL || routine_get_count(context) > 1);
-  vars->parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1;
-  routine *vars_r = malloc(sizeof(routine));
-  vars_r->cnt = 1;
-  vars_r->frames[0] = vars;
-  datum *vars_datum = datum_make_frame(*vars, 1);
-  frame *exec = malloc(sizeof(struct frame));
-  exec->state = vec_make(2);
-  vec_append(&exec->state, *vars_datum);
-  vec_append(&exec->state, *datum_make_int(prg));
-  exec->type_id = -1;
-  exec->parent_type_id = (vars->type_id);
-  routine *r = malloc(sizeof(routine));
-  r->cnt = 2;
-  r->frames[0] = vars;
-  r->frames[1] = exec;
-  return datum_make_frame(*exec, 2);
+  frame vars = {
+    .state = vec_make(1024),
+    .type_id = prg,
+    .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
+  datum *vars_datum = datum_make_frame(vars, 1);
+  frame exec = {
+    .state = vec_make_of(2, *vars_datum, *datum_make_int(prg)),
+    .type_id = -1,
+    .parent_type_id = prg};
+  return datum_make_frame(exec, 2);
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
