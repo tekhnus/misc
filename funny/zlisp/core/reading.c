@@ -137,15 +137,14 @@ LOCAL struct token token_read(FILE *strm) {
   }
   if (is_allowed_inside_symbol(c)) {
     ungetc(c, strm);
-    char **nm = malloc(128);
-    nm[0] = malloc(128);
+    char nm[16][1024];
     nm[0][0] = '\0';
     int c = 0;
     int i;
     char x;
     for (i = 0; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
       if (x == '/') {
-        nm[++c] = malloc(128);
+        ++c;
         i = 0;
       } else {
         nm[c][i++] = x;
@@ -191,9 +190,8 @@ LOCAL struct token token_read(FILE *strm) {
     return (struct token){.type = TOKEN_CONTROL_SEQUENCE,
                           .control_sequence_symbol = form};
   }
-  char *err = malloc(1024);
-  sprintf(err, "unexpected symbol: 0x%x", c);
-  return (struct token){.type = TOKEN_ERROR, .error_message = err};
+  fprintf(stderr, "unexpected symbol: 0x%x\n", c);
+  return (struct token){.type = TOKEN_ERROR, .error_message = "unexpected symbol"};
 }
 
 EXPORT read_result datum_read(FILE *strm) {

@@ -57,13 +57,15 @@ LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
 
 LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps,
                          datum **compdata) {
+  char varname[1024];
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
-    prog_append_put_var(sl, p, datum_make_symbol(get_varname(dep)), compdata);
+    get_varname(varname, dep);
+    prog_append_put_var(sl, p, datum_make_symbol(varname), compdata);
   }
 }
 
-LOCAL char *get_varname(datum *dep_and_sym) {
+LOCAL void get_varname(char *res, datum *dep_and_sym) {
   char *dep = list_at(dep_and_sym, 0)->bytestring_value;
   char *sym;
   if (list_length(dep_and_sym) > 1) {
@@ -71,12 +73,10 @@ LOCAL char *get_varname(datum *dep_and_sym) {
   } else {
     sym = "";
   }
-  char *res = malloc(1024);
   res[0] = 0;
   strcat(res, dep);
   strcat(res, "__");
   strcat(res, sym);
-  return res;
 }
 
 LOCAL datum *offset_relocate(datum *ins, size_t delta) {
@@ -140,8 +140,10 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   }
   datum *dep = list_at(dep_and_sym, 0);
 
+  char varname[1024];
+  get_varname(varname, dep_and_sym);
   bool already_built = !datum_is_nil(compdata_get_polyindex(
-      *compdata, datum_make_symbol(get_varname(dep_and_sym))));
+      *compdata, datum_make_symbol(varname)));
   if (already_built) {
     return NULL;
   }
@@ -180,12 +182,14 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum *names = datum_make_nil();
+  get_varname(varname, datum_make_list_of(1, dep));
   list_append(names,
-                      datum_make_symbol(get_varname(datum_make_list_of(1, dep))));
+              datum_make_symbol(varname));
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
+    get_varname(varname, datum_make_list_of(2, dep, sym));
     list_append(
-        names, datum_make_symbol(get_varname(datum_make_list_of(2, dep, sym))));
+                names, datum_make_symbol(varname));
   }
   compdata_give_names(names, compdata);
   return NULL;

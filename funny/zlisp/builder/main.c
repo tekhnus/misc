@@ -76,7 +76,8 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   if (!strcmp(module, "prelude")) {
     module = settings->bytestring_value;
   }
-  char *fname = module_to_filename(module);
+  char fname[1024] = {'\0'};
+  module_to_filename(fname, module);
   fdatum src = file_source(fname);
   if (fdatum_is_panic(src)) {
     return src;
@@ -85,8 +86,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   return prog_compile(&src.ok_value, &compdata);
 }
 
-LOCAL char *module_to_filename(char *module) {
-  char *fname = malloc(1024);
+LOCAL void module_to_filename(char *fname, char *module) {
   char *zlisp_home = getenv("ZLISP");
   if (zlisp_home == NULL) {
     fprintf(stderr, "ZLISP variable not defined");
@@ -96,5 +96,4 @@ LOCAL char *module_to_filename(char *module) {
   strcat(fname, "/");
   strcat(fname, module);
   strcat(fname, "/main.lisp");
-  return fname;
 }

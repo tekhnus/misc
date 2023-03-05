@@ -259,10 +259,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       datum *idx = compdata_get_polyindex(*compdata, component);
       if (datum_is_nil(idx)) {
         if (datum_is_nil(idx)) {
-          char *err = malloc(256);
-          *err = 0;
-          sprintf(err, "function not found: %s", datum_repr(component));
-          return err;
+          fprintf(stderr, "function not found: %s\n", datum_repr(component));
+          return "function not found";
         }
       }
       list_append(indices, idx);

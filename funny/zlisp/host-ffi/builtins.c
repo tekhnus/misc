@@ -61,8 +61,7 @@ fdatum builtin_concat_bytestrings(datum *args) {
   if (!datum_is_bytestring(x) || !datum_is_bytestring(y)) {
     return fdatum_make_panic("expected integers");
   }
-  char *buf =
-      malloc(strlen(x->bytestring_value) + strlen(y->bytestring_value) + 1);
+  char buf[1024 * 16];
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);

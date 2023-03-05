@@ -3,7 +3,7 @@
 EXPORT fdatum file_source(char *fname) {
   FILE *stre = fopen(fname, "r");
   if (stre == NULL) {
-    char *err = malloc(1024);
+    char err[1024];
     err[0] = 0;
     strcat(err, "Module not found: ");
     strcat(err, fname);
@@ -25,7 +25,7 @@ EXPORT fdatum file_source(char *fname) {
         rr.ok_value, &expander_sl, expander_routine, &expander_prg,
         &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
     if (fdatum_is_panic(val)) {
-      char *err = malloc(1024);
+      char err[1024];
       char *end = err;
       end += sprintf(end, "while expanding %s: %s", datum_repr(rr.ok_value),
                      val.panic_message);
@@ -78,7 +78,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
   char *err = prog_build(sl, p, bp, datum_make_list_of(1, &exp.ok_value), compdata,
                          builder_compdata, datum_make_bytestring("c-prelude"));
   if (err != NULL) {
-    char *err2 = malloc(256);
+    char err2[256];
     err2[0] = 0;
     strcat(err2, "error while compiling a macro: ");
     strcat(err2, err);
