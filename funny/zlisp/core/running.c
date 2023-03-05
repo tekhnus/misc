@@ -99,12 +99,9 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       if (datum_is_the_symbol(cmd, "compdata")) {
         datum *compdata = list_at(&yield_type, 2);
         datum *compdata_shape = compdata_get_shape(compdata);
-        routine *rt = r;
-        routine *ch;
-        while ((ch = get_child(sl, rt)) != NULL) {
-          rt = ch;
-        }
-        datum *state_shape = routine_get_shape(rt);
+        routine rt = *r;
+        while (get_child(sl, &rt)) {}
+        datum *state_shape = routine_get_shape(&rt);
         if (list_length(compdata_shape) != list_length(state_shape)) {
           fprintf(stderr, "compdata mismatch: %s != %s\n",
                   datum_repr(compdata_shape), datum_repr(state_shape));
@@ -332,22 +329,23 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
-LOCAL routine *get_child(vec sl, routine *r) {
+LOCAL bool get_child(vec sl, routine *r) {
   prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
-    return NULL;
+    return false;
   }
   routine *child = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
-  return child;
+  *r = *child;
+  return true;
 }
 
 LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
-  routine *z;
-  for (z = r; z != NULL && i < 10; z = get_child(sl, z), ++i) {
-    for (ptrdiff_t i = *routine_offset(z) - 15; i < *routine_offset(z) + 3;
+  routine z = *r;
+  for (; i < 10; ++i) {
+    for (ptrdiff_t i = *routine_offset(&z) - 15; i < *routine_offset(&z) + 3;
          ++i) {
       if (i < 0) {
         continue;
@@ -355,7 +353,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
       if (i >= (ptrdiff_t)vec_length(&sl)) {
         break;
       }
-      if (i == *routine_offset(z)) {
+      if (i == *routine_offset(&z)) {
         fprintf(stderr, "> ");
       } else {
         fprintf(stderr, "  ");
@@ -365,8 +363,11 @@ LOCAL void print_backtrace(vec sl, routine *r) {
       fprintf(stderr, "%-40s\n", datum_repr(ins));
     }
     fprintf(stderr, "**********\n");
-    fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(z));
+    fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(&z));
     fprintf(stderr, "**********\n");
+    if (!get_child(sl, &z)) {
+      break;
+    }
   }
   fprintf(stderr, "=========\n");
 }

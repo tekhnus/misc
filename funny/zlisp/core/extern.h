@@ -58,7 +58,7 @@ LOCAL routine *routine_get_prefix(routine *r,size_t capture_count);
 LOCAL routine *make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);
 LOCAL void print_backtrace(vec sl,routine *r);
 LOCAL datum *routine_get_shape(routine *r);
-LOCAL routine *get_child(vec sl,routine *r);
+LOCAL bool get_child(vec sl,routine *r);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
