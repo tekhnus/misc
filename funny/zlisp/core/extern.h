@@ -52,7 +52,7 @@ LOCAL size_t routine_get_count(routine *r);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
-LOCAL routine *routine_merge(routine *r,routine *rt_tail);
+LOCAL void routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_at(routine *r,datum *offset);
 LOCAL routine routine_get_prefix(routine *r,size_t capture_count);
 LOCAL routine make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);

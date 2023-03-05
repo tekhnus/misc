@@ -148,7 +148,7 @@ LOCAL routine make_routine_from_indices(routine *r, size_t capture_count, datum 
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
     routine *nr = get_routine_from_datum(x);
-    rt = *routine_merge(&rt, nr);
+    routine_merge(&rt, nr);
   }
   return rt;
 }
@@ -453,18 +453,13 @@ LOCAL datum *routine_get_shape(routine *r) {
   return res;
 }
 
-LOCAL routine *routine_merge(routine *r, routine *rt_tail) {
-  routine *rt = malloc(sizeof(routine));
-  rt->cnt = 0;
-  assert(routine_get_count(r) > 0);
-  // The "+ 1" is because we want to chop off the program counter.
-  for (size_t height = 0; height + 1 < routine_get_count(r); ++height) {
-    rt->frames[rt->cnt++] = r->frames[height];
-  }
+LOCAL void routine_merge(routine *r, routine *rt_tail) {
+  assert(r->cnt > 0);
+  // We chop off the program counter.
+  --r->cnt;
   for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
-    rt->frames[rt->cnt++] = rt_tail->frames[j];
+    r->frames[r->cnt++] = rt_tail->frames[j];
   }
-  return rt;
 }
 
 EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
