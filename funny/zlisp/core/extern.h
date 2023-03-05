@@ -20,7 +20,7 @@ struct frame {
   int type_id;
   int parent_type_id;
 };
-LOCAL datum *datum_make_frame(frame fr,size_t sz);
+LOCAL datum *datum_make_frame(frame fr);
 LOCAL void vec_copy(vec *dst,vec *src);
 LOCAL void frame_copy(frame *dst,frame *src);
 typedef struct routine routine;

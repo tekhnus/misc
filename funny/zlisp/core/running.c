@@ -468,17 +468,18 @@ EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
     .state = vec_make(1024),
     .type_id = prg,
     .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
-  datum *vars_datum = datum_make_frame(vars, 1);
+  datum *vars_datum = datum_make_frame(vars);
   frame pc_frame = {
     .state = vec_make_of(1, *datum_make_int(prg)),
     .type_id = -1,
     .parent_type_id = prg};
-  datum *pc_frame_datum = datum_make_frame(pc_frame, 1);
+  datum *pc_frame_datum = datum_make_frame(pc_frame);
   frame exec = {
     .state = vec_make_of(2, *vars_datum, *pc_frame_datum),
     .type_id = -1,
     .parent_type_id = prg};
-  return datum_make_frame(exec, 2);
+  datum *res = datum_make_frame(exec);
+  return res;
 }
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
@@ -490,11 +491,10 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return &offset_datum->integer_value;
 }
 
-LOCAL datum *datum_make_frame(frame fr, size_t sz) {
+LOCAL datum *datum_make_frame(frame fr) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
   e->frame_value = fr;
-  frame_fill_routine(e, sz);
   return e;
 }
 
@@ -528,10 +528,10 @@ LOCAL routine *get_routine_from_datum(datum *d) {
 
 EXPORT datum *datum_copy(datum *d) {
   if (datum_is_frame(d)) {
-    routine *fn_r = get_routine_from_datum(d);
     frame f;
     frame_copy(&f, &d->frame_value);
-    return datum_make_frame(f, fn_r->cnt);
+    datum *res = datum_make_frame(f);
+    return res;
   }
   if (datum_is_list(d)) {
     datum *e = datum_make_nil();
