@@ -40,10 +40,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct {
-      frame frame_value;
-      routine *frame_pointers;
-    };
+    frame frame_value;
   };
 };
 void state_stack_put(routine *r,datum value);
@@ -69,12 +66,11 @@ struct fdatum {
   char *panic_message;
 };
 LOCAL fdatum routine_run(vec sl,routine *r,datum args);
-LOCAL routine *get_routine_from_datum(datum *d);
+LOCAL routine *get_routine_from_datum(datum *e);
 struct routine {
   struct frame *frames[10];
   size_t cnt;
 };
-LOCAL void frame_fill_routine(datum *e,size_t sz);
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum *list_copy_and_append(datum *list,datum *value);
 datum *datum_copy(datum *d);

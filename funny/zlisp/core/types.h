@@ -18,10 +18,7 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct {
-      frame frame_value;
-      routine *frame_pointers;
-    };
+    frame frame_value;
   };
 };
 

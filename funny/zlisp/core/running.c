@@ -71,7 +71,6 @@ typedef struct prog prog;
 EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
-  frame_fill_routine(r0d, 2);
   routine *r = get_routine_from_datum(r0d);
   datum args = *datum_make_nil();
   fdatum rerr;
@@ -145,7 +144,6 @@ LOCAL routine *make_routine_from_indices(routine *r, size_t capture_count, datum
   routine *rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
-    frame_fill_routine(x, 2);
     routine *nr = get_routine_from_datum(x);
     rt = routine_merge(rt, nr);
   }
@@ -498,7 +496,12 @@ LOCAL datum *datum_make_frame(frame fr) {
   return e;
 }
 
-LOCAL void frame_fill_routine(datum *e, size_t sz) {
+LOCAL routine *get_routine_from_datum(datum *e) {
+  if (!datum_is_frame(e)) {
+    fprintf(stderr, "get_routine_from_datum: not a routine\n");
+    exit(EXIT_FAILURE);
+  }
+  size_t sz = 2;
   routine *rt = malloc(sizeof(routine));
   rt->cnt = sz;
   assert(sz == 1 || sz == 2);
@@ -515,15 +518,7 @@ LOCAL void frame_fill_routine(datum *e, size_t sz) {
     frame *vars = &vec_at(st, 0)->frame_value;
     rt->frames[0] = vars;
   }
-  e->frame_pointers = rt;
-}
-
-LOCAL routine *get_routine_from_datum(datum *d) {
-  if (!datum_is_frame(d)) {
-    fprintf(stderr, "get_routine_from_datum: not a routine\n");
-    exit(EXIT_FAILURE);
-  }
-  return d->frame_pointers;
+  return rt;
 }
 
 EXPORT datum *datum_copy(datum *d) {
