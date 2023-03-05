@@ -33,11 +33,6 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
-typedef struct frame_with_routine frame_with_routine;
-struct frame_with_routine {
-  struct frame fr;
-  struct routine *r;
-};
 struct datum {
   enum datum_type type;
   union {
@@ -45,7 +40,10 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    frame_with_routine frame_value;
+    struct {
+      frame frame_value;
+      routine *frame_pointers;
+    };
   };
 };
 void state_stack_put(routine *r,datum value);

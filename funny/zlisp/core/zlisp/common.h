@@ -30,7 +30,6 @@ struct vec {
   size_t length;
   size_t capacity;
 };
-typedef struct frame_with_routine frame_with_routine;
 typedef struct frame frame;
 struct frame {
   vec state;
@@ -38,10 +37,6 @@ struct frame {
   int parent_type_id;
 };
 typedef struct routine routine;
-struct frame_with_routine {
-  struct frame fr;
-  struct routine *r;
-};
 struct datum {
   enum datum_type type;
   union {
@@ -49,7 +44,10 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    frame_with_routine frame_value;
+    struct {
+      frame frame_value;
+      routine *frame_pointers;
+    };
   };
 };
 struct fdatum {

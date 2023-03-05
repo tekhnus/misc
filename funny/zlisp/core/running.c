@@ -494,19 +494,19 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 LOCAL datum *datum_make_frame(frame fr, size_t sz) {
   datum *e = malloc(sizeof(datum));
   e->type = DATUM_FRAME;
-  e->frame_value.fr = fr;
+  e->frame_value = fr;
   routine *rt = malloc(sizeof(routine));
   rt->cnt = sz;
   assert(sz == 1 || sz == 2);
-  rt->frames[sz - 1] = &e->frame_value.fr;
+  rt->frames[sz - 1] = &e->frame_value;
   if (sz == 2) {
-    vec *st = &e->frame_value.fr.state;
+    vec *st = &e->frame_value.state;
     assert(vec_length(st) == 2);
     assert(datum_is_frame(vec_at(st, 0)));
-    frame *vars = &vec_at(st, 0)->frame_value.fr;
+    frame *vars = &vec_at(st, 0)->frame_value;
     rt->frames[0] = vars;
   }
-  e->frame_value.r = rt;
+  e->frame_pointers = rt;
   return e;
 }
 
@@ -515,14 +515,14 @@ LOCAL routine *get_routine_from_datum(datum *d) {
     fprintf(stderr, "get_routine_from_datum: not a routine\n");
     exit(EXIT_FAILURE);
   }
-  return d->frame_value.r;
+  return d->frame_pointers;
 }
 
 EXPORT datum *datum_copy(datum *d) {
   if (datum_is_frame(d)) {
     routine *fn_r = get_routine_from_datum(d);
     frame f;
-    frame_copy(&f, &d->frame_value.fr);
+    frame_copy(&f, &d->frame_value);
     return datum_make_frame(f, fn_r->cnt);
   }
   if (datum_is_list(d)) {
