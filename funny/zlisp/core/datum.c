@@ -100,7 +100,7 @@ EXPORT fdatum fdatum_make_ok(datum v) {
 }
 
 EXPORT fdatum fdatum_make_panic(char *message) {
-  fdatum result = {.type = FDATUM_PANIC, .panic_message = message};
+  fdatum result = {.type = FDATUM_PANIC, .panic_message = strdup(message)};
   return result;
 }
 

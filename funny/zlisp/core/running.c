@@ -173,7 +173,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       routine rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
       for (size_t i = 0; i < routine_get_count(&rt); ++i) {
         if((i == 0 && -1 != (rt.frames[0]->parent_type_id)) || (i > 0 && (rt.frames[i]->parent_type_id != rt.frames[i - 1]->type_id))) {
-          char *bufbeg = malloc(2048);
+          char bufbeg[2048];
           char *buf = bufbeg;
           buf[0] = '\0';
           for (size_t j = 0; j < routine_get_count(&rt); ++j) {
@@ -209,7 +209,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     }
     if (prg.type == PROG_YIELD && pass_args) {
       if (list_length(&args) != (int)prg.yield_recieve_count) {
-        char *err = malloc(256);
+        char err[256];
         sprintf(err,
                 "recieved incorrect number of arguments: expected %zu, got %d",
                 prg.yield_recieve_count, list_length(&args));
