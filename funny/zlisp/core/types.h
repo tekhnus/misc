@@ -55,9 +55,4 @@ struct frame {
   int parent_type_id;
 };
 
-struct routine {
-  struct frame *frames[10];
-  size_t cnt;
-};
-
 #endif

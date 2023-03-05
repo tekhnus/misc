@@ -67,10 +67,6 @@ struct fdatum {
 };
 LOCAL fdatum routine_run(vec sl,routine *r,datum args);
 LOCAL routine *get_routine_from_datum(datum *e);
-struct routine {
-  struct frame *frames[10];
-  size_t cnt;
-};
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum *list_copy_and_append(datum *list,datum *value);
 datum *datum_copy(datum *d);

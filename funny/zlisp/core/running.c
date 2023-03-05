@@ -64,8 +64,14 @@ struct prog {
   };
 };
 
+struct routine {
+  struct frame *frames[10];
+  size_t cnt;
+};
+
 #if INTERFACE
 typedef struct prog prog;
+typedef struct routine routine;
 #endif
 
 EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,

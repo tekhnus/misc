@@ -116,7 +116,3 @@ void state_stack_put(routine *r,datum value);
 void state_stack_put_all(routine *r,datum list);
 datum *routine_make(ptrdiff_t prg,routine *context);
 datum *datum_copy(datum *d);
-struct routine {
-  struct frame *frames[10];
-  size_t cnt;
-};
