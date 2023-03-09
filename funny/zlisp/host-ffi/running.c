@@ -56,6 +56,38 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
   return fdatum_make_ok(*datum_make_list_of(1, res));
 }
 
+ffi_type ffi_type_fdatum;
+ffi_type *ffi_type_fdatum_elements[4];
+ffi_type ffi_type_vec;
+ffi_type *ffi_type_vec_elements[4];
+
+LOCAL void init_standard_types() {
+  // TODO: UPDATE THE FFI DEFINITIONS, THEY ARE OUTDATED.
+
+  ffi_type *type = &ffi_type_fdatum;
+  (type)->type = FFI_TYPE_STRUCT;
+  (type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
+                    // Mac before adding this line.
+  (type)->alignment = 0;
+  ffi_type **elements = ffi_type_fdatum_elements;
+  elements[0] = &ffi_type_sint;
+  elements[1] = &ffi_type_pointer; // not a pointer!
+  elements[2] = &ffi_type_pointer;
+  elements[3] = NULL;
+  (type)->elements = elements;
+
+  type = &ffi_type_vec;
+  (type)->type = FFI_TYPE_STRUCT;
+  (type)->size = 0;
+  (type)->alignment = 0;
+  elements = ffi_type_vec_elements;
+  elements[0] = &ffi_type_pointer;
+  elements[1] = &ffi_type_uint64; // it's actually size_t, danger!
+  elements[2] = &ffi_type_uint64; // it's size_t too!
+  elements[3] = NULL;
+  (type)->elements = elements;
+}
+
 LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
@@ -76,35 +108,16 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
     *type = &ffi_type_sint;
     return true;
   }
-  // TODO: UPDATE THE FFI DEFINITIONS, THEY ARE INCORRECT.
   if (!strcmp(definition->symbol_value, "val") ||
       !strcmp(definition->symbol_value, "fdatum")) {
-    *type = malloc(sizeof(ffi_type));
-    (*type)->type = FFI_TYPE_STRUCT;
-    (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
-                       // Mac before adding this line.
-    (*type)->alignment = 0;
-    ffi_type **elements = malloc(4 * sizeof(ffi_type *));
-    elements[0] = &ffi_type_sint;
-    elements[1] = &ffi_type_pointer;
-    elements[2] = &ffi_type_pointer;
-    elements[3] = NULL;
-    (*type)->elements = elements;
-    return type;
+    init_standard_types();
+    *type = &ffi_type_fdatum;
+    return true;
   }
   if (!strcmp(definition->symbol_value, "progslice")) {
-    *type = malloc(sizeof(ffi_type));
-    (*type)->type = FFI_TYPE_STRUCT;
-    (*type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
-                       // Mac before adding this line.
-    (*type)->alignment = 0;
-    ffi_type **elements = malloc(4 * sizeof(ffi_type *));
-    elements[0] = &ffi_type_pointer;
-    elements[1] = &ffi_type_uint64; // it's actually size_t, danger!
-    elements[2] = &ffi_type_uint64;
-    elements[3] = NULL;
-    (*type)->elements = elements;
-    return type;
+    init_standard_types();
+    *type = &ffi_type_vec;
+    return true;
   }
   return false;
 }

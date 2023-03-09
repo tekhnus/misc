@@ -15,6 +15,10 @@ fdatum builtin_tail(datum *args);
 #include <dlfcn.h>
 #include <ffi.h>
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
+extern ffi_type ffi_type_fdatum;
+extern ffi_type *ffi_type_fdatum_elements[4];
+extern ffi_type ffi_type_vec;
+extern ffi_type *ffi_type_vec_elements[4];
 #define INTERFACE 0
 #define EXPORT_INTERFACE 0
 #define LOCAL_INTERFACE 0
