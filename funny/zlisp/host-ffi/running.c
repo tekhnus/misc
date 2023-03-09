@@ -122,11 +122,10 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   return false;
 }
 
-LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
+LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types, ffi_type **ret_type) {
   if (list_length(sig) != 2) {
     return "the signature should be a two-item list";
   }
-  ffi_type **arg_types = malloc(sizeof(ffi_type *) * 32);
   datum *arg_defs = list_at(sig, 0);
   int arg_count;
   for (arg_count = 0; arg_count < list_length(arg_defs); ++arg_count) {
@@ -134,12 +133,11 @@ LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif) {
       return "something wrong with the argument type signature";
     }
   }
-  ffi_type *ret_type;
-  if (!ffi_type_init(&ret_type, list_at(sig, 1))) {
+  if (!ffi_type_init(ret_type, list_at(sig, 1))) {
     return "something wrong with the return type signature";
   }
   ffi_status status;
-  if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, ret_type,
+  if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, *ret_type,
                              arg_types)) != FFI_OK) {
     return "something went wrong during ffi_prep_cif";
   }
@@ -255,7 +253,9 @@ LOCAL fdatum pointer_call(datum *argz) {
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
   char *err = NULL;
-  err = pointer_ffi_init_cif(sig, &cif);
+  ffi_type *arg_types[32];
+  ffi_type *ret_type;
+  err = pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
