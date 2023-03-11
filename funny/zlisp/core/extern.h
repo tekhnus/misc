@@ -113,7 +113,7 @@ struct read_result {
 };
 read_result datum_read(FILE *strm);
 LOCAL struct token token_read(FILE *strm);
-LOCAL bool consume_control_sequence(char c,datum **form);
+LOCAL bool consume_control_sequence(char c,datum *form);
 LOCAL bool is_allowed_inside_symbol(char c);
 LOCAL bool is_whitespace(char c);
 LOCAL read_result read_result_make_right_paren(void);

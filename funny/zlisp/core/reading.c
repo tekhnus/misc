@@ -49,33 +49,33 @@ LOCAL bool is_allowed_inside_symbol(char c) {
          c == '+' || c == '/';
 }
 
-LOCAL bool consume_control_sequence(char c, datum **form) {
+LOCAL bool consume_control_sequence(char c, datum *form) {
   if (c == '\'') {
-    *form = datum_make_symbol("quote");
+    *form = *datum_make_symbol("quote");
     return true;
   }
   if (c == '`') {
-    *form = datum_make_symbol("backquote");
+    *form = *datum_make_symbol("backquote");
     return true;
   }
   if (c == '~') {
-    *form = datum_make_symbol("tilde");
+    *form = *datum_make_symbol("tilde");
     return true;
   }
   if (c == '!') {
-    *form = datum_make_symbol("bang");
+    *form = *datum_make_symbol("bang");
     return true;
   }
   if (c == '#') {
-    *form = datum_make_symbol("hash");
+    *form = *datum_make_symbol("hash");
     return true;
   }
   if (c == '^') {
-    *form = datum_make_symbol("hat");
+    *form = *datum_make_symbol("hat");
     return true;
   }
   if (c == '@') {
-    *form = datum_make_symbol("at");
+    *form = *datum_make_symbol("at");
     return true;
   }
   return false;
@@ -94,7 +94,7 @@ struct token {
   enum token_type type;
   union {
     datum datum_value;
-    datum *control_sequence_symbol;
+    datum control_sequence_symbol;
     char *error_message;
   };
 };
@@ -160,7 +160,8 @@ LOCAL struct token token_read(FILE *strm) {
     } else {
       sym = datum_make_list_of(*datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
-        list_append(&sym, datum_make_symbol(nm[cc]));
+        datum comp = *datum_make_symbol(nm[cc]);
+        list_append(&sym, &comp);
       }
     }
     return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
@@ -185,7 +186,7 @@ LOCAL struct token token_read(FILE *strm) {
     return (struct token){.type = TOKEN_DATUM,
                           .datum_value = datum_make_bytestring(literal)};
   }
-  datum *form;
+  datum form;
   if (consume_control_sequence(c, &form)) {
     return (struct token){.type = TOKEN_CONTROL_SEQUENCE,
                           .control_sequence_symbol = form};
@@ -236,7 +237,7 @@ EXPORT read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum res = datum_make_list_of(*tok.control_sequence_symbol, v.ok_value);
+    datum res = datum_make_list_of(tok.control_sequence_symbol, v.ok_value);
     return read_result_make_ok(res);
   }
   return read_result_make_panic("unhandled token type");
