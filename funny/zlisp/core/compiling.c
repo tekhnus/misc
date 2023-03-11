@@ -140,7 +140,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t s_off = vec_append_new(sl);
     datum *routine_compdata = datum_copy(*compdata);
     compdata_put(&routine_compdata, name);
-    routine_compdata = compdata_start_new_section(routine_compdata);
+    compdata_start_new_section(&routine_compdata);
     char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata);
     if (err != NULL) {
       return err;
@@ -594,11 +594,10 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
   return *datum_make_nil();
 }
 
-LOCAL datum *compdata_start_new_section(datum *compdata) {
-  datum *e = datum_copy(compdata);
+LOCAL void compdata_start_new_section(datum **compdata) {
+  *compdata = datum_copy(*compdata);
   datum nil = *datum_make_nil();
-  list_append(e, &nil);
-  return e;
+  list_append(*compdata, &nil);
 }
 
 EXPORT datum *compdata_get_top_polyindex(datum *compdata) {

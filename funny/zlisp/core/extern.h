@@ -81,7 +81,7 @@ datum compdata_get_shape(datum *compdata);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata);
-LOCAL datum *compdata_start_new_section(datum *compdata);
+LOCAL void compdata_start_new_section(datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum **compdata,datum *var);
