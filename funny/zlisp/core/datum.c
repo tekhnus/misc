@@ -248,7 +248,7 @@ EXPORT size_t vec_length(vec *s) { return s->length; }
 EXPORT datum vec_to_datum(vec *sl) {
   datum res = datum_make_nil();
   for (size_t i = 0; i < vec_length(sl); ++i) {
-    list_append(&res, vec_at(sl, i));
+    list_append(&res, datum_copy(vec_at(sl, i)));
   }
   return res;
 }
@@ -279,7 +279,7 @@ EXPORT bool datum_is_nil(datum *e) {
 EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
   datum e = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
-    datum *elem = values + i;
+    datum elem = values[i];
     list_append(&e, elem);
   }
   return e;
@@ -306,13 +306,13 @@ EXPORT datum list_get_tail(datum *list) {
   assert(list_length(list) > 0);
   datum e = datum_make_nil();
   for (int i = 1; i < list_length(list); ++i) {
-    list_append(&e, list_at(list, i));
+    list_append(&e, datum_copy(list_at(list, i)));
   }
   return e;
 }
 
-EXPORT void list_append(datum *list, datum *value) {
-  vec_append(&list->list_value, *value);
+EXPORT void list_append(datum *list, datum value) {
+  vec_append(&list->list_value, value);
 }
 
 EXPORT datum list_pop(datum *list) {
@@ -341,7 +341,7 @@ EXPORT datum datum_copy(datum *d) {
     datum e = datum_make_nil();
     for (int i = 0; i < list_length(d); ++i) {
       datum item = datum_copy(list_at(d, i));
-      list_append(&e, &item);
+      list_append(&e, item);
     }
     return e;
   }

@@ -161,7 +161,7 @@ LOCAL struct token token_read(FILE *strm) {
       sym = datum_make_list_of(datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
         datum comp = datum_make_symbol(nm[cc]);
-        list_append(&sym, &comp);
+        list_append(&sym, comp);
       }
     }
     return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
@@ -215,7 +215,7 @@ EXPORT read_result datum_read(FILE *strm) {
     datum list = datum_make_nil();
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
-        list_append(&list, &elem.ok_value);
+        list_append(&list, elem.ok_value);
       }
       if (read_result_is_right_paren(elem)) {
         return read_result_make_ok(list);

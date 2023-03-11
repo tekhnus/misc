@@ -408,12 +408,12 @@ LOCAL datum state_stack_collect(routine *r, size_t count) {
   datum form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum arg = state_stack_pop(r);
-    list_append(&form, &arg);
+    list_append(&form, arg);
   }
   datum res = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum x = list_pop(&form);
-    list_append(&res, &x);
+    list_append(&res, x);
   }
   return res;
 }
@@ -434,7 +434,7 @@ LOCAL datum routine_get_shape(routine *r) {
   datum res = datum_make_nil();
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
     datum ii = datum_make_int(vec_length(&r->frames[i]->state));
-    list_append(&res, &ii);
+    list_append(&res, ii);
   }
   return res;
 }

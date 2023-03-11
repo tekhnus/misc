@@ -76,7 +76,7 @@ int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);
 datum list_get_tail(datum *list);
-void list_append(datum *list,datum *value);
+void list_append(datum *list,datum value);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);

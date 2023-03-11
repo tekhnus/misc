@@ -272,7 +272,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
           return "function not found";
         }
       }
-      list_append(&indices, &idx);
+      list_append(&indices, idx);
     } else {
       char *err =
         prog_append_statement(sl, begin, component, compdata);
@@ -280,7 +280,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
         return err;
       }
       datum idx = compdata_get_top_polyindex(*compdata);
-      list_append(&indices, &idx);
+      list_append(&indices, idx);
     }
   }
   size_t arg_count = list_length(stmt) - index;
@@ -344,8 +344,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     } else {
       return fdatum_make_panic("wrong usage spec");
     }
-    list_append(&vars, item_var);
-    list_append(&specs, &item_spec);
+    list_append(&vars, datum_copy(item_var));
+    list_append(&specs, item_spec);
   }
   return fdatum_make_ok(datum_make_list_of(vars, specs));
 }
@@ -487,8 +487,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
       return fdatum_make_panic("wrong export spec");
     }
     datum *item_expression = list_at(item, 1);
-    list_append(&names, item_name);
-    list_append(&expressions, item_expression);
+    list_append(&names, datum_copy(item_name));
+    list_append(&expressions, datum_copy(item_expression));
   }
   return fdatum_make_ok(datum_make_list_of(names, expressions));
 }
@@ -568,7 +568,7 @@ LOCAL void compdata_validate(datum *compdata) {
 
 LOCAL void compdata_put(datum **compdata, datum var) {
   datum *last_frame = list_get_last(*compdata);
-  list_append(last_frame, &var);
+  list_append(last_frame, var);
 }
 
 LOCAL void compdata_del(datum **compdata) {
@@ -593,7 +593,7 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 
 LOCAL void compdata_start_new_section(datum **compdata) {
   datum nil = datum_make_nil();
-  list_append(*compdata, &nil);
+  list_append(*compdata, nil);
 }
 
 EXPORT datum compdata_get_top_polyindex(datum *compdata) {
@@ -608,7 +608,7 @@ EXPORT datum compdata_get_shape(datum *compdata) {
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(compdata); ++i) {
     datum ii = datum_make_int(list_length(list_at(compdata, i)));
-    list_append(&res, &ii);
+    list_append(&res, ii);
   }
   return res;
 }

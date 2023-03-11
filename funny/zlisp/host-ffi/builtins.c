@@ -88,7 +88,7 @@ fdatum builtin_cons(datum *args) {
   }
   datum e = datum_make_list_of(datum_copy(head));
   for (size_t i = 0; i < vec_length(&tail->list_value); ++i) {
-    list_append(&e, list_at(tail, i));
+    list_append(&e, datum_copy(list_at(tail, i)));
   }
   return fdatum_make_ok(datum_make_list_of(e));
 }
