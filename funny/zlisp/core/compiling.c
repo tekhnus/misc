@@ -278,8 +278,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (err != NULL) {
         return err;
       }
-      datum *idx = compdata_get_top_polyindex(*compdata);
-      list_append(&indices, idx);
+      datum idx = compdata_get_top_polyindex(*compdata);
+      list_append(&indices, &idx);
     }
   }
   size_t arg_count = list_length(stmt) - index;
@@ -539,9 +539,16 @@ LOCAL void prog_join(vec *sl, size_t a, size_t b, size_t e) {
       *datum_make_symbol(":nop"), *datum_make_int(e));
 }
 
-EXPORT datum *compdata_make() {
+EXPORT datum compdata_make() {
   datum nil = *datum_make_nil();
-  return datum_make_list_of(nil);
+  return *datum_make_list_of(nil);
+}
+
+EXPORT datum *compdata_alloc_make() {
+  // This one is for using from lisp.
+  datum *res = malloc(sizeof(datum));
+  *res = compdata_make();
+  return res;
 }
 
 EXPORT bool compdata_has_value(datum *compdata) {
@@ -590,11 +597,11 @@ LOCAL void compdata_start_new_section(datum **compdata) {
   list_append(*compdata, &nil);
 }
 
-EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
+EXPORT datum compdata_get_top_polyindex(datum *compdata) {
   size_t frames = list_length(compdata);
   size_t indices = list_length(list_get_last(compdata));
   assert(frames > 0 && indices > 0);
-  return datum_make_list_of(*datum_make_int(frames - 1),
+  return *datum_make_list_of(*datum_make_int(frames - 1),
                            *datum_make_int(indices - 1));
 }
 

@@ -31,8 +31,8 @@ int main(int argc, char **argv) {
   // so the first call of append_new must be for the starting point.
   size_t bp = vec_append_new(&sl);
   size_t p = vec_append_new(&sl);
-  datum compdata = *compdata_make();
-  datum builder_compdata = *compdata_make();
+  datum compdata = compdata_make();
+  datum builder_compdata = compdata_make();
   datum *compdata_ptr = &compdata;
   datum *builder_compdata_ptr = &builder_compdata;
   prog_build_init(&sl, &p, &bp, &compdata_ptr, &builder_compdata_ptr);
@@ -86,7 +86,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  datum compdata = *compdata_make();
+  datum compdata = compdata_make();
   datum *compdata_ptr = &compdata;
   return prog_compile(&src.ok_value, &compdata_ptr);
 }

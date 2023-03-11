@@ -14,9 +14,9 @@ EXPORT fdatum file_source(char *fname) {
   size_t expander_prg = vec_append_new(&expander_sl);
   size_t expander_builder_prg = vec_append_new(&expander_sl);
   datum expander_routine = routine_make(expander_builder_prg, NULL);
-  datum expander_compdata = *compdata_make();
+  datum expander_compdata = compdata_make();
   datum *expander_compdata_ptr = &expander_compdata;
-  datum expander_builder_compdata = *compdata_make();
+  datum expander_builder_compdata = compdata_make();
   datum *expander_builder_compdata_ptr = &expander_builder_compdata;
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg,
                   &expander_compdata_ptr, &expander_builder_compdata_ptr);

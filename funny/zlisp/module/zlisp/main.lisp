@@ -18,7 +18,7 @@
 (def buildlib (/std/first-good-value `(
                                       ~(/prelude/shared-library "libzlisp-build-lib.so"))))
 
-(def compdata-make (/prelude/c-function selflib "compdata_make" '(() pointer)))
+(def compdata-make (/prelude/c-function selflib "compdata_alloc_make" '(() pointer)))
 (def make-routine-with-empty-state (/prelude/c-function selflib "routine_make_alloc" '((sizet pointer) pointer)))
 (def prog-slice-make (/prelude/c-function selflib "vec_make" '((sizet) progslice)))
 (def prog-slice-append-new- (/prelude/c-function selflib "vec_append_new" '((pointer) sizet)))
