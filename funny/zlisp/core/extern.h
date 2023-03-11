@@ -77,7 +77,7 @@ LOCAL fdatum prog_read_usages(datum *spec);
 void prog_append_call(vec *sl,size_t *begin,datum *indices,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
 datum *compdata_get_top_polyindex(datum *compdata);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
-datum *compdata_get_shape(datum *compdata);
+datum compdata_get_shape(datum *compdata);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata);

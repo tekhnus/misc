@@ -34,9 +34,9 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   }
   prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"),
                       builder_compdata);
-  datum *fn_index = compdata_get_top_polyindex(*builder_compdata);
+  datum fn_index = *compdata_get_top_polyindex(*builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, datum_make_list_of(1, fn_index), false,
+  prog_append_call(sl, bdr_p, datum_make_list_of(1, &fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
   return NULL;
@@ -87,33 +87,33 @@ LOCAL datum *offset_relocate(datum *ins, size_t delta) {
   return datum_make_int(ins->integer_value + delta);
 }
 
-LOCAL datum *instruction_relocate(datum *ins, size_t delta) {
+LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
-    return datum_make_list_of(1, list_at(ins, 0));
+    return *datum_make_list_of(1, list_at(ins, 0));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
-    return datum_make_list_of(3, list_at(ins, 0),
+    return *datum_make_list_of(3, list_at(ins, 0),
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return datum_make_list_of(4, 
+    return *datum_make_list_of(4, 
         list_at(ins, 0), offset_relocate(list_at(ins, 1), delta),
         list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return datum_make_list_of(3, list_at(ins, 0),
+    return *datum_make_list_of(3, list_at(ins, 0),
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
-  datum *res = ins;
-  if (list_length(res) < 2) {
-    fprintf(stderr, "malformed instruction: %s\n", datum_repr(res));
+  datum res = *datum_copy(ins);
+  if (list_length(&res) < 2) {
+    fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
     exit(EXIT_FAILURE);
   }
-  datum *nxt = list_at(res, list_length(res) - 1);
-  list_pop(res);
-  list_append(res, offset_relocate(nxt, delta));
+  datum *nxt = list_at(&res, list_length(&res) - 1);
+  list_pop(&res);
+  list_append(&res, offset_relocate(nxt, delta));
   return res;
 }
 
@@ -125,7 +125,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   // the "+ 1" comes because of the final :end
   for (int i = 0; i + 1 < list_length(src); ++i) {
     datum *ins = list_at(src, i);
-    *vec_at(dst, *p) = *instruction_relocate(ins, delta);
+    *vec_at(dst, *p) = instruction_relocate(ins, delta);
     *p = vec_append_new(dst);
   }
   return NULL;
@@ -181,17 +181,17 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   prog_append_call(sl, p, datum_make_list_of(1, fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
-  datum *names = datum_make_nil();
+  datum names = *datum_make_nil();
   get_varname(varname, datum_make_list_of(1, dep));
-  list_append(names,
+  list_append(&names,
               datum_make_symbol(varname));
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
     get_varname(varname, datum_make_list_of(2, dep, sym));
     list_append(
-                names, datum_make_symbol(varname));
+                &names, datum_make_symbol(varname));
   }
-  compdata_give_names(names, compdata);
+  compdata_give_names(&names, compdata);
   return NULL;
 }
 

@@ -98,20 +98,20 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       datum *cmd = list_at(&yield_type, 1);
       if (datum_is_the_symbol(cmd, "compdata")) {
         datum *compdata = list_at(&yield_type, 2);
-        datum *compdata_shape = compdata_get_shape(compdata);
+        datum compdata_shape = compdata_get_shape(compdata);
         routine rt = r;
         while (get_child(sl, &rt)) {}
         datum *state_shape = routine_get_shape(&rt);
-        if (list_length(compdata_shape) != list_length(state_shape)) {
+        if (list_length(&compdata_shape) != list_length(state_shape)) {
           fprintf(stderr, "compdata mismatch: %s != %s\n",
-                  datum_repr(compdata_shape), datum_repr(state_shape));
+                  datum_repr(&compdata_shape), datum_repr(state_shape));
           exit(EXIT_FAILURE);
         }
-        int len = list_length(compdata_shape);
-        if (!datum_eq(list_at(compdata_shape, len - 1),
+        int len = list_length(&compdata_shape);
+        if (!datum_eq(list_at(&compdata_shape, len - 1),
                       list_at(state_shape, len - 1))) {
           fprintf(stderr, "compdata mismatch: %s != %s\n",
-                  datum_repr(compdata_shape), datum_repr(state_shape));
+                  datum_repr(&compdata_shape), datum_repr(state_shape));
           exit(EXIT_FAILURE);
         }
       } else if (datum_is_the_symbol(cmd, "statement")) {

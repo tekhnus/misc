@@ -31,11 +31,13 @@ int main(int argc, char **argv) {
   // so the first call of append_new must be for the starting point.
   size_t bp = vec_append_new(&sl);
   size_t p = vec_append_new(&sl);
-  datum *compdata = compdata_make();
-  datum *builder_compdata = compdata_make();
-  prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
-  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
-                         &builder_compdata, datum_make_bytestring(argv[1]));
+  datum compdata = *compdata_make();
+  datum builder_compdata = *compdata_make();
+  datum *compdata_ptr = &compdata;
+  datum *builder_compdata_ptr = &builder_compdata;
+  prog_build_init(&sl, &p, &bp, &compdata_ptr, &builder_compdata_ptr);
+  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata_ptr,
+                         &builder_compdata_ptr, datum_make_bytestring(argv[1]));
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -82,8 +84,9 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   if (fdatum_is_panic(src)) {
     return src;
   }
-  datum *compdata = compdata_make();
-  return prog_compile(&src.ok_value, &compdata);
+  datum compdata = *compdata_make();
+  datum *compdata_ptr = &compdata;
+  return prog_compile(&src.ok_value, &compdata_ptr);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {

@@ -111,7 +111,7 @@ datum *compdata_make();
 bool compdata_has_value(datum *compdata);
 datum *compdata_get_polyindex(datum *compdata,datum *var);
 datum *compdata_get_top_polyindex(datum *compdata);
-datum *compdata_get_shape(datum *compdata);
+datum compdata_get_shape(datum *compdata);
 void compdata_give_names(datum *var,datum **compdata);
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;

@@ -13,17 +13,19 @@ EXPORT fdatum file_source(char *fname) {
   vec expander_sl = vec_make(16 * 1024);
   size_t expander_prg = vec_append_new(&expander_sl);
   size_t expander_builder_prg = vec_append_new(&expander_sl);
-  datum *expander_routine = routine_make(expander_builder_prg, NULL);
-  datum *expander_compdata = compdata_make();
-  datum *expander_builder_compdata = compdata_make();
+  datum expander_routine = *routine_make(expander_builder_prg, NULL);
+  datum expander_compdata = *compdata_make();
+  datum *expander_compdata_ptr = &expander_compdata;
+  datum expander_builder_compdata = *compdata_make();
+  datum *expander_builder_compdata_ptr = &expander_builder_compdata;
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg,
-                  &expander_compdata, &expander_builder_compdata);
+                  &expander_compdata_ptr, &expander_builder_compdata_ptr);
   read_result rr;
   datum *res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
-        rr.ok_value, &expander_sl, expander_routine, &expander_prg,
-        &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
+        rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
+        &expander_compdata_ptr, &expander_builder_prg, &expander_builder_compdata_ptr);
     if (fdatum_is_panic(val)) {
       char err[1024];
       char *end = err;
@@ -54,7 +56,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
     return fdatum_make_ok(*e);
   }
   if (!datum_is_the_symbol(list_at(e, 0), "bang")) {
-    datum *res = datum_make_nil();
+    datum res = *datum_make_nil();
 
     for (int i = 0; i < list_length(e); ++i) {
       datum *x = list_at(e, i);
@@ -63,9 +65,9 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
-      list_append(res, datum_copy(&nxt.ok_value));
+      list_append(&res, datum_copy(&nxt.ok_value));
     }
-    return fdatum_make_ok(*res);
+    return fdatum_make_ok(res);
   }
   if (list_length(e) != 2) {
     return fdatum_make_panic("! should be used with a single arg");
