@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 typedef struct datum datum;
-datum *datum_make_list_of_impl(size_t count,datum *values);
 #include <inttypes.h>
 #include <stdio.h>
 enum datum_type {
@@ -37,6 +36,7 @@ struct datum {
     frame frame_value;
   };
 };
+datum datum_make_list_of_impl(size_t count,datum *values);
 #define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum []){__VA_ARGS__}) / sizeof(datum), (datum[]){__VA_ARGS__})
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
