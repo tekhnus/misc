@@ -225,7 +225,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     }
     if (prg.type == PROG_YIELD) {
       datum res = state_stack_collect(r, prg.yield_count);
-      return fdatum_make_ok(*datum_make_list_of(prg.yield_type, datum_copy(&res)));
+      return fdatum_make_ok(*datum_make_list_of(prg.yield_type, &res));
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);
@@ -408,12 +408,12 @@ LOCAL datum state_stack_collect(routine *r, size_t count) {
   datum form = *datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum arg = state_stack_pop(r);
-    list_append(&form, datum_copy(&arg));
+    list_append(&form, &arg);
   }
   datum res = *datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum x = list_pop(&form);
-    list_append(&res, datum_copy(&x));
+    list_append(&res, &x);
   }
   return res;
 }

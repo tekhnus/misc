@@ -341,7 +341,8 @@ EXPORT datum *datum_copy(datum *d) {
   if (datum_is_list(d)) {
     datum *e = datum_make_nil();
     for (int i = 0; i < list_length(d); ++i) {
-      list_append(e, datum_copy(list_at(d, i)));
+      datum item = *datum_copy(list_at(d, i));
+      list_append(e, &item);
     }
     return e;
   }

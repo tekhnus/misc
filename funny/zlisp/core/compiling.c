@@ -74,7 +74,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     *begin = vec_append_new(sl); // ???
 
     *compdata = compdata_del(*compdata);
-    datum *false_compdata = datum_copy(*compdata);
+    datum false_compdata_val = *datum_copy(*compdata);
+    datum *false_compdata = &false_compdata_val;
     err = prog_append_statement(
         sl, &true_end, list_at(stmt, 2), compdata);
     if (err != NULL) {
