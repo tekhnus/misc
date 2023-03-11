@@ -9,8 +9,9 @@
 fdatum builtin_eq(datum *args) {
   datum *x = list_at(args, 0);
   datum *y = list_at(args, 1);
-  datum *t = datum_make_list_of(1, datum_make_nil());
-  datum *f = datum_make_nil();
+  datum nil = *datum_make_nil();
+  datum *t = datum_make_list_of(1, &nil);
+  datum *f = &nil;
   if (datum_eq(x, y)) {
     return fdatum_make_ok(*datum_make_list_of(1, t));
   }
@@ -36,12 +37,13 @@ fdatum builtin_annotate(datum *args) {
 }
 
 fdatum builtin_is_constant(datum *args) {
+  datum nil = *datum_make_nil();
   datum *arg_value = list_at(args, 0);
   if (datum_is_constant(arg_value)) {
     return fdatum_make_ok(
-        *datum_make_list_of(1, datum_make_list_of(1, datum_make_nil())));
+        *datum_make_list_of(1, datum_make_list_of(1, &nil)));
   }
-  return fdatum_make_ok(*datum_make_list_of(1, datum_make_nil()));
+  return fdatum_make_ok(*datum_make_list_of(1, &nil));
 }
 
 fdatum builtin_panic(datum *args) {

@@ -21,15 +21,15 @@ EXPORT fdatum file_source(char *fname) {
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg,
                   &expander_compdata_ptr, &expander_builder_compdata_ptr);
   read_result rr;
-  datum *res = datum_make_nil();
+  datum res = *datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
-        rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
+        &rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
         &expander_compdata_ptr, &expander_builder_prg, &expander_builder_compdata_ptr);
     if (fdatum_is_panic(val)) {
       char err[1024];
       char *end = err;
-      end += sprintf(end, "while expanding %s: %s", datum_repr(rr.ok_value),
+      end += sprintf(end, "while expanding %s: %s", datum_repr(&rr.ok_value),
                      val.panic_message);
       return fdatum_make_panic(err);
     }
@@ -38,7 +38,7 @@ EXPORT fdatum file_source(char *fname) {
     if (datum_is_the_symbol(&val.ok_value, ":void-value")) {
       continue;
     }
-    list_append(res, datum_copy(&val.ok_value));
+    list_append(&res, datum_copy(&val.ok_value));
   }
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
@@ -46,7 +46,7 @@ EXPORT fdatum file_source(char *fname) {
   if (read_result_is_right_paren(rr)) {
     return fdatum_make_panic("unmatched right paren");
   }
-  return fdatum_make_ok(*res);
+  return fdatum_make_ok(res);
 }
 
 LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,

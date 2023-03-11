@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   vec sl = vec_make(16 * 1024);
-  vec_extend(&sl, rr.ok_value);
+  vec_extend(&sl, &rr.ok_value);
   datum s = routine_make(0, NULL); // running starts from the first instruction.
   fdatum res = routine_run_in_ffi_host(sl, &s);
   if (fdatum_is_panic(res)) {

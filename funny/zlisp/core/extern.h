@@ -107,7 +107,7 @@ typedef enum read_result_type read_result_type;
 struct read_result {
   enum read_result_type type;
   union {
-    struct datum *ok_value;
+    struct datum ok_value;
     char *panic_message;
   };
 };
@@ -119,7 +119,7 @@ LOCAL bool is_whitespace(char c);
 LOCAL read_result read_result_make_right_paren(void);
 LOCAL read_result read_result_make_eof(void);
 LOCAL read_result read_result_make_panic(char *message);
-LOCAL read_result read_result_make_ok(datum *e);
+LOCAL read_result read_result_make_ok(datum e);
 bool read_result_is_right_paren(read_result x);
 LOCAL bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);

@@ -93,7 +93,7 @@ typedef enum read_result_type read_result_type;
 struct read_result {
   enum read_result_type type;
   union {
-    struct datum *ok_value;
+    struct datum ok_value;
     char *panic_message;
   };
 };
@@ -101,6 +101,7 @@ bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
+fdatum datum_read_one(FILE *stre);
 fdatum prog_compile(datum *source,datum **compdata);
 void prog_append_call(vec *sl,size_t *begin,datum *indices,bool pop_one,datum *type,int arg_count,int return_count,datum **compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum **compdata);

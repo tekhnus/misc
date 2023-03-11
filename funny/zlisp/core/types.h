@@ -32,7 +32,7 @@ enum read_result_type {
 struct read_result {
   enum read_result_type type;
   union {
-    struct datum *ok_value;
+    struct datum ok_value;
     char *panic_message;
   };
 };

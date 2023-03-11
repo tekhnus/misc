@@ -22,7 +22,7 @@ EXPORT bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
 }
 
-LOCAL read_result read_result_make_ok(datum *e) {
+LOCAL read_result read_result_make_ok(datum e) {
   read_result result = {.type = READ_RESULT_OK, .ok_value = e};
   return result;
 }
@@ -93,7 +93,7 @@ enum token_type {
 struct token {
   enum token_type type;
   union {
-    datum *datum_value;
+    datum datum_value;
     datum *control_sequence_symbol;
     char *error_message;
   };
@@ -133,7 +133,7 @@ LOCAL struct token token_read(FILE *strm) {
       ungetc(h, strm);
     }
     return (struct token){.type = TOKEN_DATUM,
-                          .datum_value = datum_make_int(sign * val)};
+                          .datum_value = *datum_make_int(sign * val)};
   }
   if (is_allowed_inside_symbol(c)) {
     ungetc(c, strm);
@@ -154,13 +154,13 @@ LOCAL struct token token_read(FILE *strm) {
     if (!feof(strm)) {
       ungetc(x, strm);
     }
-    datum *sym;
+    datum sym;
     if (c == 0) {
-      sym = datum_make_symbol(nm[0]);
+      sym = *datum_make_symbol(nm[0]);
     } else {
-      sym = datum_make_list_of(1, datum_make_symbol("polysym"));
+      sym = *datum_make_list_of(1, datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
-        list_append(sym, datum_make_symbol(nm[cc]));
+        list_append(&sym, datum_make_symbol(nm[cc]));
       }
     }
     return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
@@ -183,7 +183,7 @@ LOCAL struct token token_read(FILE *strm) {
     }
     literal[i] = '\0';
     return (struct token){.type = TOKEN_DATUM,
-                          .datum_value = datum_make_bytestring(literal)};
+                          .datum_value = *datum_make_bytestring(literal)};
   }
   datum *form;
   if (consume_control_sequence(c, &form)) {
@@ -203,17 +203,18 @@ EXPORT read_result datum_read(FILE *strm) {
     return read_result_make_eof();
   }
   if (tok.type == TOKEN_DATUM) {
-    return read_result_make_ok(tok.datum_value);
+    datum val = tok.datum_value;
+    return read_result_make_ok(val);
   }
   if (tok.type == TOKEN_RIGHT_PAREN) {
     return read_result_make_right_paren();
   }
   if (tok.type == TOKEN_LEFT_PAREN) {
     read_result elem;
-    datum *list = datum_make_nil();
+    datum list = *datum_make_nil();
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
-        list_append(list, elem.ok_value);
+        list_append(&list, &elem.ok_value);
       }
       if (read_result_is_right_paren(elem)) {
         return read_result_make_ok(list);
@@ -235,13 +236,13 @@ EXPORT read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum *res = datum_make_list_of(2, tok.control_sequence_symbol, v.ok_value);
+    datum res = *datum_make_list_of(2, tok.control_sequence_symbol, &v.ok_value);
     return read_result_make_ok(res);
   }
   return read_result_make_panic("unhandled token type");
 }
 
-fdatum datum_read_one(FILE *stre) { // used in lisp
+EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   read_result rr = datum_read(stre);
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
@@ -252,5 +253,5 @@ fdatum datum_read_one(FILE *stre) { // used in lisp
   if (read_result_is_eof(rr)) {
     return fdatum_make_panic("eof");
   }
-  return fdatum_make_ok(*datum_make_list_of(1, rr.ok_value));
+  return fdatum_make_ok(*datum_make_list_of(1, &rr.ok_value));
 }
