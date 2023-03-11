@@ -33,11 +33,9 @@ int main(int argc, char **argv) {
   size_t p = vec_append_new(&sl);
   datum compdata = *compdata_make();
   datum builder_compdata = *compdata_make();
-  datum *compdata_ptr = &compdata;
-  datum *builder_compdata_ptr = &builder_compdata;
-  prog_build_init(&sl, &p, &bp, &compdata_ptr, &builder_compdata_ptr);
-  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata_ptr,
-                         &builder_compdata_ptr, datum_make_bytestring(argv[1]));
+  prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
+  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
+                         &builder_compdata, datum_make_bytestring(argv[1]));
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -52,7 +50,7 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 }
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
-                        datum **compdata, datum **builder_compdata,
+                        datum *compdata, datum *builder_compdata,
                         datum *settings) {
   fdatum bytecode = prog_compile(source, compdata);
   if (fdatum_is_panic(bytecode)) {
@@ -65,7 +63,7 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   if (res != NULL) {
     return res;
   }
-  int yield_count = compdata_has_value(*compdata) ? 1 : 0;
+  int yield_count = compdata_has_value(compdata) ? 1 : 0;
   datum nil = *datum_make_nil();
   prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0,
                     nil, compdata);
@@ -87,8 +85,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum compdata = *compdata_make();
-  datum *compdata_ptr = &compdata;
-  return prog_compile(&src.ok_value, &compdata_ptr);
+  return prog_compile(&src.ok_value, &compdata);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {
