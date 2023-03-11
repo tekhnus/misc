@@ -10,10 +10,10 @@ fdatum builtin_eq(datum *args) {
   datum *x = list_at(args, 0);
   datum *y = list_at(args, 1);
   datum nil = *datum_make_nil();
-  datum *t = datum_make_list_of(nil);
+  datum t = *datum_make_list_of(nil);
   datum *f = &nil;
   if (datum_eq(x, y)) {
-    return fdatum_make_ok(*datum_make_list_of(*t));
+    return fdatum_make_ok(*datum_make_list_of(t));
   }
   return fdatum_make_ok(*datum_make_list_of(*f));
 }
