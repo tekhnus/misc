@@ -73,7 +73,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                            datum_make_int(false_end));
     *begin = vec_append_new(sl); // ???
 
-    *compdata = compdata_del(*compdata);
+    compdata_del(compdata);
     datum false_compdata_val = *datum_copy(*compdata);
     datum *false_compdata = &false_compdata_val;
     err = prog_append_statement(
@@ -390,10 +390,10 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
-    *compdata = compdata_del(*compdata);
+    compdata_del(compdata);
   }
   if (pop_one) {
-    *compdata = compdata_del(*compdata);
+    compdata_del(compdata);
   }
   for (int i = 0; i < return_count; ++i) {
     compdata_put(compdata, datum_make_symbol(":anon"));
@@ -438,7 +438,7 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum *type,
       datum_make_int(recieve_count), &meta, datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_del(*compdata);
+    compdata_del(compdata);
   }
   for (size_t i = 0; i < recieve_count; ++i) {
     compdata_put(compdata, datum_make_symbol(":anon"));
@@ -534,7 +534,7 @@ LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
                           datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
-    *compdata = compdata_del(*compdata);
+    compdata_del(compdata);
   }
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
@@ -573,12 +573,11 @@ LOCAL void compdata_put(datum **compdata, datum *var) {
   list_append(last_frame, var);
 }
 
-LOCAL datum *compdata_del(datum *compdata) {
-  compdata_validate(compdata);
-  compdata = datum_copy(compdata);
-  datum *last_frame = list_get_last(compdata);
+LOCAL void compdata_del(datum **compdata) {
+  compdata_validate(*compdata);
+  *compdata = datum_copy(*compdata);
+  datum *last_frame = list_get_last(*compdata);
   list_pop(last_frame);
-  return compdata;
 }
 
 EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
@@ -624,7 +623,7 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
     exit(EXIT_FAILURE);
   }
   for (int i = 0; i < list_length(var); ++i) {
-    *compdata = compdata_del(*compdata);
+    compdata_del(compdata);
   }
   for (int i = 0; i < list_length(var); ++i) {
     compdata_put(compdata, list_at(var, i));
