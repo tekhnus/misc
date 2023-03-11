@@ -12,7 +12,7 @@
 #include <string.h>
 
 #if EXPORT_INTERFACE
-#define datum_make_list_of(count, ...) datum_make_list_of_impl(count, (datum *[]){__VA_ARGS__})
+#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum *[]){__VA_ARGS__}) / sizeof(datum *), (datum *[]){__VA_ARGS__})
 #endif
 
 enum fdatumype {
@@ -119,7 +119,7 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
     return *val;
   }
   return fdatum_make_ok(
-      *datum_make_list_of(1, datum_make_int((int64_t)&val->ok_value)));
+      *datum_make_list_of(datum_make_int((int64_t)&val->ok_value)));
 }
 
 fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
@@ -129,7 +129,7 @@ fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
   }
   datum *val = (datum *)arg->integer_value;
   char *res = datum_repr(val);
-  return fdatum_make_ok(*datum_make_list_of(1, datum_make_bytestring(res)));
+  return fdatum_make_ok(*datum_make_list_of(datum_make_bytestring(res)));
 }
 
 fdatum fdatum_get_panic_message(datum *args) { // used in lisp
@@ -142,7 +142,7 @@ fdatum fdatum_get_panic_message(datum *args) { // used in lisp
     return fdatum_make_panic("fdatum_get_panic_message expected a panic");
   }
   return fdatum_make_ok(
-      *datum_make_list_of(1, datum_make_bytestring(val.panic_message)));
+      *datum_make_list_of(datum_make_bytestring(val.panic_message)));
 }
 
 EXPORT bool datum_eq(datum *x, datum *y) {
@@ -224,7 +224,7 @@ EXPORT vec vec_make_of(size_t count, ...) {
 }
 
 EXPORT size_t vec_append_new(vec *s) {
-  return vec_append(s, *datum_make_list_of(1, datum_make_symbol(":end")));
+  return vec_append(s, *datum_make_list_of(datum_make_symbol(":end")));
 }
 
 EXPORT void vec_extend(vec *s, datum *instructions) {

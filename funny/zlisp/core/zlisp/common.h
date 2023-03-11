@@ -5,7 +5,7 @@
 #include <stdarg.h>
 typedef struct datum datum;
 datum *datum_make_list_of_impl(size_t count,datum **values);
-#define datum_make_list_of(count, ...) datum_make_list_of_impl(count, (datum *[]){__VA_ARGS__})
+#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum *[]){__VA_ARGS__}) / sizeof(datum *), (datum *[]){__VA_ARGS__})
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);

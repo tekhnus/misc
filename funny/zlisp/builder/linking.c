@@ -10,7 +10,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
                     nil, builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
-  prog_append_call(sl, bdr_p, datum_make_list_of(1, compdata_get_top_polyindex(*builder_compdata)),
+  prog_append_call(sl, bdr_p, datum_make_list_of(compdata_get_top_polyindex(*builder_compdata)),
                    false, datum_make_symbol("plain"), 0, 0,
                    builder_compdata);
   prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil,
@@ -26,7 +26,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   if (input_meta == NULL) {
     return NULL;
   }
-  compdata_give_names(datum_make_list_of(1, datum_make_symbol("__main__")),
+  compdata_give_names(datum_make_list_of(datum_make_symbol("__main__")),
                       builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
                               builder_compdata);
@@ -37,7 +37,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
                       builder_compdata);
   datum fn_index = *compdata_get_top_polyindex(*builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, datum_make_list_of(1, &fn_index), false,
+  prog_append_call(sl, bdr_p, datum_make_list_of(&fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
   return NULL;
@@ -90,20 +90,20 @@ LOCAL datum *offset_relocate(datum *ins, size_t delta) {
 
 LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
-    return *datum_make_list_of(1, list_at(ins, 0));
+    return *datum_make_list_of(list_at(ins, 0));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
-    return *datum_make_list_of(3, list_at(ins, 0),
+    return *datum_make_list_of(list_at(ins, 0),
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return *datum_make_list_of(4, 
+    return *datum_make_list_of( 
         list_at(ins, 0), offset_relocate(list_at(ins, 1), delta),
         list_at(ins, 2), offset_relocate(list_at(ins, 3), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return *datum_make_list_of(3, list_at(ins, 0),
+    return *datum_make_list_of(list_at(ins, 0),
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
@@ -180,16 +180,16 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   datum *fn_index = compdata_get_top_polyindex(*compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, datum_make_list_of(1, fn_index), false,
+  prog_append_call(sl, p, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum names = *datum_make_nil();
-  get_varname(varname, datum_make_list_of(1, dep));
+  get_varname(varname, datum_make_list_of(dep));
   list_append(&names,
               datum_make_symbol(varname));
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
-    get_varname(varname, datum_make_list_of(2, dep, sym));
+    get_varname(varname, datum_make_list_of(dep, sym));
     list_append(
                 &names, datum_make_symbol(varname));
   }

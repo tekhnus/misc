@@ -77,7 +77,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
   if (fdatum_is_panic(exp)) {
     return exp;
   }
-  char *err = prog_build(sl, p, bp, datum_make_list_of(1, &exp.ok_value), compdata,
+  char *err = prog_build(sl, p, bp, datum_make_list_of(&exp.ok_value), compdata,
                          builder_compdata, datum_make_bytestring("c-prelude"));
   if (err != NULL) {
     char err2[256];

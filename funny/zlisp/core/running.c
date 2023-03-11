@@ -225,7 +225,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
     }
     if (prg.type == PROG_YIELD) {
       datum res = state_stack_collect(r, prg.yield_count);
-      return fdatum_make_ok(*datum_make_list_of(2, prg.yield_type, datum_copy(&res)));
+      return fdatum_make_ok(*datum_make_list_of(prg.yield_type, datum_copy(&res)));
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);
