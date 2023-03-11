@@ -89,7 +89,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return err;
     }
     if (!datum_eq(*compdata, false_compdata)) {
-          compdata_put(compdata, datum_make_symbol("__different_if_branches"));
+          compdata_put(compdata, *datum_make_symbol("__different_if_branches"));
     }
 
     prog_join(sl, true_end, false_end, *begin);
@@ -141,7 +141,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t s_off = vec_append_new(sl);
     datum routine_compdata = datum_copy(*compdata);
     datum *routine_compdata_ptr = &routine_compdata;
-    compdata_put(&routine_compdata_ptr, name);
+    compdata_put(&routine_compdata_ptr, datum_copy(name));
     compdata_start_new_section(&routine_compdata_ptr);
     char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata_ptr);
     if (err != NULL) {
@@ -169,6 +169,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
         ++index;
       } else if (!target_defined) {
         target = datum_copy(content);
+        target_defined = true;
         ++index;
       } else {
         return "unknown return tag";
@@ -197,7 +198,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
 
   datum *fn = list_at(stmt, 0);
   bool hash = false;
-  datum *target = NULL;
+  datum target = *datum_make_symbol("plain");
+  bool target_is_set = false;
   bool mut = false;
   size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
@@ -232,8 +234,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     } else if (datum_is_the_symbol(content, "mut")) {
       mut = true;
       ++index;
-    } else if (target == NULL) {
-      target = content;
+    } else if (!target_is_set) {
+      target = datum_copy(content);
+      target_is_set = true;
       ++index;
     } else {
       return "unknown tag";
@@ -293,11 +296,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       }
     }
   }
-  if (target == NULL) {
-    target = datum_make_symbol("plain");
-  }
   prog_append_call(sl, begin, capture_size, indices, !mut,
-                   target,
+                   &target,
                    arg_count, ret_count, compdata);
   return NULL;
 }
@@ -389,7 +389,7 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size, datum 
     compdata_del(compdata);
   }
   for (int i = 0; i < return_count; ++i) {
-    compdata_put(compdata, datum_make_symbol(":anon"));
+    compdata_put(compdata, *datum_make_symbol(":anon"));
   }
   *begin = next;
 }
@@ -409,7 +409,7 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
   *vec_at(sl, *begin) = datum_make_list_of(
       *datum_make_symbol(":put-var"), polyindex, datum_make_int(next));
   *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  compdata_put(compdata, *datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
@@ -419,7 +419,7 @@ EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
       datum_make_list_of(*datum_make_symbol(":put-prog"), datum_make_int(val),
                           datum_make_int(capture), datum_make_int(next));
   *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  compdata_put(compdata, *datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
@@ -434,7 +434,7 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
     compdata_del(compdata);
   }
   for (size_t i = 0; i < recieve_count; ++i) {
-    compdata_put(compdata, datum_make_symbol(":anon"));
+    compdata_put(compdata, *datum_make_symbol(":anon"));
   }
 }
 
@@ -510,7 +510,7 @@ LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
   *vec_at(sl, *begin) = datum_make_list_of(
            *datum_make_symbol(":put-const"), datum_copy(val), datum_make_int(next));
   *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  compdata_put(compdata, *datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_nop(vec *sl, size_t *begin) {
@@ -528,7 +528,7 @@ LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  compdata_put(compdata, *datum_make_symbol(":anon"));
 }
 
 LOCAL void prog_join(vec *sl, size_t a, size_t b, size_t e) {
@@ -566,9 +566,9 @@ LOCAL void compdata_validate(datum *compdata) {
   }
 }
 
-LOCAL void compdata_put(datum **compdata, datum *var) {
+LOCAL void compdata_put(datum **compdata, datum var) {
   datum *last_frame = list_get_last(*compdata);
-  list_append(last_frame, var);
+  list_append(last_frame, &var);
 }
 
 LOCAL void compdata_del(datum **compdata) {
@@ -622,6 +622,6 @@ EXPORT void compdata_give_names(datum *var, datum **compdata) {
     compdata_del(compdata);
   }
   for (int i = 0; i < list_length(var); ++i) {
-    compdata_put(compdata, list_at(var, i));
+    compdata_put(compdata, datum_copy(list_at(var, i)));
   }
 }

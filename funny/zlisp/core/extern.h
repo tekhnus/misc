@@ -85,7 +85,7 @@ LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **r
 LOCAL void compdata_start_new_section(datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
-LOCAL void compdata_put(datum **compdata,datum *var);
+LOCAL void compdata_put(datum **compdata,datum var);
 LOCAL void compdata_del(datum **compdata);
 LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum **compdata);
 LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum **compdata);
