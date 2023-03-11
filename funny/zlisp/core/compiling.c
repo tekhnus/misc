@@ -252,8 +252,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     ++fn_index;
     chop = list_length(&shape);
   }
+  size_t capture_size = 0;
   for (int j = 0; j + chop < list_length(&shape); ++j) {
-    list_append(&indices, datum_make_list_of(*datum_make_int(j)));
+    ++capture_size;
   }
   for (; fn_index < list_length(fns); ++fn_index) {
     datum *component = list_at(fns, fn_index);
@@ -296,7 +297,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (target == NULL) {
     target = datum_make_symbol("plain");
   }
-  prog_append_call(sl, begin, &indices, !mut,
+  prog_append_call(sl, begin, capture_size, &indices, !mut,
                    target,
                    arg_count, ret_count, compdata);
   return NULL;
@@ -373,22 +374,13 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   return NULL;
 }
 
-EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
+EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size, datum *indices,
                              bool pop_one, datum *type,
                              int arg_count, int return_count,
                              datum **compdata) {
   size_t next = vec_append_new(sl);
-  datum new_indices = *datum_make_nil();
-  size_t capture_size = 0;
-  for (int i = 0; i < list_length(indices); ++i) {
-    if (list_length(list_at(indices, i)) == 1) {
-      ++capture_size;
-    } else {
-      list_append(&new_indices, list_at(indices, i));
-    }
-  }
   *vec_at(sl, *begin) = *(datum_make_list_of(
-      *datum_make_symbol(":call"), *datum_make_int(capture_size), new_indices,
+                              *datum_make_symbol(":call"), *datum_make_int(capture_size), datum_copy(indices),
       *datum_make_int(pop_one), datum_copy(type), *datum_make_int(arg_count),
       *datum_make_int(return_count), *datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
