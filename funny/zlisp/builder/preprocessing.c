@@ -78,8 +78,9 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
     return exp;
   }
   datum mod = datum_make_list_of(exp.ok_value);
+  datum set = datum_make_bytestring("c-prelude");
   char *err = prog_build(sl, p, bp, &mod, compdata,
-                         builder_compdata, datum_make_bytestring("c-prelude"));
+                         builder_compdata, &set);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;

@@ -433,7 +433,8 @@ LOCAL size_t routine_get_count(routine *r) {
 LOCAL datum routine_get_shape(routine *r) {
   datum res = datum_make_nil();
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
-    list_append(&res, datum_make_int(vec_length(&r->frames[i]->state)));
+    datum ii = datum_make_int(vec_length(&r->frames[i]->state));
+    list_append(&res, &ii);
   }
   return res;
 }
@@ -455,7 +456,7 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
     .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
   datum vars_datum = datum_make_frame(vars);
   frame pc_frame = {
-    .state = vec_make_of(1, *datum_make_int(prg)),
+    .state = vec_make_of(1, datum_make_int(prg)),
     .type_id = -1,
     .parent_type_id = prg};
   datum pc_frame_datum = datum_make_frame(pc_frame);

@@ -133,7 +133,7 @@ LOCAL struct token token_read(FILE *strm) {
       ungetc(h, strm);
     }
     return (struct token){.type = TOKEN_DATUM,
-                          .datum_value = *datum_make_int(sign * val)};
+                          .datum_value = datum_make_int(sign * val)};
   }
   if (is_allowed_inside_symbol(c)) {
     ungetc(c, strm);
@@ -183,7 +183,7 @@ LOCAL struct token token_read(FILE *strm) {
     }
     literal[i] = '\0';
     return (struct token){.type = TOKEN_DATUM,
-                          .datum_value = *datum_make_bytestring(literal)};
+                          .datum_value = datum_make_bytestring(literal)};
   }
   datum *form;
   if (consume_control_sequence(c, &form)) {

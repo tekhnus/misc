@@ -41,21 +41,21 @@ EXPORT datum *datum_make_symbol(char *name) {
   return e;
 }
 
-EXPORT datum *datum_make_bytestring(char *text) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_BYTESTRING;
+EXPORT datum datum_make_bytestring(char *text) {
+  datum e;
+  e.type = DATUM_BYTESTRING;
   size_t length = strlen(text);
-  e->bytestring_value = malloc((length + 1) * sizeof(char));
+  e.bytestring_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
-    e->bytestring_value[i] = text[i];
+    e.bytestring_value[i] = text[i];
   }
   return e;
 }
 
-EXPORT datum *datum_make_int(int64_t value) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_INTEGER;
-  e->integer_value = value;
+EXPORT datum datum_make_int(int64_t value) {
+  datum e;
+  e.type = DATUM_INTEGER;
+  e.integer_value = value;
   return e;
 }
 
@@ -119,7 +119,7 @@ fdatum fdatum_get_value(datum *args) { // used in lisp
     return *val;
   }
   return fdatum_make_ok(
-      datum_make_list_of(*datum_make_int((int64_t)&val->ok_value)));
+      datum_make_list_of(datum_make_int((int64_t)&val->ok_value)));
 }
 
 fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
@@ -129,7 +129,7 @@ fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
   }
   datum *val = (datum *)arg->integer_value;
   char *res = datum_repr(val);
-  return fdatum_make_ok(datum_make_list_of(*datum_make_bytestring(res)));
+  return fdatum_make_ok(datum_make_list_of(datum_make_bytestring(res)));
 }
 
 fdatum fdatum_get_panic_message(datum *args) { // used in lisp
@@ -142,7 +142,7 @@ fdatum fdatum_get_panic_message(datum *args) { // used in lisp
     return fdatum_make_panic("fdatum_get_panic_message expected a panic");
   }
   return fdatum_make_ok(
-      datum_make_list_of(*datum_make_bytestring(val.panic_message)));
+      datum_make_list_of(datum_make_bytestring(val.panic_message)));
 }
 
 EXPORT bool datum_eq(datum *x, datum *y) {

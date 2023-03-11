@@ -81,7 +81,7 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
   strcat(res, sym);
 }
 
-LOCAL datum *offset_relocate(datum *ins, size_t delta) {
+LOCAL datum offset_relocate(datum *ins, size_t delta) {
   if (!datum_is_integer(ins)) {
     fprintf(stderr, "error: offset_relocate");
     exit(EXIT_FAILURE);
@@ -95,18 +95,18 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                               *offset_relocate(list_at(ins, 1), delta),
-                             *offset_relocate(list_at(ins, 2), delta));
+                               offset_relocate(list_at(ins, 1), delta),
+                             offset_relocate(list_at(ins, 2), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
     return datum_make_list_of( 
-        datum_copy(list_at(ins, 0)), *offset_relocate(list_at(ins, 1), delta),
-        datum_copy(list_at(ins, 2)), *offset_relocate(list_at(ins, 3), delta));
+        datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
+        datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                             *offset_relocate(list_at(ins, 1), delta),
-                             *offset_relocate(list_at(ins, 2), delta));
+                             offset_relocate(list_at(ins, 1), delta),
+                             offset_relocate(list_at(ins, 2), delta));
   }
   datum res = datum_copy(ins);
   if (list_length(&res) < 2) {
@@ -115,7 +115,8 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   }
   datum *nxt = list_at(&res, list_length(&res) - 1);
   list_pop(&res);
-  list_append(&res, offset_relocate(nxt, delta));
+  datum dd = offset_relocate(nxt, delta);
+  list_append(&res, &dd);
   return res;
 }
 

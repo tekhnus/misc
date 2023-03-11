@@ -3,7 +3,7 @@
 char *vec_relocate(vec *dst,size_t *p,datum *src);
 #define LOCAL static
 LOCAL datum instruction_relocate(datum *ins,size_t delta);
-LOCAL datum *offset_relocate(datum *ins,size_t delta);
+LOCAL datum offset_relocate(datum *ins,size_t delta);
 LOCAL void get_varname(char *res,datum *dep_and_sym);
 LOCAL char *prog_build_dep(vec *sl,size_t *p,datum *dep_and_sym,fdatum(*module_bytecode)(char *,datum *),datum *settings,datum **compdata);
 LOCAL void prog_put_deps(vec *sl,size_t *p,datum *deps,datum **compdata);

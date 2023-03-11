@@ -54,7 +54,7 @@ fdatum builtin_panic(datum *args) {
 fdatum builtin_repr(datum *args) {
   datum *v = list_at(args, 0);
   return fdatum_make_ok(
-      datum_make_list_of(*datum_make_bytestring(datum_repr(v))));
+      datum_make_list_of(datum_make_bytestring(datum_repr(v))));
 }
 
 fdatum builtin_concat_bytestrings(datum *args) {
@@ -67,7 +67,7 @@ fdatum builtin_concat_bytestrings(datum *args) {
   buf[0] = '\0';
   strcat(buf, x->bytestring_value);
   strcat(buf, y->bytestring_value);
-  return fdatum_make_ok(datum_make_list_of(*datum_make_bytestring(buf)));
+  return fdatum_make_ok(datum_make_list_of(datum_make_bytestring(buf)));
 }
 
 fdatum builtin_add(datum *args) {
@@ -77,7 +77,7 @@ fdatum builtin_add(datum *args) {
     return fdatum_make_panic("expected integers");
   }
   return fdatum_make_ok(
-                        datum_make_list_of(*datum_make_int(x->integer_value + y->integer_value)));
+                        datum_make_list_of(datum_make_int(x->integer_value + y->integer_value)));
 }
 
 fdatum builtin_cons(datum *args) {

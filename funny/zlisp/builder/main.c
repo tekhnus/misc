@@ -36,8 +36,9 @@ int main(int argc, char **argv) {
   datum *compdata_ptr = &compdata;
   datum *builder_compdata_ptr = &builder_compdata;
   prog_build_init(&sl, &p, &bp, &compdata_ptr, &builder_compdata_ptr);
+  datum set = datum_make_bytestring(argv[1]);
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata_ptr,
-                         &builder_compdata_ptr, datum_make_bytestring(argv[1]));
+                         &builder_compdata_ptr, &set);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -48,7 +49,9 @@ int main(int argc, char **argv) {
 }
 
 EXPORT datum *get_host_ffi_settings() { // used in lisp
-  return datum_make_bytestring("c-prelude");
+  datum *res = malloc(sizeof(datum));
+  *res = datum_make_bytestring("c-prelude");
+  return res;
 }
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
