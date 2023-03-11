@@ -6,9 +6,14 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
+
 #endif
 #include <stdlib.h>
 #include <string.h>
+
+#if EXPORT_INTERFACE
+#define datum_make_list_of(count, ...) datum_make_list_of_impl(count, (datum *[]){__VA_ARGS__})
+#endif
 
 enum fdatumype {
   FDATUM_OK,
@@ -271,15 +276,12 @@ EXPORT bool datum_is_nil(datum *e) {
   return datum_is_list(e) && list_length(e) == 0;
 }
 
-EXPORT datum *datum_make_list_of(size_t count, ...) {
+EXPORT datum *datum_make_list_of_impl(size_t count, datum **values) {
   datum *e = datum_make_nil();
-  va_list args;
-  va_start(args, count);
   for (size_t i = 0; i < count; ++i) {
-    datum *elem = va_arg(args, datum *);
+    datum *elem = values[i];
     list_append(e, elem);
   }
-  va_end(args);
   return e;
 }
 

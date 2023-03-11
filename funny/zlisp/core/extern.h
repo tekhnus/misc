@@ -147,7 +147,6 @@ bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
 fdatum fdatum_get_panic_message(datum *args);
 fdatum fdatum_repr_datum_pointer(datum *args);
-datum *datum_make_list_of(size_t count,...);
 fdatum fdatum_get_value(datum *args);
 fdatum fdatum_make_panic(char *message);
 fdatum fdatum_make_ok(datum v);
@@ -166,4 +165,7 @@ bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_symbol(datum *e);
 #define EXPORT
+datum *datum_make_list_of_impl(size_t count,datum **values);
+#define datum_make_list_of(count, ...) datum_make_list_of_impl(count, (datum *[]){__VA_ARGS__})
+#define EXPORT_INTERFACE 0
 #define INTERFACE 0

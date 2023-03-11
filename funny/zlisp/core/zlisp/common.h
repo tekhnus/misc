@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdarg.h>
 typedef struct datum datum;
+datum *datum_make_list_of_impl(size_t count,datum **values);
+#define datum_make_list_of(count, ...) datum_make_list_of_impl(count, (datum *[]){__VA_ARGS__})
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);
@@ -70,7 +72,6 @@ datum vec_pop(vec *v);
 datum *datum_make_nil();
 bool datum_is_list(datum *e);
 bool datum_is_nil(datum *e);
-datum *datum_make_list_of(size_t count,...);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum *list_get_last(datum *list);

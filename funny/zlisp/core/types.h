@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #if EXPORT_INTERFACE
+
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
