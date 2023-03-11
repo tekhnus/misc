@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT fdatum prog_compile(datum *source, datum *compdata) {
+EXPORT fdatum prog_compile(datum *source, datum **compdata) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
   char *err = prog_append_statements(&sl, &p, source, compdata, true);
@@ -15,7 +15,7 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum *compdata, bool skip_first_debug) {
+                                   datum **compdata, bool skip_first_debug) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
@@ -30,14 +30,14 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
 }
 
 LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum *compdata) {
+                                  datum **compdata) {
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
     prog_append_yield(
-                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), compdata), 0, 0, *datum_make_nil(), compdata);
+                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), *compdata), 0, 0, *datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -73,8 +73,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                            datum_make_int(false_end));
     *begin = vec_append_new(sl); // ???
 
-    compdata_del(compdata);
-    datum false_compdata = *datum_copy(compdata);
+    *compdata = compdata_del(*compdata);
+    datum false_compdata_val = *datum_copy(*compdata);
+    datum *false_compdata = &false_compdata_val;
     err = prog_append_statement(
         sl, &true_end, list_at(stmt, 2), compdata);
     if (err != NULL) {
@@ -86,8 +87,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     if (err != NULL) {
       return err;
     }
-    if (!datum_eq(compdata, &false_compdata)) {
-          compdata_put(compdata, datum_make_symbol("__different_if_branches"));
+    if (!datum_eq(*compdata, false_compdata)) {
+      *compdata =
+          compdata_put(*compdata, datum_make_symbol("__different_if_branches"));
     }
 
     prog_join(sl, true_end, false_end, *begin);
@@ -137,10 +139,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     args = list_at(stmt, 2);
     body = list_at(stmt, 3);
     size_t s_off = vec_append_new(sl);
-    datum *routine_compdata = datum_copy(compdata);
-    compdata_put(routine_compdata, name);
-    compdata_start_new_section(routine_compdata);
-    char *err = prog_init_routine(sl, s_off, args, body, routine_compdata);
+    datum *routine_compdata = compdata_put(*compdata, name);
+    routine_compdata = compdata_start_new_section(routine_compdata);
+    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata);
     if (err != NULL) {
       return err;
     }
@@ -244,7 +245,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     ++fn_index;
     chop = 1;
   }
-  datum shape = compdata_get_shape(compdata);
+  datum shape = compdata_get_shape(*compdata);
   if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "")) {
     ++fn_index;
     chop = list_length(&shape);
@@ -259,7 +260,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (!datum_is_symbol(component)) {
         return "expected an lvalue";
       }
-      datum idx = compdata_get_polyindex(compdata, component);
+      datum idx = compdata_get_polyindex(*compdata, component);
       if (datum_is_nil(&idx)) {
         if (datum_is_nil(&idx)) {
           fprintf(stderr, "function not found: %s\n", datum_repr(component));
@@ -273,7 +274,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (err != NULL) {
         return err;
       }
-      datum *idx = compdata_get_top_polyindex(compdata);
+      datum *idx = compdata_get_top_polyindex(*compdata);
       list_append(&indices, idx);
     }
   }
@@ -300,7 +301,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
 }
 
 LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
-                               datum *compdata) {
+                               datum **compdata) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -348,7 +349,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
-                                datum *compdata) {
+                                datum **compdata) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -373,7 +374,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
 EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
                              bool pop_one, datum *type,
                              int arg_count, int return_count,
-                             datum *compdata) {
+                             datum **compdata) {
   size_t next = vec_append_new(sl);
   datum new_indices = *datum_make_nil();
   size_t capture_size = 0;
@@ -389,25 +390,25 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next)));
   for (int i = 0; i < arg_count; ++i) {
-    compdata_del(compdata);
+    *compdata = compdata_del(*compdata);
   }
   if (pop_one) {
-    compdata_del(compdata);
+    *compdata = compdata_del(*compdata);
   }
   for (int i = 0; i < return_count; ++i) {
-    compdata_put(compdata, datum_make_symbol(":anon"));
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
   }
   *begin = next;
 }
 
 EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
-                                datum *compdata) {
+                                datum **compdata) {
   size_t next = vec_append_new(sl);
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
   }
-  datum polyindex = compdata_get_polyindex(compdata, val);
+  datum polyindex = compdata_get_polyindex(*compdata, val);
   if (datum_is_nil(&polyindex)) {
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
@@ -415,37 +416,37 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
   *vec_at(sl, *begin) = *(datum_make_list_of(
       datum_make_symbol(":put-var"), &polyindex, datum_make_int(next)));
   *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
-                                 int capture, datum *compdata) {
+                                 int capture, datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
       *(datum_make_list_of(datum_make_symbol(":put-prog"), datum_make_int(val),
                           datum_make_int(capture), datum_make_int(next)));
   *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum *type,
                               size_t count, size_t recieve_count, datum meta,
-                              datum *compdata) {
+                              datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *(datum_make_list_of(
       datum_make_symbol(":yield"), type, datum_make_int(count),
       datum_make_int(recieve_count), &meta, datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
-    compdata_del(compdata);
+    *compdata = compdata_del(*compdata);
   }
   for (size_t i = 0; i < recieve_count; ++i) {
-    compdata_put(compdata, datum_make_symbol(":anon"));
+    *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
   }
 }
 
 LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
-                                             datum *stmt, datum *compdata) {
+                                             datum *stmt, datum **compdata) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -469,7 +470,7 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 }
 
 LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args,
-                               datum meta, datum *compdata) {
+                               datum meta, datum **compdata) {
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
   compdata_give_names(args, compdata);
@@ -500,7 +501,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
-                              datum *stmt, datum *routine_compdata) {
+                              datum *stmt, datum **routine_compdata) {
   if (args == NULL) {
     return "args can't be null";
   } else {
@@ -510,12 +511,12 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
 }
 
 LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
-                                 datum *compdata) {
+                                 datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *(datum_make_list_of(
       datum_make_symbol(":put-const"), val, datum_make_int(next)));
   *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_nop(vec *sl, size_t *begin) {
@@ -526,16 +527,16 @@ EXPORT void prog_append_nop(vec *sl, size_t *begin) {
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
-                               datum *compdata) {
+                               datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
       *(datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count),
                           datum_make_int(next)));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
-    compdata_del(compdata);
+    *compdata = compdata_del(*compdata);
   }
-  compdata_put(compdata, datum_make_symbol(":anon"));
+  *compdata = compdata_put(*compdata, datum_make_symbol(":anon"));
 }
 
 LOCAL void prog_join(vec *sl, size_t a, size_t b, size_t e) {
@@ -566,15 +567,19 @@ LOCAL void compdata_validate(datum *compdata) {
   }
 }
 
-LOCAL void compdata_put(datum *compdata, datum *var) {
+LOCAL datum *compdata_put(datum *compdata, datum *var) {
+  compdata = datum_copy(compdata);
   datum *last_frame = list_get_last(compdata);
   list_append(last_frame, var);
+  return compdata;
 }
 
-LOCAL void compdata_del(datum *compdata) {
+LOCAL datum *compdata_del(datum *compdata) {
   compdata_validate(compdata);
+  compdata = datum_copy(compdata);
   datum *last_frame = list_get_last(compdata);
   list_pop(last_frame);
+  return compdata;
 }
 
 EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
@@ -591,9 +596,11 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
   return *datum_make_nil();
 }
 
-LOCAL void compdata_start_new_section(datum *compdata) {
+LOCAL datum *compdata_start_new_section(datum *compdata) {
+  datum *e = datum_copy(compdata);
   datum nil = *datum_make_nil();
-  list_append(compdata, &nil);
+  list_append(e, &nil);
+  return e;
 }
 
 EXPORT datum *compdata_get_top_polyindex(datum *compdata) {
@@ -612,15 +619,15 @@ EXPORT datum compdata_get_shape(datum *compdata) {
   return res;
 }
 
-EXPORT void compdata_give_names(datum *var, datum *compdata) {
+EXPORT void compdata_give_names(datum *var, datum **compdata) {
   if (!datum_is_list(var)) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
   }
   for (int i = 0; i < list_length(var); ++i) {
-    compdata_del(compdata);
+    *compdata = compdata_del(*compdata);
   }
   for (int i = 0; i < list_length(var); ++i) {
-    compdata_put(compdata, list_at(var, i));
+    *compdata = compdata_put(*compdata, list_at(var, i));
   }
 }
