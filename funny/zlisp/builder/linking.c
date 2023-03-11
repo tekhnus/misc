@@ -10,7 +10,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
                     nil, builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
-  prog_append_call(sl, bdr_p, 0, datum_make_list_of(*compdata_get_top_polyindex(*builder_compdata)),
+  prog_append_call(sl, bdr_p, 0, *datum_make_list_of(*compdata_get_top_polyindex(*builder_compdata)),
                    false, datum_make_symbol("plain"), 0, 0,
                    builder_compdata);
   prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil,
@@ -26,7 +26,8 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   if (input_meta == NULL) {
     return NULL;
   }
-  compdata_give_names(datum_make_list_of(*datum_make_symbol("__main__")),
+  datum s = *datum_make_list_of(*datum_make_symbol("__main__"));
+  compdata_give_names(&s,
                       builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
                               builder_compdata);
@@ -37,7 +38,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
                       builder_compdata);
   datum fn_index = *compdata_get_top_polyindex(*builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false,
+  prog_append_call(sl, bdr_p, 0, *datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
   return NULL;
@@ -180,16 +181,18 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
   datum *fn_index = compdata_get_top_polyindex(*compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, 0, datum_make_list_of(*fn_index), false,
+  prog_append_call(sl, p, 0, *datum_make_list_of(*fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum names = *datum_make_nil();
-  get_varname(varname, datum_make_list_of(datum_copy(dep)));
+  datum dep_singleton = *datum_make_list_of(datum_copy(dep));
+  get_varname(varname, &dep_singleton);
   list_append(&names,
               datum_make_symbol(varname));
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
-    get_varname(varname, datum_make_list_of(datum_copy(dep), datum_copy(sym)));
+    datum depsym = *datum_make_list_of(datum_copy(dep), datum_copy(sym));
+    get_varname(varname, &depsym);
     list_append(
                 &names, datum_make_symbol(varname));
   }
