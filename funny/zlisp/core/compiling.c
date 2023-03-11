@@ -19,7 +19,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
-      prog_append_yield(sl, off, datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("statement"), datum_copy(stmt)), 0, 0, *datum_make_nil(), compdata);
+      prog_append_yield(sl, off, *datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("statement"), datum_copy(stmt)), 0, 0, *datum_make_nil(), compdata);
     }
     char *err = prog_append_statement(sl, off, stmt, compdata);
     if (err != NULL) {
@@ -38,7 +38,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_symbol(stmt)) {
     datum debug_compdata = datum_copy(*compdata);
     prog_append_yield(
-                      sl, begin, datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("compdata"), debug_compdata), 0, 0, *datum_make_nil(), compdata);
+                      sl, begin, *datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("compdata"), debug_compdata), 0, 0, *datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -153,7 +153,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_the_symbol(op, "return")) {
-    datum *target = NULL;
+    datum target = *datum_make_symbol("plain");
+    bool target_defined = false;
     size_t recieve_count = 1;
     int index = 1;
     while (index < list_length(stmt)) {
@@ -166,8 +167,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (datum_is_integer(content)) {
         recieve_count = content->integer_value;
         ++index;
-      } else if (target == NULL) {
-        target = content;
+      } else if (!target_defined) {
+        target = datum_copy(content);
         ++index;
       } else {
         return "unknown return tag";
@@ -180,9 +181,6 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (err != NULL) {
         return err;
       }
-    }
-    if (target == NULL) {
-      target = datum_make_symbol("plain");
     }
     prog_append_yield(
         sl, begin, target,
@@ -370,7 +368,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
   prog_append_nop(sl, begin);
-  prog_append_yield(sl, begin, datum_make_symbol("plain"),
+  prog_append_yield(sl, begin, *datum_make_symbol("plain"),
                     list_length(list_at(&re, 0)), 1, *list_at(&re, 0), compdata);
   return NULL;
 }
@@ -424,12 +422,12 @@ EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_yield(vec *sl, size_t *begin, datum *type,
+EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
                               size_t count, size_t recieve_count, datum meta,
                               datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *datum_make_list_of(
-                              *datum_make_symbol(":yield"), datum_copy(type), *datum_make_int(count),
+                              *datum_make_symbol(":yield"), type, *datum_make_int(count),
                               *datum_make_int(recieve_count), meta, *datum_make_int(next));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
@@ -466,7 +464,7 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 
 LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args,
                                datum meta, datum **compdata) {
-  prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
+  prog_append_yield(sl, begin, *datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
   compdata_give_names(args, compdata);
 }
@@ -502,7 +500,8 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
   } else {
     prog_append_recieve(sl, &s, args, *datum_make_nil(), routine_compdata);
   }
-  return prog_append_statements(sl, &s, datum_make_list_of(datum_copy(stmt)), routine_compdata, false);
+  datum st = *datum_make_list_of(datum_copy(stmt));
+  return prog_append_statements(sl, &s, &st, routine_compdata, false);
 }
 
 LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,

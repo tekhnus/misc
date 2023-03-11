@@ -7,13 +7,13 @@
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum **compdata, datum **builder_compdata) {
   datum nil = *datum_make_nil();
-  prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
+  prog_append_yield(sl, bdr_p, *datum_make_symbol("halt"), 0, 0,
                     nil, builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_call(sl, bdr_p, 0, *datum_make_list_of(compdata_get_top_polyindex(*builder_compdata)),
                    false, datum_make_symbol("plain"), 0, 0,
                    builder_compdata);
-  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil,
+  prog_append_yield(sl, ep, *datum_make_symbol("plain"), 0, 0, nil,
                     compdata);
   return 42;
 }

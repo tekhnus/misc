@@ -92,7 +92,7 @@ LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum **compdat
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum **compdata);
 LOCAL char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata);
-void prog_append_yield(vec *sl,size_t *begin,datum *type,size_t count,size_t recieve_count,datum meta,datum **compdata);
+void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum **compdata);
 LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source,datum **compdata,bool skip_first_debug);
 fdatum prog_compile(datum *source,datum **compdata);
 fdatum datum_read_one(FILE *stre);
