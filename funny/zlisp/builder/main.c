@@ -17,7 +17,11 @@ int main(int argc, char **argv) {
   char filename_copy[1024] = {0};
 
   if (argv[2][0] != '/') {
-    getcwd(filename_copy, sizeof(filename_copy));
+    char *res = getcwd(filename_copy, sizeof(filename_copy));
+    if (res == NULL) {
+      perror("while getting cwd");
+      return EXIT_FAILURE;
+    }
     strcat(filename_copy, "/");
   }
   strcat(filename_copy, argv[2]);

@@ -100,7 +100,7 @@ struct token {
 };
 
 LOCAL struct token token_read(FILE *strm) {
-  char c;
+  char c = 0; // = 0 is for the compiler.
   for (; !feof(strm) && is_whitespace(c = getc(strm));) {
   }
   if (feof(strm)) {
@@ -114,7 +114,7 @@ LOCAL struct token token_read(FILE *strm) {
   }
   if (isdigit(c) || c == '-') {
     int64_t sign = 1;
-    char h;
+    char h = 0;  // = 0 is to satisfy the compiler.
     if (c == '-') {
       sign = -1;
       c = getc(strm);
@@ -141,7 +141,7 @@ LOCAL struct token token_read(FILE *strm) {
     nm[0][0] = '\0';
     int c = 0;
     int i;
-    char x;
+    char x = 0;  // = 0 is to satisfy the compiler
     for (i = 0; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
       if (x == '/') {
         ++c;
