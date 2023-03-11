@@ -107,7 +107,7 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
                              offset_relocate(list_at(ins, 1), delta),
                              offset_relocate(list_at(ins, 2), delta));
   }
-  datum res = *datum_copy(ins);
+  datum res = datum_copy(ins);
   if (list_length(&res) < 2) {
     fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
     exit(EXIT_FAILURE);

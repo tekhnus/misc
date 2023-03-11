@@ -125,7 +125,7 @@ bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 void vec_copy(vec *dst,vec *src);
 void frame_copy(frame *dst,frame *src);
-datum *datum_copy(datum *d);
+datum datum_copy(datum *d);
 int list_index_of(datum *xs,datum *x);
 datum list_pop(datum *list);
 datum list_get_tail(datum *list);

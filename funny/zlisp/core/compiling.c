@@ -36,9 +36,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
-    datum *debug_compdata = datum_copy(*compdata);
+    datum debug_compdata = datum_copy(*compdata);
     prog_append_yield(
-                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), debug_compdata), 0, 0, *datum_make_nil(), compdata);
+                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), &debug_compdata), 0, 0, *datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -75,7 +75,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     *begin = vec_append_new(sl); // ???
 
     compdata_del(compdata);
-    datum false_compdata_val = *datum_copy(*compdata);
+    datum false_compdata_val = datum_copy(*compdata);
     datum *false_compdata = &false_compdata_val;
     err = prog_append_statement(
         sl, &true_end, list_at(stmt, 2), compdata);
@@ -122,7 +122,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     datum names;
     if (datum_is_list(list_at(stmt, 1))) {
-      names = *datum_copy(list_at(stmt, 1));
+      names = datum_copy(list_at(stmt, 1));
     } else {
       names = *datum_make_list_of(list_at(stmt, 1));
     }
@@ -139,10 +139,11 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     args = list_at(stmt, 2);
     body = list_at(stmt, 3);
     size_t s_off = vec_append_new(sl);
-    datum *routine_compdata = datum_copy(*compdata);
-    compdata_put(&routine_compdata, name);
-    compdata_start_new_section(&routine_compdata);
-    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata);
+    datum routine_compdata = datum_copy(*compdata);
+    datum *routine_compdata_ptr = &routine_compdata;
+    compdata_put(&routine_compdata_ptr, name);
+    compdata_start_new_section(&routine_compdata_ptr);
+    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata_ptr);
     if (err != NULL) {
       return err;
     }

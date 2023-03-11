@@ -252,13 +252,13 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_PUT_CONST) {
-      state_stack_put(r, *datum_copy(prg.put_const_value));
+      state_stack_put(r, datum_copy(prg.put_const_value));
       *routine_offset(r) = prg.put_const_next;
       continue;
     }
     if (prg.type == PROG_PUT_VAR) {
       datum *er = state_stack_at(r, prg.put_var_offset);
-      state_stack_put(r, *datum_copy(er));
+      state_stack_put(r, datum_copy(er));
       *routine_offset(r) = prg.put_var_next;
       continue;
     }
