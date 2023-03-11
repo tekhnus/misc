@@ -11,7 +11,7 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata) {
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  return fdatum_make_ok(*vec_to_datum(&sl));
+  return fdatum_make_ok(vec_to_datum(&sl));
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
@@ -95,7 +95,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
-    char *err = prog_append_statements(sl, begin, list_get_tail(stmt), compdata, false);
+    datum parts = list_get_tail(stmt);
+    char *err = prog_append_statements(sl, begin, &parts, compdata, false);
     if (err != NULL) {
       return err;
     }
@@ -207,13 +208,14 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       break;
     }
   }
-  datum *fns;
+  datum fnsv;
   if (datum_is_list(fn) && !datum_is_nil(fn) &&
       datum_is_the_symbol(list_at(fn, 0), "polysym")) {
-    fns = list_get_tail(fn);
+    fnsv = list_get_tail(fn);
   } else {
-    fns = datum_make_list_of(1, fn);
+    fnsv = *datum_make_list_of(1, fn);
   }
+  datum *fns = &fnsv;
   int index = 1;
   while (index < list_length(stmt)) {
     datum *tag = list_at(stmt, index);

@@ -21,12 +21,12 @@ LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
       return fdatum_make_panic("call-extension expected at least a single arg");
     }
     datum *fn = list_at(args, 0);
-    datum *callargs = list_get_tail(args);
+    datum callargs = list_get_tail(args);
     if (!datum_is_integer(fn)) {
       return fdatum_make_panic("call-extension expected a pointer to function");
     }
     fdatum (*fnptr)(datum *) = (fdatum(*)(datum *))fn->integer_value;
-    fdatum results = fnptr(callargs);
+    fdatum results = fnptr(&callargs);
     return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
     res = datum_make_int((int64_t)datum_deref);

@@ -86,7 +86,11 @@ fdatum builtin_cons(datum *args) {
   if (!datum_is_list(tail)) {
     return fdatum_make_panic("cons requires a list as a second argument");
   }
-  return fdatum_make_ok(*datum_make_list_of(1, datum_make_list(head, tail)));
+  datum e = *datum_make_list_of(1, head);
+  for (size_t i = 0; i < vec_length(&tail->list_value); ++i) {
+    list_append(&e, list_at(tail, i));
+  }
+  return fdatum_make_ok(*datum_make_list_of(1, &e));
 }
 
 fdatum builtin_head(datum *args) {
@@ -102,5 +106,6 @@ fdatum builtin_tail(datum *args) {
   if (!datum_is_list(list) || datum_is_nil(list)) {
     return fdatum_make_panic("cdr expects a nonempty list");
   }
-  return fdatum_make_ok(*datum_make_list_of(1, list_get_tail(list)));
+  datum tail = list_get_tail(list);
+  return fdatum_make_ok(*datum_make_list_of(1, &tail));
 }
