@@ -139,7 +139,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     args = list_at(stmt, 2);
     body = list_at(stmt, 3);
     size_t s_off = vec_append_new(sl);
-    datum *routine_compdata = compdata_put(*compdata, name);
+    datum *routine_compdata = datum_copy(*compdata);
+    routine_compdata = compdata_put(routine_compdata, name);
     routine_compdata = compdata_start_new_section(routine_compdata);
     char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata);
     if (err != NULL) {
