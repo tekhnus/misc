@@ -5,7 +5,6 @@
 #include <string.h>
 
 EXPORT fdatum prog_compile(datum *source, datum **compdata) {
-  *compdata = datum_copy(*compdata);
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
   char *err = prog_append_statements(&sl, &p, source, compdata, true);
@@ -376,7 +375,6 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
                              bool pop_one, datum *type,
                              int arg_count, int return_count,
                              datum **compdata) {
-  *compdata = datum_copy(*compdata);
   size_t next = vec_append_new(sl);
   datum new_indices = *datum_make_nil();
   size_t capture_size = 0;
@@ -405,7 +403,6 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, datum *indices,
 
 EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
                                 datum **compdata) {
-  *compdata = datum_copy(*compdata);
   size_t next = vec_append_new(sl);
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
@@ -424,7 +421,6 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
 
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
                                  int capture, datum **compdata) {
-  *compdata = datum_copy(*compdata);
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
       *(datum_make_list_of(datum_make_symbol(":put-prog"), datum_make_int(val),
@@ -437,6 +433,7 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum *type,
                               size_t count, size_t recieve_count, datum meta,
                               datum **compdata) {
   *compdata = datum_copy(*compdata);
+  // !!!
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *(datum_make_list_of(
       datum_make_symbol(":yield"), type, datum_make_int(count),
@@ -619,7 +616,6 @@ EXPORT datum compdata_get_shape(datum *compdata) {
 }
 
 EXPORT void compdata_give_names(datum *var, datum **compdata) {
-  *compdata = datum_copy(*compdata);
   if (!datum_is_list(var)) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
