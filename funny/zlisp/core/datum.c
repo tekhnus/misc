@@ -59,10 +59,10 @@ EXPORT datum *datum_make_int(int64_t value) {
   return e;
 }
 
-EXPORT datum *datum_make_frame(frame fr) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_FRAME;
-  e->frame_value = fr;
+EXPORT datum datum_make_frame(frame fr) {
+  datum e;
+  e.type = DATUM_FRAME;
+  e.frame_value = fr;
   return e;
 }
 
@@ -335,7 +335,7 @@ EXPORT datum datum_copy(datum *d) {
   if (datum_is_frame(d)) {
     frame f;
     frame_copy(&f, &d->frame_value);
-    datum res = *datum_make_frame(f);
+    datum res = datum_make_frame(f);
     return res;
   }
   if (datum_is_list(d)) {

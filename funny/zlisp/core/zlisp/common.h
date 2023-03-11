@@ -45,7 +45,7 @@ bool datum_is_frame(datum *e);
 datum *datum_make_symbol(char *name);
 datum *datum_make_bytestring(char *text);
 datum *datum_make_int(int64_t value);
-datum *datum_make_frame(frame fr);
+datum datum_make_frame(frame fr);
 char *datum_repr(datum *e);
 char *datum_repr_bounded(datum *e,size_t depth);
 typedef struct fdatum fdatum;

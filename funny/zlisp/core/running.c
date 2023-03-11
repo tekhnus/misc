@@ -453,17 +453,17 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
     .state = vec_make(1024),
     .type_id = prg,
     .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
-  datum vars_datum = *datum_make_frame(vars);
+  datum vars_datum = datum_make_frame(vars);
   frame pc_frame = {
     .state = vec_make_of(1, *datum_make_int(prg)),
     .type_id = -1,
     .parent_type_id = prg};
-  datum pc_frame_datum = *datum_make_frame(pc_frame);
+  datum pc_frame_datum = datum_make_frame(pc_frame);
   frame exec = {
     .state = vec_make_of(2, vars_datum, pc_frame_datum),
     .type_id = -1,
     .parent_type_id = prg};
-  datum res = *datum_make_frame(exec);
+  datum res = datum_make_frame(exec);
   return res;
 }
 
