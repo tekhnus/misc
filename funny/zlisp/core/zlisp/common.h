@@ -4,33 +4,9 @@
 #include <stdint.h>
 #include <stdarg.h>
 typedef struct datum datum;
-datum *datum_make_list_of_impl(size_t count,datum **values);
-#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum *[]){__VA_ARGS__}) / sizeof(datum *), (datum *[]){__VA_ARGS__})
-bool datum_is_symbol(datum *e);
-bool datum_is_integer(datum *e);
-bool datum_is_bytestring(datum *e);
-bool datum_is_frame(datum *e);
-datum *datum_make_symbol(char *name);
-datum *datum_make_bytestring(char *text);
-datum *datum_make_int(int64_t value);
-typedef struct frame frame;
+datum *datum_make_list_of_impl(size_t count,datum *values);
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct vec vec;
-struct vec {
-  datum *begin;
-  size_t length;
-  size_t capacity;
-};
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
-datum *datum_make_frame(frame fr);
-char *datum_repr(datum *e);
-char *datum_repr_bounded(datum *e,size_t depth);
-typedef struct fdatum fdatum;
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -39,6 +15,18 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
+typedef struct vec vec;
+struct vec {
+  datum *begin;
+  size_t length;
+  size_t capacity;
+};
+typedef struct frame frame;
+struct frame {
+  vec state;
+  int type_id;
+  int parent_type_id;
+};
 struct datum {
   enum datum_type type;
   union {
@@ -49,6 +37,18 @@ struct datum {
     frame frame_value;
   };
 };
+#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum []){__VA_ARGS__}) / sizeof(datum), (datum[]){__VA_ARGS__})
+bool datum_is_symbol(datum *e);
+bool datum_is_integer(datum *e);
+bool datum_is_bytestring(datum *e);
+bool datum_is_frame(datum *e);
+datum *datum_make_symbol(char *name);
+datum *datum_make_bytestring(char *text);
+datum *datum_make_int(int64_t value);
+datum *datum_make_frame(frame fr);
+char *datum_repr(datum *e);
+char *datum_repr_bounded(datum *e,size_t depth);
+typedef struct fdatum fdatum;
 struct fdatum {
   int type;
   struct datum ok_value;
