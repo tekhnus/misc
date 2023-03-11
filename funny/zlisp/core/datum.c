@@ -30,13 +30,13 @@ EXPORT bool datum_is_bytestring(datum *e) {
 
 EXPORT bool datum_is_frame(datum *e) { return e->type == DATUM_FRAME; }
 
-EXPORT datum *datum_make_symbol(char *name) {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_SYMBOL;
+EXPORT datum datum_make_symbol(char *name) {
+  datum e;
+  e.type = DATUM_SYMBOL;
   size_t length = strlen(name);
-  e->symbol_value = malloc((length + 1) * sizeof(char));
+  e.symbol_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
-    e->symbol_value[i] = name[i];
+    e.symbol_value[i] = name[i];
   }
   return e;
 }
@@ -224,7 +224,7 @@ EXPORT vec vec_make_of(size_t count, ...) {
 }
 
 EXPORT size_t vec_append_new(vec *s) {
-  return vec_append(s, datum_make_list_of(*datum_make_symbol(":end")));
+  return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
 }
 
 EXPORT void vec_extend(vec *s, datum *instructions) {

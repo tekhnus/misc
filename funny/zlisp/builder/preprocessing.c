@@ -93,7 +93,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
     return res;
   }
   if (list_length(&res.ok_value) == 0) {
-    return fdatum_make_ok(*datum_make_symbol(":void-value"));
+    return fdatum_make_ok(datum_make_symbol(":void-value"));
   }
   if (list_length(&res.ok_value) != 1) {
     return fdatum_make_panic("expected a single result while preprocessing");

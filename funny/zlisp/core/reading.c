@@ -51,31 +51,31 @@ LOCAL bool is_allowed_inside_symbol(char c) {
 
 LOCAL bool consume_control_sequence(char c, datum *form) {
   if (c == '\'') {
-    *form = *datum_make_symbol("quote");
+    *form = datum_make_symbol("quote");
     return true;
   }
   if (c == '`') {
-    *form = *datum_make_symbol("backquote");
+    *form = datum_make_symbol("backquote");
     return true;
   }
   if (c == '~') {
-    *form = *datum_make_symbol("tilde");
+    *form = datum_make_symbol("tilde");
     return true;
   }
   if (c == '!') {
-    *form = *datum_make_symbol("bang");
+    *form = datum_make_symbol("bang");
     return true;
   }
   if (c == '#') {
-    *form = *datum_make_symbol("hash");
+    *form = datum_make_symbol("hash");
     return true;
   }
   if (c == '^') {
-    *form = *datum_make_symbol("hat");
+    *form = datum_make_symbol("hat");
     return true;
   }
   if (c == '@') {
-    *form = *datum_make_symbol("at");
+    *form = datum_make_symbol("at");
     return true;
   }
   return false;
@@ -156,11 +156,11 @@ LOCAL struct token token_read(FILE *strm) {
     }
     datum sym;
     if (c == 0) {
-      sym = *datum_make_symbol(nm[0]);
+      sym = datum_make_symbol(nm[0]);
     } else {
-      sym = datum_make_list_of(*datum_make_symbol("polysym"));
+      sym = datum_make_list_of(datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
-        datum comp = *datum_make_symbol(nm[cc]);
+        datum comp = datum_make_symbol(nm[cc]);
         list_append(&sym, &comp);
       }
     }

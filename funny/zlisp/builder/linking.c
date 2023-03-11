@@ -7,13 +7,13 @@
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum **compdata, datum **builder_compdata) {
   datum nil = datum_make_nil();
-  prog_append_yield(sl, bdr_p, *datum_make_symbol("halt"), 0, 0,
+  prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
                     nil, builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_call(sl, bdr_p, 0, datum_make_list_of(compdata_get_top_polyindex(*builder_compdata)),
                    false, datum_make_symbol("plain"), 0, 0,
                    builder_compdata);
-  prog_append_yield(sl, ep, *datum_make_symbol("plain"), 0, 0, nil,
+  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil,
                     compdata);
   return 42;
 }
@@ -26,7 +26,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   if (input_meta == NULL) {
     return NULL;
   }
-  datum s = datum_make_list_of(*datum_make_symbol("__main__"));
+  datum s = datum_make_list_of(datum_make_symbol("__main__"));
   compdata_give_names(&s,
                       builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
@@ -34,7 +34,8 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   if (err != NULL) {
     return err;
   }
-  prog_append_put_var(sl, bdr_p, datum_make_symbol("__main__"),
+  datum v = datum_make_symbol("__main__");
+  prog_append_put_var(sl, bdr_p, &v,
                       builder_compdata);
   datum fn_index = compdata_get_top_polyindex(*builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
@@ -63,7 +64,8 @@ LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps,
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
     get_varname(varname, dep);
-    prog_append_put_var(sl, p, datum_make_symbol(varname), compdata);
+    datum vn = datum_make_symbol(varname);
+    prog_append_put_var(sl, p, &vn, compdata);
   }
 }
 
@@ -145,8 +147,9 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
 
   char varname[1024];
   get_varname(varname, dep_and_sym);
+  datum vn = datum_make_symbol(varname);
   datum idex = compdata_get_polyindex(
-                                      *compdata, datum_make_symbol(varname));
+      *compdata, &vn);
   bool already_built = !datum_is_nil(&idex);
   if (already_built) {
     return NULL;
@@ -188,14 +191,14 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   datum names = datum_make_nil();
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
-  list_append(&names,
-              datum_make_symbol(varname));
+  vn = datum_make_symbol(varname);
+  list_append(&names, &vn);
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
     datum depsym = datum_make_list_of(datum_copy(dep), datum_copy(sym));
     get_varname(varname, &depsym);
-    list_append(
-                &names, datum_make_symbol(varname));
+    vn = datum_make_symbol(varname);
+    list_append(&names, &vn);
   }
   compdata_give_names(&names, compdata);
   return NULL;

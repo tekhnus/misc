@@ -33,7 +33,7 @@ fdatum builtin_annotate(datum *args) {
     return fdatum_make_panic("incomplete implementation of type");
   }
   return fdatum_make_ok(
-                        datum_make_list_of(datum_make_list_of(*datum_make_symbol(type), datum_copy(arg_value))));
+                        datum_make_list_of(datum_make_list_of(datum_make_symbol(type), datum_copy(arg_value))));
 }
 
 fdatum builtin_is_constant(datum *args) {
