@@ -36,8 +36,9 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
+    datum *debug_compdata = datum_copy(*compdata);
     prog_append_yield(
-                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), *compdata), 0, 0, *datum_make_nil(), compdata);
+                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), debug_compdata), 0, 0, *datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -432,8 +433,6 @@ EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum *type,
                               size_t count, size_t recieve_count, datum meta,
                               datum **compdata) {
-  *compdata = datum_copy(*compdata);
-  // !!!
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = *(datum_make_list_of(
       datum_make_symbol(":yield"), type, datum_make_int(count),
