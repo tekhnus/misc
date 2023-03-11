@@ -8,12 +8,12 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum **compdata, datum **builder_compdata) {
   datum nil = *datum_make_nil();
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
-                    &nil, builder_compdata);
+                    nil, builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
   prog_append_call(sl, bdr_p, datum_make_list_of(1, compdata_get_top_polyindex(*builder_compdata)),
                    false, datum_make_symbol("plain"), 0, 0,
                    builder_compdata);
-  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, &nil,
+  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil,
                     compdata);
   return 42;
 }
@@ -143,8 +143,9 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
 
   char varname[1024];
   get_varname(varname, dep_and_sym);
-  bool already_built = !datum_is_nil(compdata_get_polyindex(
-      *compdata, datum_make_symbol(varname)));
+  datum idex = compdata_get_polyindex(
+                                      *compdata, datum_make_symbol(varname));
+  bool already_built = !datum_is_nil(&idex);
   if (already_built) {
     return NULL;
   }
