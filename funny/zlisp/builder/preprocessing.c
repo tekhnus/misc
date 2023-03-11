@@ -21,7 +21,7 @@ EXPORT fdatum file_source(char *fname) {
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg,
                   &expander_compdata_ptr, &expander_builder_compdata_ptr);
   read_result rr;
-  datum res = *datum_make_nil();
+  datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
         &rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
@@ -56,7 +56,7 @@ LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
     return fdatum_make_ok(*e);
   }
   if (!datum_is_the_symbol(list_at(e, 0), "bang")) {
-    datum res = *datum_make_nil();
+    datum res = datum_make_nil();
 
     for (int i = 0; i < list_length(e); ++i) {
       datum *x = list_at(e, i);

@@ -211,7 +211,7 @@ EXPORT read_result datum_read(FILE *strm) {
   }
   if (tok.type == TOKEN_LEFT_PAREN) {
     read_result elem;
-    datum list = *datum_make_nil();
+    datum list = datum_make_nil();
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
         list_append(&list, &elem.ok_value);

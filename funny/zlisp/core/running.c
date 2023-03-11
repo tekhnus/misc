@@ -78,10 +78,10 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
   routine r = get_routine_from_datum(r0d);
-  datum args = *datum_make_nil();
+  datum args = datum_make_nil();
   fdatum rerr;
-  fdatum res = fdatum_make_ok(*datum_make_nil());
-  datum current_statement = *datum_make_nil();
+  fdatum res = fdatum_make_ok(datum_make_nil());
+  datum current_statement = datum_make_nil();
   for (;;) {
     rerr = routine_run(sl, &r, args);
     if (fdatum_is_panic(rerr)) {
@@ -120,7 +120,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
         fprintf(stderr, "unknown debugger cmd\n");
         exit(EXIT_FAILURE);
       }
-      args = *datum_make_nil();
+      args = datum_make_nil();
       continue;
     }
     if (!datum_is_list(&yield_type) ||
@@ -405,12 +405,12 @@ LOCAL datum state_stack_pop(routine *r) {
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count) {
-  datum form = *datum_make_nil();
+  datum form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum arg = state_stack_pop(r);
     list_append(&form, &arg);
   }
-  datum res = *datum_make_nil();
+  datum res = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum x = list_pop(&form);
     list_append(&res, &x);
@@ -431,7 +431,7 @@ LOCAL size_t routine_get_count(routine *r) {
 }
 
 LOCAL datum routine_get_shape(routine *r) {
-  datum res = *datum_make_nil();
+  datum res = datum_make_nil();
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
     list_append(&res, datum_make_int(vec_length(&r->frames[i]->state)));
   }

@@ -19,7 +19,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
-      prog_append_yield(sl, off, datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("statement"), datum_copy(stmt)), 0, 0, *datum_make_nil(), compdata);
+      prog_append_yield(sl, off, datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("statement"), datum_copy(stmt)), 0, 0, datum_make_nil(), compdata);
     }
     char *err = prog_append_statement(sl, off, stmt, compdata);
     if (err != NULL) {
@@ -38,7 +38,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_symbol(stmt)) {
     datum debug_compdata = datum_copy(*compdata);
     prog_append_yield(
-                      sl, begin, datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("compdata"), debug_compdata), 0, 0, *datum_make_nil(), compdata);
+                      sl, begin, datum_make_list_of(*datum_make_symbol("debugger"), *datum_make_symbol("compdata"), debug_compdata), 0, 0, datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -184,7 +184,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     prog_append_yield(
         sl, begin, target,
-        argcnt, recieve_count, *datum_make_nil(), compdata);
+        argcnt, recieve_count, datum_make_nil(), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "backquote")) {
@@ -239,7 +239,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "unknown tag";
     }
   }
-  datum indices = *datum_make_nil();
+  datum indices = datum_make_nil();
   int fn_index = 0;
   int chop = 0;
   if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "..")) {
@@ -323,8 +323,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     return fdatum_make_panic("wrong usage spec");
   }
   int index = 1;
-  datum vars = *datum_make_nil();
-  datum specs = *datum_make_nil();
+  datum vars = datum_make_nil();
+  datum specs = datum_make_nil();
   for (; index < list_length(spec); ++index) {
       datum *item = list_at(spec, index);
     if (!datum_is_list(item) || list_length(item) < 2 ||
@@ -475,8 +475,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
     return fdatum_make_panic("wrong export spec");
   }
   int index = 1;
-  datum names = *datum_make_nil();
-  datum expressions = *datum_make_nil();
+  datum names = datum_make_nil();
+  datum expressions = datum_make_nil();
   for (; index < list_length(spec); ++index) {
     datum *item = list_at(spec, index);
     if (!datum_is_list(item) || list_length(item) != 2) {
@@ -498,7 +498,7 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
   if (args == NULL) {
     return "args can't be null";
   } else {
-    prog_append_recieve(sl, &s, args, *datum_make_nil(), routine_compdata);
+    prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
   datum st = datum_make_list_of(datum_copy(stmt));
   return prog_append_statements(sl, &s, &st, routine_compdata, false);
@@ -539,7 +539,7 @@ LOCAL void prog_join(vec *sl, size_t a, size_t b, size_t e) {
 }
 
 EXPORT datum compdata_make() {
-  datum nil = *datum_make_nil();
+  datum nil = datum_make_nil();
   return datum_make_list_of(nil);
 }
 
@@ -588,11 +588,11 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
                                *datum_make_int(idx));
     }
   }
-  return *datum_make_nil();
+  return datum_make_nil();
 }
 
 LOCAL void compdata_start_new_section(datum **compdata) {
-  datum nil = *datum_make_nil();
+  datum nil = datum_make_nil();
   list_append(*compdata, &nil);
 }
 
@@ -605,7 +605,7 @@ EXPORT datum compdata_get_top_polyindex(datum *compdata) {
 }
 
 EXPORT datum compdata_get_shape(datum *compdata) {
-  datum res = *datum_make_nil();
+  datum res = datum_make_nil();
   for (int i = 0; i < list_length(compdata); ++i) {
     list_append(&res, datum_make_int(list_length(list_at(compdata, i))));
   }

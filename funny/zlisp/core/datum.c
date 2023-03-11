@@ -246,7 +246,7 @@ EXPORT datum *vec_at(vec *s, size_t index) {
 EXPORT size_t vec_length(vec *s) { return s->length; }
 
 EXPORT datum vec_to_datum(vec *sl) {
-  datum res = *datum_make_nil();
+  datum res = datum_make_nil();
   for (size_t i = 0; i < vec_length(sl); ++i) {
     list_append(&res, vec_at(sl, i));
   }
@@ -261,10 +261,10 @@ EXPORT datum vec_pop(vec *v) {
   return *res;
 }
 
-EXPORT datum *datum_make_nil() {
-  datum *e = malloc(sizeof(datum));
-  e->type = DATUM_LIST;
-  e->list_value = vec_make(0);
+EXPORT datum datum_make_nil() {
+  datum e;
+  e.type = DATUM_LIST;
+  e.list_value = vec_make(0);
   return e;
 }
 
@@ -277,7 +277,7 @@ EXPORT bool datum_is_nil(datum *e) {
 }
 
 EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
-  datum e = *datum_make_nil();
+  datum e = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     datum *elem = values + i;
     list_append(&e, elem);
@@ -304,7 +304,7 @@ EXPORT datum *list_get_last(datum *list) {
 EXPORT datum list_get_tail(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);
-  datum e = *datum_make_nil();
+  datum e = datum_make_nil();
   for (int i = 1; i < list_length(list); ++i) {
     list_append(&e, list_at(list, i));
   }
@@ -339,7 +339,7 @@ EXPORT datum datum_copy(datum *d) {
     return res;
   }
   if (datum_is_list(d)) {
-    datum e = *datum_make_nil();
+    datum e = datum_make_nil();
     for (int i = 0; i < list_length(d); ++i) {
       datum item = datum_copy(list_at(d, i));
       list_append(&e, &item);

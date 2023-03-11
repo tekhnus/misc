@@ -6,7 +6,7 @@
 
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum **compdata, datum **builder_compdata) {
-  datum nil = *datum_make_nil();
+  datum nil = datum_make_nil();
   prog_append_yield(sl, bdr_p, *datum_make_symbol("halt"), 0, 0,
                     nil, builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
@@ -184,7 +184,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   prog_append_call(sl, p, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
-  datum names = *datum_make_nil();
+  datum names = datum_make_nil();
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
   list_append(&names,

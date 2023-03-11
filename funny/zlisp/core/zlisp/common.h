@@ -69,7 +69,7 @@ datum *vec_at(vec *s,size_t index);
 size_t vec_length(vec *s);
 datum vec_to_datum(vec *sl);
 datum vec_pop(vec *v);
-datum *datum_make_nil();
+datum datum_make_nil();
 bool datum_is_list(datum *e);
 bool datum_is_nil(datum *e);
 int list_length(datum *seq);

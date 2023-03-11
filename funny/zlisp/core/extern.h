@@ -134,7 +134,7 @@ datum *list_get_last(datum *list);
 bool datum_is_nil(datum *e);
 datum vec_pop(vec *v);
 void list_append(datum *list,datum *value);
-datum *datum_make_nil();
+datum datum_make_nil();
 datum vec_to_datum(vec *sl);
 size_t vec_length(vec *s);
 datum *vec_at(vec *s,size_t index);
