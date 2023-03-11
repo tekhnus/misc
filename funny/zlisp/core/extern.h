@@ -4,10 +4,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdarg.h>
-#define LOCAL static
-typedef struct routine routine;
-LOCAL size_t routine_get_stack_size(routine *r);
 typedef struct datum datum;
+typedef struct routine routine;
+datum *routine_make_alloc(ptrdiff_t prg,routine *context);
+#define LOCAL static
+LOCAL size_t routine_get_stack_size(routine *r);
 #include <inttypes.h>
 #include <stdio.h>
 enum datum_type {
@@ -41,7 +42,7 @@ struct datum {
   };
 };
 void state_stack_put(routine *r,datum value);
-datum *routine_make(ptrdiff_t prg,routine *context);
+datum routine_make(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum list);
 LOCAL datum state_stack_pop(routine *r);
@@ -54,7 +55,7 @@ datum *state_stack_at(routine *r,datum *offset);
 LOCAL routine routine_get_prefix(routine *r,size_t capture_count);
 LOCAL routine make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);
 LOCAL void print_backtrace(vec sl,routine *r);
-LOCAL datum *routine_get_shape(routine *r);
+LOCAL datum routine_get_shape(routine *r);
 LOCAL bool get_child(vec sl,routine *r);
 typedef struct fdatum fdatum;
 struct fdatum {

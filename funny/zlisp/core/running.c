@@ -101,17 +101,17 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
         datum compdata_shape = compdata_get_shape(compdata);
         routine rt = r;
         while (get_child(sl, &rt)) {}
-        datum *state_shape = routine_get_shape(&rt);
-        if (list_length(&compdata_shape) != list_length(state_shape)) {
+        datum state_shape = routine_get_shape(&rt);
+        if (list_length(&compdata_shape) != list_length(&state_shape)) {
           fprintf(stderr, "compdata mismatch: %s != %s\n",
-                  datum_repr(&compdata_shape), datum_repr(state_shape));
+                  datum_repr(&compdata_shape), datum_repr(&state_shape));
           exit(EXIT_FAILURE);
         }
         int len = list_length(&compdata_shape);
         if (!datum_eq(list_at(&compdata_shape, len - 1),
-                      list_at(state_shape, len - 1))) {
+                      list_at(&state_shape, len - 1))) {
           fprintf(stderr, "compdata mismatch: %s != %s\n",
-                  datum_repr(&compdata_shape), datum_repr(state_shape));
+                  datum_repr(&compdata_shape), datum_repr(&state_shape));
           exit(EXIT_FAILURE);
         }
       } else if (datum_is_the_symbol(cmd, "statement")) {
@@ -233,7 +233,7 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
-      datum prog_ptr = *routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
+      datum prog_ptr = routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
       state_stack_put(r, prog_ptr);
       *routine_offset(r) = prg.put_prog_next;
       continue;
@@ -430,10 +430,10 @@ LOCAL size_t routine_get_count(routine *r) {
   return r->cnt;
 }
 
-LOCAL datum *routine_get_shape(routine *r) {
-  datum *res = datum_make_nil();
+LOCAL datum routine_get_shape(routine *r) {
+  datum res = *datum_make_nil();
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
-    list_append(res, datum_make_int(vec_length(&r->frames[i]->state)));
+    list_append(&res, datum_make_int(vec_length(&r->frames[i]->state)));
   }
   return res;
 }
@@ -447,23 +447,30 @@ LOCAL void routine_merge(routine *r, routine *rt_tail) {
   }
 }
 
-EXPORT datum *routine_make(ptrdiff_t prg, routine *context) {
+EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
   frame vars = {
     .state = vec_make(1024),
     .type_id = prg,
     .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
-  datum *vars_datum = datum_make_frame(vars);
+  datum vars_datum = *datum_make_frame(vars);
   frame pc_frame = {
     .state = vec_make_of(1, *datum_make_int(prg)),
     .type_id = -1,
     .parent_type_id = prg};
-  datum *pc_frame_datum = datum_make_frame(pc_frame);
+  datum pc_frame_datum = *datum_make_frame(pc_frame);
   frame exec = {
-    .state = vec_make_of(2, *vars_datum, *pc_frame_datum),
+    .state = vec_make_of(2, vars_datum, pc_frame_datum),
     .type_id = -1,
     .parent_type_id = prg};
-  datum *res = datum_make_frame(exec);
+  datum res = *datum_make_frame(exec);
+  return res;
+}
+
+EXPORT datum *routine_make_alloc(ptrdiff_t prg, routine *context) {
+  // This one is for using from lisp.
+  datum *res = malloc(sizeof(datum));
+  *res = routine_make(prg, context);
   return res;
 }
 
