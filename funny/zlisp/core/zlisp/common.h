@@ -80,8 +80,6 @@ void list_append(datum *list,datum *value);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
-void frame_copy(frame *dst,frame *src);
-void vec_copy(vec *dst,vec *src);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,

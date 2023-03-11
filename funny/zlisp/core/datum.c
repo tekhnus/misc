@@ -333,8 +333,7 @@ EXPORT int list_index_of(datum *xs, datum *x) {
 
 EXPORT datum datum_copy(datum *d) {
   if (datum_is_frame(d)) {
-    frame f;
-    frame_copy(&f, &d->frame_value);
+    frame f = frame_copy(&d->frame_value);
     datum res = datum_make_frame(f);
     return res;
   }
@@ -349,17 +348,18 @@ EXPORT datum datum_copy(datum *d) {
   return *d;
 }
 
-EXPORT void frame_copy(frame *dst, frame *src) {
-  vec_copy(&dst->state, &src->state);
-  dst->type_id = src->type_id;
-  dst->parent_type_id = src->parent_type_id;
+LOCAL frame frame_copy(frame *src) {
+  frame dst;
+  dst.state = vec_copy(&src->state);
+  dst.type_id = src->type_id;
+  dst.parent_type_id = src->parent_type_id;
+  return dst;
 }
 
-EXPORT void vec_copy(vec *dst, vec *src) {
-  dst->capacity = src->capacity;
-  dst->length = src->length;
-  dst->begin = malloc(src->capacity * sizeof(datum));
-  for (size_t i = 0; i < dst->length; ++i) {
-    dst->begin[i] = datum_copy(vec_at(src, i));
+LOCAL vec vec_copy(vec *src) {
+  vec dst = vec_make(src->capacity);
+  for (size_t i = 0; i < src->length; ++i) {
+    vec_append(&dst, datum_copy(vec_at(src, i)));
   }
+  return dst;
 }
