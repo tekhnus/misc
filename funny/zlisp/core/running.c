@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+ptrdiff_t OFFSET_ERROR = PTRDIFF_MAX;
+
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -94,6 +96,14 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       res = fdatum_make_ok(sec);
       break;
     }
+    if (datum_is_the_symbol(&yield_type, "panic")) {
+      assert(datum_is_list(&sec));
+      assert(list_length(&sec) == 1);
+      datum *val = list_at(&sec, 0);
+      assert(datum_is_bytestring(val));
+      res = fdatum_make_panic(val->bytestring_value);
+      break;
+    }
     if (datum_is_list(&yield_type) && list_length(&yield_type) == 3 && datum_is_the_symbol(list_at(&yield_type, 0), "debugger")) {
       datum *cmd = list_at(&yield_type, 1);
       if (datum_is_the_symbol(cmd, "compdata")) {
@@ -164,10 +174,22 @@ LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
   return rt;
 }
 
+datum error_instruction;
+
+LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
+  if (index == OFFSET_ERROR) {
+    error_instruction = datum_make_list_of(
+      datum_make_symbol(":yield"), datum_make_symbol("panic"), datum_make_int(1),
+      datum_make_int(31415926), datum_make_nil(), datum_make_int(OFFSET_ERROR));
+    return &error_instruction;
+  }
+  return vec_at(sl, index);
+}
+
 LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
   bool pass_args = true;
   for (;;) {
-    prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
+    prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
       datum *recieve_type = prg.call_type;
       routine rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
@@ -197,7 +219,9 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       }
       datum argz = *list_at(&err.ok_value, 1);
       if (prg.call_return_count != (long unsigned int)list_length(&argz)) {
-        return fdatum_make_panic("call count and yield count are not equal");
+        state_stack_put(r, datum_make_bytestring("call count and yield count are not equal"));
+        *routine_offset(r) = OFFSET_ERROR;
+        continue;
       }
 
       if (prg.call_pop_one) {
@@ -330,7 +354,7 @@ LOCAL prog datum_to_prog(datum *d) {
 }
 
 LOCAL bool get_child(vec sl, routine *r) {
-  prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
+  prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
   if (prg.type != PROG_CALL) {
     return false;
   }

@@ -41,15 +41,17 @@ struct datum {
     frame frame_value;
   };
 };
-void state_stack_put(routine *r,datum value);
 datum routine_make(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum list);
 LOCAL datum state_stack_pop(routine *r);
+void state_stack_put(routine *r,datum value);
 LOCAL size_t routine_get_count(routine *r);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d);
+LOCAL datum *instruction_at(vec *sl,ptrdiff_t index);
+extern datum error_instruction;
 LOCAL void routine_merge(routine *r,routine *rt_tail);
 datum *state_stack_at(routine *r,datum *offset);
 LOCAL routine routine_get_prefix(routine *r,size_t capture_count);
@@ -66,6 +68,7 @@ struct fdatum {
 LOCAL fdatum routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
+extern ptrdiff_t OFFSET_ERROR;
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
