@@ -81,17 +81,13 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
                                                       datum *)) {
   routine r = get_routine_from_datum(r0d);
   datum args = datum_make_nil();
-  fdatum rerr;
+  datum rerr;
   fdatum res = fdatum_make_ok(datum_make_nil());
   datum current_statement = datum_make_nil();
   for (;;) {
     rerr = routine_run(sl, &r, args);
-    if (fdatum_is_panic(rerr)) {
-      res = rerr;
-      break;
-    }
-    datum sec = list_pop(&rerr.ok_value);
-    datum yield_type = list_pop(&rerr.ok_value);
+    datum sec = list_pop(&rerr);
+    datum yield_type = list_pop(&rerr);
     if (datum_is_the_symbol(&yield_type, "halt")) {
       res = fdatum_make_ok(sec);
       break;
@@ -186,7 +182,7 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   return vec_at(sl, index);
 }
 
-LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
+LOCAL datum routine_run(vec sl, routine *r, datum args) {
   bool pass_args = true;
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
@@ -215,16 +211,13 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = OFFSET_ERROR;
         continue;
       }
-      fdatum err;
+      datum err;
       err = routine_run(sl, &rt, args);
-      if (fdatum_is_panic(err)) {
+      datum *yield_type = list_at(&err, 0);
+      if (!datum_eq(recieve_type, yield_type)) {
         return err;
       }
-      datum *yield_type = list_at(&err.ok_value, 0);
-      if (!datum_eq(recieve_type, yield_type)) {
-        return fdatum_make_ok(err.ok_value);
-      }
-      datum argz = *list_at(&err.ok_value, 1);
+      datum argz = *list_at(&err, 1);
       if (prg.call_return_count != (long unsigned int)list_length(&argz)) {
         state_stack_put(r, datum_make_bytestring("call count and yield count are not equal"));
         *routine_offset(r) = OFFSET_ERROR;
@@ -253,12 +246,10 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       *routine_offset(r) = prg.yield_next;
       continue;
     }
-    if (pass_args) {
-      return fdatum_make_panic("args passed to a wrong instruction");
-    }
+    assert(!pass_args);
     if (prg.type == PROG_YIELD) {
       datum res = state_stack_collect(r, prg.yield_count);
-      return fdatum_make_ok(datum_make_list_of(*prg.yield_type, res));
+      return datum_make_list_of(*prg.yield_type, res);
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);
@@ -301,9 +292,11 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       *routine_offset(r) = prg.collect_next;
       continue;
     }
-    return fdatum_make_panic("unhandled instruction type");
+    fprintf(stderr, "unhandled instruction type\n");
+    exit(EXIT_FAILURE);
   }
-  return fdatum_make_panic("unreachable");
+  fprintf(stderr, "unreachable\n");
+  exit(EXIT_FAILURE);
 }
 
 LOCAL prog datum_to_prog(datum *d) {
