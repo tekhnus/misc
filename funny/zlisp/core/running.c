@@ -191,25 +191,32 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL && pass_args) {
+      pass_args = false;
       datum *recieve_type = prg.call_type;
       routine rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
+      bool good = true;
       for (size_t i = 0; i < routine_get_count(&rt); ++i) {
         if((i == 0 && -1 != (rt.frames[0]->parent_type_id)) || (i > 0 && (rt.frames[i]->parent_type_id != rt.frames[i - 1]->type_id))) {
-          char bufbeg[2048];
-          char *buf = bufbeg;
-          buf[0] = '\0';
-          for (size_t j = 0; j < routine_get_count(&rt); ++j) {
-            buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
-                    (rt.frames[j]->parent_type_id), (rt.frames[j]->type_id),
-                    vec_length(&rt.frames[j]->state));
-          }
-          buf += sprintf(buf, "wrong call, frame types are wrong\n");
-          return fdatum_make_panic(bufbeg);
+          good = false;
+          break;
         }
+      }
+      if (!good) {
+        char bufbeg[2048];
+        char *buf = bufbeg;
+        buf[0] = '\0';
+        for (size_t j = 0; j < routine_get_count(&rt); ++j) {
+          buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
+                         (rt.frames[j]->parent_type_id), (rt.frames[j]->type_id),
+                         vec_length(&rt.frames[j]->state));
+        }
+        buf += sprintf(buf, "wrong call, frame types are wrong\n");
+        state_stack_put(r, datum_make_bytestring(bufbeg));
+        *routine_offset(r) = OFFSET_ERROR;
+        continue;
       }
       fdatum err;
       err = routine_run(sl, &rt, args);
-      pass_args = false;
       if (fdatum_is_panic(err)) {
         return err;
       }
@@ -232,15 +239,17 @@ LOCAL fdatum routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_YIELD && pass_args) {
+      pass_args = false;
       if (list_length(&args) != (int)prg.yield_recieve_count) {
         char err[256];
         sprintf(err,
                 "recieved incorrect number of arguments: expected %zu, got %d",
                 prg.yield_recieve_count, list_length(&args));
-        return fdatum_make_panic(err);
+        state_stack_put(r, datum_make_bytestring(err));
+        *routine_offset(r) = OFFSET_ERROR;
+        continue;
       }
       state_stack_put_all(r, args);
-      pass_args = false;
       *routine_offset(r) = prg.yield_next;
       continue;
     }
