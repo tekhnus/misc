@@ -5,10 +5,14 @@
 #include <string.h>
 
 #if INTERFACE
-typedef datum (*extension_fn)(datum *expr);
+typedef struct extension_fn extension_fn;
+struct extension_fn {
+  char *(*call)(vec *sl, size_t *begin,
+                              datum *stmt, datum **compdata, extension_fn *ext);
+};
 #endif
 
-EXPORT fdatum prog_compile(datum *source, datum **compdata, extension_fn ext) {
+EXPORT fdatum prog_compile(datum *source, datum **compdata, extension_fn *ext) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
   char *err = prog_append_statements(&sl, &p, source, compdata, ext, true);
@@ -19,7 +23,7 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata, extension_fn ext) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum **compdata, extension_fn ext, bool skip_first_debug) {
+                                   datum **compdata, extension_fn *ext, bool skip_first_debug) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
@@ -33,8 +37,8 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
   return NULL;
 }
 
-LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum **compdata, extension_fn ext) {
+EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
+                                  datum **compdata, extension_fn *ext) {
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -192,12 +196,12 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
         argcnt, recieve_count, datum_make_nil(), compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "backquote")) {
-    if (list_length(stmt) != 2) {
-      return "backquote should have a single arg";
-    }
-    return prog_append_backquoted_statement(
-                                            sl, begin, list_at(stmt, 1), compdata, ext);
+  char *res = ext->call(sl, begin, stmt, compdata, ext);
+  if (res == NULL) {
+    return NULL;
+  }
+  if (strcmp(res, "<not an extension>")) {
+    return res;
   }
 
   datum *fn = list_at(stmt, 0);
@@ -355,7 +359,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
-                                datum **compdata, extension_fn ext) {
+                                datum **compdata, extension_fn *ext) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -442,30 +446,6 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
   }
 }
 
-LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
-                                             datum *stmt, datum **compdata, extension_fn ext) {
-  if (!datum_is_list(stmt)) {
-    prog_append_put_const(sl, begin, stmt, compdata);
-    return NULL;
-  }
-  for (int i = 0; i < list_length(stmt); ++i) {
-    datum *elem = list_at(stmt, i);
-    char *err;
-    if (datum_is_list(elem) && list_length(elem) == 2 &&
-        datum_is_the_symbol(list_at(elem, 0), "tilde")) {
-      err = prog_append_statement(sl, begin, list_at(elem, 1),
-                                  compdata, ext);
-    } else {
-      err = prog_append_backquoted_statement(sl, begin, elem, compdata, ext);
-    }
-    if (err != NULL) {
-      return err;
-    }
-  }
-  prog_append_collect(sl, list_length(stmt), begin, compdata);
-  return NULL;
-}
-
 LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args,
                                datum meta, datum **compdata) {
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
@@ -498,7 +478,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
-                              datum *stmt, datum **routine_compdata, extension_fn ext) {
+                              datum *stmt, datum **routine_compdata, extension_fn *ext) {
   if (args == NULL) {
     return "args can't be null";
   } else {
@@ -508,7 +488,7 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
   return prog_append_statements(sl, &s, &st, routine_compdata, ext, false);
 }
 
-LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
+EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
                                  datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(
@@ -523,7 +503,7 @@ EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   *begin = next;
 }
 
-LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
+EXPORT void prog_append_collect(vec *sl, size_t count, size_t *begin,
                                datum **compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count),

@@ -73,7 +73,7 @@ LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
-LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum **compdata);
+void prog_append_collect(vec *sl,size_t count,size_t *begin,datum **compdata);
 void prog_append_nop(vec *sl,size_t *begin);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(vec *sl,size_t *begin,datum *args,datum meta,datum **compdata);
@@ -82,23 +82,26 @@ void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bo
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);
-typedef datum(*extension_fn)(datum *expr);
-LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata,extension_fn ext);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
-LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,extension_fn ext);
+typedef struct extension_fn extension_fn;
+struct extension_fn {
+  char *(*call)(vec *sl, size_t *begin,
+                              datum *stmt, datum **compdata, extension_fn *ext);
+};
+LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,extension_fn *ext);
 LOCAL void compdata_start_new_section(datum **compdata);
 void compdata_give_names(datum *var,datum **compdata);
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum **compdata,datum var);
 LOCAL void compdata_del(datum **compdata);
-LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum **compdata,extension_fn ext);
+LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum **compdata,extension_fn *ext);
 LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum **compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum **compdata);
-LOCAL void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum **compdata);
-LOCAL char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata,extension_fn ext);
+void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum **compdata);
+char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata,extension_fn *ext);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum **compdata);
-LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source,datum **compdata,extension_fn ext,bool skip_first_debug);
-fdatum prog_compile(datum *source,datum **compdata,extension_fn ext);
+LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source,datum **compdata,extension_fn *ext,bool skip_first_debug);
+fdatum prog_compile(datum *source,datum **compdata,extension_fn *ext);
 fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {

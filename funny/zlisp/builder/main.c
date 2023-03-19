@@ -58,14 +58,48 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return res;
 }
 
-datum trivial_extension(datum *expr) {
-  return datum_copy(expr);
+char *call_ext(vec *sl, size_t *begin,
+              datum *stmt, datum **compdata, struct extension_fn *ext) {
+  datum *op = list_at(stmt, 0);
+  if (datum_is_the_symbol(op, "backquote")) {
+    if (list_length(stmt) != 2) {
+      return "backquote should have a single arg";
+    }
+    return prog_append_backquoted_statement(
+                                            sl, begin, list_at(stmt, 1), compdata, ext);
+  }
+  return "<not an extension>";
+}
+
+LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
+                                             datum *stmt, datum **compdata, extension_fn *ext) {
+  if (!datum_is_list(stmt)) {
+    prog_append_put_const(sl, begin, stmt, compdata);
+    return NULL;
+  }
+  for (int i = 0; i < list_length(stmt); ++i) {
+    datum *elem = list_at(stmt, i);
+    char *err;
+    if (datum_is_list(elem) && list_length(elem) == 2 &&
+        datum_is_the_symbol(list_at(elem, 0), "tilde")) {
+      err = prog_append_statement(sl, begin, list_at(elem, 1),
+                                  compdata, ext);
+    } else {
+      err = prog_append_backquoted_statement(sl, begin, elem, compdata, ext);
+    }
+    if (err != NULL) {
+      return err;
+    }
+  }
+  prog_append_collect(sl, list_length(stmt), begin, compdata);
+  return NULL;
 }
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum **compdata, datum **builder_compdata,
                         datum *settings) {
-  fdatum bytecode = prog_compile(source, compdata, trivial_extension);
+  struct extension_fn trivial_extension = {call_ext};
+  fdatum bytecode = prog_compile(source, compdata, &trivial_extension);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
@@ -99,7 +133,8 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   }
   datum compdata = compdata_make();
   datum *compdata_ptr = &compdata;
-  return prog_compile(&src.ok_value, &compdata_ptr, trivial_extension);
+  struct extension_fn trivial_extension = {call_ext};
+  return prog_compile(&src.ok_value, &compdata_ptr, &trivial_extension);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {
