@@ -58,10 +58,14 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return res;
 }
 
+datum trivial_extension(datum *expr) {
+  return datum_copy(expr);
+}
+
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum **compdata, datum **builder_compdata,
                         datum *settings) {
-  fdatum bytecode = prog_compile(source, compdata);
+  fdatum bytecode = prog_compile(source, compdata, trivial_extension);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
@@ -95,7 +99,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   }
   datum compdata = compdata_make();
   datum *compdata_ptr = &compdata;
-  return prog_compile(&src.ok_value, &compdata_ptr);
+  return prog_compile(&src.ok_value, &compdata_ptr, trivial_extension);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {

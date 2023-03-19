@@ -4,10 +4,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT fdatum prog_compile(datum *source, datum **compdata) {
+#if INTERFACE
+typedef datum (*extension_fn)(datum *expr);
+#endif
+
+EXPORT fdatum prog_compile(datum *source, datum **compdata, extension_fn ext) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
-  char *err = prog_append_statements(&sl, &p, source, compdata, true);
+  char *err = prog_append_statements(&sl, &p, source, compdata, ext, true);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -15,13 +19,13 @@ EXPORT fdatum prog_compile(datum *source, datum **compdata) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum **compdata, bool skip_first_debug) {
+                                   datum **compdata, extension_fn ext, bool skip_first_debug) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
       prog_append_yield(sl, off, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("statement"), datum_copy(stmt)), 0, 0, datum_make_nil(), compdata);
     }
-    char *err = prog_append_statement(sl, off, stmt, compdata);
+    char *err = prog_append_statement(sl, off, stmt, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -30,7 +34,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
 }
 
 LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum **compdata) {
+                                  datum **compdata, extension_fn ext) {
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -54,14 +58,14 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return prog_append_usages(sl, begin, stmt, compdata);
   }
   if (datum_is_the_symbol(op, "export")) {
-    return prog_append_exports(sl, begin, stmt, compdata);
+    return prog_append_exports(sl, begin, stmt, compdata, ext);
   }
   if (datum_is_the_symbol(op, "if")) {
     if (list_length(stmt) != 4) {
       return "if should have three args";
     }
     char *err;
-    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata);
+    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -78,13 +82,13 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     datum false_compdata_val = datum_copy(*compdata);
     datum *false_compdata = &false_compdata_val;
     err = prog_append_statement(
-        sl, &true_end, list_at(stmt, 2), compdata);
+                                sl, &true_end, list_at(stmt, 2), compdata, ext);
     if (err != NULL) {
       return err;
     }
     err = prog_append_statement(
         sl, &false_end, list_at(stmt, 3),
-        &false_compdata);
+        &false_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -97,7 +101,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_the_symbol(op, "progn")) {
     datum parts = list_get_tail(stmt);
-    char *err = prog_append_statements(sl, begin, &parts, compdata, false);
+    char *err = prog_append_statements(sl, begin, &parts, compdata, ext, false);
     if (err != NULL) {
       return err;
     }
@@ -116,7 +120,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     char *err =
         prog_append_statement(sl, begin, list_at(stmt, 2),
-                              compdata);
+                              compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -143,7 +147,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     datum *routine_compdata_ptr = &routine_compdata;
     compdata_put(&routine_compdata_ptr, datum_copy(name));
     compdata_start_new_section(&routine_compdata_ptr);
-    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata_ptr);
+    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata_ptr, ext);
     if (err != NULL) {
       return err;
     }
@@ -178,7 +182,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t argcnt = list_length(stmt) - index;
     for (; index < list_length(stmt); ++index) {
       datum *component = list_at(stmt, index);
-      char *err = prog_append_statement(sl, begin, component, compdata);
+      char *err = prog_append_statement(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -193,7 +197,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "backquote should have a single arg";
     }
     return prog_append_backquoted_statement(
-        sl, begin, list_at(stmt, 1), compdata);
+                                            sl, begin, list_at(stmt, 1), compdata, ext);
   }
 
   datum *fn = list_at(stmt, 0);
@@ -275,7 +279,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       list_append(&indices, idx);
     } else {
       char *err =
-        prog_append_statement(sl, begin, component, compdata);
+        prog_append_statement(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -290,7 +294,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       prog_append_put_const(sl, begin, arg, compdata);
     } else {
       char *err =
-          prog_append_statement(sl, begin, arg, compdata);
+        prog_append_statement(sl, begin, arg, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -351,7 +355,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
-                                datum **compdata) {
+                                datum **compdata, extension_fn ext) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -363,7 +367,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   datum *exprs = list_at(&re, 1);
   for (int i = 0; i < list_length(exprs); ++i) {
     datum *expr = list_at(exprs, i);
-    prog_append_statement(sl, begin, expr, compdata);
+    prog_append_statement(sl, begin, expr, compdata, ext);
   }
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
@@ -439,7 +443,7 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
 }
 
 LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
-                                             datum *stmt, datum **compdata) {
+                                             datum *stmt, datum **compdata, extension_fn ext) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -450,9 +454,9 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
     if (datum_is_list(elem) && list_length(elem) == 2 &&
         datum_is_the_symbol(list_at(elem, 0), "tilde")) {
       err = prog_append_statement(sl, begin, list_at(elem, 1),
-                                  compdata);
+                                  compdata, ext);
     } else {
-      err = prog_append_backquoted_statement(sl, begin, elem, compdata);
+      err = prog_append_backquoted_statement(sl, begin, elem, compdata, ext);
     }
     if (err != NULL) {
       return err;
@@ -494,14 +498,14 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
-                              datum *stmt, datum **routine_compdata) {
+                              datum *stmt, datum **routine_compdata, extension_fn ext) {
   if (args == NULL) {
     return "args can't be null";
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
   datum st = datum_make_list_of(datum_copy(stmt));
-  return prog_append_statements(sl, &s, &st, routine_compdata, false);
+  return prog_append_statements(sl, &s, &st, routine_compdata, ext, false);
 }
 
 LOCAL void prog_append_put_const(vec *sl, size_t *begin, datum *val,
