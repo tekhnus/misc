@@ -35,11 +35,12 @@ EXPORT fdatum file_source(char *fname) {
   }
 
   struct expander_state e = expander_state_make();
+  struct extension_fn trivial_extension = {call_ext, NULL};
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
-                              &rr.ok_value, &e);
+                              &rr.ok_value, &e, &trivial_extension);
     if (fdatum_is_panic(val)) {
       char err[1024];
       char *end = err;
@@ -63,7 +64,7 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
+EXPORT fdatum datum_expand(datum *e, struct expander_state *est, extension_fn *trivial_extension) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(*e);
   }
@@ -73,7 +74,7 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
     for (int i = 0; i < list_length(e); ++i) {
       datum *x = list_at(e, i);
       fdatum nxt =
-          datum_expand(x, est);
+        datum_expand(x, est, trivial_extension);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
@@ -84,14 +85,14 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
   if (list_length(e) != 2) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(list_at(e, 1), est);
+  fdatum exp = datum_expand(list_at(e, 1), est, trivial_extension);
   if (fdatum_is_panic(exp)) {
     return exp;
   }
   datum mod = datum_make_list_of(exp.ok_value);
   datum set = datum_make_bytestring("c-prelude");
   char *err = prog_build(&est->expander_sl, &est->expander_prg, &est->expander_builder_prg, &mod, &est->expander_compdata,
-                         &est->expander_builder_compdata, &set);
+                         &est->expander_builder_compdata, &set, trivial_extension);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;

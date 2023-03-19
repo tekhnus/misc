@@ -82,7 +82,7 @@
         (if n
             (return (../nth (../tail n) (../tail xs)))
           (return (../head xs)))
-      (panic "nth fail"))))
+      (../panic "nth fail"))))
 
 (defn get-fn-ptr (handle c-name)
   (progn
@@ -127,10 +127,15 @@
     (def (a1 a2 a3 a4 a5 a6 a7) (return @7 :ready))
     (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7)))))
 
+(defn c-function-8 (fn-ptr signature)
+  (progn
+    (def (a1 a2 a3 a4 a5 a6 a7 a8) (return @8 :ready))
+    (return (../pointer-call-and-deserialize fn-ptr signature `(~a1 ~a2 ~a3 ~a4 ~a5 ~a6 ~a7 ~a8)))))
+
 (defn c-function (handle c-name signature)
   (progn
     (def argssig (../head signature))
-    (def objs `( ~c-function-0 ~c-function-1 ~c-function-2 ~c-function-3 ~c-function-4 ~c-function-5 ~c-function-6 ~c-function-7))
+    (def objs `( ~c-function-0 ~c-function-1 ~c-function-2 ~c-function-3 ~c-function-4 ~c-function-5 ~c-function-6 ~c-function-7 ~c-function-8))
     (def obj (../nth argssig objs))
     (def fn-ptr (../get-fn-ptr handle c-name))
     (../obj @mut fn-ptr signature)

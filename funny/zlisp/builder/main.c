@@ -39,8 +39,9 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
+  struct extension_fn trivial_extension = {call_ext, NULL};
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
-                         &builder_compdata, &set);
+                         &builder_compdata, &set, &trivial_extension);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -50,13 +51,20 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
+EXPORT extension_fn *extension_alloc_make() {
+  // For Lisp.
+  extension_fn *res = malloc(sizeof(extension_fn));
+  *res = (extension_fn){call_ext, NULL};
+  return res;
+}
+
 EXPORT datum *get_host_ffi_settings() { // used in lisp
   datum *res = malloc(sizeof(datum));
   *res = datum_make_bytestring("c-prelude");
   return res;
 }
 
-char *call_ext(vec *sl, size_t *begin,
+EXPORT char *call_ext(vec *sl, size_t *begin,
               datum *stmt, datum *compdata, struct extension_fn *ext) {
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
@@ -101,9 +109,8 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
-                        datum *settings) {
-  struct extension_fn trivial_extension = {call_ext, NULL};
-  fdatum bytecode = prog_compile(source, compdata, &trivial_extension);
+                        datum *settings, extension_fn *trivial_extension) {
+  fdatum bytecode = prog_compile(source, compdata, trivial_extension);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }

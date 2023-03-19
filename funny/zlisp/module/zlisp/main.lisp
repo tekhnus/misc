@@ -22,9 +22,10 @@
 (def make-routine-with-empty-state (/prelude/c-function selflib "routine_make_alloc" '((sizet pointer) pointer)))
 (def prog-slice-make (/prelude/c-function selflib "vec_make" '((sizet) progslice)))
 (def prog-slice-append-new- (/prelude/c-function selflib "vec_append_new" '((pointer) sizet)))
-(def prog-build-one-c-host (/prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer) pointer)))
+(def prog-build-one-c-host (/prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def get-host-ffi-settings (/prelude/c-function buildlib "get_host_ffi_settings" '(() pointer)))
+(def ext-make (/prelude/c-function buildlib "extension_alloc_make" '(() pointer)))
 
 (defn prog-slice-append-new (sl)
   (return (/prelude/prog-slice-append-new- (/prelude/wrap-pointer-into-pointer sl))))
@@ -34,9 +35,9 @@
     (def nothing (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) compdata bdrcompdata))
     (return 42)))
 
-(defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
+(defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata ex)
   (progn
-    (def e (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings)))
+    (def e (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex))
     (if (/std/eq 0 (/prelude/dereference e 'int64))
         (return `(:ok :nothing))
       (return `(:err ~(/prelude/dereference e 'string))))))
@@ -88,4 +89,5 @@
         (make-routine-with-empty-state make-routine-with-empty-state)
         (prog-slice-make prog-slice-make)
         (prog-slice-append-new prog-slice-append-new)
-        (compdata-make compdata-make))
+        (compdata-make compdata-make)
+        (ext-make ext-make))
