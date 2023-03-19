@@ -5,7 +5,7 @@
 #include <string.h>
 
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
-                              datum **compdata, datum **builder_compdata) {
+                              datum *compdata, datum *builder_compdata) {
   datum nil = datum_make_nil();
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
                     nil, builder_compdata);
@@ -19,7 +19,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
 }
 
 EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
-                            datum **builder_compdata, size_t p,
+                            datum *builder_compdata, size_t p,
                             fdatum (*module_bytecode)(char *, datum *),
                             datum *settings) {
   datum *input_meta = extract_meta(*sl, p);
@@ -47,7 +47,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
 
 LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
                             fdatum (*module_bytecode)(char *, datum *),
-                            datum *settings, datum **compdata) {
+                            datum *settings, datum *compdata) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
     char *err = prog_build_dep(sl, p, dep, module_bytecode, settings, compdata);
@@ -59,7 +59,7 @@ LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
 }
 
 LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps,
-                         datum **compdata) {
+                         datum *compdata) {
   char varname[1024];
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
@@ -138,7 +138,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 
 LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *),
-                           datum *settings, datum **compdata) {
+                           datum *settings, datum *compdata) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     return "req expects bytestrings";

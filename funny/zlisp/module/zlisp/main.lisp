@@ -31,12 +31,12 @@
 
 (defn init-prog (sl pptr bpptr compdata bdrcompdata)
   (progn
-    (def nothing (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer compdata) (/prelude/wrap-pointer-into-pointer bdrcompdata)))
+    (def nothing (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) compdata bdrcompdata))
     (return 42)))
 
 (defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata)
   (progn
-    (def e (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) (/prelude/wrap-pointer-into-pointer compdata) (/prelude/wrap-pointer-into-pointer bdrcompdata) (/prelude/get-host-ffi-settings)))
+    (def e (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings)))
     (if (/std/eq 0 (/prelude/dereference e 'int64))
         (return `(:ok :nothing))
       (return `(:err ~(/prelude/dereference e 'string))))))

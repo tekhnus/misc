@@ -37,12 +37,10 @@ int main(int argc, char **argv) {
   size_t p = vec_append_new(&sl);
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
-  datum *compdata_ptr = &compdata;
-  datum *builder_compdata_ptr = &builder_compdata;
-  prog_build_init(&sl, &p, &bp, &compdata_ptr, &builder_compdata_ptr);
+  prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
-  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata_ptr,
-                         &builder_compdata_ptr, &set);
+  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
+                         &builder_compdata, &set);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -59,7 +57,7 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 }
 
 char *call_ext(vec *sl, size_t *begin,
-              datum *stmt, datum **compdata, struct extension_fn *ext) {
+              datum *stmt, datum *compdata, struct extension_fn *ext) {
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt) != 2) {
@@ -78,7 +76,7 @@ char *call_ext(vec *sl, size_t *begin,
 }
 
 LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
-                                             datum *stmt, datum **compdata, extension_fn *ext) {
+                                             datum *stmt, datum *compdata, extension_fn *ext) {
   if (!datum_is_list(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -102,7 +100,7 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 }
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
-                        datum **compdata, datum **builder_compdata,
+                        datum *compdata, datum *builder_compdata,
                         datum *settings) {
   struct extension_fn trivial_extension = {call_ext, NULL};
   fdatum bytecode = prog_compile(source, compdata, &trivial_extension);
@@ -138,9 +136,8 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum compdata = compdata_make();
-  datum *compdata_ptr = &compdata;
   struct extension_fn trivial_extension = {call_ext, NULL};
-  return prog_compile(&src.ok_value, &compdata_ptr, &trivial_extension);
+  return prog_compile(&src.ok_value, &compdata, &trivial_extension);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {

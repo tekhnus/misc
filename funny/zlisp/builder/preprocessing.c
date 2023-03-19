@@ -24,17 +24,15 @@ EXPORT fdatum file_source(char *fname) {
   size_t expander_builder_prg = vec_append_new(&expander_sl);
   datum expander_routine = routine_make(expander_builder_prg, NULL);
   datum expander_compdata = compdata_make();
-  datum *expander_compdata_ptr = &expander_compdata;
   datum expander_builder_compdata = compdata_make();
-  datum *expander_builder_compdata_ptr = &expander_builder_compdata;
   prog_build_init(&expander_sl, &expander_prg, &expander_builder_prg,
-                  &expander_compdata_ptr, &expander_builder_compdata_ptr);
+                  &expander_compdata, &expander_builder_compdata);
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
         &rr.ok_value, &expander_sl, &expander_routine, &expander_prg,
-        &expander_compdata_ptr, &expander_builder_prg, &expander_builder_compdata_ptr);
+        &expander_compdata, &expander_builder_prg, &expander_builder_compdata);
     if (fdatum_is_panic(val)) {
       char err[1024];
       char *end = err;
@@ -59,8 +57,8 @@ EXPORT fdatum file_source(char *fname) {
 }
 
 LOCAL fdatum datum_expand(datum *e, vec *sl, datum *routine, size_t *p,
-                          datum **compdata, size_t *bp,
-                          datum **builder_compdata) {
+                          datum *compdata, size_t *bp,
+                          datum *builder_compdata) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(*e);
   }
