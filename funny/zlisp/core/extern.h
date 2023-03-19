@@ -87,6 +87,7 @@ typedef struct extension_fn extension_fn;
 struct extension_fn {
   char *(*call)(vec *sl, size_t *begin,
                               datum *stmt, datum **compdata, extension_fn *ext);
+  void *state;
 };
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum **routine_compdata,extension_fn *ext);
 LOCAL void compdata_start_new_section(datum **compdata);

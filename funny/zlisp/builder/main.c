@@ -68,6 +68,12 @@ char *call_ext(vec *sl, size_t *begin,
     return prog_append_backquoted_statement(
                                             sl, begin, list_at(stmt, 1), compdata, ext);
   }
+  if (datum_is_the_symbol(op, "bang2")) {
+    if (list_length(stmt) != 2) {
+      return "bang2 should have a single arg";
+    }
+    
+  }
   return "<not an extension>";
 }
 
@@ -98,7 +104,7 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum **compdata, datum **builder_compdata,
                         datum *settings) {
-  struct extension_fn trivial_extension = {call_ext};
+  struct extension_fn trivial_extension = {call_ext, NULL};
   fdatum bytecode = prog_compile(source, compdata, &trivial_extension);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
@@ -133,7 +139,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   }
   datum compdata = compdata_make();
   datum *compdata_ptr = &compdata;
-  struct extension_fn trivial_extension = {call_ext};
+  struct extension_fn trivial_extension = {call_ext, NULL};
   return prog_compile(&src.ok_value, &compdata_ptr, &trivial_extension);
 }
 

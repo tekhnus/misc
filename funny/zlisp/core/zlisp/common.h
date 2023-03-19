@@ -104,6 +104,7 @@ typedef struct extension_fn extension_fn;
 struct extension_fn {
   char *(*call)(vec *sl, size_t *begin,
                               datum *stmt, datum **compdata, extension_fn *ext);
+  void *state;
 };
 fdatum prog_compile(datum *source,datum **compdata,extension_fn *ext);
 char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum **compdata,extension_fn *ext);

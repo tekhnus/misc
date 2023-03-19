@@ -1,5 +1,14 @@
 #include <preprocessing.h>
 
+struct expander_state {
+  vec expander_sl;
+  size_t expander_prg;
+  size_t expander_builder_prg;
+  datum expander_routine;
+  datum expander_compdata;
+  datum expander_builder_compdata;
+};
+
 EXPORT fdatum file_source(char *fname) {
   FILE *stre = fopen(fname, "r");
   if (stre == NULL) {

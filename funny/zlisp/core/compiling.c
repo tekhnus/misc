@@ -9,6 +9,7 @@ typedef struct extension_fn extension_fn;
 struct extension_fn {
   char *(*call)(vec *sl, size_t *begin,
                               datum *stmt, datum **compdata, extension_fn *ext);
+  void *state;
 };
 #endif
 
