@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <assert.h>
 
 int main(int argc, char **argv) {
   if (argc != 3) {
@@ -39,7 +40,8 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
-  struct extension_fn trivial_extension = {call_ext, NULL};
+  struct expander_state exps = expander_state_make();
+  struct extension_fn trivial_extension = {call_ext, &exps};
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
                          &builder_compdata, &set, &trivial_extension);
   if (err != NULL) {
@@ -75,10 +77,15 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
                                             sl, begin, list_at(stmt, 1), compdata, ext);
   }
   if (datum_is_the_symbol(op, "bang2")) {
+    assert(ext->state);
     if (list_length(stmt) != 2) {
       return "bang2 should have a single arg";
     }
-    
+    fdatum res = datum_expand(stmt, ext->state, ext);
+    if (fdatum_is_panic(res)) {
+      return res.panic_message;
+    }
+    return prog_append_statement(sl, begin, &res.ok_value, compdata, ext);
   }
   return "<not an extension>";
 }
@@ -130,6 +137,8 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
 }
 
 LOCAL fdatum compile_module(char *module, datum *settings) {
+  /* currently the extension for imported modules are hardcoded.
+     TODO(me): fix this.*/
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
   }
@@ -143,7 +152,8 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum compdata = compdata_make();
-  struct extension_fn trivial_extension = {call_ext, NULL};
+  struct expander_state exps = expander_state_make();
+  struct extension_fn trivial_extension = {call_ext, &exps};
   return prog_compile(&src.ok_value, &compdata, &trivial_extension);
 }
 

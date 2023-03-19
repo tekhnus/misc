@@ -1,6 +1,7 @@
 #include <preprocessing.h>
 
 #if EXPORT_INTERFACE
+#include <zlisp/common.h>
 struct expander_state {
   vec expander_sl;
   size_t expander_prg;
