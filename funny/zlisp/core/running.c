@@ -104,7 +104,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       datum *cmd = list_at(&yield_type, 1);
       if (datum_is_the_symbol(cmd, "compdata")) {
         datum *compdata = list_at(&yield_type, 2);
-        datum compdata_shape = compdata_get_shape(compdata);
+        datum compdata_shape = compdata_get_shape(&compdata);
         routine rt = r;
         while (get_child(sl, &rt)) {}
         datum state_shape = routine_get_shape(&rt);

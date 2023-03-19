@@ -69,8 +69,8 @@ struct fdatum {
 };
 fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 extern ptrdiff_t OFFSET_ERROR;
-LOCAL void compdata_validate(datum *compdata);
-bool compdata_has_value(datum *compdata);
+LOCAL void compdata_validate(datum **compdata);
+bool compdata_has_value(datum **compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 void prog_append_collect(vec *sl,size_t count,size_t *begin,datum **compdata);
@@ -79,9 +79,9 @@ LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(vec *sl,size_t *begin,datum *args,datum meta,datum **compdata);
 LOCAL fdatum prog_read_usages(datum *spec);
 void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum **compdata);
-datum compdata_get_top_polyindex(datum *compdata);
-datum compdata_get_polyindex(datum *compdata,datum *var);
-datum compdata_get_shape(datum *compdata);
+datum compdata_get_top_polyindex(datum **compdata);
+datum compdata_get_polyindex(datum **compdata,datum *var);
+datum compdata_get_shape(datum **compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum **compdata);
 typedef struct extension_fn extension_fn;
 struct extension_fn {

@@ -258,7 +258,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     ++fn_index;
     chop = 1;
   }
-  datum shape = compdata_get_shape(*compdata);
+  datum shape = compdata_get_shape(compdata);
   if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "")) {
     ++fn_index;
     chop = list_length(&shape);
@@ -274,7 +274,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (!datum_is_symbol(component)) {
         return "expected an lvalue";
       }
-      datum idx = compdata_get_polyindex(*compdata, component);
+      datum idx = compdata_get_polyindex(compdata, component);
       if (datum_is_nil(&idx)) {
         if (datum_is_nil(&idx)) {
           fprintf(stderr, "function not found: %s\n", datum_repr(component));
@@ -288,7 +288,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       if (err != NULL) {
         return err;
       }
-      datum idx = compdata_get_top_polyindex(*compdata);
+      datum idx = compdata_get_top_polyindex(compdata);
       list_append(&indices, idx);
     }
   }
@@ -410,7 +410,7 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
   }
-  datum polyindex = compdata_get_polyindex(*compdata, val);
+  datum polyindex = compdata_get_polyindex(compdata, val);
   if (datum_is_nil(&polyindex)) {
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
@@ -535,18 +535,18 @@ EXPORT datum *compdata_alloc_make() {
   return res;
 }
 
-EXPORT bool compdata_has_value(datum *compdata) {
+EXPORT bool compdata_has_value(datum **compdata) {
   compdata_validate(compdata);
-  datum *outer_frame = list_get_last(compdata);
+  datum *outer_frame = list_get_last(*compdata);
   return !datum_is_nil(outer_frame) && datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
-LOCAL void compdata_validate(datum *compdata) {
-  datum *outer_frame = list_get_last(compdata);
+LOCAL void compdata_validate(datum **compdata) {
+  datum *outer_frame = list_get_last(*compdata);
   if (!datum_is_nil(outer_frame) &&
       datum_is_the_symbol(list_get_last(outer_frame), "__different_if_branches")) {
     fprintf(stderr, "compdata_del: if branches had different compdata\n");
-    fprintf(stderr, "%s\n", datum_repr(compdata));
+    fprintf(stderr, "%s\n", datum_repr(*compdata));
     exit(EXIT_FAILURE);
   }
 }
@@ -557,16 +557,16 @@ LOCAL void compdata_put(datum **compdata, datum var) {
 }
 
 LOCAL void compdata_del(datum **compdata) {
-  compdata_validate(*compdata);
+  compdata_validate(compdata);
   datum *last_frame = list_get_last(*compdata);
   list_pop(last_frame);
 }
 
-EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
-  int frames = list_length(compdata);
+EXPORT datum compdata_get_polyindex(datum **compdata, datum *var) {
+  int frames = list_length(*compdata);
   assert(frames > 0);
   for (int frame = frames - 1; frame >= 0; --frame) {
-    datum *comp = list_at(compdata, frame);
+    datum *comp = list_at(*compdata, frame);
     int idx = list_index_of(comp, var);
     if (idx != -1) {
       return datum_make_list_of(datum_make_int(frame),
@@ -581,18 +581,18 @@ LOCAL void compdata_start_new_section(datum **compdata) {
   list_append(*compdata, nil);
 }
 
-EXPORT datum compdata_get_top_polyindex(datum *compdata) {
-  size_t frames = list_length(compdata);
-  size_t indices = list_length(list_get_last(compdata));
+EXPORT datum compdata_get_top_polyindex(datum **compdata) {
+  size_t frames = list_length(*compdata);
+  size_t indices = list_length(list_get_last(*compdata));
   assert(frames > 0 && indices > 0);
   return datum_make_list_of(datum_make_int(frames - 1),
                            datum_make_int(indices - 1));
 }
 
-EXPORT datum compdata_get_shape(datum *compdata) {
+EXPORT datum compdata_get_shape(datum **compdata) {
   datum res = datum_make_nil();
-  for (int i = 0; i < list_length(compdata); ++i) {
-    datum ii = datum_make_int(list_length(list_at(compdata, i)));
+  for (int i = 0; i < list_length(*compdata); ++i) {
+    datum ii = datum_make_int(list_length(list_at(*compdata, i)));
     list_append(&res, ii);
   }
   return res;
