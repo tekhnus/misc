@@ -1,6 +1,6 @@
 #include <preprocessing.h>
 
-#if INTERFACE
+#if EXPORT_INTERFACE
 struct expander_state {
   vec expander_sl;
   size_t expander_prg;
@@ -10,6 +10,19 @@ struct expander_state {
   datum expander_builder_compdata;
 };
 #endif
+
+EXPORT struct expander_state expander_state_make() {
+  struct expander_state e;
+  e.expander_sl = vec_make(16 * 1024);
+  e.expander_prg = vec_append_new(&e.expander_sl);
+  e.expander_builder_prg = vec_append_new(&e.expander_sl);
+  e.expander_routine = routine_make(e.expander_builder_prg, NULL);
+  e.expander_compdata = compdata_make();
+  e.expander_builder_compdata = compdata_make();
+  prog_build_init(&e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
+                  &e.expander_compdata, &e.expander_builder_compdata);
+  return e;
+}
 
 EXPORT fdatum file_source(char *fname) {
   FILE *stre = fopen(fname, "r");
@@ -21,15 +34,7 @@ EXPORT fdatum file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  struct expander_state e;
-  e.expander_sl = vec_make(16 * 1024);
-  e.expander_prg = vec_append_new(&e.expander_sl);
-  e.expander_builder_prg = vec_append_new(&e.expander_sl);
-  e.expander_routine = routine_make(e.expander_builder_prg, NULL);
-  e.expander_compdata = compdata_make();
-  e.expander_builder_compdata = compdata_make();
-  prog_build_init(&e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
-                  &e.expander_compdata, &e.expander_builder_compdata);
+  struct expander_state e = expander_state_make();
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
@@ -58,7 +63,7 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-LOCAL fdatum datum_expand(datum *e, struct expander_state *est) {
+EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(*e);
   }
