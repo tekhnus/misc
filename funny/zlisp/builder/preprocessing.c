@@ -38,25 +38,13 @@ EXPORT fdatum file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  struct expander_state e = expander_state_make();
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
-    fdatum val = datum_expand(
-                              &rr.ok_value, &e, "bang");
-    if (fdatum_is_panic(val)) {
-      char err[1024];
-      char *end = err;
-      end += sprintf(end, "while expanding %s: %s", datum_repr(&rr.ok_value),
-                     val.panic_message);
-      return fdatum_make_panic(err);
-    }
-    // fprintf(stderr, "exp\n  from %s\n  to   %s\n", datum_repr(rr.ok_value),
-    // datum_repr(val.ok_value));
-    if (datum_is_the_symbol(&val.ok_value, ":void-value")) {
+    if (datum_is_the_symbol(&rr.ok_value, ":void-value")) {
       continue;
     }
-    list_append(&res, val.ok_value);
+    list_append(&res, rr.ok_value);
   }
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
