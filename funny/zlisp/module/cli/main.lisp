@@ -26,10 +26,6 @@
  (cdm "zlisp" compdata-make)
  (em "zlisp" ext-make))
 
-!(req
-  (stdmacro "stdmacro")
-  (switch "stdmacro" switch))
-
 (def readme "A basic REPL for zlisp.")
 
 (defn repl

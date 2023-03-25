@@ -24,6 +24,28 @@ EXPORT struct expander_state expander_state_make() {
   e.expander_builder_compdata = compdata_make();
   prog_build_init(&e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
                   &e.expander_compdata, &e.expander_builder_compdata);
+  extension_fn ext_for_macros = {call_ext, NULL};
+  datum macro_init =
+    datum_make_list_of(
+                       datum_make_list_of(
+                                          datum_make_symbol("req"),
+                                          datum_make_list_of(datum_make_symbol("stdmacro"), datum_make_bytestring("stdmacro")),
+                                          datum_make_list_of(datum_make_symbol("fntest"), datum_make_bytestring("stdmacro"), datum_make_symbol("fntest")),
+                                          datum_make_list_of(datum_make_symbol("switch"), datum_make_bytestring("stdmacro"), datum_make_symbol("switch"))));
+  datum set = datum_make_bytestring("c-prelude-no-macros");
+  char *res = prog_build(
+             &e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
+             &macro_init,
+             &e.expander_compdata, &e.expander_builder_compdata, &set, &ext_for_macros);
+  if (res) {
+    fprintf(stderr, "while building macros: %s\n", res);
+    exit(EXIT_FAILURE);
+  }
+  fdatum init_res = routine_run_in_ffi_host(e.expander_sl, &e.expander_routine);
+  if (fdatum_is_panic(init_res)) {
+    fprintf(stderr, "while initializing macros: %s\n", init_res.panic_message);
+    exit(EXIT_FAILURE);
+  }
   e.expander_ext = (extension_fn){call_ext, NULL};
   return e;
 }
@@ -31,6 +53,7 @@ EXPORT struct expander_state expander_state_make() {
 EXPORT fdatum file_source(char *fname) {
   FILE *stre = fopen(fname, "r");
   if (stre == NULL) {
+    perror("file_source");
     char err[1024];
     err[0] = 0;
     strcat(err, "Module not found: ");

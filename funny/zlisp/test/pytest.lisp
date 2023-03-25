@@ -13,10 +13,6 @@
  (print "prelude" print)
  (concat-bytestrings "std" concat-bytestrings))
 
-!(req
-  (stdmacro "stdmacro")
-  (fntest "stdmacro" fntest))
-
 (def panics '())
 
 !(#/stdmacro/fntest

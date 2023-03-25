@@ -18,10 +18,6 @@
  (libc "libc")
  (print "libc" print))
 
-!(req
-  (stdmacro "stdmacro")
-  (fntest "stdmacro" fntest))
-
 (def panics '())
 
 !(#/stdmacro/fntest

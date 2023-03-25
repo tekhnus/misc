@@ -149,8 +149,16 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
   }
+  bool use_macros = true;
+  if (!strcmp(settings->bytestring_value, "c-prelude-no-macros")) {
+    use_macros = false;
+  }
   if (!strcmp(module, "prelude")) {
-    module = settings->bytestring_value;
+    if (!strcmp(settings->bytestring_value, "c-prelude-no-macros")) {
+      module = "c-prelude";
+    } else {
+      module = settings->bytestring_value;
+    }
   }
   char fname[1024] = {'\0'};
   module_to_filename(fname, module);
@@ -159,8 +167,11 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum compdata = compdata_make();
-  struct expander_state exps = expander_state_make();
-  struct extension_fn trivial_extension = {call_ext, &exps};
+  struct expander_state exps;
+  if (use_macros) {
+    exps = expander_state_make();
+  }
+  struct extension_fn trivial_extension = {call_ext, use_macros ? &exps : NULL};
   return prog_compile(&src.ok_value, &compdata, &trivial_extension);
 }
 
