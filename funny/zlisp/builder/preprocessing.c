@@ -55,32 +55,8 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-EXPORT fdatum datum_expand(datum *e, struct expander_state *est, char *tag) {
-  if (!datum_is_list(e) || datum_is_nil(e)) {
-    return fdatum_make_ok(*e);
-  }
-  if (!datum_is_the_symbol(list_at(e, 0), tag)) {
-    datum res = datum_make_nil();
-
-    for (int i = 0; i < list_length(e); ++i) {
-      datum *x = list_at(e, i);
-      fdatum nxt =
-        datum_expand(x, est, tag);
-      if (fdatum_is_panic(nxt)) {
-        return nxt;
-      }
-      list_append(&res, nxt.ok_value);
-    }
-    return fdatum_make_ok(res);
-  }
-  if (list_length(e) != 2) {
-    return fdatum_make_panic("! should be used with a single arg");
-  }
-  fdatum exp = datum_expand(list_at(e, 1), est, tag);
-  if (fdatum_is_panic(exp)) {
-    return exp;
-  }
-  datum mod = datum_make_list_of(exp.ok_value);
+EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
+  datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");
   char *err = prog_build(&est->expander_sl, &est->expander_prg, &est->expander_builder_prg, &mod, &est->expander_compdata,
                          &est->expander_builder_compdata, &set, &est->expander_ext);

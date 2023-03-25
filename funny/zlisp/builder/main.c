@@ -81,7 +81,7 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
     if (list_length(stmt) != 2) {
       return "bang should have a single arg";
     }
-    fdatum res = datum_expand(stmt, ext->state, "bang");
+    fdatum res = datum_expand(list_at(stmt, 1), ext->state);
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
