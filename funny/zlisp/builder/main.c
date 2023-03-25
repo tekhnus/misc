@@ -76,12 +76,12 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
     return prog_append_backquoted_statement(
                                             sl, begin, list_at(stmt, 1), compdata, ext);
   }
-  if (datum_is_the_symbol(op, "bang2")) {
+  if (datum_is_the_symbol(op, "bang")) {
     assert(ext->state);
     if (list_length(stmt) != 2) {
-      return "bang2 should have a single arg";
+      return "bang should have a single arg";
     }
-    fdatum res = datum_expand(stmt, ext->state, "bang2");
+    fdatum res = datum_expand(stmt, ext->state, "bang");
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
