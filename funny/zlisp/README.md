@@ -32,7 +32,6 @@ and two implementations:
 - Implement program hashing, e.g. getting a hash of the given computation
 - Support parallelism
 
-- Unite preprocessor with quasiquotes
 - Come up with a less awkward macro syntax
 - Implement sanitized macros and/or self-describing identifiers and/or implicit imports
 
