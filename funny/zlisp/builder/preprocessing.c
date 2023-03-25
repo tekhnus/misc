@@ -78,8 +78,8 @@ EXPORT fdatum file_source(char *fname) {
 EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");
-  char *err = prog_build(&est->expander_sl, &est->expander_prg, &est->expander_builder_prg, &mod, &est->expander_compdata,
-                         &est->expander_builder_compdata, &set, &est->expander_ext);
+  char *err = prog_build(&est->expander_sl, &est->expander_prg, NULL, &mod, &est->expander_compdata,
+                         NULL, &set, &est->expander_ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;

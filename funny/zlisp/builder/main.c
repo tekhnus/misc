@@ -152,6 +152,9 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   datum nil = datum_make_nil();
   prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0,
                     nil, compdata);
+  if (!bp) {
+    return NULL;
+  }
   return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
                         settings, trivial_extension);
 }
