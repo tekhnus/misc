@@ -6,10 +6,8 @@
 struct expander_state {
   vec expander_sl;
   size_t expander_prg;
-  size_t expander_builder_prg;
   datum expander_routine;
   datum expander_compdata;
-  datum expander_builder_compdata;
   extension_fn expander_ext;
 };
 #endif
@@ -18,12 +16,12 @@ EXPORT struct expander_state expander_state_make() {
   struct expander_state e;
   e.expander_sl = vec_make(16 * 1024);
   e.expander_prg = vec_append_new(&e.expander_sl);
-  e.expander_builder_prg = vec_append_new(&e.expander_sl);
-  e.expander_routine = routine_make(e.expander_builder_prg, NULL);
+  size_t expander_builder_prg = vec_append_new(&e.expander_sl);
+  e.expander_routine = routine_make(expander_builder_prg, NULL);
   e.expander_compdata = compdata_make();
-  e.expander_builder_compdata = compdata_make();
-  prog_build_init(&e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
-                  &e.expander_compdata, &e.expander_builder_compdata);
+  datum expander_builder_compdata = compdata_make();
+  prog_build_init(&e.expander_sl, &e.expander_prg, &expander_builder_prg,
+                  &e.expander_compdata, &expander_builder_compdata);
   extension_fn ext_for_macros = {call_ext_for_macros, NULL};
   datum macro_init =
     datum_make_list_of(
@@ -34,9 +32,9 @@ EXPORT struct expander_state expander_state_make() {
                                           datum_make_list_of(datum_make_symbol("switch"), datum_make_bytestring("stdmacro"), datum_make_symbol("switch"))));
   datum set = datum_make_bytestring("c-prelude-no-macros");
   char *res = prog_build(
-             &e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
+             &e.expander_sl, &e.expander_prg, &expander_builder_prg,
              &macro_init,
-             &e.expander_compdata, &e.expander_builder_compdata, &set, &ext_for_macros);
+             &e.expander_compdata, &expander_builder_compdata, &set, &ext_for_macros);
   if (res) {
     fprintf(stderr, "while building macros: %s\n", res);
     exit(EXIT_FAILURE);

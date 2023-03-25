@@ -19,10 +19,8 @@ char *call_ext(vec *sl,size_t *begin,datum *stmt,datum *compdata,struct extensio
 struct expander_state {
   vec expander_sl;
   size_t expander_prg;
-  size_t expander_builder_prg;
   datum expander_routine;
   datum expander_compdata;
-  datum expander_builder_compdata;
   extension_fn expander_ext;
 };
 struct expander_state expander_state_make();

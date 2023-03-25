@@ -12,10 +12,8 @@ size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *b
 struct expander_state {
   vec expander_sl;
   size_t expander_prg;
-  size_t expander_builder_prg;
   datum expander_routine;
   datum expander_compdata;
-  datum expander_builder_compdata;
   extension_fn expander_ext;
 };
 struct expander_state expander_state_make();
