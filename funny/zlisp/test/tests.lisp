@@ -24,7 +24,7 @@
 
 (def panics '())
 
-(bang 42)
+(bang2 42)
 
 !(#/testing/fntest
   (return "hello, world!")

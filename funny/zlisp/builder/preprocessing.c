@@ -43,7 +43,7 @@ EXPORT fdatum file_source(char *fname) {
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
-                              &rr.ok_value, &e);
+                              &rr.ok_value, &e, "bang");
     if (fdatum_is_panic(val)) {
       char err[1024];
       char *end = err;
@@ -67,17 +67,17 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
+EXPORT fdatum datum_expand(datum *e, struct expander_state *est, char *tag) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(*e);
   }
-  if (!datum_is_the_symbol(list_at(e, 0), "bang")) {
+  if (!datum_is_the_symbol(list_at(e, 0), tag)) {
     datum res = datum_make_nil();
 
     for (int i = 0; i < list_length(e); ++i) {
       datum *x = list_at(e, i);
       fdatum nxt =
-        datum_expand(x, est);
+        datum_expand(x, est, tag);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
@@ -88,7 +88,7 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
   if (list_length(e) != 2) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(list_at(e, 1), est);
+  fdatum exp = datum_expand(list_at(e, 1), est, tag);
   if (fdatum_is_panic(exp)) {
     return exp;
   }

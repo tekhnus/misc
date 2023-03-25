@@ -8,7 +8,7 @@ LOCAL fdatum compile_module(char *module,datum *settings);
 char *prog_link_deps(vec *sl,size_t *bdr_p,datum *builder_compdata,size_t p,fdatum(*module_bytecode)(char *,datum *),datum *settings);
 char *vec_relocate(vec *dst,size_t *p,datum *src);
 typedef struct expander_state expander_state;
-fdatum datum_expand(datum *e,struct expander_state *est);
+fdatum datum_expand(datum *e,struct expander_state *est,char *tag);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension_fn *ext);
 datum *get_host_ffi_settings();
 extension_fn *extension_alloc_make();
