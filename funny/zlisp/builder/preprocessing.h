@@ -4,9 +4,9 @@
 #include <zlisp/host-ffi.h>
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension_fn *trivial_extension);
 typedef struct expander_state expander_state;
-fdatum datum_expand(datum *e,struct expander_state *est,extension_fn *trivial_extension);
-char *call_ext(vec *sl,size_t *begin,datum *stmt,datum *compdata,struct extension_fn *ext);
+fdatum datum_expand(datum *e,struct expander_state *est);
 fdatum file_source(char *fname);
+char *call_ext(vec *sl,size_t *begin,datum *stmt,datum *compdata,struct extension_fn *ext);
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
 struct expander_state {
   vec expander_sl;
@@ -15,6 +15,7 @@ struct expander_state {
   datum expander_routine;
   datum expander_compdata;
   datum expander_builder_compdata;
+  extension_fn expander_ext;
 };
 struct expander_state expander_state_make();
 #define EXPORT

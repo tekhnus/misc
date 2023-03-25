@@ -15,7 +15,11 @@ int main(int argc, char **argv) {
   read_result rr = datum_read(f);
   fclose(f);
   if (read_result_is_panic(rr)) {
-    fprintf(stderr, "parsing error (C host): %s\n", rr.panic_message);
+    fprintf(stderr, "zlisp-run couldn't parse bytecode: %s\n", rr.panic_message);
+    return EXIT_FAILURE;
+  }
+  if (!read_result_is_ok(rr)) {
+    fprintf(stderr, "zlisp-run couldn't read bytecode: %d\n", rr.type);
     return EXIT_FAILURE;
   }
   vec sl = vec_make(16 * 1024);

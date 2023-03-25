@@ -9,6 +9,7 @@ struct expander_state {
   datum expander_routine;
   datum expander_compdata;
   datum expander_builder_compdata;
+  extension_fn expander_ext;
 };
 #endif
 
@@ -22,6 +23,7 @@ EXPORT struct expander_state expander_state_make() {
   e.expander_builder_compdata = compdata_make();
   prog_build_init(&e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
                   &e.expander_compdata, &e.expander_builder_compdata);
+  e.expander_ext = (extension_fn){call_ext, NULL};
   return e;
 }
 
@@ -36,12 +38,11 @@ EXPORT fdatum file_source(char *fname) {
   }
 
   struct expander_state e = expander_state_make();
-  struct extension_fn trivial_extension = {call_ext, NULL};
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
     fdatum val = datum_expand(
-                              &rr.ok_value, &e, &trivial_extension);
+                              &rr.ok_value, &e);
     if (fdatum_is_panic(val)) {
       char err[1024];
       char *end = err;
@@ -65,7 +66,7 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(res);
 }
 
-EXPORT fdatum datum_expand(datum *e, struct expander_state *est, extension_fn *trivial_extension) {
+EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
   if (!datum_is_list(e) || datum_is_nil(e)) {
     return fdatum_make_ok(*e);
   }
@@ -75,7 +76,7 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est, extension_fn *t
     for (int i = 0; i < list_length(e); ++i) {
       datum *x = list_at(e, i);
       fdatum nxt =
-        datum_expand(x, est, trivial_extension);
+        datum_expand(x, est);
       if (fdatum_is_panic(nxt)) {
         return nxt;
       }
@@ -86,14 +87,14 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est, extension_fn *t
   if (list_length(e) != 2) {
     return fdatum_make_panic("! should be used with a single arg");
   }
-  fdatum exp = datum_expand(list_at(e, 1), est, trivial_extension);
+  fdatum exp = datum_expand(list_at(e, 1), est);
   if (fdatum_is_panic(exp)) {
     return exp;
   }
   datum mod = datum_make_list_of(exp.ok_value);
   datum set = datum_make_bytestring("c-prelude");
   char *err = prog_build(&est->expander_sl, &est->expander_prg, &est->expander_builder_prg, &mod, &est->expander_compdata,
-                         &est->expander_builder_compdata, &set, trivial_extension);
+                         &est->expander_builder_compdata, &set, &est->expander_ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
