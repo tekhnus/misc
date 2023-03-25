@@ -20,8 +20,8 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
 
 EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
                             datum *builder_compdata, size_t p,
-                            fdatum (*module_bytecode)(char *, datum *),
-                            datum *settings) {
+                            fdatum (*module_bytecode)(char *, datum *, extension_fn *),
+                            datum *settings, extension_fn *ext) {
   datum *input_meta = extract_meta(*sl, p);
   if (input_meta == NULL) {
     return NULL;
@@ -30,7 +30,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   compdata_give_names(&s,
                       builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
-                              builder_compdata);
+                              builder_compdata, ext);
   if (err != NULL) {
     return err;
   }
@@ -46,11 +46,11 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
 }
 
 LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
-                            fdatum (*module_bytecode)(char *, datum *),
-                            datum *settings, datum *compdata) {
+                            fdatum (*module_bytecode)(char *, datum *, extension_fn *),
+                            datum *settings, datum *compdata, extension_fn *ext) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
-    char *err = prog_build_dep(sl, p, dep, module_bytecode, settings, compdata);
+    char *err = prog_build_dep(sl, p, dep, module_bytecode, settings, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -137,8 +137,8 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 }
 
 LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
-                           fdatum (*module_bytecode)(char *, datum *),
-                           datum *settings, datum *compdata) {
+                           fdatum (*module_bytecode)(char *, datum *, extension_fn *),
+                           datum *settings, datum *compdata, extension_fn *ext) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     return "req expects bytestrings";
@@ -157,7 +157,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   size_t run_dep_off = vec_append_new(sl);
   size_t run_dep_end = run_dep_off;
 
-  fdatum stts = module_bytecode(dep->bytestring_value, settings);
+  fdatum stts = module_bytecode(dep->bytestring_value, settings, ext);
   if (fdatum_is_panic(stts)) {
     return stts.panic_message;
   }
@@ -178,7 +178,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
     return "error: null extract_meta for exports";
   }
   char *err = prog_build_deps(sl, p, transitive_deps, module_bytecode, settings,
-                              compdata);
+                              compdata, ext);
   if (err != NULL) {
     return err;
   }

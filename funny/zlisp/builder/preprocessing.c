@@ -24,7 +24,7 @@ EXPORT struct expander_state expander_state_make() {
   e.expander_builder_compdata = compdata_make();
   prog_build_init(&e.expander_sl, &e.expander_prg, &e.expander_builder_prg,
                   &e.expander_compdata, &e.expander_builder_compdata);
-  extension_fn ext_for_macros = {call_ext, NULL};
+  extension_fn ext_for_macros = {call_ext_for_macros, NULL};
   datum macro_init =
     datum_make_list_of(
                        datum_make_list_of(

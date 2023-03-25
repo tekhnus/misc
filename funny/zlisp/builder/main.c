@@ -66,6 +66,19 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return res;
 }
 
+EXPORT char *call_ext_for_macros(vec *sl, size_t *begin,
+              datum *stmt, datum *compdata, struct extension_fn *ext) {
+  datum *op = list_at(stmt, 0);
+  if (datum_is_the_symbol(op, "backquote")) {
+    if (list_length(stmt) != 2) {
+      return "backquote should have a single arg";
+    }
+    return prog_append_backquoted_statement(
+                                            sl, begin, list_at(stmt, 1), compdata, ext);
+  }
+  return "<not an extension>";
+}
+
 EXPORT char *call_ext(vec *sl, size_t *begin,
               datum *stmt, datum *compdata, struct extension_fn *ext) {
   datum *op = list_at(stmt, 0);
@@ -140,18 +153,12 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0,
                     nil, compdata);
   return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
-                        settings);
+                        settings, trivial_extension);
 }
 
-LOCAL fdatum compile_module(char *module, datum *settings) {
-  /* currently the extension for imported modules are hardcoded.
-     TODO(me): fix this.*/
+LOCAL fdatum compile_module(char *module, datum *settings, extension_fn *trivial_extension) {
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
-  }
-  bool use_macros = true;
-  if (!strcmp(settings->bytestring_value, "c-prelude-no-macros")) {
-    use_macros = false;
   }
   if (!strcmp(module, "prelude")) {
     if (!strcmp(settings->bytestring_value, "c-prelude-no-macros")) {
@@ -167,12 +174,7 @@ LOCAL fdatum compile_module(char *module, datum *settings) {
     return src;
   }
   datum compdata = compdata_make();
-  struct expander_state exps;
-  if (use_macros) {
-    exps = expander_state_make();
-  }
-  struct extension_fn trivial_extension = {call_ext, use_macros ? &exps : NULL};
-  return prog_compile(&src.ok_value, &compdata, &trivial_extension);
+  return prog_compile(&src.ok_value, &compdata, trivial_extension);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {
