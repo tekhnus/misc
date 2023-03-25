@@ -41,9 +41,6 @@ EXPORT fdatum file_source(char *fname) {
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
-    if (datum_is_the_symbol(&rr.ok_value, ":void-value")) {
-      continue;
-    }
     list_append(&res, rr.ok_value);
   }
   if (read_result_is_panic(rr)) {
@@ -67,15 +64,5 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  fdatum res = routine_run_in_ffi_host(est->expander_sl, &est->expander_routine);
-  if (fdatum_is_panic(res)) {
-    return res;
-  }
-  if (list_length(&res.ok_value) == 0) {
-    return fdatum_make_ok(datum_make_symbol(":void-value"));
-  }
-  if (list_length(&res.ok_value) != 1) {
-    return fdatum_make_panic("expected a single result while preprocessing");
-  }
-  return fdatum_make_ok(*list_at(&res.ok_value, 0));
+  return routine_run_in_ffi_host(est->expander_sl, &est->expander_routine);
 }

@@ -85,7 +85,14 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
-    return prog_append_statement(sl, begin, &res.ok_value, compdata, ext);
+    assert(datum_is_list(&res.ok_value));
+    for (int i = 0; i < list_length(&res.ok_value); ++i) {
+      char *err = prog_append_statement(sl, begin, list_at(&res.ok_value, i), compdata, ext);
+      if (err) {
+        return err;
+      }
+    }
+    return NULL;
   }
   return "<not an extension>";
 }
