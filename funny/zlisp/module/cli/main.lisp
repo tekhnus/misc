@@ -27,10 +27,6 @@
  (em "zlisp" ext-make))
 
 !(req
-  (std "std")
-  (ignore "std" ignore))
-
-!(req
   (stdmacro "stdmacro")
   (switch "stdmacro" switch))
 
