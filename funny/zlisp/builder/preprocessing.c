@@ -1,4 +1,5 @@
 #include <preprocessing.h>
+#include <assert.h>
 
 #if EXPORT_INTERFACE
 #include <zlisp/common.h>
