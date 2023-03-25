@@ -30,7 +30,7 @@ EXPORT struct expander_state expander_state_make() {
                                           datum_make_list_of(datum_make_symbol("stdmacro"), datum_make_bytestring("stdmacro")),
                                           datum_make_list_of(datum_make_symbol("fntest"), datum_make_bytestring("stdmacro"), datum_make_symbol("fntest")),
                                           datum_make_list_of(datum_make_symbol("switch"), datum_make_bytestring("stdmacro"), datum_make_symbol("switch"))));
-  datum set = datum_make_bytestring("c-prelude-no-macros");
+  datum set = datum_make_bytestring("c-prelude");
   char *res = prog_build(
              &e.expander_sl, &e.expander_prg, &expander_builder_prg,
              &macro_init,

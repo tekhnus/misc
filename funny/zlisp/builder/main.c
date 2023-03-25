@@ -164,11 +164,7 @@ LOCAL fdatum compile_module(char *module, datum *settings, extension_fn *trivial
     return fdatum_make_panic("settings should be a string");
   }
   if (!strcmp(module, "prelude")) {
-    if (!strcmp(settings->bytestring_value, "c-prelude-no-macros")) {
-      module = "c-prelude";
-    } else {
-      module = settings->bytestring_value;
-    }
+    module = settings->bytestring_value;
   }
   char fname[1024] = {'\0'};
   module_to_filename(fname, module);
