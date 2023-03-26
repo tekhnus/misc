@@ -32,7 +32,7 @@
   (sl nsp pptr bpptr compdata bdrcompdata ex)
   (progn
     (def tmp (/prelude/fprintf stdout "> "))
-    !(#/stdmacro/switch
+    (#/stdmacro/switch
       (/zlisp/rd stdin)
       (((:eof)
 	(return (/prelude/fprintf stdout "\n")))

@@ -89,6 +89,21 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
     return prog_append_backquoted_statement(
                                             sl, begin, list_at(stmt, 1), compdata, ext);
   }
+  if (datum_is_list(op) && list_length(op) == 2 && datum_is_the_symbol(list_at(op, 0), "hash")) {
+    assert(ext->state);
+    fdatum res = datum_expand(stmt, ext->state);
+    if (fdatum_is_panic(res)) {
+      return res.panic_message;
+    }
+    assert(datum_is_list(&res.ok_value));
+    for (int i = 0; i < list_length(&res.ok_value); ++i) {
+      char *err = prog_append_statement(sl, begin, list_at(&res.ok_value, i), compdata, ext);
+      if (err) {
+        return err;
+      }
+    }
+    return NULL;
+  }
   if (datum_is_the_symbol(op, "bang")) {
     assert(ext->state);
     if (list_length(stmt) != 2) {
