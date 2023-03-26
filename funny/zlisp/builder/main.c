@@ -40,8 +40,7 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
-  struct expander_state exps = expander_state_make();
-  struct extension_fn trivial_extension = {call_ext, &exps};
+  struct extension_fn trivial_extension = extension_make();
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
                          &builder_compdata, &set, &trivial_extension);
   if (err != NULL) {
@@ -53,10 +52,16 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
+LOCAL extension_fn extension_make() {
+  struct expander_state *exps = malloc(sizeof(expander_state));
+  *exps = expander_state_make();
+  return (extension_fn){call_ext, exps};
+}
+
 EXPORT extension_fn *extension_alloc_make() {
   // For Lisp.
   extension_fn *res = malloc(sizeof(extension_fn));
-  *res = (extension_fn){call_ext, NULL};
+  *res = extension_make();
   return res;
 }
 
