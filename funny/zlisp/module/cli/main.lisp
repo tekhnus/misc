@@ -32,16 +32,16 @@
   (sl nsp pptr bpptr compdata bdrcompdata ex)
   (progn
     (def tmp (/prelude/fprintf stdout "> "))
-    (#/stdmacro/switch
+    (switch
       (/zlisp/rd stdin)
       (((:eof)
 	(return (/prelude/fprintf stdout "\n")))
        ((:ok datum)
         (def maybe-prog (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex))
-        (#/stdmacro/switch
+        (switch
           maybe-prog
           (((:ok progxxx)
-            (#/stdmacro/switch
+            (switch
               (/zlisp/eval-new sl nsp)
               (((:ok val ctxt)
                 (def ignored (/prelude/fprintf-bytestring

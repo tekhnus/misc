@@ -94,9 +94,10 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
     return prog_append_backquoted_statement(
                                             sl, begin, list_at(stmt, 1), compdata, ext);
   }
-  if (datum_is_list(op) && list_length(op) == 2 && datum_is_the_symbol(list_at(op, 0), "hash")) {
-    assert(ext->state);
-    fdatum res = datum_expand(stmt, ext->state);
+  if (datum_is_the_symbol(op, "switch") || datum_is_the_symbol(op, "fntest")) {
+    datum macrostmt = datum_copy(stmt);
+    *list_at(&macrostmt, 0) = datum_make_list_of(datum_make_symbol("hash"), datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol(""), datum_make_symbol("stdmacro"), datum_copy(op)));
+    fdatum res = datum_expand(&macrostmt, ext->state);
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
