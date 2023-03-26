@@ -104,24 +104,6 @@ EXPORT char *call_ext(vec *sl, size_t *begin,
     }
     return NULL;
   }
-  if (datum_is_the_symbol(op, "bang")) {
-    assert(ext->state);
-    if (list_length(stmt) != 2) {
-      return "bang should have a single arg";
-    }
-    fdatum res = datum_expand(list_at(stmt, 1), ext->state);
-    if (fdatum_is_panic(res)) {
-      return res.panic_message;
-    }
-    assert(datum_is_list(&res.ok_value));
-    for (int i = 0; i < list_length(&res.ok_value); ++i) {
-      char *err = prog_append_statement(sl, begin, list_at(&res.ok_value, i), compdata, ext);
-      if (err) {
-        return err;
-      }
-    }
-    return NULL;
-  }
   return "<not an extension>";
 }
 

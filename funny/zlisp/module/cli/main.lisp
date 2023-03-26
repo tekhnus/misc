@@ -38,10 +38,10 @@
 	(return (/prelude/fprintf stdout "\n")))
        ((:ok datum)
         (def maybe-prog (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex))
-        !(#/stdmacro/switch
+        (#/stdmacro/switch
           maybe-prog
           (((:ok progxxx)
-            !(#/stdmacro/switch
+            (#/stdmacro/switch
               (/zlisp/eval-new sl nsp)
               (((:ok val ctxt)
                 (def ignored (/prelude/fprintf-bytestring

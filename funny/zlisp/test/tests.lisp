@@ -20,44 +20,44 @@
 
 (def panics '())
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (return "hello, world!")
   "hello, world!")
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (return (/std/+ 4 3))
   7)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (return (/std/list-at '(1 2) 1))
   2)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (return (/std/eq :foo :bar))
   '())
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (def bar :foo)
     (return (/std/eq :foo bar)))
   '(()))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (return (/std/append 5 '(1 2 3 4))))
   '(1 2 3 4 5))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (return `(1 2 ~(/std/+ 1 2)))
   '(1 2 3))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn twice (arg) (return (/std/+ arg arg)))
     (return (twice 35)))
   70)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn adderf (n)
       (progn
@@ -71,7 +71,7 @@
     (return ((adder 3) 4)))
   7)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn fib () (progn
                    (return 3)
@@ -85,7 +85,7 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn far-fib () (progn
                        (return @event-loop 3)
@@ -104,21 +104,21 @@
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (/prelude/fprintf stderr "hello")
     (return 42))
   42)
 
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn multi-ret () (return 42 34))
     (def (x y) (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn foo (x) (progn
                     (def y (return (/std/+ x 1)))
@@ -131,7 +131,7 @@
     (return `(~a ~b ~c)))
   '(42 34 :done))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn cl-holder (x xs) (progn
                              (return :nothing)
@@ -163,14 +163,14 @@
     (return `(~a ~b)))
   '(34 42))
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn fff (x) (return (/std/+ x 42)))
     (def yyy (fff 1))
     (return yyy))
   43)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn fff ()
       (progn
@@ -182,13 +182,13 @@
     (return (fff/ggg-in-fff)))
   42)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (/libc/print 42)
     (return 33))
   33)
 
-!(#/stdmacro/fntest
+(#/stdmacro/fntest
   (progn
     (defn do-something (x)
       (progn
