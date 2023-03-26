@@ -22,7 +22,7 @@ EXPORT struct expander_state expander_state_make() {
   datum expander_builder_compdata = compdata_make();
   prog_build_init(&e.expander_sl, &e.expander_prg, &expander_builder_prg,
                   &e.expander_compdata, &expander_builder_compdata);
-  extension_fn ext_for_macros = {call_ext_for_macros, NULL};
+  e.expander_ext = (extension_fn){call_ext_for_macros, NULL};
   datum macro_init =
     datum_make_list_of(
                        datum_make_list_of(
@@ -34,7 +34,7 @@ EXPORT struct expander_state expander_state_make() {
   char *res = prog_build(
              &e.expander_sl, &e.expander_prg, &expander_builder_prg,
              &macro_init,
-             &e.expander_compdata, &expander_builder_compdata, &set, &ext_for_macros);
+             &e.expander_compdata, &expander_builder_compdata, &set, &e.expander_ext);
   if (res) {
     fprintf(stderr, "while building macros: %s\n", res);
     exit(EXIT_FAILURE);
@@ -44,7 +44,6 @@ EXPORT struct expander_state expander_state_make() {
     fprintf(stderr, "while initializing macros: %s\n", init_res.panic_message);
     exit(EXIT_FAILURE);
   }
-  e.expander_ext = (extension_fn){call_ext, NULL};
   return e;
 }
 
