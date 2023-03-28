@@ -44,6 +44,11 @@ struct fdatum {
   char *panic_message;
 };
 
+struct result {
+  datum type;
+  datum value;
+};
+
 struct vec {
   datum *begin;
   size_t length;

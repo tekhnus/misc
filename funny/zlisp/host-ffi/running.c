@@ -8,7 +8,11 @@
 #endif
 
 EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
-  return routine_run_with_handler(sl, r0d, perform_host_instruction);
+  result r = routine_run_with_handler(sl, r0d, perform_host_instruction);
+  if (datum_is_the_symbol(&r.type, "halt")) {
+    return fdatum_make_ok(r.value);
+  }
+  return fdatum_make_panic(datum_repr(&r.value));
 }
 
 LOCAL fdatum perform_host_instruction(datum *name, datum *args) {

@@ -76,34 +76,30 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
+EXPORT result routine_run_with_handler(vec sl, datum *r0d,
                               fdatum (*yield_handler)(datum *,
                                                       datum *)) {
   routine r = get_routine_from_datum(r0d);
   datum args = datum_make_nil();
-  datum rerr;
-  fdatum res = fdatum_make_ok(datum_make_nil());
+  result rerr;
+  result res = {datum_make_symbol("halt"), datum_make_nil()};
   datum current_statement = datum_make_nil();
   for (;;) {
     rerr = routine_run(sl, &r, args);
-    datum sec = list_pop(&rerr);
-    datum yield_type = list_pop(&rerr);
-    if (datum_is_the_symbol(&yield_type, "halt")) {
-      res = fdatum_make_ok(sec);
+    datum *sec = &rerr.value;
+    datum *yield_type = &rerr.type;
+    if (datum_is_the_symbol(yield_type, "halt")) {
+      res = rerr;
       break;
     }
-    if (datum_is_the_symbol(&yield_type, "panic")) {
-      assert(datum_is_list(&sec));
-      assert(list_length(&sec) == 1);
-      datum *val = list_at(&sec, 0);
-      assert(datum_is_bytestring(val));
-      res = fdatum_make_panic(val->bytestring_value);
+    if (datum_is_the_symbol(yield_type, "panic")) {
+      res = rerr;
       break;
     }
-    if (datum_is_list(&yield_type) && list_length(&yield_type) == 3 && datum_is_the_symbol(list_at(&yield_type, 0), "debugger")) {
-      datum *cmd = list_at(&yield_type, 1);
+    if (datum_is_list(yield_type) && list_length(yield_type) == 3 && datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
+      datum *cmd = list_at(yield_type, 1);
       if (datum_is_the_symbol(cmd, "compdata")) {
-        datum *compdata = list_at(&yield_type, 2);
+        datum *compdata = list_at(yield_type, 2);
         datum compdata_shape = compdata_get_shape(compdata);
         routine rt = r;
         while (get_child(sl, &rt)) {}
@@ -121,7 +117,7 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
           exit(EXIT_FAILURE);
         }
       } else if (datum_is_the_symbol(cmd, "statement")) {
-        current_statement = *list_at(&yield_type, 2);
+        current_statement = *list_at(yield_type, 2);
       } else {
         fprintf(stderr, "unknown debugger cmd\n");
         exit(EXIT_FAILURE);
@@ -129,20 +125,21 @@ EXPORT fdatum routine_run_with_handler(vec sl, datum *r0d,
       args = datum_make_nil();
       continue;
     }
-    if (!datum_is_list(&yield_type) ||
-        !datum_is_the_symbol(list_at(&yield_type, 0), "host")) {
-      res = fdatum_make_panic("execution stopped at wrong place");
+    if (!datum_is_list(yield_type) ||
+        !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
+      res = (result){datum_make_symbol("panic"), datum_make_bytestring("wrong yield type")};
       break;
     }
-    datum *name = list_at(&yield_type, 1);
-    datum arg = sec;
-    res = yield_handler(name, &arg);
-    if (fdatum_is_panic(res)) {
+    datum *name = list_at(yield_type, 1);
+    datum arg = datum_copy(sec);
+    fdatum handler_res = yield_handler(name, &arg);
+    if (fdatum_is_panic(handler_res)) {
+      res = (result){datum_make_symbol("panic"), datum_make_bytestring(handler_res.panic_message)};
       break;
     }
-    args = res.ok_value;
+    args = handler_res.ok_value;
   }
-  if (fdatum_is_panic(res)) {
+  if (datum_is_the_symbol(&res.type, "panic")) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
     print_backtrace(sl, &r);
   }
@@ -182,7 +179,7 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   return vec_at(sl, index);
 }
 
-LOCAL datum routine_run(vec sl, routine *r, datum args) {
+LOCAL result routine_run(vec sl, routine *r, datum args) {
   bool pass_args = true;
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
@@ -211,14 +208,13 @@ LOCAL datum routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = OFFSET_ERROR;
         continue;
       }
-      datum err;
-      err = routine_run(sl, &rt, args);
-      datum *yield_type = list_at(&err, 0);
+      result err = routine_run(sl, &rt, args);
+      datum *yield_type = &err.type;
       if (!datum_eq(recieve_type, yield_type)) {
         return err;
       }
-      datum argz = *list_at(&err, 1);
-      if (prg.call_return_count != (long unsigned int)list_length(&argz)) {
+      datum *argz = &err.value;
+      if (prg.call_return_count != (long unsigned int)list_length(argz)) {
         state_stack_put(r, datum_make_bytestring("call count and yield count are not equal"));
         *routine_offset(r) = OFFSET_ERROR;
         continue;
@@ -227,7 +223,7 @@ LOCAL datum routine_run(vec sl, routine *r, datum args) {
       if (prg.call_pop_one) {
         state_stack_pop(r);
       }
-      state_stack_put_all(r, argz);
+      state_stack_put_all(r, *argz);
       *routine_offset(r) = prg.call_next;
       continue;
     }
@@ -249,7 +245,7 @@ LOCAL datum routine_run(vec sl, routine *r, datum args) {
     assert(!pass_args);
     if (prg.type == PROG_YIELD) {
       datum res = state_stack_collect(r, prg.yield_count);
-      return datum_make_list_of(*prg.yield_type, res);
+      return (result){datum_copy(prg.yield_type), res};
     }
     if (prg.type == PROG_CALL) {
       args = state_stack_collect(r, prg.call_arg_count);

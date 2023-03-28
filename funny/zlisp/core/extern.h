@@ -59,7 +59,12 @@ LOCAL routine make_routine_from_indices(routine *r,size_t capture_count,datum *c
 LOCAL void print_backtrace(vec sl,routine *r);
 LOCAL datum routine_get_shape(routine *r);
 LOCAL bool get_child(vec sl,routine *r);
-LOCAL datum routine_run(vec sl,routine *r,datum args);
+typedef struct result result;
+struct result {
+  datum type;
+  datum value;
+};
+LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 typedef struct fdatum fdatum;
 struct fdatum {
@@ -67,7 +72,7 @@ struct fdatum {
   struct datum ok_value;
   char *panic_message;
 };
-fdatum routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
+result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 extern ptrdiff_t OFFSET_ERROR;
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
