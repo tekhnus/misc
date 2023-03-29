@@ -15,7 +15,7 @@ EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
   return fdatum_make_panic(datum_repr(&r.value));
 }
 
-LOCAL fdatum perform_host_instruction(datum *name, datum *args) {
+EXPORT fdatum perform_host_instruction(datum *name, datum *args) {
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }

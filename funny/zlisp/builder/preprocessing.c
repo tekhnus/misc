@@ -39,9 +39,9 @@ EXPORT struct expander_state expander_state_make() {
     fprintf(stderr, "while building macros: %s\n", res);
     exit(EXIT_FAILURE);
   }
-  fdatum init_res = routine_run_in_ffi_host(e.expander_sl, &e.expander_routine);
-  if (fdatum_is_panic(init_res)) {
-    fprintf(stderr, "while initializing macros: %s\n", init_res.panic_message);
+  result init_res = routine_run_with_handler(e.expander_sl, &e.expander_routine, perform_host_instruction);
+  if (!datum_is_the_symbol(&init_res.type, "halt")) {
+    fprintf(stderr, "while initializing macros: %s\n", datum_repr(&init_res.value));
     exit(EXIT_FAILURE);
   }
   return e;
@@ -84,5 +84,9 @@ EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  return routine_run_in_ffi_host(est->expander_sl, &est->expander_routine);
+  result res = routine_run_with_handler(est->expander_sl, &est->expander_routine, perform_host_instruction);
+  if (!datum_is_the_symbol(&res.type, "halt")) {
+    return fdatum_make_panic(datum_repr(&res.value));
+  }
+  return fdatum_make_ok(res.value);
 }
