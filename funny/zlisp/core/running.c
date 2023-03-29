@@ -81,20 +81,20 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
                                                       datum *)) {
   routine r = get_routine_from_datum(r0d);
   datum args = datum_make_nil();
-  result rerr;
-  result res = {datum_make_symbol("halt"), datum_make_nil()};
+  result res;
   datum current_statement = datum_make_nil();
   for (;;) {
-    rerr = routine_run(sl, &r, args);
-    datum *sec = &rerr.value;
-    datum *yield_type = &rerr.type;
-    if (datum_is_the_symbol(yield_type, "halt")) {
-      res = rerr;
+    res = routine_run(sl, &r, args);
+    datum *sec = &res.value;
+    datum *yield_type = &res.type;
+    fdatum handler_res = yield_handler(yield_type, sec);
+    if (fdatum_is_panic(handler_res) && strcmp(handler_res.panic_message, "<not implemented>")) {
+      res = (result){datum_make_symbol("panic"), datum_make_bytestring(handler_res.panic_message)};
       break;
     }
-    if (datum_is_the_symbol(yield_type, "panic")) {
-      res = rerr;
-      break;
+    if (!fdatum_is_panic(handler_res)) {
+      args = handler_res.ok_value;
+      continue;
     }
     if (datum_is_list(yield_type) && list_length(yield_type) == 3 && datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
       datum *cmd = list_at(yield_type, 1);
@@ -125,19 +125,7 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
       args = datum_make_nil();
       continue;
     }
-    if (!datum_is_list(yield_type) ||
-        !datum_is_the_symbol(list_at(yield_type, 0), "host")) {
-      res = (result){datum_make_symbol("panic"), datum_make_bytestring("wrong yield type")};
-      break;
-    }
-    datum *name = list_at(yield_type, 1);
-    datum arg = datum_copy(sec);
-    fdatum handler_res = yield_handler(name, &arg);
-    if (fdatum_is_panic(handler_res)) {
-      res = (result){datum_make_symbol("panic"), datum_make_bytestring(handler_res.panic_message)};
-      break;
-    }
-    args = handler_res.ok_value;
+    break;
   }
   if (datum_is_the_symbol(&res.type, "panic")) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));

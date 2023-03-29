@@ -16,7 +16,11 @@ EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
   return fdatum_make_panic(datum_repr(&r.value));
 }
 
-EXPORT fdatum host_ffi(datum *name, datum *args) {
+EXPORT fdatum host_ffi(datum *type, datum *args) {
+  if (!datum_is_list(type) || list_length(type) != 2 || !datum_is_the_symbol(list_at(type, 0), "host")) {
+    return fdatum_make_panic("<not implemented>");
+  }
+  datum *name = list_at(type, 1);
   if (!datum_is_bytestring(name)) {
     return fdatum_make_panic("host instruction should be a string");
   }
