@@ -5,4 +5,4 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
-fdatum perform_host_instruction(datum *name,datum *args);
+fdatum host_ffi(datum *name,datum *args);

@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   vec sl = vec_make(16 * 1024);
   vec_extend(&sl, &rr.ok_value);
   datum s = routine_make(0, NULL); // running starts from the first instruction.
-  result res = routine_run_with_handler(sl, &s, perform_host_instruction);
+  result res = routine_run_with_handler(sl, &s, host_ffi);
   if (!datum_is_the_symbol(&res.type, "halt")) {
     fprintf(stderr, "runtime error: %s %s\n", datum_repr(&res.type), datum_repr(&res.value));
     return EXIT_FAILURE;
