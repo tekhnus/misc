@@ -17,7 +17,8 @@ EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
 }
 
 EXPORT fdatum host_ffi(datum *type, datum *args) {
-  if (!datum_is_list(type) || list_length(type) != 2 || !datum_is_the_symbol(list_at(type, 0), "host")) {
+  if (!datum_is_list(type) || list_length(type) != 2 ||
+      !datum_is_the_symbol(list_at(type, 0), "host")) {
     return fdatum_make_panic("<not implemented>");
   }
   datum *name = list_at(type, 1);
@@ -25,7 +26,8 @@ EXPORT fdatum host_ffi(datum *type, datum *args) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum res;
-  if (!strcmp(name->bytestring_value, "call-extension") || !strcmp(name->bytestring_value, "call-extension-1")) {
+  if (!strcmp(name->bytestring_value, "call-extension") ||
+      !strcmp(name->bytestring_value, "call-extension-1")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
       return fdatum_make_panic("call-extension expected at least a single arg");
     }
@@ -131,7 +133,8 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   return false;
 }
 
-LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types, ffi_type **ret_type) {
+LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
+                                 ffi_type **ret_type) {
   if (list_length(sig) != 2) {
     return "the signature should be a two-item list";
   }

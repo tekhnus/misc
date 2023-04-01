@@ -2,17 +2,19 @@
 #include <assert.h>
 #include <extern.h>
 #if INTERFACE
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 #endif
 #include <stdlib.h>
 #include <string.h>
 
 #if EXPORT_INTERFACE
-#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum []){__VA_ARGS__}) / sizeof(datum), (datum[]){__VA_ARGS__})
+#define datum_make_list_of(...)                                                \
+  datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+                          (datum[]){__VA_ARGS__})
 #endif
 
 enum fdatumype {
@@ -79,8 +81,7 @@ EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
     end += sprintf(end, "(");
     for (int i = 0; i < list_length(e); ++i) {
       datum *item = list_at(e, i);
-      end +=
-          sprintf(end, "%s ", datum_repr_bounded(item, depth - 1));
+      end += sprintf(end, "%s ", datum_repr_bounded(item, depth - 1));
     }
     end += sprintf(end, ")");
   } else if (datum_is_symbol(e)) {
@@ -268,9 +269,7 @@ EXPORT datum datum_make_nil() {
   return e;
 }
 
-EXPORT bool datum_is_list(datum *e) {
-  return e->type == DATUM_LIST;
-}
+EXPORT bool datum_is_list(datum *e) { return e->type == DATUM_LIST; }
 
 EXPORT bool datum_is_nil(datum *e) {
   return datum_is_list(e) && list_length(e) == 0;

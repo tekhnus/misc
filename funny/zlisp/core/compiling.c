@@ -7,8 +7,8 @@
 #if INTERFACE
 typedef struct extension_fn extension_fn;
 struct extension_fn {
-  char *(*call)(vec *sl, size_t *begin,
-                              datum *stmt, datum *compdata, extension_fn *ext);
+  char *(*call)(vec *sl, size_t *begin, datum *stmt, datum *compdata,
+                extension_fn *ext);
   void *state;
 };
 #endif
@@ -24,11 +24,16 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension_fn *ext) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum *compdata, extension_fn *ext, bool skip_first_debug) {
+                                   datum *compdata, extension_fn *ext,
+                                   bool skip_first_debug) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
-      prog_append_yield(sl, off, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("statement"), datum_copy(stmt)), 0, 0, datum_make_nil(), compdata);
+      prog_append_yield(sl, off,
+                        datum_make_list_of(datum_make_symbol("debugger"),
+                                           datum_make_symbol("statement"),
+                                           datum_copy(stmt)),
+                        0, 0, datum_make_nil(), compdata);
     }
     char *err = prog_append_statement(sl, off, stmt, compdata, ext);
     if (err != NULL) {
@@ -39,15 +44,18 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
 }
 
 EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum *compdata, extension_fn *ext) {
+                                   datum *compdata, extension_fn *ext) {
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
     datum debug_compdata = datum_copy(compdata);
-    prog_append_yield(
-                      sl, begin, datum_make_list_of(datum_make_symbol("debugger"), datum_make_symbol("compdata"), debug_compdata), 0, 0, datum_make_nil(), compdata);
+    prog_append_yield(sl, begin,
+                      datum_make_list_of(datum_make_symbol("debugger"),
+                                         datum_make_symbol("compdata"),
+                                         debug_compdata),
+                      0, 0, datum_make_nil(), compdata);
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
@@ -75,8 +83,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return err;
     }
 
-    size_t true_end = vec_append_new(sl),
-           false_end = vec_append_new(sl);
+    size_t true_end = vec_append_new(sl), false_end = vec_append_new(sl);
 
     *vec_at(sl, *begin) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_end),
@@ -86,19 +93,17 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    err = prog_append_statement(
-                                sl, &true_end, list_at(stmt, 2), compdata, ext);
+    err = prog_append_statement(sl, &true_end, list_at(stmt, 2), compdata, ext);
     if (err != NULL) {
       return err;
     }
-    err = prog_append_statement(
-        sl, &false_end, list_at(stmt, 3),
-        false_compdata, ext);
+    err = prog_append_statement(sl, &false_end, list_at(stmt, 3),
+                                false_compdata, ext);
     if (err != NULL) {
       return err;
     }
     if (!datum_eq(compdata, false_compdata)) {
-          compdata_put(compdata, datum_make_symbol("__different_if_branches"));
+      compdata_put(compdata, datum_make_symbol("__different_if_branches"));
     }
 
     prog_join(sl, true_end, false_end, *begin);
@@ -124,8 +129,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "def should have two args";
     }
     char *err =
-        prog_append_statement(sl, begin, list_at(stmt, 2),
-                              compdata, ext);
+        prog_append_statement(sl, begin, list_at(stmt, 2), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -151,7 +155,8 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     datum routine_compdata = datum_copy(compdata);
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
-    char *err = prog_init_routine(sl, s_off, args, body, &routine_compdata, ext);
+    char *err =
+        prog_init_routine(sl, s_off, args, body, &routine_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -191,9 +196,8 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
         return err;
       }
     }
-    prog_append_yield(
-        sl, begin, target,
-        argcnt, recieve_count, datum_make_nil(), compdata);
+    prog_append_yield(sl, begin, target, argcnt, recieve_count,
+                      datum_make_nil(), compdata);
     return NULL;
   }
   char *res = ext->call(sl, begin, stmt, compdata, ext);
@@ -211,7 +215,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   bool mut = false;
   size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
-           datum_is_symbol(list_at(fn, 0));
+         datum_is_symbol(list_at(fn, 0));
        fn = list_at(fn, 1)) {
     char *tag = list_at(fn, 0)->symbol_value;
     if (!strcmp(tag, "hash")) {
@@ -253,12 +257,14 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   datum indices = datum_make_nil();
   int fn_index = 0;
   int chop = 0;
-  if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "..")) {
+  if (fn_index < list_length(fns) &&
+      datum_is_the_symbol(list_at(fns, fn_index), "..")) {
     ++fn_index;
     chop = 1;
   }
   datum shape = compdata_get_shape(compdata);
-  if (fn_index < list_length(fns) && datum_is_the_symbol(list_at(fns, fn_index), "")) {
+  if (fn_index < list_length(fns) &&
+      datum_is_the_symbol(list_at(fns, fn_index), "")) {
     ++fn_index;
     chop = list_length(&shape);
   }
@@ -282,8 +288,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       }
       list_append(&indices, idx);
     } else {
-      char *err =
-        prog_append_statement(sl, begin, component, compdata, ext);
+      char *err = prog_append_statement(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -297,16 +302,14 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     if (hash) {
       prog_append_put_const(sl, begin, arg, compdata);
     } else {
-      char *err =
-        prog_append_statement(sl, begin, arg, compdata, ext);
+      char *err = prog_append_statement(sl, begin, arg, compdata, ext);
       if (err != NULL) {
         return err;
       }
     }
   }
-  prog_append_call(sl, begin, capture_size, indices, !mut,
-                   target,
-                   arg_count, ret_count, compdata);
+  prog_append_call(sl, begin, capture_size, indices, !mut, target, arg_count,
+                   ret_count, compdata);
   return NULL;
 }
 
@@ -334,7 +337,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   datum vars = datum_make_nil();
   datum specs = datum_make_nil();
   for (; index < list_length(spec); ++index) {
-      datum *item = list_at(spec, index);
+    datum *item = list_at(spec, index);
     if (!datum_is_list(item) || list_length(item) < 2 ||
         list_length(item) > 3) {
       return fdatum_make_panic("wrong usage spec");
@@ -343,12 +346,13 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     if (!datum_is_symbol(item_var)) {
       return fdatum_make_panic("wrong usage spec");
     }
-    
+
     datum item_spec;
     if (list_length(item) == 2) {
       item_spec = datum_make_list_of(datum_copy(list_at(item, 1)));
     } else if (list_length(item) == 3) {
-      item_spec = datum_make_list_of(datum_copy(list_at(item, 1)), datum_copy(list_at(item, 2)));
+      item_spec = datum_make_list_of(datum_copy(list_at(item, 1)),
+                                     datum_copy(list_at(item, 2)));
     } else {
       return fdatum_make_panic("wrong usage spec");
     }
@@ -377,17 +381,17 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
    * on the slice. */
   prog_append_nop(sl, begin);
   prog_append_yield(sl, begin, datum_make_symbol("plain"),
-                    list_length(list_at(&re, 0)), 1, *list_at(&re, 0), compdata);
+                    list_length(list_at(&re, 0)), 1, *list_at(&re, 0),
+                    compdata);
   return NULL;
 }
 
-EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size, datum indices,
-                             bool pop_one, datum type,
-                             int arg_count, int return_count,
-                             datum *compdata) {
+EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
+                             datum indices, bool pop_one, datum type,
+                             int arg_count, int return_count, datum *compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(
-                              datum_make_symbol(":call"), datum_make_int(capture_size), indices,
+      datum_make_symbol(":call"), datum_make_int(capture_size), indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next));
   for (int i = 0; i < arg_count; ++i) {
@@ -414,8 +418,8 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
   }
-  *vec_at(sl, *begin) = datum_make_list_of(
-      datum_make_symbol(":put-var"), polyindex, datum_make_int(next));
+  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":put-var"),
+                                           polyindex, datum_make_int(next));
   *begin = next;
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
@@ -425,18 +429,18 @@ EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
       datum_make_list_of(datum_make_symbol(":put-prog"), datum_make_int(val),
-                          datum_make_int(capture), datum_make_int(next));
+                         datum_make_int(capture), datum_make_int(next));
   *begin = next;
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
-                              size_t count, size_t recieve_count, datum meta,
+EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
+                              size_t recieve_count, datum meta,
                               datum *compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(
-                              datum_make_symbol(":yield"), type, datum_make_int(count),
-                              datum_make_int(recieve_count), meta, datum_make_int(next));
+      datum_make_symbol(":yield"), type, datum_make_int(count),
+      datum_make_int(recieve_count), meta, datum_make_int(next));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
@@ -446,8 +450,8 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type,
   }
 }
 
-LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args,
-                               datum meta, datum *compdata) {
+LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args, datum meta,
+                               datum *compdata) {
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
   compdata_give_names(args, compdata);
@@ -477,8 +481,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
   return fdatum_make_ok(datum_make_list_of(names, expressions));
 }
 
-LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
-                              datum *stmt, datum *routine_compdata, extension_fn *ext) {
+LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
+                              datum *routine_compdata, extension_fn *ext) {
   if (args == NULL) {
     return "args can't be null";
   } else {
@@ -489,25 +493,27 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args,
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
-                                 datum *compdata) {
+                                  datum *compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(
-           datum_make_symbol(":put-const"), datum_copy(val), datum_make_int(next));
+      datum_make_symbol(":put-const"), datum_copy(val), datum_make_int(next));
   *begin = next;
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
 EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(next));
+  *vec_at(sl, *begin) =
+      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(next));
   *begin = next;
 }
 
 EXPORT void prog_append_collect(vec *sl, size_t count, size_t *begin,
-                               datum *compdata) {
+                                datum *compdata) {
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count),
-                          datum_make_int(next));
+  *vec_at(sl, *begin) =
+      datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count),
+                         datum_make_int(next));
   *begin = next;
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
@@ -516,10 +522,10 @@ EXPORT void prog_append_collect(vec *sl, size_t count, size_t *begin,
 }
 
 LOCAL void prog_join(vec *sl, size_t a, size_t b, size_t e) {
-  *vec_at(sl, a) = datum_make_list_of(
-      datum_make_symbol(":nop"), datum_make_int(e));
-  *vec_at(sl, b) = datum_make_list_of(
-      datum_make_symbol(":nop"), datum_make_int(e));
+  *vec_at(sl, a) =
+      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(e));
+  *vec_at(sl, b) =
+      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(e));
 }
 
 EXPORT datum compdata_make() {
@@ -537,13 +543,15 @@ EXPORT datum *compdata_alloc_make() {
 EXPORT bool compdata_has_value(datum *compdata) {
   compdata_validate(compdata);
   datum *outer_frame = list_get_last(compdata);
-  return !datum_is_nil(outer_frame) && datum_is_the_symbol(list_get_last(outer_frame), ":anon");
+  return !datum_is_nil(outer_frame) &&
+         datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
 LOCAL void compdata_validate(datum *compdata) {
   datum *outer_frame = list_get_last(compdata);
   if (!datum_is_nil(outer_frame) &&
-      datum_is_the_symbol(list_get_last(outer_frame), "__different_if_branches")) {
+      datum_is_the_symbol(list_get_last(outer_frame),
+                          "__different_if_branches")) {
     fprintf(stderr, "compdata_del: if branches had different compdata\n");
     fprintf(stderr, "%s\n", datum_repr(compdata));
     exit(EXIT_FAILURE);
@@ -568,8 +576,7 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
     datum *comp = list_at(compdata, frame);
     int idx = list_index_of(comp, var);
     if (idx != -1) {
-      return datum_make_list_of(datum_make_int(frame),
-                               datum_make_int(idx));
+      return datum_make_list_of(datum_make_int(frame), datum_make_int(idx));
     }
   }
   return datum_make_nil();
@@ -585,7 +592,7 @@ EXPORT datum compdata_get_top_polyindex(datum *compdata) {
   size_t indices = list_length(list_get_last(compdata));
   assert(frames > 0 && indices > 0);
   return datum_make_list_of(datum_make_int(frames - 1),
-                           datum_make_int(indices - 1));
+                            datum_make_int(indices - 1));
 }
 
 EXPORT datum compdata_get_shape(datum *compdata) {

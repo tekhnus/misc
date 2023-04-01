@@ -32,16 +32,15 @@ fdatum builtin_annotate(datum *args) {
   } else {
     return fdatum_make_panic("incomplete implementation of type");
   }
-  return fdatum_make_ok(
-                        datum_make_list_of(datum_make_list_of(datum_make_symbol(type), datum_copy(arg_value))));
+  return fdatum_make_ok(datum_make_list_of(
+      datum_make_list_of(datum_make_symbol(type), datum_copy(arg_value))));
 }
 
 fdatum builtin_is_constant(datum *args) {
   datum nil = datum_make_nil();
   datum *arg_value = list_at(args, 0);
   if (datum_is_constant(arg_value)) {
-    return fdatum_make_ok(
-        datum_make_list_of(datum_make_list_of(nil)));
+    return fdatum_make_ok(datum_make_list_of(datum_make_list_of(nil)));
   }
   return fdatum_make_ok(datum_make_list_of(nil));
 }
@@ -77,7 +76,7 @@ fdatum builtin_add(datum *args) {
     return fdatum_make_panic("expected integers");
   }
   return fdatum_make_ok(
-                        datum_make_list_of(datum_make_int(x->integer_value + y->integer_value)));
+      datum_make_list_of(datum_make_int(x->integer_value + y->integer_value)));
 }
 
 fdatum builtin_cons(datum *args) {

@@ -7,36 +7,34 @@
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum *compdata, datum *builder_compdata) {
   datum nil = datum_make_nil();
-  prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0,
-                    nil, builder_compdata);
+  prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0, nil,
+                    builder_compdata);
   prog_append_put_prog(sl, bdr_p, *ep, 0, builder_compdata);
-  prog_append_call(sl, bdr_p, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
-                   false, datum_make_symbol("plain"), 0, 0,
-                   builder_compdata);
-  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil,
-                    compdata);
+  prog_append_call(
+      sl, bdr_p, 0,
+      datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
+      datum_make_symbol("plain"), 0, 0, builder_compdata);
+  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil, compdata);
   return 42;
 }
 
-EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
-                            datum *builder_compdata, size_t p,
-                            fdatum (*module_bytecode)(char *, datum *, extension_fn *),
-                            datum *settings, extension_fn *ext) {
+EXPORT char *
+prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata, size_t p,
+               fdatum (*module_bytecode)(char *, datum *, extension_fn *),
+               datum *settings, extension_fn *ext) {
   datum *input_meta = extract_meta(*sl, p);
   if (input_meta == NULL) {
     return NULL;
   }
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
-  compdata_give_names(&s,
-                      builder_compdata);
+  compdata_give_names(&s, builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
                               builder_compdata, ext);
   if (err != NULL) {
     return err;
   }
   datum v = datum_make_symbol("__main__");
-  prog_append_put_var(sl, bdr_p, &v,
-                      builder_compdata);
+  prog_append_put_var(sl, bdr_p, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
   prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false,
@@ -45,12 +43,14 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p,
   return NULL;
 }
 
-LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
-                            fdatum (*module_bytecode)(char *, datum *, extension_fn *),
-                            datum *settings, datum *compdata, extension_fn *ext) {
+LOCAL char *
+prog_build_deps(vec *sl, size_t *p, datum *deps,
+                fdatum (*module_bytecode)(char *, datum *, extension_fn *),
+                datum *settings, datum *compdata, extension_fn *ext) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
-    char *err = prog_build_dep(sl, p, dep, module_bytecode, settings, compdata, ext);
+    char *err =
+        prog_build_dep(sl, p, dep, module_bytecode, settings, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -58,8 +58,7 @@ LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
   return NULL;
 }
 
-LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps,
-                         datum *compdata) {
+LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps, datum *compdata) {
   char varname[1024];
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
@@ -97,18 +96,18 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                               offset_relocate(list_at(ins, 1), delta),
-                             offset_relocate(list_at(ins, 2), delta));
+                              offset_relocate(list_at(ins, 1), delta),
+                              offset_relocate(list_at(ins, 2), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return datum_make_list_of( 
+    return datum_make_list_of(
         datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
         datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                             offset_relocate(list_at(ins, 1), delta),
-                             offset_relocate(list_at(ins, 2), delta));
+                              offset_relocate(list_at(ins, 1), delta),
+                              offset_relocate(list_at(ins, 2), delta));
   }
   datum res = datum_copy(ins);
   if (list_length(&res) < 2) {
@@ -136,9 +135,10 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   return NULL;
 }
 
-LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
-                           fdatum (*module_bytecode)(char *, datum *, extension_fn *),
-                           datum *settings, datum *compdata, extension_fn *ext) {
+LOCAL char *
+prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
+               fdatum (*module_bytecode)(char *, datum *, extension_fn *),
+               datum *settings, datum *compdata, extension_fn *ext) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     return "req expects bytestrings";
@@ -148,8 +148,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   char varname[1024];
   get_varname(varname, dep_and_sym);
   datum vn = datum_make_symbol(varname);
-  datum idex = compdata_get_polyindex(
-      compdata, &vn);
+  datum idex = compdata_get_polyindex(compdata, &vn);
   bool already_built = !datum_is_nil(&idex);
   if (already_built) {
     return NULL;

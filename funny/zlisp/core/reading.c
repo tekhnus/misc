@@ -114,7 +114,7 @@ LOCAL struct token token_read(FILE *strm) {
   }
   if (isdigit(c) || c == '-') {
     int64_t sign = 1;
-    char h = 0;  // = 0 is to satisfy the compiler.
+    char h = 0; // = 0 is to satisfy the compiler.
     if (c == '-') {
       sign = -1;
       c = getc(strm);
@@ -141,7 +141,7 @@ LOCAL struct token token_read(FILE *strm) {
     nm[0][0] = '\0';
     int c = 0;
     int i;
-    char x = 0;  // = 0 is to satisfy the compiler
+    char x = 0; // = 0 is to satisfy the compiler
     for (i = 0; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
       if (x == '/') {
         ++c;
@@ -192,7 +192,8 @@ LOCAL struct token token_read(FILE *strm) {
                           .control_sequence_symbol = form};
   }
   fprintf(stderr, "unexpected symbol: 0x%x\n", c);
-  return (struct token){.type = TOKEN_ERROR, .error_message = "unexpected symbol"};
+  return (struct token){.type = TOKEN_ERROR,
+                        .error_message = "unexpected symbol"};
 }
 
 EXPORT read_result datum_read(FILE *strm) {

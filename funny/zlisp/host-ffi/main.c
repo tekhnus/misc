@@ -15,7 +15,8 @@ int main(int argc, char **argv) {
   read_result rr = datum_read(f);
   fclose(f);
   if (read_result_is_panic(rr)) {
-    fprintf(stderr, "zlisp-run couldn't parse bytecode: %s\n", rr.panic_message);
+    fprintf(stderr, "zlisp-run couldn't parse bytecode: %s\n",
+            rr.panic_message);
     return EXIT_FAILURE;
   }
   if (!read_result_is_ok(rr)) {
@@ -27,7 +28,8 @@ int main(int argc, char **argv) {
   datum s = routine_make(0, NULL); // running starts from the first instruction.
   result res = routine_run_with_handler(sl, &s, host_ffi);
   if (!datum_is_the_symbol(&res.type, "halt")) {
-    fprintf(stderr, "runtime error: %s %s\n", datum_repr(&res.type), datum_repr(&res.value));
+    fprintf(stderr, "runtime error: %s %s\n", datum_repr(&res.type),
+            datum_repr(&res.value));
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

@@ -77,8 +77,8 @@ typedef struct routine routine;
 #endif
 
 EXPORT result routine_run_with_handler(vec sl, datum *r0d,
-                              fdatum (*yield_handler)(datum *,
-                                                      datum *)) {
+                                       fdatum (*yield_handler)(datum *,
+                                                               datum *)) {
   routine r = get_routine_from_datum(r0d);
   datum args = datum_make_nil();
   result res;
@@ -88,21 +88,25 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
     datum *sec = &res.value;
     datum *yield_type = &res.type;
     fdatum handler_res = yield_handler(yield_type, sec);
-    if (fdatum_is_panic(handler_res) && strcmp(handler_res.panic_message, "<not implemented>")) {
-      res = (result){datum_make_symbol("panic"), datum_make_bytestring(handler_res.panic_message)};
+    if (fdatum_is_panic(handler_res) &&
+        strcmp(handler_res.panic_message, "<not implemented>")) {
+      res = (result){datum_make_symbol("panic"),
+                     datum_make_bytestring(handler_res.panic_message)};
       break;
     }
     if (!fdatum_is_panic(handler_res)) {
       args = handler_res.ok_value;
       continue;
     }
-    if (datum_is_list(yield_type) && list_length(yield_type) == 3 && datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
+    if (datum_is_list(yield_type) && list_length(yield_type) == 3 &&
+        datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
       datum *cmd = list_at(yield_type, 1);
       if (datum_is_the_symbol(cmd, "compdata")) {
         datum *compdata = list_at(yield_type, 2);
         datum compdata_shape = compdata_get_shape(compdata);
         routine rt = r;
-        while (get_child(sl, &rt)) {}
+        while (get_child(sl, &rt)) {
+        }
         datum state_shape = routine_get_shape(&rt);
         if (list_length(&compdata_shape) != list_length(&state_shape)) {
           fprintf(stderr, "compdata mismatch: %s != %s\n",
@@ -134,7 +138,8 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
   return res;
 }
 
-LOCAL routine make_routine_from_indices(routine *r, size_t capture_count, datum *call_indices) {
+LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
+                                        datum *call_indices) {
   routine rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
@@ -160,8 +165,9 @@ datum error_instruction;
 LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   if (index == OFFSET_ERROR) {
     error_instruction = datum_make_list_of(
-      datum_make_symbol(":yield"), datum_make_symbol("panic"), datum_make_int(1),
-      datum_make_int(31415926), datum_make_nil(), datum_make_int(OFFSET_ERROR));
+        datum_make_symbol(":yield"), datum_make_symbol("panic"),
+        datum_make_int(1), datum_make_int(31415926), datum_make_nil(),
+        datum_make_int(OFFSET_ERROR));
     return &error_instruction;
   }
   return vec_at(sl, index);
@@ -174,10 +180,13 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
     if (prg.type == PROG_CALL && pass_args) {
       pass_args = false;
       datum *recieve_type = prg.call_type;
-      routine rt = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
+      routine rt = make_routine_from_indices(r, prg.call_capture_count,
+                                             prg.call_indices);
       bool good = true;
       for (size_t i = 0; i < routine_get_count(&rt); ++i) {
-        if((i == 0 && -1 != (rt.frames[0]->parent_type_id)) || (i > 0 && (rt.frames[i]->parent_type_id != rt.frames[i - 1]->type_id))) {
+        if ((i == 0 && -1 != (rt.frames[0]->parent_type_id)) ||
+            (i > 0 &&
+             (rt.frames[i]->parent_type_id != rt.frames[i - 1]->type_id))) {
           good = false;
           break;
         }
@@ -187,9 +196,10 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         char *buf = bufbeg;
         buf[0] = '\0';
         for (size_t j = 0; j < routine_get_count(&rt); ++j) {
-          buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
-                         (rt.frames[j]->parent_type_id), (rt.frames[j]->type_id),
-                         vec_length(&rt.frames[j]->state));
+          buf +=
+              sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
+                      (rt.frames[j]->parent_type_id), (rt.frames[j]->type_id),
+                      vec_length(&rt.frames[j]->state));
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         state_stack_put(r, datum_make_bytestring(bufbeg));
@@ -203,7 +213,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       datum *argz = &err.value;
       if (prg.call_return_count != (long unsigned int)list_length(argz)) {
-        state_stack_put(r, datum_make_bytestring("call count and yield count are not equal"));
+        state_stack_put(r, datum_make_bytestring(
+                               "call count and yield count are not equal"));
         *routine_offset(r) = OFFSET_ERROR;
         continue;
       }
@@ -241,7 +252,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       continue;
     }
     if (prg.type == PROG_PUT_PROG) {
-      datum prog_ptr = routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
+      datum prog_ptr =
+          routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
       state_stack_put(r, prog_ptr);
       *routine_offset(r) = prg.put_prog_next;
       continue;
@@ -344,7 +356,8 @@ LOCAL bool get_child(vec sl, routine *r) {
   if (prg.type != PROG_CALL) {
     return false;
   }
-  routine child = make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
+  routine child =
+      make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
   *r = child;
   return true;
 }
@@ -436,9 +449,7 @@ LOCAL size_t routine_get_stack_size(routine *r) {
   return res;
 }
 
-LOCAL size_t routine_get_count(routine *r) {
-  return r->cnt;
-}
+LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 
 LOCAL datum routine_get_shape(routine *r) {
   datum res = datum_make_nil();
@@ -461,19 +472,20 @@ LOCAL void routine_merge(routine *r, routine *rt_tail) {
 EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
   frame vars = {
-    .state = vec_make(1024),
-    .type_id = prg,
-    .parent_type_id = context != NULL ? (context->frames[routine_get_count(context) - 2]->type_id) : -1};
+      .state = vec_make(1024),
+      .type_id = prg,
+      .parent_type_id =
+          context != NULL
+              ? (context->frames[routine_get_count(context) - 2]->type_id)
+              : -1};
   datum vars_datum = datum_make_frame(vars);
-  frame pc_frame = {
-    .state = vec_make_of(1, datum_make_int(prg)),
-    .type_id = -1,
-    .parent_type_id = prg};
+  frame pc_frame = {.state = vec_make_of(1, datum_make_int(prg)),
+                    .type_id = -1,
+                    .parent_type_id = prg};
   datum pc_frame_datum = datum_make_frame(pc_frame);
-  frame exec = {
-    .state = vec_make_of(2, vars_datum, pc_frame_datum),
-    .type_id = -1,
-    .parent_type_id = prg};
+  frame exec = {.state = vec_make_of(2, vars_datum, pc_frame_datum),
+                .type_id = -1,
+                .parent_type_id = prg};
   datum res = datum_make_frame(exec);
   return res;
 }
