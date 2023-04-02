@@ -174,11 +174,9 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
 }
 
 LOCAL result routine_run(vec sl, routine *r, datum args) {
-  bool pass_args = true;
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
-    if (prg.type == PROG_CALL && pass_args) {
-      pass_args = false;
+    if (prg.type == PROG_CALL) {
       datum *recieve_type = prg.call_type;
       routine rt = make_routine_from_indices(r, prg.call_capture_count,
                                              prg.call_indices);
@@ -204,7 +202,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         state_stack_put(r, datum_make_bytestring(bufbeg));
         *routine_offset(r) = OFFSET_ERROR;
-        continue;
+        goto body;
       }
       result err = routine_run(sl, &rt, args);
       datum *yield_type = &err.type;
@@ -216,7 +214,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         state_stack_put(r, datum_make_bytestring(
                                "call count and yield count are not equal"));
         *routine_offset(r) = OFFSET_ERROR;
-        continue;
+        goto body;
       }
 
       if (prg.call_pop_one) {
@@ -224,10 +222,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       state_stack_put_all(r, *argz);
       *routine_offset(r) = prg.call_next;
-      continue;
+      goto body;
     }
-    if (prg.type == PROG_YIELD && pass_args) {
-      pass_args = false;
+    if (prg.type == PROG_YIELD) {
       if (list_length(&args) != (int)prg.yield_recieve_count) {
         char err[256];
         sprintf(err,
@@ -235,61 +232,63 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
                 prg.yield_recieve_count, list_length(&args));
         state_stack_put(r, datum_make_bytestring(err));
         *routine_offset(r) = OFFSET_ERROR;
-        continue;
+        goto body;
       }
       state_stack_put_all(r, args);
       *routine_offset(r) = prg.yield_next;
-      continue;
+      goto body;
     }
-    assert(!pass_args);
-    if (prg.type == PROG_YIELD) {
-      datum res = state_stack_collect(r, prg.yield_count);
-      return (result){datum_copy(prg.yield_type), res};
-    }
-    if (prg.type == PROG_CALL) {
-      args = state_stack_collect(r, prg.call_arg_count);
-      pass_args = true;
-      continue;
-    }
-    if (prg.type == PROG_PUT_PROG) {
-      datum prog_ptr =
-          routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
-      state_stack_put(r, prog_ptr);
-      *routine_offset(r) = prg.put_prog_next;
-      continue;
-    }
-    if (prg.type == PROG_NOP) {
-      *routine_offset(r) = prg.nop_next;
-      continue;
-    }
-    if (prg.type == PROG_IF) {
-      datum v = state_stack_pop(r);
-      if (!datum_is_nil(&v)) {
-        *routine_offset(r) = prg.if_true;
-      } else {
-        *routine_offset(r) = prg.if_false;
+    body:
+    for (;;) {
+      prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
+      if (prg.type == PROG_YIELD) {
+        datum res = state_stack_collect(r, prg.yield_count);
+        return (result){datum_copy(prg.yield_type), res};
       }
-      continue;
+      if (prg.type == PROG_CALL) {
+        args = state_stack_collect(r, prg.call_arg_count);
+        break;
+      }
+      if (prg.type == PROG_PUT_PROG) {
+        datum prog_ptr =
+            routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
+        state_stack_put(r, prog_ptr);
+        *routine_offset(r) = prg.put_prog_next;
+        continue;
+      }
+      if (prg.type == PROG_NOP) {
+        *routine_offset(r) = prg.nop_next;
+        continue;
+      }
+      if (prg.type == PROG_IF) {
+        datum v = state_stack_pop(r);
+        if (!datum_is_nil(&v)) {
+          *routine_offset(r) = prg.if_true;
+        } else {
+          *routine_offset(r) = prg.if_false;
+        }
+        continue;
+      }
+      if (prg.type == PROG_PUT_CONST) {
+        state_stack_put(r, datum_copy(prg.put_const_value));
+        *routine_offset(r) = prg.put_const_next;
+        continue;
+      }
+      if (prg.type == PROG_PUT_VAR) {
+        datum *er = state_stack_at(r, prg.put_var_offset);
+        state_stack_put(r, datum_copy(er));
+        *routine_offset(r) = prg.put_var_next;
+        continue;
+      }
+      if (prg.type == PROG_COLLECT) {
+        datum form = state_stack_collect(r, prg.collect_count);
+        state_stack_put(r, form);
+        *routine_offset(r) = prg.collect_next;
+        continue;
+      }
+      fprintf(stderr, "unhandled instruction type\n");
+      exit(EXIT_FAILURE);
     }
-    if (prg.type == PROG_PUT_CONST) {
-      state_stack_put(r, datum_copy(prg.put_const_value));
-      *routine_offset(r) = prg.put_const_next;
-      continue;
-    }
-    if (prg.type == PROG_PUT_VAR) {
-      datum *er = state_stack_at(r, prg.put_var_offset);
-      state_stack_put(r, datum_copy(er));
-      *routine_offset(r) = prg.put_var_next;
-      continue;
-    }
-    if (prg.type == PROG_COLLECT) {
-      datum form = state_stack_collect(r, prg.collect_count);
-      state_stack_put(r, form);
-      *routine_offset(r) = prg.collect_next;
-      continue;
-    }
-    fprintf(stderr, "unhandled instruction type\n");
-    exit(EXIT_FAILURE);
   }
   fprintf(stderr, "unreachable\n");
   exit(EXIT_FAILURE);
