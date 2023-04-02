@@ -1,9 +1,9 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 typedef struct datum datum;
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
@@ -90,8 +90,8 @@ datum compdata_get_shape(datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);
 typedef struct extension_fn extension_fn;
 struct extension_fn {
-  char *(*call)(vec *sl, size_t *begin,
-                              datum *stmt, datum *compdata, extension_fn *ext);
+  char *(*call)(vec *sl, size_t *begin, datum *stmt, datum *compdata,
+                extension_fn *ext);
   void *state;
 };
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum *routine_compdata,extension_fn *ext);
@@ -180,6 +180,8 @@ bool datum_is_integer(datum *e);
 bool datum_is_symbol(datum *e);
 #define EXPORT
 datum datum_make_list_of_impl(size_t count,datum *values);
-#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum []){__VA_ARGS__}) / sizeof(datum), (datum[]){__VA_ARGS__})
+#define datum_make_list_of(...)                                                \
+  datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+                          (datum[]){__VA_ARGS__})
 #define EXPORT_INTERFACE 0
 #define INTERFACE 0

@@ -1,8 +1,8 @@
 #pragma once
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 typedef struct datum datum;
 #include <inttypes.h>
 #include <stdio.h>
@@ -37,7 +37,9 @@ struct datum {
   };
 };
 datum datum_make_list_of_impl(size_t count,datum *values);
-#define datum_make_list_of(...) datum_make_list_of_impl(sizeof((datum []){__VA_ARGS__}) / sizeof(datum), (datum[]){__VA_ARGS__})
+#define datum_make_list_of(...)                                                \
+  datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+                          (datum[]){__VA_ARGS__})
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);
@@ -107,8 +109,8 @@ read_result datum_read(FILE *strm);
 fdatum datum_read_one(FILE *stre);
 typedef struct extension_fn extension_fn;
 struct extension_fn {
-  char *(*call)(vec *sl, size_t *begin,
-                              datum *stmt, datum *compdata, extension_fn *ext);
+  char *(*call)(vec *sl, size_t *begin, datum *stmt, datum *compdata,
+                extension_fn *ext);
   void *state;
 };
 fdatum prog_compile(datum *source,datum *compdata,extension_fn *ext);
