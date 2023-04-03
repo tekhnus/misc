@@ -115,7 +115,7 @@ struct extension_fn {
 };
 fdatum prog_compile(datum *source,datum *compdata,extension_fn *ext);
 char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension_fn *ext);
-void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum *compdata);
+void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);

@@ -207,11 +207,26 @@
     (return res))
   'do-something-value)
 
+(fntest
+  (progn
+    (defn wrapper ()
+      (progn
+        (defn wrapped ()
+          (progn
+            (def x (return '()))
+            (return `(~x ~x))))
+        (wrapped @up)
+        (return 33)))
+    (wrapper @mut)
+    (def res (wrapper 42))
+    (return res))
+  '(42 42))
+
 (defn print-all (xs)
   (if xs
       (progn
-        (libc/print (/std/head xs))
-        (print-all (/std/tail xs))
+        (/libc/print (/std/head xs))
+        (../print-all (/std/tail xs))
         (return '()))
     (return '())))
 

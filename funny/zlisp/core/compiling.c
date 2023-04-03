@@ -155,6 +155,12 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     datum routine_compdata = datum_copy(compdata);
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
+
+    // this yield is for pre-call.
+    datum target = datum_make_symbol("plain");
+    datum met = datum_make_nil();
+    prog_append_yield(sl, &s_off, target, 0, 0, met, &routine_compdata);
+
     char *err =
         prog_init_routine(sl, s_off, args, body, &routine_compdata, ext);
     if (err != NULL) {
@@ -213,6 +219,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;
   bool mut = false;
+  bool pre = false;
   size_t ret_count = 1;
   for (; datum_is_list(fn) && list_length(fn) == 2 &&
          datum_is_symbol(list_at(fn, 0));
@@ -245,6 +252,9 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       ++index;
     } else if (datum_is_the_symbol(content, "mut")) {
       mut = true;
+      ++index;
+    } else if (datum_is_the_symbol(content, "pre")) {
+      pre = true;
       ++index;
     } else if (!target_is_set) {
       target = datum_copy(content);
@@ -308,7 +318,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       }
     }
   }
-  prog_append_call(sl, begin, capture_size, indices, !mut, target, arg_count,
+  prog_append_call(sl, begin, capture_size, indices, !mut, pre, target, arg_count,
                    ret_count, compdata);
   return NULL;
 }
@@ -387,12 +397,12 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
 }
 
 EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
-                             datum indices, bool pop_one, datum type,
+                             datum indices, bool pop_one, bool pre, datum type,
                              int arg_count, int return_count, datum *compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(
       datum_make_symbol(":call"), datum_make_int(capture_size), indices,
-      datum_make_int(pop_one), type, datum_make_int(arg_count),
+      datum_make_int(pop_one), datum_make_int(pre), type, datum_make_int(arg_count),
       datum_make_int(return_count), datum_make_int(next));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);

@@ -38,6 +38,7 @@ struct prog {
       struct datum *call_indices;
       size_t call_capture_count;
       bool call_pop_one;
+      bool call_pre;
       struct datum *call_type;
       size_t call_arg_count;
       size_t call_return_count;
@@ -204,6 +205,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = OFFSET_ERROR;
         goto body;
       }
+      if (prg.call_pre) {
+        --*routine_offset(&rt);
+      }
       result err = routine_run(sl, &rt, args);
       datum *yield_type = &err.type;
       if (!datum_eq(recieve_type, yield_type)) {
@@ -323,10 +327,11 @@ LOCAL prog datum_to_prog(datum *d) {
     res.call_capture_count = list_at(d, 1)->integer_value;
     res.call_indices = list_at(d, 2);
     res.call_pop_one = list_at(d, 3)->integer_value;
-    res.call_type = list_at(d, 4);
-    res.call_arg_count = list_at(d, 5)->integer_value;
-    res.call_return_count = list_at(d, 6)->integer_value;
-    res.call_next = list_at(d, 7)->integer_value;
+    res.call_pre = list_at(d, 4)->integer_value;
+    res.call_type = list_at(d, 5);
+    res.call_arg_count = list_at(d, 6)->integer_value;
+    res.call_return_count = list_at(d, 7)->integer_value;
+    res.call_next = list_at(d, 8)->integer_value;
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
