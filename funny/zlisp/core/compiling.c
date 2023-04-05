@@ -318,8 +318,8 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       }
     }
   }
-  prog_append_call(sl, begin, capture_size, indices, !mut, pre, target, arg_count,
-                   ret_count, compdata);
+  prog_append_call(sl, begin, capture_size, indices, !mut, pre, target,
+                   arg_count, ret_count, compdata);
   return NULL;
 }
 
@@ -402,8 +402,9 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) = datum_make_list_of(
       datum_make_symbol(":call"), datum_make_int(capture_size), indices,
-      datum_make_int(pop_one), datum_make_int(pre), type, datum_make_int(arg_count),
-      datum_make_int(return_count), datum_make_int(next));
+      datum_make_int(pop_one), datum_make_int(pre), type,
+      datum_make_int(arg_count), datum_make_int(return_count),
+      datum_make_int(next));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);
   }

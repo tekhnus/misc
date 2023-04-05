@@ -173,6 +173,7 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
 }
 
 LOCAL result routine_run(vec sl, routine *r, datum args) {
+  bool precall = false;
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL) {
@@ -203,7 +204,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
-      if (prg.call_pre) {
+      if (precall) {
         --*routine_offset(&rt);
       }
       result err = routine_run(sl, &rt, args);
@@ -240,7 +241,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       *routine_offset(r) = prg.yield_next;
       goto body;
     }
-    body:
+  body:
     for (;;) {
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
@@ -249,6 +250,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_CALL) {
         args = state_stack_collect(r, prg.call_arg_count);
+        precall = prg.call_pre;
         break;
       }
       if (prg.type == PROG_PUT_PROG) {
@@ -374,8 +376,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
     if (offset < 0) {
       offset = -offset;
     }
-    for (ptrdiff_t i = offset - 15; i <= offset + 3;
-         ++i) {
+    for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
       if (i < 0) {
         continue;
       }

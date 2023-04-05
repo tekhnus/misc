@@ -211,13 +211,12 @@
   (progn
     (defn wrapper ()
       (progn
-        (defn wrapped ()
+        (defn wrapped (x)
           (progn
-            (def x (return '()))
             (return `(~x ~x))))
-        (wrapped @up)
+        (wrapped @mut @pre @0 @up)
         (return 33)))
-    (wrapper @mut)
+    (wrapper @mut @0)
     (def res (wrapper 42))
     (return res))
   '(42 42))
