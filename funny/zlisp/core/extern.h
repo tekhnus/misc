@@ -73,7 +73,6 @@ struct fdatum {
   char *panic_message;
 };
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
-extern ptrdiff_t OFFSET_ERROR;
 LOCAL void compdata_validate(datum *compdata);
 bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();

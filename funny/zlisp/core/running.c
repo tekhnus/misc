@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-ptrdiff_t OFFSET_ERROR = PTRDIFF_MAX;
-
 enum prog_type {
   PROG_END,
   PROG_IF,
@@ -164,11 +162,11 @@ LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
 datum error_instruction;
 
 LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
-  if (index == OFFSET_ERROR) {
+  if (index < 0) {
     error_instruction = datum_make_list_of(
         datum_make_symbol(":yield"), datum_make_symbol("panic"),
         datum_make_int(1), datum_make_int(31415926), datum_make_nil(),
-        datum_make_int(OFFSET_ERROR));
+        datum_make_int(index));
     return &error_instruction;
   }
   return vec_at(sl, index);
@@ -202,7 +200,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         state_stack_put(r, datum_make_bytestring(bufbeg));
-        *routine_offset(r) = OFFSET_ERROR;
+        *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
       if (prg.call_pre) {
@@ -217,7 +215,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       if (prg.call_return_count != (long unsigned int)list_length(argz)) {
         state_stack_put(r, datum_make_bytestring(
                                "call count and yield count are not equal"));
-        *routine_offset(r) = OFFSET_ERROR;
+        *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
 
@@ -235,7 +233,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
                 "recieved incorrect number of arguments: expected %zu, got %d",
                 prg.yield_recieve_count, list_length(&args));
         state_stack_put(r, datum_make_bytestring(err));
-        *routine_offset(r) = OFFSET_ERROR;
+        *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
       state_stack_put_all(r, args);
@@ -372,25 +370,31 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   int i = 0;
   routine z = *r;
   for (; i < 10; ++i) {
-    for (ptrdiff_t i = *routine_offset(&z) - 15; i < *routine_offset(&z) + 3;
+    ptrdiff_t offset = *routine_offset(&z);
+    if (offset < 0) {
+      offset = -offset;
+    }
+    for (ptrdiff_t i = offset - 15; i <= offset + 3;
          ++i) {
       if (i < 0) {
         continue;
       }
       if (i >= (ptrdiff_t)vec_length(&sl)) {
-        break;
+        continue;
       }
-      if (i == *routine_offset(&z)) {
-        fprintf(stderr, "> ");
+      if (i == offset) {
+        if (*routine_offset(&z) < 0) {
+          fprintf(stderr, "! ");
+        } else {
+          fprintf(stderr, "> ");
+        }
       } else {
         fprintf(stderr, "  ");
       }
       fprintf(stderr, "%ld ", i);
-      datum *ins = vec_at(&sl, i);
+      datum *ins = instruction_at(&sl, i);
       fprintf(stderr, "%-40s\n", datum_repr(ins));
     }
-    fprintf(stderr, "**********\n");
-    fprintf(stderr, "%zu vars on stack\n", routine_get_stack_size(&z));
     fprintf(stderr, "**********\n");
     if (!get_child(sl, &z)) {
       break;
