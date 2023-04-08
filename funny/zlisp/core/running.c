@@ -29,6 +29,7 @@ struct prog {
       ptrdiff_t put_const_next;
     };
     struct {
+      datum *put_var_target;
       datum *put_var_offset;
       ptrdiff_t put_var_next;
     };
@@ -280,7 +281,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_PUT_VAR) {
         datum *er = state_stack_at(r, prg.put_var_offset);
-        state_stack_put(r, datum_copy(er));
+        state_stack_set(r, prg.put_var_target, datum_copy(er));
         *routine_offset(r) = prg.put_var_next;
         continue;
       }
@@ -320,8 +321,9 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_const_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":put-var")) {
     res.type = PROG_PUT_VAR;
-    res.put_var_offset = list_at(d, 1);
-    res.put_var_next = (list_at(d, 2)->integer_value);
+    res.put_var_target = list_at(d, 1);
+    res.put_var_offset = list_at(d, 2);
+    res.put_var_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;
@@ -416,6 +418,26 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
   vec vars = f->state;
   assert((size_t)idx->integer_value < vec_length(&vars));
   return vec_at(&vars, idx->integer_value);
+}
+
+EXPORT void state_stack_set(routine *r, datum *target, datum value) {
+  assert(datum_is_list(target) && list_length(target) == 2);
+  datum *frame_index = list_at(target, 0);
+  assert(datum_is_integer(frame_index));
+  size_t frame_index_ = frame_index->integer_value;
+  assert(frame_index_ < routine_get_count(r));
+  vec *frame = &r->frames[frame_index_]->state;
+  datum *value_index = list_at(target, 1);
+  assert(datum_is_integer(value_index));
+  size_t value_index_ = value_index->integer_value;
+  assert(value_index_ <= vec_length(frame));
+  if (value_index_ == vec_length(frame)) {
+    vec_append(frame, value);
+  } else if (value_index_ < vec_length(frame)) {
+    *vec_at(frame, value_index_) = value;
+  } else {
+    assert(false);
+  }
 }
 
 EXPORT void state_stack_put(routine *r, datum value) {

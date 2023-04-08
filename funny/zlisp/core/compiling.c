@@ -429,10 +429,11 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
     fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
     exit(1);
   }
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":put-var"),
-                                           polyindex, datum_make_int(next));
-  *begin = next;
   compdata_put(compdata, datum_make_symbol(":anon"));
+  datum target_polyindex = compdata_get_top_polyindex(compdata);
+  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":put-var"),
+                                           target_polyindex, polyindex, datum_make_int(next));
+  *begin = next;
 }
 
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,

@@ -130,7 +130,7 @@ def main():
             pdata[-1].varz[-1].append((value))
             ip = nex
         elif op == sexpdata.Symbol(":put-var"):
-            offset, nex = args
+            target, offset, nex = args
             frame, indx = offset
             pdata[-1].varz[-1].append(
                 copy.deepcopy(pdata[-1].varz[frame][indx])

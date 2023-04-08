@@ -41,6 +41,7 @@ struct datum {
     frame frame_value;
   };
 };
+void state_stack_set(routine *r,datum *target,datum value);
 datum routine_make(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);
 void state_stack_put_all(routine *r,datum list);
