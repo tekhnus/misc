@@ -79,6 +79,7 @@ bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdata);
+LOCAL void prog_append_dup(vec *sl,size_t *begin,datum *target,datum *source);
 void prog_append_nop(vec *sl,size_t *begin);
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL void prog_append_recieve(vec *sl,size_t *begin,datum *args,datum meta,datum *compdata);
@@ -96,7 +97,7 @@ struct extension_fn {
 };
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum *routine_compdata,extension_fn *ext);
 LOCAL void compdata_start_new_section(datum *compdata);
-void store_values_to_variables(datum *var,datum *compdata);
+void store_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum *compdata,datum var);
 LOCAL void compdata_del(datum *compdata);

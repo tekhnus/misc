@@ -139,7 +139,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     } else {
       names = datum_make_list_of(datum_copy(list_at(stmt, 1)));
     }
-    store_values_to_variables(&names, compdata);
+    store_values_to_variables(sl, begin, &names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "defn")) {
@@ -168,7 +168,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
     datum name_singleton = datum_make_list_of(datum_copy(name));
-    store_values_to_variables(&name_singleton, compdata);
+    store_values_to_variables(sl, begin, &name_singleton, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return")) {
@@ -436,6 +436,15 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
   *begin = next;
 }
 
+LOCAL void prog_append_dup(vec *sl, size_t *begin, datum *target, datum *source) {
+  size_t next = vec_append_new(sl);
+  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":put-var"),
+                                           datum_copy(target), datum_copy(source), datum_make_int(next));
+  *begin = next;
+}
+
+
+
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
                                  int capture, datum *compdata) {
   size_t next = vec_append_new(sl);
@@ -466,7 +475,7 @@ LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args, datum meta,
                                datum *compdata) {
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
-  store_values_to_variables(args, compdata);
+  store_values_to_variables(sl, begin, args, compdata);
 }
 
 LOCAL fdatum prog_read_exports(datum *spec) {
@@ -616,15 +625,42 @@ EXPORT datum compdata_get_shape(datum *compdata) {
   return res;
 }
 
-EXPORT void store_values_to_variables(datum *var, datum *compdata) {
+EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var, datum *compdata) {
   if (!datum_is_list(var)) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
   }
+  assert(sl);
+  assert(begin);
+  bool put = false;
+  bool set = false;
   for (int i = 0; i < list_length(var); ++i) {
-    compdata_del(compdata);
+    datum polyindex = compdata_get_polyindex(compdata, list_at(var, i));
+    if (datum_is_nil(&polyindex)) {
+      put = true;
+    } else {
+      set = true;
+    }
   }
-  for (int i = 0; i < list_length(var); ++i) {
-    compdata_put(compdata, datum_copy(list_at(var, i)));
+  if (put && set) {
+    fprintf(stderr, "mixed assignment: %s\n", datum_repr(var));
+    exit(EXIT_FAILURE);
+  }
+  if (put) {
+    for (int i = 0; i < list_length(var); ++i) {
+      compdata_del(compdata);
+    }
+    for (int i = 0; i < list_length(var); ++i) {
+      compdata_put(compdata, datum_copy(list_at(var, i)));
+    }
+  }
+  if (set) {
+    for (int i = 0; i < list_length(var); ++i) {
+      int idx = list_length(var) - i - 1;
+      datum target = compdata_get_polyindex(compdata, list_at(var, idx));
+      assert(!datum_is_nil(&target));
+      datum source = compdata_get_top_polyindex(compdata);
+      prog_append_dup(sl, begin, &target, &source);
+    }
   }
 }
