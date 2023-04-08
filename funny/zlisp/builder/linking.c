@@ -27,7 +27,7 @@ prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata, size_t p,
     return NULL;
   }
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
-  compdata_give_names(&s, builder_compdata);
+  store_values_to_variables(&s, builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
                               builder_compdata, ext);
   if (err != NULL) {
@@ -199,7 +199,7 @@ prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
     vn = datum_make_symbol(varname);
     list_append(&names, vn);
   }
-  compdata_give_names(&names, compdata);
+  store_values_to_variables(&names, compdata);
   return NULL;
 }
 

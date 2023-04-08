@@ -139,7 +139,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     } else {
       names = datum_make_list_of(datum_copy(list_at(stmt, 1)));
     }
-    compdata_give_names(&names, compdata);
+    store_values_to_variables(&names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "defn")) {
@@ -168,7 +168,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     prog_append_put_prog(sl, begin, s_off, 2, compdata);
     datum name_singleton = datum_make_list_of(datum_copy(name));
-    compdata_give_names(&name_singleton, compdata);
+    store_values_to_variables(&name_singleton, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return")) {
@@ -466,7 +466,7 @@ LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args, datum meta,
                                datum *compdata) {
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
-  compdata_give_names(args, compdata);
+  store_values_to_variables(args, compdata);
 }
 
 LOCAL fdatum prog_read_exports(datum *spec) {
@@ -616,7 +616,7 @@ EXPORT datum compdata_get_shape(datum *compdata) {
   return res;
 }
 
-EXPORT void compdata_give_names(datum *var, datum *compdata) {
+EXPORT void store_values_to_variables(datum *var, datum *compdata) {
   if (!datum_is_list(var)) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
