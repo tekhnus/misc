@@ -436,9 +436,9 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
   *begin = next;
 }
 
-LOCAL void prog_append_dup(vec *sl, size_t *begin, datum *target, datum *source) {
+LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target, datum *source) {
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":put-var"),
+  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":move"),
                                            datum_copy(target), datum_copy(source), datum_make_int(next));
   *begin = next;
 }
@@ -660,7 +660,8 @@ EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var, datum 
       datum target = compdata_get_polyindex(compdata, list_at(var, idx));
       assert(!datum_is_nil(&target));
       datum source = compdata_get_top_polyindex(compdata);
-      prog_append_dup(sl, begin, &target, &source);
+      prog_append_move(sl, begin, &target, &source);
+      compdata_del(compdata);
     }
   }
 }

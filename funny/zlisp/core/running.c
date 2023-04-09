@@ -10,6 +10,7 @@ enum prog_type {
   PROG_NOP,
   PROG_PUT_CONST,
   PROG_PUT_VAR,
+  PROG_MOVE,
   PROG_CALL,
   PROG_COLLECT,
   PROG_PUT_PROG,
@@ -32,6 +33,11 @@ struct prog {
       datum *put_var_target;
       datum *put_var_offset;
       ptrdiff_t put_var_next;
+    };
+    struct {
+      datum *move_target;
+      datum *move_offset;
+      ptrdiff_t move_next;
     };
     struct {
       struct datum *call_indices;
@@ -285,6 +291,14 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = prg.put_var_next;
         continue;
       }
+      if (prg.type == PROG_MOVE) {
+        datum *er = state_stack_at(r, prg.move_offset);
+        state_stack_set(r, prg.move_target, *er);
+        *er = datum_make_nil();
+        state_stack_pop(r);  // WARNING: works only while we always move the top of the stack!
+        *routine_offset(r) = prg.move_next;
+        continue;
+      }
       if (prg.type == PROG_COLLECT) {
         datum form = state_stack_collect(r, prg.collect_count);
         state_stack_put(r, form);
@@ -324,6 +338,11 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_var_target = list_at(d, 1);
     res.put_var_offset = list_at(d, 2);
     res.put_var_next = (list_at(d, 3)->integer_value);
+  } else if (!strcmp(opsym, ":move")) {
+    res.type = PROG_MOVE;
+    res.move_target = list_at(d, 1);
+    res.move_offset = list_at(d, 2);
+    res.move_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;

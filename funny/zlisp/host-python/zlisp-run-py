@@ -139,6 +139,18 @@ def main():
                 copy.deepcopy(pdata[-1].varz[frame][indx])
             )
             ip = nex
+        elif op == sexpdata.Symbol(":move"):
+            target, offset, nex = args
+            tframe, tindx = target
+            frame, indx = offset
+            if tindx == len(pdata[-1].varz[tframe]):
+                pdata[-1].varz[tframe].append(None)
+            pdata[-1].varz[tframe][tindx] = (
+                pdata[-1].varz[frame][indx]
+            )
+            pdata[-1].varz[frame][indx] = None
+            pdata[-1].varz[frame].pop()  # WARNING: works only because we move the top cell.
+            ip = nex
         elif op == sexpdata.Symbol(":call"):
             capture_cnt, indices, pop_one, pre, target, arg_cnt, ret_cnt, nex = args
             if target != sexpdata.Symbol("plain"):
