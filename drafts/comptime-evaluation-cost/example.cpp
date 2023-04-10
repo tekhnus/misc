@@ -127,6 +127,11 @@ struct FunctorStrategy {
   }
 };
 
+template <typename Left, typename Right> struct ProductSteps {
+  constexpr static auto const value = std::tuple{
+      LazyProductStep<Left, Right>{}, EagerProductStep<Left, Right>{}};
+};
+
 template <typename Expression> struct Evaluator;
 
 template <typename LeftExpression, typename RightExpression>
@@ -146,11 +151,11 @@ struct Evaluator<const Product<LeftExpression, RightExpression>> {
       using Right =
           typename std::tuple_element<1, PairOfStrategies>::type::Target;
 
-      const auto lazy = FunctorStrategy{LazyProductStep<Left, Right>{},
-                                        std::get<0>(pair), std::get<1>(pair)};
-      const auto eager = FunctorStrategy{EagerProductStep<Left, Right>{},
-                                         std::get<0>(pair), std::get<1>(pair)};
-      return std::tuple{lazy, eager};
+      auto const value = ProductSteps<Left, Right>::value;
+
+      return apply_to_each(value, [&pair](const auto &step) {
+        return FunctorStrategy{step, std::get<0>(pair), std::get<1>(pair)};
+      });
     };
     return std::apply(
         [](const auto &...args) { return std::tuple_cat(args...); },
