@@ -108,7 +108,7 @@ int main() {
   constexpr const auto scores = apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
-    unsigned int cost = x.EvaluationCost();
+    unsigned int cost = SumOverTree([](const auto& y) { return y.EvaluationCost(); }, x);
     if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
       cost = 100500u;
     }
@@ -133,7 +133,8 @@ int main() {
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
-    std::cout << typeid(target_type).name() << " " << x.EvaluationCost()
+    unsigned int cost = SumOverTree([](const auto& y) { return y.EvaluationCost(); }, x);
+    std::cout << typeid(target_type).name() << " " << cost
               << std::endl;
     return 0;
   });

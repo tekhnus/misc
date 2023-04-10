@@ -2,7 +2,6 @@
 
 template <typename T> struct TrivialStrategy {
   using Target = T;
-  constexpr unsigned int EvaluationCost() const { return 0; }
 
   Target Eval(const Target &expression) const { return expression; }
 };
@@ -17,15 +16,6 @@ struct FunctorStrategy {
                             const ArgumentStrategies &strategies)
       : f(f), argument_strategies(argument_strategies) {}
 
-  constexpr unsigned int EvaluationCost() const {
-    return std::apply(
-               [](const auto &...args) {
-                 return (args.EvaluationCost() + ...);
-               },
-               argument_strategies) +
-           f.EvaluationCost();
-  }
-
   template <typename Source> Target Eval(const Source &expression) const {
     return std::apply(
         [&](const auto &...var_strategies) {
@@ -38,6 +28,21 @@ struct FunctorStrategy {
         argument_strategies);
   }
 };
+
+template <typename F, typename T>
+constexpr unsigned int SumOverTree(F function, T tree) {
+  return std::apply(
+             [&](const auto &...args) {
+               return (SumOverTree(function, args) + ...);
+             },
+             tree.argument_strategies) +
+      function(tree.f);
+}
+
+template <typename F, typename T>
+constexpr unsigned int SumOverTree(F function, TrivialStrategy<T> tree) {
+  return 0;
+}
 
 template <typename Expression, typename = void> struct Evaluator {
   constexpr static auto GetStrategies() {
