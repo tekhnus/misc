@@ -7,26 +7,21 @@ template <typename T> struct TrivialStrategy {
   Target Eval(const Target &expression) const { return expression; }
 };
 
-template <typename Functor, typename LeftStrategy, typename RightStrategy>
+template <typename Functor, typename ArgumentStrategies>
 struct FunctorStrategy {
   const Functor f;
-  const LeftStrategy left;
-  const RightStrategy right;
+  const ArgumentStrategies argument_strategies;
   using Target = typename Functor::Target;
 
-  constexpr FunctorStrategy(const Functor &f, const LeftStrategy &left,
-                            const RightStrategy &right)
-      : f(f), left(left), right(right) {}
-  constexpr unsigned int EvaluationCost() const {
-    return left.EvaluationCost() + right.EvaluationCost() + f.EvaluationCost();
-  }
+  constexpr FunctorStrategy(const Functor &f, const ArgumentStrategies& strategies)
+    : f(f), argument_strategies(argument_strategies) {}
 
-  template <typename T> constexpr bool operator<(const T &another) {
-    return EvaluationCost() < another.EvaluationCost();
+  constexpr unsigned int EvaluationCost() const {
+    return std::apply([](const auto&... args) { return (args.EvaluationCost() + ...); }, argument_strategies) + f.EvaluationCost();
   }
 
   template <typename Source> Target Eval(const Source &expression) const {
-    return f.Eval(left.Eval(expression.left), right.Eval(expression.right));
+    return f.Eval(std::get<0>(argument_strategies).Eval(expression.left), std::get<1>(argument_strategies).Eval(expression.right));
   }
 };
 
@@ -56,7 +51,7 @@ struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
       auto const value = Expression::Meta::template GetSteps<Left, Right>();
 
       return apply_to_each(value, [&pair](const auto &step) {
-        return FunctorStrategy{step, std::get<0>(pair), std::get<1>(pair)};
+        return FunctorStrategy{step, std::tuple{std::get<0>(pair), std::get<1>(pair)}};
       });
     };
     return std::apply(
