@@ -51,7 +51,7 @@ struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
       auto const value = Expression::Meta::template GetSteps<Left, Right>();
 
       return apply_to_each(value, [&pair](const auto &step) {
-        return FunctorStrategy{step, std::tuple{std::get<0>(pair), std::get<1>(pair)}};
+        return FunctorStrategy{step, pair};
       });
     };
     return std::apply(
