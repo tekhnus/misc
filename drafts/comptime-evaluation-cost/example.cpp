@@ -200,13 +200,11 @@ int main() {
   std::cout << "result: " << result << std::endl;
 
   // Some debug info.
-  std::cout << "best tree: " << best_evaluation_tree
-            << std::endl;
+  std::cout << "best tree: " << best_evaluation_tree << std::endl;
   apply_to_each(evaluation_trees, [](const auto &tree) {
     unsigned int cost = SumOverEvaluationSteps(
         [](const auto &y) { return y.EvaluationCost(); }, tree);
-    std::cout << "tree: " << tree << " score: " << cost
-              << std::endl;
+    std::cout << "tree: " << tree << " score: " << cost << std::endl;
     return 0;
   });
   return 0;

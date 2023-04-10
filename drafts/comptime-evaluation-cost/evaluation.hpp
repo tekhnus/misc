@@ -28,11 +28,15 @@ struct EvaluationTree {
         argument_trees);
   }
 
-  friend auto operator<<(std::ostream &os, EvaluationTree<EvaluationStep, ArgumentEvaluationTrees> const &m)
+  friend auto
+  operator<<(std::ostream &os,
+             EvaluationTree<EvaluationStep, ArgumentEvaluationTrees> const &m)
       -> std::ostream & {
-    return std::apply([&](const auto&... argument_trees_) -> std::ostream & {
-      return ((os << m.step << "(") << ... << argument_trees_) << ")";
-    }, m.argument_trees);
+    return std::apply(
+        [&](const auto &...argument_trees_) -> std::ostream & {
+          return ((os << m.step << "(") << ... << argument_trees_) << ")";
+        },
+        m.argument_trees);
   }
 };
 
