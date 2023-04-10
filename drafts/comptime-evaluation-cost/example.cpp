@@ -7,8 +7,8 @@
 #include "matrix.hpp"
 
 int main() {
-  DenseMatrix<int, 5, 5> a{}, b{}, c{}, d{};
-  const auto some_expression = (a * b) * (c + d);
+  DenseMatrix<int, 5, 5> a{}, b{}, c{}, d{}, e{};
+  const auto some_expression = (a * b * c) * (c + d * e);
   constexpr const auto evaluation_trees =
       GetAllPossibleEvaluationTrees(some_expression);
   constexpr const auto best_evaluation_tree =
