@@ -14,7 +14,7 @@ struct FunctorStrategy {
 
   constexpr FunctorStrategy(const Functor &f,
                             const ArgumentStrategies &strategies)
-      : f(f), argument_strategies(argument_strategies) {}
+      : f(f), argument_strategies(strategies) {}
 
   template <typename Source> Target Eval(const Source &expression) const {
     return std::apply(
@@ -36,7 +36,7 @@ constexpr unsigned int SumOverTree(F function, T tree) {
                return (SumOverTree(function, args) + ...);
              },
              tree.argument_strategies) +
-      function(tree.f);
+         function(tree.f);
 }
 
 template <typename F, typename T>

@@ -108,7 +108,8 @@ int main() {
   constexpr const auto scores = apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
-    unsigned int cost = SumOverTree([](const auto& y) { return y.EvaluationCost(); }, x);
+    unsigned int cost =
+        SumOverTree([](const auto &y) { return y.EvaluationCost(); }, x);
     if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
       cost = 100500u;
     }
@@ -116,7 +117,6 @@ int main() {
   });
   constexpr const size_t best_index = std::apply(
       [](const auto &...args) {
-        size_t best_score = 0;
         auto best = std::min({args.first...});
         size_t best_index = 0;
         size_t index = 0;
@@ -133,9 +133,9 @@ int main() {
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
-    unsigned int cost = SumOverTree([](const auto& y) { return y.EvaluationCost(); }, x);
-    std::cout << typeid(target_type).name() << " " << cost
-              << std::endl;
+    unsigned int cost =
+        SumOverTree([](const auto &y) { return y.EvaluationCost(); }, x);
+    std::cout << typeid(target_type).name() << " " << cost << std::endl;
     return 0;
   });
   return 0;
