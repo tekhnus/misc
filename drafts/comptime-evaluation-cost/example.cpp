@@ -58,24 +58,24 @@ ComputeProduct(const Left &left, const Right &right) {
 }
 
 template <typename Left, typename Right> struct LazyProductStep {
-  using Target = ProductMatrix<Left, Right>;
+  using Result = ProductMatrix<Left, Right>;
 
   constexpr unsigned int EvaluationCost() const { return 0; }
 
-  Target Eval(const std::tuple<Left, Right> &elements) const {
+  Result Eval(const std::tuple<Left, Right> &elements) const {
     return ProductMatrix{std::get<0>(elements), std::get<1>(elements)};
   }
 };
 
 template <typename Left, typename Right> struct EagerProductStep {
-  using Target = DenseMatrix<typename Left::Value, Left::rows, Right::cols>;
+  using Result = DenseMatrix<typename Left::Value, Left::rows, Right::cols>;
 
   constexpr unsigned int EvaluationCost() const {
     return Left::rows * Right::rows * Left::cols * Right::cols *
            Left::AccessCost() * Right::AccessCost();
   }
 
-  Target Eval(const std::tuple<Left, Right> &elements) const {
+  Result Eval(const std::tuple<Left, Right> &elements) const {
     return ComputeProduct(std::get<0>(elements), std::get<1>(elements));
   }
 };
@@ -105,12 +105,12 @@ int main() {
   DenseMatrix<int, 5, 5> a{}, b{}, c{};
   const auto abstract_product = (a * b) * c;
   constexpr Evaluator<decltype(abstract_product)> e;
-  constexpr const auto strategies = e.GetStrategies();
+  constexpr const auto strategies = e.GetAllPossibleEvaluationTrees();
   constexpr const auto scores = apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
-    using target_type = typename x_type::Target;
+    using target_type = typename x_type::Result;
     unsigned int cost =
-        SumOverTree([](const auto &y) { return y.EvaluationCost(); }, x);
+        SumOverEvaluationSteps([](const auto &y) { return y.EvaluationCost(); }, x);
     if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
       cost = 100500u;
     }
@@ -125,9 +125,9 @@ int main() {
 
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
-    using target_type = typename x_type::Target;
+    using target_type = typename x_type::Result;
     unsigned int cost =
-        SumOverTree([](const auto &y) { return y.EvaluationCost(); }, x);
+        SumOverEvaluationSteps([](const auto &y) { return y.EvaluationCost(); }, x);
     std::cout << typeid(target_type).name() << " " << cost << std::endl;
     return 0;
   });
