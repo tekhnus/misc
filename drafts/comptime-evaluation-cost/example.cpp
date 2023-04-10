@@ -54,26 +54,6 @@ ComputeProduct(const Left &left, const Right &right) {
   return product;
 }
 
-template <typename Left_, typename Right_> struct Product {
-  using Left = Left_;
-  using Right = Right_;
-
-  const Left left;
-  const Right right;
-};
-
-template <typename Left, typename Right>
-Product<Left, Right> operator*(const Left &left, const Right &right) {
-  return Product<Left, Right>{left, right};
-}
-
-template <typename T> struct TrivialStrategy {
-  using Target = T;
-  constexpr unsigned int EvaluationCost() const { return 0; }
-
-  Target Eval(const Target &expression) const { return expression; }
-};
-
 template <typename Left, typename Right> struct LazyProductStep {
   using Target = ProductMatrix<Left, Right>;
 
@@ -95,6 +75,37 @@ template <typename Left, typename Right> struct EagerProductStep {
   Target Eval(const Left &left, const Right &right) const {
     return ComputeProduct(left, right);
   }
+};
+
+struct ProductMeta {
+  template <typename Left, typename Right>
+  constexpr static auto const GetSteps() {
+    return std::tuple{
+        LazyProductStep<Left, Right>{}, EagerProductStep<Left, Right>{}};
+  }
+};
+
+template <typename Left_, typename Right_> struct Product {
+  using Meta = ProductMeta;
+  using Left = Left_;
+  using Right = Right_;
+
+  const Left left;
+  const Right right;
+
+
+};
+
+template <typename Left, typename Right>
+Product<Left, Right> operator*(const Left &left, const Right &right) {
+  return Product<Left, Right>{left, right};
+}
+
+template <typename T> struct TrivialStrategy {
+  using Target = T;
+  constexpr unsigned int EvaluationCost() const { return 0; }
+
+  Target Eval(const Target &expression) const { return expression; }
 };
 
 template <typename Functor, typename LeftStrategy, typename RightStrategy>
@@ -120,22 +131,13 @@ struct FunctorStrategy {
   }
 };
 
-template <typename Expression> struct Steps;
-
-template <typename Left, typename Right> struct Steps<Product<Left, Right>> {
-  constexpr static auto const value = std::tuple{
-      LazyProductStep<Left, Right>{}, EagerProductStep<Left, Right>{}};
-};
-
 template <typename Expression> struct Evaluator;
 
-template <typename LeftExpression, typename RightExpression>
-struct Evaluator<const Product<LeftExpression, RightExpression>> {
-  using T = const Product<LeftExpression, RightExpression>;
-
+template <typename Expression>
+struct Evaluator {
   constexpr static auto GetStrategies() {
-    using LeftEvaluator = Evaluator<typename T::Left>;
-    using RightEvaluator = Evaluator<typename T::Right>;
+    using LeftEvaluator = Evaluator<typename Expression::Left>;
+    using RightEvaluator = Evaluator<typename Expression::Right>;
 
     auto left_strategies = LeftEvaluator::GetStrategies();
     auto right_strategies = RightEvaluator::GetStrategies();
@@ -148,7 +150,7 @@ struct Evaluator<const Product<LeftExpression, RightExpression>> {
       using Right =
           typename std::tuple_element<1, PairOfStrategies>::type::Target;
 
-      auto const value = Steps<Product<Left, Right>>::value;
+      auto const value = Expression::Meta::template GetSteps<Left, Right>();
 
       return apply_to_each(value, [&pair](const auto &step) {
         return FunctorStrategy{step, std::get<0>(pair), std::get<1>(pair)};
@@ -158,10 +160,6 @@ struct Evaluator<const Product<LeftExpression, RightExpression>> {
         [](const auto &...args) { return std::tuple_cat(args...); },
         apply_to_each(product, pair_to_strategies));
   }
-};
-
-template <typename Left, typename Right>
-struct Evaluator<Product<Left, Right>> : Evaluator<const Product<Left, Right>> {
 };
 
 template <typename V, size_t ROWS, size_t COLS>
