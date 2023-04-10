@@ -3,6 +3,7 @@
 
 #include "utils/apply_to_each.hpp"
 #include "utils/cartesian_product.hpp"
+#include "utils/misc.hpp"
 
 #include "evaluation.hpp"
 
@@ -113,19 +114,11 @@ int main() {
     if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
       cost = 100500u;
     }
-    return std::pair{cost, x};
+    return cost;
   });
-  constexpr const size_t best_index = std::apply(
-      [](const auto &...args) {
-        auto best = std::min({args.first...});
-        size_t best_index = 0;
-        size_t index = 0;
-        ((args.first == best ? (best_index = index++) : index++), ...);
-        return best_index;
-      },
-      scores);
-  constexpr const auto best_score = std::get<best_index>(scores);
-  const auto [sc, st] = best_score;
+  constexpr const size_t best_index = tuple_argmin(scores);
+  constexpr const auto sc = std::get<best_index>(scores);
+  constexpr const auto st = std::get<best_index>(strategies);
   std::cout << sc << std::endl;
   std::cout << typeid(st).name() << std::endl;
   st.Eval(abstract_product);
