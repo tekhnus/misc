@@ -56,6 +56,12 @@ ComputeProduct(const Left &left, const Right &right) {
   return product;
 }
 
+template <typename T> constexpr bool IsDenseMatrix(const T &x) {
+  using x_type = typename std::remove_reference<decltype(x)>::type;
+  using target_type = typename x_type::Result;
+  return std::is_same<target_type, DenseMatrix<int, 5, 5>>::value;
+}
+
 template <typename Left, typename Right> struct LazyProductStep {
   using Result = LazyProductMatrix<Left, Right>;
 
@@ -103,32 +109,30 @@ MatrixProductExpression<std::tuple<Left, Right>> operator*(const Left &left,
 
 int main() {
   DenseMatrix<int, 5, 5> a{}, b{}, c{};
-  const auto abstract_product = (a * b) * c;
-  constexpr Evaluator<decltype(abstract_product)> e;
-  constexpr const auto strategies = e.GetAllPossibleEvaluationTrees();
-  constexpr const auto scores = apply_to_each(strategies, [](const auto &x) {
-    using x_type = typename std::remove_reference<decltype(x)>::type;
-    using target_type = typename x_type::Result;
-    unsigned int cost = SumOverEvaluationSteps(
-        [](const auto &y) { return y.EvaluationCost(); }, x);
-    if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
-      cost = 100500u;
-    }
-    return cost;
-  });
+  const auto some_expression = (a * b) * c;
+  constexpr const auto all_evaluation_trees =
+      Evaluator<decltype(some_expression)>::GetAllPossibleEvaluationTrees();
+  const auto evaluation_trees = tuple_filter(
+      all_evaluation_trees, [](const auto &x) { return IsDenseMatrix(x); });
+  constexpr const auto scores =
+      apply_to_each(evaluation_trees, [](const auto &tree) {
+        return SumOverEvaluationSteps(
+            [](const auto &step) { return step.EvaluationCost(); }, tree);
+      });
   constexpr const size_t best_index = tuple_argmin(scores);
-  constexpr const auto sc = std::get<best_index>(scores);
-  constexpr const auto st = std::get<best_index>(strategies);
-  std::cout << sc << std::endl;
-  std::cout << typeid(st).name() << std::endl;
-  st.Eval(abstract_product);
+  constexpr const auto best_score = std::get<best_index>(scores);
+  constexpr const auto best_evaluation_tree = std::get<best_index>(evaluation_trees);
+  const auto result = best_evaluation_tree.Eval(some_expression);
+  std::cout << "result type: " << typeid(result).name() << std::endl;
 
-  apply_to_each(strategies, [](const auto &x) {
+  std::cout << "best score: " << best_score << std::endl;
+  std::cout << "best tree: " << typeid(best_evaluation_tree).name() << std::endl;
+  apply_to_each(all_evaluation_trees, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Result;
     unsigned int cost = SumOverEvaluationSteps(
         [](const auto &y) { return y.EvaluationCost(); }, x);
-    std::cout << typeid(target_type).name() << " " << cost << std::endl;
+    std::cout << "tree: " << typeid(target_type).name() << " score: " << cost << std::endl;
     return 0;
   });
   return 0;
