@@ -18,7 +18,7 @@ template <typename V, size_t ROWS, size_t COLS> struct DenseMatrix {
   constexpr static unsigned int AccessCost() { return 1; }
 };
 
-template <typename Left, typename Right> struct ProductMatrix {
+template <typename Left, typename Right> struct LazyProductMatrix {
   using Value = typename Left::Value;
   constexpr static size_t const rows = Left::rows;
   constexpr static size_t const cols = Right::cols;
@@ -26,7 +26,7 @@ template <typename Left, typename Right> struct ProductMatrix {
   const Left &left;
   const Right &right;
 
-  ProductMatrix(const Left &left, const Right &right)
+  LazyProductMatrix(const Left &left, const Right &right)
       : left{left}, right{right} {}
 
   Value at(size_t i, size_t k) const {
@@ -57,16 +57,16 @@ ComputeProduct(const Left &left, const Right &right) {
 }
 
 template <typename Left, typename Right> struct LazyProductStep {
-  using Result = ProductMatrix<Left, Right>;
+  using Result = LazyProductMatrix<Left, Right>;
 
   constexpr unsigned int EvaluationCost() const { return 0; }
 
-  Result Eval(const std::tuple<Left, Right> &elements) const {
-    return ProductMatrix{std::get<0>(elements), std::get<1>(elements)};
+  Result Eval(const std::tuple<Left, Right> &arguments) const {
+    return LazyProductMatrix{std::get<0>(arguments), std::get<1>(arguments)};
   }
 };
 
-template <typename Left, typename Right> struct EagerProductStep {
+template <typename Left, typename Right> struct ComputeProductStep {
   using Result = DenseMatrix<typename Left::Value, Left::rows, Right::cols>;
 
   constexpr unsigned int EvaluationCost() const {
@@ -74,33 +74,30 @@ template <typename Left, typename Right> struct EagerProductStep {
            Left::AccessCost() * Right::AccessCost();
   }
 
-  Result Eval(const std::tuple<Left, Right> &elements) const {
-    return ComputeProduct(std::get<0>(elements), std::get<1>(elements));
+  Result Eval(const std::tuple<Left, Right> &arguments) const {
+    return ComputeProduct(std::get<0>(arguments), std::get<1>(arguments));
   }
 };
 
 struct ProductMeta {
-  template <typename TupleOfArguments>
+  template <typename Arguments>
   constexpr static auto const GetAllPossibleSteps() {
-    using Left = typename std::tuple_element<0, TupleOfArguments>::type;
-    using Right = typename std::tuple_element<1, TupleOfArguments>::type;
+    using Left = typename std::tuple_element<0, Arguments>::type;
+    using Right = typename std::tuple_element<1, Arguments>::type;
     return std::tuple{LazyProductStep<Left, Right>{},
-                      EagerProductStep<Left, Right>{}};
+                      ComputeProductStep<Left, Right>{}};
   }
 };
 
-template <typename Left_, typename Right_> struct Product {
+template <typename Arguments_> struct MatrixProductExpression {
+  using Arguments = Arguments_;
   using Meta = ProductMeta;
-  using Left = Left_;
-  using Right = Right_;
-  using Arguments = std::tuple<Left, Right>;
-
   const Arguments arguments;
 };
 
 template <typename Left, typename Right>
-Product<Left, Right> operator*(const Left &left, const Right &right) {
-  return Product<Left, Right>{{left, right}};
+MatrixProductExpression<std::tuple<Left, Right>> operator*(const Left &left, const Right &right) {
+  return {{left, right}};
 }
 
 int main() {

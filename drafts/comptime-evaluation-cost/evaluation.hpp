@@ -58,12 +58,12 @@ struct get_result_types_from_tree_types;
 
 template <typename T, typename... Rest>
 struct get_result_types_from_tree_types<const std::tuple<T, Rest...>> {
-  using value = tuple_cat_t<std::tuple<typename T::Result>, typename get_result_types_from_tree_types<const std::tuple<Rest...>>::value>;
+  using type = tuple_cat_t<std::tuple<typename T::Result>, typename get_result_types_from_tree_types<const std::tuple<Rest...>>::type>;
 };
 
 template <>
 struct get_result_types_from_tree_types<const std::tuple<>> {
-  using value = const std::tuple<>;
+  using type = const std::tuple<>;
 };
 
 template <typename Expression, typename = void> struct Evaluator {
@@ -75,15 +75,17 @@ template <typename Expression, typename = void> struct Evaluator {
 template <typename Expression>
 struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
   constexpr static auto GetAllPossibleEvaluationTrees() {
+    using LeftArgument = typename std::tuple_element<0, typename Expression::Arguments>::type;
+    using RightArgument = typename std::tuple_element<1, typename Expression::Arguments>::type;
     auto left_argument_trees =
-        Evaluator<typename Expression::Left>::GetAllPossibleEvaluationTrees();
+        Evaluator<LeftArgument>::GetAllPossibleEvaluationTrees();
     auto right_argument_trees =
-        Evaluator<typename Expression::Right>::GetAllPossibleEvaluationTrees();
+        Evaluator<RightArgument>::GetAllPossibleEvaluationTrees();
     auto argument_eval_tree_combinations = cartesian_product(left_argument_trees, right_argument_trees);
     auto get_all_possible_tree_completions = [](const auto &argument_eval_trees) {
       using ArgumentEvaluationTrees =
           typename std::remove_reference<decltype(argument_eval_trees)>::type;
-      using EvaluatedArguments = typename get_result_types_from_tree_types<ArgumentEvaluationTrees>::value;
+      using EvaluatedArguments = typename get_result_types_from_tree_types<ArgumentEvaluationTrees>::type;
 
       auto const all_possible_steps = Expression::Meta::template GetAllPossibleSteps<EvaluatedArguments>();
 
