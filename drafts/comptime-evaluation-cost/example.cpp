@@ -63,6 +63,25 @@ ComputeProduct(const Left &left, const Right &right) {
   return product;
 }
 
+template <typename Left, typename Right> struct LazySumMatrix {
+  constexpr static bool is_lazy = true;
+  using Value = typename Left::Value;
+  constexpr static size_t const rows = Left::rows;
+  constexpr static size_t const cols = Left::cols;
+
+  const Left &left;
+  const Right &right;
+
+  LazySumMatrix(const Left &left, const Right &right)
+      : left{left}, right{right} {}
+
+  Value at(size_t i, size_t k) const { return left.at(i, k) + right.at(i, k); }
+
+  constexpr static unsigned int AccessCost() {
+    return Left::AccessCost() + Right::AccessCost();
+  }
+};
+
 template <typename Left, typename Right> struct LazyProductStep {
   using Result = LazyProductMatrix<Left, Right>;
 
@@ -70,6 +89,11 @@ template <typename Left, typename Right> struct LazyProductStep {
 
   Result Eval(const std::tuple<Left, Right> &arguments) const {
     return LazyProductMatrix{std::get<0>(arguments), std::get<1>(arguments)};
+  }
+
+  friend auto operator<<(std::ostream &os, LazyProductStep const &m)
+      -> std::ostream & {
+    return os << "lazy*";
   }
 };
 
@@ -83,6 +107,11 @@ template <typename Left, typename Right> struct ComputeProductStep {
 
   Result Eval(const std::tuple<Left, Right> &arguments) const {
     return ComputeProduct(std::get<0>(arguments), std::get<1>(arguments));
+  }
+
+  friend auto operator<<(std::ostream &os, ComputeProductStep const &m)
+      -> std::ostream & {
+    return os << "compute*";
   }
 };
 
@@ -108,6 +137,42 @@ MatrixProductExpression<std::tuple<Left, Right>> operator*(const Left &left,
   return {{left, right}};
 }
 
+template <typename Left, typename Right> struct LazySumStep {
+  using Result = LazySumMatrix<Left, Right>;
+
+  constexpr unsigned int EvaluationCost() const { return 0; }
+
+  Result Eval(const std::tuple<Left, Right> &arguments) const {
+    return LazySumMatrix{std::get<0>(arguments), std::get<1>(arguments)};
+  }
+
+  friend auto operator<<(std::ostream &os, LazySumStep const &m)
+      -> std::ostream & {
+    return os << "lazy+";
+  }
+};
+
+struct MatrixSumOperation {
+  template <typename Arguments>
+  constexpr static auto const GetAllPossibleSteps() {
+    using Left = typename std::tuple_element<0, Arguments>::type;
+    using Right = typename std::tuple_element<1, Arguments>::type;
+    return std::tuple{LazySumStep<Left, Right>{}};
+  }
+};
+
+template <typename Arguments_> struct MatrixSumExpression {
+  using Arguments = Arguments_;
+  using Operation = MatrixSumOperation;
+  const Arguments arguments;
+};
+
+template <typename Left, typename Right>
+MatrixSumExpression<std::tuple<Left, Right>> operator+(const Left &left,
+                                                       const Right &right) {
+  return {{left, right}};
+}
+
 template <typename Trees>
 constexpr auto GetBestEvaluationTree(const Trees &evaluation_trees) {
   const auto non_lazy_evaluation_trees =
@@ -125,8 +190,8 @@ constexpr auto GetBestEvaluationTree(const Trees &evaluation_trees) {
 }
 
 int main() {
-  DenseMatrix<int, 5, 5> a{}, b{}, c{};
-  const auto some_expression = (a * b) * c;
+  DenseMatrix<int, 5, 5> a{}, b{}, c{}, d{};
+  const auto some_expression = (a * b) * (c + d);
   constexpr const auto evaluation_trees =
       GetAllPossibleEvaluationTrees(some_expression);
   constexpr const auto best_evaluation_tree =
@@ -135,13 +200,12 @@ int main() {
   std::cout << "result: " << result << std::endl;
 
   // Some debug info.
-  std::cout << "best tree: " << typeid(best_evaluation_tree).name()
+  std::cout << "best tree: " << best_evaluation_tree
             << std::endl;
   apply_to_each(evaluation_trees, [](const auto &tree) {
-    using Tree = typename std::remove_reference<decltype(tree)>::type;
     unsigned int cost = SumOverEvaluationSteps(
         [](const auto &y) { return y.EvaluationCost(); }, tree);
-    std::cout << "tree: " << typeid(Tree).name() << " score: " << cost
+    std::cout << "tree: " << tree << " score: " << cost
               << std::endl;
     return 0;
   });

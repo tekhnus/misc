@@ -27,12 +27,24 @@ struct EvaluationTree {
         },
         argument_trees);
   }
+
+  friend auto operator<<(std::ostream &os, EvaluationTree<EvaluationStep, ArgumentEvaluationTrees> const &m)
+      -> std::ostream & {
+    return std::apply([&](const auto&... argument_trees_) -> std::ostream & {
+      return ((os << m.step << "(") << ... << argument_trees_) << ")";
+    }, m.argument_trees);
+  }
 };
 
 template <typename T> struct EvaluationTreeLeaf {
   using Result = T;
 
   Result Eval(const Result &expression) const { return expression; }
+
+  friend auto operator<<(std::ostream &os, EvaluationTreeLeaf<T> const &m)
+      -> std::ostream & {
+    return os;
+  }
 };
 
 template <typename Function, typename Tree>
