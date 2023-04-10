@@ -81,8 +81,10 @@ template <typename Left, typename Right> struct EagerProductStep {
 };
 
 struct ProductMeta {
-  template <typename Left, typename Right>
-  constexpr static auto const GetSteps() {
+  template <typename TupleOfArguments>
+  constexpr static auto const GetAllPossibleSteps() {
+    using Left = typename std::tuple_element<0, TupleOfArguments>::type;
+    using Right = typename std::tuple_element<1, TupleOfArguments>::type;
     return std::tuple{LazyProductStep<Left, Right>{},
                       EagerProductStep<Left, Right>{}};
   }
@@ -92,8 +94,9 @@ template <typename Left_, typename Right_> struct Product {
   using Meta = ProductMeta;
   using Left = Left_;
   using Right = Right_;
+  using Arguments = std::tuple<Left, Right>;
 
-  const std::tuple<Left, Right> arguments;
+  const Arguments arguments;
 };
 
 template <typename Left, typename Right>
@@ -109,8 +112,8 @@ int main() {
   constexpr const auto scores = apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Result;
-    unsigned int cost =
-        SumOverEvaluationSteps([](const auto &y) { return y.EvaluationCost(); }, x);
+    unsigned int cost = SumOverEvaluationSteps(
+        [](const auto &y) { return y.EvaluationCost(); }, x);
     if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
       cost = 100500u;
     }
@@ -126,8 +129,8 @@ int main() {
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Result;
-    unsigned int cost =
-        SumOverEvaluationSteps([](const auto &y) { return y.EvaluationCost(); }, x);
+    unsigned int cost = SumOverEvaluationSteps(
+        [](const auto &y) { return y.EvaluationCost(); }, x);
     std::cout << typeid(target_type).name() << " " << cost << std::endl;
     return 0;
   });

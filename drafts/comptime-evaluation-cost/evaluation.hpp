@@ -1,4 +1,7 @@
+#pragma once
+
 #include "utils/apply_to_each.hpp"
+#include "utils/misc.hpp"
 
 template <typename EvaluationStep, typename ArgumentEvaluationTrees>
 struct EvaluationTree {
@@ -8,10 +11,11 @@ struct EvaluationTree {
   const ArgumentEvaluationTrees argument_trees;
 
   constexpr EvaluationTree(const EvaluationStep &step,
-                            const ArgumentEvaluationTrees &argument_trees)
+                           const ArgumentEvaluationTrees &argument_trees)
       : step(step), argument_trees(argument_trees) {}
 
-  template <typename Expression> Result Eval(const Expression &expression) const {
+  template <typename Expression>
+  Result Eval(const Expression &expression) const {
     return std::apply(
         [&](const auto &...argument_trees_) {
           return std::apply(
@@ -31,7 +35,8 @@ template <typename T> struct EvaluationTreeLeaf {
 };
 
 template <typename Function, typename Tree>
-constexpr unsigned int SumOverEvaluationSteps(Function function, const Tree& tree) {
+constexpr unsigned int SumOverEvaluationSteps(Function function,
+                                              const Tree &tree) {
   return std::apply(
              [&](const auto &...args) {
                return (SumOverEvaluationSteps(function, args) + ...);
@@ -41,9 +46,24 @@ constexpr unsigned int SumOverEvaluationSteps(Function function, const Tree& tre
 }
 
 template <typename Function, typename Tree>
-constexpr unsigned int SumOverEvaluationSteps(Function function, const EvaluationTreeLeaf<Tree>& tree) {
+constexpr unsigned int
+SumOverEvaluationSteps(Function function,
+                       const EvaluationTreeLeaf<Tree> &tree) {
   return 0;
 }
+
+template <typename T>
+struct get_result_types_from_tree_types;
+
+template <typename T, typename... Rest>
+struct get_result_types_from_tree_types<const std::tuple<T, Rest...>> {
+  using value = tuple_cat_t<std::tuple<typename T::Result>, typename get_result_types_from_tree_types<const std::tuple<Rest...>>::value>;
+};
+
+template <>
+struct get_result_types_from_tree_types<const std::tuple<>> {
+  using value = const std::tuple<>;
+};
 
 template <typename Expression, typename = void> struct Evaluator {
   constexpr static auto GetAllPossibleEvaluationTrees() {
@@ -54,28 +74,24 @@ template <typename Expression, typename = void> struct Evaluator {
 template <typename Expression>
 struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
   constexpr static auto GetAllPossibleEvaluationTrees() {
-    using LeftEvaluator = Evaluator<typename Expression::Left>;
-    using RightEvaluator = Evaluator<typename Expression::Right>;
+    auto left_argument_trees =
+        Evaluator<typename Expression::Left>::GetAllPossibleEvaluationTrees();
+    auto right_argument_trees =
+        Evaluator<typename Expression::Right>::GetAllPossibleEvaluationTrees();
+    auto argument_eval_tree_combinations = cartesian_product(left_argument_trees, right_argument_trees);
+    auto get_all_possible_tree_completions = [](const auto &argument_eval_trees) {
+      using ArgumentEvaluationTrees =
+          typename std::remove_reference<decltype(argument_eval_trees)>::type;
+      using EvaluatedArguments = typename get_result_types_from_tree_types<ArgumentEvaluationTrees>::value;
 
-    auto left_strategies = LeftEvaluator::GetAllPossibleEvaluationTrees();
-    auto right_strategies = RightEvaluator::GetAllPossibleEvaluationTrees();
-    auto product = cartesian_product(left_strategies, right_strategies);
-    auto pair_to_strategies = [](const auto &pair) {
-      using PairOfStrategies =
-          typename std::remove_reference<decltype(pair)>::type;
-      using Left =
-          typename std::tuple_element<0, PairOfStrategies>::type::Result;
-      using Right =
-          typename std::tuple_element<1, PairOfStrategies>::type::Result;
+      auto const all_possible_steps = Expression::Meta::template GetAllPossibleSteps<EvaluatedArguments>();
 
-      auto const value = Expression::Meta::template GetSteps<Left, Right>();
-
-      return apply_to_each(value, [&pair](const auto &step) {
-        return EvaluationTree{step, pair};
+      return apply_to_each(all_possible_steps, [&](const auto &step) {
+        return EvaluationTree{step, argument_eval_trees};
       });
     };
     return std::apply(
         [](const auto &...args) { return std::tuple_cat(args...); },
-        apply_to_each(product, pair_to_strategies));
+        apply_to_each(argument_eval_tree_combinations, get_all_possible_tree_completions));
   }
 };
