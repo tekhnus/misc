@@ -92,13 +92,12 @@ template <typename Left_, typename Right_> struct Product {
   using Left = Left_;
   using Right = Right_;
 
-  const Left left;
-  const Right right;
+  const std::tuple<Left, Right> arguments;
 };
 
 template <typename Left, typename Right>
 Product<Left, Right> operator*(const Left &left, const Right &right) {
-  return Product<Left, Right>{left, right};
+  return Product<Left, Right>{{left, right}};
 }
 
 int main() {

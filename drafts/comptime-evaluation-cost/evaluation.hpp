@@ -21,7 +21,7 @@ struct FunctorStrategy {
   }
 
   template <typename Source> Target Eval(const Source &expression) const {
-    return f.Eval(std::get<0>(argument_strategies).Eval(expression.left), std::get<1>(argument_strategies).Eval(expression.right));
+    return f.Eval(std::get<0>(argument_strategies).Eval(std::get<0>(expression.arguments)), std::get<1>(argument_strategies).Eval(std::get<1>(expression.arguments)));
   }
 };
 
