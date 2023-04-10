@@ -14,9 +14,7 @@ template <typename T> constexpr const auto tuple_argmin(const T &t) {
       t);
 }
 
-// Taken from https://stackoverflow.com/questions/53394100/concatenating-tuples-as-types
-template<typename ... input_t>
-using tuple_cat_t=
-decltype(std::tuple_cat(
-    std::declval<input_t>()...
-));
+// Taken from
+// https://stackoverflow.com/questions/53394100/concatenating-tuples-as-types
+template <typename... input_t>
+using tuple_cat_t = decltype(std::tuple_cat(std::declval<input_t>()...));

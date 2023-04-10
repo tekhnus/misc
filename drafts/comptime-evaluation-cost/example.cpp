@@ -79,7 +79,7 @@ template <typename Left, typename Right> struct ComputeProductStep {
   }
 };
 
-struct ProductMeta {
+struct MatrixProductOperation {
   template <typename Arguments>
   constexpr static auto const GetAllPossibleSteps() {
     using Left = typename std::tuple_element<0, Arguments>::type;
@@ -91,12 +91,13 @@ struct ProductMeta {
 
 template <typename Arguments_> struct MatrixProductExpression {
   using Arguments = Arguments_;
-  using Meta = ProductMeta;
+  using Operation = MatrixProductOperation;
   const Arguments arguments;
 };
 
 template <typename Left, typename Right>
-MatrixProductExpression<std::tuple<Left, Right>> operator*(const Left &left, const Right &right) {
+MatrixProductExpression<std::tuple<Left, Right>> operator*(const Left &left,
+                                                           const Right &right) {
   return {{left, right}};
 }
 

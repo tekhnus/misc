@@ -53,16 +53,16 @@ SumOverEvaluationSteps(Function function,
   return 0;
 }
 
-template <typename T>
-struct get_result_types_from_tree_types;
+template <typename T> struct get_result_types_from_tree_types;
 
 template <typename T, typename... Rest>
 struct get_result_types_from_tree_types<const std::tuple<T, Rest...>> {
-  using type = tuple_cat_t<std::tuple<typename T::Result>, typename get_result_types_from_tree_types<const std::tuple<Rest...>>::type>;
+  using type = tuple_cat_t<std::tuple<typename T::Result>,
+                           typename get_result_types_from_tree_types<
+                               const std::tuple<Rest...>>::type>;
 };
 
-template <>
-struct get_result_types_from_tree_types<const std::tuple<>> {
+template <> struct get_result_types_from_tree_types<const std::tuple<>> {
   using type = const std::tuple<>;
 };
 
@@ -73,21 +73,28 @@ template <typename Expression, typename = void> struct Evaluator {
 };
 
 template <typename Expression>
-struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
+struct Evaluator<Expression, std::void_t<typename Expression::Operation>> {
   constexpr static auto GetAllPossibleEvaluationTrees() {
-    using LeftArgument = typename std::tuple_element<0, typename Expression::Arguments>::type;
-    using RightArgument = typename std::tuple_element<1, typename Expression::Arguments>::type;
+    using LeftArgument =
+        typename std::tuple_element<0, typename Expression::Arguments>::type;
+    using RightArgument =
+        typename std::tuple_element<1, typename Expression::Arguments>::type;
     auto left_argument_trees =
         Evaluator<LeftArgument>::GetAllPossibleEvaluationTrees();
     auto right_argument_trees =
         Evaluator<RightArgument>::GetAllPossibleEvaluationTrees();
-    auto argument_eval_tree_combinations = cartesian_product(left_argument_trees, right_argument_trees);
-    auto get_all_possible_tree_completions = [](const auto &argument_eval_trees) {
+    auto argument_eval_tree_combinations =
+        cartesian_product(left_argument_trees, right_argument_trees);
+    auto get_all_possible_tree_completions = [](const auto
+                                                    &argument_eval_trees) {
       using ArgumentEvaluationTrees =
           typename std::remove_reference<decltype(argument_eval_trees)>::type;
-      using EvaluatedArguments = typename get_result_types_from_tree_types<ArgumentEvaluationTrees>::type;
+      using EvaluatedArguments = typename get_result_types_from_tree_types<
+          ArgumentEvaluationTrees>::type;
 
-      auto const all_possible_steps = Expression::Meta::template GetAllPossibleSteps<EvaluatedArguments>();
+      auto const all_possible_steps =
+          Expression::Operation::template GetAllPossibleSteps<
+              EvaluatedArguments>();
 
       return apply_to_each(all_possible_steps, [&](const auto &step) {
         return EvaluationTree{step, argument_eval_trees};
@@ -95,6 +102,7 @@ struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
     };
     return std::apply(
         [](const auto &...args) { return std::tuple_cat(args...); },
-        apply_to_each(argument_eval_tree_combinations, get_all_possible_tree_completions));
+        apply_to_each(argument_eval_tree_combinations,
+                      get_all_possible_tree_completions));
   }
 };
