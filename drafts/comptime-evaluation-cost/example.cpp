@@ -80,8 +80,8 @@ template <typename Left, typename Right> struct EagerProductStep {
 struct ProductMeta {
   template <typename Left, typename Right>
   constexpr static auto const GetSteps() {
-    return std::tuple{
-        LazyProductStep<Left, Right>{}, EagerProductStep<Left, Right>{}};
+    return std::tuple{LazyProductStep<Left, Right>{},
+                      EagerProductStep<Left, Right>{}};
   }
 };
 
@@ -89,12 +89,9 @@ template <typename Left_, typename Right_> struct Product {
   using Meta = ProductMeta;
   using Left = Left_;
   using Right = Right_;
-  using has_meta = void;
 
   const Left left;
   const Right right;
-
-
 };
 
 template <typename Left, typename Right>
@@ -166,8 +163,6 @@ struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
         apply_to_each(product, pair_to_strategies));
   }
 };
-
-
 
 int main() {
   DenseMatrix<int, 5, 5> a{}, b{}, c{};
