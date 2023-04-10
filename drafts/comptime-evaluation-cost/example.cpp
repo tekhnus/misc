@@ -89,6 +89,7 @@ template <typename Left_, typename Right_> struct Product {
   using Meta = ProductMeta;
   using Left = Left_;
   using Right = Right_;
+  using has_meta = void;
 
   const Left left;
   const Right right;
@@ -131,10 +132,14 @@ struct FunctorStrategy {
   }
 };
 
-template <typename Expression> struct Evaluator;
+template <typename Expression, typename = void> struct Evaluator {
+  constexpr static auto GetStrategies() {
+    return std::tuple{TrivialStrategy<Expression>{}};
+  }
+};
 
 template <typename Expression>
-struct Evaluator {
+struct Evaluator<Expression, std::void_t<typename Expression::Meta>> {
   constexpr static auto GetStrategies() {
     using LeftEvaluator = Evaluator<typename Expression::Left>;
     using RightEvaluator = Evaluator<typename Expression::Right>;
@@ -162,12 +167,7 @@ struct Evaluator {
   }
 };
 
-template <typename V, size_t ROWS, size_t COLS>
-struct Evaluator<DenseMatrix<V, ROWS, COLS>> {
-  constexpr static auto GetStrategies() {
-    return std::tuple{TrivialStrategy<DenseMatrix<V, ROWS, COLS>>{}};
-  }
-};
+
 
 int main() {
   DenseMatrix<int, 5, 5> a{}, b{}, c{};
