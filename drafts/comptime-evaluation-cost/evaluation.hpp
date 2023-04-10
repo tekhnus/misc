@@ -1,6 +1,7 @@
 #pragma once
 
 #include "utils/apply_to_each.hpp"
+#include "utils/cartesian_product.hpp"
 #include "utils/misc.hpp"
 
 template <typename EvaluationStep, typename ArgumentEvaluationTrees>
