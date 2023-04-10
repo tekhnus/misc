@@ -1,5 +1,5 @@
 LINK.o = $(LINK.cc)
-CXXFLAGS=-std=c++17
+CXXFLAGS=-std=c++17 -g -O0
 example: example.o
 example.o: example.cpp
 clean:

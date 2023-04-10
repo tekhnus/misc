@@ -53,8 +53,8 @@ ComputeProduct(const Left &left, const Right &right) {
 }
 
 template <typename Left, typename Right> struct Sum {
-  const Left &left;
-  const Right &right;
+  const Left left;
+  const Right right;
 };
 
 template <typename Left, typename Right>
@@ -63,8 +63,8 @@ Sum<Left, Right> operator+(const Left &left, const Right &right) {
 }
 
 template <typename Left, typename Right> struct Product {
-  const Left &left;
-  const Right &right;
+  const Left left;
+  const Right right;
 };
 
 template <typename Left, typename Right>
@@ -76,6 +76,10 @@ template <typename T>
 struct TrivialStrategy {
   using Target = T;
   constexpr unsigned int EvaluationCost() const { return 0; }
+
+  Target Eval(const Target& expression) const {
+    return expression;
+  }
 };
 
 template <typename Left, typename Right>
@@ -83,6 +87,10 @@ struct LazyProductStep {
   using Target = ProductMatrix<Left, Right>;
 
   constexpr unsigned int EvaluationCost() const { return 0; }
+
+  Target Eval(const Left& left, const Right& right) {
+    return ProductMatrix{left, right};
+  }
 };
 
 template <typename Left, typename Right>
@@ -90,6 +98,10 @@ struct EagerProductStep {
   using Target = DenseMatrix<typename Left::Value, Left::rows, Right::cols>;
 
   constexpr unsigned int EvaluationCost() const { return Left::rows * Right::rows * Left::cols * Right::cols * Left::AccessCost() * Right::AccessCost(); }
+
+  Target Eval(const Left& left, const Right& right) const {
+    return ComputeProduct(left, right);
+  }
 };
 
 template <typename Functor, typename LeftStrategy, typename RightStrategy>
@@ -106,6 +118,11 @@ struct FunctorStrategy {
   template <typename T>
   constexpr bool operator<(const T& another) {
     return EvaluationCost() < another.EvaluationCost();
+  }
+
+  template <typename Source>
+  Target Eval(const Source& expression) const {
+    return f.Eval(left.Eval(expression.left), right.Eval(expression.right));
   }
 };
 
@@ -147,7 +164,7 @@ struct Evaluator<DenseMatrix<V, ROWS, COLS>> {
 };
 
 int main() {
-  DenseMatrix<int, 5, 5> a, b, c;
+  DenseMatrix<int, 5, 5> a{}, b{}, c{};
   const auto abstract_product = (a * b) * c;
   constexpr Evaluator<decltype(abstract_product)> e;
   constexpr const auto strategies = e.GetStrategies();
@@ -171,7 +188,9 @@ int main() {
   constexpr const auto best_score = std::get<best_index>(scores);
   const auto [sc, st] = best_score;
   std::cout << sc << std::endl;
-  
+  std::cout << typeid(st).name() << std::endl;
+  st.Eval(abstract_product);
+
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
