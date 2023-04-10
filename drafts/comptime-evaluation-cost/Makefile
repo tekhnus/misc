@@ -6,3 +6,8 @@ clean:
 	rm *.o example
 format:
 	clang-format-12 -i *.cpp utils/*.hpp
+generate-database:
+	make clean
+	bear make
+	compdb list >compile_commands_.json
+	mv compile_commands_.json compile_commands.json
