@@ -129,39 +129,32 @@ struct FunctorStrategy {
 
 template <typename Expression> struct Evaluator;
 
-template <typename Left, typename Right>
-struct Evaluator<const Product<Left, Right>> {
-  using LeftEvaluator = Evaluator<Left>;
-  using RightEvaluator = Evaluator<Right>;
+template <typename LeftExpression, typename RightExpression>
+struct Evaluator<const Product<LeftExpression, RightExpression>> {
+  using LeftEvaluator = Evaluator<LeftExpression>;
+  using RightEvaluator = Evaluator<RightExpression>;
 
   constexpr static auto GetStrategies() {
     auto left_strategies = LeftEvaluator::GetStrategies();
     auto right_strategies = RightEvaluator::GetStrategies();
     auto product = cartesian_product(left_strategies, right_strategies);
-    auto pair_to_lazy_strategy = [](const auto &pair) {
-      using pair_type = typename std::remove_reference<decltype(pair)>::type;
-      using first_strategy_type =
-          typename std::tuple_element<0, pair_type>::type;
-      using second_strategy_type =
-          typename std::tuple_element<1, pair_type>::type;
-      return FunctorStrategy{
-          LazyProductStep<typename first_strategy_type::Target,
-                          typename second_strategy_type::Target>{},
-          std::get<0>(pair), std::get<1>(pair)};
+    auto pair_to_strategies = [](const auto &pair) {
+      using PairOfStrategies =
+          typename std::remove_reference<decltype(pair)>::type;
+      using Left =
+          typename std::tuple_element<0, PairOfStrategies>::type::Target;
+      using Right =
+          typename std::tuple_element<1, PairOfStrategies>::type::Target;
+
+      const auto lazy = FunctorStrategy{LazyProductStep<Left, Right>{},
+                                        std::get<0>(pair), std::get<1>(pair)};
+      const auto eager = FunctorStrategy{EagerProductStep<Left, Right>{},
+                                         std::get<0>(pair), std::get<1>(pair)};
+      return std::tuple{lazy, eager};
     };
-    auto pair_to_eager_strategy = [](const auto &pair) {
-      using pair_type = typename std::remove_reference<decltype(pair)>::type;
-      using first_strategy_type =
-          typename std::tuple_element<0, pair_type>::type;
-      using second_strategy_type =
-          typename std::tuple_element<1, pair_type>::type;
-      return FunctorStrategy{
-          EagerProductStep<typename first_strategy_type::Target,
-                           typename second_strategy_type::Target>{},
-          std::get<0>(pair), std::get<1>(pair)};
-    };
-    return std::tuple_cat(apply_to_each(product, pair_to_lazy_strategy),
-                          apply_to_each(product, pair_to_eager_strategy));
+    return std::apply(
+        [](const auto &...args) { return std::tuple_cat(args...); },
+        apply_to_each(product, pair_to_strategies));
   }
 };
 
