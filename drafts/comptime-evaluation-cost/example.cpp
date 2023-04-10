@@ -7,6 +7,7 @@
 #include "evaluation.hpp"
 
 template <typename V, size_t ROWS, size_t COLS> struct DenseMatrix {
+  constexpr static bool is_lazy = false;
   using Value = V;
   constexpr static size_t const rows = ROWS;
   constexpr static size_t const cols = COLS;
@@ -16,9 +17,15 @@ template <typename V, size_t ROWS, size_t COLS> struct DenseMatrix {
   Value const &at(size_t i, size_t k) const { return data[i][k]; }
 
   constexpr static unsigned int AccessCost() { return 1; }
+
+  friend auto operator<<(std::ostream &os, DenseMatrix const &m)
+      -> std::ostream & {
+    return os << "matrix " << rows << "x" << cols;
+  }
 };
 
 template <typename Left, typename Right> struct LazyProductMatrix {
+  constexpr static bool is_lazy = true;
   using Value = typename Left::Value;
   constexpr static size_t const rows = Left::rows;
   constexpr static size_t const cols = Right::cols;
@@ -54,12 +61,6 @@ ComputeProduct(const Left &left, const Right &right) {
     }
   }
   return product;
-}
-
-template <typename T> constexpr bool IsDenseMatrix(const T &x) {
-  using x_type = typename std::remove_reference<decltype(x)>::type;
-  using target_type = typename x_type::Result;
-  return std::is_same<target_type, DenseMatrix<int, 5, 5>>::value;
 }
 
 template <typename Left, typename Right> struct LazyProductStep {
@@ -107,32 +108,41 @@ MatrixProductExpression<std::tuple<Left, Right>> operator*(const Left &left,
   return {{left, right}};
 }
 
-int main() {
-  DenseMatrix<int, 5, 5> a{}, b{}, c{};
-  const auto some_expression = (a * b) * c;
-  constexpr const auto all_evaluation_trees =
-      Evaluator<decltype(some_expression)>::GetAllPossibleEvaluationTrees();
-  const auto evaluation_trees = tuple_filter(
-      all_evaluation_trees, [](const auto &x) { return IsDenseMatrix(x); });
+template <typename Trees>
+constexpr auto GetBestEvaluationTree(const Trees &evaluation_trees) {
+  const auto non_lazy_evaluation_trees =
+      tuple_filter(evaluation_trees, [](const auto &tree) {
+        using Tree = typename std::remove_reference<decltype(tree)>::type;
+        return !Tree::Result::is_lazy;
+      });
   constexpr const auto scores =
-      apply_to_each(evaluation_trees, [](const auto &tree) {
+      apply_to_each(non_lazy_evaluation_trees, [](const auto &tree) {
         return SumOverEvaluationSteps(
             [](const auto &step) { return step.EvaluationCost(); }, tree);
       });
   constexpr const size_t best_index = tuple_argmin(scores);
-  constexpr const auto best_score = std::get<best_index>(scores);
-  constexpr const auto best_evaluation_tree = std::get<best_index>(evaluation_trees);
-  const auto result = best_evaluation_tree.Eval(some_expression);
-  std::cout << "result type: " << typeid(result).name() << std::endl;
+  return std::get<best_index>(non_lazy_evaluation_trees);
+}
 
-  std::cout << "best score: " << best_score << std::endl;
-  std::cout << "best tree: " << typeid(best_evaluation_tree).name() << std::endl;
-  apply_to_each(all_evaluation_trees, [](const auto &x) {
-    using x_type = typename std::remove_reference<decltype(x)>::type;
-    using target_type = typename x_type::Result;
+int main() {
+  DenseMatrix<int, 5, 5> a{}, b{}, c{};
+  const auto some_expression = (a * b) * c;
+  constexpr const auto evaluation_trees =
+      GetAllPossibleEvaluationTrees(some_expression);
+  constexpr const auto best_evaluation_tree =
+      GetBestEvaluationTree(evaluation_trees);
+  const auto result = best_evaluation_tree.Eval(some_expression);
+  std::cout << "result: " << result << std::endl;
+
+  // Some debug info.
+  std::cout << "best tree: " << typeid(best_evaluation_tree).name()
+            << std::endl;
+  apply_to_each(evaluation_trees, [](const auto &tree) {
+    using Tree = typename std::remove_reference<decltype(tree)>::type;
     unsigned int cost = SumOverEvaluationSteps(
-        [](const auto &y) { return y.EvaluationCost(); }, x);
-    std::cout << "tree: " << typeid(target_type).name() << " score: " << cost << std::endl;
+        [](const auto &y) { return y.EvaluationCost(); }, tree);
+    std::cout << "tree: " << typeid(Tree).name() << " score: " << cost
+              << std::endl;
     return 0;
   });
   return 0;

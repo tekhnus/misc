@@ -20,7 +20,7 @@ template <typename... input_t>
 using tuple_cat_t = decltype(std::tuple_cat(std::declval<input_t>()...));
 
 // Taken from https://stackoverflow.com/a/50971858/1617738
-template <typename T, typename F> auto tuple_filter(T tup, F f) {
+template <typename T, typename F> constexpr auto tuple_filter(T tup, F f) {
   return std::apply(
       [&](auto first, auto... rest) {
         auto filtered_rest = [&] {

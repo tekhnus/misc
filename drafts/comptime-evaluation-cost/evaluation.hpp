@@ -106,3 +106,8 @@ struct Evaluator<Expression, std::void_t<typename Expression::Operation>> {
                       get_all_possible_tree_completions));
   }
 };
+
+template <typename T>
+constexpr static auto GetAllPossibleEvaluationTrees(const T &) {
+  return Evaluator<T>::GetAllPossibleEvaluationTrees();
+}
