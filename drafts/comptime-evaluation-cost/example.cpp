@@ -61,7 +61,7 @@ template <typename Left, typename Right> struct LazyProductStep {
 
   constexpr unsigned int EvaluationCost() const { return 0; }
 
-  Target Eval(const std::tuple<Left, Right>& elements) const {
+  Target Eval(const std::tuple<Left, Right> &elements) const {
     return ProductMatrix{std::get<0>(elements), std::get<1>(elements)};
   }
 };
@@ -74,7 +74,7 @@ template <typename Left, typename Right> struct EagerProductStep {
            Left::AccessCost() * Right::AccessCost();
   }
 
-  Target Eval(const std::tuple<Left, Right>& elements) const {
+  Target Eval(const std::tuple<Left, Right> &elements) const {
     return ComputeProduct(std::get<0>(elements), std::get<1>(elements));
   }
 };

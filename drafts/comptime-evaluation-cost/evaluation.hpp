@@ -13,20 +13,29 @@ struct FunctorStrategy {
   const ArgumentStrategies argument_strategies;
   using Target = typename Functor::Target;
 
-  constexpr FunctorStrategy(const Functor &f, const ArgumentStrategies& strategies)
-    : f(f), argument_strategies(argument_strategies) {}
+  constexpr FunctorStrategy(const Functor &f,
+                            const ArgumentStrategies &strategies)
+      : f(f), argument_strategies(argument_strategies) {}
 
   constexpr unsigned int EvaluationCost() const {
-    return std::apply([](const auto&... args) { return (args.EvaluationCost() + ...); }, argument_strategies) + f.EvaluationCost();
+    return std::apply(
+               [](const auto &...args) {
+                 return (args.EvaluationCost() + ...);
+               },
+               argument_strategies) +
+           f.EvaluationCost();
   }
 
   template <typename Source> Target Eval(const Source &expression) const {
     return std::apply(
-        [&](const auto&... var_strategies) {
-          return std::apply([&](const auto&... var_arguments) {
-            return f.Eval({var_strategies.Eval(var_arguments)...});
-          }, expression.arguments);
-        }, argument_strategies);
+        [&](const auto &...var_strategies) {
+          return std::apply(
+              [&](const auto &...var_arguments) {
+                return f.Eval({var_strategies.Eval(var_arguments)...});
+              },
+              expression.arguments);
+        },
+        argument_strategies);
   }
 };
 
