@@ -3,8 +3,8 @@
 
 #include "utils/apply_to_each.hpp"
 
-#include "matrix.hpp"
 #include "evaluation.hpp"
+#include "matrix.hpp"
 
 int main() {
   DenseMatrix<int, 5, 5> a{}, b{}, c{}, d{}, e{};
@@ -13,7 +13,8 @@ int main() {
       GetAllPossibleEvaluationTrees(some_expression);
   constexpr const auto best_evaluation_tree =
       GetBestMatrixEvaluationTreeToNonLazyMatrix(evaluation_trees);
-  const auto result = best_evaluation_tree.Eval(some_expression);
+  const DenseMatrix<int, 5, 5> result =
+      best_evaluation_tree.Eval(some_expression);
   std::cout << "result: " << result << std::endl;
 
   // Some debug info.
