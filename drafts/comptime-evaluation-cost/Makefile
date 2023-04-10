@@ -4,3 +4,5 @@ example: example.o
 example.o: example.cpp
 clean:
 	rm *.o example
+format:
+	clang-format-12 -i *.cpp utils/*.hpp

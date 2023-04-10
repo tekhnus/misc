@@ -1,8 +1,8 @@
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
-#include "utils/cartesian_product.hpp"
 #include "utils/apply_to_each.hpp"
+#include "utils/cartesian_product.hpp"
 
 template <typename V, size_t ROWS, size_t COLS> struct DenseMatrix {
   using Value = V;
@@ -35,7 +35,9 @@ template <typename Left, typename Right> struct ProductMatrix {
     return value;
   }
 
-  constexpr static unsigned int AccessCost() { return Left::cols * Right::rows * Left::AccessCost() * Right::AccessCost(); }
+  constexpr static unsigned int AccessCost() {
+    return Left::cols * Right::rows * Left::AccessCost() * Right::AccessCost();
+  }
 };
 
 template <typename Left, typename Right>
@@ -72,34 +74,32 @@ Product<Left, Right> operator*(const Left &left, const Right &right) {
   return Product<Left, Right>{left, right};
 }
 
-template <typename T>
-struct TrivialStrategy {
+template <typename T> struct TrivialStrategy {
   using Target = T;
   constexpr unsigned int EvaluationCost() const { return 0; }
 
-  Target Eval(const Target& expression) const {
-    return expression;
-  }
+  Target Eval(const Target &expression) const { return expression; }
 };
 
-template <typename Left, typename Right>
-struct LazyProductStep {
+template <typename Left, typename Right> struct LazyProductStep {
   using Target = ProductMatrix<Left, Right>;
 
   constexpr unsigned int EvaluationCost() const { return 0; }
 
-  Target Eval(const Left& left, const Right& right) {
+  Target Eval(const Left &left, const Right &right) {
     return ProductMatrix{left, right};
   }
 };
 
-template <typename Left, typename Right>
-struct EagerProductStep {
+template <typename Left, typename Right> struct EagerProductStep {
   using Target = DenseMatrix<typename Left::Value, Left::rows, Right::cols>;
 
-  constexpr unsigned int EvaluationCost() const { return Left::rows * Right::rows * Left::cols * Right::cols * Left::AccessCost() * Right::AccessCost(); }
+  constexpr unsigned int EvaluationCost() const {
+    return Left::rows * Right::rows * Left::cols * Right::cols *
+           Left::AccessCost() * Right::AccessCost();
+  }
 
-  Target Eval(const Left& left, const Right& right) const {
+  Target Eval(const Left &left, const Right &right) const {
     return ComputeProduct(left, right);
   }
 };
@@ -111,17 +111,18 @@ struct FunctorStrategy {
   const RightStrategy right;
   using Target = typename Functor::Target;
 
-  constexpr FunctorStrategy(const Functor& f, const LeftStrategy &left, const RightStrategy &right)
+  constexpr FunctorStrategy(const Functor &f, const LeftStrategy &left,
+                            const RightStrategy &right)
       : f(f), left(left), right(right) {}
-  constexpr unsigned int EvaluationCost() const { return left.EvaluationCost() + right.EvaluationCost() + f.EvaluationCost(); }
+  constexpr unsigned int EvaluationCost() const {
+    return left.EvaluationCost() + right.EvaluationCost() + f.EvaluationCost();
+  }
 
-  template <typename T>
-  constexpr bool operator<(const T& another) {
+  template <typename T> constexpr bool operator<(const T &another) {
     return EvaluationCost() < another.EvaluationCost();
   }
 
-  template <typename Source>
-  Target Eval(const Source& expression) const {
+  template <typename Source> Target Eval(const Source &expression) const {
     return f.Eval(left.Eval(expression.left), right.Eval(expression.right));
   }
 };
@@ -139,15 +140,25 @@ struct Evaluator<const Product<Left, Right>> {
     auto product = cartesian_product(left_strategies, right_strategies);
     auto pair_to_lazy_strategy = [](const auto &pair) {
       using pair_type = typename std::remove_reference<decltype(pair)>::type;
-      using first_strategy_type = typename std::tuple_element<0, pair_type>::type;
-      using second_strategy_type = typename std::tuple_element<1, pair_type>::type;
-      return FunctorStrategy{LazyProductStep<typename first_strategy_type::Target, typename second_strategy_type::Target>{}, std::get<0>(pair), std::get<1>(pair)};
+      using first_strategy_type =
+          typename std::tuple_element<0, pair_type>::type;
+      using second_strategy_type =
+          typename std::tuple_element<1, pair_type>::type;
+      return FunctorStrategy{
+          LazyProductStep<typename first_strategy_type::Target,
+                          typename second_strategy_type::Target>{},
+          std::get<0>(pair), std::get<1>(pair)};
     };
     auto pair_to_eager_strategy = [](const auto &pair) {
       using pair_type = typename std::remove_reference<decltype(pair)>::type;
-      using first_strategy_type = typename std::tuple_element<0, pair_type>::type;
-      using second_strategy_type = typename std::tuple_element<1, pair_type>::type;
-      return FunctorStrategy{EagerProductStep<typename first_strategy_type::Target, typename second_strategy_type::Target>{}, std::get<0>(pair), std::get<1>(pair)};
+      using first_strategy_type =
+          typename std::tuple_element<0, pair_type>::type;
+      using second_strategy_type =
+          typename std::tuple_element<1, pair_type>::type;
+      return FunctorStrategy{
+          EagerProductStep<typename first_strategy_type::Target,
+                           typename second_strategy_type::Target>{},
+          std::get<0>(pair), std::get<1>(pair)};
     };
     return std::tuple_cat(apply_to_each(product, pair_to_lazy_strategy),
                           apply_to_each(product, pair_to_eager_strategy));
@@ -160,7 +171,9 @@ struct Evaluator<Product<Left, Right>> : Evaluator<const Product<Left, Right>> {
 
 template <typename V, size_t ROWS, size_t COLS>
 struct Evaluator<DenseMatrix<V, ROWS, COLS>> {
-  constexpr static auto GetStrategies() { return std::tuple{TrivialStrategy<DenseMatrix<V, ROWS, COLS>>{}}; }
+  constexpr static auto GetStrategies() {
+    return std::tuple{TrivialStrategy<DenseMatrix<V, ROWS, COLS>>{}};
+  }
 };
 
 int main() {
@@ -177,14 +190,16 @@ int main() {
     }
     return std::pair{cost, x};
   });
-  constexpr const size_t best_index = std::apply([](const auto&... args) {
-    size_t best_score = 0;
-    auto best = std::min({args.first...});
-    size_t best_index = 0;
-    size_t index = 0;
-    ((args.first == best ? (best_index = index++) : index++), ...);
-    return best_index;
-  }, scores);
+  constexpr const size_t best_index = std::apply(
+      [](const auto &...args) {
+        size_t best_score = 0;
+        auto best = std::min({args.first...});
+        size_t best_index = 0;
+        size_t index = 0;
+        ((args.first == best ? (best_index = index++) : index++), ...);
+        return best_index;
+      },
+      scores);
   constexpr const auto best_score = std::get<best_index>(scores);
   const auto [sc, st] = best_score;
   std::cout << sc << std::endl;
@@ -194,7 +209,8 @@ int main() {
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
-    std::cout << typeid(target_type).name() << " " << x.EvaluationCost() << std::endl;
+    std::cout << typeid(target_type).name() << " " << x.EvaluationCost()
+              << std::endl;
     return 0;
   });
   return 0;
