@@ -20,7 +20,7 @@ template <typename Tuple, typename Mapping>
 using return_type_t = typename return_type<Tuple, Mapping>::type;
 
 template <typename Tuple, typename Mapping, std::size_t... Indices>
-return_type_t<std::decay_t<Tuple>, std::decay_t<Mapping>>
+constexpr return_type_t<std::decay_t<Tuple>, std::decay_t<Mapping>>
 apply_to_each(Tuple &&tup, Mapping &&mapping,
                 std::index_sequence<Indices...>) {
   return {mapping(std::get<Indices>(std::forward<Tuple>(tup)))...};
@@ -29,7 +29,7 @@ apply_to_each(Tuple &&tup, Mapping &&mapping,
 
 template <typename Tuple, typename Mapping,
           std::size_t Size = std::tuple_size<std::decay_t<Tuple>>::value>
-auto apply_to_each(Tuple &&tup, Mapping &&mapping) {
+constexpr auto apply_to_each(Tuple &&tup, Mapping &&mapping) {
   return details::apply_to_each(std::forward<Tuple>(tup),
                                   std::forward<Mapping>(mapping),
                                   std::make_index_sequence<Size>{});

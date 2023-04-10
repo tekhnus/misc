@@ -5,20 +5,20 @@
 
 template <typename V, size_t ROWS, size_t COLS> struct DenseMatrix {
   using Value = V;
-  static size_t const rows = ROWS;
-  static size_t const cols = COLS;
+  constexpr static size_t const rows = ROWS;
+  constexpr static size_t const cols = COLS;
 
   Value data[ROWS][COLS];
 
   Value const &at(size_t i, size_t k) const { return data[i][k]; }
 
-  static unsigned int AccessCost() { return 1; }
+  constexpr static unsigned int AccessCost() { return 1; }
 };
 
 template <typename Left, typename Right> struct ProductMatrix {
   using Value = typename Left::Value;
-  static size_t const rows = Left::rows;
-  static size_t const cols = Right::cols;
+  constexpr static size_t const rows = Left::rows;
+  constexpr static size_t const cols = Right::cols;
 
   const Left &left;
   const Right &right;
@@ -34,7 +34,7 @@ template <typename Left, typename Right> struct ProductMatrix {
     return value;
   }
 
-  static unsigned int AccessCost() { return Left::cols * Right::rows * Left::AccessCost() * Right::AccessCost(); }
+  constexpr static unsigned int AccessCost() { return Left::cols * Right::rows * Left::AccessCost() * Right::AccessCost(); }
 };
 
 template <typename Left, typename Right>
@@ -74,21 +74,21 @@ Product<Left, Right> operator*(const Left &left, const Right &right) {
 template <typename T>
 struct TrivialStrategy {
   using Target = T;
-  unsigned int EvaluationCost() const { return 0; }
+  constexpr unsigned int EvaluationCost() const { return 0; }
 };
 
 template <typename Left, typename Right>
 struct LazyProductStep {
   using Target = ProductMatrix<Left, Right>;
 
-  unsigned int EvaluationCost() const { return 0; }
+  constexpr unsigned int EvaluationCost() const { return 0; }
 };
 
 template <typename Left, typename Right>
 struct EagerProductStep {
   using Target = DenseMatrix<typename Left::Value, Left::rows, Right::cols>;
 
-  unsigned int EvaluationCost() const { return Left::rows * Right::rows * Left::cols * Right::cols * Left::AccessCost() * Right::AccessCost(); }
+  constexpr unsigned int EvaluationCost() const { return Left::rows * Right::rows * Left::cols * Right::cols * Left::AccessCost() * Right::AccessCost(); }
 };
 
 template <typename Functor, typename LeftStrategy, typename RightStrategy>
@@ -98,9 +98,9 @@ struct FunctorStrategy {
   const RightStrategy right;
   using Target = typename Functor::Target;
 
-  FunctorStrategy(const Functor& f, const LeftStrategy &left, const RightStrategy &right)
+  constexpr FunctorStrategy(const Functor& f, const LeftStrategy &left, const RightStrategy &right)
       : f(f), left(left), right(right) {}
-  unsigned int EvaluationCost() const { return left.EvaluationCost() + right.EvaluationCost() + f.EvaluationCost(); }
+  constexpr unsigned int EvaluationCost() const { return left.EvaluationCost() + right.EvaluationCost() + f.EvaluationCost(); }
 };
 
 template <typename Expression> struct Evaluator;
@@ -110,7 +110,7 @@ struct Evaluator<const Product<Left, Right>> {
   using LeftEvaluator = Evaluator<Left>;
   using RightEvaluator = Evaluator<Right>;
 
-  static auto GetStrategies() {
+  constexpr static auto GetStrategies() {
     auto left_strategies = LeftEvaluator::GetStrategies();
     auto right_strategies = RightEvaluator::GetStrategies();
     auto product = cartesian_product(left_strategies, right_strategies);
@@ -137,18 +137,15 @@ struct Evaluator<Product<Left, Right>> : Evaluator<const Product<Left, Right>> {
 
 template <typename V, size_t ROWS, size_t COLS>
 struct Evaluator<DenseMatrix<V, ROWS, COLS>> {
-  static auto GetStrategies() { return std::tuple{TrivialStrategy<DenseMatrix<V, ROWS, COLS>>{}}; }
+  constexpr static auto GetStrategies() { return std::tuple{TrivialStrategy<DenseMatrix<V, ROWS, COLS>>{}}; }
 };
 
 int main() {
   DenseMatrix<int, 5, 5> a, b, c;
-  ProductMatrix{ProductMatrix{a, b}, c}.at(0, 0);
-  ComputeProduct(ComputeProduct(a, b), c).at(0, 0);
-  ComputeProduct(ProductMatrix{a, b}, c).at(0, 0);
-
   const auto abstract_product = (a * b) * c;
-  Evaluator<decltype(abstract_product)> e;
-  apply_to_each(e.GetStrategies(), [](const auto &x) {
+  constexpr Evaluator<decltype(abstract_product)> e;
+  constexpr const auto strategies = e.GetStrategies();
+  apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
     std::cout << typeid(target_type).name() << " " << x.EvaluationCost() << std::endl;
