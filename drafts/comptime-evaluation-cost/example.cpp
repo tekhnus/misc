@@ -12,7 +12,7 @@ int main() {
   constexpr const auto evaluation_trees =
       GetAllPossibleEvaluationTrees(some_expression);
   constexpr const auto best_evaluation_tree =
-      GetBestEvaluationTree(evaluation_trees);
+      GetBestMatrixEvaluationTreeToNonLazyMatrix(evaluation_trees);
   const auto result = best_evaluation_tree.Eval(some_expression);
   std::cout << "result: " << result << std::endl;
 

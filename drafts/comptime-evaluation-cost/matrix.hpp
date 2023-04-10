@@ -172,7 +172,8 @@ MatrixSumExpression<std::tuple<Left, Right>> operator+(const Left &left,
 }
 
 template <typename Trees>
-constexpr auto GetBestEvaluationTree(const Trees &evaluation_trees) {
+constexpr auto
+GetBestMatrixEvaluationTreeToNonLazyMatrix(const Trees &evaluation_trees) {
   const auto non_lazy_evaluation_trees =
       tuple_filter(evaluation_trees, [](const auto &tree) {
         using Tree = typename std::remove_reference<decltype(tree)>::type;
