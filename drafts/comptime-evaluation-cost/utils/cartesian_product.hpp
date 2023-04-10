@@ -1,4 +1,5 @@
 // Taken from https://codereview.stackexchange.com/a/217496/196900
+#pragma once
 
 #include <tuple>
 
