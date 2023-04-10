@@ -54,17 +54,10 @@ ComputeProduct(const Left &left, const Right &right) {
   return product;
 }
 
-template <typename Left, typename Right> struct Sum {
-  const Left left;
-  const Right right;
-};
+template <typename Left_, typename Right_> struct Product {
+  using Left = Left_;
+  using Right = Right_;
 
-template <typename Left, typename Right>
-Sum<Left, Right> operator+(const Left &left, const Right &right) {
-  return Sum<Left, Right>{left, right};
-}
-
-template <typename Left, typename Right> struct Product {
   const Left left;
   const Right right;
 };
@@ -127,7 +120,9 @@ struct FunctorStrategy {
   }
 };
 
-template <typename Left, typename Right> struct ProductSteps {
+template <typename Expression> struct Steps;
+
+template <typename Left, typename Right> struct Steps<Product<Left, Right>> {
   constexpr static auto const value = std::tuple{
       LazyProductStep<Left, Right>{}, EagerProductStep<Left, Right>{}};
 };
@@ -136,10 +131,12 @@ template <typename Expression> struct Evaluator;
 
 template <typename LeftExpression, typename RightExpression>
 struct Evaluator<const Product<LeftExpression, RightExpression>> {
-  using LeftEvaluator = Evaluator<LeftExpression>;
-  using RightEvaluator = Evaluator<RightExpression>;
+  using T = const Product<LeftExpression, RightExpression>;
 
   constexpr static auto GetStrategies() {
+    using LeftEvaluator = Evaluator<typename T::Left>;
+    using RightEvaluator = Evaluator<typename T::Right>;
+
     auto left_strategies = LeftEvaluator::GetStrategies();
     auto right_strategies = RightEvaluator::GetStrategies();
     auto product = cartesian_product(left_strategies, right_strategies);
@@ -151,7 +148,7 @@ struct Evaluator<const Product<LeftExpression, RightExpression>> {
       using Right =
           typename std::tuple_element<1, PairOfStrategies>::type::Target;
 
-      auto const value = ProductSteps<Left, Right>::value;
+      auto const value = Steps<Product<Left, Right>>::value;
 
       return apply_to_each(value, [&pair](const auto &step) {
         return FunctorStrategy{step, std::get<0>(pair), std::get<1>(pair)};
