@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #include "utils/cartesian_product.hpp"
 #include "utils/apply_to_each.hpp"
@@ -101,6 +102,11 @@ struct FunctorStrategy {
   constexpr FunctorStrategy(const Functor& f, const LeftStrategy &left, const RightStrategy &right)
       : f(f), left(left), right(right) {}
   constexpr unsigned int EvaluationCost() const { return left.EvaluationCost() + right.EvaluationCost() + f.EvaluationCost(); }
+
+  template <typename T>
+  constexpr bool operator<(const T& another) {
+    return EvaluationCost() < another.EvaluationCost();
+  }
 };
 
 template <typename Expression> struct Evaluator;
@@ -145,6 +151,27 @@ int main() {
   const auto abstract_product = (a * b) * c;
   constexpr Evaluator<decltype(abstract_product)> e;
   constexpr const auto strategies = e.GetStrategies();
+  constexpr const auto scores = apply_to_each(strategies, [](const auto &x) {
+    using x_type = typename std::remove_reference<decltype(x)>::type;
+    using target_type = typename x_type::Target;
+    unsigned int cost = x.EvaluationCost();
+    if (!std::is_same<target_type, DenseMatrix<int, 5, 5>>::value) {
+      cost = 100500u;
+    }
+    return std::pair{cost, x};
+  });
+  constexpr const size_t best_index = std::apply([](const auto&... args) {
+    size_t best_score = 0;
+    auto best = std::min({args.first...});
+    size_t best_index = 0;
+    size_t index = 0;
+    ((args.first == best ? (best_index = index++) : index++), ...);
+    return best_index;
+  }, scores);
+  constexpr const auto best_score = std::get<best_index>(scores);
+  const auto [sc, st] = best_score;
+  std::cout << sc << std::endl;
+  
   apply_to_each(strategies, [](const auto &x) {
     using x_type = typename std::remove_reference<decltype(x)>::type;
     using target_type = typename x_type::Target;
