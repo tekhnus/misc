@@ -176,6 +176,8 @@
                                      (return (../first-good-value (../tail x)))))
                                (panic "first-good-value: no good value"))))
 
+(defn not (x) (if x (return '()) (return '(()))))
+
 (export
  (panic panic)
  (head head)
@@ -193,4 +195,5 @@
  (ignore ignore)
  (list-at list-at)
  (switch-fun switch-fun)
- (first-good-value first-good-value))
+ (first-good-value first-good-value)
+ (not not))

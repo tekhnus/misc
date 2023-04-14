@@ -295,7 +295,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         datum *er = state_stack_at(r, prg.move_offset);
         state_stack_set(r, prg.move_target, *er);
         *er = datum_make_nil();
-        state_stack_pop(r);  // WARNING: works only while we always move the top of the stack!
+        state_stack_pop(r); // WARNING: works only while we always move the top
+                            // of the stack!
         *routine_offset(r) = prg.move_next;
         continue;
       }

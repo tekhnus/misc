@@ -15,6 +15,7 @@
  (cons "std" cons)
  (tail "std" tail)
  (panic "std" panic)
+ (not "std" not)
  (libc "libc")
  (print "libc" print))
 
@@ -56,6 +57,17 @@
     (defn twice (arg) (return (/std/+ arg arg)))
     (return (twice 35)))
   70)
+
+(fntest
+  (progn
+    (def x 0)
+    (def y 1)
+    (while (/std/not (/std/eq x 5))
+      (progn
+        (def y (/std/+ y y))
+        (def x (/std/+ x 1))))
+    (return y))
+  32)
 
 (fntest
   (progn

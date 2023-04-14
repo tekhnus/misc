@@ -88,7 +88,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     *vec_at(sl, *begin) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_end),
                            datum_make_int(false_end));
-    *begin = vec_append_new(sl); // ???
+    *begin = vec_append_new(sl);
 
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
@@ -107,6 +107,32 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
 
     prog_join(sl, true_end, false_end, *begin);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "while")) {
+    if (list_length(stmt) != 3) {
+      return "while should have two args";
+    }
+    char *err;
+    size_t pre_condition_check = *begin;
+    datum pre_condition_check_compdata = datum_copy(compdata);
+    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
+    size_t condition_check = *begin;
+    compdata_del(compdata);
+    *begin = vec_append_new(sl);
+    size_t loop_start = *begin;
+    err = prog_append_statement(sl, begin, list_at(stmt, 2), compdata, ext);
+    assert(datum_eq(&pre_condition_check_compdata, compdata));
+    *vec_at(sl, *begin) =
+      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(pre_condition_check));
+    *begin = vec_append_new(sl);
+    size_t loop_end = *begin;
+    *vec_at(sl, condition_check) =
+        datum_make_list_of(datum_make_symbol(":if"), datum_make_int(loop_start),
+                           datum_make_int(loop_end));
     return NULL;
   }
   if (datum_is_the_symbol(op, "progn")) {
@@ -431,20 +457,21 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
   }
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":put-var"),
-                                           target_polyindex, polyindex, datum_make_int(next));
+  *vec_at(sl, *begin) =
+      datum_make_list_of(datum_make_symbol(":put-var"), target_polyindex,
+                         polyindex, datum_make_int(next));
   *begin = next;
 }
 
-LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target, datum *source, datum *compdata) {
+LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
+                            datum *source, datum *compdata) {
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":move"),
-                                           datum_copy(target), datum_copy(source), datum_make_int(next));
+  *vec_at(sl, *begin) =
+      datum_make_list_of(datum_make_symbol(":move"), datum_copy(target),
+                         datum_copy(source), datum_make_int(next));
   compdata_del(compdata);
   *begin = next;
 }
-
-
 
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
                                  int capture, datum *compdata) {
@@ -626,7 +653,8 @@ EXPORT datum compdata_get_shape(datum *compdata) {
   return res;
 }
 
-EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var, datum *compdata) {
+EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var,
+                                      datum *compdata) {
   if (!datum_is_list(var)) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
