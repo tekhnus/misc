@@ -45,3 +45,11 @@ October 2022-January 2023:
 - there are no more closures; the routine now stores only its own frame;
   the parent frames are explicitly specified during the call and they are borrowed;
   when we need to capture a value, we use coroutines
+
+January-April 2023:
+- migrated everything from linked lists to vectors
+- C code became more sane; less mallocs and pointers
+- host calls and panics became yields
+- moved from "preprocessor" model to "compiler extensions" model
+- variable assignment implemented
+- while loop implemented
