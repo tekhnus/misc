@@ -26,7 +26,6 @@ and two implementations:
 
 ### Stuff to be done yet
 
-- Implement loops and/or tail recursive calls
 - Implement intercepting arbitrary yields from called routine, for example, host calls
 - Implement program hashing, e.g. getting a hash of the given computation
 - Support parallelism
