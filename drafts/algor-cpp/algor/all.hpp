@@ -399,8 +399,8 @@ template <typename V, typename E, typename WS>
 auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
-  auto m =
-      matrix(g.vertices_cbegin(), g.vertices_cend(), path_semiring<E, W>{});
+  auto ring = path_semiring<E, W>{};
+  auto m = matrix(g.vertices_cbegin(), g.vertices_cend(), ring);
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     m[{*v, *v}] = std::optional{std::pair{0, std::nullopt}};
   }
@@ -408,11 +408,9 @@ auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
     auto [e, uv] = *i;
     auto [u, v] = uv;
     auto weight = ws.at(e);
-    if (!m[{u, v}].has_value() || m[{u, v}].value().first > weight) {
-      m[{u, v}] = std::optional{std::pair{weight, std::optional{e}}};
-    }
+    m[{u, v}] =
+        ring.sum(m[{u, v}], std::optional{std::pair{weight, std::optional{e}}});
   }
-
   return m;
 }
 
@@ -446,22 +444,15 @@ template <typename V, typename E, typename WS>
 auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
   auto m = path_matrix(g, ws);
-  path_semiring<E, W> r;
+  auto ring = path_semiring<E, W>{};
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
-      if (!m[{*i, *v}].has_value()) {
+      if (m[{*i, *v}] == ring.zero) {
         continue;
       }
       for (auto j = g.vertices_cbegin(); j != g.vertices_cend(); ++j) {
-        if (!m[{*v, *j}].has_value()) {
-          continue;
-        }
-        auto through_v = r.product(m[{*i, *v}], m[{*v, *j}]);
-        if (!m[{*i, *j}].has_value() ||
-            (through_v.has_value() &&
-             m[{*i, *j}].value().first > through_v->first)) {
-          m[{*i, *j}] = through_v;
-        }
+        auto through_v = ring.product(m[{*i, *v}], m[{*v, *j}]);
+        m[{*i, *j}] = ring.sum(m[{*i, *j}], through_v);
       }
     }
   }
