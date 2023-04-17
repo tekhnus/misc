@@ -13,19 +13,20 @@
 #include <variant>
 #include <vector>
 
-template <typename CompareSecond, typename... T> class compare_second {
+template <typename CompareSecond, typename Tup> class compare_second {
 public:
-  bool operator()(const std::tuple<T...> &a, const std::tuple<T...> &b) {
+  bool operator()(const Tup &a, const Tup &b) {
     return cmp(get<1>(a), get<1>(b));
   }
 
-private:
+public:
   CompareSecond cmp;
 };
 
 template <typename K, typename V, typename Compare> class keyed_heap {
 public:
-  keyed_heap() : q{}, s{} {}
+  keyed_heap(Compare cmp = Compare{})
+      : q{compare_second<Compare, std::tuple<K, V>>{cmp}}, s{} {}
 
   template <typename I> keyed_heap(I begin, I end) : q{begin, end}, s{} {}
 
@@ -69,7 +70,7 @@ private:
     }
   }
   std::priority_queue<std::tuple<K, V>, std::vector<std::tuple<K, V>>,
-                      compare_second<Compare, K, V>>
+                      compare_second<Compare, std::tuple<K, V>>>
       q;
   std::unordered_set<K> s;
 };
@@ -282,7 +283,7 @@ auto greedy_tree(VI begin, VI end, graph<V, E> const &g, F f) {
   using W = int;
 
   std::unordered_set<V> visited{begin, end};
-  keyed_heap<V, std::tuple<W, E>, std::greater<std::tuple<W, E>>> q;
+  keyed_heap<V, std::tuple<W, E>, std::greater<std::tuple<W, E>>> q{};
 
   for (auto i = begin; i != end; ++i) {
     for (auto j = g.vertices_crbegin(*i); j != g.vertices_crend(*i); ++j) {
