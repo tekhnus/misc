@@ -99,8 +99,8 @@ void test_ford_bellman() {
 
 void test_dijkstra() {
   auto d = dijkstra(vs.begin(), vs.begin() + 1, g, w);
-  vector<optional<pair<int, pair<int, string>>>> res;
-  generate_n(back_inserter(res), 5, ref(d));
+  vector<optional<tuple<int, tuple<int, string>>>> res;
+  generate_n(std::back_inserter(res), 5, ref(d));
   for (auto item : res) {
     if (!item.has_value()) {
       continue;
