@@ -327,7 +327,7 @@ public:
   using T = typename R::value_type;
   using K = typename I::value_type;
 
-  matrix(I begin, I end) : begin{begin}, end{end}, m{} {
+  matrix(I begin, I end, R ring = R{}) : begin{begin}, end{end}, m{}, ring{ring} {
     for (auto i = begin; i != end; ++i) {
       for (auto j = begin; j != end; ++j) {
         m[{*i, *j}] = ring.zero;
@@ -365,14 +365,10 @@ public:
   }
 
 private:
-  R ring;
   I begin, end;
   std::map<std::tuple<K, K>, T> m;
+  R ring;
 };
-
-template <typename R, typename I> matrix<R, I> make_matrix(I begin, I end) {
-  return {begin, end};
-}
 
 template <typename E, typename W> class path_semiring {
 public:
@@ -404,7 +400,7 @@ auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
   auto m =
-      make_matrix<path_semiring<E, W>>(g.vertices_cbegin(), g.vertices_cend());
+    matrix(g.vertices_cbegin(), g.vertices_cend(), path_semiring<E, W>{});
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     m[{*v, *v}] = std::optional{std::pair{0, std::vector<E>{}}};
   }
