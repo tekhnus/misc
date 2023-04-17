@@ -492,7 +492,9 @@ auto path_matrix(graph<V, E> const &g, WS const &ws) {
 
 template <typename V, typename E, typename WS>
 auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
-  auto [m, pred] = weight_matrix(g, ws);
+  using W = typename WS::mapped_type;
+  auto m = path_matrix(g, ws);
+  path_semiring<E, W> r;
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
       if (!m[{*i, *v}].has_value()) {
@@ -502,13 +504,12 @@ auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
         if (!m[{*v, *j}].has_value()) {
           continue;
         }
-        auto through_v = m[{*i, *v}].value() + m[{*v, *j}].value();
-        if (!m[{*i, *j}].has_value() || m[{*i, *j}].value() > through_v) {
+        auto through_v = r.product(m[{*i, *v}], m[{*v, *j}]);
+        if (!m[{*i, *j}].has_value() || (through_v.has_value() && m[{*i, *j}].value().first > through_v->first)) {
           m[{*i, *j}] = through_v;
-          pred[{*i, *j}] = pred[{*v, *j}];
         }
       }
     }
   }
-  return make_tuple(m, pred);
+  return m;
 }

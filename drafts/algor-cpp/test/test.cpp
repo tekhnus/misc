@@ -136,13 +136,15 @@ void test_path_matrix() {
 
 void test_floyd_warshall() {
   std::vector<int> start{1};
-  auto [d, pred] = floyd_warshall(g, w);
+  auto m = floyd_warshall(g, w);
   for (auto &v : vs) {
     for (auto &u : vs) {
-      if (exp_dist.find({v, u}) != exp_dist.end()) {
-        assert_equal(d[{v, u}].value(), get<0>(exp_dist[{v, u}]));
-        if (get<1>(exp_dist[{v, u}]).has_value()) {
-          assert_equal({get<1>(pred[{v, u}])}, get<1>(exp_dist[{v, u}]));
+      if (m[{v, u}].has_value()) {
+        assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
+        if(!m[{v, u}].value().second.empty()) {
+          assert_equal(m[{v, u}].value().second.back(), *get<1>(exp_dist[{v, u}]));
+        } else {
+          assert_equal(get<1>(exp_dist[{v, u}]).has_value(), false);
         }
       } else {
         assert_equal(exp_dist.find({v, u}), exp_dist.end());
