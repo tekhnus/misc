@@ -393,7 +393,8 @@ public:
       return zero;
     }
     std::vector<E> path{a->second};
-    std::copy(std::begin(b->second), std::end(b->second), std::back_inserter(path));
+    std::copy(std::begin(b->second), std::end(b->second),
+              std::back_inserter(path));
     return {{a->first + b->first, path}};
   }
 };
@@ -403,7 +404,7 @@ auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
   auto m =
-    make_matrix<path_semiring<E, W>>(g.vertices_cbegin(), g.vertices_cend());
+      make_matrix<path_semiring<E, W>>(g.vertices_cbegin(), g.vertices_cend());
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     m[{*v, *v}] = std::optional{std::pair{0, std::vector<E>{}}};
   }
@@ -460,7 +461,9 @@ auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
           continue;
         }
         auto through_v = r.product(m[{*i, *v}], m[{*v, *j}]);
-        if (!m[{*i, *j}].has_value() || (through_v.has_value() && m[{*i, *j}].value().first > through_v->first)) {
+        if (!m[{*i, *j}].has_value() ||
+            (through_v.has_value() &&
+             m[{*i, *j}].value().first > through_v->first)) {
           m[{*i, *j}] = through_v;
         }
       }

@@ -122,8 +122,9 @@ void test_path_matrix() {
     for (auto &u : vs) {
       if (m[{v, u}].has_value()) {
         assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
-        if(!m[{v, u}].value().second.empty()) {
-          assert_equal(m[{v, u}].value().second.back(), *get<1>(exp_dist[{v, u}]));
+        if (!m[{v, u}].value().second.empty()) {
+          assert_equal(m[{v, u}].value().second.back(),
+                       *get<1>(exp_dist[{v, u}]));
         } else {
           assert_equal(get<1>(exp_dist[{v, u}]).has_value(), false);
         }
@@ -141,8 +142,9 @@ void test_floyd_warshall() {
     for (auto &u : vs) {
       if (m[{v, u}].has_value()) {
         assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
-        if(!m[{v, u}].value().second.empty()) {
-          assert_equal(m[{v, u}].value().second.back(), *get<1>(exp_dist[{v, u}]));
+        if (!m[{v, u}].value().second.empty()) {
+          assert_equal(m[{v, u}].value().second.back(),
+                       *get<1>(exp_dist[{v, u}]));
         } else {
           assert_equal(get<1>(exp_dist[{v, u}]).has_value(), false);
         }
@@ -156,7 +158,7 @@ void test_floyd_warshall() {
 void run_test(std::string name, void (*test)()) {
   try {
     test();
-  } catch (const std::runtime_error& e) {
+  } catch (const std::runtime_error &e) {
     std::cout << "FAIL " << name << " " << e.what() << std::endl;
     return;
   }
