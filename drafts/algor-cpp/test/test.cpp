@@ -136,6 +136,11 @@ void test_path_matrix() {
     for (auto &u : vs) {
       if (m[{v, u}].has_value()) {
         assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
+        if(!m[{v, u}].value().second.empty()) {
+          assert_equal(m[{v, u}].value().second.back(), *get<1>(exp_dist[{v, u}]));
+        } else {
+          assert_equal(get<1>(exp_dist[{v, u}]).has_value(), false);
+        }
       } else {
         assert_equal(exp_dist.find({v, u}), exp_dist.end());
       }
