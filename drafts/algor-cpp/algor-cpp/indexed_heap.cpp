@@ -13,11 +13,9 @@
 #include <variant>
 #include <vector>
 
-using namespace std;
-
 template <typename CompareSecond, typename... T> class compare_second {
 public:
-  bool operator()(const tuple<T...> &a, const tuple<T...> &b) {
+  bool operator()(const std::tuple<T...> &a, const std::tuple<T...> &b) {
     return cmp(get<1>(a), get<1>(b));
   }
 
@@ -36,7 +34,7 @@ public:
     return q.empty();
   }
 
-  tuple<K, V> const &top() {
+  std::tuple<K, V> const &top() {
     pop_while_removed();
     return q.top();
   }
@@ -50,7 +48,7 @@ public:
 
   void push_or_update(K const &key, V const &val) {
     if (s.find(key) != s.end()) {
-      throw runtime_error("readding the removed elements is not supported yet");
+      throw std::runtime_error("readding the removed elements is not supported yet");
     }
     q.push({key, val});
   }
@@ -69,17 +67,17 @@ private:
       q.pop();
     }
   }
-  priority_queue<tuple<K, V>, vector<tuple<K, V>>,
+  std::priority_queue<std::tuple<K, V>, std::vector<std::tuple<K, V>>,
                  compare_second<Compare, K, V>>
       q;
-  unordered_set<K> s;
+  std::unordered_set<K> s;
 };
 
 template <typename V, typename E> class graph {
 public:
-  typedef typename unordered_set<V>::const_iterator vertex_iterator;
-  typedef typename unordered_map<E, pair<V, V>>::const_iterator edge_iterator;
-  typedef typename list<tuple<V, E>>::const_reverse_iterator
+  typedef typename std::unordered_set<V>::const_iterator vertex_iterator;
+  typedef typename std::unordered_map<E, std::pair<V, V>>::const_iterator edge_iterator;
+  typedef typename std::list<std::tuple<V, E>>::const_reverse_iterator
       reverse_local_vertex_iterator;
 
   graph() = default;
@@ -111,7 +109,7 @@ public:
   edge_iterator edges_cend() const { return edges.cend(); }
 
   size_t vertices_size() const {
-    return distance(vertices_cbegin(), vertices_cend());
+    return std::distance(vertices_cbegin(), vertices_cend());
   }
 
   reverse_local_vertex_iterator vertices_crbegin(V u) const {
@@ -123,13 +121,13 @@ public:
   }
 
 private:
-  unordered_set<V> vertices;
-  unordered_map<E, pair<V, V>> edges;
-  unordered_map<V, list<tuple<V, E>>> successors;
+  std::unordered_set<V> vertices;
+  std::unordered_map<E, std::pair<V, V>> edges;
+  std::unordered_map<V, std::list<std::tuple<V, E>>> successors;
 };
 
 template <typename V, typename E>
-pair<E, pair<V, V>> edge_reverse(pair<E, pair<V, V>> edge) {
+std::pair<E, std::pair<V, V>> edge_reverse(std::pair<E, std::pair<V, V>> edge) {
   auto [e, uv] = edge;
   auto [u, v] = uv;
   return {e, {v, u}};
@@ -138,7 +136,7 @@ pair<E, pair<V, V>> edge_reverse(pair<E, pair<V, V>> edge) {
 template <typename V, typename E>
 graph<V, E> graph_reverse(graph<V, E> const &g) {
   graph<V, E> res(g.vertices_cbegin(), g.vertices_cend());
-  vector<pair<E, pair<V, V>>> reversed_edges;
+  std::vector<std::pair<E, std::pair<V, V>>> reversed_edges;
   transform(g.edges_cbegin(), g.edges_cend(), back_inserter(reversed_edges),
             edge_reverse<V, E>);
   res.edges_insert(reversed_edges.begin(), reversed_edges.end());
@@ -147,22 +145,22 @@ graph<V, E> graph_reverse(graph<V, E> const &g) {
 
 template <typename V, typename E> struct dfs_enter {
   V v;
-  optional<E> e;
+  std::optional<E> e;
   bool operator==(dfs_enter const &x) const = default;
 };
 template <typename V> struct dfs_exit {
   V v;
   bool operator==(dfs_exit const &x) const = default;
 };
-struct dfs_end : public monostate {};
+struct dfs_end : public std::monostate {};
 
 template <typename V, typename E, typename I>
 auto dfs(I begin, I end, graph<V, E> const &g) {
-  unordered_set<V> visited;
-  stack<variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end>> s;
+  std::unordered_set<V> visited;
+  std::stack<std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end>> s;
 
-  return [=]() mutable -> variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> {
-    variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> item;
+  return [=]() mutable -> std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> {
+      std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> item;
     do {
       if (!s.empty()) {
         item = s.top();
@@ -205,7 +203,7 @@ void topo_sort(VO outp, VI begin, VI end, graph<V, E> const &g) {
 
 template <typename V, typename E, typename VI, typename VO>
 void strong_components(VO outp, VI begin, VI end, graph<V, E> const &g) {
-  vector<V> vs;
+  std::vector<V> vs;
   topo_sort(back_inserter(vs), begin, end, g);
   auto d = dfs(vs.begin(), vs.end(), graph_reverse(g));
   int component = 0;
@@ -218,13 +216,13 @@ void strong_components(VO outp, VI begin, VI end, graph<V, E> const &g) {
       if (!get<dfs_enter<V, E>>(evt).e.has_value()) {
         ++component;
       }
-      *outp++ = pair<V, int>{get<dfs_enter<V, E>>(evt).v, component};
+      *outp++ = std::pair<V, int>{get<dfs_enter<V, E>>(evt).v, component};
     }
   }
 }
 
-class root : public monostate {};
-class unreachable : public monostate {};
+class root : public std::monostate {};
+class unreachable : public std::monostate {};
 
 template <typename V, typename VI, typename E, typename WS, typename DS,
           typename PS>
@@ -240,7 +238,7 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, graph<V, E> const &g,
     dist[*i] = 0;
   }
 
-  auto relax = [&](pair<E, pair<V, V>> const &edge) -> bool {
+  auto relax = [&](std::pair<E, std::pair<V, V>> const &edge) -> bool {
     auto [e, uv] = edge;
     auto [u, t] = uv;
 
@@ -268,7 +266,7 @@ void ford_bellman(DS &dist, PS &path, VI begin, VI end, graph<V, E> const &g,
   if (!break_) {
     for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
       if (relax(*i)) {
-        throw runtime_error("graph contains a negative cycle");
+        throw std::runtime_error("graph contains a negative cycle");
       }
     }
   }
@@ -278,8 +276,8 @@ template <typename V, typename E, typename VI, typename F>
 auto greedy_tree(VI begin, VI end, graph<V, E> const &g, F f) {
   using W = int;
 
-  unordered_set<V> visited{begin, end};
-  keyed_heap<V, tuple<W, E>, greater<tuple<W, E>>> q;
+  std::unordered_set<V> visited{begin, end};
+  keyed_heap<V, std::tuple<W, E>, std::greater<std::tuple<W, E>>> q;
 
   for (auto i = begin; i != end; ++i) {
     for (auto j = g.vertices_crbegin(*i); j != g.vertices_crend(*i); ++j) {
@@ -289,7 +287,7 @@ auto greedy_tree(VI begin, VI end, graph<V, E> const &g, F f) {
     }
   }
 
-  return [=]() mutable -> optional<tuple<V, tuple<W, E>>> {
+  return [=]() mutable -> std::optional<std::tuple<V, std::tuple<W, E>>> {
     if (q.empty()) {
       return {};
     }
@@ -332,9 +330,9 @@ public:
     }
   }
 
-  T &operator[](tuple<K, K> const &ij) { return m.at(ij); }
+  T &operator[](std::tuple<K, K> const &ij) { return m.at(ij); }
 
-  T const &operator[](tuple<K, K> const &ij) const { return m.at(ij); }
+  T const &operator[](std::tuple<K, K> const &ij) const { return m.at(ij); }
 
   matrix<R, I> operator*(matrix<R, I> const &m) const {
     auto res = matrix<R, I>{begin, end};
@@ -364,7 +362,7 @@ public:
 private:
   R ring;
   I begin, end;
-  map<tuple<K, K>, T> m;
+  std::map<std::tuple<K, K>, T> m;
 };
 
 template <typename R, typename I> matrix<R, I> make_matrix(I begin, I end) {
@@ -373,19 +371,19 @@ template <typename R, typename I> matrix<R, I> make_matrix(I begin, I end) {
 
 template <typename T> class min_sum_semiring {
 public:
-  using value_type = optional<T>;
+  using value_type = std::optional<T>;
 
-  optional<T> zero;
-  optional<T> sum(optional<T> a, optional<T> b) const {
+  std::optional<T> zero;
+  std::optional<T> sum(std::optional<T> a, std::optional<T> b) const {
     if (!a.has_value()) {
       return b;
     }
     if (!b.has_value()) {
       return a;
     }
-    return min(a.value(), b.value());
+    return std::min(a.value(), b.value());
   }
-  optional<T> product(optional<T> a, optional<T> b) const {
+  std::optional<T> product(std::optional<T> a, std::optional<T> b) const {
     if (!a.has_value() || !b.has_value()) {
       return zero;
     }
@@ -399,7 +397,7 @@ auto weight_matrix(graph<V, E> const &g, WS const &ws) {
 
   auto m =
       make_matrix<min_sum_semiring<W>>(g.vertices_cbegin(), g.vertices_cend());
-  map<pair<V, V>, pair<V, E>> pred;
+  std::map<std::pair<V, V>, std::pair<V, E>> pred;
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     m[{*v, *v}] = 0;
   }
@@ -418,7 +416,7 @@ auto weight_matrix(graph<V, E> const &g, WS const &ws) {
 
 template <typename T> auto generic_pow(T const &x, int n) {
   if (n == 0) {
-    throw runtime_error("not implemented");
+    throw std::runtime_error("not implemented");
   }
   if (n == 1) {
     return x;
@@ -437,7 +435,7 @@ auto pairwise_distances(graph<V, E> const &g, WS const &ws) {
   auto d = generic_pow(m, g.vertices_size() - 1);
   auto check = d * m;
   if (check != d) {
-    throw runtime_error("graph contains a negative cycle");
+    throw std::runtime_error("graph contains a negative cycle");
   }
   return d;
 }
