@@ -443,7 +443,7 @@ auto path_matrix(graph<V, E> const &g, WS const &ws) {
 template <typename V, typename E, typename WS>
 auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
-  auto m = path_matrix(g, ws);
+  auto m = graph_to_matrix(g, ws);
   auto ring = path_semiring<E, W>{};
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
