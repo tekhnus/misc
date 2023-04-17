@@ -378,8 +378,8 @@ template <typename T> class min_sum_semiring {
 public:
   using value_type = std::optional<T>;
 
-  std::optional<T> zero;
-  std::optional<T> sum(std::optional<T> a, std::optional<T> b) const {
+  value_type zero;
+  value_type sum(value_type a, value_type b) const {
     if (!a.has_value()) {
       return b;
     }
@@ -388,7 +388,7 @@ public:
     }
     return std::min(a.value(), b.value());
   }
-  std::optional<T> product(std::optional<T> a, std::optional<T> b) const {
+  value_type product(value_type a, value_type b) const {
     if (!a.has_value() || !b.has_value()) {
       return zero;
     }
@@ -419,14 +419,14 @@ auto weight_matrix(graph<V, E> const &g, WS const &ws) {
   return make_tuple(m, pred);
 }
 
-template <typename T> auto generic_pow(T const &x, int n) {
+template <typename T> auto power(T const &x, int n) {
   if (n == 0) {
     throw std::runtime_error("not implemented");
   }
   if (n == 1) {
     return x;
   }
-  auto res = generic_pow(x, n / 2);
+  auto res = power(x, n / 2);
   res = res * res;
   if (n % 2 == 1) {
     res = res * x;
@@ -437,7 +437,7 @@ template <typename T> auto generic_pow(T const &x, int n) {
 template <typename V, typename E, typename WS>
 auto pairwise_distances(graph<V, E> const &g, WS const &ws) {
   auto [m, _] = weight_matrix(g, ws);
-  auto d = generic_pow(m, g.vertices_size() - 1);
+  auto d = power(m, g.vertices_size() - 1);
   auto check = d * m;
   if (check != d) {
     throw std::runtime_error("graph contains a negative cycle");
