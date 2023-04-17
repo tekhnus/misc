@@ -396,6 +396,30 @@ public:
   }
 };
 
+template <typename E, typename W> class path_semiring {
+public:
+  using value_type = std::optional<std::pair<W, std::vector<E>>>;
+
+  value_type zero = std::nullopt;
+  value_type sum(value_type a, value_type b) const {
+    if (!a.has_value()) {
+      return b;
+    }
+    if (!b.has_value()) {
+      return a;
+    }
+    return std::min(a, b);
+  }
+  value_type product(value_type a, value_type b) const {
+    if (!a.has_value() || !b.has_value()) {
+      return zero;
+    }
+    std::vector<E> path{a->second};
+    std::copy(std::begin(b->second), std::end(b->second), std::back_inserter(path));
+    return {{a->first + b->first, path}};
+  }
+};
+
 template <typename V, typename E, typename WS>
 auto weight_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
@@ -419,6 +443,27 @@ auto weight_matrix(graph<V, E> const &g, WS const &ws) {
   return make_tuple(m, pred);
 }
 
+template <typename V, typename E, typename WS>
+auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
+  using W = typename WS::mapped_type;
+
+  auto m =
+    make_matrix<path_semiring<E, W>>(g.vertices_cbegin(), g.vertices_cend());
+  for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
+    m[{*v, *v}] = std::optional{std::pair{0, std::vector<E>{}}};
+  }
+  for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
+    auto [e, uv] = *i;
+    auto [u, v] = uv;
+    auto weight = ws.at(e);
+    if (!m[{u, v}].has_value() || m[{u, v}].value().first > weight) {
+      m[{u, v}] = std::optional{std::pair{weight, std::vector{e}}};
+    }
+  }
+
+  return m;
+}
+
 template <typename T> auto power(T const &x, int n) {
   if (n == 0) {
     throw std::runtime_error("not implemented");
@@ -437,6 +482,17 @@ template <typename T> auto power(T const &x, int n) {
 template <typename V, typename E, typename WS>
 auto pairwise_distances(graph<V, E> const &g, WS const &ws) {
   auto [m, _] = weight_matrix(g, ws);
+  auto d = power(m, g.vertices_size() - 1);
+  auto check = d * m;
+  if (check != d) {
+    throw std::runtime_error("graph contains a negative cycle");
+  }
+  return d;
+}
+
+template <typename V, typename E, typename WS>
+auto path_matrix(graph<V, E> const &g, WS const &ws) {
+  auto m = graph_to_matrix(g, ws);
   auto d = power(m, g.vertices_size() - 1);
   auto check = d * m;
   if (check != d) {

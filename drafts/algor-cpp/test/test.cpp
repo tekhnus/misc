@@ -129,6 +129,20 @@ void test_pairwise_distances() {
   }
 }
 
+void test_path_matrix() {
+  std::vector<int> start{1};
+  auto m = path_matrix(g, w);
+  for (auto &v : vs) {
+    for (auto &u : vs) {
+      if (m[{v, u}].has_value()) {
+        assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
+      } else {
+        assert_equal(exp_dist.find({v, u}), exp_dist.end());
+      }
+    }
+  }
+}
+
 void test_floyd_warshall() {
   std::vector<int> start{1};
   auto [d, pred] = floyd_warshall(g, w);
@@ -149,8 +163,8 @@ void test_floyd_warshall() {
 void run_test(std::string name, void (*test)()) {
   try {
     test();
-  } catch (...) {
-    std::cout << "FAIL " << name << std::endl;
+  } catch (const std::runtime_error& e) {
+    std::cout << "FAIL " << name << " " << e.what() << std::endl;
     return;
   }
   std::cout << "OK   " << name << std::endl;
@@ -166,6 +180,7 @@ int main() {
   run_test("ford_bellman", test_ford_bellman);
   run_test("dijkstra", test_dijkstra);
   run_test("pairwise_distances", test_pairwise_distances);
+  run_test("path_matrix", test_path_matrix);
   run_test("floyd_warshall", test_floyd_warshall);
 
   return EXIT_SUCCESS;
