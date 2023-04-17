@@ -19,11 +19,12 @@ std::map<std::string, int> w = {
     {"c", 7},
     {"d", 5},
 };
-std::map<std::pair<int, int>, std::tuple<int, std::optional<std::string>>> exp_dist = {
-    {{1, 1}, {0, {}}},   {{1, 2}, {3, "a"}}, {{1, 3}, {1, "b"}},
-    {{1, 4}, {6, "d"}},  {{2, 2}, {0, {}}},  {{2, 3}, {7, "c"}},
-    {{2, 4}, {12, "d"}}, {{3, 3}, {0, {}}},  {{3, 4}, {5, "d"}},
-    {{4, 4}, {0, {}}},
+std::map<std::pair<int, int>, std::tuple<int, std::optional<std::string>>>
+    exp_dist = {
+        {{1, 1}, {0, {}}},   {{1, 2}, {3, "a"}}, {{1, 3}, {1, "b"}},
+        {{1, 4}, {6, "d"}},  {{2, 2}, {0, {}}},  {{2, 3}, {7, "c"}},
+        {{2, 4}, {12, "d"}}, {{3, 3}, {0, {}}},  {{3, 4}, {5, "d"}},
+        {{4, 4}, {0, {}}},
 };
 
 template <typename T, typename dummy = void>
@@ -48,13 +49,15 @@ void assert_equal(T const &a, T const &b) {
 
 void test_dfs() {
   auto d = dfs(vs.begin(), vs.begin() + 1, g);
-  std::vector<std::variant<dfs_enter<int, std::string>, dfs_exit<int>, dfs_end>> res;
+  std::vector<std::variant<dfs_enter<int, std::string>, dfs_exit<int>, dfs_end>>
+      res;
   std::generate_n(std::back_inserter(res), 9, std::ref(d));
-  std::vector<std::variant<dfs_enter<int, std::string>, dfs_exit<int>, dfs_end>> exp = {
-      {dfs_enter<int, std::string>{1, {}}, dfs_enter<int, std::string>{2, "a"},
-       dfs_enter<int, std::string>{3, "c"}, dfs_enter<int, std::string>{4, "d"},
-       dfs_exit<int>{4}, dfs_exit<int>{3}, dfs_exit<int>{2}, dfs_exit<int>{1},
-       dfs_end{}}};
+  std::vector<std::variant<dfs_enter<int, std::string>, dfs_exit<int>, dfs_end>>
+      exp = {{dfs_enter<int, std::string>{1, {}},
+              dfs_enter<int, std::string>{2, "a"},
+              dfs_enter<int, std::string>{3, "c"},
+              dfs_enter<int, std::string>{4, "d"}, dfs_exit<int>{4},
+              dfs_exit<int>{3}, dfs_exit<int>{2}, dfs_exit<int>{1}, dfs_end{}}};
   assert_equal(res, res);
 }
 
@@ -107,7 +110,8 @@ void test_dijkstra() {
     }
     auto [v, we] = item.value();
     auto [w, e] = we;
-    assert_equal(exp_dist[{1, v}], std::tuple<int, std::optional<std::string>>{w, e});
+    assert_equal(exp_dist[{1, v}],
+                 std::tuple<int, std::optional<std::string>>{w, e});
   }
 }
 

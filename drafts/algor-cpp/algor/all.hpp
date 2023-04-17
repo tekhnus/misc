@@ -48,7 +48,8 @@ public:
 
   void push_or_update(K const &key, V const &val) {
     if (s.find(key) != s.end()) {
-      throw std::runtime_error("readding the removed elements is not supported yet");
+      throw std::runtime_error(
+          "readding the removed elements is not supported yet");
     }
     q.push({key, val});
   }
@@ -68,7 +69,7 @@ private:
     }
   }
   std::priority_queue<std::tuple<K, V>, std::vector<std::tuple<K, V>>,
-                 compare_second<Compare, K, V>>
+                      compare_second<Compare, K, V>>
       q;
   std::unordered_set<K> s;
 };
@@ -76,7 +77,8 @@ private:
 template <typename V, typename E> class graph {
 public:
   typedef typename std::unordered_set<V>::const_iterator vertex_iterator;
-  typedef typename std::unordered_map<E, std::pair<V, V>>::const_iterator edge_iterator;
+  typedef typename std::unordered_map<E, std::pair<V, V>>::const_iterator
+      edge_iterator;
   typedef typename std::list<std::tuple<V, E>>::const_reverse_iterator
       reverse_local_vertex_iterator;
 
@@ -160,7 +162,7 @@ auto dfs(I begin, I end, graph<V, E> const &g) {
   std::stack<std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end>> s;
 
   return [=]() mutable -> std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> {
-      std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> item;
+    std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> item;
     do {
       if (!s.empty()) {
         item = s.top();
