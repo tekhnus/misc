@@ -1,0 +1,5 @@
+#!/bin/sh
+cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++ \
+      && cmake --build build \
+      && cmake --build build --target test
+      && ./build/test
