@@ -156,13 +156,16 @@ template <typename V> struct dfs_exit {
 };
 struct dfs_end : public std::monostate {};
 
+template <typename V, typename E>
+using dfs_item = std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end>;
+
 template <typename V, typename E, typename I>
 auto dfs(I begin, I end, graph<V, E> const &g) {
   std::unordered_set<V> visited;
-  std::stack<std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end>> s;
+  std::stack<dfs_item<V, E>> s;
 
-  return [=]() mutable -> std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> {
-    std::variant<dfs_enter<V, E>, dfs_exit<V>, dfs_end> item;
+  return [=]() mutable -> dfs_item<V, E> {
+    dfs_item<V, E> item;
     do {
       if (!s.empty()) {
         item = s.top();
