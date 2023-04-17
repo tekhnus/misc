@@ -122,8 +122,8 @@ void test_path_matrix() {
     for (auto &u : vs) {
       if (m[{v, u}].has_value()) {
         assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
-        if (!m[{v, u}].value().second.empty()) {
-          assert_equal(m[{v, u}].value().second.back(),
+        if (m[{v, u}].value().second.has_value()) {
+          assert_equal(m[{v, u}].value().second.value(),
                        *get<1>(exp_dist[{v, u}]));
         } else {
           assert_equal(get<1>(exp_dist[{v, u}]).has_value(), false);
@@ -142,8 +142,8 @@ void test_floyd_warshall() {
     for (auto &u : vs) {
       if (m[{v, u}].has_value()) {
         assert_equal(m[{v, u}].value().first, get<0>(exp_dist[{v, u}]));
-        if (!m[{v, u}].value().second.empty()) {
-          assert_equal(m[{v, u}].value().second.back(),
+        if (m[{v, u}].value().second.has_value()) {
+          assert_equal(m[{v, u}].value().second.value(),
                        *get<1>(exp_dist[{v, u}]));
         } else {
           assert_equal(get<1>(exp_dist[{v, u}]).has_value(), false);

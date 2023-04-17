@@ -327,7 +327,8 @@ public:
   using T = typename R::value_type;
   using K = typename I::value_type;
 
-  matrix(I begin, I end, R ring = R{}) : begin{begin}, end{end}, m{}, ring{ring} {
+  matrix(I begin, I end, R ring = R{})
+      : begin{begin}, end{end}, m{}, ring{ring} {
     for (auto i = begin; i != end; ++i) {
       for (auto j = begin; j != end; ++j) {
         m[{*i, *j}] = ring.zero;
@@ -372,7 +373,7 @@ private:
 
 template <typename E, typename W> class path_semiring {
 public:
-  using value_type = std::optional<std::pair<W, std::vector<E>>>;
+  using value_type = std::optional<std::pair<W, std::optional<E>>>;
 
   value_type zero = std::nullopt;
   value_type sum(value_type a, value_type b) const {
@@ -388,10 +389,8 @@ public:
     if (!a.has_value() || !b.has_value()) {
       return zero;
     }
-    std::vector<E> path{a->second};
-    std::copy(std::begin(b->second), std::end(b->second),
-              std::back_inserter(path));
-    return {{a->first + b->first, path}};
+    return {
+        {a->first + b->first, b->second.has_value() ? b->second : a->second}};
   }
 };
 
@@ -400,16 +399,16 @@ auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
 
   auto m =
-    matrix(g.vertices_cbegin(), g.vertices_cend(), path_semiring<E, W>{});
+      matrix(g.vertices_cbegin(), g.vertices_cend(), path_semiring<E, W>{});
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
-    m[{*v, *v}] = std::optional{std::pair{0, std::vector<E>{}}};
+    m[{*v, *v}] = std::optional{std::pair{0, std::nullopt}};
   }
   for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
     auto [e, uv] = *i;
     auto [u, v] = uv;
     auto weight = ws.at(e);
     if (!m[{u, v}].has_value() || m[{u, v}].value().first > weight) {
-      m[{u, v}] = std::optional{std::pair{weight, std::vector{e}}};
+      m[{u, v}] = std::optional{std::pair{weight, std::optional{e}}};
     }
   }
 
