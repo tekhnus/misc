@@ -5,6 +5,8 @@
 #include <sstream>
 #include <variant>
 
+using namespace std;
+
 vector<int> vs{1, 2, 3, 4};
 vector<pair<string, pair<int, int>>> es{
     {"a", {1, 2}},
