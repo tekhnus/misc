@@ -115,20 +115,6 @@ void test_dijkstra() {
   }
 }
 
-void test_pairwise_distances() {
-  std::vector<int> start{1};
-  auto d = pairwise_distances(g, w);
-  for (auto &v : vs) {
-    for (auto &u : vs) {
-      if (d[{v, u}].has_value()) {
-        assert_equal(d[{v, u}].value(), get<0>(exp_dist[{v, u}]));
-      } else {
-        assert_equal(exp_dist.find({v, u}), exp_dist.end());
-      }
-    }
-  }
-}
-
 void test_path_matrix() {
   std::vector<int> start{1};
   auto m = path_matrix(g, w);
@@ -184,7 +170,6 @@ int main() {
   run_test("strong_components", test_strong_components);
   run_test("ford_bellman", test_ford_bellman);
   run_test("dijkstra", test_dijkstra);
-  run_test("pairwise_distances", test_pairwise_distances);
   run_test("path_matrix", test_path_matrix);
   run_test("floyd_warshall", test_floyd_warshall);
 

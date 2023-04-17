@@ -480,17 +480,6 @@ template <typename T> auto power(T const &x, int n) {
 }
 
 template <typename V, typename E, typename WS>
-auto pairwise_distances(graph<V, E> const &g, WS const &ws) {
-  auto [m, _] = weight_matrix(g, ws);
-  auto d = power(m, g.vertices_size() - 1);
-  auto check = d * m;
-  if (check != d) {
-    throw std::runtime_error("graph contains a negative cycle");
-  }
-  return d;
-}
-
-template <typename V, typename E, typename WS>
 auto path_matrix(graph<V, E> const &g, WS const &ws) {
   auto m = graph_to_matrix(g, ws);
   auto d = power(m, g.vertices_size() - 1);
