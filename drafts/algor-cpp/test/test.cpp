@@ -1,4 +1,4 @@
-#include <algor-cpp/indexed_heap.cpp>
+#include <algor/all.hpp>
 #include <iostream>
 #include <iterator>
 #include <map>
