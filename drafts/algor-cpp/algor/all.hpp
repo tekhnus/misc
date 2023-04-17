@@ -374,28 +374,6 @@ template <typename R, typename I> matrix<R, I> make_matrix(I begin, I end) {
   return {begin, end};
 }
 
-template <typename T> class min_sum_semiring {
-public:
-  using value_type = std::optional<T>;
-
-  value_type zero;
-  value_type sum(value_type a, value_type b) const {
-    if (!a.has_value()) {
-      return b;
-    }
-    if (!b.has_value()) {
-      return a;
-    }
-    return std::min(a.value(), b.value());
-  }
-  value_type product(value_type a, value_type b) const {
-    if (!a.has_value() || !b.has_value()) {
-      return zero;
-    }
-    return a.value() + b.value();
-  }
-};
-
 template <typename E, typename W> class path_semiring {
 public:
   using value_type = std::optional<std::pair<W, std::vector<E>>>;
@@ -419,29 +397,6 @@ public:
     return {{a->first + b->first, path}};
   }
 };
-
-template <typename V, typename E, typename WS>
-auto weight_matrix(graph<V, E> const &g, WS const &ws) {
-  using W = typename WS::mapped_type;
-
-  auto m =
-      make_matrix<min_sum_semiring<W>>(g.vertices_cbegin(), g.vertices_cend());
-  std::map<std::pair<V, V>, std::pair<V, E>> pred;
-  for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
-    m[{*v, *v}] = 0;
-  }
-  for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
-    auto [e, uv] = *i;
-    auto [u, v] = uv;
-    auto weight = ws.at(e);
-    if (!m[{u, v}].has_value() || m[{u, v}].value() > weight) {
-      m[{u, v}] = weight;
-      pred[{u, v}] = {u, e};
-    }
-  }
-
-  return make_tuple(m, pred);
-}
 
 template <typename V, typename E, typename WS>
 auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
