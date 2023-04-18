@@ -377,6 +377,7 @@ public:
   using value_type = std::optional<std::pair<W, std::optional<E>>>;
 
   value_type zero = std::nullopt;
+  value_type empty = std::optional{std::pair{0, std::nullopt}};
   value_type sum(value_type a, value_type b) const {
     if (!a.has_value()) {
       return b;
@@ -393,23 +394,21 @@ public:
     return {
         {a->first + b->first, b->second.has_value() ? b->second : a->second}};
   }
+  value_type from_single_edge(E edge, W weight) const {
+    return std::optional{std::pair{weight, std::optional{edge}}};
+  }
 };
 
-template <typename V, typename E, typename WS>
-auto graph_to_matrix(graph<V, E> const &g, WS const &ws) {
-  using W = typename WS::mapped_type;
-
-  auto ring = path_semiring<E, W>{};
+template <typename V, typename E, typename WS, typename R>
+auto graph_to_matrix(graph<V, E> const &g, WS const &ws, R ring) {
   auto m = matrix(g.vertices_cbegin(), g.vertices_cend(), ring);
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
-    m[{*v, *v}] = std::optional{std::pair{0, std::nullopt}};
+    m[{*v, *v}] = ring.empty;
   }
   for (auto i = g.edges_cbegin(); i != g.edges_cend(); ++i) {
     auto [e, uv] = *i;
-    auto [u, v] = uv;
     auto weight = ws.at(e);
-    m[{u, v}] =
-        ring.sum(m[{u, v}], std::optional{std::pair{weight, std::optional{e}}});
+    m[uv] = ring.sum(m[uv], ring.from_single_edge(e, weight));
   }
   return m;
 }
@@ -431,7 +430,9 @@ template <typename T> auto power(T const &x, int n) {
 
 template <typename V, typename E, typename WS>
 auto path_matrix(graph<V, E> const &g, WS const &ws) {
-  auto m = graph_to_matrix(g, ws);
+  using W = typename WS::mapped_type;
+  auto ring = path_semiring<E, W>{};
+  auto m = graph_to_matrix(g, ws, ring);
   auto d = power(m, g.vertices_size() - 1);
   auto check = d * m;
   if (check != d) {
@@ -443,8 +444,8 @@ auto path_matrix(graph<V, E> const &g, WS const &ws) {
 template <typename V, typename E, typename WS>
 auto floyd_warshall(graph<V, E> const &g, WS const &ws) {
   using W = typename WS::mapped_type;
-  auto m = graph_to_matrix(g, ws);
   auto ring = path_semiring<E, W>{};
+  auto m = graph_to_matrix(g, ws, ring);
   for (auto v = g.vertices_cbegin(); v != g.vertices_cend(); ++v) {
     for (auto i = g.vertices_cbegin(); i != g.vertices_cend(); ++i) {
       if (m[{*i, *v}] == ring.zero) {
