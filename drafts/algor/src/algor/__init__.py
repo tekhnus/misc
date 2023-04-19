@@ -353,7 +353,7 @@ def strong_components(gf, s):
 
 
 def bfs(gf, s):
-    st = collections.deque()
+    q = collections.deque()
     enqueued_or_reached = {s}
     u = s
     while True:
@@ -361,10 +361,10 @@ def bfs(gf, s):
             if ver in enqueued_or_reached:
                 continue
             enqueued_or_reached.add(ver)
-            st.append((edg, u, ver))
-        if not st:
+            q.append((edg, u, ver))
+        if not q:
             break
-        e, pred, u = st.popleft()
+        e, pred, u = q.popleft()
         yield e, pred, u
 
 
