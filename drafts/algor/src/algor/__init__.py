@@ -255,6 +255,7 @@ def traverse(gf, vs):
         if w is None:
             return ((None, v) for v in vs)
         return gf(w)
+
     return ngf
 
 
@@ -315,7 +316,7 @@ def topo_sort(gf, s):
     """
     for label, data in dfs_iterative(gf, s):
         if label == "exit":
-            v, = data
+            (v,) = data
             yield v
 
 
@@ -330,7 +331,7 @@ def strong_components(gf, s):
 
     for label, data in dfs_iterative(gf, s):
         if label == "exit":
-            v, = data
+            (v,) = data
             c.append(v)
         else:
             e, u, v = data
@@ -383,7 +384,6 @@ def greedy_tree(gf, s, pri):
         vert, (dist, prd) = q.pop()
         yield vert, (dist, prd)
         reached.add(vert)
-
 
 
 def dijkstra(gf, s, wg):
@@ -760,7 +760,7 @@ def radix_sort(xs, keys, inner_sort=None):
 
 
 def nth_digit_getter(n):
-    p = 10 ** n
+    p = 10**n
 
     def fn(k):
         return (k // p) % 10
@@ -1309,7 +1309,7 @@ def _online_median():
 def endswith(s1, s2):
     if not s2:
         return True
-    return s1[-len(s2):] == s2
+    return s1[-len(s2) :] == s2
 
 
 def _matching_automaton(pattern):
