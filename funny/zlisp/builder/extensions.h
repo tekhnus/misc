@@ -2,7 +2,9 @@
 #undef INTERFACE
 #include <zlisp/common.h>
 #define LOCAL static
+LOCAL char *null_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 LOCAL char *trivial_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+LOCAL extension null_extension_make();
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   struct extension base;
@@ -10,7 +12,6 @@ struct lisp_extension {
   size_t instruction;
   datum routine_;
   datum compdata;
-  struct extension lisp_extension_ext;
 };
 LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);

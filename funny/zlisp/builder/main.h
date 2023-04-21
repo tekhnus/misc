@@ -17,7 +17,6 @@ struct lisp_extension {
   size_t instruction;
   datum routine_;
   datum compdata;
-  struct extension lisp_extension_ext;
 };
 struct lisp_extension lisp_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);

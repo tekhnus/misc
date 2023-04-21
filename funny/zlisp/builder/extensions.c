@@ -13,7 +13,6 @@ struct lisp_extension {
   size_t instruction;
   datum routine_;
   datum compdata;
-  struct extension lisp_extension_ext;
 };
 #endif
 
@@ -28,7 +27,7 @@ EXPORT struct lisp_extension lisp_extension_make() {
   datum lisp_extension_builder_compdata = compdata_make();
   prog_build_init(&e.program, &e.instruction, &lisp_extension_builder_prg,
                   &e.compdata, &lisp_extension_builder_compdata);
-  e.lisp_extension_ext = trivial_extension_make();
+  struct extension lisp_extension_ext = trivial_extension_make();
   datum initialization_statements = datum_make_list_of(
       datum_make_list_of(datum_make_symbol("req"),
                          datum_make_list_of(datum_make_symbol("stdmacro"),
@@ -43,7 +42,7 @@ EXPORT struct lisp_extension lisp_extension_make() {
   char *res =
       prog_build(&e.program, &e.instruction, &lisp_extension_builder_prg,
                  &initialization_statements, &e.compdata,
-                 &lisp_extension_builder_compdata, &set, &e.lisp_extension_ext);
+                 &lisp_extension_builder_compdata, &set, &lisp_extension_ext);
   if (res) {
     fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);
@@ -125,8 +124,9 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");
+  extension ext = null_extension_make();
   char *err = prog_build(&est->program, &est->instruction, NULL, &mod,
-                         &est->compdata, NULL, &set, &est->lisp_extension_ext);
+                         &est->compdata, NULL, &set, &ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
@@ -156,5 +156,16 @@ LOCAL char *trivial_extension_call(struct extension *self, vec *sl,
     return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
                                             compdata, self);
   }
+  return "<not an extension>";
+}
+
+LOCAL extension null_extension_make() {
+  return (extension){null_extension_call};
+}
+
+LOCAL char *null_extension_call(struct extension *self, vec *sl,
+                                   size_t *begin, datum *stmt,
+                                   datum *compdata) {
+  if (self || sl || begin || stmt || compdata) {};
   return "<not an extension>";
 }
