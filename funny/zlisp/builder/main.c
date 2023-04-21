@@ -207,16 +207,10 @@ LOCAL fdatum file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  read_result rr;
-  datum res = datum_make_nil();
-  for (; read_result_is_ok(rr = datum_read(stre));) {
-    list_append(&res, rr.ok_value);
-  }
+  read_result rr = datum_read_all(stre);
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
   }
-  if (read_result_is_right_paren(rr)) {
-    return fdatum_make_panic("unmatched right paren");
-  }
-  return fdatum_make_ok(res);
+  assert(read_result_is_ok(rr));
+  return fdatum_make_ok(rr.ok_value);
 }

@@ -244,6 +244,21 @@ EXPORT read_result datum_read(FILE *strm) {
   return read_result_make_panic("unhandled token type");
 }
 
+EXPORT read_result datum_read_all(FILE *stre) {
+  read_result rr;
+  datum res = datum_make_nil();
+  for (; read_result_is_ok(rr = datum_read(stre));) {
+    list_append(&res, rr.ok_value);
+  }
+  if (read_result_is_panic(rr)) {
+    return read_result_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr)) {
+    return read_result_make_panic("unmatched right paren");
+  }
+  return read_result_make_ok(res);
+}
+
 EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   read_result rr = datum_read(stre);
   if (read_result_is_panic(rr)) {

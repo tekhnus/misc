@@ -125,6 +125,7 @@ struct read_result {
     char *panic_message;
   };
 };
+read_result datum_read_all(FILE *stre);
 read_result datum_read(FILE *strm);
 LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);
