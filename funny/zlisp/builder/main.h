@@ -13,11 +13,11 @@ char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datu
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   struct extension base;
-  vec lisp_extension_sl;
-  size_t lisp_extension_prg;
-  datum lisp_extension_routine;
-  datum lisp_extension_compdata;
-  extension lisp_extension_ext;
+  vec program;
+  size_t instruction;
+  datum routine_;
+  datum compdata;
+  struct extension lisp_extension_ext;
 };
 struct lisp_extension lisp_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);

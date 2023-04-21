@@ -9,26 +9,25 @@ typedef struct lisp_extension lisp_extension;
 
 struct lisp_extension {
   struct extension base;
-  vec lisp_extension_sl;
-  size_t lisp_extension_prg;
-  datum lisp_extension_routine;
-  datum lisp_extension_compdata;
-  extension lisp_extension_ext;
+  vec program;
+  size_t instruction;
+  datum routine_;
+  datum compdata;
+  struct extension lisp_extension_ext;
 };
 #endif
 
 EXPORT struct lisp_extension lisp_extension_make() {
   struct lisp_extension e;
   e.base.call = lisp_extension_call;
-  e.lisp_extension_sl = vec_make(16 * 1024);
-  e.lisp_extension_prg = vec_append_new(&e.lisp_extension_sl);
-  size_t lisp_extension_builder_prg = vec_append_new(&e.lisp_extension_sl);
-  e.lisp_extension_routine = routine_make(lisp_extension_builder_prg, NULL);
-  e.lisp_extension_compdata = compdata_make();
+  e.program = vec_make(16 * 1024);
+  e.instruction = vec_append_new(&e.program);
+  size_t lisp_extension_builder_prg = vec_append_new(&e.program);
+  e.routine_ = routine_make(lisp_extension_builder_prg, NULL);
+  e.compdata = compdata_make();
   datum lisp_extension_builder_compdata = compdata_make();
-  prog_build_init(&e.lisp_extension_sl, &e.lisp_extension_prg,
-                  &lisp_extension_builder_prg, &e.lisp_extension_compdata,
-                  &lisp_extension_builder_compdata);
+  prog_build_init(&e.program, &e.instruction, &lisp_extension_builder_prg,
+                  &e.compdata, &lisp_extension_builder_compdata);
   e.lisp_extension_ext = trivial_extension_make();
   datum initialization_statements = datum_make_list_of(
       datum_make_list_of(datum_make_symbol("req"),
@@ -41,16 +40,15 @@ EXPORT struct lisp_extension lisp_extension_make() {
                                             datum_make_bytestring("stdmacro"),
                                             datum_make_symbol("switch"))));
   datum set = datum_make_bytestring("c-prelude");
-  char *res = prog_build(
-      &e.lisp_extension_sl, &e.lisp_extension_prg, &lisp_extension_builder_prg,
-      &initialization_statements, &e.lisp_extension_compdata,
-      &lisp_extension_builder_compdata, &set, &e.lisp_extension_ext);
+  char *res =
+      prog_build(&e.program, &e.instruction, &lisp_extension_builder_prg,
+                 &initialization_statements, &e.compdata,
+                 &lisp_extension_builder_compdata, &set, &e.lisp_extension_ext);
   if (res) {
     fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);
   }
-  result init_res = routine_run_with_handler(
-      e.lisp_extension_sl, &e.lisp_extension_routine, host_ffi);
+  result init_res = routine_run_with_handler(e.program, &e.routine_, host_ffi);
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
     fprintf(stderr, "while initializing extensions: %s\n",
             datum_repr(&init_res.value));
@@ -127,9 +125,8 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");
-  char *err = prog_build(&est->lisp_extension_sl, &est->lisp_extension_prg,
-                         NULL, &mod, &est->lisp_extension_compdata, NULL, &set,
-                         &est->lisp_extension_ext);
+  char *err = prog_build(&est->program, &est->instruction, NULL, &mod,
+                         &est->compdata, NULL, &set, &est->lisp_extension_ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
@@ -137,8 +134,7 @@ LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  result res = routine_run_with_handler(est->lisp_extension_sl,
-                                        &est->lisp_extension_routine, host_ffi);
+  result res = routine_run_with_handler(est->program, &est->routine_, host_ffi);
   if (!datum_is_the_symbol(&res.type, "halt")) {
     return fdatum_make_panic(datum_repr(&res.value));
   }

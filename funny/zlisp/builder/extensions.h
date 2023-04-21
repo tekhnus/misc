@@ -6,11 +6,11 @@ LOCAL char *trivial_extension_call(struct extension *self,vec *sl,size_t *begin,
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   struct extension base;
-  vec lisp_extension_sl;
-  size_t lisp_extension_prg;
-  datum lisp_extension_routine;
-  datum lisp_extension_compdata;
-  extension lisp_extension_ext;
+  vec program;
+  size_t instruction;
+  datum routine_;
+  datum compdata;
+  struct extension lisp_extension_ext;
 };
 LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
