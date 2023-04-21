@@ -40,9 +40,9 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
-  struct extension extension = lisp_extension_make();
+  struct lisp_extension extension = lisp_extension_make();
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
-                         &builder_compdata, &set, &extension);
+                         &builder_compdata, &set, &extension.base);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;

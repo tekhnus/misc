@@ -112,7 +112,6 @@ typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
                 datum *compdata);
-  void *state;
 };
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);

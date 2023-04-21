@@ -93,7 +93,6 @@ typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
                 datum *compdata);
-  void *state;
 };
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum *routine_compdata,extension *ext);
 LOCAL void compdata_start_new_section(datum *compdata);
