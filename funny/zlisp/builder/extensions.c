@@ -1,6 +1,8 @@
-#include <zlisp/common.h>
 #include <assert.h>
 #include <extensions.h>
+#if EXPORT_INTERFACE
+#include <zlisp/common.h>
+#endif
 
 #if EXPORT_INTERFACE
 typedef struct lisp_extension lisp_extension;

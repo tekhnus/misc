@@ -1,5 +1,6 @@
 /* This file was automatically generated.  Do not edit! */
 #undef INTERFACE
+#include <zlisp/common.h>
 #define LOCAL static
 LOCAL char *trivial_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 typedef struct lisp_extension lisp_extension;
@@ -14,7 +15,6 @@ struct lisp_extension {
 LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 extension *lisp_extension_alloc_make();
-#include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
 LOCAL extension trivial_extension_make();
