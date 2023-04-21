@@ -108,14 +108,14 @@ bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
 read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
-typedef struct extension_fn extension_fn;
-struct extension_fn {
+typedef struct extension extension;
+struct extension {
   char *(*call)(vec *sl, size_t *begin, datum *stmt, datum *compdata,
-                extension_fn *ext);
+                extension *ext);
   void *state;
 };
-fdatum prog_compile(datum *source,datum *compdata,extension_fn *ext);
-char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension_fn *ext);
+fdatum prog_compile(datum *source,datum *compdata,extension *ext);
+char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);

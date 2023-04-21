@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
-  struct extension_fn trivial_extension = extension_make();
+  struct extension trivial_extension = extension_make();
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
                          &builder_compdata, &set, &trivial_extension);
   if (err != NULL) {
@@ -60,7 +60,7 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
-                        datum *settings, extension_fn *trivial_extension) {
+                        datum *settings, extension *trivial_extension) {
   fdatum bytecode = prog_compile(source, compdata, trivial_extension);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
@@ -84,7 +84,7 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
 }
 
 LOCAL fdatum compile_module(char *module, datum *settings,
-                            extension_fn *trivial_extension) {
+                            extension *trivial_extension) {
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
   }

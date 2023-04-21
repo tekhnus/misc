@@ -1,6 +1,6 @@
 // a basic CLI for zlisp interpreter.
-#include <main.h>
 #include <assert.h>
+#include <main.h>
 
 int main(int argc, char **argv) {
   if (argc != 2) {

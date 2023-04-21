@@ -5,15 +5,15 @@
 #include <string.h>
 
 #if INTERFACE
-typedef struct extension_fn extension_fn;
-struct extension_fn {
+typedef struct extension extension;
+struct extension {
   char *(*call)(vec *sl, size_t *begin, datum *stmt, datum *compdata,
-                extension_fn *ext);
+                extension *ext);
   void *state;
 };
 #endif
 
-EXPORT fdatum prog_compile(datum *source, datum *compdata, extension_fn *ext) {
+EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
   char *err = prog_append_statements(&sl, &p, source, compdata, ext, true);
@@ -24,7 +24,7 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension_fn *ext) {
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
-                                   datum *compdata, extension_fn *ext,
+                                   datum *compdata, extension *ext,
                                    bool skip_first_debug) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
@@ -44,7 +44,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
 }
 
 EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                   datum *compdata, extension_fn *ext) {
+                                   datum *compdata, extension *ext) {
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -126,8 +126,8 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     size_t loop_start = *begin;
     err = prog_append_statement(sl, begin, list_at(stmt, 2), compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
-    *vec_at(sl, *begin) =
-      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(pre_condition_check));
+    *vec_at(sl, *begin) = datum_make_list_of(
+        datum_make_symbol(":nop"), datum_make_int(pre_condition_check));
     *begin = vec_append_new(sl);
     size_t loop_end = *begin;
     *vec_at(sl, condition_check) =
@@ -399,7 +399,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
-                                datum *compdata, extension_fn *ext) {
+                                datum *compdata, extension *ext) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -531,7 +531,7 @@ LOCAL fdatum prog_read_exports(datum *spec) {
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
-                              datum *routine_compdata, extension_fn *ext) {
+                              datum *routine_compdata, extension *ext) {
   if (args == NULL) {
     return "args can't be null";
   } else {
