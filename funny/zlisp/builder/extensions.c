@@ -146,10 +146,9 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 
 LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   datum mod = datum_make_list_of(datum_copy(e));
-  datum set = datum_make_bytestring("c-prelude");
   extension ext = null_extension_make();
   char *err = prog_build(&est->program, &est->instruction, NULL, &mod,
-                         &est->compdata, NULL, &set, &ext);
+                         &est->compdata, NULL, NULL, &ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
