@@ -96,7 +96,8 @@ LOCAL char *lisp_extension_call(struct extension *self_, vec *sl, size_t *begin,
     return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
                                             compdata, self_);
   }
-  if (datum_is_the_symbol(op, "switch") || datum_is_the_symbol(op, "fntest")) {
+  datum pi = compdata_get_polyindex(&self->compdata, op);
+  if (!datum_is_nil(&pi)) {
     datum invokation_statement = datum_copy(stmt);
     *list_at(&invokation_statement, 0) = datum_make_list_of(
         datum_make_symbol("hash"),
