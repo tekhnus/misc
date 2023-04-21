@@ -27,28 +27,28 @@ EXPORT extension *extension_alloc_make() {
   return res;
 }
 
-LOCAL char *call_ext_trivial(vec *sl, size_t *begin, datum *stmt,
-                             datum *compdata, struct extension *ext) {
+LOCAL char *call_ext_trivial(struct extension *self, vec *sl, size_t *begin,
+                             datum *stmt, datum *compdata) {
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt) != 2) {
       return "backquote should have a single arg";
     }
     return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, ext);
+                                            compdata, self);
   }
   return "<not an extension>";
 }
 
-LOCAL char *call_ext(vec *sl, size_t *begin, datum *stmt, datum *compdata,
-                     struct extension *ext) {
+LOCAL char *call_ext(struct extension *self, vec *sl, size_t *begin,
+                     datum *stmt, datum *compdata) {
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt) != 2) {
       return "backquote should have a single arg";
     }
     return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, ext);
+                                            compdata, self);
   }
   if (datum_is_the_symbol(op, "switch") || datum_is_the_symbol(op, "fntest")) {
     datum invokation_statement = datum_copy(stmt);
@@ -56,14 +56,14 @@ LOCAL char *call_ext(vec *sl, size_t *begin, datum *stmt, datum *compdata,
         datum_make_symbol("hash"),
         datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol(""),
                            datum_make_symbol("stdmacro"), datum_copy(op)));
-    fdatum res = lisp_extension_run(&invokation_statement, ext->state);
+    fdatum res = lisp_extension_run(&invokation_statement, self->state);
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
     assert(datum_is_list(&res.ok_value));
     for (int i = 0; i < list_length(&res.ok_value); ++i) {
       char *err = prog_append_statement(sl, begin, list_at(&res.ok_value, i),
-                                        compdata, ext);
+                                        compdata, self);
       if (err) {
         return err;
       }

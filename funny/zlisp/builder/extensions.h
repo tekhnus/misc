@@ -9,9 +9,9 @@ size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *b
 typedef struct lisp_extension_state lisp_extension_state;
 LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension_state *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
-LOCAL char *call_ext_trivial(vec *sl,size_t *begin,datum *stmt,datum *compdata,struct extension *ext);
+LOCAL char *call_ext_trivial(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 extension *extension_alloc_make();
-LOCAL char *call_ext(vec *sl,size_t *begin,datum *stmt,datum *compdata,struct extension *ext);
+LOCAL char *call_ext(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 LOCAL struct lisp_extension_state lisp_extension_state_make();
 extension extension_make();
 #define EXPORT

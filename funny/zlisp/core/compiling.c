@@ -7,8 +7,8 @@
 #if INTERFACE
 typedef struct extension extension;
 struct extension {
-  char *(*call)(vec *sl, size_t *begin, datum *stmt, datum *compdata,
-                extension *ext);
+  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
+                datum *compdata);
   void *state;
 };
 #endif
@@ -232,7 +232,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                       datum_make_nil(), compdata);
     return NULL;
   }
-  char *res = ext->call(sl, begin, stmt, compdata, ext);
+  char *res = ext->call(ext, sl, begin, stmt, compdata);
   if (res == NULL) {
     return NULL;
   }
