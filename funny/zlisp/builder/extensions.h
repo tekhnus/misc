@@ -15,12 +15,14 @@ struct lisp_extension {
 };
 LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
-extension *lisp_extension_alloc_make();
+extension *standard_extension_alloc_make();
 #include <zlisp/host-ffi.h>
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
 LOCAL extension trivial_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
 LOCAL char *lisp_extension_call(struct extension *self_,vec *sl,size_t *begin,datum *stmt,datum *compdata);
-struct lisp_extension lisp_extension_make();
+struct lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata);
+LOCAL char *standard_extension_init(vec *program,size_t *instruction,datum *routine_,datum *compdata);
+struct lisp_extension standard_extension_make();
 #define EXPORT
 #define EXPORT_INTERFACE 0

@@ -16,17 +16,39 @@ struct lisp_extension {
 };
 #endif
 
-EXPORT struct lisp_extension lisp_extension_make() {
-  struct lisp_extension e;
-  e.base.call = lisp_extension_call;
-  e.program = vec_make(16 * 1024);
-  e.instruction = vec_append_new(&e.program);
-  size_t lisp_extension_builder_prg = vec_append_new(&e.program);
-  e.routine_ = routine_make(lisp_extension_builder_prg, NULL);
-  e.compdata = compdata_make();
+EXPORT struct lisp_extension standard_extension_make() {
+  vec program;
+  size_t instruction;
+  datum routine_;
+  datum compdata;
+  char *err =
+      standard_extension_init(&program, &instruction, &routine_, &compdata);
+  if (err != NULL) {
+    fprintf(stderr, "%s\n", err);
+    exit(EXIT_FAILURE);
+  }
+  return lisp_extension_make(program, instruction, routine_, compdata);
+}
+
+EXPORT struct lisp_extension lisp_extension_make(vec program,
+                                                 size_t instruction,
+                                                 datum routine_,
+                                                 datum compdata) {
+  struct lisp_extension e = {
+      {.call = lisp_extension_call}, program, instruction, routine_, compdata};
+  return e;
+}
+
+LOCAL char *standard_extension_init(vec *program, size_t *instruction,
+                                    datum *routine_, datum *compdata) {
+  *program = vec_make(16 * 1024);
+  *instruction = vec_append_new(program);
+  size_t lisp_extension_builder_prg = vec_append_new(program);
+  *routine_ = routine_make(lisp_extension_builder_prg, NULL);
+  *compdata = compdata_make();
   datum lisp_extension_builder_compdata = compdata_make();
-  prog_build_init(&e.program, &e.instruction, &lisp_extension_builder_prg,
-                  &e.compdata, &lisp_extension_builder_compdata);
+  prog_build_init(program, instruction, &lisp_extension_builder_prg, compdata,
+                  &lisp_extension_builder_compdata);
   struct extension lisp_extension_ext = trivial_extension_make();
   datum initialization_statements = datum_make_list_of(
       datum_make_list_of(datum_make_symbol("req"),
@@ -40,26 +62,26 @@ EXPORT struct lisp_extension lisp_extension_make() {
                                             datum_make_symbol("switch"))));
   datum set = datum_make_bytestring("c-prelude");
   char *res =
-      prog_build(&e.program, &e.instruction, &lisp_extension_builder_prg,
-                 &initialization_statements, &e.compdata,
+      prog_build(program, instruction, &lisp_extension_builder_prg,
+                 &initialization_statements, compdata,
                  &lisp_extension_builder_compdata, &set, &lisp_extension_ext);
   if (res) {
     fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);
   }
-  result init_res = routine_run_with_handler(e.program, &e.routine_, host_ffi);
+  result init_res = routine_run_with_handler(*program, routine_, host_ffi);
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
     fprintf(stderr, "while initializing extensions: %s\n",
             datum_repr(&init_res.value));
     exit(EXIT_FAILURE);
   }
-  return e;
+  return NULL;
 }
 
-EXPORT extension *lisp_extension_alloc_make() {
+EXPORT extension *standard_extension_alloc_make() {
   // For Lisp.
   lisp_extension *res = malloc(sizeof(lisp_extension));
-  *res = lisp_extension_make();
+  *res = standard_extension_make();
   return &res->base;
 }
 
@@ -163,9 +185,9 @@ LOCAL extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL char *null_extension_call(struct extension *self, vec *sl,
-                                   size_t *begin, datum *stmt,
-                                   datum *compdata) {
-  if (self || sl || begin || stmt || compdata) {};
+LOCAL char *null_extension_call(struct extension *self, vec *sl, size_t *begin,
+                                datum *stmt, datum *compdata) {
+  if (self || sl || begin || stmt || compdata) {
+  };
   return "<not an extension>";
 }

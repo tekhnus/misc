@@ -18,7 +18,7 @@ struct lisp_extension {
   datum routine_;
   datum compdata;
 };
-struct lisp_extension lisp_extension_make();
+struct lisp_extension standard_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
 LOCAL fdatum file_source(char *fname);
 #define INTERFACE 0
