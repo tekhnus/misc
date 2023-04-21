@@ -2,7 +2,7 @@
 #undef INTERFACE
 #include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
-char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *trivial_extension);
+char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *extension);
 #define LOCAL static
 LOCAL extension extension_make_trivial();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
@@ -13,6 +13,6 @@ LOCAL char *call_ext_trivial(struct extension *self,vec *sl,size_t *begin,datum 
 extension *extension_alloc_make();
 LOCAL char *call_ext(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 LOCAL struct lisp_extension_state lisp_extension_state_make();
-extension extension_make();
+extension lisp_extension_make();
 #define EXPORT
 #define INTERFACE 0

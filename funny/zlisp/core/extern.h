@@ -91,7 +91,8 @@ datum compdata_get_shape(datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt, datum *compdata);
+  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
+                datum *compdata);
   void *state;
 };
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum *routine_compdata,extension *ext);

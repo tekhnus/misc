@@ -40,9 +40,9 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
-  struct extension trivial_extension = extension_make();
+  struct extension extension = lisp_extension_make();
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
-                         &builder_compdata, &set, &trivial_extension);
+                         &builder_compdata, &set, &extension);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -60,8 +60,8 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
-                        datum *settings, extension *trivial_extension) {
-  fdatum bytecode = prog_compile(source, compdata, trivial_extension);
+                        datum *settings, extension *extension) {
+  fdatum bytecode = prog_compile(source, compdata, extension);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
@@ -80,11 +80,11 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
     return NULL;
   }
   return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
-                        settings, trivial_extension);
+                        settings, extension);
 }
 
 LOCAL fdatum compile_module(char *module, datum *settings,
-                            extension *trivial_extension) {
+                            extension *extension) {
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
   }
@@ -98,7 +98,7 @@ LOCAL fdatum compile_module(char *module, datum *settings,
     return src;
   }
   datum compdata = compdata_make();
-  return prog_compile(&src.ok_value, &compdata, trivial_extension);
+  return prog_compile(&src.ok_value, &compdata, extension);
 }
 
 LOCAL void module_to_filename(char *fname, char *module) {

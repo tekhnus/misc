@@ -14,7 +14,7 @@ struct lisp_extension_state {
 typedef struct lisp_extension_state lisp_extension_state;
 #endif
 
-EXPORT extension extension_make() {
+EXPORT extension lisp_extension_make() {
   struct lisp_extension_state *exps = malloc(sizeof(lisp_extension_state));
   *exps = lisp_extension_state_make();
   return (extension){call_ext, exps};
@@ -23,7 +23,7 @@ EXPORT extension extension_make() {
 EXPORT extension *extension_alloc_make() {
   // For Lisp.
   extension *res = malloc(sizeof(extension));
-  *res = extension_make();
+  *res = lisp_extension_make();
   return res;
 }
 
