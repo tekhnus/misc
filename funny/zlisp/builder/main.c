@@ -52,93 +52,10 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-LOCAL extension_fn extension_make() {
-  struct expander_state *exps = malloc(sizeof(expander_state));
-  *exps = expander_state_make();
-  return (extension_fn){call_ext, exps};
-}
-
-EXPORT extension_fn *extension_alloc_make() {
-  // For Lisp.
-  extension_fn *res = malloc(sizeof(extension_fn));
-  *res = extension_make();
-  return res;
-}
-
 EXPORT datum *get_host_ffi_settings() { // used in lisp
   datum *res = malloc(sizeof(datum));
   *res = datum_make_bytestring("c-prelude");
   return res;
-}
-
-EXPORT char *call_ext_for_macros(vec *sl, size_t *begin, datum *stmt,
-                                 datum *compdata, struct extension_fn *ext) {
-  datum *op = list_at(stmt, 0);
-  if (datum_is_the_symbol(op, "backquote")) {
-    if (list_length(stmt) != 2) {
-      return "backquote should have a single arg";
-    }
-    return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, ext);
-  }
-  return "<not an extension>";
-}
-
-EXPORT char *call_ext(vec *sl, size_t *begin, datum *stmt, datum *compdata,
-                      struct extension_fn *ext) {
-  datum *op = list_at(stmt, 0);
-  if (datum_is_the_symbol(op, "backquote")) {
-    if (list_length(stmt) != 2) {
-      return "backquote should have a single arg";
-    }
-    return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, ext);
-  }
-  if (datum_is_the_symbol(op, "switch") || datum_is_the_symbol(op, "fntest")) {
-    datum macrostmt = datum_copy(stmt);
-    *list_at(&macrostmt, 0) = datum_make_list_of(
-        datum_make_symbol("hash"),
-        datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol(""),
-                           datum_make_symbol("stdmacro"), datum_copy(op)));
-    fdatum res = datum_expand(&macrostmt, ext->state);
-    if (fdatum_is_panic(res)) {
-      return res.panic_message;
-    }
-    assert(datum_is_list(&res.ok_value));
-    for (int i = 0; i < list_length(&res.ok_value); ++i) {
-      char *err = prog_append_statement(sl, begin, list_at(&res.ok_value, i),
-                                        compdata, ext);
-      if (err) {
-        return err;
-      }
-    }
-    return NULL;
-  }
-  return "<not an extension>";
-}
-
-LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
-                                             datum *stmt, datum *compdata,
-                                             extension_fn *ext) {
-  if (!datum_is_list(stmt)) {
-    prog_append_put_const(sl, begin, stmt, compdata);
-    return NULL;
-  }
-  for (int i = 0; i < list_length(stmt); ++i) {
-    datum *elem = list_at(stmt, i);
-    char *err;
-    if (datum_is_list(elem) && list_length(elem) == 2 &&
-        datum_is_the_symbol(list_at(elem, 0), "tilde")) {
-      err = prog_append_statement(sl, begin, list_at(elem, 1), compdata, ext);
-    } else {
-      err = prog_append_backquoted_statement(sl, begin, elem, compdata, ext);
-    }
-    if (err != NULL) {
-      return err;
-    }
-  }
-  prog_append_collect(sl, list_length(stmt), begin, compdata);
-  return NULL;
 }
 
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
