@@ -13,6 +13,7 @@ struct lisp_extension {
   size_t instruction;
   datum routine_;
   datum compdata;
+  fdatum (*yield_handler)(datum *, datum *);
 };
 #endif
 
@@ -27,15 +28,19 @@ EXPORT struct lisp_extension standard_extension_make() {
     fprintf(stderr, "%s\n", err);
     exit(EXIT_FAILURE);
   }
-  return lisp_extension_make(program, instruction, routine_, compdata);
+  return lisp_extension_make(program, instruction, routine_, compdata,
+                             host_ffi);
 }
 
-EXPORT struct lisp_extension lisp_extension_make(vec program,
-                                                 size_t instruction,
-                                                 datum routine_,
-                                                 datum compdata) {
-  struct lisp_extension e = {
-      {.call = lisp_extension_call}, program, instruction, routine_, compdata};
+EXPORT struct lisp_extension
+lisp_extension_make(vec program, size_t instruction, datum routine_,
+                    datum compdata, fdatum (*yield_handler)(datum *, datum *)) {
+  struct lisp_extension e = {{.call = lisp_extension_call},
+                             program,
+                             instruction,
+                             routine_,
+                             compdata,
+                             yield_handler};
   return e;
 }
 
@@ -156,7 +161,8 @@ LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  result res = routine_run_with_handler(est->program, &est->routine_, host_ffi);
+  result res = routine_run_with_handler(est->program, &est->routine_,
+                                        est->yield_handler);
   if (!datum_is_the_symbol(&res.type, "halt")) {
     return fdatum_make_panic(datum_repr(&res.value));
   }

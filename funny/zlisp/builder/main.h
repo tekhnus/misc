@@ -17,6 +17,7 @@ struct lisp_extension {
   size_t instruction;
   datum routine_;
   datum compdata;
+  fdatum (*yield_handler)(datum *, datum *);
 };
 struct lisp_extension standard_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
