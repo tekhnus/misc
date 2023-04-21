@@ -3,7 +3,6 @@
 #include <zlisp/common.h>
 typedef struct expander_state expander_state;
 fdatum datum_expand(datum *e,struct expander_state *est);
-fdatum file_source(char *fname);
 #include <zlisp/host-ffi.h>
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension_fn *trivial_extension);
 char *call_ext_for_macros(vec *sl,size_t *begin,datum *stmt,datum *compdata,struct extension_fn *ext);

@@ -51,31 +51,6 @@ EXPORT struct expander_state expander_state_make() {
   return e;
 }
 
-EXPORT fdatum file_source(char *fname) {
-  FILE *stre = fopen(fname, "r");
-  if (stre == NULL) {
-    perror("file_source");
-    char err[1024];
-    err[0] = 0;
-    strcat(err, "Module not found: ");
-    strcat(err, fname);
-    return fdatum_make_panic(err);
-  }
-
-  read_result rr;
-  datum res = datum_make_nil();
-  for (; read_result_is_ok(rr = datum_read(stre));) {
-    list_append(&res, rr.ok_value);
-  }
-  if (read_result_is_panic(rr)) {
-    return fdatum_make_panic(rr.panic_message);
-  }
-  if (read_result_is_right_paren(rr)) {
-    return fdatum_make_panic("unmatched right paren");
-  }
-  return fdatum_make_ok(res);
-}
-
 EXPORT fdatum datum_expand(datum *e, struct expander_state *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");

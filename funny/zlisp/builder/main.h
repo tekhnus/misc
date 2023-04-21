@@ -26,5 +26,5 @@ struct expander_state expander_state_make();
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension_fn *trivial_extension);
 LOCAL extension_fn extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
-fdatum file_source(char *fname);
+LOCAL fdatum file_source(char *fname);
 #define INTERFACE 0

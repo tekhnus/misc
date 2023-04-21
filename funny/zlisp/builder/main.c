@@ -195,3 +195,28 @@ LOCAL void module_to_filename(char *fname, char *module) {
   strcat(fname, module);
   strcat(fname, "/main.lisp");
 }
+
+LOCAL fdatum file_source(char *fname) {
+  FILE *stre = fopen(fname, "r");
+  if (stre == NULL) {
+    perror("file_source");
+    char err[1024];
+    err[0] = 0;
+    strcat(err, "Module not found: ");
+    strcat(err, fname);
+    return fdatum_make_panic(err);
+  }
+
+  read_result rr;
+  datum res = datum_make_nil();
+  for (; read_result_is_ok(rr = datum_read(stre));) {
+    list_append(&res, rr.ok_value);
+  }
+  if (read_result_is_panic(rr)) {
+    return fdatum_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr)) {
+    return fdatum_make_panic("unmatched right paren");
+  }
+  return fdatum_make_ok(res);
+}
