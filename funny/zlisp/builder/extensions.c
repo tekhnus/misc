@@ -3,18 +3,18 @@
 
 #if EXPORT_INTERFACE
 #include <zlisp/common.h>
-struct expander_state {
-  vec expander_sl;
-  size_t expander_prg;
-  datum expander_routine;
-  datum expander_compdata;
-  extension_fn expander_ext;
+struct lisp_extension_state {
+  vec lisp_extension_sl;
+  size_t lisp_extension_prg;
+  datum lisp_extension_routine;
+  datum lisp_extension_compdata;
+  extension_fn lisp_extension_ext;
 };
 #endif
 
 EXPORT extension_fn extension_make() {
-  struct expander_state *exps = malloc(sizeof(expander_state));
-  *exps = expander_state_make();
+  struct lisp_extension_state *exps = malloc(sizeof(lisp_extension_state));
+  *exps = lisp_extension_state_make();
   return (extension_fn){call_ext, exps};
 }
 
@@ -36,12 +36,12 @@ LOCAL char *call_ext(vec *sl, size_t *begin, datum *stmt, datum *compdata,
                                             compdata, ext);
   }
   if (datum_is_the_symbol(op, "switch") || datum_is_the_symbol(op, "fntest")) {
-    datum macrostmt = datum_copy(stmt);
-    *list_at(&macrostmt, 0) = datum_make_list_of(
+    datum invokation_statement = datum_copy(stmt);
+    *list_at(&invokation_statement, 0) = datum_make_list_of(
         datum_make_symbol("hash"),
         datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol(""),
                            datum_make_symbol("stdmacro"), datum_copy(op)));
-    fdatum res = datum_expand(&macrostmt, ext->state);
+    fdatum res = lisp_extension_run(&invokation_statement, ext->state);
     if (fdatum_is_panic(res)) {
       return res.panic_message;
     }
@@ -82,18 +82,18 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
   return NULL;
 }
 
-LOCAL struct expander_state expander_state_make() {
-  struct expander_state e;
-  e.expander_sl = vec_make(16 * 1024);
-  e.expander_prg = vec_append_new(&e.expander_sl);
-  size_t expander_builder_prg = vec_append_new(&e.expander_sl);
-  e.expander_routine = routine_make(expander_builder_prg, NULL);
-  e.expander_compdata = compdata_make();
-  datum expander_builder_compdata = compdata_make();
-  prog_build_init(&e.expander_sl, &e.expander_prg, &expander_builder_prg,
-                  &e.expander_compdata, &expander_builder_compdata);
-  e.expander_ext = extension_for_macros_make();
-  datum macro_init = datum_make_list_of(
+LOCAL struct lisp_extension_state lisp_extension_state_make() {
+  struct lisp_extension_state e;
+  e.lisp_extension_sl = vec_make(16 * 1024);
+  e.lisp_extension_prg = vec_append_new(&e.lisp_extension_sl);
+  size_t lisp_extension_builder_prg = vec_append_new(&e.lisp_extension_sl);
+  e.lisp_extension_routine = routine_make(lisp_extension_builder_prg, NULL);
+  e.lisp_extension_compdata = compdata_make();
+  datum lisp_extension_builder_compdata = compdata_make();
+  prog_build_init(&e.lisp_extension_sl, &e.lisp_extension_prg, &lisp_extension_builder_prg,
+                  &e.lisp_extension_compdata, &lisp_extension_builder_compdata);
+  e.lisp_extension_ext = extension_make_trivial();
+  datum initialization_statements = datum_make_list_of(
       datum_make_list_of(datum_make_symbol("req"),
                          datum_make_list_of(datum_make_symbol("stdmacro"),
                                             datum_make_bytestring("stdmacro")),
@@ -104,49 +104,49 @@ LOCAL struct expander_state expander_state_make() {
                                             datum_make_bytestring("stdmacro"),
                                             datum_make_symbol("switch"))));
   datum set = datum_make_bytestring("c-prelude");
-  char *res = prog_build(&e.expander_sl, &e.expander_prg, &expander_builder_prg,
-                         &macro_init, &e.expander_compdata,
-                         &expander_builder_compdata, &set, &e.expander_ext);
+  char *res = prog_build(&e.lisp_extension_sl, &e.lisp_extension_prg, &lisp_extension_builder_prg,
+                         &initialization_statements, &e.lisp_extension_compdata,
+                         &lisp_extension_builder_compdata, &set, &e.lisp_extension_ext);
   if (res) {
-    fprintf(stderr, "while building macros: %s\n", res);
+    fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);
   }
   result init_res =
-      routine_run_with_handler(e.expander_sl, &e.expander_routine, host_ffi);
+      routine_run_with_handler(e.lisp_extension_sl, &e.lisp_extension_routine, host_ffi);
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
-    fprintf(stderr, "while initializing macros: %s\n",
+    fprintf(stderr, "while initializing extensions: %s\n",
             datum_repr(&init_res.value));
     exit(EXIT_FAILURE);
   }
   return e;
 }
 
-LOCAL fdatum datum_expand(datum *e, struct expander_state *est) {
+LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension_state *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");
   char *err =
-      prog_build(&est->expander_sl, &est->expander_prg, NULL, &mod,
-                 &est->expander_compdata, NULL, &set, &est->expander_ext);
+      prog_build(&est->lisp_extension_sl, &est->lisp_extension_prg, NULL, &mod,
+                 &est->lisp_extension_compdata, NULL, &set, &est->lisp_extension_ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
-    strcat(err2, "error while compiling a macro: ");
+    strcat(err2, "error while invoking an extension: ");
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  result res = routine_run_with_handler(est->expander_sl,
-                                        &est->expander_routine, host_ffi);
+  result res = routine_run_with_handler(est->lisp_extension_sl,
+                                        &est->lisp_extension_routine, host_ffi);
   if (!datum_is_the_symbol(&res.type, "halt")) {
     return fdatum_make_panic(datum_repr(&res.value));
   }
   return fdatum_make_ok(res.value);
 }
 
-LOCAL extension_fn extension_for_macros_make() {
-  return (extension_fn){call_ext_for_macros, NULL};
+LOCAL extension_fn extension_make_trivial() {
+  return (extension_fn){call_ext_trivial, NULL};
 }
 
-LOCAL char *call_ext_for_macros(vec *sl, size_t *begin, datum *stmt,
+LOCAL char *call_ext_trivial(vec *sl, size_t *begin, datum *stmt,
                                  datum *compdata, struct extension_fn *ext) {
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {

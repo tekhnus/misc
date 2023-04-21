@@ -11,8 +11,8 @@ Things I'm trying to figure out experimentally:
   for any kind of computation, be it bare-metal programs, distributed programs,
   package definitions, algorithms from mathematical logic books or math proofs?
 - How small can a language implementation be?
-  How much can be internalized, i.e. implemented via macros
-  and/or compiler extensions written in the same language?
+  How much can be internalized, i.e. implemented via
+  compiler extensions written in the same language?
 - Can we have imperative syntax and statefulness
   yet be able to easily reason about side-effects of any line of the code?
 - Can we avoid garbage collection and reference counting
@@ -30,7 +30,7 @@ and two implementations:
 - Implement program hashing, e.g. getting a hash of the given computation
 - Support parallelism
 
-- Implement sanitized macros and/or self-describing identifiers and/or implicit imports
+- Implement sanitized extensions and/or self-describing identifiers and/or implicit imports
 
 - Achieve zero memory leakage
 - Unite list type with frame type
@@ -73,7 +73,7 @@ core/
   reading.c         parsing data
   compiling.c       a bytecode compiler (implementation-agnostic)
   running.c         a generic interpreter
-builder/            a tool for preprocessing, compiling and linking (implementation-agnostic)
+builder/            a tool for compiling and linking programs (implementation-agnostic)
 host-ffi/           an implementation supporting dlopen() and FFI function calls
 host-python/        an implementation supporting Python evaluation
 module/             lisp modules
