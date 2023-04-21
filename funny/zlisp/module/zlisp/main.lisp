@@ -25,7 +25,7 @@
 (def prog-build-one-c-host (/prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer pointer) pointer)))
 (def prog-build-init (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet)))
 (def get-host-ffi-settings (/prelude/c-function buildlib "get_host_ffi_settings" '(() pointer)))
-(def ext-make (/prelude/c-function buildlib "extension_alloc_make" '(() pointer)))
+(def ext-make (/prelude/c-function buildlib "lisp_extension_alloc_make" '(() pointer)))
 
 (defn prog-slice-append-new (sl)
   (return (/prelude/prog-slice-append-new- (/prelude/wrap-pointer-into-pointer sl))))

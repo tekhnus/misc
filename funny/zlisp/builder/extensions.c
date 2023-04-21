@@ -1,6 +1,6 @@
+#include <zlisp/common.h>
 #include <assert.h>
 #include <extensions.h>
-#include <zlisp/common.h>
 
 #if EXPORT_INTERFACE
 typedef struct lisp_extension lisp_extension;
@@ -15,28 +15,57 @@ struct lisp_extension {
 };
 #endif
 
-EXPORT extension *extension_alloc_make() {
+EXPORT struct lisp_extension lisp_extension_make() {
+  struct lisp_extension e;
+  e.base.call = lisp_extension_call;
+  e.lisp_extension_sl = vec_make(16 * 1024);
+  e.lisp_extension_prg = vec_append_new(&e.lisp_extension_sl);
+  size_t lisp_extension_builder_prg = vec_append_new(&e.lisp_extension_sl);
+  e.lisp_extension_routine = routine_make(lisp_extension_builder_prg, NULL);
+  e.lisp_extension_compdata = compdata_make();
+  datum lisp_extension_builder_compdata = compdata_make();
+  prog_build_init(&e.lisp_extension_sl, &e.lisp_extension_prg,
+                  &lisp_extension_builder_prg, &e.lisp_extension_compdata,
+                  &lisp_extension_builder_compdata);
+  e.lisp_extension_ext = trivial_extension_make();
+  datum initialization_statements = datum_make_list_of(
+      datum_make_list_of(datum_make_symbol("req"),
+                         datum_make_list_of(datum_make_symbol("stdmacro"),
+                                            datum_make_bytestring("stdmacro")),
+                         datum_make_list_of(datum_make_symbol("fntest"),
+                                            datum_make_bytestring("stdmacro"),
+                                            datum_make_symbol("fntest")),
+                         datum_make_list_of(datum_make_symbol("switch"),
+                                            datum_make_bytestring("stdmacro"),
+                                            datum_make_symbol("switch"))));
+  datum set = datum_make_bytestring("c-prelude");
+  char *res = prog_build(
+      &e.lisp_extension_sl, &e.lisp_extension_prg, &lisp_extension_builder_prg,
+      &initialization_statements, &e.lisp_extension_compdata,
+      &lisp_extension_builder_compdata, &set, &e.lisp_extension_ext);
+  if (res) {
+    fprintf(stderr, "while building extensions: %s\n", res);
+    exit(EXIT_FAILURE);
+  }
+  result init_res = routine_run_with_handler(
+      e.lisp_extension_sl, &e.lisp_extension_routine, host_ffi);
+  if (!datum_is_the_symbol(&init_res.type, "halt")) {
+    fprintf(stderr, "while initializing extensions: %s\n",
+            datum_repr(&init_res.value));
+    exit(EXIT_FAILURE);
+  }
+  return e;
+}
+
+EXPORT extension *lisp_extension_alloc_make() {
   // For Lisp.
   lisp_extension *res = malloc(sizeof(lisp_extension));
   *res = lisp_extension_make();
   return &res->base;
 }
 
-LOCAL char *call_ext_trivial(struct extension *self, vec *sl, size_t *begin,
-                             datum *stmt, datum *compdata) {
-  datum *op = list_at(stmt, 0);
-  if (datum_is_the_symbol(op, "backquote")) {
-    if (list_length(stmt) != 2) {
-      return "backquote should have a single arg";
-    }
-    return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, self);
-  }
-  return "<not an extension>";
-}
-
-LOCAL char *call_ext(struct extension *self_, vec *sl, size_t *begin,
-                     datum *stmt, datum *compdata) {
+LOCAL char *lisp_extension_call(struct extension *self_, vec *sl, size_t *begin,
+                                datum *stmt, datum *compdata) {
   struct lisp_extension *self = (lisp_extension *)self_;
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
@@ -93,48 +122,6 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
   return NULL;
 }
 
-EXPORT struct lisp_extension lisp_extension_make() {
-  struct lisp_extension e;
-  e.base.call = call_ext;
-  e.lisp_extension_sl = vec_make(16 * 1024);
-  e.lisp_extension_prg = vec_append_new(&e.lisp_extension_sl);
-  size_t lisp_extension_builder_prg = vec_append_new(&e.lisp_extension_sl);
-  e.lisp_extension_routine = routine_make(lisp_extension_builder_prg, NULL);
-  e.lisp_extension_compdata = compdata_make();
-  datum lisp_extension_builder_compdata = compdata_make();
-  prog_build_init(&e.lisp_extension_sl, &e.lisp_extension_prg,
-                  &lisp_extension_builder_prg, &e.lisp_extension_compdata,
-                  &lisp_extension_builder_compdata);
-  e.lisp_extension_ext = extension_make_trivial();
-  datum initialization_statements = datum_make_list_of(
-      datum_make_list_of(datum_make_symbol("req"),
-                         datum_make_list_of(datum_make_symbol("stdmacro"),
-                                            datum_make_bytestring("stdmacro")),
-                         datum_make_list_of(datum_make_symbol("fntest"),
-                                            datum_make_bytestring("stdmacro"),
-                                            datum_make_symbol("fntest")),
-                         datum_make_list_of(datum_make_symbol("switch"),
-                                            datum_make_bytestring("stdmacro"),
-                                            datum_make_symbol("switch"))));
-  datum set = datum_make_bytestring("c-prelude");
-  char *res = prog_build(
-      &e.lisp_extension_sl, &e.lisp_extension_prg, &lisp_extension_builder_prg,
-      &initialization_statements, &e.lisp_extension_compdata,
-      &lisp_extension_builder_compdata, &set, &e.lisp_extension_ext);
-  if (res) {
-    fprintf(stderr, "while building extensions: %s\n", res);
-    exit(EXIT_FAILURE);
-  }
-  result init_res = routine_run_with_handler(
-      e.lisp_extension_sl, &e.lisp_extension_routine, host_ffi);
-  if (!datum_is_the_symbol(&init_res.type, "halt")) {
-    fprintf(stderr, "while initializing extensions: %s\n",
-            datum_repr(&init_res.value));
-    exit(EXIT_FAILURE);
-  }
-  return e;
-}
-
 LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   datum set = datum_make_bytestring("c-prelude");
@@ -156,6 +143,20 @@ LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   return fdatum_make_ok(res.value);
 }
 
-LOCAL extension extension_make_trivial() {
-  return (extension){call_ext_trivial};
+LOCAL extension trivial_extension_make() {
+  return (extension){trivial_extension_call};
+}
+
+LOCAL char *trivial_extension_call(struct extension *self, vec *sl,
+                                   size_t *begin, datum *stmt,
+                                   datum *compdata) {
+  datum *op = list_at(stmt, 0);
+  if (datum_is_the_symbol(op, "backquote")) {
+    if (list_length(stmt) != 2) {
+      return "backquote should have a single arg";
+    }
+    return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
+                                            compdata, self);
+  }
+  return "<not an extension>";
 }
