@@ -109,6 +109,10 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
+  int yield_count = compdata_has_value(&est->compdata) ? 1 : 0;
+  datum nil = datum_make_nil();
+  prog_append_yield(&est->program, &est->instruction, datum_make_symbol("halt"),
+                    yield_count, 0, nil, &est->compdata);
   result res = routine_run_with_handler(est->program, &est->routine_,
                                         est->yield_handler);
   if (!datum_is_the_symbol(&res.type, "halt")) {

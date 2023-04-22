@@ -68,6 +68,10 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   if (res != NULL) {
     return res;
   }
+  int yield_count = compdata_has_value(compdata) ? 1 : 0;
+  datum nil = datum_make_nil();
+  prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0, nil,
+                    compdata);
   if (!bp) {
     return NULL;
   }
