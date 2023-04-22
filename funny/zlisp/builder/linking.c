@@ -82,59 +82,6 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
   strcat(res, sym);
 }
 
-LOCAL datum offset_relocate(datum *ins, size_t delta) {
-  if (!datum_is_integer(ins)) {
-    fprintf(stderr, "error: offset_relocate");
-    exit(EXIT_FAILURE);
-  }
-  return datum_make_int(ins->integer_value + delta);
-}
-
-LOCAL datum instruction_relocate(datum *ins, size_t delta) {
-  if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                              offset_relocate(list_at(ins, 1), delta),
-                              offset_relocate(list_at(ins, 2), delta));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return datum_make_list_of(
-        datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
-        datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                              offset_relocate(list_at(ins, 1), delta),
-                              offset_relocate(list_at(ins, 2), delta));
-  }
-  datum res = datum_copy(ins);
-  if (list_length(&res) < 2) {
-    fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
-    exit(EXIT_FAILURE);
-  }
-  datum *nxt = list_at(&res, list_length(&res) - 1);
-  list_pop(&res);
-  datum dd = offset_relocate(nxt, delta);
-  list_append(&res, dd);
-  return res;
-}
-
-EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
-  if (*p + 1 != vec_length(dst)) {
-    return "relocation can only be done to the slice end";
-  }
-  size_t delta = *p;
-  // the "+ 1" comes because of the final :end
-  for (int i = 0; i + 1 < list_length(src); ++i) {
-    datum *ins = list_at(src, i);
-    *vec_at(dst, *p) = instruction_relocate(ins, delta);
-    *p = vec_append_new(dst);
-  }
-  return NULL;
-}
-
 LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *,
                                                      extension *),

@@ -12,6 +12,76 @@ struct extension {
 };
 #endif
 
+EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
+                                       datum *compdata, extension *ext) {
+  fdatum bytecode = prog_compile(source, compdata, ext);
+  if (fdatum_is_panic(bytecode)) {
+    return bytecode.panic_message;
+  }
+  char *res = vec_relocate(sl, p, &bytecode.ok_value);
+  if (res != NULL) {
+    return res;
+  }
+  int yield_count = compdata_has_value(compdata) ? 1 : 0;
+  datum nil = datum_make_nil();
+  prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0, nil,
+                    compdata);
+  return NULL;
+}
+
+EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
+  if (*p + 1 != vec_length(dst)) {
+    return "relocation can only be done to the slice end";
+  }
+  size_t delta = *p;
+  // the "+ 1" comes because of the final :end
+  for (int i = 0; i + 1 < list_length(src); ++i) {
+    datum *ins = list_at(src, i);
+    *vec_at(dst, *p) = instruction_relocate(ins, delta);
+    *p = vec_append_new(dst);
+  }
+  return NULL;
+}
+
+LOCAL datum instruction_relocate(datum *ins, size_t delta) {
+  if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
+    return datum_make_list_of(datum_copy(list_at(ins, 0)));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
+    return datum_make_list_of(datum_copy(list_at(ins, 0)),
+                              offset_relocate(list_at(ins, 1), delta),
+                              offset_relocate(list_at(ins, 2), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
+    return datum_make_list_of(
+        datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
+        datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
+    return datum_make_list_of(datum_copy(list_at(ins, 0)),
+                              offset_relocate(list_at(ins, 1), delta),
+                              offset_relocate(list_at(ins, 2), delta));
+  }
+  datum res = datum_copy(ins);
+  if (list_length(&res) < 2) {
+    fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
+    exit(EXIT_FAILURE);
+  }
+  datum *nxt = list_at(&res, list_length(&res) - 1);
+  list_pop(&res);
+  datum dd = offset_relocate(nxt, delta);
+  list_append(&res, dd);
+  return res;
+}
+
+LOCAL datum offset_relocate(datum *ins, size_t delta) {
+  if (!datum_is_integer(ins)) {
+    fprintf(stderr, "error: offset_relocate");
+    exit(EXIT_FAILURE);
+  }
+  return datum_make_int(ins->integer_value + delta);
+}
+
 EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);

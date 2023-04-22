@@ -6,20 +6,9 @@
 LOCAL void module_to_filename(char *fname,char *module);
 LOCAL fdatum compile_module(char *module,datum *settings,extension *extension);
 char *prog_link_deps(vec *sl,size_t *bdr_p,datum *builder_compdata,size_t p,fdatum(*module_bytecode)(char *,datum *,extension *),datum *settings,extension *ext);
-char *vec_relocate(vec *dst,size_t *p,datum *src);
-char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
 datum *get_host_ffi_settings();
 #define EXPORT
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
-typedef struct lisp_extension lisp_extension;
-struct lisp_extension {
-  struct extension base;
-  vec program;
-  size_t instruction;
-  datum routine_;
-  datum compdata;
-  fdatum (*yield_handler)(datum *, datum *);
-};
 struct lisp_extension standard_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);
 LOCAL fdatum file_source(char *fname);

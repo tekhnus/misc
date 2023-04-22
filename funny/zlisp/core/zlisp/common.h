@@ -113,6 +113,8 @@ struct extension {
   char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
                 datum *compdata);
 };
+char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
+char *vec_relocate(vec *dst,size_t *p,datum *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
@@ -137,3 +139,14 @@ void state_stack_put(routine *r,datum value);
 void state_stack_put_all(routine *r,datum list);
 datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
+typedef struct lisp_extension lisp_extension;
+struct lisp_extension {
+  struct extension base;
+  vec program;
+  size_t instruction;
+  datum routine_;
+  datum compdata;
+  fdatum (*yield_handler)(datum *, datum *);
+};
+struct lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+extension trivial_extension_make();

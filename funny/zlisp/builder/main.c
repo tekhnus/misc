@@ -58,23 +58,6 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return res;
 }
 
-EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
-                                       datum *compdata, extension *ext) {
-  fdatum bytecode = prog_compile(source, compdata, ext);
-  if (fdatum_is_panic(bytecode)) {
-    return bytecode.panic_message;
-  }
-  char *res = vec_relocate(sl, p, &bytecode.ok_value);
-  if (res != NULL) {
-    return res;
-  }
-  int yield_count = compdata_has_value(compdata) ? 1 : 0;
-  datum nil = datum_make_nil();
-  prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0, nil,
-                    compdata);
-  return NULL;
-}
-
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
                         datum *settings, extension *ext) {

@@ -4,11 +4,19 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-typedef struct datum datum;
-typedef struct routine routine;
-datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 #define LOCAL static
-LOCAL size_t routine_get_stack_size(routine *r);
+typedef struct extension extension;
+typedef struct vec vec;
+typedef struct datum datum;
+struct extension {
+  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
+                datum *compdata);
+};
+LOCAL char *null_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+LOCAL char *trivial_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+extension trivial_extension_make();
+LOCAL extension null_extension_make();
+typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
 enum datum_type {
@@ -19,7 +27,6 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
-typedef struct vec vec;
 struct vec {
   datum *begin;
   size_t length;
@@ -41,6 +48,27 @@ struct datum {
     frame frame_value;
   };
 };
+struct fdatum {
+  int type;
+  struct datum ok_value;
+  char *panic_message;
+};
+typedef struct lisp_extension lisp_extension;
+struct lisp_extension {
+  struct extension base;
+  vec program;
+  size_t instruction;
+  datum routine_;
+  datum compdata;
+  fdatum (*yield_handler)(datum *, datum *);
+};
+LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
+LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
+LOCAL char *lisp_extension_call(struct extension *self_,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+struct lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+typedef struct routine routine;
+datum *routine_make_alloc(ptrdiff_t prg,routine *context);
+LOCAL size_t routine_get_stack_size(routine *r);
 void state_stack_set(routine *r,datum *target,datum value);
 datum routine_make(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);
@@ -67,15 +95,8 @@ struct result {
 };
 LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
-typedef struct fdatum fdatum;
-struct fdatum {
-  int type;
-  struct datum ok_value;
-  char *panic_message;
-};
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL void compdata_validate(datum *compdata);
-bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdata);
@@ -89,11 +110,6 @@ datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);
-typedef struct extension extension;
-struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
-                datum *compdata);
-};
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum *routine_compdata,extension *ext);
 LOCAL void compdata_start_new_section(datum *compdata);
 void store_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
@@ -105,9 +121,14 @@ LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum *compdata
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
 char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
-void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext,bool skip_first_debug);
+LOCAL datum offset_relocate(datum *ins,size_t delta);
+LOCAL datum instruction_relocate(datum *ins,size_t delta);
+void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
+bool compdata_has_value(datum *compdata);
+char *vec_relocate(vec *dst,size_t *p,datum *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
+char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
 fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {
