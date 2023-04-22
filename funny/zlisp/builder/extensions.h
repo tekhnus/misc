@@ -4,6 +4,8 @@
 #define LOCAL static
 LOCAL char *null_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 LOCAL char *trivial_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+#include <zlisp/host-ffi.h>
+char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
 LOCAL extension null_extension_make();
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
@@ -17,7 +19,6 @@ struct lisp_extension {
 LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 extension *standard_extension_alloc_make();
-#include <zlisp/host-ffi.h>
 char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
 LOCAL extension trivial_extension_make();
 size_t prog_build_init(vec *sl,size_t *ep,size_t *bdr_p,datum *compdata,datum *builder_compdata);

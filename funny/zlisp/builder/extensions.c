@@ -152,8 +152,10 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
 LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   extension ext = null_extension_make();
-  char *err = prog_build(&est->program, &est->instruction, NULL, &mod,
-                         &est->compdata, NULL, NULL, &ext);
+  // this is a hack in order to make the relocation possible.
+  prog_append_nop(&est->program, &est->instruction);
+  char *err = prog_compile_and_relocate(&est->program, &est->instruction, &mod,
+                                        &est->compdata, &ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
