@@ -25,6 +25,16 @@ EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
   return NULL;
 }
 
+EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
+  vec sl = vec_make(16 * 1024);
+  size_t p = vec_append_new(&sl);
+  char *err = prog_append_statements(&sl, &p, source, compdata, ext, true);
+  if (err != NULL) {
+    return fdatum_make_panic(err);
+  }
+  return fdatum_make_ok(vec_to_datum(&sl));
+}
+
 EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   if (*p + 1 != vec_length(dst)) {
     return "relocation can only be done to the slice end";
@@ -37,55 +47,6 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
     *p = vec_append_new(dst);
   }
   return NULL;
-}
-
-LOCAL datum instruction_relocate(datum *ins, size_t delta) {
-  if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                              offset_relocate(list_at(ins, 1), delta),
-                              offset_relocate(list_at(ins, 2), delta));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return datum_make_list_of(
-        datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
-        datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                              offset_relocate(list_at(ins, 1), delta),
-                              offset_relocate(list_at(ins, 2), delta));
-  }
-  datum res = datum_copy(ins);
-  if (list_length(&res) < 2) {
-    fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
-    exit(EXIT_FAILURE);
-  }
-  datum *nxt = list_at(&res, list_length(&res) - 1);
-  list_pop(&res);
-  datum dd = offset_relocate(nxt, delta);
-  list_append(&res, dd);
-  return res;
-}
-
-LOCAL datum offset_relocate(datum *ins, size_t delta) {
-  if (!datum_is_integer(ins)) {
-    fprintf(stderr, "error: offset_relocate");
-    exit(EXIT_FAILURE);
-  }
-  return datum_make_int(ins->integer_value + delta);
-}
-
-EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
-  vec sl = vec_make(16 * 1024);
-  size_t p = vec_append_new(&sl);
-  char *err = prog_append_statements(&sl, &p, source, compdata, ext, true);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
-  return fdatum_make_ok(vec_to_datum(&sl));
 }
 
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
@@ -757,4 +718,43 @@ EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var,
       prog_append_move(sl, begin, &target, &source, compdata);
     }
   }
+}
+
+LOCAL datum instruction_relocate(datum *ins, size_t delta) {
+  if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
+    return datum_make_list_of(datum_copy(list_at(ins, 0)));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
+    return datum_make_list_of(datum_copy(list_at(ins, 0)),
+                              offset_relocate(list_at(ins, 1), delta),
+                              offset_relocate(list_at(ins, 2), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
+    return datum_make_list_of(
+        datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
+        datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
+    return datum_make_list_of(datum_copy(list_at(ins, 0)),
+                              offset_relocate(list_at(ins, 1), delta),
+                              offset_relocate(list_at(ins, 2), delta));
+  }
+  datum res = datum_copy(ins);
+  if (list_length(&res) < 2) {
+    fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
+    exit(EXIT_FAILURE);
+  }
+  datum *nxt = list_at(&res, list_length(&res) - 1);
+  list_pop(&res);
+  datum dd = offset_relocate(nxt, delta);
+  list_append(&res, dd);
+  return res;
+}
+
+LOCAL datum offset_relocate(datum *ins, size_t delta) {
+  if (!datum_is_integer(ins)) {
+    fprintf(stderr, "error: offset_relocate");
+    exit(EXIT_FAILURE);
+  }
+  return datum_make_int(ins->integer_value + delta);
 }

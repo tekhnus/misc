@@ -71,11 +71,12 @@ core/
   types.h           type definitions
   datum.c           manipulating data
   reading.c         parsing data
-  compiling.c       a bytecode compiler (implementation-agnostic)
+  compiling.c       an extensible compiler (host-agnostic)
   running.c         a generic interpreter
-builder/            a tool for compiling and linking programs (implementation-agnostic)
-host-ffi/           an implementation supporting dlopen() and FFI function calls
-host-python/        an implementation supporting Python evaluation
+  extending.c       tools for writing compiler extensions in lisp
+builder/            a CLI and a library for compiling and linking (host-agnostic)
+host-ffi/           an interpreter supporting dlopen() and FFI function calls
+host-python/        an interpreter supporting Python evaluation
 module/             lisp modules
 tools/
   makeheaders.c     copied from the Fossil project; used to generate .h-files from .c-files
