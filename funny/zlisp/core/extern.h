@@ -5,20 +5,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #define LOCAL static
-typedef struct extension extension;
-typedef struct vec vec;
-typedef struct datum datum;
-struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
-                datum *compdata);
-};
-LOCAL char *null_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
-LOCAL char *trivial_extension_call(struct extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
-extension trivial_extension_make();
-LOCAL extension null_extension_make();
 typedef struct fdatum fdatum;
 #include <inttypes.h>
 #include <stdio.h>
+typedef struct datum datum;
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -27,6 +17,7 @@ enum datum_type {
   DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
+typedef struct vec vec;
 struct vec {
   datum *begin;
   size_t length;
@@ -54,18 +45,27 @@ struct fdatum {
   char *panic_message;
 };
 typedef struct lisp_extension lisp_extension;
+typedef struct extension extension;
+struct extension {
+  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
+                datum *compdata);
+};
 struct lisp_extension {
-  struct extension base;
+  extension base;
   vec program;
   size_t instruction;
   datum routine_;
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
 };
-LOCAL fdatum lisp_extension_run(datum *e,struct lisp_extension *est);
+LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
-LOCAL char *lisp_extension_call(struct extension *self_,vec *sl,size_t *begin,datum *stmt,datum *compdata);
-struct lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+LOCAL char *null_extension_call(extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+LOCAL extension null_extension_make();
+LOCAL char *trivial_extension_call(extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+extension trivial_extension_make();
+LOCAL char *lisp_extension_call(extension *self_,vec *sl,size_t *begin,datum *stmt,datum *compdata);
+lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 LOCAL size_t routine_get_stack_size(routine *r);

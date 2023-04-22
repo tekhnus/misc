@@ -141,12 +141,12 @@ datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
-  struct extension base;
+  extension base;
   vec program;
   size_t instruction;
   datum routine_;
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
 };
-struct lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 extension trivial_extension_make();

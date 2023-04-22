@@ -1,12 +1,12 @@
-#include <extern.h>
 #include <assert.h>
+#include <extern.h>
 #include <string.h>
 
 #if EXPORT_INTERFACE
 typedef struct lisp_extension lisp_extension;
 
 struct lisp_extension {
-  struct extension base;
+  extension base;
   vec program;
   size_t instruction;
   datum routine_;
@@ -15,21 +15,30 @@ struct lisp_extension {
 };
 #endif
 
-EXPORT struct lisp_extension
-lisp_extension_make(vec program, size_t instruction, datum routine_,
-                    datum compdata, fdatum (*yield_handler)(datum *, datum *)) {
-  struct lisp_extension e = {{.call = lisp_extension_call},
-                             program,
-                             instruction,
-                             routine_,
-                             compdata,
-                             yield_handler};
+EXPORT lisp_extension lisp_extension_make(vec program, size_t instruction,
+                                          datum routine_, datum compdata,
+                                          fdatum (*yield_handler)(datum *,
+                                                                  datum *)) {
+  lisp_extension e = {{.call = lisp_extension_call},
+                      program,
+                      instruction,
+                      routine_,
+                      compdata,
+                      yield_handler};
   return e;
 }
 
-LOCAL char *lisp_extension_call(struct extension *self_, vec *sl, size_t *begin,
+EXPORT extension trivial_extension_make() {
+  return (extension){trivial_extension_call};
+}
+
+LOCAL extension null_extension_make() {
+  return (extension){null_extension_call};
+}
+
+LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
                                 datum *stmt, datum *compdata) {
-  struct lisp_extension *self = (lisp_extension *)self_;
+  lisp_extension *self = (lisp_extension *)self_;
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt) != 2) {
@@ -86,7 +95,7 @@ LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
   return NULL;
 }
 
-LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
+LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   datum mod = datum_make_list_of(datum_copy(e));
   extension ext = null_extension_make();
   // this is a hack in order to make the relocation possible.
@@ -108,13 +117,8 @@ LOCAL fdatum lisp_extension_run(datum *e, struct lisp_extension *est) {
   return fdatum_make_ok(res.value);
 }
 
-EXPORT extension trivial_extension_make() {
-  return (extension){trivial_extension_call};
-}
-
-LOCAL char *trivial_extension_call(struct extension *self, vec *sl,
-                                   size_t *begin, datum *stmt,
-                                   datum *compdata) {
+LOCAL char *trivial_extension_call(extension *self, vec *sl, size_t *begin,
+                                   datum *stmt, datum *compdata) {
   datum *op = list_at(stmt, 0);
   if (datum_is_the_symbol(op, "backquote")) {
     if (list_length(stmt) != 2) {
@@ -126,14 +130,9 @@ LOCAL char *trivial_extension_call(struct extension *self, vec *sl,
   return "<not an extension>";
 }
 
-LOCAL extension null_extension_make() {
-  return (extension){null_extension_call};
-}
-
-LOCAL char *null_extension_call(struct extension *self, vec *sl, size_t *begin,
+LOCAL char *null_extension_call(extension *self, vec *sl, size_t *begin,
                                 datum *stmt, datum *compdata) {
   if (self || sl || begin || stmt || compdata) {
   };
   return "<not an extension>";
 }
-

@@ -19,6 +19,13 @@ EXPORT struct lisp_extension standard_extension_make() {
                              host_ffi);
 }
 
+EXPORT extension *standard_extension_alloc_make() {
+  // For Lisp.
+  lisp_extension *res = malloc(sizeof(lisp_extension));
+  *res = standard_extension_make();
+  return &res->base;
+}
+
 LOCAL char *standard_extension_init(vec *program, size_t *instruction,
                                     datum *routine_, datum *compdata) {
   *program = vec_make(16 * 1024);
@@ -56,11 +63,4 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
     exit(EXIT_FAILURE);
   }
   return NULL;
-}
-
-EXPORT extension *standard_extension_alloc_make() {
-  // For Lisp.
-  lisp_extension *res = malloc(sizeof(lisp_extension));
-  *res = standard_extension_make();
-  return &res->base;
 }
