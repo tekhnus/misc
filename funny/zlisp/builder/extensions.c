@@ -38,7 +38,7 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
                   &lisp_extension_builder_compdata);
   struct extension lisp_extension_ext = trivial_extension_make();
   char fname[256] = {0};
-  module_to_filename(fname, "stdmacro");
+  module_to_filename(fname, "extensions");
   fdatum src = file_source(fname);
   if (fdatum_is_panic(src)) {
     return src.panic_message;
