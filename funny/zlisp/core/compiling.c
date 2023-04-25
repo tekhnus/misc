@@ -104,7 +104,8 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata, ext);
+    datum cond = datum_make_list_of(datum_copy(list_at(stmt, 1)));
+    err = prog_append_statements(sl, begin, &cond, compdata, ext, false);
     if (err != NULL) {
       return err;
     }
@@ -119,12 +120,14 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    err = prog_append_statement(sl, &true_end, list_at(stmt, 2), compdata, ext);
+    datum true_branch = datum_make_list_of(datum_copy(list_at(stmt, 2)));
+    err = prog_append_statements(sl, &true_end, &true_branch, compdata, ext, false);
     if (err != NULL) {
       return err;
     }
-    err = prog_append_statement(sl, &false_end, list_at(stmt, 3),
-                                false_compdata, ext);
+    datum false_branch = datum_make_list_of(datum_copy(list_at(stmt, 3)));
+    err = prog_append_statements(sl, &false_end, &false_branch,
+                                false_compdata, ext, false);
     if (err != NULL) {
       return err;
     }

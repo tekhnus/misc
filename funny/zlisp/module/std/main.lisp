@@ -30,6 +30,14 @@
 
 (defn type (x) (return (../head (../annotate x))))
 
+(defn length (x)
+  (progn
+    (def n 0)
+    (while x (progn
+      (def n (../+ n 1))
+      (def x (../tail x))))
+    (return n)))
+
 (defn concat (a0 a1)
   
   (if a0
@@ -190,10 +198,12 @@
  (repr repr)
  (concat-bytestrings concat-bytestrings)
  (+ +)
+ (length length)
  (decons-pat decons-pat)
  (append append)
  (ignore ignore)
  (list-at list-at)
  (switch-fun switch-fun)
  (first-good-value first-good-value)
+ (type type)
  (not not))

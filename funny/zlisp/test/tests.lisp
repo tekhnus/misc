@@ -8,7 +8,9 @@
  (head "std" head)
  (repr "std" repr)
  (append "std" append)
+ (length "std" length)
  (list-at "std" list-at)
+ (type "std" type)
  (+ "std" +)
  (panic "std" panic)
  (concat-bytestrings "std" concat-bytestrings)
@@ -28,6 +30,42 @@
 (fntest
   (return (/std/+ 4 3))
   7)
+
+(fntest
+ (return (/std/length '(1 2 3)))
+ 3)
+
+(fntest
+ (return (/std/length '()))
+ 0)
+
+(fntest
+ (return (/std/type '()))
+ :list)
+
+(fntest
+ (return (bq2 42))
+ 42)
+
+(fntest
+ (return (bq2 (42 33)))
+ '(42 33))
+
+(fntest
+ (return (bq2 (42 33 55)))
+ '(42 33 55))
+
+(fntest
+ (return (bq2 ()))
+ '())
+
+(fntest
+ (return (bq2 (42 (33 1))))
+ '(42 (33 1)))
+
+(fntest
+ (return (bq2 (42 (foo/+ 33 1))))
+ '(42 (/foo/+ 33 1)))
 
 (fntest
   (return (list (/std/+ 4 3) 8))

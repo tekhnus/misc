@@ -398,7 +398,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
     if (offset < 0) {
       offset = -offset;
     }
-    for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
+    for (ptrdiff_t i = offset - 30; i <= offset + 3; ++i) {
       if (i < 0) {
         continue;
       }
@@ -559,7 +559,7 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 
 LOCAL routine get_routine_from_datum(datum *e) {
   if (!datum_is_frame(e)) {
-    fprintf(stderr, "get_routine_from_datum: not a routine\n");
+    fprintf(stderr, "get_routine_from_datum: not a routine: %s\n", datum_repr(e));
     exit(EXIT_FAILURE);
   }
   routine rt;
