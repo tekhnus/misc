@@ -169,6 +169,15 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     }
     return NULL;
   }
+  if (datum_is_the_symbol(op, "list")) {
+    datum parts = list_get_tail(stmt);
+    char *err = prog_append_statements(sl, begin, &parts, compdata, ext, false);
+    if (err != NULL) {
+      return err;
+    }
+    prog_append_collect(sl, list_length(&parts), begin, compdata);
+    return NULL;
+  }
   if (datum_is_the_symbol(op, "quote")) {
     if (list_length(stmt) != 2) {
       return "quote should have a single arg";
