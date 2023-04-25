@@ -51,9 +51,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   if (!datum_is_nil(&pi)) {
     datum invokation_statement = datum_copy(stmt);
     *list_at(&invokation_statement, 0) = datum_make_list_of(
-        datum_make_symbol("hash"),
-        datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol(""),
-                           datum_make_symbol("stdmacro"), datum_copy(op)));
+       datum_make_symbol("hash"),
+       datum_copy(op));
     fdatum res = lisp_extension_run(&invokation_statement, self);
     if (fdatum_is_panic(res)) {
       return res.panic_message;

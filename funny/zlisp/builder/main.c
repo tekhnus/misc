@@ -97,7 +97,7 @@ LOCAL fdatum compile_module(char *module, datum *settings,
   return prog_compile(&src.ok_value, &compdata, extension);
 }
 
-LOCAL void module_to_filename(char *fname, char *module) {
+EXPORT void module_to_filename(char *fname, char *module) {
   char *zlisp_home = getenv("ZLISP");
   if (zlisp_home == NULL) {
     fprintf(stderr, "ZLISP variable not defined");
@@ -109,7 +109,7 @@ LOCAL void module_to_filename(char *fname, char *module) {
   strcat(fname, "/main.lisp");
 }
 
-LOCAL fdatum file_source(char *fname) {
+EXPORT fdatum file_source(char *fname) {
   FILE *stre = fopen(fname, "r");
   if (stre == NULL) {
     perror("file_source");

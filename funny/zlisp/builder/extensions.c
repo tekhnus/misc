@@ -37,16 +37,13 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
   prog_build_init(program, instruction, &lisp_extension_builder_prg, compdata,
                   &lisp_extension_builder_compdata);
   struct extension lisp_extension_ext = trivial_extension_make();
-  datum initialization_statements = datum_make_list_of(
-      datum_make_list_of(datum_make_symbol("req"),
-                         datum_make_list_of(datum_make_symbol("stdmacro"),
-                                            datum_make_bytestring("stdmacro")),
-                         datum_make_list_of(datum_make_symbol("fntest"),
-                                            datum_make_bytestring("stdmacro"),
-                                            datum_make_symbol("fntest")),
-                         datum_make_list_of(datum_make_symbol("switch"),
-                                            datum_make_bytestring("stdmacro"),
-                                            datum_make_symbol("switch"))));
+  char fname[256] = {0};
+  module_to_filename(fname, "stdmacro");
+  fdatum src = file_source(fname);
+  if (fdatum_is_panic(src)) {
+    return src.panic_message;
+  }
+  datum initialization_statements = src.ok_value;
   datum set = datum_make_bytestring("c-prelude");
   char *res =
       prog_build(program, instruction, &lisp_extension_builder_prg,
