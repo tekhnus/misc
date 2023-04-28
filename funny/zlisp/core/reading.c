@@ -1,5 +1,6 @@
 // zlisp interpreter.
 #include <extern.h>
+#include <string.h>
 #if INTERFACE
 #include <stdbool.h>
 #endif
@@ -144,6 +145,9 @@ LOCAL struct token token_read(FILE *strm) {
     char x = 0; // = 0 is to satisfy the compiler
     for (i = 0; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
       if (x == '/') {
+        if (strlen(nm[c]) == 0) {
+          strcpy(nm[c], "empty-symbol");
+        }
         ++c;
         i = 0;
       } else {

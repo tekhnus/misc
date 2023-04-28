@@ -338,7 +338,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
   datum shape = compdata_get_shape(compdata);
   if (fn_index < list_length(fns) &&
-      datum_is_the_symbol(list_at(fns, fn_index), "")) {
+      datum_is_the_symbol(list_at(fns, fn_index), "empty-symbol")) {
     ++fn_index;
     chop = list_length(&shape);
   }

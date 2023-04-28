@@ -64,8 +64,16 @@
  '(42 (33 1)))
 
 (fntest
- (return (bq2 (42 (foo/+ 33 1))))
- '(42 (/foo/+ 33 1)))
+ (return (bq2 (42 (/std/+ 33 1))))
+ '(42 (/std/+ 33 1)))
+
+(fntest
+ (return (bq2 (42 ~(/std/+ 33 1))))
+ '(42 34))
+
+(fntest
+ (return (bq2 (42 ~(list (/std/+ 33 1) (bq2 foo)))))
+ '(42 (34 foo)))
 
 (fntest
   (return (list (/std/+ 4 3) 8))
