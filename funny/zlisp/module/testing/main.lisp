@@ -7,11 +7,11 @@
  (panic "std" panic))
 
 (defn fntest (body expect)
-  (return `(progn
-             (defn calltest () ~body)
-             (def val (calltest))
-             (if (/std/eq val ~expect)
-                 (def panics panics)
-               (def panics (/std/cons (/std/concat-bytestrings (/std/concat-bytestrings (/std/repr val) " != ") (/std/repr ~expect)) panics))))))
+  (return (list 'progn
+             (list 'defn 'calltest '() body)
+             '(def val (calltest))
+             (list 'if (list '/std/eq 'val expect)
+                 '(def panics panics)
+               (list 'def 'panics (list '/std/cons (list '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") (list '/std/repr expect)) 'panics))))))
 
 (export (fntest fntest))

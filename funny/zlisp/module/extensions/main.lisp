@@ -11,7 +11,7 @@
  (testing "testing")
  (fntest- "testing" fntest))
 
-(defn switch (exp argz) (return `(progn (def args ~exp) ~(/std/switch-fun argz))))
+(defn switch (exp argz) (return (list 'progn (list 'def 'args exp) (/std/switch-fun argz))))
 
 (defn fntest (body expect) (return (/testing/fntest- body expect)))
 
