@@ -595,7 +595,7 @@ EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   *begin = next;
 }
 
-EXPORT void prog_append_collect(vec *sl, size_t count, size_t *begin,
+LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
                                 datum *compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
