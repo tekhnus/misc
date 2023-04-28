@@ -28,11 +28,7 @@ EXPORT lisp_extension lisp_extension_make(vec program, size_t instruction,
   return e;
 }
 
-EXPORT extension trivial_extension_make() {
-  return (extension){trivial_extension_call};
-}
-
-LOCAL extension null_extension_make() {
+EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
@@ -117,19 +113,6 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
     return fdatum_make_panic(datum_repr(&res.value));
   }
   return fdatum_make_ok(res.value);
-}
-
-LOCAL char *trivial_extension_call(extension *self, vec *sl, size_t *begin,
-                                   datum *stmt, datum *compdata) {
-  datum *op = list_at(stmt, 0);
-  if (datum_is_the_symbol(op, "backquote")) {
-    if (list_length(stmt) != 2) {
-      return "backquote should have a single arg";
-    }
-    return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, self);
-  }
-  return "<not an extension>";
 }
 
 LOCAL char *null_extension_call(extension *self, vec *sl, size_t *begin,

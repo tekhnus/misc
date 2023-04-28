@@ -61,9 +61,7 @@ struct lisp_extension {
 LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
 LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 LOCAL char *null_extension_call(extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
-LOCAL extension null_extension_make();
-LOCAL char *trivial_extension_call(extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
-extension trivial_extension_make();
+extension null_extension_make();
 LOCAL char *lisp_extension_call(extension *self_,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;

@@ -36,7 +36,7 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
   datum lisp_extension_builder_compdata = compdata_make();
   prog_build_init(program, instruction, &lisp_extension_builder_prg, compdata,
                   &lisp_extension_builder_compdata);
-  struct extension lisp_extension_ext = trivial_extension_make();
+  struct extension lisp_extension_ext = null_extension_make();
   char fname[256] = {0};
   module_to_filename(fname, "extensions");
   fdatum src = file_source(fname);

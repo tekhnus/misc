@@ -149,4 +149,4 @@ struct lisp_extension {
   fdatum (*yield_handler)(datum *, datum *);
 };
 lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
-extension trivial_extension_make();
+extension null_extension_make();
