@@ -8,6 +8,7 @@
  (head- "std" head)
  (tail- "std" tail)
  (cons- "std" cons)
+ (panic- "std" panic)
  (testing "testing")
  (fntest- "testing" fntest))
 
@@ -25,3 +26,18 @@
               (return (/std/head- (/std/tail- exp)))
             (return (list '/std/cons (../backquote (/std/head- exp)) (../backquote (/std/tail- exp)))))
         (return (list '/std/cons (../backquote (/std/head- exp)) (../backquote (/std/tail- exp))))))))
+
+(defn defn2 (name args body)
+  (progn
+  (return
+   (list
+    'progn
+    (list
+     'defn name '()
+     (list 'progn
+           (list 'defn 'original-func args body)
+           (list 'original-func '(at mut) '(at pre) '(at 0) '(at up2))
+           (list 'return :shouldnt-go-here)))
+    (list name '(at mut) '(at 0))))))
+
+'(/std/panic- (#defn2 foo (x y) (return (+ x y))))

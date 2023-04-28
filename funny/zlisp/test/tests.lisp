@@ -110,6 +110,19 @@
 
 (fntest
   (progn
+    (defn2 twice (arg) (return (/std/+ arg arg)))
+    (return (twice 35)))
+  70)
+
+(fntest
+  (progn
+    (defn2 twice (arg) (return (/std/+ arg arg)))
+    (defn four-times (arg) (return (/std/+ (../twice arg) (../twice arg))))
+    (return (four-times 35)))
+  140)
+
+(fntest
+  (progn
     (def x 0)
     (def y 1)
     (while (/std/not (/std/eq x 5))
