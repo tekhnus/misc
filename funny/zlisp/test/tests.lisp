@@ -44,35 +44,35 @@
  :list)
 
 (fntest
- (return (bq2 42))
+ (return (backquote 42))
  42)
 
 (fntest
- (return (bq2 (42 33)))
+ (return (backquote (42 33)))
  '(42 33))
 
 (fntest
- (return (bq2 (42 33 55)))
+ (return (backquote (42 33 55)))
  '(42 33 55))
 
 (fntest
- (return (bq2 ()))
+ (return (backquote ()))
  '())
 
 (fntest
- (return (bq2 (42 (33 1))))
+ (return (backquote (42 (33 1))))
  '(42 (33 1)))
 
 (fntest
- (return (bq2 (42 (/std/+ 33 1))))
+ (return (backquote (42 (/std/+ 33 1))))
  '(42 (/std/+ 33 1)))
 
 (fntest
- (return (bq2 (42 ~(/std/+ 33 1))))
+ (return (backquote (42 ~(/std/+ 33 1))))
  '(42 34))
 
 (fntest
- (return (bq2 (42 ~(list (/std/+ 33 1) (bq2 foo)))))
+ (return (backquote (42 ~(list (/std/+ 33 1) (backquote foo)))))
  '(42 (34 foo)))
 
 (fntest

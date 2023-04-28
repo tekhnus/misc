@@ -15,7 +15,7 @@
 
 (defn fntest (body expect) (return (/testing/fntest- body expect)))
 
-(defn bq2 (exp)
+(defn backquote (exp)
   (if (/std/not- (/std/eq- (/std/type- exp) :list))
       (return (list 'quote exp))
     (if (/std/not- exp)
@@ -23,5 +23,5 @@
       (if (/std/eq- (/std/length- exp) 2)
           (if (/std/eq- (/std/head- exp) 'tilde)
               (return (/std/head- (/std/tail- exp)))
-            (return (list '/std/cons (../bq2 (/std/head- exp)) (../bq2 (/std/tail- exp)))))
-        (return (list '/std/cons (../bq2 (/std/head- exp)) (../bq2 (/std/tail- exp))))))))
+            (return (list '/std/cons (../backquote (/std/head- exp)) (../backquote (/std/tail- exp)))))
+        (return (list '/std/cons (../backquote (/std/head- exp)) (../backquote (/std/tail- exp))))))))

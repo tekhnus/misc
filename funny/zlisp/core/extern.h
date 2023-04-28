@@ -59,7 +59,6 @@ struct lisp_extension {
   fdatum (*yield_handler)(datum *, datum *);
 };
 LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
-LOCAL char *prog_append_backquoted_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 LOCAL char *null_extension_call(extension *self,vec *sl,size_t *begin,datum *stmt,datum *compdata);
 extension null_extension_make();
 LOCAL char *lisp_extension_call(extension *self_,vec *sl,size_t *begin,datum *stmt,datum *compdata);

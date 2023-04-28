@@ -12,6 +12,7 @@
  (first-good-value "std" first-good-value)
  (eq "std" eq)
  (head "std" head)
+ (cons "std" cons)
  (tail "std" tail)
  (panic "std" panic))
 

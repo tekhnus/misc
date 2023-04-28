@@ -36,13 +36,6 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
                                 datum *stmt, datum *compdata) {
   lisp_extension *self = (lisp_extension *)self_;
   datum *op = list_at(stmt, 0);
-  if (datum_is_the_symbol(op, "backquote")) {
-    if (list_length(stmt) != 2) {
-      return "backquote should have a single arg";
-    }
-    return prog_append_backquoted_statement(sl, begin, list_at(stmt, 1),
-                                            compdata, self_);
-  }
   datum pi = compdata_get_polyindex(&self->compdata, op);
   if (!datum_is_nil(&pi)) {
     datum invokation_statement = datum_copy(stmt);
@@ -63,30 +56,6 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
     return NULL;
   }
   return "<not an extension>";
-}
-
-LOCAL char *prog_append_backquoted_statement(vec *sl, size_t *begin,
-                                             datum *stmt, datum *compdata,
-                                             extension *ext) {
-  if (!datum_is_list(stmt)) {
-    prog_append_put_const(sl, begin, stmt, compdata);
-    return NULL;
-  }
-  for (int i = 0; i < list_length(stmt); ++i) {
-    datum *elem = list_at(stmt, i);
-    char *err;
-    if (datum_is_list(elem) && list_length(elem) == 2 &&
-        datum_is_the_symbol(list_at(elem, 0), "tilde")) {
-      err = prog_append_statement(sl, begin, list_at(elem, 1), compdata, ext);
-    } else {
-      err = prog_append_backquoted_statement(sl, begin, elem, compdata, ext);
-    }
-    if (err != NULL) {
-      return err;
-    }
-  }
-  prog_append_collect(sl, list_length(stmt), begin, compdata);
-  return NULL;
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {

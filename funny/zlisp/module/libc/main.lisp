@@ -7,6 +7,7 @@
  (decons-pat "std" decons-pat)
  (eq "std" eq)
  (head "std" head)
+ (cons "std" cons)
  (repr "std" repr)
  (panic "std" panic)
  (first-good-value "std" first-good-value))
