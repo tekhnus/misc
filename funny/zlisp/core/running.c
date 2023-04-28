@@ -559,7 +559,8 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 
 LOCAL routine get_routine_from_datum(datum *e) {
   if (!datum_is_frame(e)) {
-    fprintf(stderr, "get_routine_from_datum: not a routine: %s\n", datum_repr(e));
+    fprintf(stderr, "get_routine_from_datum: not a routine: %s\n",
+            datum_repr(e));
     exit(EXIT_FAILURE);
   }
   routine rt;

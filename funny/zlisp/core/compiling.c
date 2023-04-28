@@ -121,13 +121,14 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
     datum true_branch = datum_make_list_of(datum_copy(list_at(stmt, 2)));
-    err = prog_append_statements(sl, &true_end, &true_branch, compdata, ext, false);
+    err = prog_append_statements(sl, &true_end, &true_branch, compdata, ext,
+                                 false);
     if (err != NULL) {
       return err;
     }
     datum false_branch = datum_make_list_of(datum_copy(list_at(stmt, 3)));
-    err = prog_append_statements(sl, &false_end, &false_branch,
-                                false_compdata, ext, false);
+    err = prog_append_statements(sl, &false_end, &false_branch, false_compdata,
+                                 ext, false);
     if (err != NULL) {
       return err;
     }
@@ -596,7 +597,7 @@ EXPORT void prog_append_nop(vec *sl, size_t *begin) {
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
-                                datum *compdata) {
+                               datum *compdata) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
       datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count),
