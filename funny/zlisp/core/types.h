@@ -28,6 +28,7 @@ enum read_result_type {
   READ_RESULT_PANIC,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
+  READ_RESULT_RIGHT_BRACKET,
 };
 
 struct read_result {

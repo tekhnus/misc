@@ -296,6 +296,11 @@
     (return res))
   '(42 42))
 
+(fntest
+ (progn
+   (if 3 {(return 42)} {(return 25)}))
+ 42)
+
 (defn print-all (xs)
   (if xs
       (progn

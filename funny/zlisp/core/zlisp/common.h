@@ -93,6 +93,7 @@ enum read_result_type {
   READ_RESULT_PANIC,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
+  READ_RESULT_RIGHT_BRACKET,
 };
 typedef enum read_result_type read_result_type;
 struct read_result {
@@ -104,7 +105,6 @@ struct read_result {
 };
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
-bool read_result_is_right_paren(read_result x);
 read_result datum_read(FILE *strm);
 read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);

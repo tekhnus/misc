@@ -19,8 +19,12 @@ LOCAL bool read_result_is_eof(read_result x) {
   return x.type == READ_RESULT_EOF;
 }
 
-EXPORT bool read_result_is_right_paren(read_result x) {
+LOCAL bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
+}
+
+LOCAL bool read_result_is_right_bracket(read_result x) {
+  return x.type == READ_RESULT_RIGHT_BRACKET;
 }
 
 LOCAL read_result read_result_make_ok(datum e) {
@@ -40,6 +44,11 @@ LOCAL read_result read_result_make_eof(void) {
 
 LOCAL read_result read_result_make_right_paren(void) {
   read_result result = {.type = READ_RESULT_RIGHT_PAREN};
+  return result;
+}
+
+LOCAL read_result read_result_make_right_bracket(void) {
+  read_result result = {.type = READ_RESULT_RIGHT_BRACKET};
   return result;
 }
 
@@ -86,6 +95,8 @@ enum token_type {
   TOKEN_DATUM,
   TOKEN_RIGHT_PAREN,
   TOKEN_LEFT_PAREN,
+  TOKEN_RIGHT_BRACKET,
+  TOKEN_LEFT_BRACKET,
   TOKEN_CONTROL_SEQUENCE,
   TOKEN_ERROR,
   TOKEN_EOF,
@@ -112,6 +123,12 @@ LOCAL struct token token_read(FILE *strm) {
   }
   if (c == '(') {
     return (struct token){.type = TOKEN_LEFT_PAREN};
+  }
+  if (c == '}') {
+    return (struct token){.type = TOKEN_RIGHT_BRACKET};
+  }
+  if (c == '{') {
+    return (struct token){.type = TOKEN_LEFT_BRACKET};
   }
   if (isdigit(c) || c == '-') {
     int64_t sign = 1;
@@ -215,14 +232,23 @@ EXPORT read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_RIGHT_PAREN) {
     return read_result_make_right_paren();
   }
-  if (tok.type == TOKEN_LEFT_PAREN) {
+  if (tok.type == TOKEN_RIGHT_BRACKET) {
+    return read_result_make_right_bracket();
+  }
+  if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_BRACKET) {
     read_result elem;
     datum list = datum_make_nil();
+    if (tok.type == TOKEN_LEFT_BRACKET) {
+      list_append(&list, datum_make_symbol("progn"));
+    }
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {
         list_append(&list, elem.ok_value);
       }
-      if (read_result_is_right_paren(elem)) {
+      if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
+        return read_result_make_ok(list);
+      }
+      if (tok.type == TOKEN_LEFT_BRACKET && read_result_is_right_bracket(elem)) {
         return read_result_make_ok(list);
       }
       if (read_result_is_eof(elem)) {
@@ -257,7 +283,7 @@ EXPORT read_result datum_read_all(FILE *stre) {
   if (read_result_is_panic(rr)) {
     return read_result_make_panic(rr.panic_message);
   }
-  if (read_result_is_right_paren(rr)) {
+  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
     return read_result_make_panic("unmatched right paren");
   }
   return read_result_make_ok(res);
@@ -268,7 +294,7 @@ EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
   }
-  if (read_result_is_right_paren(rr)) {
+  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
     return fdatum_make_panic("unmatched right paren");
   }
   if (read_result_is_eof(rr)) {

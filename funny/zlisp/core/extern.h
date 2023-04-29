@@ -133,6 +133,7 @@ enum read_result_type {
   READ_RESULT_PANIC,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
+  READ_RESULT_RIGHT_BRACKET,
 };
 typedef enum read_result_type read_result_type;
 struct read_result {
@@ -148,11 +149,13 @@ LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);
 LOCAL bool is_allowed_inside_symbol(char c);
 LOCAL bool is_whitespace(char c);
+LOCAL read_result read_result_make_right_bracket(void);
 LOCAL read_result read_result_make_right_paren(void);
 LOCAL read_result read_result_make_eof(void);
 LOCAL read_result read_result_make_panic(char *message);
 LOCAL read_result read_result_make_ok(datum e);
-bool read_result_is_right_paren(read_result x);
+LOCAL bool read_result_is_right_bracket(read_result x);
+LOCAL bool read_result_is_right_paren(read_result x);
 LOCAL bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
