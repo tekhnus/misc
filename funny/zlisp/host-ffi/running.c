@@ -56,6 +56,8 @@ EXPORT fdatum host_ffi(datum *type, datum *args) {
   } else if (!strcmp(name->bytestring_value, "eq")) {
     res = datum_make_int((int64_t)builtin_eq);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
+    // TODO(): repair its usage in lisp.
+    // dlopen actually has an int argument, not a size_t.
     res = datum_make_int((int64_t)dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
     res = datum_make_int((int64_t)dlsym);
