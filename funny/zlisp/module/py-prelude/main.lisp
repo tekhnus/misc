@@ -12,7 +12,7 @@
 
 (defn eq (a0 a1) (return (return @1 @(host ("eval" "eq(x)")) (list a0 a1))))
 
-(defn panic (a0) (return (return @1 @(host ("eval" "panic(x)")) (list a0))))
+(defn panic (a0) {(def ignored-result (return @1 @(host ("eval" "panic(x)")) (list a0))) (return)})
 
 (defn annotate (a0) (return (return @1 @(host ("eval" "annotate(x)")) (list a0))))
 

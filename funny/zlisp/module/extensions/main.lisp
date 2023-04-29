@@ -39,5 +39,3 @@
            (list 'original-func '(at mut) '(at pre) '(at 0) '(at up2))
            (list 'return :shouldnt-go-here)))
     (list name '(at mut) '(at 0))))))
-
-'(/std/panic- (#defn2 foo (x y) (return (+ x y))))

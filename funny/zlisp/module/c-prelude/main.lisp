@@ -12,7 +12,7 @@
 (defn pointer-call (x y z) (return (return @1 @(host "call-extension") pointer-call-pointer x y z)))
 
 (def panic-pointer (return @1 @(host "panic") '()))
-(defn panic (x) (return (return @1 @(host "call-extension") panic-pointer x)))
+(defn panic (x) {(def ignored-result (return @1 @(host "call-extension") panic-pointer x)) (return)})
 
 (def head-pointer (return @1 @(host "head") '()))
 (defn head (x) (return (return @1 @(host "call-extension-1") head-pointer x)))
