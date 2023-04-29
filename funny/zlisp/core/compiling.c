@@ -52,6 +52,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
                                    datum *compdata, extension *ext,
                                    bool skip_first_debug) {
+  bool warned = false;
   for (int i = 0; i < list_length(source); ++i) {
     datum *stmt = list_at(source, i);
     if (!(skip_first_debug && i == 0)) {
@@ -65,9 +66,10 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    if (compdata_validate(compdata) && compdata_has_value(compdata)) {
+    if (compdata_validate(compdata) && compdata_has_value(compdata) && !warned) {
       fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
       fprintf(stderr, "compdata: %s\n", datum_repr(compdata));
+      warned = true;
     }
   }
   return NULL;
