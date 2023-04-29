@@ -10,6 +10,7 @@
  (+ "std" +)
  (panic "std" panic)
  (cons "std" cons)
+ (prelude "prelude")
  (print "prelude" print)
  (concat-bytestrings "std" concat-bytestrings))
 
@@ -76,12 +77,12 @@
   (progn
     (defn adderf (n)
                    (progn
-                     (def m (return @1 :ready))
+                     (def m (return @1))
                      (return (std/+ n m))))
     (defn adder (n)
                    (progn
                      (def a adderf)
-                     (a @mut n)
+                     (a @0 @mut n)
                      (return a)))
     (return ((adder 3) 4)))
   7)
@@ -131,13 +132,14 @@
 (defn print-all (xs)
    (if xs
        (progn
-         (print (std/head xs))
-         (print-all (std/tail xs))
-         (return '()))
-     (return '())))
+         (def res (/prelude/print (/std/head xs)))
+         (../print-all @0 (/std/tail xs))
+         (return))
+     (return)))
 
 (if panics
     (progn
-      (print-all panics)
-      (std/panic "FAILED"))
-  (progn '() '()))
+      (print-all @0 panics)
+      (/std/panic @0 "FAILED")
+      (def x 42))
+  (def x 33))
