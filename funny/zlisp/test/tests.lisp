@@ -301,6 +301,11 @@
    (if 3 {(return 42)} {(return 25)}))
  42)
 
+(fntest {
+        (a = 5)
+        (return a)}
+ 5)
+
 (defn print-all (xs)
   (if xs
       (progn

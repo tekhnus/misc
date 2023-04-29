@@ -56,7 +56,7 @@ LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
 LOCAL bool is_allowed_inside_symbol(char c) {
   return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' ||
-         c == '+' || c == '/';
+         c == '+' || c == '/' || c == '=';
 }
 
 LOCAL bool consume_control_sequence(char c, datum *form) {

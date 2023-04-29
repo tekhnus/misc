@@ -92,6 +92,10 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return "an empty list is not a statement";
   }
   datum *op = list_at(stmt, 0);
+  datum op2 = datum_make_nil();
+  if (list_length(stmt) > 1) {
+    op2 = datum_copy(list_at(stmt, 1));
+  }
 
   if (datum_is_the_symbol(op, "req")) {
     return prog_append_usages(sl, begin, stmt, compdata);
@@ -189,20 +193,29 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     prog_append_put_const(sl, begin, list_at(stmt, 1), compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "def")) {
+  if (datum_is_the_symbol(op, "def") || datum_is_the_symbol(&op2, "=")) {
     if (list_length(stmt) != 3) {
       return "def should have two args";
     }
+    datum *dst;
+    datum *expr;
+    if (datum_is_the_symbol(op, "def")) {
+      dst = list_at(stmt, 1);
+      expr = list_at(stmt, 2);
+    } else {
+      dst = list_at(stmt, 0);
+      expr = list_at(stmt, 2);
+    }
     char *err =
-        prog_append_statement(sl, begin, list_at(stmt, 2), compdata, ext);
+        prog_append_statement(sl, begin, expr, compdata, ext);
     if (err != NULL) {
       return err;
     }
     datum names;
-    if (datum_is_list(list_at(stmt, 1))) {
-      names = datum_copy(list_at(stmt, 1));
+    if (datum_is_list(dst)) {
+      names = datum_copy(dst);
     } else {
-      names = datum_make_list_of(datum_copy(list_at(stmt, 1)));
+      names = datum_make_list_of(datum_copy(dst));
     }
     store_values_to_variables(sl, begin, &names, compdata);
     return NULL;
