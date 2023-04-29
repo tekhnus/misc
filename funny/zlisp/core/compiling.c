@@ -470,7 +470,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
    * on the slice. */
   prog_append_nop(sl, begin);
   prog_append_yield(sl, begin, datum_make_symbol("plain"),
-                    list_length(list_at(&re, 0)), 1, *list_at(&re, 0),
+                    list_length(list_at(&re, 0)), 0, *list_at(&re, 0),
                     compdata);
   return NULL;
 }
