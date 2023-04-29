@@ -66,7 +66,8 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
       return err;
     }
     if (compdata_validate(compdata) && compdata_has_value(compdata)) {
-      // fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
+      fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
+      fprintf(stderr, "compdata: %s\n", datum_repr(compdata));
     }
   }
   return NULL;
