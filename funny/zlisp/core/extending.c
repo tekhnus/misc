@@ -59,7 +59,13 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
-  datum mod = datum_make_list_of(datum_copy(e));
+  datum exp = datum_make_list_of(
+                                 datum_make_symbol("return"),
+                                 datum_make_list_of(datum_make_symbol("at"), datum_make_int(0)),
+                                 datum_make_list_of(datum_make_symbol("at"), datum_make_symbol("halt")),
+                                 datum_copy(e));
+  
+  datum mod = datum_make_list_of(exp);
   extension ext = null_extension_make();
   // this is a hack in order to make the relocation possible.
   prog_append_nop(&est->program, &est->instruction);
@@ -72,10 +78,6 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
     strcat(err2, err);
     return fdatum_make_panic(err2);
   }
-  int yield_count = compdata_has_value(&est->compdata) ? 1 : 0;
-  datum nil = datum_make_nil();
-  prog_append_yield(&est->program, &est->instruction, datum_make_symbol("halt"),
-                    yield_count, 0, nil, &est->compdata);
   result res = routine_run_with_handler(est->program, &est->routine_,
                                         est->yield_handler);
   if (!datum_is_the_symbol(&res.type, "halt")) {
