@@ -252,7 +252,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_the_symbol(op, "return")) {
     datum target = datum_make_symbol("plain");
     bool target_defined = false;
-    size_t recieve_count = 1;
+    size_t recieve_count = 0;
     int index = 1;
     while (index < list_length(stmt)) {
       datum *tag = list_at(stmt, index);

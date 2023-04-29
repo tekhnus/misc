@@ -136,7 +136,7 @@
   (progn
     (defn adderf (n)
       (progn
-        (def m (return :ready))
+        (def m (return @1 :ready))
         (return (/std/+ n m))))
     (defn adder (n)
       (progn
@@ -149,33 +149,33 @@
 (fntest
   (progn
     (defn fib () (progn
-                   (return 3)
-                   (return 5)
-                   (return 8)
-                   (return 13)))
+                   (return @0 3)
+                   (return @0 5)
+                   (return @0 8)
+                   (return @0 13)))
     (def (x) (fib @mut))
-    (def (y) (fib @mut '()))
-    (def (z) (fib @mut '()))
-    (def (t) (fib @mut '()))
+    (def (y) (fib @mut))
+    (def (z) (fib @mut))
+    (def (t) (fib @mut))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
 (fntest
   (progn
     (defn far-fib () (progn
-                       (return @event-loop 3)
-                       (return @event-loop 5)
-                       (return 8)))
+                       (return @0 @event-loop 3)
+                       (return @0 @event-loop 5)
+                       (return @0 8)))
 
     (defn more-far-fib () (progn
                             (def x (../far-fib))
-                            (return @event-loop x)
-                            (return @event-loop 13)))
+                            (return @0 @event-loop x)
+                            (return @0 @event-loop 13)))
 
     (def (x) (more-far-fib @mut @event-loop))
-    (def (y) (more-far-fib @mut @event-loop '()))
-    (def (z) (more-far-fib @mut @event-loop '()))
-    (def (t) (more-far-fib @mut @event-loop '()))
+    (def (y) (more-far-fib @mut @event-loop))
+    (def (z) (more-far-fib @mut @event-loop))
+    (def (t) (more-far-fib @mut @event-loop))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -196,7 +196,7 @@
 (fntest
   (progn
     (defn foo (x) (progn
-                    (def y (return (/std/+ x 1)))
+                    (def y (return @1 (/std/+ x 1)))
                     (def (z t) (return @2 (/std/+ y 1)))
                     (return :done)))
     (def fee foo)
@@ -209,8 +209,8 @@
 (fntest
   (progn
     (defn cl-holder (x xs) (progn
-                             (return :nothing)
-                             (return x xs)))
+                             (return @1 :nothing)
+                             (return @1 x xs)))
 
     (defn cl-cons (x xs) (progn
                            (def holder cl-holder)
@@ -276,7 +276,7 @@
         (/libc/print ext-pointer)
         (/libc/print "argument:")
         (/libc/print arg-)
-        (def host-res (return @(host "call-extension") ext-pointer arg-))
+        (def host-res (return @1 @(host "call-extension") ext-pointer arg-))
         (../interceptor @something host-res)))
     (def res (interceptor 'arg))
     (return res))

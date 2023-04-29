@@ -76,7 +76,7 @@
   (progn
     (defn adderf (n)
                    (progn
-                     (def m (return :ready))
+                     (def m (return @1 :ready))
                      (return (std/+ n m))))
     (defn adder (n)
                    (progn
@@ -89,14 +89,14 @@
 (fntest
   (progn
     (defn fib () (progn
-       (return 3)
-       (return 5)
-       (return 8)
-       (return 13)))
+       (return @0 3)
+       (return @0 5)
+       (return @0 8)
+       (return @0 13)))
     (def (x) (fib @mut))
-    (def (y) (fib @mut '()))
-    (def (z) (fib @mut '()))
-    (def (t) (fib @mut '()))
+    (def (y) (fib @mut))
+    (def (z) (fib @mut))
+    (def (t) (fib @mut))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
