@@ -248,7 +248,8 @@ EXPORT read_result datum_read(FILE *strm) {
       if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
         return read_result_make_ok(list);
       }
-      if (tok.type == TOKEN_LEFT_BRACKET && read_result_is_right_bracket(elem)) {
+      if (tok.type == TOKEN_LEFT_BRACKET &&
+          read_result_is_right_bracket(elem)) {
         return read_result_make_ok(list);
       }
       if (read_result_is_eof(elem)) {

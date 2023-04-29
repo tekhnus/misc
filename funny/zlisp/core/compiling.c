@@ -65,6 +65,9 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
+    if (compdata_validate(compdata) && compdata_has_value(compdata)) {
+      // fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
+    }
   }
   return NULL;
 }
@@ -108,8 +111,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    datum cond = datum_make_list_of(datum_copy(list_at(stmt, 1)));
-    err = prog_append_statements(sl, begin, &cond, compdata, ext, false);
+    err = prog_append_statement(sl, begin, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -124,15 +126,12 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    datum true_branch = datum_make_list_of(datum_copy(list_at(stmt, 2)));
-    err = prog_append_statements(sl, &true_end, &true_branch, compdata, ext,
-                                 false);
+    err = prog_append_statement(sl, &true_end, list_at(stmt, 2), compdata, ext);
     if (err != NULL) {
       return err;
     }
-    datum false_branch = datum_make_list_of(datum_copy(list_at(stmt, 3)));
-    err = prog_append_statements(sl, &false_end, &false_branch, false_compdata,
-                                 ext, false);
+    err = prog_append_statement(sl, &false_end, list_at(stmt, 3),
+                                false_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -178,12 +177,14 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (datum_is_the_symbol(op, "list")) {
-    datum parts = list_get_tail(stmt);
-    char *err = prog_append_statements(sl, begin, &parts, compdata, ext, false);
-    if (err != NULL) {
-      return err;
+    for (int i = 1; i < list_length(stmt); ++i) {
+      char *err =
+          prog_append_statement(sl, begin, list_at(stmt, i), compdata, ext);
+      if (err != NULL) {
+        return err;
+      }
     }
-    prog_append_collect(sl, list_length(&parts), begin, compdata);
+    prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "quote")) {
@@ -206,8 +207,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       dst = list_at(stmt, 0);
       expr = list_at(stmt, 2);
     }
-    char *err =
-        prog_append_statement(sl, begin, expr, compdata, ext);
+    char *err = prog_append_statement(sl, begin, expr, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -589,8 +589,7 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
-  datum st = datum_make_list_of(datum_copy(stmt));
-  return prog_append_statements(sl, &s, &st, routine_compdata, ext, false);
+  return prog_append_statement(sl, &s, stmt, routine_compdata, ext);
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
@@ -642,21 +641,22 @@ EXPORT datum *compdata_alloc_make() {
 }
 
 EXPORT bool compdata_has_value(datum *compdata) {
-  compdata_validate(compdata);
+  assert(compdata_validate(compdata));
   datum *outer_frame = list_get_last(compdata);
   return !datum_is_nil(outer_frame) &&
          datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
-LOCAL void compdata_validate(datum *compdata) {
+LOCAL bool compdata_validate(datum *compdata) {
   datum *outer_frame = list_get_last(compdata);
   if (!datum_is_nil(outer_frame) &&
       datum_is_the_symbol(list_get_last(outer_frame),
                           "__different_if_branches")) {
-    fprintf(stderr, "compdata_del: if branches had different compdata\n");
-    fprintf(stderr, "%s\n", datum_repr(compdata));
-    exit(EXIT_FAILURE);
+    // fprintf(stderr, "compdata_del: if branches had different compdata\n");
+    // fprintf(stderr, "%s\n", datum_repr(compdata));
+    return false;
   }
+  return true;
 }
 
 LOCAL void compdata_put(datum *compdata, datum var) {
@@ -665,7 +665,7 @@ LOCAL void compdata_put(datum *compdata, datum var) {
 }
 
 LOCAL void compdata_del(datum *compdata) {
-  compdata_validate(compdata);
+  assert(compdata_validate(compdata));
   datum *last_frame = list_get_last(compdata);
   list_pop(last_frame);
 }

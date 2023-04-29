@@ -94,8 +94,6 @@ LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum offset_relocate(datum *ins,size_t delta);
-LOCAL void compdata_validate(datum *compdata);
-bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 LOCAL void prog_append_move(vec *sl,size_t *begin,datum *target,datum *source,datum *compdata);
@@ -119,6 +117,8 @@ LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum *compdat
 LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum *compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
+bool compdata_has_value(datum *compdata);
+LOCAL bool compdata_validate(datum *compdata);
 char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL datum instruction_relocate(datum *ins,size_t delta);
