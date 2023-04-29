@@ -136,12 +136,12 @@
   (progn
     (defn adderf (n)
       (progn
-        (def m (return @1 :ready))
+        (def m (return @1))
         (return (/std/+ n m))))
     (defn adder (n)
       (progn
         (def a adderf)
-        (../a @mut n)
+        (../a @0 @mut n)
         (return a)))
     (return ((adder 3) 4)))
   7)
@@ -181,7 +181,7 @@
 
 (fntest
   (progn
-    (/prelude/fprintf stderr "hello")
+    (def res (/prelude/fprintf stderr "hello"))
     (return 42))
   42)
 
@@ -209,22 +209,22 @@
 (fntest
   (progn
     (defn cl-holder (x xs) (progn
-                             (return @1 :nothing)
-                             (return @1 x xs)))
+                             (return @0)
+                             (return @0 x xs)))
 
     (defn cl-cons (x xs) (progn
                            (def holder cl-holder)
-                           (../holder @mut x xs)
+                           (../holder @0 @mut x xs)
                            (return holder)))
 
     (defn cl-head (xs)
       (progn
-        (def (h r) (../xs @2 :nuthing))
+        (def (h r) (../xs @2))
         (return h)))
 
     (defn cl-tail (xs)
       (progn
-        (def (h r) (../xs @2 :nuthin))
+        (def (h r) (../xs @2))
         (return r)))
 
     (def cl-nil :nil)
@@ -259,7 +259,7 @@
 
 (fntest
   (progn
-    (/libc/print 42)
+    (def res (/libc/print 42))
     (return 33))
   33)
 
@@ -267,17 +267,17 @@
   (progn
     (defn do-something (x)
       (progn
-        (/libc/print x)
+        (def res (/libc/print x))
         (return 'do-something-value)))
     (defn interceptor (arg)
       (progn
         (def (ext-pointer arg-) (../do-something @mut @(host "call-extension-1") @2 arg))
-        (/libc/print "extension:")
-        (/libc/print ext-pointer)
-        (/libc/print "argument:")
-        (/libc/print arg-)
+        (def res (/libc/print "extension:"))
+        (def res (/libc/print ext-pointer))
+        (def res (/libc/print "argument:"))
+        (def res (/libc/print arg-))
         (def host-res (return @1 @(host "call-extension") ext-pointer arg-))
-        (../interceptor @something host-res)))
+        (../interceptor @0 @something host-res)))
     (def res (interceptor 'arg))
     (return res))
   'do-something-value)
@@ -309,15 +309,15 @@
 (defn print-all (xs)
   (if xs
       (progn
-        (/libc/print (/std/head xs))
-        (../print-all (/std/tail xs))
-        (return '()))
-    (return '())))
+        (def res (/libc/print (/std/head xs)))
+        (../print-all @0 (/std/tail xs))
+        (return))
+    (return)))
 
 (if panics
     (progn
-      (print-all panics)
-      (/std/panic "FAILED"))
+      (print-all @0 panics)
+      (/std/panic @0 "FAILED"))
   (progn))
 
 (def x "if at the end of the module doesn't work well, so here is this statement:)")
