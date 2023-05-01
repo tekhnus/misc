@@ -11,7 +11,7 @@
  (testing "testing")
  (fntest- "testing" fntest))
 
-(defn switch (exp argz) (return (list 'progn (list 'args '= exp) (/std/switch-fun argz))))
+(defn switch (exp argz) (return (list 'brackets (list 'args '= exp) (/std/switch-fun argz))))
 
 (defn fntest (body expect) (return (/testing/fntest- body expect)))
 
@@ -30,10 +30,10 @@
   {
   (return
    (list
-    'progn
+    'brackets
     (list
      'defn name '()
-     (list 'progn
+     (list 'brackets
            (list 'defn 'original-func args body)
            (list '() '= (list 'original-func '(at mut) '(at pre) '(at 0) '(at up2)))
            (list 'return :shouldnt-go-here)))

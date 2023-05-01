@@ -157,7 +157,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                            datum_make_int(loop_end));
     return NULL;
   }
-  if (datum_is_the_symbol(op, "progn")) {
+  if (datum_is_the_symbol(op, "brackets")) {
     datum parts = list_get_tail(stmt);
     char *err = prog_append_statements(sl, begin, &parts, compdata, ext, false);
     if (err != NULL) {

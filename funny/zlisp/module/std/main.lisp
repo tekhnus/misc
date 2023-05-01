@@ -76,10 +76,10 @@
 	(cond = (../head firstarg))
 	(body = (../list-at firstarg 1))
 	(rest = (../swtchone (../tail a0)))
-	(return (list 'progn
+	(return (list 'brackets
 		   (list 'prearg '= cond)
 		   (list 'if '(/std/eq (/std/head prearg) :ok)
-		       (list 'progn
+		       (list 'brackets
 			 '(args = (/std/list-at prearg 1))
 			 body)
 		     rest)))}
@@ -157,7 +157,7 @@
     (cmds = (../tail a0))
     (checker = (list '/std/decons-pat (list 'quote sig) 'args))
     (vars = (../decons-vars sig))
-    (body = (../cons 'progn (../concat (../map make-assignment (../zip vars switch-defines)) cmds)))
+    (body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds)))
     (return (list checker body))})
 
 (defn switch-fun (a0)

@@ -239,7 +239,7 @@ EXPORT read_result datum_read(FILE *strm) {
     read_result elem;
     datum list = datum_make_nil();
     if (tok.type == TOKEN_LEFT_BRACKET) {
-      list_append(&list, datum_make_symbol("progn"));
+      list_append(&list, datum_make_symbol("brackets"));
     }
     for (;;) {
       while (read_result_is_ok(elem = datum_read(strm))) {

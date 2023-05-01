@@ -7,7 +7,7 @@
  (panic "std" panic))
 
 (defn fntest (body expect)
-  (return (list 'progn
+  (return (list 'brackets
              (list 'defn 'calltest '() body)
              '(val = (calltest))
              (list 'if (list '/std/eq 'val expect)
