@@ -183,19 +183,14 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     prog_append_put_const(sl, begin, list_at(stmt, 1), compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(op, "def") || datum_is_the_symbol(&op2, "=")) {
+  if (datum_is_the_symbol(&op2, "=")) {
     if (list_length(stmt) != 3) {
       return "def should have two args";
     }
     datum *dst;
     datum *expr;
-    if (datum_is_the_symbol(op, "def")) {
-      dst = list_at(stmt, 1);
-      expr = list_at(stmt, 2);
-    } else {
-      dst = list_at(stmt, 0);
-      expr = list_at(stmt, 2);
-    }
+    dst = list_at(stmt, 0);
+    expr = list_at(stmt, 2);
     char *err = prog_append_expression(sl, begin, expr, compdata, ext);
     if (err != NULL) {
       return err;
