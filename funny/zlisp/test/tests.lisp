@@ -88,14 +88,14 @@
   '())
 
 (fntest
-  (progn
+  {
     (bar = :foo)
-    (return (/std/eq :foo bar)))
+    (return (/std/eq :foo bar))}
   '(()))
 
 (fntest
-  (progn
-    (return (/std/append 5 '(1 2 3 4))))
+{
+    (return (/std/append 5 '(1 2 3 4)))}
   '(1 2 3 4 5))
 
 (fntest
@@ -103,129 +103,129 @@
   '(1 2 3))
 
 (fntest
-  (progn
+{
     (defn twice (arg) (return (/std/+ arg arg)))
-    (return (twice 35)))
+    (return (twice 35))}
   70)
 
 (fntest
-  (progn
+{
     (defn2 twice (arg) (return (/std/+ arg arg)))
-    (return (twice 35)))
+    (return (twice 35))}
   70)
 
 (fntest
-  (progn
+{
     (defn2 twice (arg) (return (/std/+ arg arg)))
     (defn four-times (arg) (return (/std/+ (../twice arg) (../twice arg))))
-    (return (four-times 35)))
+    (return (four-times 35))}
   140)
 
 (fntest
-  (progn
+{
     (x = 0)
     (y = 1)
     (while (/std/not (/std/eq x 5))
-      (progn
+      {
         (y = (/std/+ y y))
-        (x = (/std/+ x 1))))
-    (return y))
+        (x = (/std/+ x 1))})
+    (return y)}
   32)
 
 (fntest
-  (progn
+{
     (defn adderf (n)
-      (progn
+      {
         (m = (return @1))
-        (return (/std/+ n m))))
+        (return (/std/+ n m))})
     (defn adder (n)
-      (progn
+      {
         (a = adderf)
         (() = (../a @0 @mut n))
-        (return a)))
-    (return ((adder 3) 4)))
+        (return a)})
+    (return ((adder 3) 4))}
   7)
 
 (fntest
-  (progn
-    (defn fib () (progn
+{
+    (defn fib () {
                    (return @0 3)
                    (return @0 5)
                    (return @0 8)
-                   (return @0 13)))
+                   (return @0 13)})
     ((x) = (fib @mut))
     ((y) = (fib @mut))
     ((z) = (fib @mut))
     ((t) = (fib @mut))
-    (return `(~x ~y ~z ~t)))
+    (return `(~x ~y ~z ~t))}
   '(3 5 8 13))
 
 (fntest
-  (progn
-    (defn far-fib () (progn
+{
+    (defn far-fib () {
                        (return @0 @event-loop 3)
                        (return @0 @event-loop 5)
-                       (return @0 8)))
+                       (return @0 8)})
 
-    (defn more-far-fib () (progn
+    (defn more-far-fib () {
                             (x = (../far-fib))
                             (return @0 @event-loop x)
-                            (return @0 @event-loop 13)))
+                            (return @0 @event-loop 13)})
 
     ((x) = (more-far-fib @mut @event-loop))
     ((y) = (more-far-fib @mut @event-loop))
     ((z) = (more-far-fib @mut @event-loop))
     ((t) = (more-far-fib @mut @event-loop))
-    (return `(~x ~y ~z ~t)))
+    (return `(~x ~y ~z ~t))}
   '(3 5 8 13))
 
 (fntest
-  (progn
+{
     (res = (/prelude/fprintf stderr "hello"))
-    (return 42))
+    (return 42)}
   42)
 
 
 (fntest
-  (progn
+{
     (defn multi-ret () (return 42 34))
     ((x y) = (multi-ret @2))
-    (return `(~x ~y)))
+    (return `(~x ~y))}
   '(42 34))
 
 (fntest
-  (progn
-    (defn foo (x) (progn
+{
+    (defn foo (x) {
                     (y = (return @1 (/std/+ x 1)))
                     ((z t) = (return @2 (/std/+ y 1)))
-                    (return :done)))
+                    (return :done)})
     (fee = foo)
     (a = (fee @mut 41))
     (b = (fee @mut 33))
     (c = (fee @mut 14 15))
-    (return `(~a ~b ~c)))
+    (return `(~a ~b ~c))}
   '(42 34 :done))
 
 (fntest
-  (progn
-    (defn cl-holder (x xs) (progn
+{
+    (defn cl-holder (x xs) {
                              (return @0)
-                             (return @0 x xs)))
+                             (return @0 x xs)})
 
-    (defn cl-cons (x xs) (progn
+    (defn cl-cons (x xs) {
                            (holder = cl-holder)
                            (() = (../holder @0 @mut x xs))
-                           (return holder)))
+                           (return holder)})
 
     (defn cl-head (xs)
-      (progn
+      {
         ((h r) = (../xs @2))
-        (return h)))
+        (return h)})
 
     (defn cl-tail (xs)
-      (progn
+      {
         ((h r) = (../xs @2))
-        (return r)))
+        (return r)})
 
     (cl-nil = :nil)
 
@@ -235,70 +235,70 @@
 
     (a = (cl-head xs2))
     (b = (cl-head (cl-tail xs2)))
-    (return `(~a ~b)))
+    (return `(~a ~b))}
   '(34 42))
 
 (fntest
-  (progn
+{
     (defn fff (x) (return (/std/+ x 42)))
     (yyy = (fff 1))
-    (return yyy))
+    (return yyy)}
   43)
 
 (fntest
-  (progn
+{
     (defn fff ()
-      (progn
+      {
         (x = 2)
         (defn ggg ()
           (return (/std/+ x 40)))
-        (return ggg)))
+        (return ggg)})
     (ggg-in-fff = (fff @mut))
-    (return (fff/ggg-in-fff)))
+    (return (fff/ggg-in-fff))}
   42)
 
 (fntest
-  (progn
+{
     (res = (/libc/print 42))
-    (return 33))
+    (return 33)}
   33)
 
 (fntest
-  (progn
+{
     (defn do-something (x)
-      (progn
+      {
         (res = (/libc/print x))
-        (return 'do-something-value)))
+        (return 'do-something-value)})
     (defn interceptor (arg)
-      (progn
+      {
         ((ext-pointer arg-) = (../do-something @mut @(host "call-extension-1") @2 arg))
         (res = (/libc/print "extension:"))
         (res = (/libc/print ext-pointer))
         (res = (/libc/print "argument:"))
         (res = (/libc/print arg-))
         (host-res = (return @1 @(host "call-extension") ext-pointer arg-))
-        (() = (../interceptor @0 @something host-res))))
+        (() = (../interceptor @0 @something host-res))})
     (res = (interceptor 'arg))
-    (return res))
+    (return res)}
   'do-something-value)
 
 (fntest
-  (progn
+{
     (defn wrapper ()
-      (progn
+      {
         (defn wrapped (x)
-          (progn
-            (return `(~x ~x))))
+          {
+            (return `(~x ~x))})
         (() = (wrapped @mut @pre @0 @up))
-        (return 33)))
+        (return 33)})
     (() = (wrapper @mut @0))
     (res = (wrapper 42))
-    (return res))
+    (return res)}
   '(42 42))
 
 (fntest
- (progn
-   (if 3 {(return 42)} {(return 25)}))
+{
+   (if 3 {(return 42)} {(return 25)})}
  42)
 
 (fntest {
@@ -308,16 +308,16 @@
 
 (defn print-all (xs)
   (if xs
-      (progn
+      {
         (res = (/libc/print (/std/head xs)))
         (() = (../print-all @0 (/std/tail xs)))
-        (return))
+        (return)}
     (return)))
 
 (if panics
-    (progn
+{
       (() = (print-all @0 panics))
-      (() = (/std/panic @0 "FAILED")))
-  (progn))
+      (() = (/std/panic @0 "FAILED"))}
+  {})
 
 (x = "if at the end of the module doesn't work well, so here is this statement:)")
