@@ -14,7 +14,7 @@
  (print "prelude" print)
  (concat-bytestrings "std" concat-bytestrings))
 
-(def panics '())
+(panics = '())
 
 (fntest
   (return (std/head '(42 5 3)))
@@ -54,7 +54,7 @@
 
 (fntest
   (progn
-    (def bar :foo)
+    (bar = :foo)
     (return (std/eq :foo bar)))
   '(()))
 
@@ -77,11 +77,11 @@
   (progn
     (defn adderf (n)
                    (progn
-                     (def m (return @1))
+                     (m = (return @1))
                      (return (std/+ n m))))
     (defn adder (n)
                    (progn
-                     (def a adderf)
+                     (a = adderf)
                      (def () (a @0 @mut n))
                      (return a)))
     (return ((adder 3) 4)))
@@ -104,7 +104,7 @@
 (fntest
   (progn
     (defn fff (x) (return (std/+ x 42)))
-    (def yyy (fff 1))
+    (yyy = (fff 1))
     (return yyy))
   43)
 
@@ -117,22 +117,22 @@
 
 (fntest
   (progn
-    (def y 3)
+    (y = 3)
     (defn fff ()
                    (progn
-                     (def x 2)
+                     (x = 2)
                      (defn ggg ()
                                     (progn
                                                            (return (std/+ x 40))))
                      (return ggg)))
-    (def ggg-in-fff (fff @mut))
+    (ggg-in-fff = (fff @mut))
     (return (fff/ggg-in-fff)))
   42)
 
 (defn print-all (xs)
    (if xs
        (progn
-         (def res (/prelude/print (/std/head xs)))
+         (res = (/prelude/print (/std/head xs)))
          (def () (../print-all @0 (/std/tail xs)))
          (return))
      (return)))
@@ -141,5 +141,5 @@
     (progn
       (def () (print-all @0 panics))
       (def () (/std/panic @0 "FAILED"))
-      (def x 42))
-  (def x 33))
+      (x = 42))
+  (x = 33))

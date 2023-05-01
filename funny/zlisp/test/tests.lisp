@@ -21,7 +21,7 @@
  (libc "libc")
  (print "libc" print))
 
-(def panics '())
+(panics = '())
 
 (fntest
   (return "hello, world!")
@@ -89,7 +89,7 @@
 
 (fntest
   (progn
-    (def bar :foo)
+    (bar = :foo)
     (return (/std/eq :foo bar)))
   '(()))
 
@@ -123,12 +123,12 @@
 
 (fntest
   (progn
-    (def x 0)
-    (def y 1)
+    (x = 0)
+    (y = 1)
     (while (/std/not (/std/eq x 5))
       (progn
-        (def y (/std/+ y y))
-        (def x (/std/+ x 1))))
+        (y = (/std/+ y y))
+        (x = (/std/+ x 1))))
     (return y))
   32)
 
@@ -136,11 +136,11 @@
   (progn
     (defn adderf (n)
       (progn
-        (def m (return @1))
+        (m = (return @1))
         (return (/std/+ n m))))
     (defn adder (n)
       (progn
-        (def a adderf)
+        (a = adderf)
         (def () (../a @0 @mut n))
         (return a)))
     (return ((adder 3) 4)))
@@ -168,7 +168,7 @@
                        (return @0 8)))
 
     (defn more-far-fib () (progn
-                            (def x (../far-fib))
+                            (x = (../far-fib))
                             (return @0 @event-loop x)
                             (return @0 @event-loop 13)))
 
@@ -181,7 +181,7 @@
 
 (fntest
   (progn
-    (def res (/prelude/fprintf stderr "hello"))
+    (res = (/prelude/fprintf stderr "hello"))
     (return 42))
   42)
 
@@ -196,13 +196,13 @@
 (fntest
   (progn
     (defn foo (x) (progn
-                    (def y (return @1 (/std/+ x 1)))
+                    (y = (return @1 (/std/+ x 1)))
                     (def (z t) (return @2 (/std/+ y 1)))
                     (return :done)))
-    (def fee foo)
-    (def a (fee @mut 41))
-    (def b (fee @mut 33))
-    (def c (fee @mut 14 15))
+    (fee = foo)
+    (a = (fee @mut 41))
+    (b = (fee @mut 33))
+    (c = (fee @mut 14 15))
     (return `(~a ~b ~c)))
   '(42 34 :done))
 
@@ -213,7 +213,7 @@
                              (return @0 x xs)))
 
     (defn cl-cons (x xs) (progn
-                           (def holder cl-holder)
+                           (holder = cl-holder)
                            (def () (../holder @0 @mut x xs))
                            (return holder)))
 
@@ -227,21 +227,21 @@
         (def (h r) (../xs @2))
         (return r)))
 
-    (def cl-nil :nil)
+    (cl-nil = :nil)
 
-    (def xs0 cl-nil)
-    (def xs1 (cl-cons 42 xs0))
-    (def xs2 (cl-cons 34 xs1))
+    (xs0 = cl-nil)
+    (xs1 = (cl-cons 42 xs0))
+    (xs2 = (cl-cons 34 xs1))
 
-    (def a (cl-head xs2))
-    (def b (cl-head (cl-tail xs2)))
+    (a = (cl-head xs2))
+    (b = (cl-head (cl-tail xs2)))
     (return `(~a ~b)))
   '(34 42))
 
 (fntest
   (progn
     (defn fff (x) (return (/std/+ x 42)))
-    (def yyy (fff 1))
+    (yyy = (fff 1))
     (return yyy))
   43)
 
@@ -249,17 +249,17 @@
   (progn
     (defn fff ()
       (progn
-        (def x 2)
+        (x = 2)
         (defn ggg ()
           (return (/std/+ x 40)))
         (return ggg)))
-    (def ggg-in-fff (fff @mut))
+    (ggg-in-fff = (fff @mut))
     (return (fff/ggg-in-fff)))
   42)
 
 (fntest
   (progn
-    (def res (/libc/print 42))
+    (res = (/libc/print 42))
     (return 33))
   33)
 
@@ -267,18 +267,18 @@
   (progn
     (defn do-something (x)
       (progn
-        (def res (/libc/print x))
+        (res = (/libc/print x))
         (return 'do-something-value)))
     (defn interceptor (arg)
       (progn
         (def (ext-pointer arg-) (../do-something @mut @(host "call-extension-1") @2 arg))
-        (def res (/libc/print "extension:"))
-        (def res (/libc/print ext-pointer))
-        (def res (/libc/print "argument:"))
-        (def res (/libc/print arg-))
-        (def host-res (return @1 @(host "call-extension") ext-pointer arg-))
+        (res = (/libc/print "extension:"))
+        (res = (/libc/print ext-pointer))
+        (res = (/libc/print "argument:"))
+        (res = (/libc/print arg-))
+        (host-res = (return @1 @(host "call-extension") ext-pointer arg-))
         (def () (../interceptor @0 @something host-res))))
-    (def res (interceptor 'arg))
+    (res = (interceptor 'arg))
     (return res))
   'do-something-value)
 
@@ -292,7 +292,7 @@
         (def () (wrapped @mut @pre @0 @up))
         (return 33)))
     (def () (wrapper @mut @0))
-    (def res (wrapper 42))
+    (res = (wrapper 42))
     (return res))
   '(42 42))
 
@@ -309,7 +309,7 @@
 (defn print-all (xs)
   (if xs
       (progn
-        (def res (/libc/print (/std/head xs)))
+        (res = (/libc/print (/std/head xs)))
         (def () (../print-all @0 (/std/tail xs)))
         (return))
     (return)))
@@ -320,4 +320,4 @@
       (def () (/std/panic @0 "FAILED")))
   (progn))
 
-(def x "if at the end of the module doesn't work well, so here is this statement:)")
+(x = "if at the end of the module doesn't work well, so here is this statement:)")

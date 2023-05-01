@@ -1,5 +1,5 @@
 (req)
 
-(def some-variable 42)
+(some-variable = 42)
 
 (export)

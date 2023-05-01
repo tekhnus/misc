@@ -26,44 +26,44 @@
  (cdm "zlisp" compdata-make)
  (em "zlisp" ext-make))
 
-(def readme "A basic REPL for zlisp.")
+(readme = "A basic REPL for zlisp.")
 
 (defn repl
   (sl nsp pptr bpptr compdata bdrcompdata ex)
   (progn
-    (def tmp (/prelude/fprintf stdout "> "))
+    (tmp = (/prelude/fprintf stdout "> "))
     (switch
       (/zlisp/rd stdin)
       (((:eof)
 	(return (/prelude/fprintf stdout "\n")))
        ((:ok datum)
-        (def maybe-prog (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex))
+        (maybe-prog = (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex))
         (switch
           maybe-prog
           (((:ok progxxx)
             (switch
               (/zlisp/eval-new sl nsp)
               (((:ok val ctxt)
-                (def ignored (/prelude/fprintf-bytestring
+                (ignored = (/prelude/fprintf-bytestring
                            stdout "%s\n" (/zlisp/repr-pointer val)))
                 (return (../repl sl ctxt pptr bpptr compdata bdrcompdata ex)))
                ((:err msg)
-		(def ignored (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
+		(ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg))
 		(return (../repl sl nsp pptr bpptr compdata bdrcompdata ex))))))
            ((:err msg)
-            (def ignored (/prelude/fprintf-bytestring
+            (ignored = (/prelude/fprintf-bytestring
                        stderr "compilation error at repl: %s\n" msg))
             (return (../repl sl nsp pptr bpptr compdata bdrcompdata ex))))))
        ((:err msg)
-	(def ignored (/prelude/fprintf-bytestring stderr "read error: %s\n" msg))
+	(ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msg))
 	(return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)))))))
 
-(def sl (/prelude/psm 20000))
-(def pptr (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
-(def bpptr (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
-(def rt (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0)))
-(def compdata (/prelude/cdm))
-(def bdrcompdata (/prelude/cdm))
-(def ex (/prelude/em))
-(def xxx (/zlisp/iprog sl pptr bpptr compdata bdrcompdata))
-(def ignored (repl sl rt pptr bpptr compdata bdrcompdata ex))
+(sl = (/prelude/psm 20000))
+(pptr = (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
+(bpptr = (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
+(rt = (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0)))
+(compdata = (/prelude/cdm))
+(bdrcompdata = (/prelude/cdm))
+(ex = (/prelude/em))
+(xxx = (/zlisp/iprog sl pptr bpptr compdata bdrcompdata))
+(ignored = (repl sl rt pptr bpptr compdata bdrcompdata ex))

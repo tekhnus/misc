@@ -32,10 +32,10 @@
 
 (defn length (x)
   (progn
-    (def n 0)
+    (n = 0)
     (while x (progn
-      (def n (../+ n 1))
-      (def x (../tail x))))
+      (n = (../+ n 1))
+      (x = (../tail x))))
     (return n)))
 
 (defn concat (a0 a1)
@@ -64,7 +64,7 @@
 
 (defn ignore (x) (return (list 'def 'throwaway x)))
 
-(def panic-block '(argz (/std/panic @0 "wrong fn call")))
+(panic-block = '(argz (/std/panic @0 "wrong fn call")))
 
 (defn list-at (xs n) (progn
                        (if (../eq n 0)
@@ -74,68 +74,68 @@
 (defn swtchone (a0)
   (if a0
       (progn
-	(def firstarg (../head a0))
-	(def cond (../head firstarg))
-	(def body (../list-at firstarg 1))
-	(def rest (../swtchone (../tail a0)))
+	(firstarg = (../head a0))
+	(cond = (../head firstarg))
+	(body = (../list-at firstarg 1))
+	(rest = (../swtchone (../tail a0)))
 	(return (list 'progn
 		   (list 'def 'prearg cond)
 		   (list 'if '(/std/eq (/std/head prearg) :ok)
 		       (list 'progn
-			 '(def args (/std/list-at prearg 1))
+			 '(args = (/std/list-at prearg 1))
 			 body)
 		     rest))))
     (progn
-      (def firstarg "ifhack")
-      (def cond "ifhack")
-      (def body "ifhack")
-      (def rest "ifhack")
+      (firstarg = "ifhack")
+      (cond = "ifhack")
+      (body = "ifhack")
+      (rest = "ifhack")
       (return '(/std/panic @0 "nothing matched")))))
 
 
 (defn decons-pat (a0 a1)
   (progn
-    (def pat a0)
-    (def val a1)
+    (pat = a0)
+    (val = a1)
     (if (../is-constant pat)
         (progn
-          (def first-decons "ifhack")
-          (def rest-decons "ifhack")
+          (first-decons = "ifhack")
+          (rest-decons = "ifhack")
 	  (if (../eq pat val)
 	      (return '(:ok ()))
 	    (return '(:err))))
       (if (../eq (../type pat) :symbol)
 	  (progn
-            (def first-decons "ifhack")
-            (def rest-decons "ifhack")
+            (first-decons = "ifhack")
+            (rest-decons = "ifhack")
             (return (list :ok (list val))))
 	(if (../eq (../type pat) :list)
 	    (if pat
 		(if val
 		    (progn
-		      (def first-decons (../decons-pat (../head pat) (../head val)))
-		      (def rest-decons (../decons-pat (../tail pat) (../tail val)))
+		      (first-decons = (../decons-pat (../head pat) (../head val)))
+		      (rest-decons = (../decons-pat (../tail pat) (../tail val)))
 		      (if (../eq :err (../head rest-decons))
 			  (return '(:err))
 			(if (../eq :err (../head first-decons))
 			    (return '(:err))
 			  (return (list :ok (../concat (../list-at first-decons 1) (../list-at rest-decons 1)))))))
 		  (progn
-                    (def first-decons "ifhack")
-                    (def rest-decons "ifhack")
+                    (first-decons = "ifhack")
+                    (rest-decons = "ifhack")
                     (return '(:err))))
 	      (if val
                   (progn
-                    (def first-decons "ifhack")
-                    (def rest-decons "ifhack")
+                    (first-decons = "ifhack")
+                    (rest-decons = "ifhack")
 		    (return '(:err)))
 		(progn
-                  (def first-decons "ifhack")
-                  (def rest-decons "ifhack")
+                  (first-decons = "ifhack")
+                  (rest-decons = "ifhack")
                   (return '(:ok ())))))
 	  (progn
-            (def first-decons "ifhack")
-            (def rest-decons "ifhack")
+            (first-decons = "ifhack")
+            (rest-decons = "ifhack")
             (def () (../panic @0 "decons-pat met an unsupported type"))))))))
 
 (defn decons-vars (a0)
@@ -149,17 +149,17 @@
 	    (return '()))
 	(def () (panic @0 "decons-var met an unsupported type"))))))
 
-(def switch-defines '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)))
+(switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)))
 
 (defn make-def (x) (return (../cons 'def x)))
 
 (defn switch-clause (a0)
   (progn
-    (def sig (../head a0))
-    (def cmds (../tail a0))
-    (def checker (list '/std/decons-pat (list 'quote sig) 'args))
-    (def vars (../decons-vars sig))
-    (def body (../cons 'progn (../concat (../map make-def (../zip vars switch-defines)) cmds)))
+    (sig = (../head a0))
+    (cmds = (../tail a0))
+    (checker = (list '/std/decons-pat (list 'quote sig) 'args))
+    (vars = (../decons-vars sig))
+    (body = (../cons 'progn (../concat (../map make-def (../zip vars switch-defines)) cmds)))
     (return (list checker body))))
 
 (defn switch-fun (a0)
@@ -177,7 +177,7 @@
 (defn first-good-value (x) (progn
                              (if x
                                  (progn
-                                   (def first-arg (../head x))
+                                   (first-arg = (../head x))
                                    (if (../eq :ok (../head first-arg))
                                        (progn
                                          (return (../list-at first-arg 1)))

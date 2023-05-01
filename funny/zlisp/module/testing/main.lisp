@@ -9,9 +9,9 @@
 (defn fntest (body expect)
   (return (list 'progn
              (list 'defn 'calltest '() body)
-             '(def val (calltest))
+             '(val = (calltest))
              (list 'if (list '/std/eq 'val expect)
-                 '(def panics panics)
+                 '(panics = panics)
                (list 'def 'panics (list '/std/cons (list '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") (list '/std/repr expect)) 'panics))))))
 
 (export (fntest fntest))
