@@ -115,12 +115,12 @@ LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdat
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum *compdata,datum var);
 LOCAL void compdata_del(datum *compdata);
+char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
 LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum *compdata);
 bool compdata_has_value(datum *compdata);
 LOCAL bool compdata_validate(datum *compdata);
-char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
-LOCAL char *prog_append_special(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
+LOCAL char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL datum instruction_relocate(datum *ins,size_t delta);
 LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext,bool skip_first_debug);

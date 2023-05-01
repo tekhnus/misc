@@ -11,7 +11,7 @@
  (concat-bytestrings- "prelude" concat-bytestrings)
  (+- "prelude" +))
 
-(defn panic (x) {(/prelude/panic- @0 x) (return)})
+(defn panic (x) {(def () (/prelude/panic- @0 x)) (return)})
 (defn head (x) (return (/prelude/head- x)))
 (defn tail (x) (return (/prelude/tail- x)))
 (defn cons (x xs) (return (/prelude/cons- x xs)))
@@ -136,7 +136,7 @@
 	  (progn
             (def first-decons "ifhack")
             (def rest-decons "ifhack")
-            (../panic @0 "decons-pat met an unsupported type")))))))
+            (def () (../panic @0 "decons-pat met an unsupported type"))))))))
 
 (defn decons-vars (a0)
   (if (../is-constant a0)
@@ -147,7 +147,7 @@
 	  (if a0
 	      (return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0))))
 	    (return '()))
-	(panic @0 "decons-var met an unsupported type")))))
+	(def () (panic @0 "decons-var met an unsupported type"))))))
 
 (def switch-defines '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)))
 

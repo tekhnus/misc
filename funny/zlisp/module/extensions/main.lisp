@@ -8,7 +8,6 @@
  (head- "std" head)
  (tail- "std" tail)
  (cons- "std" cons)
- (panic- "std" panic)
  (testing "testing")
  (fntest- "testing" fntest))
 
@@ -36,6 +35,6 @@
      'defn name '()
      (list 'progn
            (list 'defn 'original-func args body)
-           (list 'original-func '(at mut) '(at pre) '(at 0) '(at up2))
+           (list 'def '() (list 'original-func '(at mut) '(at pre) '(at 0) '(at up2)))
            (list 'return :shouldnt-go-here)))
-    (list name '(at mut) '(at 0))))))
+    (list 'def '() (list name '(at mut) '(at 0)))))))

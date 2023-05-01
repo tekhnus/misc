@@ -82,7 +82,7 @@
     (defn adder (n)
                    (progn
                      (def a adderf)
-                     (a @0 @mut n)
+                     (def () (a @0 @mut n))
                      (return a)))
     (return ((adder 3) 4)))
   7)
@@ -133,13 +133,13 @@
    (if xs
        (progn
          (def res (/prelude/print (/std/head xs)))
-         (../print-all @0 (/std/tail xs))
+         (def () (../print-all @0 (/std/tail xs)))
          (return))
      (return)))
 
 (if panics
     (progn
-      (print-all @0 panics)
-      (/std/panic @0 "FAILED")
+      (def () (print-all @0 panics))
+      (def () (/std/panic @0 "FAILED"))
       (def x 42))
   (def x 33))

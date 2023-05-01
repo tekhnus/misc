@@ -47,8 +47,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
     }
     assert(datum_is_list(&res.ok_value));
     for (int i = 0; i < list_length(&res.ok_value); ++i) {
-      char *err = prog_append_statement(sl, begin, list_at(&res.ok_value, i),
-                                        compdata, self_);
+      char *err = prog_append_expression(sl, begin, list_at(&res.ok_value, i),
+                                         compdata, self_);
       if (err) {
         return err;
       }
