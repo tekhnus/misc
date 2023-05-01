@@ -53,14 +53,14 @@
   '())
 
 (fntest
-  (progn
+  {
     (bar = :foo)
-    (return (std/eq :foo bar)))
+    (return (std/eq :foo bar))}
   '(()))
 
 (fntest
-  (progn
-    (return (std/append 5 '(1 2 3 4))))
+  {
+    (return (std/append 5 '(1 2 3 4)))}
   '(1 2 3 4 5))
 
 (fntest
@@ -68,78 +68,78 @@
   '(1 2 3))
 
 (fntest
-  (progn
+  {
     (defn twice (arg) (return (std/+ arg arg)))
-    (return (twice 35)))
+    (return (twice 35))}
   70)
 
 (fntest
-  (progn
+  {
     (defn adderf (n)
-                   (progn
+                   {
                      (m = (return @1))
-                     (return (std/+ n m))))
+                     (return (std/+ n m))})
     (defn adder (n)
-                   (progn
+                   {
                      (a = adderf)
                      (() = (a @0 @mut n))
-                     (return a)))
-    (return ((adder 3) 4)))
+                     (return a)})
+    (return ((adder 3) 4))}
   7)
 
 (fntest
-  (progn
-    (defn fib () (progn
+  {
+    (defn fib () {
        (return @0 3)
        (return @0 5)
        (return @0 8)
-       (return @0 13)))
+       (return @0 13)})
     ((x) = (fib @mut))
     ((y) = (fib @mut))
     ((z) = (fib @mut))
     ((t) = (fib @mut))
-    (return `(~x ~y ~z ~t)))
+    (return `(~x ~y ~z ~t))}
   '(3 5 8 13))
 
 (fntest
-  (progn
+  {
     (defn fff (x) (return (std/+ x 42)))
     (yyy = (fff 1))
-    (return yyy))
+    (return yyy)}
   43)
 
 (fntest
-  (progn
+  {
     (defn multi-ret () (return 42 34))
     ((x y) = (multi-ret @2))
-    (return `(~x ~y)))
+    (return `(~x ~y))}
   '(42 34))
 
 (fntest
-  (progn
+  {
     (y = 3)
     (defn fff ()
-                   (progn
+                   {
                      (x = 2)
                      (defn ggg ()
-                                    (progn
-                                                           (return (std/+ x 40))))
-                     (return ggg)))
+                                    {
+                                                           (return (std/+ x 40))})
+                     (return ggg)})
     (ggg-in-fff = (fff @mut))
-    (return (fff/ggg-in-fff)))
+    (return (fff/ggg-in-fff))}
   42)
 
 (defn print-all (xs)
    (if xs
-       (progn
+       {
          (res = (/prelude/print (/std/head xs)))
          (() = (../print-all @0 (/std/tail xs)))
-         (return))
+         (return)}
      (return)))
 
 (if panics
-    (progn
+    {
       (() = (print-all @0 panics))
       (() = (/std/panic @0 "FAILED"))
-      (x = 42))
+      (x = 42)}
   (x = 33))
