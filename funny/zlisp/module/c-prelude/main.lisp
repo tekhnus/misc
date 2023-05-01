@@ -93,7 +93,7 @@
 
 (defn c-function-0 (fn-ptr signature)
   (progn
-    (def () (return @0))
+    (() = (return @0))
     (return (../pointer-call-and-deserialize fn-ptr signature (list)))))
 (defn c-function-1 (fn-ptr signature)
   (progn
@@ -137,7 +137,7 @@
     (objs = (list  c-function-0 c-function-1 c-function-2 c-function-3 c-function-4 c-function-5 c-function-6 c-function-7 c-function-8))
     (obj = (../nth argssig objs))
     (fn-ptr = (../get-fn-ptr handle c-name))
-    (def () (../obj @0 @mut fn-ptr signature))
+    (() = (../obj @0 @mut fn-ptr signature))
     (return obj)))
 
 (selflib = (dlopen-null))

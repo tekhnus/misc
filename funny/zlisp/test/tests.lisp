@@ -141,7 +141,7 @@
     (defn adder (n)
       (progn
         (a = adderf)
-        (def () (../a @0 @mut n))
+        (() = (../a @0 @mut n))
         (return a)))
     (return ((adder 3) 4)))
   7)
@@ -214,7 +214,7 @@
 
     (defn cl-cons (x xs) (progn
                            (holder = cl-holder)
-                           (def () (../holder @0 @mut x xs))
+                           (() = (../holder @0 @mut x xs))
                            (return holder)))
 
     (defn cl-head (xs)
@@ -277,7 +277,7 @@
         (res = (/libc/print "argument:"))
         (res = (/libc/print arg-))
         (host-res = (return @1 @(host "call-extension") ext-pointer arg-))
-        (def () (../interceptor @0 @something host-res))))
+        (() = (../interceptor @0 @something host-res))))
     (res = (interceptor 'arg))
     (return res))
   'do-something-value)
@@ -289,9 +289,9 @@
         (defn wrapped (x)
           (progn
             (return `(~x ~x))))
-        (def () (wrapped @mut @pre @0 @up))
+        (() = (wrapped @mut @pre @0 @up))
         (return 33)))
-    (def () (wrapper @mut @0))
+    (() = (wrapper @mut @0))
     (res = (wrapper 42))
     (return res))
   '(42 42))
@@ -310,14 +310,14 @@
   (if xs
       (progn
         (res = (/libc/print (/std/head xs)))
-        (def () (../print-all @0 (/std/tail xs)))
+        (() = (../print-all @0 (/std/tail xs)))
         (return))
     (return)))
 
 (if panics
     (progn
-      (def () (print-all @0 panics))
-      (def () (/std/panic @0 "FAILED")))
+      (() = (print-all @0 panics))
+      (() = (/std/panic @0 "FAILED")))
   (progn))
 
 (x = "if at the end of the module doesn't work well, so here is this statement:)")
