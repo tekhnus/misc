@@ -62,8 +62,6 @@
 	        (../tail a1))))
     (return '())))
 
-(defn ignore (x) (return (list 'def 'throwaway x)))
-
 (panic-block = '(argz (/std/panic @0 "wrong fn call")))
 
 (defn list-at (xs n) (progn
@@ -79,7 +77,7 @@
 	(body = (../list-at firstarg 1))
 	(rest = (../swtchone (../tail a0)))
 	(return (list 'progn
-		   (list 'def 'prearg cond)
+		   (list 'prearg '= cond)
 		   (list 'if '(/std/eq (/std/head prearg) :ok)
 		       (list 'progn
 			 '(args = (/std/list-at prearg 1))
@@ -151,7 +149,7 @@
 
 (switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)))
 
-(defn make-def (x) (return (../cons 'def x)))
+(defn make-assignment (x) (return (list (../head x) '= (../list-at x 1))))
 
 (defn switch-clause (a0)
   (progn
@@ -159,7 +157,7 @@
     (cmds = (../tail a0))
     (checker = (list '/std/decons-pat (list 'quote sig) 'args))
     (vars = (../decons-vars sig))
-    (body = (../cons 'progn (../concat (../map make-def (../zip vars switch-defines)) cmds)))
+    (body = (../cons 'progn (../concat (../map make-assignment (../zip vars switch-defines)) cmds)))
     (return (list checker body))))
 
 (defn switch-fun (a0)
@@ -201,7 +199,6 @@
  (length length)
  (decons-pat decons-pat)
  (append append)
- (ignore ignore)
  (list-at list-at)
  (switch-fun switch-fun)
  (first-good-value first-good-value)

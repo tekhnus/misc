@@ -12,6 +12,6 @@
              '(val = (calltest))
              (list 'if (list '/std/eq 'val expect)
                  '(panics = panics)
-               (list 'def 'panics (list '/std/cons (list '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") (list '/std/repr expect)) 'panics))))))
+               (list 'panics '= (list '/std/cons (list '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") (list '/std/repr expect)) 'panics))))))
 
 (export (fntest fntest))

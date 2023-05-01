@@ -154,7 +154,7 @@
 (concat-bytestrings-pointer = (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64))
 (defn concat-bytestrings (x y) (return (return @1 @(host "call-extension") concat-bytestrings-pointer x y)))
 
-(def +-pointer (dereference (dlsym selflib "builtin_add") 'int64))
+(+-pointer = (dereference (dlsym selflib "builtin_add") 'int64))
 (defn + (x y) (return (return @1 @(host "call-extension") +-pointer x y)))
 
 (defn wrap-pointer-into-pointer (p) (return (../mkptr p 'sizet)))
