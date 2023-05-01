@@ -31,12 +31,12 @@
 (defn type (x) (return (../head (../annotate x))))
 
 (defn length (x)
-  (progn
+  {
     (n = 0)
-    (while x (progn
+    (while x {
       (n = (../+ n 1))
-      (x = (../tail x))))
-    (return n)))
+      (x = (../tail x))})
+    (return n)})
 
 (defn concat (a0 a1)
   
@@ -64,14 +64,14 @@
 
 (panic-block = '(argz (/std/panic @0 "wrong fn call")))
 
-(defn list-at (xs n) (progn
+(defn list-at (xs n) {
                        (if (../eq n 0)
                            (return (../head xs))
-                         (return (../list-at (../tail xs) (../+ n -1))))))
+                         (return (../list-at (../tail xs) (../+ n -1))))})
 
 (defn swtchone (a0)
   (if a0
-      (progn
+      {
 	(firstarg = (../head a0))
 	(cond = (../head firstarg))
 	(body = (../list-at firstarg 1))
@@ -82,59 +82,59 @@
 		       (list 'progn
 			 '(args = (/std/list-at prearg 1))
 			 body)
-		     rest))))
-    (progn
+		     rest)))}
+{
       (firstarg = "ifhack")
       (cond = "ifhack")
       (body = "ifhack")
       (rest = "ifhack")
-      (return '(/std/panic @0 "nothing matched")))))
+      (return '(/std/panic @0 "nothing matched"))}))
 
 
 (defn decons-pat (a0 a1)
-  (progn
+  {
     (pat = a0)
     (val = a1)
     (if (../is-constant pat)
-        (progn
+        {
           (first-decons = "ifhack")
           (rest-decons = "ifhack")
 	  (if (../eq pat val)
 	      (return '(:ok ()))
-	    (return '(:err))))
+	    (return '(:err)))}
       (if (../eq (../type pat) :symbol)
-	  (progn
+	  {
             (first-decons = "ifhack")
             (rest-decons = "ifhack")
-            (return (list :ok (list val))))
+            (return (list :ok (list val)))}
 	(if (../eq (../type pat) :list)
 	    (if pat
 		(if val
-		    (progn
+		    {
 		      (first-decons = (../decons-pat (../head pat) (../head val)))
 		      (rest-decons = (../decons-pat (../tail pat) (../tail val)))
 		      (if (../eq :err (../head rest-decons))
 			  (return '(:err))
 			(if (../eq :err (../head first-decons))
 			    (return '(:err))
-			  (return (list :ok (../concat (../list-at first-decons 1) (../list-at rest-decons 1)))))))
-		  (progn
+			  (return (list :ok (../concat (../list-at first-decons 1) (../list-at rest-decons 1))))))}
+		  {
                     (first-decons = "ifhack")
                     (rest-decons = "ifhack")
-                    (return '(:err))))
+                    (return '(:err))})
 	      (if val
-                  (progn
+                  {
                     (first-decons = "ifhack")
                     (rest-decons = "ifhack")
-		    (return '(:err)))
-		(progn
+		    (return '(:err))}
+		{
                   (first-decons = "ifhack")
                   (rest-decons = "ifhack")
-                  (return '(:ok ())))))
-	  (progn
+                  (return '(:ok ()))}))
+	  {
             (first-decons = "ifhack")
             (rest-decons = "ifhack")
-            (() = (../panic @0 "decons-pat met an unsupported type"))))))))
+            (() = (../panic @0 "decons-pat met an unsupported type"))})))})
 
 (defn decons-vars (a0)
   (if (../is-constant a0)
@@ -152,13 +152,13 @@
 (defn make-assignment (x) (return (list (../head x) '= (../list-at x 1))))
 
 (defn switch-clause (a0)
-  (progn
+  {
     (sig = (../head a0))
     (cmds = (../tail a0))
     (checker = (list '/std/decons-pat (list 'quote sig) 'args))
     (vars = (../decons-vars sig))
     (body = (../cons 'progn (../concat (../map make-assignment (../zip vars switch-defines)) cmds)))
-    (return (list checker body))))
+    (return (list checker body))})
 
 (defn switch-fun (a0)
   (return (../swtchone (../map switch-clause a0))))
@@ -172,15 +172,15 @@
 	        (../tail xs))))
     (return (list x))))
 
-(defn first-good-value (x) (progn
+(defn first-good-value (x) {
                              (if x
-                                 (progn
+                                 {
                                    (first-arg = (../head x))
                                    (if (../eq :ok (../head first-arg))
-                                       (progn
-                                         (return (../list-at first-arg 1)))
-                                     (return (../first-good-value (../tail x)))))
-                               (panic @0 "first-good-value: no good value"))))
+                                       {
+                                         (return (../list-at first-arg 1))}
+                                     (return (../first-good-value (../tail x))))}
+                               (panic @0 "first-good-value: no good value"))})
 
 (defn not (x) (if x (return '()) (return '(()))))
 
