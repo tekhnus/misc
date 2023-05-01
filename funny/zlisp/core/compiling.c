@@ -61,7 +61,14 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
                                            datum_copy(stmt)),
                         0, 0, datum_make_nil(), compdata);
     }
-    char *err = prog_append_statement(sl, off, stmt, compdata, ext);
+    char *err = prog_append_special(sl, off, stmt, compdata, ext);
+    if (err != NULL && strcmp(err, "<not a special>")) {
+      return err;
+    }
+    if (err != NULL && !strcmp(err, "<not a special>")) {
+      fprintf(stderr, "warning: not a special: %s\n", datum_repr(stmt));
+      err = prog_append_statement(sl, off, stmt, compdata, ext);
+    }
     if (err != NULL) {
       return err;
     }
