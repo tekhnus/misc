@@ -153,10 +153,10 @@
                    (return @0 5)
                    (return @0 8)
                    (return @0 13)))
-    (def (x) (fib @mut))
-    (def (y) (fib @mut))
-    (def (z) (fib @mut))
-    (def (t) (fib @mut))
+    ((x) = (fib @mut))
+    ((y) = (fib @mut))
+    ((z) = (fib @mut))
+    ((t) = (fib @mut))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -172,10 +172,10 @@
                             (return @0 @event-loop x)
                             (return @0 @event-loop 13)))
 
-    (def (x) (more-far-fib @mut @event-loop))
-    (def (y) (more-far-fib @mut @event-loop))
-    (def (z) (more-far-fib @mut @event-loop))
-    (def (t) (more-far-fib @mut @event-loop))
+    ((x) = (more-far-fib @mut @event-loop))
+    ((y) = (more-far-fib @mut @event-loop))
+    ((z) = (more-far-fib @mut @event-loop))
+    ((t) = (more-far-fib @mut @event-loop))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -189,7 +189,7 @@
 (fntest
   (progn
     (defn multi-ret () (return 42 34))
-    (def (x y) (multi-ret @2))
+    ((x y) = (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
@@ -197,7 +197,7 @@
   (progn
     (defn foo (x) (progn
                     (y = (return @1 (/std/+ x 1)))
-                    (def (z t) (return @2 (/std/+ y 1)))
+                    ((z t) = (return @2 (/std/+ y 1)))
                     (return :done)))
     (fee = foo)
     (a = (fee @mut 41))
@@ -219,12 +219,12 @@
 
     (defn cl-head (xs)
       (progn
-        (def (h r) (../xs @2))
+        ((h r) = (../xs @2))
         (return h)))
 
     (defn cl-tail (xs)
       (progn
-        (def (h r) (../xs @2))
+        ((h r) = (../xs @2))
         (return r)))
 
     (cl-nil = :nil)
@@ -271,7 +271,7 @@
         (return 'do-something-value)))
     (defn interceptor (arg)
       (progn
-        (def (ext-pointer arg-) (../do-something @mut @(host "call-extension-1") @2 arg))
+        ((ext-pointer arg-) = (../do-something @mut @(host "call-extension-1") @2 arg))
         (res = (/libc/print "extension:"))
         (res = (/libc/print ext-pointer))
         (res = (/libc/print "argument:"))

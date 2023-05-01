@@ -94,10 +94,10 @@
        (return @0 5)
        (return @0 8)
        (return @0 13)))
-    (def (x) (fib @mut))
-    (def (y) (fib @mut))
-    (def (z) (fib @mut))
-    (def (t) (fib @mut))
+    ((x) = (fib @mut))
+    ((y) = (fib @mut))
+    ((z) = (fib @mut))
+    ((t) = (fib @mut))
     (return `(~x ~y ~z ~t)))
   '(3 5 8 13))
 
@@ -111,7 +111,7 @@
 (fntest
   (progn
     (defn multi-ret () (return 42 34))
-    (def (x y) (multi-ret @2))
+    ((x y) = (multi-ret @2))
     (return `(~x ~y)))
   '(42 34))
 
