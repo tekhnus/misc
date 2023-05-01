@@ -278,6 +278,15 @@ LOCAL char *prog_append_special(vec *sl, size_t *begin, datum *stmt,
 
 EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                                    datum *compdata, extension *ext) {
+  if (datum_is_list(stmt) && !datum_is_nil(stmt)) {
+    char *res = prog_append_special(sl, begin, stmt, compdata, ext);
+    if (res == NULL) {
+      return NULL;
+    }
+    if (strcmp(res, "<not a special>")) {
+      return res;
+    }
+  }
   if (datum_is_constant(stmt)) {
     prog_append_put_const(sl, begin, stmt, compdata);
     return NULL;
@@ -292,20 +301,6 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     prog_append_put_var(sl, begin, stmt, compdata);
     return NULL;
   }
-  if (!datum_is_list(stmt)) {
-    return "this datum cannot be a statement";
-  }
-  if (datum_is_nil(stmt)) {
-    return "an empty list is not a statement";
-  }
-  char *res = prog_append_special(sl, begin, stmt, compdata, ext);
-  if (res == NULL) {
-    return NULL;
-  }
-  if (strcmp(res, "<not a special>")) {
-    return res;
-  }
-
   datum *fn = list_at(stmt, 0);
   bool hash = false;
   datum target = datum_make_symbol("plain");
