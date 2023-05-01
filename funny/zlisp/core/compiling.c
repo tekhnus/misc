@@ -74,28 +74,8 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
   return NULL;
 }
 
-EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                   datum *compdata, extension *ext) {
-  if (datum_is_constant(stmt)) {
-    prog_append_put_const(sl, begin, stmt, compdata);
-    return NULL;
-  }
-  if (datum_is_symbol(stmt)) {
-    datum debug_compdata = datum_copy(compdata);
-    prog_append_yield(sl, begin,
-                      datum_make_list_of(datum_make_symbol("debugger"),
-                                         datum_make_symbol("compdata"),
-                                         debug_compdata),
-                      0, 0, datum_make_nil(), compdata);
-    prog_append_put_var(sl, begin, stmt, compdata);
-    return NULL;
-  }
-  if (!datum_is_list(stmt)) {
-    return "this datum cannot be a statement";
-  }
-  if (datum_is_nil(stmt)) {
-    return "an empty list is not a statement";
-  }
+LOCAL char *prog_append_special(vec *sl, size_t *begin, datum *stmt,
+                                datum *compdata, extension *ext) {
   datum *op = list_at(stmt, 0);
   datum op2 = datum_make_nil();
   if (list_length(stmt) > 1) {
@@ -291,6 +271,38 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     return NULL;
   }
   if (strcmp(res, "<not an extension>")) {
+    return res;
+  }
+  return "<not a special>";
+}
+
+EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
+                                   datum *compdata, extension *ext) {
+  if (datum_is_constant(stmt)) {
+    prog_append_put_const(sl, begin, stmt, compdata);
+    return NULL;
+  }
+  if (datum_is_symbol(stmt)) {
+    datum debug_compdata = datum_copy(compdata);
+    prog_append_yield(sl, begin,
+                      datum_make_list_of(datum_make_symbol("debugger"),
+                                         datum_make_symbol("compdata"),
+                                         debug_compdata),
+                      0, 0, datum_make_nil(), compdata);
+    prog_append_put_var(sl, begin, stmt, compdata);
+    return NULL;
+  }
+  if (!datum_is_list(stmt)) {
+    return "this datum cannot be a statement";
+  }
+  if (datum_is_nil(stmt)) {
+    return "an empty list is not a statement";
+  }
+  char *res = prog_append_special(sl, begin, stmt, compdata, ext);
+  if (res == NULL) {
+    return NULL;
+  }
+  if (strcmp(res, "<not a special>")) {
     return res;
   }
 

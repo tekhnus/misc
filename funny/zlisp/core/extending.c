@@ -60,11 +60,11 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   datum exp = datum_make_list_of(
-                                 datum_make_symbol("return"),
-                                 datum_make_list_of(datum_make_symbol("at"), datum_make_int(0)),
-                                 datum_make_list_of(datum_make_symbol("at"), datum_make_symbol("halt")),
-                                 datum_copy(e));
-  
+      datum_make_symbol("return"),
+      datum_make_list_of(datum_make_symbol("at"), datum_make_int(0)),
+      datum_make_list_of(datum_make_symbol("at"), datum_make_symbol("halt")),
+      datum_copy(e));
+
   datum mod = datum_make_list_of(exp);
   extension ext = null_extension_make();
   // this is a hack in order to make the relocation possible.
