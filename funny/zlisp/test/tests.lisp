@@ -301,6 +301,12 @@
    (if 3 {(return 42)} {(return 25)})}
  42)
 
+(fntest
+{
+   if 3 {(return 42)} {(return 25)}
+}
+ 42)
+
 (fntest {
         (a = 5)
         (return a)}

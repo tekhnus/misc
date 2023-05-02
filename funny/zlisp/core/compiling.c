@@ -49,11 +49,12 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   return NULL;
 }
 
-LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
+LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source_,
                                    datum *compdata, extension *ext,
                                    bool skip_first_debug) {
-  for (int i = 0; i < list_length(source); ++i) {
-    datum *stmt = list_at(source, i);
+  datum source = prog_unflatten(source_);
+  for (int i = 0; i < list_length(&source); ++i) {
+    datum *stmt = list_at(&source, i);
     if (!(skip_first_debug && i == 0)) {
       prog_append_yield(sl, off,
                         datum_make_list_of(datum_make_symbol("debugger"),
@@ -78,6 +79,33 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source,
     }
   }
   return NULL;
+}
+
+LOCAL datum prog_unflatten(datum *source) {
+  datum res = datum_make_nil();
+  assert(datum_is_list(source));
+  int i = 0;
+  for (;;) {
+    if (i >= list_length(source)) {
+      break;
+    }
+    datum *cur = list_at(source, i);
+    if (!datum_is_symbol(cur)) {
+      i += 1;
+      list_append(&res, datum_copy(cur));
+      continue;
+    }
+    if (datum_is_the_symbol(cur, "if")) {
+      i += 4;
+      list_append(&res, datum_make_list_of(datum_copy(list_at(source, i - 4)),
+                                           datum_copy(list_at(source, i - 3)),
+                                           datum_copy(list_at(source, i - 2)),
+                                           datum_copy(list_at(source, i - 1))));
+      continue;
+    }
+    assert(false);
+  }
+  return res;
 }
 
 LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
