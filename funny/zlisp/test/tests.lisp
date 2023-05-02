@@ -303,6 +303,9 @@
 
 (fntest
 {
+   x = -5
+   while (/std/not (/std/eq x 0)) { x = (/std/+ x 1) }
+   defn f (x) { return x }
    if 3 {(return 42)} {(return 25)}
 }
  42)

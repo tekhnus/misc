@@ -90,14 +90,35 @@ LOCAL datum prog_unflatten(datum *source) {
       break;
     }
     datum *cur = list_at(source, i);
-    if (!datum_is_symbol(cur)) {
-      i += 1;
-      list_append(&res, datum_copy(cur));
-      continue;
-    }
     if (datum_is_the_symbol(cur, "if")) {
       i += 4;
       list_append(&res, list_copy(source, i - 4, i));
+      continue;
+    }
+    if (datum_is_the_symbol(cur, "while")) {
+      i += 3;
+      list_append(&res, list_copy(source, i - 3, i));
+      continue;
+    }
+    if (i + 1 < list_length(source) &&
+        datum_is_the_symbol(list_at(source, i + 1), "=")) {
+      i += 3;
+      list_append(&res, list_copy(source, i - 3, i));
+      continue;
+    }
+    if (datum_is_the_symbol(cur, "defn")) {
+      i += 4;
+      list_append(&res, list_copy(source, i - 4, i));
+      continue;
+    }
+    if (datum_is_the_symbol(cur, "return")) {
+      i += 2;
+      list_append(&res, list_copy(source, i - 2, i));
+      continue;
+    }
+    if (!datum_is_symbol(cur)) {
+      i += 1;
+      list_append(&res, datum_copy(cur));
       continue;
     }
     assert(false);
