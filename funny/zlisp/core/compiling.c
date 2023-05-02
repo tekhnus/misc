@@ -97,10 +97,7 @@ LOCAL datum prog_unflatten(datum *source) {
     }
     if (datum_is_the_symbol(cur, "if")) {
       i += 4;
-      list_append(&res, datum_make_list_of(datum_copy(list_at(source, i - 4)),
-                                           datum_copy(list_at(source, i - 3)),
-                                           datum_copy(list_at(source, i - 2)),
-                                           datum_copy(list_at(source, i - 1))));
+      list_append(&res, list_copy(source, i - 4, i));
       continue;
     }
     assert(false);

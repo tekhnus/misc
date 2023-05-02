@@ -81,6 +81,7 @@ bool datum_is_list(datum *e);
 bool datum_is_nil(datum *e);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
+datum list_copy(datum *list,int from,int to);
 datum *list_get_last(datum *list);
 datum list_get_tail(datum *list);
 void list_append(datum *list,datum value);

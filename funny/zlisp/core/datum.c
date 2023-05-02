@@ -294,6 +294,14 @@ EXPORT datum *list_at(datum *list, unsigned index) {
   return vec_at(&list->list_value, index);
 }
 
+EXPORT datum list_copy(datum *list, int from, int to) {
+  datum res = datum_make_nil();
+  for (int i = from; i < to; ++i) {
+    list_append(&res, datum_copy(list_at(list, i)));
+  }
+  return res;
+}
+
 EXPORT datum *list_get_last(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);

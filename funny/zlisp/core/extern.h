@@ -167,6 +167,7 @@ int list_index_of(datum *xs,datum *x);
 datum list_pop(datum *list);
 datum list_get_tail(datum *list);
 datum *list_get_last(datum *list);
+datum list_copy(datum *list,int from,int to);
 bool datum_is_nil(datum *e);
 datum vec_pop(vec *v);
 datum datum_copy(datum *d);
