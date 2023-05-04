@@ -35,5 +35,5 @@ defn defn2 (name args body)
      (list 'brackets
            'defn 'original-func args body
            (list '() '= (list 'original-func '(at mut) '(at pre) '(at 0) '(at up2)))
-           (list 'return :shouldnt-go-here))
+           'return :shouldnt-go-here)
     (list '() '= (list name '(at mut) '(at 0)))))}
