@@ -117,9 +117,12 @@ LOCAL datum prog_unflatten(datum *source) {
       continue;
     }
     if (datum_is_list(cur) && list_length(cur) > 0) {
-      if (datum_is_the_symbol(list_at(cur, 0), "defn")) {
+      if (datum_is_the_symbol(list_at(cur, 0), "defn") || datum_is_the_symbol(list_at(cur, 0), "if")) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
         exit(EXIT_FAILURE);
+      }
+      if (datum_is_the_symbol(list_at(cur, 0), "if")) {
+        fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
       }
     }
     if (!datum_is_symbol(cur)) {

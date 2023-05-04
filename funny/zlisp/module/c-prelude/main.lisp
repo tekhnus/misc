@@ -28,29 +28,29 @@ defn eq (x y) (return (return @1 @(host "call-extension") eq-pointer x y))
 
 defn serialize-param (param signature)
   {
-    (if (../eq signature 'pointer)
-        (return param)
-      (if (../eq signature 'fdatum)
+    if (../eq signature 'pointer)
+        (return param) {
+      if (../eq signature 'fdatum)
           (return param)
-        (if (../eq signature 'progslice)
+        {if (../eq signature 'progslice)
             (return param)
-          (return (../mkptr param signature)))))}
+          (return (../mkptr param signature))}}}
 
 defn serialize-params (params signature)
   {
-    (if params
+    if params
         (return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature))))
-      (return '()))}
+      (return '())}
 
 defn  dereference (what how)
   {
-    (if (../eq how 'pointer)
+    if (../eq how 'pointer)
         (return what)
-      (if (../eq how 'fdatum)
+      {if (../eq how 'fdatum)
           (return what)
-        (if (../eq how 'progslice)
+        {if (../eq how 'progslice)
             (return what)
-          (return (../deref what how)))))}
+          (return (../deref what how))}}}
 
 defn pointer-call-and-deserialize (fn-ptr signature params)
   {
@@ -77,19 +77,19 @@ defn c-data-pointer (handle c-name signature)
 
 defn nth (n xs)
   {
-    (if xs
-        (if n
+    if xs
+        {if n
             (return (../nth (../tail n) (../tail xs)))
-          (return (../head xs)))
-      (../panic "nth fail"))}
+          (return (../head xs))}
+      (../panic "nth fail")}
 
 defn get-fn-ptr (handle c-name)
   {
     (fn-pointer-pointer = (../dlsym handle c-name))
     (fn-ptr = (../dereference fn-pointer-pointer 'int64))
-    (if (../eq fn-ptr 0)
+    if (../eq fn-ptr 0)
         (../panic "couldn't load C function")
-      (return fn-ptr))}
+      (return fn-ptr)}
 
 defn c-function-0 (fn-ptr signature)
   {
@@ -162,15 +162,15 @@ defn wrap-pointer-into-pointer (p) (return (../mkptr p 'sizet))
 
 defn shared-library (path) {
                               (r = (../dlopen path))
-                              (if (../eq 0 (../dereference r 'int64))
+                              if (../eq 0 (../dereference r 'int64))
                                   (return (list :err "shared-library failed"))
-                                (return (list :ok r)))}
+                                (return (list :ok r))}
 
 defn extern-pointer (handle c-name signature) {
                                                  (res = (../c-data-pointer handle c-name signature))
-                                                 (if (../eq 0 res)
+                                                 if (../eq 0 res)
                                                      (return (list :err "extern-pointer failed"))
-                                                   (return (list :ok res)))}
+                                                   (return (list :ok res))}
 
 (export
  (call-extension-1 call-extension-1)

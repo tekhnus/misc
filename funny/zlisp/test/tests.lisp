@@ -298,7 +298,7 @@
 
 (fntest
 {
-   (if 3 {(return 42)} {(return 25)})}
+   if 3 {(return 42)} {(return 25)}}
  42)
 
 (fntest
@@ -315,18 +315,19 @@
         (return a)}
  5)
 
-defn print-all (xs)
-  (if xs
+defn print-all (xs) {
+  if xs
       {
         (res = (/libc/print (/std/head xs)))
         (() = (../print-all @0 (/std/tail xs)))
         (return)}
-    (return))
+    (return)
+}
 
-(if panics
+if panics
 {
       (() = (print-all @0 panics))
       (() = (/std/panic @0 "FAILED"))}
-  {})
+  {}
 
 (x = "if at the end of the module doesn't work well, so here is this statement:)")

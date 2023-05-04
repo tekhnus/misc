@@ -39,9 +39,9 @@ defn init-prog (sl pptr bpptr compdata bdrcompdata)
 defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata ex)
   {
     (e = (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex))
-    (if (/std/eq 0 (/prelude/dereference e 'int64))
+    {if (/std/eq 0 (/prelude/dereference e 'int64))
         (return `(:ok :nothing))
-      (return `(:err ~(/prelude/dereference e 'string))))}
+      (return `(:err ~(/prelude/dereference e 'string)))}}
 
 
 (routine-run-and-get-value-c-host-new = (/prelude/c-function selflib "routine_run_in_ffi_host" '((progslice pointer) fdatum)))
@@ -59,28 +59,28 @@ defn repr-pointer (x) (return (/prelude/call-extension-1 (/prelude/dereference f
 defn eval-new (sl rt0)
   {
     (res = (/prelude/routine-run-and-get-value-c-host-new sl rt0))
-    (if (/std/eq (/prelude/fdatum-is-panic res) 1)
+    {if (/std/eq (/prelude/fdatum-is-panic res) 1)
         {
           (msg = (../fdatum-get-panic-message res))
           (return `(:err ~msg))}
       {
         (val = (../fdatum-get-value res))
-        (return `(:ok ~val ~rt0))})}
+        (return `(:ok ~val ~rt0))}}}
 
 (datum-read-one = (/prelude/c-function selflib "datum_read_one" '((pointer) fdatum)))
 
 defn read (strm)
   {
     (res = (/prelude/datum-read-one strm))
-    (if (/std/eq (/prelude/fdatum-is-panic res) 1)
+    {if (/std/eq (/prelude/fdatum-is-panic res) 1)
         {
           (msg = (../fdatum-get-panic-message res))
-          (if (/std/eq msg "eof")
+          {if (/std/eq msg "eof")
               (return '(:eof))
-            (return `(:err ~msg)))}
+            (return `(:err ~msg))}}
       {
         (maybeval = (../fdatum-get-value res))
-        (return `(:ok ~maybeval))})}
+        (return `(:ok ~maybeval))}}}
 
 (export (compile-prog-new compile-prog-new)
         (init-prog init-prog)

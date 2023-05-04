@@ -130,16 +130,16 @@
   42)
 
 defn print-all (xs)
-   (if xs
+   {if xs
        {
          (res = (/prelude/print (/std/head xs)))
          (() = (../print-all @0 (/std/tail xs)))
          (return)}
-     (return))
+     (return)}
 
-(if panics
+if panics
     {
       (() = (print-all @0 panics))
       (() = (/std/panic @0 "FAILED"))
       (x = 42)}
-  (x = 33))
+  (x = 33)
