@@ -125,10 +125,10 @@
 {
     (x = 0)
     (y = 1)
-    (while (/std/not (/std/eq x 5))
+    while (/std/not (/std/eq x 5))
       {
         (y = (/std/+ y y))
-        (x = (/std/+ x 1))})
+        (x = (/std/+ x 1))}
     (return y)}
   32)
 

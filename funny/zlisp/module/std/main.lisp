@@ -33,9 +33,9 @@ defn type (x) (return (../head (../annotate x)))
 defn length (x)
   {
     (n = 0)
-    (while x {
+    while x {
       (n = (../+ n 1))
-      (x = (../tail x))})
+      (x = (../tail x))}
     (return n)}
 
 defn concat (a0 a1)
