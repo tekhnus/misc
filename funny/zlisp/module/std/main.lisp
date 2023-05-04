@@ -11,48 +11,48 @@
  (concat-bytestrings- "prelude" concat-bytestrings)
  (+- "prelude" +))
 
-(defn panic (x) {(() = (/prelude/panic- @0 x)) (return)})
-(defn head (x) (return (/prelude/head- x)))
-(defn tail (x) (return (/prelude/tail- x)))
-(defn cons (x xs) (return (/prelude/cons- x xs)))
-(defn eq (x y) (return (/prelude/eq- x y)))
-(defn annotate (x) (return (/prelude/annotate- x)))
-(defn is-constant (x) (return (/prelude/is-constant- x)))
-(defn repr (x) (return (/prelude/repr- x)))
-(defn concat-bytestrings (x y) (return (/prelude/concat-bytestrings- x y)))
-(defn + (x y) (return (/prelude/+- x y)))
+defn panic (x) {(() = (/prelude/panic- @0 x)) (return)}
+defn head (x) (return (/prelude/head- x))
+defn tail (x) (return (/prelude/tail- x))
+defn cons (x xs) (return (/prelude/cons- x xs))
+defn eq (x y) (return (/prelude/eq- x y))
+defn annotate (x) (return (/prelude/annotate- x))
+defn is-constant (x) (return (/prelude/is-constant- x))
+defn repr (x) (return (/prelude/repr- x))
+defn concat-bytestrings (x y) (return (/prelude/concat-bytestrings- x y))
+defn + (x y) (return (/prelude/+- x y))
 
-(defn last (a0)
+defn last (a0)
   
   (if (../tail a0)
       (return (../last (../tail a0)))
-    (return (../head a0))))
+    (return (../head a0)))
 
-(defn type (x) (return (../head (../annotate x))))
+defn type (x) (return (../head (../annotate x)))
 
-(defn length (x)
+defn length (x)
   {
     (n = 0)
     (while x {
       (n = (../+ n 1))
       (x = (../tail x))})
-    (return n)})
+    (return n)}
 
-(defn concat (a0 a1)
+defn concat (a0 a1)
   
   (if a0
       (return (../cons (../head a0) (../concat (../tail a0) a1)))
-    (return a1)))
+    (return a1))
 
 
 
-(defn zip (a0 a1)
+defn zip (a0 a1)
   
   (if a0
       (return (../cons (list (../head a0) (../head a1)) (../zip (../tail a0) (../tail a1))))
-    (return '())))
+    (return '()))
 
-(defn map	     (a0 a1)
+defn map	     (a0 a1)
   (if a1
       (return (../cons
                (../a0
@@ -60,16 +60,16 @@
                (../map
 	        a0
 	        (../tail a1))))
-    (return '())))
+    (return '()))
 
 (panic-block = '(argz (/std/panic @0 "wrong fn call")))
 
-(defn list-at (xs n) {
+defn list-at (xs n) {
                        (if (../eq n 0)
                            (return (../head xs))
-                         (return (../list-at (../tail xs) (../+ n -1))))})
+                         (return (../list-at (../tail xs) (../+ n -1))))}
 
-(defn swtchone (a0)
+defn swtchone (a0)
   (if a0
       {
 	(firstarg = (../head a0))
@@ -88,10 +88,10 @@
       (cond = "ifhack")
       (body = "ifhack")
       (rest = "ifhack")
-      (return '(/std/panic @0 "nothing matched"))}))
+      (return '(/std/panic @0 "nothing matched"))})
 
 
-(defn decons-pat (a0 a1)
+defn decons-pat (a0 a1)
   {
     (pat = a0)
     (val = a1)
@@ -134,9 +134,9 @@
 	  {
             (first-decons = "ifhack")
             (rest-decons = "ifhack")
-            (() = (../panic @0 "decons-pat met an unsupported type"))})))})
+            (() = (../panic @0 "decons-pat met an unsupported type"))})))}
 
-(defn decons-vars (a0)
+defn decons-vars (a0)
   (if (../is-constant a0)
       (return '())
     (if (../eq (../type a0) :symbol)
@@ -145,34 +145,34 @@
 	  (if a0
 	      (return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0))))
 	    (return '()))
-	(() = (panic @0 "decons-var met an unsupported type"))))))
+	(() = (panic @0 "decons-var met an unsupported type")))))
 
 (switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)))
 
-(defn make-assignment (x) (return (list (../head x) '= (../list-at x 1))))
+defn make-assignment (x) (return (list (../head x) '= (../list-at x 1)))
 
-(defn switch-clause (a0)
+defn switch-clause (a0)
   {
     (sig = (../head a0))
     (cmds = (../tail a0))
     (checker = (list '/std/decons-pat (list 'quote sig) 'args))
     (vars = (../decons-vars sig))
     (body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds)))
-    (return (list checker body))})
+    (return (list checker body))}
 
-(defn switch-fun (a0)
-  (return (../swtchone (../map switch-clause a0))))
+defn switch-fun (a0)
+  (return (../swtchone (../map switch-clause a0)))
 
-(defn append (x xs)
+defn append (x xs)
   (if xs
       (return (../cons
                (../head xs)
                (../append
 	        x
 	        (../tail xs))))
-    (return (list x))))
+    (return (list x)))
 
-(defn first-good-value (x) {
+defn first-good-value (x) {
                              (if x
                                  {
                                    (first-arg = (../head x))
@@ -180,9 +180,9 @@
                                        {
                                          (return (../list-at first-arg 1))}
                                      (return (../first-good-value (../tail x))))}
-                               (panic @0 "first-good-value: no good value"))})
+                               (panic @0 "first-good-value: no good value"))}
 
-(defn not (x) (if x (return '()) (return '(()))))
+defn not (x) (if x (return '()) (return '(())))
 
 (export
  (panic panic)

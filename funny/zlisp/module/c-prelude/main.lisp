@@ -1,32 +1,32 @@
 (req)
 
-(defn call-extension-1 (fnptr x) (return (return @1 @(host "call-extension") fnptr x)))
+defn call-extension-1 (fnptr x) (return (return @1 @(host "call-extension") fnptr x))
 
 (deref-pointer = (return @1 @(host "deref-pointer") '()))
-(defn deref (x y) (return (return @1 @(host "call-extension") deref-pointer x y)))
+defn deref (x y) (return (return @1 @(host "call-extension") deref-pointer x y))
 
 (mkptr-pointer = (return @1 @(host "mkptr-pointer") '()))
-(defn mkptr (x y) (return (return @1 @(host "call-extension") mkptr-pointer x y)))
+defn mkptr (x y) (return (return @1 @(host "call-extension") mkptr-pointer x y))
 
 (pointer-call-pointer = (return @1 @(host "pointer-call-pointer") '()))
-(defn pointer-call (x y z) (return (return @1 @(host "call-extension") pointer-call-pointer x y z)))
+defn pointer-call (x y z) (return (return @1 @(host "call-extension") pointer-call-pointer x y z))
 
 (panic-pointer = (return @1 @(host "panic") '()))
-(defn panic (x) {(ignored-result = (return @1 @(host "call-extension") panic-pointer x)) (return)})
+defn panic (x) {(ignored-result = (return @1 @(host "call-extension") panic-pointer x)) (return)}
 
 (head-pointer = (return @1 @(host "head") '()))
-(defn head (x) (return (return @1 @(host "call-extension-1") head-pointer x)))
+defn head (x) (return (return @1 @(host "call-extension-1") head-pointer x))
 
 (tail-pointer = (return @1 @(host "tail") '()))
-(defn tail (x) (return (return @1 @(host "call-extension-1") tail-pointer x)))
+defn tail (x) (return (return @1 @(host "call-extension-1") tail-pointer x))
 
 (cons-pointer = (return @1 @(host "cons") '()))
-(defn cons (x xs) (return (return @1 @(host "call-extension") cons-pointer x xs)))
+defn cons (x xs) (return (return @1 @(host "call-extension") cons-pointer x xs))
 
 (eq-pointer = (return @1 @(host "eq") '()))
-(defn eq (x y) (return (return @1 @(host "call-extension") eq-pointer x y)))
+defn eq (x y) (return (return @1 @(host "call-extension") eq-pointer x y))
 
-(defn serialize-param (param signature)
+defn serialize-param (param signature)
   {
     (if (../eq signature 'pointer)
         (return param)
@@ -34,15 +34,15 @@
           (return param)
         (if (../eq signature 'progslice)
             (return param)
-          (return (../mkptr param signature)))))})
+          (return (../mkptr param signature)))))}
 
-(defn serialize-params (params signature)
+defn serialize-params (params signature)
   {
     (if params
         (return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature))))
-      (return '()))})
+      (return '()))}
 
-(defn  dereference (what how)
+defn  dereference (what how)
   {
     (if (../eq how 'pointer)
         (return what)
@@ -50,127 +50,127 @@
           (return what)
         (if (../eq how 'progslice)
             (return what)
-          (return (../deref what how)))))})
+          (return (../deref what how)))))}
 
-(defn pointer-call-and-deserialize (fn-ptr signature params)
+defn pointer-call-and-deserialize (fn-ptr signature params)
   {
     (fnparamst = (../head signature))
     (rettype = (../head (../tail signature)))
     (s = (../serialize-params params fnparamst))
     (rawres = (../pointer-call fn-ptr (list fnparamst rettype) s))
-    (return (../dereference rawres rettype))})
+    (return (../dereference rawres rettype))}
 
 (rtld-lazy = (return @1 @(host "RTLD_LAZY") '()))
 
 (dlopen-pointer = (return @1 @(host "dlopen") '()))
-(defn dlopen (x) (return (../pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) (list x rtld-lazy))))
-(defn dlopen-null () (return (../pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) (list (../mkptr 0 'sizet) rtld-lazy))))
+defn dlopen (x) (return (../pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) (list x rtld-lazy)))
+defn dlopen-null () (return (../pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) (list (../mkptr 0 'sizet) rtld-lazy)))
 
 (dlsym-pointer = (return @1 @(host "dlsym") '()))
-(defn dlsym (x y) (return (../pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) (list x y))))
+defn dlsym (x y) (return (../pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) (list x y)))
 
-(defn c-data-pointer (handle c-name signature)
+defn c-data-pointer (handle c-name signature)
   {
     (fn-pointer-pointer = (../dlsym handle c-name))
     (fn-pointer = (../dereference fn-pointer-pointer 'int64))
-    (return fn-pointer)})
+    (return fn-pointer)}
 
-(defn nth (n xs)
+defn nth (n xs)
   {
     (if xs
         (if n
             (return (../nth (../tail n) (../tail xs)))
           (return (../head xs)))
-      (../panic "nth fail"))})
+      (../panic "nth fail"))}
 
-(defn get-fn-ptr (handle c-name)
+defn get-fn-ptr (handle c-name)
   {
     (fn-pointer-pointer = (../dlsym handle c-name))
     (fn-ptr = (../dereference fn-pointer-pointer 'int64))
     (if (../eq fn-ptr 0)
         (../panic "couldn't load C function")
-      (return fn-ptr))})
+      (return fn-ptr))}
 
-(defn c-function-0 (fn-ptr signature)
+defn c-function-0 (fn-ptr signature)
   {
     (() = (return @0))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list)))})
-(defn c-function-1 (fn-ptr signature)
+    (return (../pointer-call-and-deserialize fn-ptr signature (list)))}
+defn c-function-1 (fn-ptr signature)
   {
     ((a1) = (return @1))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1)))})
-(defn c-function-2 (fn-ptr signature)
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1)))}
+defn c-function-2 (fn-ptr signature)
   {
     ((a1 a2) = (return @2))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2)))})
-(defn c-function-3 (fn-ptr signature)
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2)))}
+defn c-function-3 (fn-ptr signature)
   {
     ((a1 a2 a3) = (return @3))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3)))})
-(defn c-function-4 (fn-ptr signature)
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3)))}
+defn c-function-4 (fn-ptr signature)
   {
     ((a1 a2 a3 a4) = (return @4))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4)))})
-(defn c-function-5 (fn-ptr signature)
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4)))}
+defn c-function-5 (fn-ptr signature)
   {
     ((a1 a2 a3 a4 a5) = (return @5))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5)))})
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5)))}
 
-(defn c-function-6 (fn-ptr signature)
+defn c-function-6 (fn-ptr signature)
   {
     ((a1 a2 a3 a4 a5 a6) = (return @6))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6)))})
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6)))}
 
-(defn c-function-7 (fn-ptr signature)
+defn c-function-7 (fn-ptr signature)
   {
     ((a1 a2 a3 a4 a5 a6 a7) = (return @7))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7)))})
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7)))}
 
-(defn c-function-8 (fn-ptr signature)
+defn c-function-8 (fn-ptr signature)
   {
     ((a1 a2 a3 a4 a5 a6 a7 a8) = (return @8))
-    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7 a8)))})
+    (return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7 a8)))}
 
-(defn c-function (handle c-name signature)
+defn c-function (handle c-name signature)
   {
     (argssig = (../head signature))
     (objs = (list  c-function-0 c-function-1 c-function-2 c-function-3 c-function-4 c-function-5 c-function-6 c-function-7 c-function-8))
     (obj = (../nth argssig objs))
     (fn-ptr = (../get-fn-ptr handle c-name))
     (() = (../obj @0 @mut fn-ptr signature))
-    (return obj)})
+    (return obj)}
 
 (selflib = (dlopen-null))
 
 (annotate-pointer = (dereference (dlsym selflib "builtin_annotate") 'int64))
-(defn annotate (x) (return (return @1 @(host "call-extension") annotate-pointer x)))
+defn annotate (x) (return (return @1 @(host "call-extension") annotate-pointer x))
 
 (is-constant-pointer = (dereference (dlsym selflib "builtin_is_constant") 'int64))
-(defn is-constant (x) (return (return @1 @(host "call-extension") is-constant-pointer x)))
+defn is-constant (x) (return (return @1 @(host "call-extension") is-constant-pointer x))
 
 (repr-pointer = (dereference (dlsym selflib "builtin_repr") 'int64))
-(defn repr (x) (return (return @1 @(host "call-extension") repr-pointer x)))
+defn repr (x) (return (return @1 @(host "call-extension") repr-pointer x))
 
 (concat-bytestrings-pointer = (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64))
-(defn concat-bytestrings (x y) (return (return @1 @(host "call-extension") concat-bytestrings-pointer x y)))
+defn concat-bytestrings (x y) (return (return @1 @(host "call-extension") concat-bytestrings-pointer x y))
 
 (+-pointer = (dereference (dlsym selflib "builtin_add") 'int64))
-(defn + (x y) (return (return @1 @(host "call-extension") +-pointer x y)))
+defn + (x y) (return (return @1 @(host "call-extension") +-pointer x y))
 
-(defn wrap-pointer-into-pointer (p) (return (../mkptr p 'sizet)))
+defn wrap-pointer-into-pointer (p) (return (../mkptr p 'sizet))
 
 
-(defn shared-library (path) {
+defn shared-library (path) {
                               (r = (../dlopen path))
                               (if (../eq 0 (../dereference r 'int64))
                                   (return (list :err "shared-library failed"))
-                                (return (list :ok r)))})
+                                (return (list :ok r)))}
 
-(defn extern-pointer (handle c-name signature) {
+defn extern-pointer (handle c-name signature) {
                                                  (res = (../c-data-pointer handle c-name signature))
                                                  (if (../eq 0 res)
                                                      (return (list :err "extern-pointer failed"))
-                                                   (return (list :ok res)))})
+                                                   (return (list :ok res)))}
 
 (export
  (call-extension-1 call-extension-1)

@@ -28,7 +28,7 @@
 
 (readme = "A basic REPL for zlisp.")
 
-(defn repl
+defn repl
   (sl nsp pptr bpptr compdata bdrcompdata ex)
   {
     (tmp = (/prelude/fprintf stdout "> "))
@@ -56,7 +56,7 @@
             (return (../repl sl nsp pptr bpptr compdata bdrcompdata ex))))))
        ((:err msg)
 	(ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msg))
-	(return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)))))})
+	(return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)))))}
 
 (sl = (/prelude/psm 20000))
 (pptr = (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))

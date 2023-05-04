@@ -36,8 +36,8 @@
                                     ~(/prelude/extern-pointer libc "stderr" 'pointer)
                                     ~(/prelude/extern-pointer libc "__stderrp" 'pointer))))
 
-(defn print (val)
-  (return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))))
+defn print (val)
+  (return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val)))
 
 (export
  (malloc malloc)
