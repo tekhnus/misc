@@ -112,8 +112,17 @@ LOCAL datum prog_unflatten(datum *source) {
       continue;
     }
     if (datum_is_the_symbol(cur, "return")) {
-      i += 2;
-      list_append(&res, list_copy(source, i - 2, i));
+      datum stmt = datum_make_nil();
+      list_append(&stmt, datum_copy(list_at(source, i++)));
+      for (; i < list_length(source);) {
+        datum *item = list_at(source, i);
+        list_append(&stmt, datum_copy(item));
+        ++i;
+        if (!datum_is_list(item) || datum_is_nil(item) || !datum_is_the_symbol(list_at(item, 0), "at")) {
+          break;
+        }
+      }
+      list_append(&res, stmt);
       continue;
     }
     if (datum_is_list(cur) && list_length(cur) > 0) {
@@ -123,7 +132,7 @@ LOCAL datum prog_unflatten(datum *source) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
         exit(EXIT_FAILURE);
       }
-      if (datum_is_the_symbol(list_at(cur, 0), "if")) {
+      if (datum_is_the_symbol(list_at(cur, 0), "return")) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
       }
     }
@@ -139,6 +148,10 @@ LOCAL datum prog_unflatten(datum *source) {
 
 LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                                   datum *compdata, extension *ext) {
+  if (!datum_is_list(stmt)) {
+    fprintf(stderr, "prog_append_statement expected a list, got %s\n", datum_repr(stmt));
+    return "prog_append_statement expected a list";
+  }
   datum *op = list_at(stmt, 0);
   datum op2 = datum_make_nil();
   if (list_length(stmt) > 1) {
