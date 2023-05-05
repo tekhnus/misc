@@ -1,0 +1,5 @@
+list_sources() {
+  fd '[.]lisp' module
+}
+
+list_sources | xargs -n1 ./build/builder/zlisp-fmt
