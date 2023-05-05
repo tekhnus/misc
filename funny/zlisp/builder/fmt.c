@@ -21,6 +21,12 @@ int main(int argc, char **argv) {
   }
   assert(read_result_is_ok(rr));
   assert(datum_is_list(&rr.ok_value));
-  printf("%s\n", datum_format_bounded(&rr.ok_value, 128, 0, true, false));
+  f = fopen(filename, "w");
+  if (f == NULL) {
+    perror("while opening file (C host)");
+    return EXIT_FAILURE;
+  }
+  fprintf(f, "%s\n", datum_format_bounded(&rr.ok_value, 128, 0, true, false));
+  fclose(f);
   return EXIT_SUCCESS;
 }
