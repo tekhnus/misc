@@ -71,19 +71,52 @@ EXPORT datum datum_make_frame(frame fr) {
 EXPORT char *datum_repr(datum *e) { return datum_repr_bounded(e, 8); }
 
 EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
+  return datum_format_bounded(e, depth, 0, false);
+}
+
+EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start, bool pretty) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (depth == 0) {
     sprintf(buf, "<truncated>");
   } else if (datum_is_integer(e)) {
     sprintf(buf, "%" PRId64, e->integer_value);
+  } else if (datum_is_list(e) && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "quote")) {
+    assert(list_length(e) == 2);
+    end += sprintf(end, "'%s", datum_format_bounded(list_at(e, 1), depth, start, pretty));
   } else if (datum_is_list(e)) {
-    end += sprintf(end, "(");
-    for (int i = 0; i < list_length(e); ++i) {
-      datum *item = list_at(e, i);
-      end += sprintf(end, "%s ", datum_repr_bounded(item, depth - 1));
+    int first = 0;
+    char *pair = "()";
+    char *sep = "";
+    if (pretty && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
+      first = 1;
+      pair = "{}";
+    } else if (pretty && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "polysym")) {
+      first = 1;
+      pair = "";
+      sep = "/";
     }
-    end += sprintf(end, ")");
+    if (strlen(pair) > 0) {
+      end += sprintf(end, "%c", pair[0]);
+    }
+    for (int i = first; i < list_length(e); ++i) {
+      if (i > first) {
+        if (strlen(sep) > 0) {
+          end += sprintf(end, "%s", sep);
+        } else {
+          end += sprintf(end, "\n");
+          for (size_t i = 0; i < start; ++i) {
+            end += sprintf(end, " ");
+          }
+        }
+      }
+      datum *item = list_at(e, i);
+      end += sprintf(end, "%s", datum_format_bounded(item, depth - 1, start + 1, pretty));
+    }
+    if (strlen(pair) > 0) {
+      end += sprintf(end, "%c", pair[1]);
+    }
+  } else if (pretty && datum_is_the_symbol(e, "empty-symbol")) {
   } else if (datum_is_symbol(e)) {
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
