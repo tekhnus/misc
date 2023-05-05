@@ -74,7 +74,9 @@
  (em
   "zlisp"
   ext-make))
+
 (readme = "A basic REPL for zlisp.")
+
 defn repl (sl nsp pptr bpptr compdata bdrcompdata ex)
 {(tmp = (/prelude/fprintf stdout "> "))
  (switch
@@ -115,12 +117,21 @@ defn repl (sl nsp pptr bpptr compdata bdrcompdata ex)
     (ignored = (/prelude/fprintf-bytestring stderr "read error: %s
 " msg))
     {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)})))}
+
 (sl = (/prelude/psm 20000))
+
 (pptr = (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
+
 (bpptr = (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl)))
+
 (rt = (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0)))
+
 (compdata = (/prelude/cdm))
+
 (bdrcompdata = (/prelude/cdm))
+
 (ex = (/prelude/em))
+
 (xxx = (/zlisp/iprog sl pptr bpptr compdata bdrcompdata))
+
 (ignored = (repl sl rt pptr bpptr compdata bdrcompdata ex))

@@ -30,10 +30,13 @@
  (fntest-
   "testing"
   fntest))
+
 defn switch (exp argz)
 {return (list 'brackets (list 'args '= exp) (/std/switch-fun argz))}
+
 defn fntest (body expect)
 {return (/testing/fntest- body expect)}
+
 defn backquote (exp)
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
  {return (list 'quote exp)}
@@ -44,5 +47,6 @@ defn backquote (exp)
     {return (/std/head- (/std/tail- exp))}
     {return (list '/std/cons (../backquote (/std/head- exp)) (../backquote (/std/tail- exp)))}}
    {return (list '/std/cons (../backquote (/std/head- exp)) (../backquote (/std/tail- exp)))}}}}
+
 defn defn2 (name args body)
 {return (list 'brackets 'defn name '() (list 'brackets 'defn 'original-func args body (list '() '= (list 'original-func '@mut '@pre '@0 '@up2)) 'return :shouldnt-go-here) (list '() '= (list name '@mut '@0)))}

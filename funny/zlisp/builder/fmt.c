@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  char *res =  datum_format_bounded(&rr.ok_value, 128, 0, true, false);
+  char *res =  datum_format_bounded(&rr.ok_value, 128, 0, true, false, "\n\n");
   res[strlen(res) - 1] = 0;
   res += 1;
   fprintf(f, "%s\n", res);
