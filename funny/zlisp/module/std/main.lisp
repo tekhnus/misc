@@ -32,7 +32,7 @@
   "prelude"
   +))
 defn panic (x)
-{(() = (/prelude/panic- (at 0) x))
+{(() = (/prelude/panic- @0 x))
  () = (return)}
 defn head (x)
 {() = (return (/prelude/head- x))}
@@ -77,7 +77,7 @@ defn map (a0 a1)
 {if a1
  {() = (return (../cons (../a0 (../head a1)) (../map a0 (../tail a1))))}
  {() = (return '())}}
-(panic-block = '(argz (/std/panic (at 0) "wrong fn call")))
+(panic-block = '(argz (/std/panic @0 "wrong fn call")))
 defn list-at (xs n)
 {{if (../eq n 0)
   {() = (return (../head xs))}
@@ -93,7 +93,7 @@ defn swtchone (a0)
   (cond = "ifhack")
   (body = "ifhack")
   (rest = "ifhack")
-  () = (return '(/std/panic (at 0) "nothing matched"))}}
+  () = (return '(/std/panic @0 "nothing matched"))}}
 defn decons-pat (a0 a1)
 {(pat = a0)
  (val = a1)
@@ -129,7 +129,7 @@ defn decons-pat (a0 a1)
       () = (return '(:ok ()))}}}
    {(first-decons = "ifhack")
     (rest-decons = "ifhack")
-    (() = (../panic (at 0) "decons-pat met an unsupported type"))}}}}
+    (() = (../panic @0 "decons-pat met an unsupported type"))}}}}
 defn decons-vars (a0)
 {if (../is-constant a0)
  {() = (return '())}
@@ -139,7 +139,7 @@ defn decons-vars (a0)
    {if a0
     {() = (return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0))))}
     {() = (return '())}}
-   (() = (panic (at 0) "decons-var met an unsupported type"))}}}
+   (() = (panic @0 "decons-var met an unsupported type"))}}}
 (switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)))
 defn make-assignment (x)
 {() = (return (list (../head x) '= (../list-at x 1)))}
@@ -163,8 +163,7 @@ defn first-good-value (x)
     {() = (return (../list-at first-arg 1))}
     {() = (return (../first-good-value (../tail x)))}}}
   (panic
-   (at
-    0)
+   @0
    "first-good-value: no good value")}}
 defn not (x)
 {if x

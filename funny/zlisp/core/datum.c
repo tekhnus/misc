@@ -84,6 +84,9 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start, bool pre
   } else if (datum_is_list(e) && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "quote")) {
     assert(list_length(e) == 2);
     end += sprintf(end, "'%s", datum_format_bounded(list_at(e, 1), depth, start, pretty, flat));
+  } else if (datum_is_list(e) && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "at")) {
+    assert(list_length(e) == 2);
+    end += sprintf(end, "@%s", datum_format_bounded(list_at(e, 1), depth, start, pretty, flat));
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "()";
