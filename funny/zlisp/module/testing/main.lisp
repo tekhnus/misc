@@ -7,11 +7,11 @@
  (panic "std" panic))
 
 defn fntest (body expect)
-  (return (list 'brackets
+  {return (list 'brackets
              'defn 'calltest '() body
              '(val = (calltest))
              'if (list '/std/eq 'val expect)
                  '(panics = panics)
-               (list 'panics '= (list '/std/cons (list '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") (list '/std/repr expect)) 'panics))))
+               (list 'panics '= (list '/std/cons (list '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") (list '/std/repr expect)) 'panics)))}
 
 (export (fntest fntest))
