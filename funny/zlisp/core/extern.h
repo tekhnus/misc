@@ -193,7 +193,7 @@ datum *list_at(datum *list,unsigned index);
 bool datum_is_the_symbol(datum *d,char *val);
 int list_length(datum *seq);
 bool datum_is_list(datum *e);
-char *datum_format_bounded(datum *e,size_t depth,size_t start,bool pretty);
+char *datum_format_bounded(datum *e,size_t depth,size_t start,bool pretty,bool flat);
 char *datum_repr_bounded(datum *e,size_t depth);
 char *datum_repr(datum *e);
 datum datum_make_frame(frame fr);

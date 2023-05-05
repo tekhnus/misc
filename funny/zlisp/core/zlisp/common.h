@@ -50,7 +50,7 @@ datum datum_make_int(int64_t value);
 datum datum_make_frame(frame fr);
 char *datum_repr(datum *e);
 char *datum_repr_bounded(datum *e,size_t depth);
-char *datum_format_bounded(datum *e,size_t depth,size_t start,bool pretty);
+char *datum_format_bounded(datum *e,size_t depth,size_t start,bool pretty,bool flat);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;

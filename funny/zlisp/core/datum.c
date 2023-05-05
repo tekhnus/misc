@@ -71,10 +71,10 @@ EXPORT datum datum_make_frame(frame fr) {
 EXPORT char *datum_repr(datum *e) { return datum_repr_bounded(e, 8); }
 
 EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
-  return datum_format_bounded(e, depth, 0, false);
+  return datum_format_bounded(e, depth, 0, false, false);
 }
 
-EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start, bool pretty) {
+EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start, bool pretty, bool flat) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (depth == 0) {
@@ -83,11 +83,11 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start, bool pre
     sprintf(buf, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e) && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "quote")) {
     assert(list_length(e) == 2);
-    end += sprintf(end, "'%s", datum_format_bounded(list_at(e, 1), depth, start, pretty));
+    end += sprintf(end, "'%s", datum_format_bounded(list_at(e, 1), depth, start, pretty, flat));
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "()";
-    char *sep = "";
+    char *sep = "\n";
     if (pretty && list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
       pair = "{}";
@@ -99,19 +99,33 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start, bool pre
     if (strlen(pair) > 0) {
       end += sprintf(end, "%c", pair[0]);
     }
+    int inhibit_newline = -1;
     for (int i = first; i < list_length(e); ++i) {
       if (i > first) {
-        if (strlen(sep) > 0) {
+        if (sep[0] != '\n') {
           end += sprintf(end, "%s", sep);
+        } else if (inhibit_newline >= 0 || flat) {
+          end += sprintf(end, " ");
         } else {
-          end += sprintf(end, "\n");
+          end += sprintf(end, "%s", sep);
           for (size_t i = 0; i < start; ++i) {
             end += sprintf(end, " ");
           }
         }
       }
       datum *item = list_at(e, i);
-      end += sprintf(end, "%s", datum_format_bounded(item, depth - 1, start + 1, pretty));
+      if (datum_is_the_symbol(item, "defn")) {
+        inhibit_newline = 2;
+      } else if (datum_is_the_symbol(item, "return")) {
+        inhibit_newline = 1;
+      } else if (datum_is_the_symbol(item, "if")) {
+        inhibit_newline = 1;
+      }
+      else if (i + 1 < list_length(e) && datum_is_the_symbol(list_at(e, i + 1), "=")) {
+        inhibit_newline = 2;
+      }
+      end += sprintf(end, "%s", datum_format_bounded(item, depth - 1, start + 1, pretty, flat || (inhibit_newline >= 0)));
+      --inhibit_newline;
     }
     if (strlen(pair) > 0) {
       end += sprintf(end, "%c", pair[1]);

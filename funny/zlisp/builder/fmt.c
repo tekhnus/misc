@@ -21,6 +21,6 @@ int main(int argc, char **argv) {
   }
   assert(read_result_is_ok(rr));
   assert(datum_is_list(&rr.ok_value));
-  printf("%s\n", datum_format_bounded(&rr.ok_value, 128, 0, true));
+  printf("%s\n", datum_format_bounded(&rr.ok_value, 128, 0, true, false));
   return EXIT_SUCCESS;
 }
