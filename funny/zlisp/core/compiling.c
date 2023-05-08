@@ -160,7 +160,7 @@ LOCAL datum prog_unflatten(datum *source) {
 }
 
 EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum *compdata, extension *ext) {
+                                   datum *compdata, extension *ext) {
   if (!datum_is_list(stmt)) {
     fprintf(stderr, "prog_append_statement expected a list, got %s\n",
             datum_repr(stmt));

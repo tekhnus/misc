@@ -93,10 +93,12 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
 
 LOCAL char *null_extension_call(extension *self, vec *sl, size_t *begin,
                                 datum *stmt, datum *compdata) {
-  if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(list_at(stmt, 0), "req")) {
+  if (datum_is_list(stmt) && !datum_is_nil(stmt) &&
+      datum_is_the_symbol(list_at(stmt, 0), "req")) {
     return prog_append_usages(sl, begin, stmt, compdata, self);
   }
-  if (datum_is_list(stmt) && !datum_is_nil(stmt) && datum_is_the_symbol(list_at(stmt, 0), "export")) {
+  if (datum_is_list(stmt) && !datum_is_nil(stmt) &&
+      datum_is_the_symbol(list_at(stmt, 0), "export")) {
     return prog_append_exports(sl, begin, stmt, compdata, self);
   }
   if (self || sl || begin || stmt || compdata) {
@@ -177,16 +179,15 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   datum *exprs = list_at(&re, 1);
 
   datum return_expr = datum_make_list_of(
-          datum_make_symbol("return"),
-          datum_make_list_of(datum_make_symbol("at"),
-                             datum_make_list_of(datum_make_symbol("meta"),
-                                                datum_copy(meta))));
+      datum_make_symbol("return"),
+      datum_make_list_of(
+          datum_make_symbol("at"),
+          datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))));
   for (int i = 0; i < list_length(exprs); ++i) {
     list_append(&return_expr, datum_copy(list_at(exprs, i)));
   }
-  datum stmt = datum_make_list_of(
-      datum_make_nil(), datum_make_symbol("="),
-      return_expr);
+  datum stmt =
+      datum_make_list_of(datum_make_nil(), datum_make_symbol("="), return_expr);
   prog_append_statement(sl, begin, &stmt, compdata, ext);
 
   return NULL;
