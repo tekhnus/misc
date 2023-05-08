@@ -94,7 +94,7 @@
   5))
 
 (fntest
- {return (backquote (1 2 (tilde (std/+ 1 2))))}
+ {return `(1 2 ~(std/+ 1 2))}
  '(1
   2
   3))
@@ -126,7 +126,7 @@
   ((y) = (fib @mut))
   ((z) = (fib @mut))
   ((t) = (fib @mut))
-  return (backquote ((tilde x) (tilde y) (tilde z) (tilde t)))}
+  return `(~x ~y ~z ~t)}
  '(3
   5
   8
@@ -143,7 +143,7 @@
  {defn multi-ret ()
   {() = (return 42 34)}
   ((x y) = (multi-ret @2))
-  return (backquote ((tilde x) (tilde y)))}
+  return `(~x ~y)}
  '(42
   34))
 

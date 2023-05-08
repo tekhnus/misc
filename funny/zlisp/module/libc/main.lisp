@@ -34,7 +34,7 @@
   "std"
   first-good-value))
 
-(libc = (/std/first-good-value (backquote ((tilde (/prelude/shared-library "libc.so.6")) (tilde (/prelude/shared-library "libSystem.B.dylib"))))))
+(libc = (/std/first-good-value `(~(/prelude/shared-library "libc.so.6") ~(/prelude/shared-library "libSystem.B.dylib"))))
 
 (malloc = (/prelude/c-function libc "malloc" '((sizet) pointer)))
 
@@ -50,11 +50,11 @@
 
 (printfptr = (/prelude/c-function libc "printf" '((string pointer) sizet)))
 
-(stdin = (/std/first-good-value (backquote ((tilde (/prelude/extern-pointer libc "stdin" 'pointer)) (tilde (/prelude/extern-pointer libc "__stdinp" 'pointer))))))
+(stdin = (/std/first-good-value `(~(/prelude/extern-pointer libc "stdin" 'pointer) ~(/prelude/extern-pointer libc "__stdinp" 'pointer))))
 
-(stdout = (/std/first-good-value (backquote ((tilde (/prelude/extern-pointer libc "stdout" 'pointer)) (tilde (/prelude/extern-pointer libc "__stdoutp" 'pointer))))))
+(stdout = (/std/first-good-value `(~(/prelude/extern-pointer libc "stdout" 'pointer) ~(/prelude/extern-pointer libc "__stdoutp" 'pointer))))
 
-(stderr = (/std/first-good-value (backquote ((tilde (/prelude/extern-pointer libc "stderr" 'pointer)) (tilde (/prelude/extern-pointer libc "__stderrp" 'pointer))))))
+(stderr = (/std/first-good-value `(~(/prelude/extern-pointer libc "stderr" 'pointer) ~(/prelude/extern-pointer libc "__stderrp" 'pointer))))
 
 defn print (val)
 {return (/prelude/fprintf-bytestring stdout "%s

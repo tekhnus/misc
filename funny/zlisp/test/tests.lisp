@@ -83,44 +83,44 @@
  :list)
 
 (fntest
- {return (backquote 42)}
+ {return `42}
  42)
 
 (fntest
- {return (backquote (42 33))}
+ {return `(42 33)}
  '(42
   33))
 
 (fntest
- {return (backquote (42 33 55))}
+ {return `(42 33 55)}
  '(42
   33
   55))
 
 (fntest
- {return (backquote ())}
+ {return `()}
  '())
 
 (fntest
- {return (backquote (42 (33 1)))}
+ {return `(42 (33 1))}
  '(42
   (33
    1)))
 
 (fntest
- {return (backquote (42 (/std/+ 33 1)))}
+ {return `(42 (/std/+ 33 1))}
  '(42
   (/std/+
    33
    1)))
 
 (fntest
- {return (backquote (42 (tilde (/std/+ 33 1))))}
+ {return `(42 ~(/std/+ 33 1))}
  '(42
   34))
 
 (fntest
- {return (backquote (42 (tilde (list (/std/+ 33 1) (backquote foo)))))}
+ {return `(42 ~(list (/std/+ 33 1) `foo))}
  '(42
   (34
    foo)))
@@ -152,7 +152,7 @@
   5))
 
 (fntest
- {return (backquote (1 2 (tilde (/std/+ 1 2))))}
+ {return `(1 2 ~(/std/+ 1 2))}
  '(1
   2
   3))
@@ -219,7 +219,7 @@
   ((y) = (fib @mut))
   ((z) = (fib @mut))
   ((t) = (fib @mut))
-  {return (backquote ((tilde x) (tilde y) (tilde z) (tilde t)))}}
+  {return `(~x ~y ~z ~t)}}
  '(3
   5
   8
@@ -247,7 +247,7 @@
   ((y) = (more-far-fib @mut @event-loop))
   ((z) = (more-far-fib @mut @event-loop))
   ((t) = (more-far-fib @mut @event-loop))
-  {return (backquote ((tilde x) (tilde y) (tilde z) (tilde t)))}}
+  {return `(~x ~y ~z ~t)}}
  '(3
   5
   8
@@ -262,7 +262,7 @@
  {defn multi-ret ()
   {() = (return 42 34)}
   ((x y) = (multi-ret @2))
-  {return (backquote ((tilde x) (tilde y)))}}
+  {return `(~x ~y)}}
  '(42
   34))
 
@@ -275,7 +275,7 @@
   (a = (fee @mut 41))
   (b = (fee @mut 33))
   (c = (fee @mut 14 15))
-  {return (backquote ((tilde a) (tilde b) (tilde c)))}}
+  {return `(~a ~b ~c)}}
  '(42
   34
   :done))
@@ -300,7 +300,7 @@
   (xs2 = (cl-cons 34 xs1))
   (a = (cl-head xs2))
   (b = (cl-head (cl-tail xs2)))
-  {return (backquote ((tilde a) (tilde b)))}}
+  {return `(~a ~b)}}
  '(34
   42))
 
@@ -345,7 +345,7 @@
 (fntest
  {defn wrapper ()
   {defn wrapped (x)
-   {{return (backquote ((tilde x) (tilde x)))}}
+   {{return `(~x ~x)}}
    (() = (wrapped @mut @pre @0 @up))
    {return 33}}
   (() = (wrapper @mut @0))

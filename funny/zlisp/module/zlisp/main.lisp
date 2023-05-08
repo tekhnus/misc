@@ -46,7 +46,7 @@
   "std"
   panic))
 
-(buildlib = (/std/first-good-value (backquote ((tilde (/prelude/shared-library "libzlisp-build-lib.so"))))))
+(buildlib = (/std/first-good-value `(~(/prelude/shared-library "libzlisp-build-lib.so"))))
 
 (compdata-make = (/prelude/c-function selflib "compdata_alloc_make" '(() pointer)))
 
@@ -74,8 +74,8 @@ defn init-prog (sl pptr bpptr compdata bdrcompdata)
 defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata ex)
 {(e = (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex))
  {if (/std/eq 0 (/prelude/dereference e 'int64))
-  {return (backquote (:ok :nothing))}
-  {return (backquote (:err (tilde (/prelude/dereference e 'string))))}}}
+  {return `(:ok :nothing)}
+  {return `(:err ~(/prelude/dereference e 'string))}}}
 
 (routine-run-and-get-value-c-host-new = (/prelude/c-function selflib "routine_run_in_ffi_host" '((progslice pointer) fdatum)))
 
@@ -100,9 +100,9 @@ defn eval-new (sl rt0)
 {(res = (/prelude/routine-run-and-get-value-c-host-new sl rt0))
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
   {(msg = (../fdatum-get-panic-message res))
-   {return (backquote (:err (tilde msg)))}}
+   {return `(:err ~msg)}}
   {(val = (../fdatum-get-value res))
-   {return (backquote (:ok (tilde val) (tilde rt0)))}}}}
+   {return `(:ok ~val ~rt0)}}}}
 
 (datum-read-one = (/prelude/c-function selflib "datum_read_one" '((pointer) fdatum)))
 
@@ -112,9 +112,9 @@ defn read (strm)
   {(msg = (../fdatum-get-panic-message res))
    {if (/std/eq msg "eof")
     {return '(:eof)}
-    {return (backquote (:err (tilde msg)))}}}
+    {return `(:err ~msg)}}}
   {(maybeval = (../fdatum-get-value res))
-   {return (backquote (:ok (tilde maybeval)))}}}}
+   {return `(:ok ~maybeval)}}}}
 
 (export
  (compile-prog-new
