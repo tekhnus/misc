@@ -576,7 +576,6 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   }
   /* This nop is appended as a hack so that the yield becomes the last statement
    * on the slice. */
-  prog_append_nop(sl, begin);
   prog_append_yield(sl, begin, datum_make_symbol("plain"),
                     list_length(list_at(&re, 0)), 0, *list_at(&re, 0),
                     compdata);
