@@ -106,7 +106,7 @@ defn swtchone (a0)
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
-  () = (return (list 'brackets (list 'prearg '= cond) 'if '(/std/eq (/std/head prearg) :ok) (list 'brackets '(args = (/std/list-at prearg 1)) body) rest))}
+  () = (return (list 'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) (list 'brackets 'args '= '(/std/list-at prearg 1) body) rest))}
  {firstarg = "ifhack"
   cond = "ifhack"
   body = "ifhack"
@@ -163,7 +163,7 @@ defn decons-vars (a0)
 
 switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5))
 defn make-assignment (x)
-{() = (return (list (../head x) '= (../list-at x 1)))}
+{() = (return (list 'brackets (../head x) '= (../list-at x 1)))}
 
 defn switch-clause (a0)
 {sig = (../head a0)

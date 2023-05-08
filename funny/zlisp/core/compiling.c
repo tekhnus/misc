@@ -133,6 +133,10 @@ LOCAL datum prog_unflatten(datum *source) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
         exit(EXIT_FAILURE);
       }
+      if (list_length(cur) == 3 && datum_is_the_symbol(list_at(cur, 1), "=")) {
+        fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
+        exit(EXIT_FAILURE);
+      }
       if (datum_is_the_symbol(list_at(cur, 0), "return")) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
       }
