@@ -137,8 +137,14 @@ LOCAL datum prog_unflatten(datum *source) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
         exit(EXIT_FAILURE);
       }
-      if (datum_is_the_symbol(list_at(cur, 0), "return")) {
+      if (!datum_is_the_symbol(list_at(cur, 0), "brackets") &&
+          !datum_is_the_symbol(list_at(cur, 0), "fntest") &&
+          !datum_is_the_symbol(list_at(cur, 0), "switch") &&
+          !datum_is_the_symbol(list_at(cur, 0), "req") &&
+          !datum_is_the_symbol(list_at(cur, 0), "defn2") &&
+          !datum_is_the_symbol(list_at(cur, 0), "export")) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
+        exit(EXIT_FAILURE);
       }
     }
     if (!datum_is_symbol(cur)) {
