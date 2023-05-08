@@ -173,7 +173,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
 
   if (datum_is_the_symbol(op, "req")) {
-    return prog_append_usages(sl, begin, stmt, compdata);
+    return prog_append_usages(sl, begin, stmt, compdata, ext);
   }
   if (datum_is_the_symbol(op, "export")) {
     return prog_append_exports(sl, begin, stmt, compdata, ext);
@@ -322,6 +322,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     bool target_defined = false;
     size_t recieve_count = 0;
     int index = 1;
+    datum meta = datum_make_nil();
     while (index < list_length(stmt)) {
       datum *tag = list_at(stmt, index);
       if (!datum_is_list(tag) || list_length(tag) != 2 ||
@@ -331,6 +332,10 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
       datum *content = list_at(tag, 1);
       if (datum_is_integer(content)) {
         recieve_count = content->integer_value;
+        ++index;
+      } else if (datum_is_list(content) && list_length(content) == 2 &&
+                 datum_is_the_symbol(list_at(content, 0), "meta")) {
+        meta = datum_copy(list_at(content, 1));
         ++index;
       } else if (!target_defined) {
         target = datum_copy(content);
@@ -348,8 +353,7 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
         return err;
       }
     }
-    prog_append_yield(sl, begin, target, argcnt, recieve_count,
-                      datum_make_nil(), compdata);
+    prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
   char *res = ext->call(ext, sl, begin, stmt, compdata);
@@ -497,7 +501,7 @@ EXPORT char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
 }
 
 LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
-                               datum *compdata) {
+                               datum *compdata, extension *ext) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -507,7 +511,17 @@ LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
     return "not gonna happen";
   }
   datum *vars = list_at(&re, 0);
-  prog_append_recieve(sl, begin, vars, *list_at(&re, 1), compdata);
+  datum *meta = list_at(&re, 1);
+  datum stmt = datum_make_list_of(
+      datum_copy(vars), datum_make_symbol("="),
+      datum_make_list_of(
+          datum_make_symbol("return"),
+          datum_make_list_of(datum_make_symbol("at"),
+                             datum_make_int(list_length(vars))),
+          datum_make_list_of(datum_make_symbol("at"),
+                             datum_make_list_of(datum_make_symbol("meta"),
+                                                datum_copy(meta)))));
+  prog_append_statement(sl, begin, &stmt, compdata, ext);
   return NULL;
 }
 
