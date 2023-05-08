@@ -118,7 +118,8 @@ LOCAL datum prog_unflatten(datum *source) {
         datum *item = list_at(source, i);
         list_append(&stmt, datum_copy(item));
         ++i;
-        if (!datum_is_list(item) || datum_is_nil(item) || !datum_is_the_symbol(list_at(item, 0), "at")) {
+        if (!datum_is_list(item) || datum_is_nil(item) ||
+            !datum_is_the_symbol(list_at(item, 0), "at")) {
           break;
         }
       }
@@ -161,7 +162,8 @@ LOCAL datum prog_unflatten(datum *source) {
 LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                                   datum *compdata, extension *ext) {
   if (!datum_is_list(stmt)) {
-    fprintf(stderr, "prog_append_statement expected a list, got %s\n", datum_repr(stmt));
+    fprintf(stderr, "prog_append_statement expected a list, got %s\n",
+            datum_repr(stmt));
     return "prog_append_statement expected a list";
   }
   datum *op = list_at(stmt, 0);
