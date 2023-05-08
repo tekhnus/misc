@@ -569,16 +569,22 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   if (!datum_is_list(&re) || list_length(&re) != 2) {
     return "not gonna happen";
   }
+  datum *meta = list_at(&re, 0);
   datum *exprs = list_at(&re, 1);
+
+  datum return_expr = datum_make_list_of(
+          datum_make_symbol("return"),
+          datum_make_list_of(datum_make_symbol("at"),
+                             datum_make_list_of(datum_make_symbol("meta"),
+                                                datum_copy(meta))));
   for (int i = 0; i < list_length(exprs); ++i) {
-    datum *expr = list_at(exprs, i);
-    prog_append_expression(sl, begin, expr, compdata, ext);
+    list_append(&return_expr, datum_copy(list_at(exprs, i)));
   }
-  /* This nop is appended as a hack so that the yield becomes the last statement
-   * on the slice. */
-  prog_append_yield(sl, begin, datum_make_symbol("plain"),
-                    list_length(list_at(&re, 0)), 0, *list_at(&re, 0),
-                    compdata);
+  datum stmt = datum_make_list_of(
+      datum_make_nil(), datum_make_symbol("="),
+      return_expr);
+  prog_append_statement(sl, begin, &stmt, compdata, ext);
+
   return NULL;
 }
 
