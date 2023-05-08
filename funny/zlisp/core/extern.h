@@ -44,12 +44,16 @@ struct fdatum {
   struct datum ok_value;
   char *panic_message;
 };
-typedef struct lisp_extension lisp_extension;
+LOCAL fdatum prog_read_exports(datum *spec);
+LOCAL fdatum prog_read_usages(datum *spec);
 typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
                 datum *compdata);
 };
+LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
+LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
+typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   extension base;
   vec program;
@@ -99,8 +103,6 @@ datum compdata_make();
 void prog_append_nop(vec *sl,size_t *begin);
 LOCAL void prog_append_recieve(vec *sl,size_t *begin,datum *args,datum meta,datum *compdata);
 LOCAL void prog_append_move(vec *sl,size_t *begin,datum *target,datum *source,datum *compdata);
-LOCAL fdatum prog_read_exports(datum *spec);
-LOCAL fdatum prog_read_usages(datum *spec);
 void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
@@ -116,11 +118,9 @@ LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum *compdata,datum var);
 LOCAL void compdata_del(datum *compdata);
 char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
-LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
-LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
 bool compdata_has_value(datum *compdata);
 LOCAL bool compdata_validate(datum *compdata);
-LOCAL char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
+char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL datum prog_unflatten(datum *source);
 LOCAL datum instruction_relocate(datum *ins,size_t delta);

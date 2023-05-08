@@ -159,7 +159,7 @@ LOCAL datum prog_unflatten(datum *source) {
   return res;
 }
 
-LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
+EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
                                   datum *compdata, extension *ext) {
   if (!datum_is_list(stmt)) {
     fprintf(stderr, "prog_append_statement expected a list, got %s\n",
@@ -172,12 +172,6 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     op2 = datum_copy(list_at(stmt, 1));
   }
 
-  if (datum_is_the_symbol(op, "req")) {
-    return prog_append_usages(sl, begin, stmt, compdata, ext);
-  }
-  if (datum_is_the_symbol(op, "export")) {
-    return prog_append_exports(sl, begin, stmt, compdata, ext);
-  }
   if (datum_is_the_symbol(op, "if")) {
     if (list_length(stmt) != 4) {
       return "if should have three args";
@@ -500,94 +494,6 @@ EXPORT char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
   return NULL;
 }
 
-LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
-                               datum *compdata, extension *ext) {
-  fdatum res = prog_read_usages(spec);
-  if (fdatum_is_panic(res)) {
-    return res.panic_message;
-  }
-  datum re = res.ok_value;
-  if (!datum_is_list(&re) || list_length(&re) != 2) {
-    return "not gonna happen";
-  }
-  datum *vars = list_at(&re, 0);
-  datum *meta = list_at(&re, 1);
-  datum stmt = datum_make_list_of(
-      datum_copy(vars), datum_make_symbol("="),
-      datum_make_list_of(
-          datum_make_symbol("return"),
-          datum_make_list_of(datum_make_symbol("at"),
-                             datum_make_int(list_length(vars))),
-          datum_make_list_of(datum_make_symbol("at"),
-                             datum_make_list_of(datum_make_symbol("meta"),
-                                                datum_copy(meta)))));
-  prog_append_statement(sl, begin, &stmt, compdata, ext);
-  return NULL;
-}
-
-LOCAL fdatum prog_read_usages(datum *spec) {
-  if (!datum_is_list(spec) || list_length(spec) == 0 ||
-      !datum_is_the_symbol(list_at(spec, 0), "req")) {
-    return fdatum_make_panic("wrong usage spec");
-  }
-  int index = 1;
-  datum vars = datum_make_nil();
-  datum specs = datum_make_nil();
-  for (; index < list_length(spec); ++index) {
-    datum *item = list_at(spec, index);
-    if (!datum_is_list(item) || list_length(item) < 2 ||
-        list_length(item) > 3) {
-      return fdatum_make_panic("wrong usage spec");
-    }
-    datum *item_var = list_at(item, 0);
-    if (!datum_is_symbol(item_var)) {
-      return fdatum_make_panic("wrong usage spec");
-    }
-
-    datum item_spec;
-    if (list_length(item) == 2) {
-      item_spec = datum_make_list_of(datum_copy(list_at(item, 1)));
-    } else if (list_length(item) == 3) {
-      item_spec = datum_make_list_of(datum_copy(list_at(item, 1)),
-                                     datum_copy(list_at(item, 2)));
-    } else {
-      return fdatum_make_panic("wrong usage spec");
-    }
-    list_append(&vars, datum_copy(item_var));
-    list_append(&specs, item_spec);
-  }
-  return fdatum_make_ok(datum_make_list_of(vars, specs));
-}
-
-LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
-                                datum *compdata, extension *ext) {
-  fdatum res = prog_read_exports(spec);
-  if (fdatum_is_panic(res)) {
-    return res.panic_message;
-  }
-  datum re = res.ok_value;
-  if (!datum_is_list(&re) || list_length(&re) != 2) {
-    return "not gonna happen";
-  }
-  datum *meta = list_at(&re, 0);
-  datum *exprs = list_at(&re, 1);
-
-  datum return_expr = datum_make_list_of(
-          datum_make_symbol("return"),
-          datum_make_list_of(datum_make_symbol("at"),
-                             datum_make_list_of(datum_make_symbol("meta"),
-                                                datum_copy(meta))));
-  for (int i = 0; i < list_length(exprs); ++i) {
-    list_append(&return_expr, datum_copy(list_at(exprs, i)));
-  }
-  datum stmt = datum_make_list_of(
-      datum_make_nil(), datum_make_symbol("="),
-      return_expr);
-  prog_append_statement(sl, begin, &stmt, compdata, ext);
-
-  return NULL;
-}
-
 EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
                              datum indices, bool pop_one, bool pre, datum type,
                              int arg_count, int return_count, datum *compdata) {
@@ -670,30 +576,6 @@ LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args, datum meta,
   prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
                     meta, compdata);
   store_values_to_variables(sl, begin, args, compdata);
-}
-
-LOCAL fdatum prog_read_exports(datum *spec) {
-  if (!datum_is_list(spec) || list_length(spec) == 0 ||
-      !datum_is_the_symbol(list_at(spec, 0), "export")) {
-    return fdatum_make_panic("wrong export spec");
-  }
-  int index = 1;
-  datum names = datum_make_nil();
-  datum expressions = datum_make_nil();
-  for (; index < list_length(spec); ++index) {
-    datum *item = list_at(spec, index);
-    if (!datum_is_list(item) || list_length(item) != 2) {
-      return fdatum_make_panic("wrong export spec");
-    }
-    datum *item_name = list_at(item, 0);
-    if (!datum_is_symbol(item_name)) {
-      return fdatum_make_panic("wrong export spec");
-    }
-    datum *item_expression = list_at(item, 1);
-    list_append(&names, datum_copy(item_name));
-    list_append(&expressions, datum_copy(item_expression));
-  }
-  return fdatum_make_ok(datum_make_list_of(names, expressions));
 }
 
 LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
