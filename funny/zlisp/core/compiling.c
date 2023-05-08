@@ -142,6 +142,7 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&res, datum_copy(cur));
       continue;
     }
+    fprintf(stderr, "unflattening error: %s\n", datum_repr(source));
     assert(false);
   }
   return res;
