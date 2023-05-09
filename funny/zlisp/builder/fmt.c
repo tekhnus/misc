@@ -47,6 +47,17 @@ LOCAL datum rewrite(datum *source) {
       datum_is_the_symbol(list_at(source, 0), "quote")) {
     return datum_copy(source);
   }
+  if (datum_is_list(source) && list_length(source) > 0 &&
+      datum_is_the_symbol(list_at(source, 0), "req")) {
+    datum res = datum_make_list_of(datum_copy(list_at(source, 0)));
+    datum items = datum_make_nil();
+    list_append(&items, datum_make_symbol("brackets"));
+    for (int i = 1; i < list_length(source); ++i) {
+      list_append(&items, datum_copy(list_at(source, i)));
+    }
+    list_append(&res, items);
+    return res;
+  }
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);

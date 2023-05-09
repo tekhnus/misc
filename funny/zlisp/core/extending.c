@@ -139,15 +139,16 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   int index = 1;
   datum vars = datum_make_nil();
   datum specs = datum_make_nil();
-  for (; index < list_length(spec); ++index) {
-    datum *item = list_at(spec, index);
+  datum *items = list_at(spec, 1);
+  for (; index < list_length(items); ++index) {
+    datum *item = list_at(items, index);
     if (!datum_is_list(item) || list_length(item) < 2 ||
         list_length(item) > 3) {
-      return fdatum_make_panic("wrong usage spec");
+      return fdatum_make_panic("wrong usage spec: wrong length");
     }
     datum *item_var = list_at(item, 0);
     if (!datum_is_symbol(item_var)) {
-      return fdatum_make_panic("wrong usage spec");
+      return fdatum_make_panic("wrong usage spec: not a symbol");
     }
 
     datum item_spec;
@@ -157,7 +158,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
       item_spec = datum_make_list_of(datum_copy(list_at(item, 1)),
                                      datum_copy(list_at(item, 2)));
     } else {
-      return fdatum_make_panic("wrong usage spec");
+      return fdatum_make_panic("wrong usage spec: wrong item length");
     }
     list_append(&vars, datum_copy(item_var));
     list_append(&specs, item_spec);

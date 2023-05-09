@@ -1,4 +1,5 @@
-(req)
+(req
+ {})
 
 defn print (a0)
 {return (return @1 @(host ("eval" "print(x[1][0])")) (list a0))}

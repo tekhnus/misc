@@ -1,18 +1,18 @@
 (req
- (prelude
-  "prelude")
- (fopen
-  "libc"
-  fopen)
- (malloc
-  "libc"
-  malloc)
- (fread
-  "libc"
-  fread)
- (printfptr
-  "libc"
-  printfptr))
+ {(prelude
+   "prelude")
+  (fopen
+   "libc"
+   fopen)
+  (malloc
+   "libc"
+   malloc)
+  (fread
+   "libc"
+   fread)
+  (printfptr
+   "libc"
+   printfptr)})
 
 hostsfile = (/prelude/fopen "/etc/hosts" "r")
 buffer = (/prelude/malloc 2048)
