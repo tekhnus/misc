@@ -202,8 +202,9 @@ LOCAL fdatum prog_read_exports(datum *spec) {
   int index = 1;
   datum names = datum_make_nil();
   datum expressions = datum_make_nil();
-  for (; index < list_length(spec); ++index) {
-    datum *item = list_at(spec, index);
+  datum *items = list_at(spec, 1);
+  for (; index < list_length(items); ++index) {
+    datum *item = list_at(items, index);
     if (!datum_is_list(item) || list_length(item) != 2) {
       return fdatum_make_panic("wrong export spec");
     }

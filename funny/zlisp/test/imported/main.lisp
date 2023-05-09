@@ -2,4 +2,5 @@
  {})
 
 some-variable = 42
-(export)
+(export
+ {})

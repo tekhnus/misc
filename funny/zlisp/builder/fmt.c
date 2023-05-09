@@ -48,7 +48,7 @@ LOCAL datum rewrite(datum *source) {
     return datum_copy(source);
   }
   if (datum_is_list(source) && list_length(source) > 0 &&
-      datum_is_the_symbol(list_at(source, 0), "req")) {
+      datum_is_the_symbol(list_at(source, 0), "_something_")) {
     datum res = datum_make_list_of(datum_copy(list_at(source, 0)));
     datum items = datum_make_nil();
     list_append(&items, datum_make_symbol("brackets"));

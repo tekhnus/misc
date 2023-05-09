@@ -102,23 +102,23 @@ defn read (strm)
    {return `(:ok ~maybeval)}}}}
 
 (export
- (compile-prog-new
-  compile-prog-new)
- (init-prog
-  init-prog)
- (eval-new
-  eval-new)
- (read
-  read)
- (repr-pointer
-  repr-pointer)
- (make-routine-with-empty-state
-  make-routine-with-empty-state)
- (prog-slice-make
-  prog-slice-make)
- (prog-slice-append-new
-  prog-slice-append-new)
- (compdata-make
-  compdata-make)
- (ext-make
-  ext-make))
+ {(compile-prog-new
+   compile-prog-new)
+  (init-prog
+   init-prog)
+  (eval-new
+   eval-new)
+  (read
+   read)
+  (repr-pointer
+   repr-pointer)
+  (make-routine-with-empty-state
+   make-routine-with-empty-state)
+  (prog-slice-make
+   prog-slice-make)
+  (prog-slice-append-new
+   prog-slice-append-new)
+  (compdata-make
+   compdata-make)
+  (ext-make
+   ext-make)})

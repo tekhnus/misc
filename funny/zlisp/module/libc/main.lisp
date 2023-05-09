@@ -50,25 +50,25 @@ defn print (val)
 " (/std/repr val))}
 
 (export
- (malloc
-  malloc)
- (fopen
-  fopen)
- (fread
-  fread)
- (feof
-  feof)
- (fprintf
-  fprintf)
- (fprintf-bytestring
-  fprintf-bytestring)
- (printfptr
-  printfptr)
- (stdin
-  stdin)
- (stdout
-  stdout)
- (stderr
-  stderr)
- (print
-  print))
+ {(malloc
+   malloc)
+  (fopen
+   fopen)
+  (fread
+   fread)
+  (feof
+   feof)
+  (fprintf
+   fprintf)
+  (fprintf-bytestring
+   fprintf-bytestring)
+  (printfptr
+   printfptr)
+  (stdin
+   stdin)
+  (stdout
+   stdout)
+  (stderr
+   stderr)
+  (print
+   print)})
