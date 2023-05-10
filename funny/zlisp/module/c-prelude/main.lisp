@@ -1,5 +1,5 @@
-(req
- {})
+req
+{}
 
 defn call-extension-1 (fnptr x)
 {return (return @1 @(host "call-extension") fnptr x)}

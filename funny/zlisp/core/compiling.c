@@ -111,6 +111,11 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&res, list_copy(source, i - 4, i));
       continue;
     }
+    if (datum_is_the_symbol(cur, "req")) {
+      i += 2;
+      list_append(&res, list_copy(source, i - 2, i));
+      continue;
+    }
     if (datum_is_the_symbol(cur, "return")) {
       datum stmt = datum_make_nil();
       list_append(&stmt, datum_copy(list_at(source, i++)));

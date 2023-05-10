@@ -1,5 +1,5 @@
-(req
- {})
+req
+{}
 
 some-variable = 42
 (export
