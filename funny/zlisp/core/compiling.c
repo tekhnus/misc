@@ -122,6 +122,11 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&res, list_copy(source, i - 2, i));
       continue;
     }
+    if (datum_is_the_symbol(cur, "defn2")) {
+      i += 4;
+      list_append(&res, list_copy(source, i - 4, i));
+      continue;
+    }
     if (datum_is_the_symbol(cur, "return")) {
       datum stmt = datum_make_nil();
       list_append(&stmt, datum_copy(list_at(source, i++)));
@@ -151,8 +156,7 @@ LOCAL datum prog_unflatten(datum *source) {
       }
       if (!datum_is_the_symbol(list_at(cur, 0), "brackets") &&
           !datum_is_the_symbol(list_at(cur, 0), "fntest") &&
-          !datum_is_the_symbol(list_at(cur, 0), "switch") &&
-          !datum_is_the_symbol(list_at(cur, 0), "defn2")) {
+          !datum_is_the_symbol(list_at(cur, 0), "switch")) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
         exit(EXIT_FAILURE);
       }
