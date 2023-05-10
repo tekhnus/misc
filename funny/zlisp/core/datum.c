@@ -71,7 +71,7 @@ EXPORT datum datum_make_frame(frame fr) {
 EXPORT char *datum_repr(datum *e) { return datum_repr_bounded(e, 8); }
 
 EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
-  return datum_format_bounded(e, depth, 0, false, false, "\n");
+  return datum_format_bounded(e, depth, 0, false, true, " ");
 }
 
 EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,

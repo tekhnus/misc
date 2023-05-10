@@ -52,6 +52,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source_,
                                    datum *compdata, extension *ext,
                                    bool skip_first_debug) {
+  skip_first_debug = true;  // a temporary hack to support req inside {}
   datum source = prog_unflatten(source_);
   for (int i = 0; i < list_length(&source); ++i) {
     datum *stmt = list_at(&source, i);
@@ -146,7 +147,6 @@ LOCAL datum prog_unflatten(datum *source) {
       if (!datum_is_the_symbol(list_at(cur, 0), "brackets") &&
           !datum_is_the_symbol(list_at(cur, 0), "fntest") &&
           !datum_is_the_symbol(list_at(cur, 0), "switch") &&
-          !datum_is_the_symbol(list_at(cur, 0), "req") &&
           !datum_is_the_symbol(list_at(cur, 0), "defn2") &&
           !datum_is_the_symbol(list_at(cur, 0), "export")) {
         fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));

@@ -14,7 +14,7 @@ add_test(NAME run-cli
          COMMAND bash -c "\
          BYTECODE=$(mktemp); \
          $<TARGET_FILE:zlisp-build> c-prelude ${PROJECT_SOURCE_DIR}/module/cli/main.lisp >$BYTECODE || exit 1; \
-         printf '(req {(std \"std\") (+ \"std\" +)}) {return @halt @0 (/std/+ 33 9)}\n' | LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/builder $<TARGET_FILE:zlisp-run> $BYTECODE | tee /dev/stderr | grep 42; \
+         printf '{req {(std \"std\") (+ \"std\" +)} return @halt @0 (/std/+ 33 9)}\n' | LD_LIBRARY_PATH=${PROJECT_BINARY_DIR}/builder $<TARGET_FILE:zlisp-run> $BYTECODE | tee /dev/stderr | grep 42; \
          ")
 add_test(NAME pytests
          COMMAND bash -c "\
