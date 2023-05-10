@@ -147,6 +147,8 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "defn2")) {
         inhibit_newline = 2;
+      } else if (datum_is_the_symbol(item, "fntest")) {
+        inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "return")) {
         inhibit_newline = 1;
       } else if (datum_is_the_symbol(item, "if")) {

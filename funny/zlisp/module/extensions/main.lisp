@@ -34,9 +34,7 @@ req
 defn switch (exp argz)
 {return (list 'brackets 'args '= exp (/std/switch-fun argz))}
 
-defn fntest (body expect)
-{return (/testing/fntest- body expect)}
-
+defn fntest (body expect) {return (/testing/fntest- body expect)}
 defn backquote (exp)
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
  {return (list 'quote exp)}
