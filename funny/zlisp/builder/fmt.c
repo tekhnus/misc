@@ -62,8 +62,11 @@ LOCAL datum rewrite(datum *source) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
     if ((datum_is_list(elem) && list_length(elem) == 3 &&
-         datum_is_the_symbol(list_at(elem, 1), "="))
-        || (datum_is_list(elem) && list_length(elem) == 2 && datum_is_the_symbol(list_at(elem, 0), "req"))) {
+         datum_is_the_symbol(list_at(elem, 1), "=")) ||
+        (datum_is_list(elem) && list_length(elem) == 2 &&
+         datum_is_the_symbol(list_at(elem, 0), "req")) ||
+        (datum_is_list(elem) && list_length(elem) == 2 &&
+         datum_is_the_symbol(list_at(elem, 0), "export"))) {
       for (int j = 0; j < list_length(elem); ++j) {
         list_append(&res, rewrite(list_at(elem, j)));
       }

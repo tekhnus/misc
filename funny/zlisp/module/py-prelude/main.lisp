@@ -38,28 +38,29 @@ defn concat-bytestrings (a0 a1)
 defn repr (a0)
 {return (return @1 @(host ("eval" "repre(x)")) (list a0))}
 
-(export
- {(print
-   print)
-  (panic
-   panic)
-  (head
-   head)
-  (tail
-   tail)
-  (cons
-   cons)
-  (eq
-   eq)
-  (eq
-   eq)
-  (annotate
-   annotate)
-  (is-constant
-   is-constant)
-  (repr
-   repr)
-  (concat-bytestrings
-   concat-bytestrings)
-  (+
-   +)})
+export
+
+{(print
+  print)
+ (panic
+  panic)
+ (head
+  head)
+ (tail
+  tail)
+ (cons
+  cons)
+ (eq
+  eq)
+ (eq
+  eq)
+ (annotate
+  annotate)
+ (is-constant
+  is-constant)
+ (repr
+  repr)
+ (concat-bytestrings
+  concat-bytestrings)
+ (+
+  +)}
