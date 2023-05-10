@@ -152,29 +152,13 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&res, stmt);
       continue;
     }
-    if (datum_is_list(cur) && list_length(cur) > 0) {
-      if (datum_is_the_symbol(list_at(cur, 0), "defn") ||
-          datum_is_the_symbol(list_at(cur, 0), "if") ||
-          datum_is_the_symbol(list_at(cur, 0), "return") ||
-          datum_is_the_symbol(list_at(cur, 0), "while")) {
-        fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
-        exit(EXIT_FAILURE);
-      }
-      if (list_length(cur) == 3 && datum_is_the_symbol(list_at(cur, 1), "=")) {
-        fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
-        exit(EXIT_FAILURE);
-      }
-      if (!datum_is_the_symbol(list_at(cur, 0), "brackets")) {
-        fprintf(stderr, "warning: not flat: %s\n", datum_repr(cur));
-        exit(EXIT_FAILURE);
-      }
-    }
-    if (!datum_is_symbol(cur)) {
+    if (datum_is_list(cur) && list_length(cur) > 0 &&
+        datum_is_the_symbol(list_at(cur, 0), "brackets")) {
       i += 1;
       list_append(&res, datum_copy(cur));
       continue;
     }
-    fprintf(stderr, "unflattening error: %s\n", datum_repr(source));
+    fprintf(stderr, "unflattening error: %s\n", datum_repr(cur));
     assert(false);
   }
   return res;
