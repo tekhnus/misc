@@ -83,6 +83,7 @@ fntest {return `(1 2 ~(/std/+ 1 2))} '(1 2 3)
 fntest {defn twice (arg) {return (/std/+ arg arg)} {return (twice 35)}} 70
 fntest {defn2 twice (arg) {return (/std/+ arg arg)} {return (twice 35)}} 70
 fntest {defn2 twice (arg) {return (/std/+ arg arg)} defn four-times (arg) {return (/std/+ (../twice arg) (../twice arg))} {return (four-times 35)}} 140
+fntest {defn fib (n) {if (/std/eq n 0) {return 0} {if (/std/eq n 1) {return 1} {return (/std/+ (../fib (/std/+ n -1)) (../fib (/std/+ n -2)))}}} return (fib 5)} 5
 fntest {x = 0 y = 1 while (/std/not (/std/eq x 5)) {y = (/std/+ y y) x = (/std/+ x 1)} {return y}} 32
 fntest {defn adderf (n) {m = (return @1) {return (/std/+ n m)}} defn adder (n) {a = adderf () = (../a @0 @mut n) {return a}} {return ((adder 3) 4)}} 7
 fntest {defn fib () {{return @0 3} {return @0 5} {return @0 8} {return @0 13}} (x) = (fib @mut) (y) = (fib @mut) (z) = (fib @mut) (t) = (fib @mut) {return `(~x ~y ~z ~t)}} '(3 5 8 13)
