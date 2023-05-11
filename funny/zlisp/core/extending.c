@@ -127,7 +127,7 @@ LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
           datum_make_list_of(datum_make_symbol("at"),
                              datum_make_list_of(datum_make_symbol("meta"),
                                                 datum_copy(meta)))));
-  prog_append_statement(sl, begin, &stmt, compdata, ext);
+  prog_append_expression(sl, begin, &stmt, compdata, ext);
   return NULL;
 }
 
@@ -189,7 +189,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   }
   datum stmt =
       datum_make_list_of(datum_make_nil(), datum_make_symbol("="), return_expr);
-  prog_append_statement(sl, begin, &stmt, compdata, ext);
+  prog_append_expression(sl, begin, &stmt, compdata, ext);
 
   return NULL;
 }

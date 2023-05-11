@@ -28,7 +28,7 @@ EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
 EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
-  char *err = prog_append_statements(&sl, &p, source, compdata, ext, true);
+  char *err = prog_append_expressions(&sl, &p, source, compdata, ext, true);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -49,7 +49,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   return NULL;
 }
 
-LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source_,
+LOCAL char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
                                    datum *compdata, extension *ext,
                                    bool skip_first_debug) {
   skip_first_debug = true; // a temporary hack to support req inside {}
@@ -63,7 +63,7 @@ LOCAL char *prog_append_statements(vec *sl, size_t *off, datum *source_,
                                            datum_copy(stmt)),
                         0, 0, datum_make_nil(), compdata);
     }
-    char *err = prog_append_statement(sl, off, stmt, compdata, ext);
+    char *err = prog_append_expression(sl, off, stmt, compdata, ext);
     if (err != NULL && strcmp(err, "<not a statement>")) {
       return err;
     }
@@ -164,8 +164,8 @@ LOCAL datum prog_unflatten(datum *source) {
   return res;
 }
 
-EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                   datum *compdata, extension *ext) {
+LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
+                                  datum *compdata, extension *ext) {
   if (!datum_is_list(stmt)) {
     fprintf(stderr, "prog_append_statement expected a list, got %s\n",
             datum_repr(stmt));
@@ -242,7 +242,7 @@ EXPORT char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_the_symbol(op, "brackets")) {
     datum parts = list_get_tail(stmt);
-    char *err = prog_append_statements(sl, begin, &parts, compdata, ext, false);
+    char *err = prog_append_expressions(sl, begin, &parts, compdata, ext, false);
     if (err != NULL) {
       return err;
     }

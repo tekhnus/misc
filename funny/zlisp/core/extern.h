@@ -117,14 +117,14 @@ LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdat
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum *compdata,datum var);
 LOCAL void compdata_del(datum *compdata);
-char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
+LOCAL char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 bool compdata_has_value(datum *compdata);
 LOCAL bool compdata_validate(datum *compdata);
-char *prog_append_statement(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
+char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL datum prog_unflatten(datum *source);
 LOCAL datum instruction_relocate(datum *ins,size_t delta);
-LOCAL char *prog_append_statements(vec *sl,size_t *off,datum *source_,datum *compdata,extension *ext,bool skip_first_debug);
+LOCAL char *prog_append_expressions(vec *sl,size_t *off,datum *source_,datum *compdata,extension *ext,bool skip_first_debug);
 char *vec_relocate(vec *dst,size_t *p,datum *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
