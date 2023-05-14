@@ -50,8 +50,8 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 }
 
 LOCAL char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
-                                   datum *compdata, extension *ext,
-                                   bool skip_first_debug) {
+                                    datum *compdata, extension *ext,
+                                    bool skip_first_debug) {
   skip_first_debug = true; // a temporary hack to support req inside {}
   datum source = prog_unflatten(source_);
   for (int i = 0; i < list_length(&source); ++i) {
@@ -242,7 +242,8 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_the_symbol(op, "brackets")) {
     datum parts = list_get_tail(stmt);
-    char *err = prog_append_expressions(sl, begin, &parts, compdata, ext, false);
+    char *err =
+        prog_append_expressions(sl, begin, &parts, compdata, ext, false);
     if (err != NULL) {
       return err;
     }
