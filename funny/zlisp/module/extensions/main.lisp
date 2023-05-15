@@ -29,7 +29,7 @@ req
   "testing")
  (fntest-
   "testing"
-  fntest)}
+  fntestx)}
 
 defn .switch (exp argz)
 {return (list 'brackets 'args '= exp (/std/switch-fun argz))}

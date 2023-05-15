@@ -182,8 +182,8 @@ LOCAL char *prog_append_one_or_many(vec *sl, size_t *begin, datum *stmt,
   } else {
     br = list_get_tail(stmt);
   }
-  // datum fl = prog_unflatten(&br);
-  // if (&fl == &fl + 1) {}
+  datum fl = prog_unflatten(&br);
+  if (&fl == &fl + 1) {}
   *argcnt = 0;
   for (int i = 0; i < list_length(&br); ++i) {
     char *err = prog_append_expression(sl, begin, list_at(&br, i), compdata, ext);
