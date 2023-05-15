@@ -117,6 +117,7 @@ LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdat
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum *compdata,datum var);
 LOCAL void compdata_del(datum *compdata);
+LOCAL char *prog_append_expressions_2(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 bool compdata_has_value(datum *compdata);
 LOCAL bool compdata_validate(datum *compdata);
 LOCAL char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);

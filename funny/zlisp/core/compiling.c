@@ -160,6 +160,12 @@ LOCAL datum prog_unflatten(datum *source) {
   return res;
 }
 
+LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
+                                   datum *compdata, extension *ext) {
+  datum exprs = datum_make_list_of(*stmt);
+  return prog_append_expressions(sl, begin, &exprs, compdata, ext, true);
+}
+
 LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
                                    datum *compdata, extension *ext) {
   datum n = datum_make_nil();
@@ -176,7 +182,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err = prog_append_expression(sl, begin, list_at(stmt, 1), compdata, ext);
+    err = prog_append_expressions_2(sl, begin, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -192,11 +198,11 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
     err =
-        prog_append_expression(sl, &true_end, list_at(stmt, 2), compdata, ext);
+        prog_append_expressions_2(sl, &true_end, list_at(stmt, 2), compdata, ext);
     if (err != NULL) {
       return err;
     }
-    err = prog_append_expression(sl, &false_end, list_at(stmt, 3),
+    err = prog_append_expressions_2(sl, &false_end, list_at(stmt, 3),
                                  false_compdata, ext);
     if (err != NULL) {
       return err;
@@ -215,7 +221,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     char *err;
     size_t pre_condition_check = *begin;
     datum pre_condition_check_compdata = datum_copy(compdata);
-    err = prog_append_expression(sl, begin, list_at(stmt, 1), compdata, ext);
+    err = prog_append_expressions_2(sl, begin, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -223,7 +229,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     *begin = vec_append_new(sl);
     size_t loop_start = *begin;
-    err = prog_append_expression(sl, begin, list_at(stmt, 2), compdata, ext);
+    err = prog_append_expressions_2(sl, begin, list_at(stmt, 2), compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     *vec_at(sl, *begin) = datum_make_list_of(
         datum_make_symbol(":nop"), datum_make_int(pre_condition_check));
@@ -246,7 +252,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_the_symbol(op, "list")) {
     for (int i = 1; i < list_length(stmt); ++i) {
       char *err =
-          prog_append_expression(sl, begin, list_at(stmt, i), compdata, ext);
+          prog_append_expressions_2(sl, begin, list_at(stmt, i), compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -269,7 +275,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     datum *expr;
     dst = list_at(stmt, 0);
     expr = list_at(stmt, 2);
-    char *err = prog_append_expression(sl, begin, expr, compdata, ext);
+    char *err = prog_append_expressions_2(sl, begin, expr, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -471,7 +477,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     if (hash) {
       prog_append_put_const(sl, begin, arg, compdata);
     } else {
-      char *err = prog_append_expression(sl, begin, arg, compdata, ext);
+      char *err = prog_append_expressions_2(sl, begin, arg, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -573,7 +579,7 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
-  return prog_append_expression(sl, &s, stmt, routine_compdata, ext);
+  return prog_append_expressions_2(sl, &s, stmt, routine_compdata, ext);
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
