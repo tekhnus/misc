@@ -153,6 +153,10 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&res, datum_copy(cur));
       continue;
     }
+    if (datum_is_list(cur) && list_length(cur) > 0 &&
+        datum_is_the_symbol(list_at(cur, 0), "return")) {
+      fprintf(stderr, "warning: non-flat return: %s\n", datum_repr(cur));
+    }
     i += 1;
     list_append(&res, datum_copy(cur));
     continue;
