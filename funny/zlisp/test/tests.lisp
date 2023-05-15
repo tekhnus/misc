@@ -105,7 +105,7 @@ defn print-all (xs)
  {res = (/libc/print (/std/head xs))
   () = (../print-all @0 (/std/tail xs))
   return {}}
- {() = (return {})}}
+ {() = {return {}}}}
 
 if panics
 {() = (print-all @0 panics)
