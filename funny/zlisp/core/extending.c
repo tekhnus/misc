@@ -52,14 +52,11 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
       return res.panic_message;
     }
     assert(datum_is_list(&res.ok_value));
-    for (int i = 0; i < list_length(&res.ok_value); ++i) {
-      char *err = prog_append_expression(sl, begin, list_at(&res.ok_value, i),
-                                         compdata, self_);
-      if (err) {
-        return err;
-      }
-    }
-    return NULL;
+    assert(list_length(&res.ok_value) == 1);
+    // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
+    char *err = prog_append_expressions(sl, begin, &res.ok_value,
+                                        compdata, self_, true);
+    return err;
   }
   return "<not an extension>";
 }
@@ -127,7 +124,8 @@ LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
           datum_make_list_of(datum_make_symbol("at"),
                              datum_make_list_of(datum_make_symbol("meta"),
                                                 datum_copy(meta)))));
-  prog_append_expression(sl, begin, &stmt, compdata, ext);
+  datum code = datum_make_list_of(stmt);
+  prog_append_expressions(sl, begin, &code, compdata, ext, true);
   return NULL;
 }
 
@@ -189,7 +187,8 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   }
   datum stmt =
       datum_make_list_of(datum_make_nil(), datum_make_symbol("="), return_expr);
-  prog_append_expression(sl, begin, &stmt, compdata, ext);
+  datum code = datum_make_list_of(stmt);
+  prog_append_expressions(sl, begin, &code, compdata, ext, true);
 
   return NULL;
 }

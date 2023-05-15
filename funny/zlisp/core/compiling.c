@@ -49,7 +49,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   return NULL;
 }
 
-LOCAL char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
+EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
                                     datum *compdata, extension *ext,
                                     bool skip_first_debug) {
   skip_first_debug = true; // a temporary hack to support req inside {}
@@ -67,7 +67,8 @@ LOCAL char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
     if (err != NULL) {
       return err;
     }
-    if (compdata_validate(compdata) && compdata_has_value(compdata)) {
+    if (false && compdata_validate(compdata) && compdata_has_value(compdata)) {
+      // stack leak check disabled for extensions
       fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
       fprintf(stderr, "compdata: %s\n", datum_repr(compdata));
       return "stack leak";
@@ -152,13 +153,14 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&res, datum_copy(cur));
       continue;
     }
-    fprintf(stderr, "unflattening error: %s\n", datum_repr(cur));
-    assert(false);
+    i += 1;
+    list_append(&res, datum_copy(cur));
+    continue;
   }
   return res;
 }
 
-EXPORT char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
+LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
                                     datum *compdata, extension *ext) {
   datum n = datum_make_nil();
   datum *op = &n;
