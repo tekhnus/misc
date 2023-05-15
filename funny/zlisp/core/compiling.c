@@ -361,12 +361,23 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
         return "unknown return tag";
       }
     }
-    size_t argcnt = list_length(stmt) - index;
+    size_t argcnt = 0;
     for (; index < list_length(stmt); ++index) {
       datum *component = list_at(stmt, index);
-      char *err = prog_append_expression(sl, begin, component, compdata, ext);
-      if (err != NULL) {
-        return err;
+      if (datum_is_list(component) && list_length(component) > 0 && datum_is_the_symbol(list_at(component, 0), "brackets")) {
+        for (int i = 1; i < list_length(component); ++i) {
+          char *err = prog_append_expression(sl, begin, list_at(component, i), compdata, ext);
+        if (err != NULL) {
+          return err;
+        }
+        ++argcnt;
+        }
+      } else {
+        char *err = prog_append_expression(sl, begin, component, compdata, ext);
+        if (err != NULL) {
+          return err;
+        }
+        ++argcnt;
       }
     }
     prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);

@@ -6,7 +6,7 @@ defn call-extension-1 (fnptr x)
 
 deref-pointer = (return @1 @(host "deref-pointer") '())
 defn deref (x y)
-{return (return @1 @(host "call-extension") deref-pointer x y)}
+{return (return @1 @(host "call-extension") {deref-pointer x y})}
 
 mkptr-pointer = (return @1 @(host "mkptr-pointer") '())
 defn mkptr (x y)
@@ -16,12 +16,12 @@ pointer-call-pointer = (return @1 @(host "pointer-call-pointer") '())
 defn pointer-call (x y z)
 {return (return @1 @(host "call-extension") pointer-call-pointer x y z)}
 
-panic-pointer = (return @1 @(host "panic") '())
+panic-pointer = {return @1 @(host "panic") '()}
 defn panic (x)
 {ignored-result = (return @1 @(host "call-extension") panic-pointer x)
  return {}}
 
-head-pointer = (return @1 @(host "head") '())
+head-pointer = {return @1 @(host "head") '()}
 defn head (x)
 {return (return @1 @(host "call-extension-1") head-pointer x)}
 
