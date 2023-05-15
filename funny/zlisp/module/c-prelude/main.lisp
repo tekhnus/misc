@@ -3,47 +3,47 @@ req
 
 defn call-extension-1 (fnptr x)
 {r = {return @1 @(host "call-extension") {fnptr x}}
-return r}
+ return r}
 
-deref-pointer = (return @1 @(host "deref-pointer") '())
+deref-pointer = {return @1 @(host "deref-pointer") '()}
 defn deref (x y)
 {r = {return @1 @(host "call-extension") {deref-pointer x y}}
-return r}
+ return r}
 
 mkptr-pointer = (return @1 @(host "mkptr-pointer") '())
 defn mkptr (x y)
 {r = {return @1 @(host "call-extension") {mkptr-pointer x y}}
-return r}
+ return r}
 
 pointer-call-pointer = (return @1 @(host "pointer-call-pointer") '())
 defn pointer-call (x y z)
-{r = (return @1 @(host "call-extension") pointer-call-pointer x y z)
-return r}
+{r = (return @1 @(host "call-extension") {pointer-call-pointer x y z})
+ return r}
 
 panic-pointer = {return @1 @(host "panic") '()}
 defn panic (x)
-{ignored-result = (return @1 @(host "call-extension") panic-pointer x)
+{ignored-result = (return @1 @(host "call-extension") {panic-pointer x})
  return {}}
 
 head-pointer = {return @1 @(host "head") '()}
 defn head (x)
-{r = (return @1 @(host "call-extension-1") head-pointer x)
-return r}
+{r = (return @1 @(host "call-extension-1") {head-pointer x})
+ return r}
 
 tail-pointer = (return @1 @(host "tail") '())
 defn tail (x)
-{r = (return @1 @(host "call-extension-1") tail-pointer x)
-return r}
+{r = (return @1 @(host "call-extension-1") {tail-pointer x})
+ return r}
 
 cons-pointer = (return @1 @(host "cons") '())
 defn cons (x xs)
-{r = (return @1 @(host "call-extension") cons-pointer x xs)
-return r}
+{r = (return @1 @(host "call-extension") {cons-pointer x xs})
+ return r}
 
 eq-pointer = (return @1 @(host "eq") '())
 defn eq (x y)
-{r = (return @1 @(host "call-extension") eq-pointer x y)
-return r}
+{r = (return @1 @(host "call-extension") {eq-pointer x y})
+ return r}
 
 defn serialize-param (param signature)
 {if (../eq signature 'pointer)
@@ -109,39 +109,39 @@ defn get-fn-ptr (handle c-name)
  {return fn-ptr}}
 
 defn c-function-0 (fn-ptr signature)
-{() = (return @0)
+{() = (return @0 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list))}
 
 defn c-function-1 (fn-ptr signature)
-{(a1) = (return @1)
+{(a1) = (return @1 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1))}
 
 defn c-function-2 (fn-ptr signature)
-{(a1 a2) = (return @2)
+{(a1 a2) = (return @2 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2))}
 
 defn c-function-3 (fn-ptr signature)
-{(a1 a2 a3) = (return @3)
+{(a1 a2 a3) = (return @3 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3))}
 
 defn c-function-4 (fn-ptr signature)
-{(a1 a2 a3 a4) = (return @4)
+{(a1 a2 a3 a4) = (return @4 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4))}
 
 defn c-function-5 (fn-ptr signature)
-{(a1 a2 a3 a4 a5) = (return @5)
+{(a1 a2 a3 a4 a5) = (return @5 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5))}
 
 defn c-function-6 (fn-ptr signature)
-{(a1 a2 a3 a4 a5 a6) = (return @6)
+{(a1 a2 a3 a4 a5 a6) = (return @6 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6))}
 
 defn c-function-7 (fn-ptr signature)
-{(a1 a2 a3 a4 a5 a6 a7) = (return @7)
+{(a1 a2 a3 a4 a5 a6 a7) = (return @7 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7))}
 
 defn c-function-8 (fn-ptr signature)
-{(a1 a2 a3 a4 a5 a6 a7 a8) = (return @8)
+{(a1 a2 a3 a4 a5 a6 a7 a8) = (return @8 {})
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7 a8))}
 
 defn c-function (handle c-name signature)
@@ -155,23 +155,23 @@ defn c-function (handle c-name signature)
 selflib = (dlopen-null)
 annotate-pointer = (dereference (dlsym selflib "builtin_annotate") 'int64)
 defn annotate (x)
-{return (return @1 @(host "call-extension") annotate-pointer x)}
+{return (return @1 @(host "call-extension") {annotate-pointer x})}
 
 is-constant-pointer = (dereference (dlsym selflib "builtin_is_constant") 'int64)
 defn is-constant (x)
-{return (return @1 @(host "call-extension") is-constant-pointer x)}
+{return (return @1 @(host "call-extension") {is-constant-pointer x})}
 
 repr-pointer = (dereference (dlsym selflib "builtin_repr") 'int64)
 defn repr (x)
-{return (return @1 @(host "call-extension") repr-pointer x)}
+{return (return @1 @(host "call-extension") {repr-pointer x})}
 
 concat-bytestrings-pointer = (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64)
 defn concat-bytestrings (x y)
-{return (return @1 @(host "call-extension") concat-bytestrings-pointer x y)}
+{return (return @1 @(host "call-extension") {concat-bytestrings-pointer x y})}
 
 +-pointer = (dereference (dlsym selflib "builtin_add") 'int64)
 defn + (x y)
-{return (return @1 @(host "call-extension") +-pointer x y)}
+{return (return @1 @(host "call-extension") {+-pointer x y})}
 
 defn wrap-pointer-into-pointer (p)
 {return (../mkptr p 'sizet)}

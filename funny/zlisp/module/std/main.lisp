@@ -34,7 +34,7 @@ req
 
 defn panic (x)
 {() = (/prelude/panic- @0 x)
- () = (return)}
+ () = (return {})}
 
 defn head (x)
 {() = (return (/prelude/head- x))}
