@@ -137,25 +137,14 @@ LOCAL datum prog_unflatten(datum *source) {
       list_append(&stmt, datum_copy(list_at(source, i++)));
       for (; i < list_length(source);) {
         datum *item = list_at(source, i);
+        list_append(&stmt, datum_copy(item));
+        ++i;
         if (!datum_is_list(item) || datum_is_nil(item) ||
             !datum_is_the_symbol(list_at(item, 0), "at")) {
           break;
         }
-        list_append(&stmt, datum_copy(item));
-        ++i;
+
       }
-      datum *item = list_at(source, i);
-      datum items;
-      if (datum_is_list(item) && list_length(item) > 0 &&
-          datum_is_the_symbol(list_at(item, 0), "brackets")) {
-        items = datum_copy(item);
-      } else {
-        items = datum_make_list_of(datum_make_nil(), datum_copy(item));
-      }
-      for (int j = 1; j < list_length(&items); ++j) {
-        list_append(&stmt, *list_at(&items, j));
-      }
-      ++i;
       list_append(&res, stmt);
       continue;
     }
