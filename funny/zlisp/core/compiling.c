@@ -56,7 +56,7 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
   datum source = prog_unflatten(source_);
   for (int i = 0; i < list_length(&source); ++i) {
     datum *stmt = list_at(&source, i);
-    if (!(skip_first_debug && i == 0)) {
+    if (false && !(skip_first_debug && i == 0)) {
       prog_append_yield(sl, off,
                         datum_make_list_of(datum_make_symbol("debugger"),
                                            datum_make_symbol("statement"),
@@ -172,6 +172,23 @@ LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
                                    datum *compdata, extension *ext) {
   datum exprs = datum_make_list_of(*stmt);
   return prog_append_expressions(sl, begin, &exprs, compdata, ext, true);
+}
+
+LOCAL char *prog_append_one_or_many(vec *sl, size_t *begin, datum *stmt,
+                                    datum *compdata, extension *ext, size_t *argcnt) {
+  if (!datum_is_list(stmt) || datum_is_nil(stmt) || !datum_is_the_symbol(list_at(stmt, 0), "brackets")) {
+    *argcnt = 1;
+    return prog_append_expression(sl, begin, stmt, compdata, ext);
+  }
+  *argcnt = 0;
+  for (int i = 1; i < list_length(stmt); ++i) {
+    char *err = prog_append_expression(sl, begin, list_at(stmt, i), compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
+    ++*argcnt;
+  }
+  return NULL;
 }
 
 LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
@@ -353,23 +370,12 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
         return "unknown return tag";
       }
     }
-    size_t argcnt = 0;
     assert(index + 1 == list_length(stmt));
       datum *component = list_at(stmt, index);
-      if (datum_is_list(component) && list_length(component) > 0 && datum_is_the_symbol(list_at(component, 0), "brackets")) {
-        for (int i = 1; i < list_length(component); ++i) {
-          char *err = prog_append_expression(sl, begin, list_at(component, i), compdata, ext);
-        if (err != NULL) {
-          return err;
-        }
-        ++argcnt;
-        }
-      } else {
-        char *err = prog_append_expression(sl, begin, component, compdata, ext);
-        if (err != NULL) {
-          return err;
-        }
-        ++argcnt;
+      size_t argcnt;
+      char *err = prog_append_one_or_many(sl, begin, component, compdata, ext, &argcnt);
+      if (err != NULL) {
+        return err;
       }
     prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);
     return NULL;
@@ -481,7 +487,8 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       }
       list_append(&indices, idx);
     } else {
-      char *err = prog_append_expression(sl, begin, component, compdata, ext);
+      size_t ac;
+      char *err = prog_append_one_or_many(sl, begin, component, compdata, ext, &ac);
       if (err != NULL) {
         return err;
       }
