@@ -54,8 +54,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
     assert(datum_is_list(&res.ok_value));
     assert(list_length(&res.ok_value) == 1);
     // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
-    char *err = prog_append_expressions(sl, begin, &res.ok_value,
-                                        compdata, self_, true);
+    char *err = prog_append_expressions(sl, begin, &res.ok_value, compdata,
+                                        self_, true);
     return err;
   }
   return "<not an extension>";

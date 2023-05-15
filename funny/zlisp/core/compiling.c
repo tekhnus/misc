@@ -50,8 +50,8 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 }
 
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
-                                    datum *compdata, extension *ext,
-                                    bool skip_first_debug) {
+                                     datum *compdata, extension *ext,
+                                     bool skip_first_debug) {
   skip_first_debug = true; // a temporary hack to support req inside {}
   datum source = prog_unflatten(source_);
   for (int i = 0; i < list_length(&source); ++i) {
@@ -161,7 +161,7 @@ LOCAL datum prog_unflatten(datum *source) {
 }
 
 LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
-                                    datum *compdata, extension *ext) {
+                                   datum *compdata, extension *ext) {
   datum n = datum_make_nil();
   datum *op = &n;
   if (datum_is_list(stmt) && list_length(stmt) > 0) {
