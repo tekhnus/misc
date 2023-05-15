@@ -49,25 +49,11 @@ LOCAL datum rewrite(datum *source) {
   }
   if (datum_is_list(source) && list_length(source) > 0 &&
       datum_is_the_symbol(list_at(source, 0), "return")) {
-    datum res = datum_make_list_of(datum_copy(list_at(source, 0)));
-    int i;
-    for (i = 1; i < list_length(source); ++i) {
+    datum res = datum_make_list_of(datum_make_symbol("brackets"));
+    for (int i = 0; i < list_length(source); ++i) {
       datum *elem = list_at(source, i);
-      if (!datum_is_list(elem) || datum_is_nil(elem) || !datum_is_the_symbol(list_at(elem, 0), "at")) {
-        break;
-      }
-      list_append(&res, datum_copy(elem));
+      list_append(&res, *elem);
     }
-    datum vals;
-    if (i + 1 == list_length(source)) {
-      vals = *list_at(source, i);
-    } else {
-      vals = datum_make_list_of(datum_make_symbol("brackets"));
-      for (; i < list_length(source); ++i) {
-        list_append(&vals, *list_at(source, i));
-      }
-    }
-    list_append(&res, vals);
     return res;
   }
   datum res = datum_make_nil();

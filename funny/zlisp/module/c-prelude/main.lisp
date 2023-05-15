@@ -10,39 +10,39 @@ defn deref (x y)
 {r = {return @1 @(host "call-extension") {deref-pointer x y}}
  return r}
 
-mkptr-pointer = (return @1 @(host "mkptr-pointer") '())
+mkptr-pointer = {return @1 @(host "mkptr-pointer") '()}
 defn mkptr (x y)
 {r = {return @1 @(host "call-extension") {mkptr-pointer x y}}
  return r}
 
-pointer-call-pointer = (return @1 @(host "pointer-call-pointer") '())
+pointer-call-pointer = {return @1 @(host "pointer-call-pointer") '()}
 defn pointer-call (x y z)
-{r = (return @1 @(host "call-extension") {pointer-call-pointer x y z})
+{r = {return @1 @(host "call-extension") {pointer-call-pointer x y z}}
  return r}
 
 panic-pointer = {return @1 @(host "panic") '()}
 defn panic (x)
-{ignored-result = (return @1 @(host "call-extension") {panic-pointer x})
+{ignored-result = {return @1 @(host "call-extension") {panic-pointer x}}
  return {}}
 
 head-pointer = {return @1 @(host "head") '()}
 defn head (x)
-{r = (return @1 @(host "call-extension-1") {head-pointer x})
+{r = {return @1 @(host "call-extension-1") {head-pointer x}}
  return r}
 
-tail-pointer = (return @1 @(host "tail") '())
+tail-pointer = {return @1 @(host "tail") '()}
 defn tail (x)
-{r = (return @1 @(host "call-extension-1") {tail-pointer x})
+{r = {return @1 @(host "call-extension-1") {tail-pointer x}}
  return r}
 
-cons-pointer = (return @1 @(host "cons") '())
+cons-pointer = {return @1 @(host "cons") '()}
 defn cons (x xs)
-{r = (return @1 @(host "call-extension") {cons-pointer x xs})
+{r = {return @1 @(host "call-extension") {cons-pointer x xs}}
  return r}
 
-eq-pointer = (return @1 @(host "eq") '())
+eq-pointer = {return @1 @(host "eq") '()}
 defn eq (x y)
-{r = (return @1 @(host "call-extension") {eq-pointer x y})
+{r = {return @1 @(host "call-extension") {eq-pointer x y}}
  return r}
 
 defn serialize-param (param signature)
@@ -75,15 +75,15 @@ defn pointer-call-and-deserialize (fn-ptr signature params)
  rawres = (../pointer-call fn-ptr (list fnparamst rettype) s)
  return (../dereference rawres rettype)}
 
-rtld-lazy = (return @1 @(host "RTLD_LAZY") '())
-dlopen-pointer = (return @1 @(host "dlopen") '())
+rtld-lazy = {return @1 @(host "RTLD_LAZY") '()}
+dlopen-pointer = {return @1 @(host "dlopen") '()}
 defn dlopen (x)
 {return (../pointer-call-and-deserialize dlopen-pointer '((string sizet) pointer) (list x rtld-lazy))}
 
 defn dlopen-null ()
 {return (../pointer-call-and-deserialize dlopen-pointer '((pointer sizet) pointer) (list (../mkptr 0 'sizet) rtld-lazy))}
 
-dlsym-pointer = (return @1 @(host "dlsym") '())
+dlsym-pointer = {return @1 @(host "dlsym") '()}
 defn dlsym (x y)
 {return (../pointer-call-and-deserialize dlsym-pointer '((pointer string) pointer) (list x y))}
 
@@ -109,39 +109,39 @@ defn get-fn-ptr (handle c-name)
  {return fn-ptr}}
 
 defn c-function-0 (fn-ptr signature)
-{() = (return @0 {})
+{() = {return @0 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list))}
 
 defn c-function-1 (fn-ptr signature)
-{(a1) = (return @1 {})
+{(a1) = {return @1 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1))}
 
 defn c-function-2 (fn-ptr signature)
-{(a1 a2) = (return @2 {})
+{(a1 a2) = {return @2 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2))}
 
 defn c-function-3 (fn-ptr signature)
-{(a1 a2 a3) = (return @3 {})
+{(a1 a2 a3) = {return @3 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3))}
 
 defn c-function-4 (fn-ptr signature)
-{(a1 a2 a3 a4) = (return @4 {})
+{(a1 a2 a3 a4) = {return @4 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4))}
 
 defn c-function-5 (fn-ptr signature)
-{(a1 a2 a3 a4 a5) = (return @5 {})
+{(a1 a2 a3 a4 a5) = {return @5 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5))}
 
 defn c-function-6 (fn-ptr signature)
-{(a1 a2 a3 a4 a5 a6) = (return @6 {})
+{(a1 a2 a3 a4 a5 a6) = {return @6 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6))}
 
 defn c-function-7 (fn-ptr signature)
-{(a1 a2 a3 a4 a5 a6 a7) = (return @7 {})
+{(a1 a2 a3 a4 a5 a6 a7) = {return @7 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7))}
 
 defn c-function-8 (fn-ptr signature)
-{(a1 a2 a3 a4 a5 a6 a7 a8) = (return @8 {})
+{(a1 a2 a3 a4 a5 a6 a7 a8) = {return @8 {}}
  return (../pointer-call-and-deserialize fn-ptr signature (list a1 a2 a3 a4 a5 a6 a7 a8))}
 
 defn c-function (handle c-name signature)
