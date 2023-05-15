@@ -155,23 +155,28 @@ defn c-function (handle c-name signature)
 selflib = (dlopen-null)
 annotate-pointer = (dereference (dlsym selflib "builtin_annotate") 'int64)
 defn annotate (x)
-{return (return @1 @(host "call-extension") {annotate-pointer x})}
+{r = {return @1 @(host "call-extension") {annotate-pointer x}}
+ return r}
 
 is-constant-pointer = (dereference (dlsym selflib "builtin_is_constant") 'int64)
 defn is-constant (x)
-{return (return @1 @(host "call-extension") {is-constant-pointer x})}
+{r = {return @1 @(host "call-extension") {is-constant-pointer x}}
+ return r}
 
 repr-pointer = (dereference (dlsym selflib "builtin_repr") 'int64)
 defn repr (x)
-{return (return @1 @(host "call-extension") {repr-pointer x})}
+{r = {return @1 @(host "call-extension") {repr-pointer x}}
+ return r}
 
 concat-bytestrings-pointer = (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64)
 defn concat-bytestrings (x y)
-{return (return @1 @(host "call-extension") {concat-bytestrings-pointer x y})}
+{r = {return @1 @(host "call-extension") {concat-bytestrings-pointer x y}}
+ return r}
 
 +-pointer = (dereference (dlsym selflib "builtin_add") 'int64)
 defn + (x y)
-{return (return @1 @(host "call-extension") {+-pointer x y})}
+{r = {return @1 @(host "call-extension") {+-pointer x y}}
+ return r}
 
 defn wrap-pointer-into-pointer (p)
 {return (../mkptr p 'sizet)}
