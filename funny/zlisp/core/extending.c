@@ -42,11 +42,17 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
 
   lisp_extension *self = (lisp_extension *)self_;
   datum *op = list_at(stmt, 0);
-  datum pi = compdata_get_polyindex(&self->compdata, op);
+  if(!datum_is_symbol(op)) {
+    return "<not an extension>";
+  }
+  char nm[128] = {0};
+  sprintf(nm, ".%s", op->symbol_value);
+  datum name = datum_make_symbol(nm);
+  datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (!datum_is_nil(&pi)) {
     datum invokation_statement = datum_copy(stmt);
     *list_at(&invokation_statement, 0) =
-        datum_make_list_of(datum_make_symbol("hash"), datum_copy(op));
+        datum_make_list_of(datum_make_symbol("hash"), name);
     fdatum res = lisp_extension_run(&invokation_statement, self);
     if (fdatum_is_panic(res)) {
       return res.panic_message;

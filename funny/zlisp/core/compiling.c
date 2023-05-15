@@ -176,13 +176,17 @@ LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
 
 LOCAL char *prog_append_one_or_many(vec *sl, size_t *begin, datum *stmt,
                                     datum *compdata, extension *ext, size_t *argcnt) {
+  datum br;
   if (!datum_is_list(stmt) || datum_is_nil(stmt) || !datum_is_the_symbol(list_at(stmt, 0), "brackets")) {
-    *argcnt = 1;
-    return prog_append_expression(sl, begin, stmt, compdata, ext);
+    br = datum_make_list_of(*stmt);
+  } else {
+    br = list_get_tail(stmt);
   }
+  // datum fl = prog_unflatten(&br);
+  // if (&fl == &fl + 1) {}
   *argcnt = 0;
-  for (int i = 1; i < list_length(stmt); ++i) {
-    char *err = prog_append_expression(sl, begin, list_at(stmt, i), compdata, ext);
+  for (int i = 0; i < list_length(&br); ++i) {
+    char *err = prog_append_expression(sl, begin, list_at(&br, i), compdata, ext);
     if (err != NULL) {
       return err;
     }
