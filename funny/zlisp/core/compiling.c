@@ -174,27 +174,6 @@ LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
   return prog_append_expressions(sl, begin, &exprs, compdata, ext, true);
 }
 
-LOCAL char *prog_append_one_or_many(vec *sl, size_t *begin, datum *stmt,
-                                    datum *compdata, extension *ext, size_t *argcnt) {
-  datum br;
-  if (!datum_is_list(stmt) || datum_is_nil(stmt) || !datum_is_the_symbol(list_at(stmt, 0), "brackets")) {
-    br = datum_make_list_of(*stmt);
-  } else {
-    br = list_get_tail(stmt);
-  }
-  datum fl = prog_unflatten(&br);
-  if (&fl == &fl + 1) {}
-  *argcnt = 0;
-  for (int i = 0; i < list_length(&fl); ++i) {
-    char *err = prog_append_expression(sl, begin, list_at(&fl, i), compdata, ext);
-    if (err != NULL) {
-      return err;
-    }
-    ++*argcnt;
-  }
-  return NULL;
-}
-
 LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
                                    datum *compdata, extension *ext) {
   datum n = datum_make_nil();
@@ -377,10 +356,13 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     assert(index + 1 == list_length(stmt));
       datum *component = list_at(stmt, index);
       size_t argcnt;
-      char *err = prog_append_one_or_many(sl, begin, component, compdata, ext, &argcnt);
+      size_t before = compdata_get_length(compdata);
+      char *err = prog_append_expressions_2(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
+      size_t after = compdata_get_length(compdata);
+      argcnt = after - before;
     prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
@@ -491,8 +473,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       }
       list_append(&indices, idx);
     } else {
-      size_t ac;
-      char *err = prog_append_one_or_many(sl, begin, component, compdata, ext, &ac);
+      char *err = prog_append_expressions_2(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -500,6 +481,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       list_append(&indices, idx);
     }
   }
+  // TODO(): this is wrong argcount if there are braces.
   size_t arg_count = list_length(stmt) - index;
   for (; index < list_length(stmt); ++index) {
     datum *arg = list_at(stmt, index);
@@ -713,6 +695,10 @@ EXPORT datum compdata_get_top_polyindex(datum *compdata) {
   assert(frames > 0 && indices > 0);
   return datum_make_list_of(datum_make_int(frames - 1),
                             datum_make_int(indices - 1));
+}
+
+LOCAL size_t compdata_get_length(datum *compdata) {
+  return list_length(list_get_last(compdata));
 }
 
 EXPORT datum compdata_get_shape(datum *compdata) {

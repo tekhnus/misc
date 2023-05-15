@@ -108,6 +108,7 @@ datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
+LOCAL size_t compdata_get_length(datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);
 LOCAL char *prog_init_routine(vec *sl,size_t s,datum *args,datum *stmt,datum *routine_compdata,extension *ext);
 LOCAL void compdata_start_new_section(datum *compdata);
@@ -117,7 +118,6 @@ LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdat
 LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL void compdata_put(datum *compdata,datum var);
 LOCAL void compdata_del(datum *compdata);
-LOCAL char *prog_append_one_or_many(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext,size_t *argcnt);
 LOCAL char *prog_append_expressions_2(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 bool compdata_has_value(datum *compdata);
 LOCAL bool compdata_validate(datum *compdata);
