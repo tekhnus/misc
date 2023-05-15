@@ -64,12 +64,6 @@ LOCAL char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
                         0, 0, datum_make_nil(), compdata);
     }
     char *err = prog_append_expression(sl, off, stmt, compdata, ext);
-    if (err != NULL && strcmp(err, "<not a statement>")) {
-      return err;
-    }
-    if (err != NULL && !strcmp(err, "<not a statement>")) {
-      return "expected a statement";
-    }
     if (err != NULL) {
       return err;
     }
@@ -164,19 +158,17 @@ LOCAL datum prog_unflatten(datum *source) {
   return res;
 }
 
-LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
-                                  datum *compdata, extension *ext) {
-  if (!datum_is_list(stmt)) {
-    fprintf(stderr, "prog_append_statement expected a list, got %s\n",
-            datum_repr(stmt));
-    return "prog_append_statement expected a list";
+EXPORT char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
+                                    datum *compdata, extension *ext) {
+  datum n = datum_make_nil();
+  datum *op = &n;
+  if (datum_is_list(stmt) && list_length(stmt) > 0) {
+    op = list_at(stmt, 0);
   }
-  datum *op = list_at(stmt, 0);
   datum op2 = datum_make_nil();
-  if (list_length(stmt) > 1) {
+  if (datum_is_list(stmt) && list_length(stmt) > 1) {
     op2 = datum_copy(list_at(stmt, 1));
   }
-
   if (datum_is_the_symbol(op, "if")) {
     if (list_length(stmt) != 4) {
       return "if should have three args";
@@ -356,24 +348,12 @@ LOCAL char *prog_append_statement(vec *sl, size_t *begin, datum *stmt,
     prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
-  char *res = ext->call(ext, sl, begin, stmt, compdata);
-  if (res == NULL) {
-    return NULL;
-  }
-  if (strcmp(res, "<not an extension>")) {
-    return res;
-  }
-  return "<not a statement>";
-}
-
-EXPORT char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
-                                    datum *compdata, extension *ext) {
-  if (datum_is_list(stmt) && !datum_is_nil(stmt)) {
-    char *res = prog_append_statement(sl, begin, stmt, compdata, ext);
+  if (!datum_is_nil(op)) {
+    char *res = ext->call(ext, sl, begin, stmt, compdata);
     if (res == NULL) {
       return NULL;
     }
-    if (strcmp(res, "<not a statement>")) {
+    if (strcmp(res, "<not an extension>")) {
       return res;
     }
   }
