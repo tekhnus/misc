@@ -2,19 +2,23 @@ req
 {}
 
 defn call-extension-1 (fnptr x)
-{return (return @1 @(host "call-extension") fnptr x)}
+{r = {return @1 @(host "call-extension") {fnptr x}}
+return r}
 
 deref-pointer = (return @1 @(host "deref-pointer") '())
 defn deref (x y)
-{return (return @1 @(host "call-extension") {deref-pointer x y})}
+{r = {return @1 @(host "call-extension") {deref-pointer x y}}
+return r}
 
 mkptr-pointer = (return @1 @(host "mkptr-pointer") '())
 defn mkptr (x y)
-{return (return @1 @(host "call-extension") mkptr-pointer x y)}
+{r = {return @1 @(host "call-extension") {mkptr-pointer x y}}
+return r}
 
 pointer-call-pointer = (return @1 @(host "pointer-call-pointer") '())
 defn pointer-call (x y z)
-{return (return @1 @(host "call-extension") pointer-call-pointer x y z)}
+{r = (return @1 @(host "call-extension") pointer-call-pointer x y z)
+return r}
 
 panic-pointer = {return @1 @(host "panic") '()}
 defn panic (x)
@@ -23,19 +27,23 @@ defn panic (x)
 
 head-pointer = {return @1 @(host "head") '()}
 defn head (x)
-{return (return @1 @(host "call-extension-1") head-pointer x)}
+{r = (return @1 @(host "call-extension-1") head-pointer x)
+return r}
 
 tail-pointer = (return @1 @(host "tail") '())
 defn tail (x)
-{return (return @1 @(host "call-extension-1") tail-pointer x)}
+{r = (return @1 @(host "call-extension-1") tail-pointer x)
+return r}
 
 cons-pointer = (return @1 @(host "cons") '())
 defn cons (x xs)
-{return (return @1 @(host "call-extension") cons-pointer x xs)}
+{r = (return @1 @(host "call-extension") cons-pointer x xs)
+return r}
 
 eq-pointer = (return @1 @(host "eq") '())
 defn eq (x y)
-{return (return @1 @(host "call-extension") eq-pointer x y)}
+{r = (return @1 @(host "call-extension") eq-pointer x y)
+return r}
 
 defn serialize-param (param signature)
 {if (../eq signature 'pointer)
