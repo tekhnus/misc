@@ -122,7 +122,7 @@ LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
   datum *vars = list_at(&re, 0);
   datum *meta = list_at(&re, 1);
   datum stmt = datum_make_list_of(
-      datum_copy(vars), datum_make_symbol("="),
+      datum_make_symbol("brackets"), datum_copy(vars), datum_make_symbol("="),
       datum_make_list_of(
           datum_make_symbol("brackets"), datum_make_symbol("return"),
           datum_make_list_of(datum_make_symbol("at"),
@@ -195,7 +195,8 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
   }
   list_append(&return_expr, vals);
   datum stmt =
-      datum_make_list_of(datum_make_nil(), datum_make_symbol("="), return_expr);
+      datum_make_list_of(datum_make_symbol("brackets"), datum_make_nil(),
+                         datum_make_symbol("="), return_expr);
   datum code = datum_make_list_of(stmt);
   prog_append_expressions(sl, begin, &code, compdata, ext);
 

@@ -141,11 +141,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(loop_start),
                            datum_make_int(loop_end));
     return NULL;
-  } else if (*i + 1 < list_length(source) &&
+  } else if (*i + 2 < list_length(source) &&
              datum_is_the_symbol(list_at(source, *i + 1), "=")) {
     *i += 3;
     res = list_copy(source, *i - 3, *i);
-        if (list_length(&res) != 3) {
+    if (list_length(&res) != 3) {
       return "def should have two args";
     }
     datum *dst;
@@ -167,7 +167,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   } else if (datum_is_the_symbol(cur, "defn")) {
     *i += 4;
     res = list_copy(source, *i - 4, *i);
-        datum *name = list_at(&res, 1);
+    datum *name = list_at(&res, 1);
     datum *args;
     datum *body;
     if (list_length(&res) != 4) {
@@ -220,7 +220,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
         break;
       }
     }
-        datum target = datum_make_symbol("plain");
+    datum target = datum_make_symbol("plain");
     bool target_defined = false;
     size_t recieve_count = 0;
     int index = 1;
@@ -278,38 +278,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   if (datum_is_list(&res) && list_length(&res) > 0) {
     op = list_at(&res, 0);
   }
-  datum op2 = datum_make_nil();
-  if (datum_is_list(&res) && list_length(&res) > 1) {
-    op2 = datum_copy(list_at(&res, 1));
-  }
-  if (datum_is_the_symbol(op, "quote")) {
-    if (list_length(&res) != 2) {
-      return "quote should have a single arg";
-    }
-    prog_append_put_const(sl, off, list_at(&res, 1), compdata);
-    return NULL;
-  }
-  if (datum_is_the_symbol(&op2, "=")) {
-    if (list_length(&res) != 3) {
-      return "def should have two args";
-    }
-    datum *dst;
-    datum *expr;
-    dst = list_at(&res, 0);
-    expr = list_at(&res, 2);
-    char *err = prog_append_expression(sl, off, expr, compdata, ext);
-    if (err != NULL) {
-      return err;
-    }
-    datum names;
-    if (datum_is_list(dst)) {
-      names = datum_copy(dst);
-    } else {
-      names = datum_make_list_of(datum_copy(dst));
-    }
-    store_values_to_variables(sl, off, &names, compdata);
-    return NULL;
-  }
   if (!datum_is_nil(op)) {
     char *err = ext->call(ext, sl, off, &res, compdata);
     if (err == NULL) {
@@ -342,6 +310,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       }
     }
     prog_append_collect(sl, list_length(&res) - 1, off, compdata);
+    return NULL;
+  }
+  if (datum_is_the_symbol(op, "quote")) {
+    if (list_length(&res) != 2) {
+      return "quote should have a single arg";
+    }
+    prog_append_put_const(sl, off, list_at(&res, 1), compdata);
     return NULL;
   }
   datum *fn = list_at(&res, 0);
