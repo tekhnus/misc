@@ -127,11 +127,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     res = datum_copy(cur);
   }
   datum *stmt = &res;
-  return prog_append_expression_impl(sl, off, stmt, compdata, ext);
-}
-
-LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
-                                        datum *compdata, extension *ext) {
   datum n = datum_make_nil();
   datum *op = &n;
   if (datum_is_list(stmt) && list_length(stmt) > 0) {
@@ -146,17 +141,17 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err = prog_append_expression(sl, begin, list_at(stmt, 1), compdata, ext);
+    err = prog_append_expression(sl, off, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
 
     size_t true_end = vec_append_new(sl), false_end = vec_append_new(sl);
 
-    *vec_at(sl, *begin) =
+    *vec_at(sl, *off) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_end),
                            datum_make_int(false_end));
-    *begin = vec_append_new(sl);
+    *off = vec_append_new(sl);
 
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
@@ -175,7 +170,7 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
       compdata_put(compdata, datum_make_symbol("__different_if_branches"));
     }
 
-    prog_join(sl, true_end, false_end, *begin);
+    prog_join(sl, true_end, false_end, *off);
     return NULL;
   }
   if (datum_is_the_symbol(op, "while")) {
@@ -183,22 +178,22 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
       return "while should have two args";
     }
     char *err;
-    size_t pre_condition_check = *begin;
+    size_t pre_condition_check = *off;
     datum pre_condition_check_compdata = datum_copy(compdata);
-    err = prog_append_expression(sl, begin, list_at(stmt, 1), compdata, ext);
+    err = prog_append_expression(sl, off, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
-    size_t condition_check = *begin;
+    size_t condition_check = *off;
     compdata_del(compdata);
-    *begin = vec_append_new(sl);
-    size_t loop_start = *begin;
-    err = prog_append_expression(sl, begin, list_at(stmt, 2), compdata, ext);
+    *off = vec_append_new(sl);
+    size_t loop_start = *off;
+    err = prog_append_expression(sl, off, list_at(stmt, 2), compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
-    *vec_at(sl, *begin) = datum_make_list_of(
-        datum_make_symbol(":nop"), datum_make_int(pre_condition_check));
-    *begin = vec_append_new(sl);
-    size_t loop_end = *begin;
+    *vec_at(sl, *off) = datum_make_list_of(datum_make_symbol(":nop"),
+                                           datum_make_int(pre_condition_check));
+    *off = vec_append_new(sl);
+    size_t loop_end = *off;
     *vec_at(sl, condition_check) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(loop_start),
                            datum_make_int(loop_end));
@@ -206,7 +201,7 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_the_symbol(op, "brackets")) {
     datum parts = list_get_tail(stmt);
-    char *err = prog_append_expressions(sl, begin, &parts, compdata, ext);
+    char *err = prog_append_expressions(sl, off, &parts, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -215,19 +210,19 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_the_symbol(op, "list")) {
     for (int i = 1; i < list_length(stmt); ++i) {
       char *err =
-          prog_append_expression(sl, begin, list_at(stmt, i), compdata, ext);
+          prog_append_expression(sl, off, list_at(stmt, i), compdata, ext);
       if (err != NULL) {
         return err;
       }
     }
-    prog_append_collect(sl, list_length(stmt) - 1, begin, compdata);
+    prog_append_collect(sl, list_length(stmt) - 1, off, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "quote")) {
     if (list_length(stmt) != 2) {
       return "quote should have a single arg";
     }
-    prog_append_put_const(sl, begin, list_at(stmt, 1), compdata);
+    prog_append_put_const(sl, off, list_at(stmt, 1), compdata);
     return NULL;
   }
   if (datum_is_the_symbol(&op2, "=")) {
@@ -238,7 +233,7 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
     datum *expr;
     dst = list_at(stmt, 0);
     expr = list_at(stmt, 2);
-    char *err = prog_append_expression(sl, begin, expr, compdata, ext);
+    char *err = prog_append_expression(sl, off, expr, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -248,7 +243,7 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
     } else {
       names = datum_make_list_of(datum_copy(dst));
     }
-    store_values_to_variables(sl, begin, &names, compdata);
+    store_values_to_variables(sl, off, &names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "defn")) {
@@ -275,9 +270,9 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
     if (err != NULL) {
       return err;
     }
-    prog_append_put_prog(sl, begin, s_off, 2, compdata);
+    prog_append_put_prog(sl, off, s_off, 2, compdata);
     datum name_singleton = datum_make_list_of(datum_copy(name));
-    store_values_to_variables(sl, begin, &name_singleton, compdata);
+    store_values_to_variables(sl, off, &name_singleton, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(op, "return")) {
@@ -312,17 +307,17 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
     datum *component = list_at(stmt, index);
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
-    char *err = prog_append_expression(sl, begin, component, compdata, ext);
+    char *err = prog_append_expression(sl, off, component, compdata, ext);
     if (err != NULL) {
       return err;
     }
     size_t after = compdata_get_length(compdata);
     argcnt = after - before;
-    prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);
+    prog_append_yield(sl, off, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
   if (!datum_is_nil(op)) {
-    char *res = ext->call(ext, sl, begin, stmt, compdata);
+    char *res = ext->call(ext, sl, off, stmt, compdata);
     if (res == NULL) {
       return NULL;
     }
@@ -331,17 +326,17 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
     }
   }
   if (datum_is_constant(stmt)) {
-    prog_append_put_const(sl, begin, stmt, compdata);
+    prog_append_put_const(sl, off, stmt, compdata);
     return NULL;
   }
   if (datum_is_symbol(stmt)) {
     datum debug_compdata = datum_copy(compdata);
-    prog_append_yield(sl, begin,
+    prog_append_yield(sl, off,
                       datum_make_list_of(datum_make_symbol("debugger"),
                                          datum_make_symbol("compdata"),
                                          debug_compdata),
                       0, 0, datum_make_nil(), compdata);
-    prog_append_put_var(sl, begin, stmt, compdata);
+    prog_append_put_var(sl, off, stmt, compdata);
     return NULL;
   }
   datum *fn = list_at(stmt, 0);
@@ -428,7 +423,7 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
       }
       list_append(&indices, idx);
     } else {
-      char *err = prog_append_expression(sl, begin, component, compdata, ext);
+      char *err = prog_append_expression(sl, off, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -441,16 +436,16 @@ LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
   for (; index < list_length(stmt); ++index) {
     datum *arg = list_at(stmt, index);
     if (hash) {
-      prog_append_put_const(sl, begin, arg, compdata);
+      prog_append_put_const(sl, off, arg, compdata);
     } else {
-      char *err = prog_append_expression(sl, begin, arg, compdata, ext);
+      char *err = prog_append_expression(sl, off, arg, compdata, ext);
       if (err != NULL) {
         return err;
       }
     }
   }
-  prog_append_call(sl, begin, capture_size, indices, !mut, pre, target,
-                   arg_count, ret_count, compdata);
+  prog_append_call(sl, off, capture_size, indices, !mut, pre, target, arg_count,
+                   ret_count, compdata);
   return NULL;
 }
 
