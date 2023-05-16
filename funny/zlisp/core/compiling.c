@@ -52,7 +52,8 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
                                      datum *compdata, extension *ext,
                                      bool skip_first_debug) {
-  skip_first_debug = true; // a temporary hack to support req inside {}
+  if (skip_first_debug == skip_first_debug + 1) {
+  }
   datum res = datum_make_nil();
   assert(datum_is_list(source));
   int i = 0;
@@ -134,22 +135,9 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
   }
   for (int i = 0; i < list_length(&res); ++i) {
     datum *stmt = list_at(&res, i);
-    if (false && !(skip_first_debug && i == 0)) {
-      prog_append_yield(sl, off,
-                        datum_make_list_of(datum_make_symbol("debugger"),
-                                           datum_make_symbol("statement"),
-                                           datum_copy(stmt)),
-                        0, 0, datum_make_nil(), compdata);
-    }
     char *err = prog_append_expression(sl, off, stmt, compdata, ext);
     if (err != NULL) {
       return err;
-    }
-    if (false && compdata_validate(compdata) && compdata_has_value(compdata)) {
-      // stack leak check disabled for extensions
-      fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
-      fprintf(stderr, "compdata: %s\n", datum_repr(compdata));
-      return "stack leak";
     }
   }
   return NULL;
