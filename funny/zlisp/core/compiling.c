@@ -194,21 +194,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
     return NULL;
-  } else if (datum_is_the_symbol(cur, "req")) {
-    *i += 2;
-    res = list_copy(source, *i - 2, *i);
-  } else if (datum_is_the_symbol(cur, "export")) {
-    *i += 2;
-    res = list_copy(source, *i - 2, *i);
-  } else if (datum_is_the_symbol(cur, "defn2")) {
-    *i += 4;
-    res = list_copy(source, *i - 4, *i);
-  } else if (datum_is_the_symbol(cur, "switch")) {
-    *i += 3;
-    res = list_copy(source, *i - 3, *i);
-  } else if (datum_is_the_symbol(cur, "fntest")) {
-    *i += 3;
-    res = list_copy(source, *i - 3, *i);
   } else if (datum_is_the_symbol(cur, "return")) {
     list_append(&res, datum_copy(list_at(source, (*i)++)));
     for (; *i < list_length(source);) {
@@ -269,6 +254,21 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     return NULL;
+  } else if (datum_is_the_symbol(cur, "req")) {
+    *i += 2;
+    res = list_copy(source, *i - 2, *i);
+  } else if (datum_is_the_symbol(cur, "export")) {
+    *i += 2;
+    res = list_copy(source, *i - 2, *i);
+  } else if (datum_is_the_symbol(cur, "defn2")) {
+    *i += 4;
+    res = list_copy(source, *i - 4, *i);
+  } else if (datum_is_the_symbol(cur, "switch")) {
+    *i += 3;
+    res = list_copy(source, *i - 3, *i);
+  } else if (datum_is_the_symbol(cur, "fntest")) {
+    *i += 3;
+    res = list_copy(source, *i - 3, *i);
   } else {
     *i += 1;
     res = datum_copy(cur);
