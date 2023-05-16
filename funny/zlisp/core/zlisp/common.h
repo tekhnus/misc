@@ -112,7 +112,7 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
+  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt, int *i,
                 datum *compdata);
 };
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);

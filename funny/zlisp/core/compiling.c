@@ -7,7 +7,7 @@
 #if INTERFACE
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt,
+  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt, int *i,
                 datum *compdata);
 };
 #endif
@@ -254,21 +254,27 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     return NULL;
-  } else if (datum_is_the_symbol(cur, "req")) {
-    *i += 2;
-    res = list_copy(source, *i - 2, *i);
+  }
+
+  if (datum_is_the_symbol(cur, "req")) {
+    res = list_copy(source, *i, *i + 2);
+    return ext->call(ext, sl, off, source, i, compdata);
   } else if (datum_is_the_symbol(cur, "export")) {
-    *i += 2;
-    res = list_copy(source, *i - 2, *i);
+    res = list_copy(source, *i, *i + 2);
+    return ext->call(ext, sl, off, source, i, compdata);
   } else if (datum_is_the_symbol(cur, "defn2")) {
-    *i += 4;
-    res = list_copy(source, *i - 4, *i);
+    res = list_copy(source, *i, *i + 4);
+    return ext->call(ext, sl, off, source, i, compdata);
   } else if (datum_is_the_symbol(cur, "switch")) {
-    *i += 3;
-    res = list_copy(source, *i - 3, *i);
+    res = list_copy(source, *i, *i + 3);
+    return ext->call(ext, sl, off, source, i, compdata);
   } else if (datum_is_the_symbol(cur, "fntest")) {
-    *i += 3;
-    res = list_copy(source, *i - 3, *i);
+    res = list_copy(source, *i, *i + 3);
+    return ext->call(ext, sl, off, source, i, compdata);
+  }
+  else if (datum_is_the_symbol(cur, "backquote")) {
+    res = list_copy(source, *i, *i + 2);
+    return ext->call(ext, sl, off, source, i, compdata);
   } else {
     *i += 1;
     res = datum_copy(cur);
@@ -279,8 +285,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     op = list_at(&res, 0);
   }
   if (!datum_is_nil(op)) {
-    char *err = ext->call(ext, sl, off, &res, compdata);
+    int k = 0;
+    char *err = ext->call(ext, sl, off, &res, &k, compdata);
+    *i += k;
     if (err == NULL) {
+      fprintf(stderr, "!!! old-style extension: %s\n", datum_repr(&res));
       return NULL;
     }
     if (strcmp(err, "<not an extension>")) {

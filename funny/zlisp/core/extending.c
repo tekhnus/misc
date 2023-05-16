@@ -33,15 +33,15 @@ EXPORT extension null_extension_make() {
 }
 
 LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
-                                datum *stmt, datum *compdata) {
+                                datum *source, int *i, datum *compdata) {
   extension nu = null_extension_make();
-  char *res = null_extension_call(&nu, sl, begin, stmt, compdata);
-  if (res == NULL || strcmp(res, "<not an extension>")) {
-    return res;
+  char *err = null_extension_call(&nu, sl, begin, source, i, compdata);
+  if (err == NULL || strcmp(err, "<not an extension>")) {
+    return err;
   }
 
   lisp_extension *self = (lisp_extension *)self_;
-  datum *op = list_at(stmt, 0);
+  datum *op = list_at(source, *i);
   if (!datum_is_symbol(op)) {
     return "<not an extension>";
   }
@@ -49,8 +49,25 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   sprintf(nm, ".%s", op->symbol_value);
   datum name = datum_make_symbol(nm);
   datum pi = compdata_get_polyindex(&self->compdata, &name);
-  if (!datum_is_nil(&pi)) {
-    datum invokation_statement = datum_copy(stmt);
+  if (datum_is_nil(&pi)) {
+     return "<not an extension>";
+  }
+  datum invokation_statement;
+  if (datum_is_the_symbol(op, "defn2")) {
+    *i += 4;
+    invokation_statement = list_copy(source, *i - 4, *i);
+  } else if (datum_is_the_symbol(op, "switch")) {
+    *i += 3;
+    invokation_statement = list_copy(source, *i - 3, *i);
+  } else if (datum_is_the_symbol(op, "fntest")) {
+    *i += 3;
+    invokation_statement = list_copy(source, *i - 3, *i);
+  } else if (datum_is_the_symbol(op, "backquote")) {
+    *i += 2;
+    invokation_statement = list_copy(source, *i - 2, *i);
+  } else {
+    return "<not an extension>";
+  }
     *list_at(&invokation_statement, 0) =
         datum_make_list_of(datum_make_symbol("hash"), name);
     fdatum res = lisp_extension_run(&invokation_statement, self);
@@ -60,11 +77,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
     assert(datum_is_list(&res.ok_value));
     assert(list_length(&res.ok_value) == 1);
     // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
-    char *err =
+    return
         prog_append_expressions(sl, begin, &res.ok_value, compdata, self_);
-    return err;
-  }
-  return "<not an extension>";
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
@@ -95,17 +109,19 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
 }
 
 LOCAL char *null_extension_call(extension *self, vec *sl, size_t *begin,
-                                datum *stmt, datum *compdata) {
-  if (datum_is_list(stmt) && !datum_is_nil(stmt) &&
-      datum_is_the_symbol(list_at(stmt, 0), "req")) {
-    return prog_append_usages(sl, begin, stmt, compdata, self);
+                                datum *source, int *i, datum *compdata) {
+  datum *op = list_at(source, *i);
+  datum stmt;
+  if (datum_is_the_symbol(op, "req")) {
+    *i += 2;
+    stmt = list_copy(source, *i - 2, *i);
+    return prog_append_usages(sl, begin, &stmt, compdata, self);
   }
-  if (datum_is_list(stmt) && !datum_is_nil(stmt) &&
-      datum_is_the_symbol(list_at(stmt, 0), "export")) {
-    return prog_append_exports(sl, begin, stmt, compdata, self);
+  if (datum_is_the_symbol(op, "export")) {
+    *i += 2;
+    stmt = list_copy(source, *i - 2, *i);
+    return prog_append_exports(sl, begin, &stmt, compdata, self);
   }
-  if (self || sl || begin || stmt || compdata) {
-  };
   return "<not an extension>";
 }
 
