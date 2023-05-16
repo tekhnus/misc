@@ -66,6 +66,12 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
   return NULL;
 }
 
+LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
+                                   datum *compdata, extension *ext) {
+  datum exprs = datum_make_list_of(*stmt);
+  return prog_append_expressions(sl, begin, &exprs, compdata, ext);
+}
+
 LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
                                            int *i, datum *compdata,
                                            extension *ext) {
@@ -102,18 +108,16 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     *i += 3;
     res = list_copy(source, *i - 3, *i);
   } else if (datum_is_the_symbol(cur, "return")) {
-    datum stmt = datum_make_nil();
-    list_append(&stmt, datum_copy(list_at(source, (*i)++)));
+    list_append(&res, datum_copy(list_at(source, (*i)++)));
     for (; *i < list_length(source);) {
       datum *item = list_at(source, *i);
-      list_append(&stmt, datum_copy(item));
+      list_append(&res, datum_copy(item));
       ++*i;
       if (!datum_is_list(item) || datum_is_nil(item) ||
           !datum_is_the_symbol(list_at(item, 0), "at")) {
         break;
       }
     }
-    res = stmt;
   } else if (datum_is_list(cur) && list_length(cur) > 0 &&
              datum_is_the_symbol(list_at(cur, 0), "brackets")) {
     *i += 1;
@@ -122,13 +126,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     *i += 1;
     res = datum_copy(cur);
   }
-  return prog_append_expression_impl(sl, off, &res, compdata, ext);
-}
-
-LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
-                                   datum *compdata, extension *ext) {
-  datum exprs = datum_make_list_of(*stmt);
-  return prog_append_expressions(sl, begin, &exprs, compdata, ext);
+  datum *stmt = &res;
+  return prog_append_expression_impl(sl, off, stmt, compdata, ext);
 }
 
 LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
