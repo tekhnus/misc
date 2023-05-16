@@ -57,7 +57,10 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
   datum res = datum_make_nil();
   assert(datum_is_list(source));
   int i = 0;
-  for (;;) {
+  char *err;
+  for (;; err = prog_append_expression(sl, off, list_get_last(&res), compdata,
+                                       ext),
+          assert(err == NULL)) {
     if (i >= list_length(source)) {
       break;
     }
@@ -132,13 +135,6 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
     i += 1;
     list_append(&res, datum_copy(cur));
     continue;
-  }
-  for (int i = 0; i < list_length(&res); ++i) {
-    datum *stmt = list_at(&res, i);
-    char *err = prog_append_expression(sl, off, stmt, compdata, ext);
-    if (err != NULL) {
-      return err;
-    }
   }
   return NULL;
 }
