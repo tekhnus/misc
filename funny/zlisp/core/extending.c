@@ -50,7 +50,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   datum name = datum_make_symbol(nm);
   datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (datum_is_nil(&pi)) {
-     return "<not an extension>";
+    return "<not an extension>";
   }
   datum invokation_statement;
   /* int arity = get_function_arity(&self->routine_, &pi, self->program); */
@@ -70,17 +70,16 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   } else {
     return "fail";
   }
-    *list_at(&invokation_statement, 0) =
-        datum_make_list_of(datum_make_symbol("hash"), name);
-    fdatum res = lisp_extension_run(&invokation_statement, self);
-    if (fdatum_is_panic(res)) {
-      return res.panic_message;
-    }
-    assert(datum_is_list(&res.ok_value));
-    assert(list_length(&res.ok_value) == 1);
-    // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
-    return
-        prog_append_expressions(sl, begin, &res.ok_value, compdata, self_);
+  *list_at(&invokation_statement, 0) =
+      datum_make_list_of(datum_make_symbol("hash"), name);
+  fdatum res = lisp_extension_run(&invokation_statement, self);
+  if (fdatum_is_panic(res)) {
+    return res.panic_message;
+  }
+  assert(datum_is_list(&res.ok_value));
+  assert(list_length(&res.ok_value) == 1);
+  // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
+  return prog_append_expressions(sl, begin, &res.ok_value, compdata, self_);
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {

@@ -82,9 +82,8 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     sprintf(buf, "<truncated>");
   } else if (datum_is_integer(e)) {
     sprintf(buf, "%" PRId64, e->integer_value);
-  } else if (datum_is_list(e) && list_length(e) > 0 &&
-             datum_is_the_symbol(list_at(e, 0), "quote") &&
-             list_length(e) == 2) {
+  } else if (datum_is_list(e) && list_length(e) == 2 &&
+             datum_is_the_symbol(list_at(e, 0), "quote")) {
     end += sprintf(
         end, "'%s",
         datum_format_bounded(list_at(e, 1), depth, start, pretty, flat, "\n"));
@@ -94,12 +93,12 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     end += sprintf(
         end, "@%s",
         datum_format_bounded(list_at(e, 1), depth, start, pretty, flat, "\n"));
-  } else if (datum_is_list(e) && list_length(e) > 0 &&
-             datum_is_the_symbol(list_at(e, 0), "backquote")) {
-    assert(list_length(e) == 2);
+  } else if (datum_is_list(e) && list_length(e) == 3 &&
+             datum_is_the_symbol(list_at(e, 0), "brackets") &&
+             datum_is_the_symbol(list_at(e, 1), "backquote")) {
     end += sprintf(
         end, "`%s",
-        datum_format_bounded(list_at(e, 1), depth, start, pretty, flat, "\n"));
+        datum_format_bounded(list_at(e, 2), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) > 0 &&
              datum_is_the_symbol(list_at(e, 0), "tilde")) {
     assert(list_length(e) == 2);
