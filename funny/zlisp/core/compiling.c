@@ -255,46 +255,17 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
     return NULL;
   }
+  char *err = ext->call(ext, sl, off, source, i, compdata);
+  if (err == NULL || strcmp(err, "<not an extension>")) {
+    return err;
+  }
 
-  if (datum_is_the_symbol(cur, "req")) {
-    res = list_copy(source, *i, *i + 2);
-    return ext->call(ext, sl, off, source, i, compdata);
-  } else if (datum_is_the_symbol(cur, "export")) {
-    res = list_copy(source, *i, *i + 2);
-    return ext->call(ext, sl, off, source, i, compdata);
-  } else if (datum_is_the_symbol(cur, "defn2")) {
-    res = list_copy(source, *i, *i + 4);
-    return ext->call(ext, sl, off, source, i, compdata);
-  } else if (datum_is_the_symbol(cur, "switch")) {
-    res = list_copy(source, *i, *i + 3);
-    return ext->call(ext, sl, off, source, i, compdata);
-  } else if (datum_is_the_symbol(cur, "fntest")) {
-    res = list_copy(source, *i, *i + 3);
-    return ext->call(ext, sl, off, source, i, compdata);
-  }
-  else if (datum_is_the_symbol(cur, "backquote")) {
-    res = list_copy(source, *i, *i + 2);
-    return ext->call(ext, sl, off, source, i, compdata);
-  } else {
-    *i += 1;
-    res = datum_copy(cur);
-  }
+  *i += 1;
+  res = datum_copy(cur);
   datum n = datum_make_nil();
   datum *op = &n;
   if (datum_is_list(&res) && list_length(&res) > 0) {
     op = list_at(&res, 0);
-  }
-  if (!datum_is_nil(op)) {
-    int k = 0;
-    char *err = ext->call(ext, sl, off, &res, &k, compdata);
-    *i += k;
-    if (err == NULL) {
-      fprintf(stderr, "!!! old-style extension: %s\n", datum_repr(&res));
-      return NULL;
-    }
-    if (strcmp(err, "<not an extension>")) {
-      return err;
-    }
   }
   if (datum_is_constant(&res)) {
     prog_append_put_const(sl, off, &res, compdata);
