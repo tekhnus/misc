@@ -55,8 +55,7 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
   assert(datum_is_list(source));
   int i = 0;
   char *err;
-  for (;; err = prog_append_expression(sl, off, list_get_last(&res), compdata,
-                                       ext),
+  for (;; err = prog_append_expression(sl, off, &res, compdata, ext),
           assert(err == NULL)) {
     if (i >= list_length(source)) {
       break;
@@ -64,48 +63,48 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
     datum *cur = list_at(source, i);
     if (datum_is_the_symbol(cur, "if")) {
       i += 4;
-      list_append(&res, list_copy(source, i - 4, i));
+      res = list_copy(source, i - 4, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "while")) {
       i += 3;
-      list_append(&res, list_copy(source, i - 3, i));
+      res = list_copy(source, i - 3, i);
       continue;
     }
     if (i + 1 < list_length(source) &&
         datum_is_the_symbol(list_at(source, i + 1), "=")) {
       i += 3;
-      list_append(&res, list_copy(source, i - 3, i));
+      res = list_copy(source, i - 3, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "defn")) {
       i += 4;
-      list_append(&res, list_copy(source, i - 4, i));
+      res = list_copy(source, i - 4, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "req")) {
       i += 2;
-      list_append(&res, list_copy(source, i - 2, i));
+      res = list_copy(source, i - 2, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "export")) {
       i += 2;
-      list_append(&res, list_copy(source, i - 2, i));
+      res = list_copy(source, i - 2, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "defn2")) {
       i += 4;
-      list_append(&res, list_copy(source, i - 4, i));
+      res = list_copy(source, i - 4, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "switch")) {
       i += 3;
-      list_append(&res, list_copy(source, i - 3, i));
+      res = list_copy(source, i - 3, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "fntest")) {
       i += 3;
-      list_append(&res, list_copy(source, i - 3, i));
+      res = list_copy(source, i - 3, i);
       continue;
     }
     if (datum_is_the_symbol(cur, "return")) {
@@ -120,17 +119,17 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
           break;
         }
       }
-      list_append(&res, stmt);
+      res = stmt;
       continue;
     }
     if (datum_is_list(cur) && list_length(cur) > 0 &&
         datum_is_the_symbol(list_at(cur, 0), "brackets")) {
       i += 1;
-      list_append(&res, datum_copy(cur));
+      res = datum_copy(cur);
       continue;
     }
     i += 1;
-    list_append(&res, datum_copy(cur));
+    res = datum_copy(cur);
     continue;
   }
   return NULL;
