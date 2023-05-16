@@ -28,7 +28,7 @@ EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
 EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   vec sl = vec_make(16 * 1024);
   size_t p = vec_append_new(&sl);
-  char *err = prog_append_expressions(&sl, &p, source, compdata, ext, true);
+  char *err = prog_append_expressions(&sl, &p, source, compdata, ext);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -50,10 +50,7 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 }
 
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
-                                     datum *compdata, extension *ext,
-                                     bool skip_first_debug) {
-  if (skip_first_debug == skip_first_debug + 1) {
-  }
+                                     datum *compdata, extension *ext) {
   datum res = datum_make_nil();
   assert(datum_is_list(source));
   int i = 0;
@@ -142,7 +139,7 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
 LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
                                       datum *compdata, extension *ext) {
   datum exprs = datum_make_list_of(*stmt);
-  return prog_append_expressions(sl, begin, &exprs, compdata, ext, true);
+  return prog_append_expressions(sl, begin, &exprs, compdata, ext);
 }
 
 LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
@@ -221,8 +218,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
   }
   if (datum_is_the_symbol(op, "brackets")) {
     datum parts = list_get_tail(stmt);
-    char *err =
-        prog_append_expressions(sl, begin, &parts, compdata, ext, false);
+    char *err = prog_append_expressions(sl, begin, &parts, compdata, ext);
     if (err != NULL) {
       return err;
     }

@@ -124,7 +124,7 @@ LOCAL void compdata_del(datum *compdata);
 LOCAL char *prog_append_expressions_2(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 LOCAL char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 LOCAL datum instruction_relocate(datum *ins,size_t delta);
-char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext,bool skip_first_debug);
+char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
 char *vec_relocate(vec *dst,size_t *p,datum *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
