@@ -557,6 +557,19 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return &offset_datum->integer_value;
 }
 
+EXPORT int get_function_arity(datum *routine, datum *idx, vec sl) {
+  struct routine r = get_routine_from_datum(routine);
+  datum *f = state_stack_at(&r, idx);
+  struct routine ff = get_routine_from_datum(f);
+  ptrdiff_t off = *routine_offset(&ff);
+  prog prg = datum_to_prog(instruction_at(&sl, off + 1));
+  // for (int delta = 0; delta < 10; ++delta) {
+  //  fprintf(stderr, "%s\n", datum_repr(instruction_at(&sl, off + delta)));
+  // }
+  assert(prg.type == PROG_YIELD);
+  return prg.yield_recieve_count;
+}
+
 LOCAL routine get_routine_from_datum(datum *e) {
   if (!datum_is_frame(e)) {
     fprintf(stderr, "get_routine_from_datum: not a routine: %s\n",

@@ -53,6 +53,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
      return "<not an extension>";
   }
   datum invokation_statement;
+  // int arity = get_function_arity(&self->routine_, &pi, self->program);
   if (datum_is_the_symbol(op, "defn2")) {
     *i += 4;
     invokation_statement = list_copy(source, *i - 4, *i);
@@ -66,7 +67,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
     *i += 2;
     invokation_statement = list_copy(source, *i - 2, *i);
   } else {
-    return "<not an extension>";
+    return "fail";
   }
     *list_at(&invokation_statement, 0) =
         datum_make_list_of(datum_make_symbol("hash"), name);
