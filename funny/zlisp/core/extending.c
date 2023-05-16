@@ -53,7 +53,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
      return "<not an extension>";
   }
   datum invokation_statement;
-  // int arity = get_function_arity(&self->routine_, &pi, self->program);
+  /* int arity = get_function_arity(&self->routine_, &pi, self->program); */
+  /* fprintf(stderr, "%s -> %s -> %d\n", nm, datum_repr(&pi), arity); */
   if (datum_is_the_symbol(op, "defn2")) {
     *i += 4;
     invokation_statement = list_copy(source, *i - 4, *i);

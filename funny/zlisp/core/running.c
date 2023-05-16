@@ -562,10 +562,10 @@ EXPORT int get_function_arity(datum *routine, datum *idx, vec sl) {
   datum *f = state_stack_at(&r, idx);
   struct routine ff = get_routine_from_datum(f);
   ptrdiff_t off = *routine_offset(&ff);
-  prog prg = datum_to_prog(instruction_at(&sl, off + 1));
-  // for (int delta = 0; delta < 10; ++delta) {
-  //  fprintf(stderr, "%s\n", datum_repr(instruction_at(&sl, off + delta)));
-  // }
+  prog prg = datum_to_prog(instruction_at(&sl, off));
+  /* for (int delta = 0; delta < 1; ++delta) { */
+  /*   fprintf(stderr, "%s\n", datum_repr(instruction_at(&sl, off + delta))); */
+  /* } */
   assert(prg.type == PROG_YIELD);
   return prg.yield_recieve_count;
 }
