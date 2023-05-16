@@ -51,98 +51,88 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
 
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
                                      datum *compdata, extension *ext) {
-  datum res = datum_make_nil();
   assert(datum_is_list(source));
   int i = 0;
-  char *err;
-  for (;; err = prog_append_expression(sl, off, &res, compdata, ext),
-          assert(err == NULL)) {
+  for (;;) {
     if (i >= list_length(source)) {
       break;
     }
-    datum *cur = list_at(source, i);
-    if (datum_is_the_symbol(cur, "if")) {
-      i += 4;
-      res = list_copy(source, i - 4, i);
-      continue;
+    char *err =
+        prog_append_consume_expression(sl, off, source, &i, compdata, ext);
+    if (err != NULL) {
+      return err;
     }
-    if (datum_is_the_symbol(cur, "while")) {
-      i += 3;
-      res = list_copy(source, i - 3, i);
-      continue;
-    }
-    if (i + 1 < list_length(source) &&
-        datum_is_the_symbol(list_at(source, i + 1), "=")) {
-      i += 3;
-      res = list_copy(source, i - 3, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "defn")) {
-      i += 4;
-      res = list_copy(source, i - 4, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "req")) {
-      i += 2;
-      res = list_copy(source, i - 2, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "export")) {
-      i += 2;
-      res = list_copy(source, i - 2, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "defn2")) {
-      i += 4;
-      res = list_copy(source, i - 4, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "switch")) {
-      i += 3;
-      res = list_copy(source, i - 3, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "fntest")) {
-      i += 3;
-      res = list_copy(source, i - 3, i);
-      continue;
-    }
-    if (datum_is_the_symbol(cur, "return")) {
-      datum stmt = datum_make_nil();
-      list_append(&stmt, datum_copy(list_at(source, i++)));
-      for (; i < list_length(source);) {
-        datum *item = list_at(source, i);
-        list_append(&stmt, datum_copy(item));
-        ++i;
-        if (!datum_is_list(item) || datum_is_nil(item) ||
-            !datum_is_the_symbol(list_at(item, 0), "at")) {
-          break;
-        }
-      }
-      res = stmt;
-      continue;
-    }
-    if (datum_is_list(cur) && list_length(cur) > 0 &&
-        datum_is_the_symbol(list_at(cur, 0), "brackets")) {
-      i += 1;
-      res = datum_copy(cur);
-      continue;
-    }
-    i += 1;
-    res = datum_copy(cur);
-    continue;
   }
   return NULL;
 }
 
-LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
-                                      datum *compdata, extension *ext) {
-  datum exprs = datum_make_list_of(*stmt);
-  return prog_append_expressions(sl, begin, &exprs, compdata, ext);
+LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
+                                           int *i, datum *compdata,
+                                           extension *ext) {
+  assert(*i >= 0);
+  assert(*i < list_length(source));
+  datum *cur = list_at(source, *i);
+  datum res = datum_make_nil();
+  if (datum_is_the_symbol(cur, "if")) {
+    *i += 4;
+    res = list_copy(source, *i - 4, *i);
+  } else if (datum_is_the_symbol(cur, "while")) {
+    *i += 3;
+    res = list_copy(source, *i - 3, *i);
+  } else if (*i + 1 < list_length(source) &&
+             datum_is_the_symbol(list_at(source, *i + 1), "=")) {
+    *i += 3;
+    res = list_copy(source, *i - 3, *i);
+  } else if (datum_is_the_symbol(cur, "defn")) {
+    *i += 4;
+    res = list_copy(source, *i - 4, *i);
+  } else if (datum_is_the_symbol(cur, "req")) {
+    *i += 2;
+    res = list_copy(source, *i - 2, *i);
+  } else if (datum_is_the_symbol(cur, "export")) {
+    *i += 2;
+    res = list_copy(source, *i - 2, *i);
+  } else if (datum_is_the_symbol(cur, "defn2")) {
+    *i += 4;
+    res = list_copy(source, *i - 4, *i);
+  } else if (datum_is_the_symbol(cur, "switch")) {
+    *i += 3;
+    res = list_copy(source, *i - 3, *i);
+  } else if (datum_is_the_symbol(cur, "fntest")) {
+    *i += 3;
+    res = list_copy(source, *i - 3, *i);
+  } else if (datum_is_the_symbol(cur, "return")) {
+    datum stmt = datum_make_nil();
+    list_append(&stmt, datum_copy(list_at(source, (*i)++)));
+    for (; *i < list_length(source);) {
+      datum *item = list_at(source, *i);
+      list_append(&stmt, datum_copy(item));
+      ++*i;
+      if (!datum_is_list(item) || datum_is_nil(item) ||
+          !datum_is_the_symbol(list_at(item, 0), "at")) {
+        break;
+      }
+    }
+    res = stmt;
+  } else if (datum_is_list(cur) && list_length(cur) > 0 &&
+             datum_is_the_symbol(list_at(cur, 0), "brackets")) {
+    *i += 1;
+    res = datum_copy(cur);
+  } else {
+    *i += 1;
+    res = datum_copy(cur);
+  }
+  return prog_append_expression_impl(sl, off, &res, compdata, ext);
 }
 
 LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
                                    datum *compdata, extension *ext) {
+  datum exprs = datum_make_list_of(*stmt);
+  return prog_append_expressions(sl, begin, &exprs, compdata, ext);
+}
+
+LOCAL char *prog_append_expression_impl(vec *sl, size_t *begin, datum *stmt,
+                                        datum *compdata, extension *ext) {
   datum n = datum_make_nil();
   datum *op = &n;
   if (datum_is_list(stmt) && list_length(stmt) > 0) {
@@ -157,7 +147,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       return "if should have three args";
     }
     char *err;
-    err = prog_append_expressions_2(sl, begin, list_at(stmt, 1), compdata, ext);
+    err = prog_append_expression(sl, begin, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -172,13 +162,13 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    err = prog_append_expressions_2(sl, &true_end, list_at(stmt, 2), compdata,
-                                    ext);
+    err =
+        prog_append_expression(sl, &true_end, list_at(stmt, 2), compdata, ext);
     if (err != NULL) {
       return err;
     }
-    err = prog_append_expressions_2(sl, &false_end, list_at(stmt, 3),
-                                    false_compdata, ext);
+    err = prog_append_expression(sl, &false_end, list_at(stmt, 3),
+                                 false_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -196,7 +186,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     char *err;
     size_t pre_condition_check = *begin;
     datum pre_condition_check_compdata = datum_copy(compdata);
-    err = prog_append_expressions_2(sl, begin, list_at(stmt, 1), compdata, ext);
+    err = prog_append_expression(sl, begin, list_at(stmt, 1), compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -204,7 +194,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     *begin = vec_append_new(sl);
     size_t loop_start = *begin;
-    err = prog_append_expressions_2(sl, begin, list_at(stmt, 2), compdata, ext);
+    err = prog_append_expression(sl, begin, list_at(stmt, 2), compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     *vec_at(sl, *begin) = datum_make_list_of(
         datum_make_symbol(":nop"), datum_make_int(pre_condition_check));
@@ -226,7 +216,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
   if (datum_is_the_symbol(op, "list")) {
     for (int i = 1; i < list_length(stmt); ++i) {
       char *err =
-          prog_append_expressions_2(sl, begin, list_at(stmt, i), compdata, ext);
+          prog_append_expression(sl, begin, list_at(stmt, i), compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -249,7 +239,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     datum *expr;
     dst = list_at(stmt, 0);
     expr = list_at(stmt, 2);
-    char *err = prog_append_expressions_2(sl, begin, expr, compdata, ext);
+    char *err = prog_append_expression(sl, begin, expr, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -323,7 +313,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     datum *component = list_at(stmt, index);
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
-    char *err = prog_append_expressions_2(sl, begin, component, compdata, ext);
+    char *err = prog_append_expression(sl, begin, component, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -439,8 +429,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       }
       list_append(&indices, idx);
     } else {
-      char *err =
-          prog_append_expressions_2(sl, begin, component, compdata, ext);
+      char *err = prog_append_expression(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -455,7 +444,7 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     if (hash) {
       prog_append_put_const(sl, begin, arg, compdata);
     } else {
-      char *err = prog_append_expressions_2(sl, begin, arg, compdata, ext);
+      char *err = prog_append_expression(sl, begin, arg, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -557,7 +546,7 @@ LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
   } else {
     prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
   }
-  return prog_append_expressions_2(sl, &s, stmt, routine_compdata, ext);
+  return prog_append_expression(sl, &s, stmt, routine_compdata, ext);
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
