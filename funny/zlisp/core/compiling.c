@@ -49,35 +49,10 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   return NULL;
 }
 
-EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source_,
+EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
                                      datum *compdata, extension *ext,
                                      bool skip_first_debug) {
   skip_first_debug = true; // a temporary hack to support req inside {}
-  datum source = prog_unflatten(source_);
-  for (int i = 0; i < list_length(&source); ++i) {
-    datum *stmt = list_at(&source, i);
-    if (false && !(skip_first_debug && i == 0)) {
-      prog_append_yield(sl, off,
-                        datum_make_list_of(datum_make_symbol("debugger"),
-                                           datum_make_symbol("statement"),
-                                           datum_copy(stmt)),
-                        0, 0, datum_make_nil(), compdata);
-    }
-    char *err = prog_append_expression(sl, off, stmt, compdata, ext);
-    if (err != NULL) {
-      return err;
-    }
-    if (false && compdata_validate(compdata) && compdata_has_value(compdata)) {
-      // stack leak check disabled for extensions
-      fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
-      fprintf(stderr, "compdata: %s\n", datum_repr(compdata));
-      return "stack leak";
-    }
-  }
-  return NULL;
-}
-
-LOCAL datum prog_unflatten(datum *source) {
   datum res = datum_make_nil();
   assert(datum_is_list(source));
   int i = 0;
@@ -143,7 +118,6 @@ LOCAL datum prog_unflatten(datum *source) {
             !datum_is_the_symbol(list_at(item, 0), "at")) {
           break;
         }
-
       }
       list_append(&res, stmt);
       continue;
@@ -158,11 +132,31 @@ LOCAL datum prog_unflatten(datum *source) {
     list_append(&res, datum_copy(cur));
     continue;
   }
-  return res;
+  for (int i = 0; i < list_length(&res); ++i) {
+    datum *stmt = list_at(&res, i);
+    if (false && !(skip_first_debug && i == 0)) {
+      prog_append_yield(sl, off,
+                        datum_make_list_of(datum_make_symbol("debugger"),
+                                           datum_make_symbol("statement"),
+                                           datum_copy(stmt)),
+                        0, 0, datum_make_nil(), compdata);
+    }
+    char *err = prog_append_expression(sl, off, stmt, compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
+    if (false && compdata_validate(compdata) && compdata_has_value(compdata)) {
+      // stack leak check disabled for extensions
+      fprintf(stderr, "warning: stack leak: %s\n", datum_repr(stmt));
+      fprintf(stderr, "compdata: %s\n", datum_repr(compdata));
+      return "stack leak";
+    }
+  }
+  return NULL;
 }
 
 LOCAL char *prog_append_expressions_2(vec *sl, size_t *begin, datum *stmt,
-                                   datum *compdata, extension *ext) {
+                                      datum *compdata, extension *ext) {
   datum exprs = datum_make_list_of(*stmt);
   return prog_append_expressions(sl, begin, &exprs, compdata, ext, true);
 }
@@ -198,13 +192,13 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    err =
-        prog_append_expressions_2(sl, &true_end, list_at(stmt, 2), compdata, ext);
+    err = prog_append_expressions_2(sl, &true_end, list_at(stmt, 2), compdata,
+                                    ext);
     if (err != NULL) {
       return err;
     }
     err = prog_append_expressions_2(sl, &false_end, list_at(stmt, 3),
-                                 false_compdata, ext);
+                                    false_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -347,15 +341,15 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       }
     }
     assert(index + 1 == list_length(stmt));
-      datum *component = list_at(stmt, index);
-      size_t argcnt;
-      size_t before = compdata_get_length(compdata);
-      char *err = prog_append_expressions_2(sl, begin, component, compdata, ext);
-      if (err != NULL) {
-        return err;
-      }
-      size_t after = compdata_get_length(compdata);
-      argcnt = after - before;
+    datum *component = list_at(stmt, index);
+    size_t argcnt;
+    size_t before = compdata_get_length(compdata);
+    char *err = prog_append_expressions_2(sl, begin, component, compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
+    size_t after = compdata_get_length(compdata);
+    argcnt = after - before;
     prog_append_yield(sl, begin, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
@@ -466,7 +460,8 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
       }
       list_append(&indices, idx);
     } else {
-      char *err = prog_append_expressions_2(sl, begin, component, compdata, ext);
+      char *err =
+          prog_append_expressions_2(sl, begin, component, compdata, ext);
       if (err != NULL) {
         return err;
       }
