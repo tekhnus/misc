@@ -342,8 +342,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       list_append(&indices, idx);
     }
   }
-  // TODO(): this is wrong argcount if there are braces.
-  size_t arg_count = list_length(head) - index;
+  int before = compdata_get_length(compdata);
   for (; index < list_length(head); ++index) {
     datum *arg = list_at(head, index);
     char *err = prog_append_expression(sl, off, arg, compdata, ext);
@@ -351,6 +350,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
   }
+  int after = compdata_get_length(compdata);
+  size_t arg_count = after - before;
   prog_append_call(sl, off, capture_size, indices, !mut, pre, target, arg_count,
                    ret_count, compdata);
   return NULL;
