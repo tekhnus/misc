@@ -34,6 +34,7 @@ and two implementations:
 
 - Achieve zero memory leakage
 - Unite list type with frame type
+- Get rid of keywords; evaluate them into integers
 - Make environment handling in FFI impementation error-resistant and zero-cost
 - Implement closures by value
 - Implement references
