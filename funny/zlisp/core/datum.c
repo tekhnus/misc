@@ -176,6 +176,8 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "req")) {
         inhibit_newline = 0;
+      } else if (datum_is_the_symbol(item, "export")) {
+        inhibit_newline = 0;
       }
       char *child_sep = "\n";
       if (datum_is_list(item) && list_length(item) > 0 &&

@@ -192,7 +192,6 @@ defn extern-pointer (handle c-name signature)
  {return {list {:ok res}}}}
 
 export
-
 {(call-extension-1 call-extension-1)
  (panic panic)
  (head head)

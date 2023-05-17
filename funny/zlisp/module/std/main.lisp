@@ -178,7 +178,6 @@ defn first-good-value (x)
  (panic @0 "first-good-value: no good value")}
 
 export
-
 {(panic panic)
  (head head)
  (tail tail)
