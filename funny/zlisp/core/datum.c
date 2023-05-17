@@ -74,6 +74,22 @@ EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
   return datum_format_bounded(e, depth, 0, false, true, " ");
 }
 
+LOCAL char *escape_string(char *s) {
+  size_t len = strlen(s) * 2;
+  char *quoted = malloc(len);
+  size_t i = 0;
+  for (size_t j = 0; j < strlen(s); ++j) {
+    if (s[j] == '\n') {
+      quoted[i++] = '\\';
+      quoted[i++] = 'n';
+      continue;
+    }
+    quoted[i++] = s[j];
+  }
+  quoted[i++] = '\0';
+  return quoted;
+}
+
 EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
                                   bool pretty, bool flat, char *spacing) {
   char *buf = malloc(1024 * sizeof(char));
@@ -153,7 +169,7 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
         inhibit_newline = 1;
       } else if (datum_is_the_symbol(item, "if")) {
         inhibit_newline = 1;
-      }  else if (datum_is_the_symbol(item, "switch")) {
+      } else if (datum_is_the_symbol(item, "switch")) {
         inhibit_newline = 1;
       } else if (i + 1 < list_length(e) &&
                  datum_is_the_symbol(list_at(e, i + 1), "=")) {
@@ -179,7 +195,7 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
   } else if (datum_is_symbol(e)) {
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
-    end += sprintf(end, "\"%s\"", e->bytestring_value);
+    end += sprintf(end, "\"%s\"", escape_string(e->bytestring_value));
   } else if (datum_is_frame(e)) {
     sprintf(buf, "<some frame>");
   } else {

@@ -24,8 +24,7 @@ stdin = (/std/first-good-value `(~(/prelude/extern-pointer libc "stdin" 'pointer
 stdout = (/std/first-good-value `(~(/prelude/extern-pointer libc "stdout" 'pointer) ~(/prelude/extern-pointer libc "__stdoutp" 'pointer)))
 stderr = (/std/first-good-value `(~(/prelude/extern-pointer libc "stderr" 'pointer) ~(/prelude/extern-pointer libc "__stderrp" 'pointer)))
 defn print (val)
-{return (/prelude/fprintf-bytestring stdout "%s
-" (/std/repr val))}
+{return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))}
 
 export
 
