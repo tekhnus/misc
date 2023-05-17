@@ -12,7 +12,10 @@ req
  (fntest- "testing" fntestx)}
 
 defn .switch (exp argz)
-{return {list {'brackets 'args '= exp (/std/switch-fun argz)}}}
+{if (/std/not- (/std/eq- (/std/head- argz) 'brackets))
+ {return "expected brackets"}
+ {}
+ {return {list {'brackets 'args '= exp (/std/switch-fun (/std/tail- argz))}}}}
 
 defn .fntest (body expect)
 {return (/testing/fntest- body expect)}

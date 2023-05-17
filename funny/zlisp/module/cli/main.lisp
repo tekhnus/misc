@@ -31,12 +31,16 @@ defn repl (sl nsp pptr bpptr compdata bdrcompdata ex)
 {tmp = (/prelude/fprintf stdout "> ")
  switch
  (/zlisp/rd stdin)
- (((:eof) {return (/prelude/fprintf stdout "
-")}) ((:ok datum) maybe-prog = (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex) switch maybe-prog (((:ok progxxx) switch (/zlisp/eval-new sl nsp) (((:ok val ctxt) ignored = (/prelude/fprintf-bytestring stdout "%s
-" (/zlisp/repr-pointer val)) {return (../repl sl ctxt pptr bpptr compdata bdrcompdata ex)}) ((:err msg) ignored = (/prelude/fprintf-bytestring stderr "eval error: %s
-" msg) {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)}))) ((:err msg) ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s
-" msg) {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)}))) ((:err msg) ignored = (/prelude/fprintf-bytestring stderr "read error: %s
-" msg) {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)}))}
+ {((:eof) {return (/prelude/fprintf stdout "
+")})
+  ((:ok datum) maybe-prog = (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex) switch maybe-prog {((:ok progxxx) switch (/zlisp/eval-new sl nsp) {((:ok val ctxt) ignored = (/prelude/fprintf-bytestring stdout "%s
+" (/zlisp/repr-pointer val)) {return (../repl sl ctxt pptr bpptr compdata bdrcompdata ex)})
+      ((:err msg) ignored = (/prelude/fprintf-bytestring stderr "eval error: %s
+" msg) {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)})})
+    ((:err msg) ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s
+" msg) {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)})})
+  ((:err msg) ignored = (/prelude/fprintf-bytestring stderr "read error: %s
+" msg) {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)})}}
 
 sl = (/prelude/psm 20000)
 pptr = (/prelude/wrap-pointer-into-pointer (/zlisp/psan sl))
