@@ -262,17 +262,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     return "expected an s-expression";
   }
   datum *fn = list_at(head, 0);
-  if (datum_is_the_symbol(fn, "list")) {
-    for (int i = 1; i < list_length(head); ++i) {
-      char *err =
-          prog_append_expression(sl, off, list_at(head, i), compdata, ext);
-      if (err != NULL) {
-        return err;
-      }
-    }
-    prog_append_collect(sl, list_length(head) - 1, off, compdata);
-    return NULL;
-  }
   bool hash = false;
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;

@@ -106,7 +106,7 @@ defn swtchone (a0)
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
-  () = {return {list {'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) (list 'brackets 'args '= '(/std/list-at prearg 1) body) rest}}}}
+  () = {return {list {'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) {list {'brackets 'args '= '(/std/list-at prearg 1) body}} rest}}}}
  {firstarg = "ifhack"
   cond = "ifhack"
   body = "ifhack"
@@ -125,7 +125,7 @@ defn decons-pat (a0 a1)
  {if (../eq (../type pat) :symbol)
   {first-decons = "ifhack"
    rest-decons = "ifhack"
-   () = {return {list {:ok (list val)}}}}
+   () = {return {list {:ok {list {val}}}}}}
   {if (../eq (../type pat) :list)
    {if pat
     {if val
@@ -168,7 +168,7 @@ defn make-assignment (x)
 defn switch-clause (a0)
 {sig = (../head a0)
  cmds = (../tail a0)
- checker = {list {'/std/decons-pat (list 'brackets 'quote sig) 'args}}
+ checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
  vars = (../decons-vars sig)
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
  () = {return {list {checker body}}}}
