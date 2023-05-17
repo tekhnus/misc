@@ -42,6 +42,11 @@ defn concat-bytestrings (x y)
 defn + (x y)
 {return (/prelude/+- x y)}
 
+defn not (x)
+{if x
+ {return '()}
+ {return '(())}}
+
 defn last (a0)
 {if (../tail a0)
  {return (../last (../tail a0))}
@@ -145,8 +150,12 @@ defn make-assignment (x)
 {return {list {'brackets (../head x) '= (../list-at x 1)}}}
 
 defn switch-clause (a0)
-{sig = (../head a0)
- cmds = (../tail a0)
+{if (../not (../eq (../head a0) 'brackets))
+ {return "expected brackets"}
+ {}
+ a1 = (../tail a0)
+ sig = (../head a1)
+ cmds = (../tail a1)
  checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
  vars = (../decons-vars sig)
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
@@ -167,11 +176,6 @@ defn first-good-value (x)
    {{return (../list-at first-arg 1)}}
    {{return (../first-good-value (../tail x))}}}}
  (panic @0 "first-good-value: no good value")}
-
-defn not (x)
-{if x
- {return '()}
- {return '(())}}
 
 export
 
