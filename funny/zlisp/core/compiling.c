@@ -89,6 +89,14 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     prog_append_put_const(sl, off, val, compdata);
     return NULL;
   }
+  if (datum_is_the_symbol(head, "list")) {
+    datum *vals = list_at(source, (*i)++);
+    int before = compdata_get_length(compdata);
+    prog_append_expression(sl, off, vals, compdata, ext);
+    int after = compdata_get_length(compdata);
+    prog_append_collect(sl, after - before, off, compdata);
+    return NULL;
+  }
   if (datum_is_the_symbol(head, "if")) {
     datum *cond = list_at(source, (*i)++);
     datum *true_branch = list_at(source, (*i)++);

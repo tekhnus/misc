@@ -86,7 +86,7 @@ defn concat (a0 a1)
 
 defn zip (a0 a1)
 {if a0
- {() = {return (../cons (list (../head a0) (../head a1)) (../zip (../tail a0) (../tail a1)))}}
+ {() = {return (../cons {list {(../head a0) (../head a1)}} (../zip (../tail a0) (../tail a1)))}}
  {() = {return '()}}}
 
 defn map (a0 a1)
