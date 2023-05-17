@@ -262,22 +262,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     return "expected an s-expression";
   }
   datum *fn = list_at(head, 0);
-  bool hash = false;
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;
   bool mut = false;
   bool pre = false;
   size_t ret_count = 1;
-  for (; datum_is_list(fn) && list_length(fn) == 2 &&
-         datum_is_symbol(list_at(fn, 0));
-       fn = list_at(fn, 1)) {
-    char *tag = list_at(fn, 0)->symbol_value;
-    if (!strcmp(tag, "hash")) {
-      hash = true;
-    } else {
-      break;
-    }
-  }
   datum fnsv;
   if (datum_is_list(fn) && !datum_is_nil(fn) &&
       datum_is_the_symbol(list_at(fn, 0), "polysym")) {
@@ -357,13 +346,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   size_t arg_count = list_length(head) - index;
   for (; index < list_length(head); ++index) {
     datum *arg = list_at(head, index);
-    if (hash) {
-      prog_append_put_const(sl, off, arg, compdata);
-    } else {
-      char *err = prog_append_expression(sl, off, arg, compdata, ext);
-      if (err != NULL) {
-        return err;
-      }
+    char *err = prog_append_expression(sl, off, arg, compdata, ext);
+    if (err != NULL) {
+      return err;
     }
   }
   prog_append_call(sl, off, capture_size, indices, !mut, pre, target, arg_count,
