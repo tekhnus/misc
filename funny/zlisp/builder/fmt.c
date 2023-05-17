@@ -48,13 +48,13 @@ LOCAL datum rewrite(datum *source) {
     return datum_copy(source);
   }
   if (datum_is_list(source) && list_length(source) > 0 &&
-      datum_is_the_symbol(list_at(source, 0), "return")) {
-    datum res = datum_make_list_of(datum_make_symbol("brackets"));
-    for (int i = 0; i < list_length(source); ++i) {
+      datum_is_the_symbol(list_at(source, 0), "list")) {
+    datum vals = datum_make_list_of(datum_make_symbol("brackets"));
+    for (int i = 1; i < list_length(source); ++i) {
       datum *elem = list_at(source, i);
-      list_append(&res, *elem);
+      list_append(&vals, *elem);
     }
-    return res;
+    return datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("list"), vals);
   }
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {

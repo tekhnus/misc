@@ -47,7 +47,7 @@ fntest {return (std/head (std/tail '(42 5 3)))} 5
 fntest {return (std/list-at '(42 5 3) 1)} 5
 fntest {return "hello, world!"} "hello, world!"
 fntest {return (std/+ 4 3)} 7
-fntest {return (list (/std/+ 4 3) 8)} '(7 8)
+fntest {return {list {(/std/+ 4 3) 8}}} '(7 8)
 fntest {return (std/list-at '(1 2) 1)} 2
 fntest {return (std/eq :foo :bar)} '()
 fntest {bar = :foo return (std/eq :foo bar)} '(())
