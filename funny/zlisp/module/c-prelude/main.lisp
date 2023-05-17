@@ -114,7 +114,7 @@ defn c-function-0 (fn-ptr signature)
 
 defn c-function-1 (fn-ptr signature)
 {(a1) = {return @1 {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list {a1}})}
+ return (../pointer-call-and-deserialize fn-ptr signature {list a1})}
 
 defn c-function-2 (fn-ptr signature)
 {(a1 a2) = {return @2 {}}

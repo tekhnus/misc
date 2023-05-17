@@ -43,6 +43,10 @@ LOCAL datum rewrite(datum *source) {
   if (!datum_is_list(source)) {
     return datum_copy(source);
   }
+  /* if (datum_is_list(source) && list_length(source) == 2 && */
+  /*     datum_is_the_symbol(list_at(source, 0), "brackets")) { */
+  /*   return datum_copy(list_at(source, 1)); */
+  /* } */
   if (datum_is_list(source) && list_length(source) == 2 &&
       datum_is_the_symbol(list_at(source, 0), "quote")) {
     return datum_copy(source);

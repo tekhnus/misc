@@ -78,7 +78,7 @@ fntest {return {list {(/std/+ 4 3) 8}}} '(7 8)
 fntest {return (/std/list-at '(1 2) 1)} 2
 fntest {return (/std/eq :foo :bar)} '()
 fntest {bar = :foo {return (/std/eq :foo bar)}} '(())
-fntest {{return (/std/append 5 '(1 2 3 4))}} '(1 2 3 4 5)
+fntest {return (/std/append 5 '(1 2 3 4))} '(1 2 3 4 5)
 fntest {return `(1 2 ~(/std/+ 1 2))} '(1 2 3)
 fntest {defn twice (arg) {return (/std/+ arg arg)} {return (twice 35)}} 70
 fntest {defn2 twice (arg) {return (/std/+ arg arg)} {return (twice 35)}} 70
@@ -96,8 +96,8 @@ fntest {defn fff (x) {return (/std/+ x 42)} yyy = (fff 1) {return yyy}} 43
 fntest {defn fff () {x = 2 defn ggg () {return (/std/+ x 40)} {return ggg}} ggg-in-fff = (fff @mut) {return (fff/ggg-in-fff)}} 42
 fntest {res = (/libc/print 42) {return 33}} 33
 fntest {defn do-something (x) {res = (/libc/print x) {return 'do-something-value}} defn interceptor (arg) {(ext-pointer arg-) = (../do-something @mut @(host "call-extension-1") @2 arg) res = (/libc/print "extension:") res = (/libc/print ext-pointer) res = (/libc/print "argument:") res = (/libc/print arg-) host-res = {return @1 @(host "call-extension") {ext-pointer arg-}} () = (../interceptor @0 @something host-res)} res = (interceptor 'arg) {return res}} 'do-something-value
-fntest {defn wrapper () {defn wrapped (x) {{return `(~x ~x)}} () = (wrapped @mut @pre @0 @up) {return 33}} () = (wrapper @mut @0) res = (wrapper 42) {return res}} '(42 42)
-fntest {if 3 {{return 42}} {{return 25}}} 42
+fntest {defn wrapper () {defn wrapped (x) {return `(~x ~x)} () = (wrapped @mut @pre @0 @up) {return 33}} () = (wrapper @mut @0) res = (wrapper 42) {return res}} '(42 42)
+fntest {if 3 {return 42} {return 25}} 42
 fntest {x = -5 while (/std/not (/std/eq x 0)) {x = (/std/+ x 1)} defn f (x) {return x} if 3 {return 42} {return 25}} 42
 fntest {a = 5 {return a}} 5
 defn print-all (xs)
