@@ -54,7 +54,8 @@ LOCAL datum rewrite(datum *source) {
       datum *elem = list_at(source, i);
       list_append(&vals, *elem);
     }
-    return datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("list"), vals);
+    return datum_make_list_of(datum_make_symbol("brackets"),
+                              datum_make_symbol("list"), vals);
   }
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
