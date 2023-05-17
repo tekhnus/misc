@@ -57,8 +57,7 @@ defn type (x)
 
 defn length (x)
 {n = 0
- while
- x
+ while x
  {n = (../+ n 1)
   x = (../tail x)}
  {return n}}

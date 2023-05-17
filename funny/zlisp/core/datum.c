@@ -140,13 +140,14 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
       end += sprintf(end, "%c", pair[0]);
     }
     int inhibit_newline = -100;
+    int inhibit_double_newline = -100;
     for (int i = first; i < list_length(e); ++i) {
       if (i > first) {
         if (sep[0] != '\n') {
           end += sprintf(end, "%s", sep);
         } else if (inhibit_newline >= 0 || flat) {
           end += sprintf(end, " ");
-        } else if (inhibit_newline == -1) {
+        } else if (inhibit_newline == -1 || inhibit_double_newline >= 0) {
           end += sprintf(end, "\n");
           for (size_t i = 0; i < start; ++i) {
             end += sprintf(end, " ");
@@ -164,10 +165,12 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
       } else if (datum_is_the_symbol(item, "defn2")) {
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "fntest")) {
-        inhibit_newline = 2;
+        inhibit_double_newline = 2;
       } else if (datum_is_the_symbol(item, "return")) {
         inhibit_newline = 1;
       } else if (datum_is_the_symbol(item, "if")) {
+        inhibit_newline = 1;
+      } else if (datum_is_the_symbol(item, "while")) {
         inhibit_newline = 1;
       } else if (datum_is_the_symbol(item, "switch")) {
         inhibit_newline = 1;
@@ -189,6 +192,7 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
                                           flat || (inhibit_newline >= 0),
                                           child_sep));
       --inhibit_newline;
+      --inhibit_double_newline;
     }
     if (strlen(pair) > 0) {
       end += sprintf(end, "%c", pair[1]);
