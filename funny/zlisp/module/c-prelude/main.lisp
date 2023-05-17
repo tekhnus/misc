@@ -109,7 +109,7 @@ defn get-fn-ptr (handle c-name)
  {return fn-ptr}}
 
 defn c-function-0 (fn-ptr signature)
-{() = {return @0 {}}
+{return {}
  return (../pointer-call-and-deserialize fn-ptr signature {list {}})}
 
 defn c-function-1 (fn-ptr signature)
