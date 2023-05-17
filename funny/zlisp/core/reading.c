@@ -269,7 +269,7 @@ EXPORT read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    if (datum_is_the_symbol(&tok.control_sequence_symbol, "backquote")) {
+    if (datum_is_the_symbol(&tok.control_sequence_symbol, "backquote") || datum_is_the_symbol(&tok.control_sequence_symbol, "quote")) {
       datum res = datum_make_list_of(datum_make_symbol("brackets"),
                                      tok.control_sequence_symbol, v.ok_value);
       return read_result_make_ok(res);

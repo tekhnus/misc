@@ -39,9 +39,9 @@ defn .fntest (body expect)
 
 defn .backquote (exp)
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return (list 'quote exp)}
+ {return (list 'brackets 'quote exp)}
  {if (/std/not- exp)
-  {return (list 'quote exp)}
+  {return (list 'brackets 'quote exp)}
   {if (/std/eq- (/std/length- exp) 2)
    {if (/std/eq- (/std/head- exp) 'tilde)
     {return (/std/head- (/std/tail- exp))}

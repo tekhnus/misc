@@ -168,7 +168,7 @@ defn make-assignment (x)
 defn switch-clause (a0)
 {sig = (../head a0)
  cmds = (../tail a0)
- checker = (list '/std/decons-pat (list 'quote sig) 'args)
+ checker = (list '/std/decons-pat (list 'brackets 'quote sig) 'args)
  vars = (../decons-vars sig)
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
  () = {return (list checker body)}}
