@@ -159,10 +159,15 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
       } else if (datum_is_the_symbol(item, "req")) {
         inhibit_newline = 0;
       }
-      end +=
-          sprintf(end, "%s",
-                  datum_format_bounded(item, depth - 1, start + 1, pretty,
-                                       flat || (inhibit_newline >= 0), "\n"));
+      char *child_sep = "\n";
+      if (datum_is_list(item) && list_length(item) > 0 &&
+          !datum_is_the_symbol(list_at(item, 0), "brackets")) {
+        child_sep = " ";
+      }
+      end += sprintf(end, "%s",
+                     datum_format_bounded(item, depth - 1, start + 1, pretty,
+                                          flat || (inhibit_newline >= 0),
+                                          child_sep));
       --inhibit_newline;
     }
     if (strlen(pair) > 0) {

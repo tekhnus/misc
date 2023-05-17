@@ -1,41 +1,18 @@
 req
-{(prelude
-  "prelude")
- (panic-
-  "prelude"
-  panic)
- (head-
-  "prelude"
-  head)
- (tail-
-  "prelude"
-  tail)
- (cons-
-  "prelude"
-  cons)
- (eq-
-  "prelude"
-  eq)
- (annotate-
-  "prelude"
-  annotate)
- (is-constant-
-  "prelude"
-  is-constant)
- (repr-
-  "prelude"
-  repr)
- (concat-bytestrings-
-  "prelude"
-  concat-bytestrings)
- (+-
-  "prelude"
-  +)}
+{(prelude "prelude")
+ (panic- "prelude" panic)
+ (head- "prelude" head)
+ (tail- "prelude" tail)
+ (cons- "prelude" cons)
+ (eq- "prelude" eq)
+ (annotate- "prelude" annotate)
+ (is-constant- "prelude" is-constant)
+ (repr- "prelude" repr)
+ (concat-bytestrings- "prelude" concat-bytestrings)
+ (+- "prelude" +)}
 
 defn panic (x)
-{(/prelude/panic-
-  @0
-  x)
+{(/prelude/panic- @0 x)
  {return {}}}
 
 defn head (x)
@@ -150,9 +127,7 @@ defn decons-pat (a0 a1)
       {return '(:ok ())}}}}
    {first-decons = "ifhack"
     rest-decons = "ifhack"
-    (../panic
-     @0
-     "decons-pat met an unsupported type")}}}}
+    (../panic @0 "decons-pat met an unsupported type")}}}}
 
 defn decons-vars (a0)
 {if (../is-constant a0)
@@ -163,9 +138,7 @@ defn decons-vars (a0)
    {if a0
     {return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))}
     {return '()}}
-   (panic
-    @0
-    "decons-var met an unsupported type")}}}
+   (panic @0 "decons-var met an unsupported type")}}}
 
 switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5))
 defn make-assignment (x)
@@ -193,9 +166,7 @@ defn first-good-value (x)
   {if (../eq :ok (../head first-arg))
    {{return (../list-at first-arg 1)}}
    {{return (../first-good-value (../tail x))}}}}
- (panic
-  @0
-  "first-good-value: no good value")}
+ (panic @0 "first-good-value: no good value")}
 
 defn not (x)
 {if x
@@ -204,41 +175,22 @@ defn not (x)
 
 export
 
-{(panic
-  panic)
- (head
-  head)
- (tail
-  tail)
- (cons
-  cons)
- (eq
-  eq)
- (eq
-  eq)
- (annotate
-  annotate)
- (is-constant
-  is-constant)
- (repr
-  repr)
- (concat-bytestrings
-  concat-bytestrings)
- (+
-  +)
- (length
-  length)
- (decons-pat
-  decons-pat)
- (append
-  append)
- (list-at
-  list-at)
- (switch-fun
-  switch-fun)
- (first-good-value
-  first-good-value)
- (type
-  type)
- (not
-  not)}
+{(panic panic)
+ (head head)
+ (tail tail)
+ (cons cons)
+ (eq eq)
+ (eq eq)
+ (annotate annotate)
+ (is-constant is-constant)
+ (repr repr)
+ (concat-bytestrings concat-bytestrings)
+ (+ +)
+ (length length)
+ (decons-pat decons-pat)
+ (append append)
+ (list-at list-at)
+ (switch-fun switch-fun)
+ (first-good-value first-good-value)
+ (type type)
+ (not not)}

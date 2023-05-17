@@ -51,27 +51,15 @@ defn repr (a0)
 
 export
 
-{(print
-  print)
- (panic
-  panic)
- (head
-  head)
- (tail
-  tail)
- (cons
-  cons)
- (eq
-  eq)
- (eq
-  eq)
- (annotate
-  annotate)
- (is-constant
-  is-constant)
- (repr
-  repr)
- (concat-bytestrings
-  concat-bytestrings)
- (+
-  +)}
+{(print print)
+ (panic panic)
+ (head head)
+ (tail tail)
+ (cons cons)
+ (eq eq)
+ (eq eq)
+ (annotate annotate)
+ (is-constant is-constant)
+ (repr repr)
+ (concat-bytestrings concat-bytestrings)
+ (+ +)}

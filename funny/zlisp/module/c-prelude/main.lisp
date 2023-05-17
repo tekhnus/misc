@@ -97,15 +97,13 @@ defn nth (n xs)
  {if n
   {return (../nth (../tail n) (../tail xs))}
   {return (../head xs)}}
- (../panic
-  "nth fail")}
+ (../panic "nth fail")}
 
 defn get-fn-ptr (handle c-name)
 {fn-pointer-pointer = (../dlsym handle c-name)
  fn-ptr = (../dereference fn-pointer-pointer 'int64)
  if (../eq fn-ptr 0)
- (../panic
-  "couldn't load C function")
+ (../panic "couldn't load C function")
  {return fn-ptr}}
 
 defn c-function-0 (fn-ptr signature)
@@ -195,41 +193,22 @@ defn extern-pointer (handle c-name signature)
 
 export
 
-{(call-extension-1
-  call-extension-1)
- (panic
-  panic)
- (head
-  head)
- (tail
-  tail)
- (cons
-  cons)
- (eq
-  eq)
- (dereference
-  dereference)
- (dlsym
-  dlsym)
- (c-function
-  c-function)
- (eq
-  eq)
- (annotate
-  annotate)
- (is-constant
-  is-constant)
- (repr
-  repr)
- (concat-bytestrings
-  concat-bytestrings)
- (+
-  +)
- (wrap-pointer-into-pointer
-  wrap-pointer-into-pointer)
- (shared-library
-  shared-library)
- (extern-pointer
-  extern-pointer)
- (selflib
-  selflib)}
+{(call-extension-1 call-extension-1)
+ (panic panic)
+ (head head)
+ (tail tail)
+ (cons cons)
+ (eq eq)
+ (dereference dereference)
+ (dlsym dlsym)
+ (c-function c-function)
+ (eq eq)
+ (annotate annotate)
+ (is-constant is-constant)
+ (repr repr)
+ (concat-bytestrings concat-bytestrings)
+ (+ +)
+ (wrap-pointer-into-pointer wrap-pointer-into-pointer)
+ (shared-library shared-library)
+ (extern-pointer extern-pointer)
+ (selflib selflib)}

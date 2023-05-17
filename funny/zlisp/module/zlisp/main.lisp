@@ -1,50 +1,20 @@
 req
-{(prelude
-  "prelude")
- (shared-library
-  "prelude"
-  shared-library)
- (c-function
-  "prelude"
-  c-function)
- (selflib
-  "prelude"
-  selflib)
- (dlsym
-  "prelude"
-  dlsym)
- (dereference
-  "prelude"
-  dereference)
- (wrap-pointer-into-pointer
-  "prelude"
-  wrap-pointer-into-pointer)
- (call-extension-1
-  "prelude"
-  call-extension-1)
- (std
-  "std")
- (decons-pat
-  "std"
-  decons-pat)
- (first-good-value
-  "std"
-  first-good-value)
- (eq
-  "std"
-  eq)
- (head
-  "std"
-  head)
- (cons
-  "std"
-  cons)
- (tail
-  "std"
-  tail)
- (panic
-  "std"
-  panic)}
+{(prelude "prelude")
+ (shared-library "prelude" shared-library)
+ (c-function "prelude" c-function)
+ (selflib "prelude" selflib)
+ (dlsym "prelude" dlsym)
+ (dereference "prelude" dereference)
+ (wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer)
+ (call-extension-1 "prelude" call-extension-1)
+ (std "std")
+ (decons-pat "std" decons-pat)
+ (first-good-value "std" first-good-value)
+ (eq "std" eq)
+ (head "std" head)
+ (cons "std" cons)
+ (tail "std" tail)
+ (panic "std" panic)}
 
 buildlib = (/std/first-good-value `(~(/prelude/shared-library "libzlisp-build-lib.so")))
 compdata-make = (/prelude/c-function selflib "compdata_alloc_make" '(() pointer))
@@ -103,23 +73,13 @@ defn read (strm)
 
 export
 
-{(compile-prog-new
-  compile-prog-new)
- (init-prog
-  init-prog)
- (eval-new
-  eval-new)
- (read
-  read)
- (repr-pointer
-  repr-pointer)
- (make-routine-with-empty-state
-  make-routine-with-empty-state)
- (prog-slice-make
-  prog-slice-make)
- (prog-slice-append-new
-  prog-slice-append-new)
- (compdata-make
-  compdata-make)
- (ext-make
-  ext-make)}
+{(compile-prog-new compile-prog-new)
+ (init-prog init-prog)
+ (eval-new eval-new)
+ (read read)
+ (repr-pointer repr-pointer)
+ (make-routine-with-empty-state make-routine-with-empty-state)
+ (prog-slice-make prog-slice-make)
+ (prog-slice-append-new prog-slice-append-new)
+ (compdata-make compdata-make)
+ (ext-make ext-make)}
