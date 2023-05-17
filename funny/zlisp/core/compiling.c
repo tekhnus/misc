@@ -75,11 +75,16 @@ LOCAL char *prog_append_expression(vec *sl, size_t *begin, datum *stmt,
 LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
                                            int *i, datum *compdata,
                                            extension *ext) {
-  assert(*i >= 0);
-  assert(*i < list_length(source));
-  datum *head = list_at(source, *i);
+  int i_val = *i;
+  char *err = ext->call(ext, sl, off, source, i, compdata);
+  if (err != NULL) {
+    return err;
+  }
+  if (i_val != *i) {
+    return NULL;
+  }
+  datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
-    (*i)++;
     datum *cond = list_at(source, (*i)++);
     datum *true_branch = list_at(source, (*i)++);
     datum *false_branch = list_at(source, (*i)++);
@@ -116,7 +121,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
-    (*i)++;
     datum *cond = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
     char *err;
@@ -141,9 +145,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
                            datum_make_int(loop_end));
     return NULL;
   }
-  if (*i + 2 < list_length(source) &&
-      datum_is_the_symbol(list_at(source, *i + 1), "=")) {
-    datum *dst = list_at(source, (*i)++);
+  if (*i < list_length(source) &&
+      datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
     datum *expr = list_at(source, (*i)++);
     char *err = prog_append_expression(sl, off, expr, compdata, ext);
@@ -151,16 +154,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     datum names;
-    if (datum_is_list(dst)) {
-      names = datum_copy(dst);
+    if (datum_is_list(head)) {
+      names = datum_copy(head);
     } else {
-      names = datum_make_list_of(datum_copy(dst));
+      names = datum_make_list_of(datum_copy(head));
     }
     store_values_to_variables(sl, off, &names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(head, "defn")) {
-    (*i)++;
     datum *name = list_at(source, (*i)++);
     datum *args = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
@@ -185,7 +187,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     return NULL;
   }
   if (datum_is_the_symbol(head, "return")) {
-    (*i)++;
     datum target = datum_make_symbol("plain");
     bool target_defined = false;
     size_t recieve_count = 0;
@@ -226,16 +227,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   }
   if (datum_is_list(head) && list_length(head) > 0 &&
       datum_is_the_symbol(list_at(head, 0), "brackets")) {
-    *i += 1;
     datum parts = list_get_tail(head);
     return prog_append_expressions(sl, off, &parts, compdata, ext);
   }
-  char *err = ext->call(ext, sl, off, source, i, compdata);
-  if (err == NULL || strcmp(err, "<not an extension>")) {
-    return err;
-  }
 
-  *i += 1;
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, off, head, compdata);
     return NULL;

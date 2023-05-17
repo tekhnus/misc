@@ -35,22 +35,26 @@ EXPORT extension null_extension_make() {
 LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
                                 datum *source, int *i, datum *compdata) {
   extension nu = null_extension_make();
+  int i_val = *i;
   char *err = null_extension_call(&nu, sl, begin, source, i, compdata);
-  if (err == NULL || strcmp(err, "<not an extension>")) {
+  if (err != NULL) {
     return err;
+  }
+  if (i_val != *i) {
+    return NULL;
   }
 
   lisp_extension *self = (lisp_extension *)self_;
   datum *op = list_at(source, *i);
   if (!datum_is_symbol(op)) {
-    return "<not an extension>";
+    return NULL;
   }
   char nm[128] = {0};
   sprintf(nm, ".%s", op->symbol_value);
   datum name = datum_make_symbol(nm);
   datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (datum_is_nil(&pi)) {
-    return "<not an extension>";
+    return NULL;
   }
   datum invokation_statement;
   /* int arity = get_function_arity(&self->routine_, &pi, self->program); */
@@ -123,7 +127,7 @@ LOCAL char *null_extension_call(extension *self, vec *sl, size_t *begin,
     stmt = list_copy(source, *i - 2, *i);
     return prog_append_exports(sl, begin, &stmt, compdata, self);
   }
-  return "<not an extension>";
+  return NULL;
 }
 
 LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
