@@ -121,15 +121,18 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
+
+    err = prog_append_merge_compdata(sl, &false_end, false_compdata, compdata);
+
     err = prog_append_expression(sl, &false_end, false_branch, false_compdata,
                                  ext);
     if (err != NULL) {
       return err;
     }
-    if (!datum_eq(compdata, false_compdata)) {
-      compdata_put(compdata, datum_make_symbol("__different_if_branches"));
-    }
 
+    err = prog_append_merge_compdata(sl, &true_end, compdata, false_compdata);
+
+    assert(datum_eq(compdata, false_compdata));
     prog_join(sl, true_end, false_end, *off);
     return NULL;
   }
@@ -500,22 +503,9 @@ EXPORT datum *compdata_alloc_make() {
 }
 
 EXPORT bool compdata_has_value(datum *compdata) {
-  assert(compdata_validate(compdata));
   datum *outer_frame = list_get_last(compdata);
   return !datum_is_nil(outer_frame) &&
          datum_is_the_symbol(list_get_last(outer_frame), ":anon");
-}
-
-LOCAL bool compdata_validate(datum *compdata) {
-  datum *outer_frame = list_get_last(compdata);
-  if (!datum_is_nil(outer_frame) &&
-      datum_is_the_symbol(list_get_last(outer_frame),
-                          "__different_if_branches")) {
-    // fprintf(stderr, "compdata_del: if branches had different compdata\n");
-    // fprintf(stderr, "%s\n", datum_repr(compdata));
-    return false;
-  }
-  return true;
 }
 
 LOCAL void compdata_put(datum *compdata, datum var) {
@@ -524,7 +514,6 @@ LOCAL void compdata_put(datum *compdata, datum var) {
 }
 
 LOCAL void compdata_del(datum *compdata) {
-  assert(compdata_validate(compdata));
   datum *last_frame = list_get_last(compdata);
   list_pop(last_frame);
 }
@@ -559,6 +548,26 @@ LOCAL size_t compdata_get_length(datum *compdata) {
   return list_length(list_get_last(compdata));
 }
 
+LOCAL datum *compdata_get_top_section(datum *compdata) {
+  return list_get_last(compdata);
+}
+
+LOCAL datum list_subtract(datum *a, datum *b) {
+  if (list_length(a) < list_length(b)) {
+    return datum_make_bytestring("length mismatch");
+  };
+  for (int i = 0; i < list_length(b); ++i) {
+    if (!datum_eq(list_at(a, i), list_at(b, i))) {
+      return datum_make_bytestring("list_subtract error");
+    }
+  }
+  datum res = datum_make_nil();
+  for (int i = list_length(b); i < list_length(a); ++i) {
+    list_append(&res, datum_copy(list_at(a, i)));
+  }
+  return res;
+}
+
 EXPORT datum compdata_get_shape(datum *compdata) {
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(compdata); ++i) {
@@ -566,6 +575,21 @@ EXPORT datum compdata_get_shape(datum *compdata) {
     list_append(&res, ii);
   }
   return res;
+}
+
+LOCAL char *prog_append_merge_compdata(vec *sl, size_t *begin, datum *compdata,
+                                       datum *another_compdata) {
+  datum nil = datum_make_nil();
+  datum vars = list_subtract(compdata_get_top_section(another_compdata),
+                             compdata_get_top_section(compdata));
+  if (datum_is_bytestring(&vars)) {
+    return "bad if branches";
+  }
+  for (int i = 0; i < list_length(&vars); ++i) {
+    prog_append_put_const(sl, begin, &nil, compdata);
+  }
+  compdata_give_names(compdata, &vars);
+  return NULL;
 }
 
 EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var,
@@ -591,21 +615,33 @@ EXPORT void store_values_to_variables(vec *sl, size_t *begin, datum *var,
     exit(EXIT_FAILURE);
   }
   if (put) {
-    for (int i = 0; i < list_length(var); ++i) {
-      compdata_del(compdata);
-    }
-    for (int i = 0; i < list_length(var); ++i) {
-      compdata_put(compdata, datum_copy(list_at(var, i)));
-    }
+    compdata_give_names(compdata, var);
   }
   if (set) {
-    for (int i = 0; i < list_length(var); ++i) {
-      int idx = list_length(var) - i - 1;
-      datum target = compdata_get_polyindex(compdata, list_at(var, idx));
-      assert(!datum_is_nil(&target));
-      datum source = compdata_get_top_polyindex(compdata);
-      prog_append_move(sl, begin, &target, &source, compdata);
-    }
+    move_values_to_variables(sl, begin, var, compdata);
+  }
+}
+
+LOCAL void compdata_give_names(datum *compdata, datum *var) {
+  for (int i = 0; i < list_length(var); ++i) {
+    compdata_del(compdata);
+  }
+  for (int i = 0; i < list_length(var); ++i) {
+    // datum target = compdata_get_polyindex(compdata, list_at(var, i));
+    // fprintf(stderr, "%s\n", datum_repr(list_at(var, i)));
+    // assert(datum_is_nil(&target));
+    compdata_put(compdata, datum_copy(list_at(var, i)));
+  }
+}
+
+EXPORT void move_values_to_variables(vec *sl, size_t *begin, datum *var,
+                                     datum *compdata) {
+  for (int i = 0; i < list_length(var); ++i) {
+    int idx = list_length(var) - i - 1;
+    datum target = compdata_get_polyindex(compdata, list_at(var, idx));
+    assert(!datum_is_nil(&target));
+    datum source = compdata_get_top_polyindex(compdata);
+    prog_append_move(sl, begin, &target, &source, compdata);
   }
 }
 

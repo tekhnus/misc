@@ -90,25 +90,17 @@ defn swtchone (a0)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
   {return {list {'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) {list {'brackets 'args '= '(/std/list-at prearg 1) body}} rest}}}}
- {firstarg = "ifhack"
-  cond = "ifhack"
-  body = "ifhack"
-  rest = "ifhack"
-  {return '(/std/panic @0 "nothing matched")}}}
+ {return '(/std/panic @0 "nothing matched")}}
 
 defn decons-pat (a0 a1)
 {pat = a0
  val = a1
  if (../is-constant pat)
- {first-decons = "ifhack"
-  rest-decons = "ifhack"
-  {if (../eq pat val)
+ {{if (../eq pat val)
    {return '(:ok ())}
    {return '(:err)}}}
  {if (../eq (../type pat) :symbol)
-  {first-decons = "ifhack"
-   rest-decons = "ifhack"
-   {return {list {:ok {list val}}}}}
+  {{return {list {:ok {list val}}}}}
   {if (../eq (../type pat) :list)
    {if pat
     {if val
@@ -119,19 +111,11 @@ defn decons-pat (a0 a1)
        {if (../eq :err (../head first-decons))
         {return '(:err)}
         {return {list {:ok (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}}}
-     {first-decons = "ifhack"
-      rest-decons = "ifhack"
-      {return '(:err)}}}
+     {{return '(:err)}}}
     {if val
-     {first-decons = "ifhack"
-      rest-decons = "ifhack"
-      {return '(:err)}}
-     {first-decons = "ifhack"
-      rest-decons = "ifhack"
-      {return '(:ok ())}}}}
-   {first-decons = "ifhack"
-    rest-decons = "ifhack"
-    (../panic @0 "decons-pat met an unsupported type")}}}}
+     {{return '(:err)}}
+     {{return '(:ok ())}}}}
+   {(../panic @0 "decons-pat met an unsupported type")}}}}
 
 defn decons-vars (a0)
 {if (../is-constant a0)

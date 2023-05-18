@@ -132,6 +132,7 @@ datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_shape(datum *compdata);
 void store_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
+void move_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
 datum *state_stack_at(routine *r,datum *offset);
