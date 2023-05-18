@@ -120,7 +120,6 @@ void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t reci
 LOCAL void compdata_start_new_section(datum *compdata);
 LOCAL void compdata_put(datum *compdata,datum var);
 void store_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
-LOCAL void prog_join(vec *sl,size_t a,size_t b,size_t e);
 LOCAL char *prog_append_merge_compdata(vec *sl,size_t *begin,datum *compdata,datum *another_compdata);
 LOCAL void compdata_del(datum *compdata);
 LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdata);
