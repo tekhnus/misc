@@ -128,6 +128,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
+    // TODO(): this is wrong and should be fixed.
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
