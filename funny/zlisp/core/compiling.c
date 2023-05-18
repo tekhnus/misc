@@ -105,7 +105,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    datum *if_instruction = vec_at(sl, *off); // will be initialized later.
+    size_t if_instruction = *off;
     *off = vec_append_new(sl);
     size_t true_begin = *off;
     compdata_del(compdata);
@@ -115,9 +115,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    datum *jump_instruction = vec_at(sl, *off); // will be initialized later.
+    size_t true_end = *off;
     *off = vec_append_new(sl);
-    *if_instruction =
+    *vec_at(sl, if_instruction) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_begin),
                            datum_make_int(*off));
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
@@ -128,12 +128,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    // TODO(): this is wrong and should be fixed.
-    err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
+    err = prog_append_merge_compdata(sl, &true_end, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-    *jump_instruction =
+    *vec_at(sl, true_end) =
         datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off));
     return NULL;
   }
