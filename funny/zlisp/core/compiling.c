@@ -130,6 +130,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
 
     *false_end_addr = datum_make_int(*off);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
+    if (err != NULL) {
+      return err;
+    }
 
     err = prog_append_expression(sl, off, false_branch, false_compdata, ext);
     if (err != NULL) {
@@ -137,6 +140,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
 
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
+    if (err != NULL) {
+      return err;
+    }
 
     assert(datum_eq(compdata, false_compdata));
     *join_addr = datum_make_int(*off);
