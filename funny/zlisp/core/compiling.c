@@ -101,19 +101,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     datum *cond = list_at(source, (*i)++);
     datum *true_branch = list_at(source, (*i)++);
     datum *false_branch = list_at(source, (*i)++);
-    char *err;
-    err = prog_append_expression(sl, off, cond, compdata, ext);
+    char *err = prog_append_expression(sl, off, cond, compdata, ext);
     if (err != NULL) {
       return err;
     }
-
-    size_t next = vec_append_new(sl);
-
-    *vec_at(sl, *off) =
-        datum_make_list_of(datum_make_symbol(":if"), datum_make_int(next),
-                           datum_make_symbol("false_end_will_be_filled_later"));
-    datum *false_end_addr = list_at(vec_at(sl, *off), 2);
-    *off = next;
+    datum *if_instruction = vec_at(sl, *off); // will be initialized later.
+    *off = vec_append_new(sl);
+    size_t true_begin = *off;
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
@@ -121,31 +115,25 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    next = vec_append_new(sl);
-    *vec_at(sl, *off) =
-        datum_make_list_of(datum_make_symbol(":nop"),
-                           datum_make_symbol("jump-will-be-filled-later"));
-    datum *join_addr = list_at(vec_at(sl, *off), 1);
-    *off = next;
-
-    *false_end_addr = datum_make_int(*off);
+    datum *jump_instruction = vec_at(sl, *off); // will be initialized later.
+    *off = vec_append_new(sl);
+    *if_instruction =
+        datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_begin),
+                           datum_make_int(*off));
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
       return err;
     }
-
     err = prog_append_expression(sl, off, false_branch, false_compdata, ext);
     if (err != NULL) {
       return err;
     }
-
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-
-    assert(datum_eq(compdata, false_compdata));
-    *join_addr = datum_make_int(*off);
+    *jump_instruction =
+        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off));
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
@@ -594,6 +582,8 @@ LOCAL char *prog_append_merge_compdata(vec *sl, size_t *begin, datum *compdata,
     prog_append_put_const(sl, begin, &nil, compdata);
   }
   compdata_give_names(compdata, &vars);
+  assert(datum_eq(compdata_get_top_section(another_compdata),
+                  compdata_get_top_section(compdata)));
   return NULL;
 }
 
