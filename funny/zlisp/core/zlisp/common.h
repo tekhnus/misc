@@ -89,6 +89,7 @@ void list_append(datum *list,datum value);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
+vec *list_to_vec(datum *val);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,
@@ -118,16 +119,19 @@ struct extension {
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *vec_relocate(vec *dst,size_t *p,datum *src);
+char *vec_relocate_2(vec *dst,size_t *p,vec *src);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
 void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
 void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_put_prog(vec *sl,size_t *begin,size_t val,int capture,datum *compdata);
+datum get_put_prog(size_t next,int capture,size_t prog_off);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_nop(vec *sl,size_t *begin);
 datum compdata_make();
 datum *compdata_alloc_make();
 bool compdata_has_value(datum *compdata);
+void compdata_put(datum *compdata,datum var);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_shape(datum *compdata);

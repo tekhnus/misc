@@ -49,6 +49,20 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   return NULL;
 }
 
+EXPORT char *vec_relocate_2(vec *dst, size_t *p, vec *src) {
+  if (*p + 1 != vec_length(dst)) {
+    return "relocation can only be done to the slice end";
+  }
+  size_t delta = *p;
+  // the "+ 1" comes because of the final :end
+  for (size_t i = 0; i + 1 < vec_length(src); ++i) {
+    datum *ins = vec_at(src, i);
+    *vec_at(dst, *p) = instruction_relocate(ins, delta);
+    *p = vec_append_new(dst);
+  }
+  return NULL;
+}
+
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
                                      datum *compdata, extension *ext) {
   assert(datum_is_list(source));
@@ -428,6 +442,12 @@ EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
+EXPORT datum get_put_prog(size_t next, int capture, size_t prog_off) {
+  return datum_make_list_of(
+        datum_make_symbol(":put-prog"), datum_make_int(prog_off),
+        datum_make_int(capture), datum_make_int(next));
+}
+
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
@@ -508,7 +528,7 @@ EXPORT bool compdata_has_value(datum *compdata) {
          datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
-LOCAL void compdata_put(datum *compdata, datum var) {
+EXPORT void compdata_put(datum *compdata, datum var) {
   datum *last_frame = list_get_last(compdata);
   list_append(last_frame, var);
 }

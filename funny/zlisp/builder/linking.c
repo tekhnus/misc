@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum *compdata, datum *builder_compdata) {
@@ -100,26 +101,18 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   if (already_built) {
     return NULL;
   }
-  size_t run_dep_off = vec_append_new(sl);
-  size_t run_dep_end = run_dep_off;
-
   fdatum stts = module_bytecode(dep->bytestring_value, settings, ext);
   if (fdatum_is_panic(stts)) {
     return stts.panic_message;
   }
-  char *er = vec_relocate(sl, &run_dep_end, &stts.ok_value);
-
-  if (er != NULL) {
-    return er;
-  }
-  datum *transitive_deps = extract_meta(*sl, run_dep_off);
+  vec *bc = list_to_vec(&stts.ok_value);
+  datum *transitive_deps = extract_meta(*bc, 0);
   if (transitive_deps == NULL) {
     return "error: null extract_meta for reqs";
   }
-  if (run_dep_end == 0) {
-    return "error: run_dep_end == 0";
-  }
-  datum *syms = extract_meta(*sl, run_dep_end - 1);
+  assert(vec_length(bc) >= 2);
+  size_t last_instruction = vec_length(bc) - 2;
+  datum *syms = extract_meta(*bc, last_instruction);
   if (syms == NULL) {
     return "error: null extract_meta for exports";
   }
@@ -128,7 +121,15 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   if (err != NULL) {
     return err;
   }
-  prog_append_put_prog(sl, p, run_dep_off, 0, compdata);
+  size_t put_prog_off = *p;
+  *p = vec_append_new(sl);
+  size_t prog_off = *p;
+  char *er = vec_relocate_2(sl, p, bc);
+  if (er != NULL) {
+    return er;
+  }
+  *vec_at(sl, put_prog_off) = get_put_prog(*p, 0, prog_off);
+  compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
   prog_append_call(sl, p, 0, datum_make_list_of(fn_index), false, false,

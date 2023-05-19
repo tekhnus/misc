@@ -484,3 +484,8 @@ LOCAL vec vec_copy(vec *src) {
   }
   return dst;
 }
+
+EXPORT vec *list_to_vec(datum *val) {
+  assert(datum_is_list(val));
+  return &val->list_value;
+}
