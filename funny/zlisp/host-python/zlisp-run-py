@@ -124,7 +124,7 @@ def main():
                 ip += if_false
         elif op == sexpdata.Symbol(":nop"):
             nex, = args
-            ip = nex
+            ip += nex
         elif op == sexpdata.Symbol(":put-const"):
             value, nex = args
             pdata[-1].varz[-1].append((value))

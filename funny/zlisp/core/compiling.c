@@ -145,13 +145,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     size_t false_end = *off;
     *off = vec_append_new(sl);
     *vec_at(sl, true_end) =
-        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off));
+        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off - true_end));
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
     *vec_at(sl, false_end) =
-        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off));
+        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off - false_end));
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
@@ -171,7 +171,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     err = prog_append_expression(sl, off, body, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     *vec_at(sl, *off) = datum_make_list_of(datum_make_symbol(":nop"),
-                                           datum_make_int(pre_condition_check));
+                                           datum_make_int(pre_condition_check - *off));
     *off = vec_append_new(sl);
     size_t loop_end = *off;
     *vec_at(sl, condition_check) =
@@ -483,7 +483,7 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
 EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
-      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(next));
+      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(next - *begin));
   *begin = next;
 }
 
@@ -675,6 +675,9 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),
                               offset_relocate(list_at(ins, 1), delta),
                               offset_relocate(list_at(ins, 2), delta));
+  }
+  if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
+    return datum_copy(ins);
   }
   datum res = datum_copy(ins);
   if (list_length(&res) < 2) {

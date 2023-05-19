@@ -267,7 +267,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_NOP) {
-        *routine_offset(r) = prg.nop_next;
+        *routine_offset(r) += prg.nop_next;
         continue;
       }
       if (prg.type == PROG_IF) {
