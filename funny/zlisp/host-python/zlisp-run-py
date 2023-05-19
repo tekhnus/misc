@@ -203,7 +203,7 @@ def main():
                 capture_size = 0
             else:
                 capture_size = len(pdata[-1].varz)
-            p = [pr, [[]], capture_size]
+            p = [ip + 1, [[]], capture_size]
             pdata[-1].varz[-1].append(p)
             ip = nex
         elif op == sexpdata.Symbol(":yield"):

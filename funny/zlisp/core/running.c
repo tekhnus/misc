@@ -263,8 +263,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
           fprintf(stderr, "bad put_prog\n");
           assert(false);
         }
+        size_t put_prog_value = *routine_offset(r) + 1;
         datum prog_ptr =
-            routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);
+            routine_make(put_prog_value, prg.put_prog_capture ? r : NULL);
         state_stack_put(r, prog_ptr);
         *routine_offset(r) = prg.put_prog_next;
         continue;
