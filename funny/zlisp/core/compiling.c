@@ -427,20 +427,6 @@ LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
   *begin = next;
 }
 
-EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
-                                 int capture, datum *compdata) {
-  if (*begin + 1 != val) {
-    fprintf(stderr, "!!! bad put_prog\n");
-    assert(false);
-  }
-  size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) =
-      datum_make_list_of(datum_make_symbol(":put-prog"), datum_make_int(val),
-                         datum_make_int(capture), datum_make_int(next));
-  *begin = next;
-  compdata_put(compdata, datum_make_symbol(":anon"));
-}
-
 EXPORT datum get_put_prog(size_t next, int capture, size_t prog_off) {
   return datum_make_list_of(datum_make_symbol(":put-prog"),
                             datum_make_int(prog_off), datum_make_int(capture),

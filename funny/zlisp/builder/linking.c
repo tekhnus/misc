@@ -13,7 +13,10 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   *ep = vec_append_new(sl);
   size_t ep_start = *ep;
   prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil, compdata);
-  prog_append_put_prog(sl, bdr_p, ep_start, 0, builder_compdata);
+  size_t bdr_put_prog = *bdr_p;
+  *bdr_p = vec_append_new(sl);
+  *vec_at(sl, bdr_put_prog) = get_put_prog(*bdr_p, 0, ep_start);
+  compdata_put(builder_compdata, datum_make_symbol(":anon"));  
   prog_append_call(
       sl, bdr_p, 0,
       datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
