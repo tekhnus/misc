@@ -128,11 +128,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    err = prog_append_merge_compdata(sl, &true_end, compdata, false_compdata);
+    size_t false_end = *off;
+    *off = vec_append_new(sl);
+    *vec_at(sl, true_end) =
+        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off));
+    err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-    *vec_at(sl, true_end) =
+    *vec_at(sl, false_end) =
         datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off));
     return NULL;
   }
