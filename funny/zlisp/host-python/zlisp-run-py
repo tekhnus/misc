@@ -205,7 +205,7 @@ def main():
                 capture_size = len(pdata[-1].varz)
             p = [ip + 1, [[]], capture_size]
             pdata[-1].varz[-1].append(p)
-            ip = nex
+            ip += nex
         elif op == sexpdata.Symbol(":yield"):
             target, cnt, recieve_cnt, meta, nex = args
             if target == sexpdata.Symbol("plain"):

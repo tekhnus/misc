@@ -217,7 +217,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     assert(put_prog_off + 1 == prog_off);
-    *vec_at(sl, put_prog_off) = get_put_prog(*off, 2, prog_off);
+    *vec_at(sl, put_prog_off) = get_put_prog(*off - put_prog_off, 2, prog_off);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
@@ -668,8 +668,8 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
     return datum_make_list_of(
-        datum_copy(list_at(ins, 0)), offset_relocate(list_at(ins, 1), delta),
-        datum_copy(list_at(ins, 2)), offset_relocate(list_at(ins, 3), delta));
+        datum_copy(list_at(ins, 0)), datum_copy(list_at(ins, 1)),
+        datum_copy(list_at(ins, 2)), datum_copy(list_at(ins, 3)));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),

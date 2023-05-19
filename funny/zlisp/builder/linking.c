@@ -16,7 +16,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   size_t bdr_put_prog = *bdr_p;
   *bdr_p = vec_append_new(sl);
   assert(bdr_put_prog + 1 == ep_start);
-  *vec_at(sl, bdr_put_prog) = get_put_prog(*bdr_p, 0, ep_start);
+  *vec_at(sl, bdr_put_prog) = get_put_prog(*bdr_p - bdr_put_prog, 0, ep_start);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));  
   prog_append_call(
       sl, bdr_p, 0,
@@ -143,7 +143,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
     return er;
   }
   assert(put_prog_off + 1 == prog_off);
-  *vec_at(sl, put_prog_off) = get_put_prog(*p, 0, prog_off);
+  *vec_at(sl, put_prog_off) = get_put_prog(*p - put_prog_off, 0, prog_off);
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
