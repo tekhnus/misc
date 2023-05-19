@@ -206,13 +206,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
 
+    size_t prog_off = *off;
     if (datum_is_the_symbol(name, "wrapped") || datum_is_the_symbol(name, "original-func")) {
       // this yield is for pre-call.
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
       prog_append_yield(sl, off, target, 0, 0, met, &routine_compdata);
     }
-    size_t prog_off = *off;
     char *err = prog_init_routine(sl, off, args, body, &routine_compdata, ext);
     if (err != NULL) {
       return err;
@@ -289,7 +289,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;
   bool mut = false;
-  bool pre = false;
   size_t ret_count = 1;
   datum fnsv;
   if (datum_is_list(fn) && !datum_is_nil(fn) &&
@@ -312,9 +311,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       ++index;
     } else if (datum_is_the_symbol(content, "mut")) {
       mut = true;
-      ++index;
-    } else if (datum_is_the_symbol(content, "pre")) {
-      pre = true;
       ++index;
     } else if (!target_is_set) {
       target = datum_copy(content);
@@ -376,7 +372,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
-  prog_append_call(sl, off, capture_size, indices, !mut, pre, target, arg_count,
+  prog_append_call(sl, off, capture_size, indices, !mut, false, target, arg_count,
                    ret_count, compdata);
   return NULL;
 }

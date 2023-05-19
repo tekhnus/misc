@@ -295,7 +295,7 @@ fntest
 {defn wrapper ()
  {defn wrapped (x)
   {return `(~x ~x)}
-  () = (wrapped @mut @pre @0 @up)
+  () = (wrapped @mut @0 @up)
   {return 33}}
  () = (wrapper @mut @0)
  res = (wrapper 42)
