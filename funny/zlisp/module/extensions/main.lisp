@@ -32,4 +32,4 @@ defn .backquote (exp)
    {return {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
 
 defn .defn2 (name args body)
-{return {list {'brackets 'defn name '() {list {'brackets 'defn 'original-func args body '() '= {list {'original-func '@mut '@0 '@up2}} 'return :shouldnt-go-here}} '() '= {list {name '@mut '@0}}}}}
+{return {list {'brackets 'defn name '() {list {'brackets 'defn '__magically_called__ args body '() '= {list {'__magically_called__ '@mut '@0 '@up2}} 'return :shouldnt-go-here}} '() '= {list {name '@mut '@0}}}}}

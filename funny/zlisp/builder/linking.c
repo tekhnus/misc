@@ -1,9 +1,9 @@
+#include <assert.h>
 #include <extern.h>
 #include <linking.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum *compdata, datum *builder_compdata) {
@@ -20,7 +20,8 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
       false, datum_make_symbol("plain"), 0, 0, builder_compdata);
   size_t jm = *ep;
   *ep = vec_append_new(sl);
-  *vec_at(sl, jm) = datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*ep));
+  *vec_at(sl, jm) =
+      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*ep));
   return 42;
 }
 

@@ -293,9 +293,9 @@ fntest
 
 fntest
 {defn wrapper ()
- {defn wrapped (x)
+ {defn __magically_called__ (x)
   {return `(~x ~x)}
-  () = (wrapped @mut @0 @up)
+  () = (__magically_called__ @mut @0 @up)
   {return 33}}
  () = (wrapper @mut @0)
  res = (wrapper 42)

@@ -207,8 +207,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     compdata_start_new_section(&routine_compdata);
 
     size_t prog_off = *off;
-    if (datum_is_the_symbol(name, "wrapped") || datum_is_the_symbol(name, "original-func")) {
-      // this yield is for pre-call.
+    if (datum_is_the_symbol(name, "__magically_called__")) {
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
       prog_append_yield(sl, off, target, 0, 0, met, &routine_compdata);
@@ -372,8 +371,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
-  prog_append_call(sl, off, capture_size, indices, !mut, false, target, arg_count,
-                   ret_count, compdata);
+  prog_append_call(sl, off, capture_size, indices, !mut, false, target,
+                   arg_count, ret_count, compdata);
   return NULL;
 }
 
@@ -443,9 +442,9 @@ EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
 }
 
 EXPORT datum get_put_prog(size_t next, int capture, size_t prog_off) {
-  return datum_make_list_of(
-        datum_make_symbol(":put-prog"), datum_make_int(prog_off),
-        datum_make_int(capture), datum_make_int(next));
+  return datum_make_list_of(datum_make_symbol(":put-prog"),
+                            datum_make_int(prog_off), datum_make_int(capture),
+                            datum_make_int(next));
 }
 
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
