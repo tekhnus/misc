@@ -206,10 +206,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
 
-    // this yield is for pre-call.
-    datum target = datum_make_symbol("plain");
-    datum met = datum_make_nil();
-    prog_append_yield(sl, off, target, 0, 0, met, &routine_compdata);
+    if (datum_is_the_symbol(name, "wrapped") || datum_is_the_symbol(name, "original-func")) {
+      // this yield is for pre-call.
+      datum target = datum_make_symbol("plain");
+      datum met = datum_make_nil();
+      prog_append_yield(sl, off, target, 0, 0, met, &routine_compdata);
+    }
     size_t prog_off = *off;
     char *err = prog_init_routine(sl, off, args, body, &routine_compdata, ext);
     if (err != NULL) {
