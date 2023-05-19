@@ -452,6 +452,10 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
   size_t next = vec_append_new(sl);
+  if (*begin + 1 != next) {
+    fprintf(stderr, "bad append_yield!\n");
+    // assert(false);
+  }
   *vec_at(sl, *begin) = datum_make_list_of(
       datum_make_symbol(":yield"), type, datum_make_int(count),
       datum_make_int(recieve_count), meta, datum_make_int(next));

@@ -231,7 +231,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         state_stack_pop(r);
       }
       state_stack_put_all(r, *argz);
-      *routine_offset(r) = prg.call_next;
+      *routine_offset(r) += 1;
       goto body;
     }
     if (prg.type == PROG_YIELD) {
@@ -245,7 +245,10 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         goto body;
       }
       state_stack_put_all(r, args);
-      *routine_offset(r) = prg.yield_next;
+      if (*routine_offset(r) + 1 != prg.yield_next) {
+        fprintf(stderr, "bad yield_next!\n");
+      }
+      *routine_offset(r) += 1;
       goto body;
     }
   body:
@@ -282,13 +285,13 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_PUT_CONST) {
         state_stack_put(r, datum_copy(prg.put_const_value));
-        *routine_offset(r) = prg.put_const_next;
+        *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_PUT_VAR) {
         datum *er = state_stack_at(r, prg.put_var_offset);
         state_stack_set(r, prg.put_var_target, datum_copy(er));
-        *routine_offset(r) = prg.put_var_next;
+        *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_MOVE) {
@@ -297,13 +300,13 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *er = datum_make_nil();
         state_stack_pop(r); // WARNING: works only while we always move the top
                             // of the stack!
-        *routine_offset(r) = prg.move_next;
+        *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_COLLECT) {
         datum form = state_stack_collect(r, prg.collect_count);
         state_stack_put(r, form);
-        *routine_offset(r) = prg.collect_next;
+        *routine_offset(r) += 1;
         continue;
       }
       fprintf(stderr, "unhandled instruction type\n");

@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   // the interpreter will start from the first instruction,
   // so the first call of append_new must be for the starting point.
   size_t bp = vec_append_new(&sl);
-  size_t p = vec_append_new(&sl);
+  size_t p;  // will be initialized by build_init
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
   prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
