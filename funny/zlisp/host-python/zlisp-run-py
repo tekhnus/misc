@@ -119,7 +119,7 @@ def main():
         if op == sexpdata.Symbol(":if"):
             if_true, if_false = args
             if pop_stack():
-                ip = if_true
+                ip += 1
             else:
                 ip = if_false
         elif op == sexpdata.Symbol(":nop"):

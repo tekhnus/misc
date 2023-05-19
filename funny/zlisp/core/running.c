@@ -277,7 +277,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       if (prg.type == PROG_IF) {
         datum v = state_stack_pop(r);
         if (!datum_is_nil(&v)) {
-          *routine_offset(r) = prg.if_true;
+          *routine_offset(r) += 1;
         } else {
           *routine_offset(r) = prg.if_false;
         }
