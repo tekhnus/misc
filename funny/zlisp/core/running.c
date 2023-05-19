@@ -261,6 +261,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       if (prg.type == PROG_PUT_PROG) {
         if (prg.put_prog_value != *routine_offset(r) + 1) {
           fprintf(stderr, "bad put_prog\n");
+          assert(false);
         }
         datum prog_ptr =
             routine_make(prg.put_prog_value, prg.put_prog_capture ? r : NULL);

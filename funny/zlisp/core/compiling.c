@@ -216,6 +216,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
+    assert(put_prog_off + 1 == prog_off);
     *vec_at(sl, put_prog_off) = get_put_prog(*off, 2, prog_off);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
