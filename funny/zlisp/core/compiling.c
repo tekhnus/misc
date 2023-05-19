@@ -186,7 +186,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     datum *name = list_at(source, (*i)++);
     datum *args = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
-    size_t s_off = vec_append_new(sl);
+    size_t put_prog_off = *off;
+    *off = vec_append_new(sl);
     datum routine_compdata = datum_copy(compdata);
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
@@ -194,14 +195,16 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     // this yield is for pre-call.
     datum target = datum_make_symbol("plain");
     datum met = datum_make_nil();
-    prog_append_yield(sl, &s_off, target, 0, 0, met, &routine_compdata);
-
-    char *err =
-        prog_init_routine(sl, s_off, args, body, &routine_compdata, ext);
+    prog_append_yield(sl, off, target, 0, 0, met, &routine_compdata);
+    size_t prog_off = *off;
+    char *err = prog_init_routine(sl, off, args, body, &routine_compdata, ext);
     if (err != NULL) {
       return err;
     }
-    prog_append_put_prog(sl, off, s_off, 2, compdata);
+    *vec_at(sl, put_prog_off) = datum_make_list_of(
+        datum_make_symbol(":put-prog"), datum_make_int(prog_off),
+        datum_make_int(2), datum_make_int(*off));
+    compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
     return NULL;
@@ -448,14 +451,14 @@ LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args, datum meta,
   store_values_to_variables(sl, begin, args, compdata);
 }
 
-LOCAL char *prog_init_routine(vec *sl, size_t s, datum *args, datum *stmt,
+LOCAL char *prog_init_routine(vec *sl, size_t *s, datum *args, datum *stmt,
                               datum *routine_compdata, extension *ext) {
   if (args == NULL) {
     return "args can't be null";
   } else {
-    prog_append_recieve(sl, &s, args, datum_make_nil(), routine_compdata);
+    prog_append_recieve(sl, s, args, datum_make_nil(), routine_compdata);
   }
-  return prog_append_expression(sl, &s, stmt, routine_compdata, ext);
+  return prog_append_expression(sl, s, stmt, routine_compdata, ext);
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
