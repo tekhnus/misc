@@ -215,9 +215,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    *vec_at(sl, put_prog_off) = datum_make_list_of(
-        datum_make_symbol(":put-prog"), datum_make_int(prog_off),
-        datum_make_int(2), datum_make_int(*off));
+    *vec_at(sl, put_prog_off) = get_put_prog(*off, 2, prog_off);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
@@ -434,6 +432,10 @@ LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
 
 EXPORT void prog_append_put_prog(vec *sl, size_t *begin, size_t val,
                                  int capture, datum *compdata) {
+  if (*begin + 1 != val) {
+    fprintf(stderr, "!!! bad put_prog\n");
+    assert(false);
+  }
   size_t next = vec_append_new(sl);
   *vec_at(sl, *begin) =
       datum_make_list_of(datum_make_symbol(":put-prog"), datum_make_int(val),
