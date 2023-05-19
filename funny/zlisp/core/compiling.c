@@ -133,7 +133,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     *off = vec_append_new(sl);
     *vec_at(sl, if_instruction) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_begin),
-                           datum_make_int(*off));
+                           datum_make_int(*off - if_instruction));
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
       return err;
@@ -176,7 +176,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     size_t loop_end = *off;
     *vec_at(sl, condition_check) =
         datum_make_list_of(datum_make_symbol(":if"), datum_make_int(loop_start),
-                           datum_make_int(loop_end));
+                           datum_make_int(loop_end - condition_check));
     return NULL;
   }
   if (*i < list_length(source) &&
@@ -664,7 +664,7 @@ LOCAL datum instruction_relocate(datum *ins, size_t delta) {
   if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
     return datum_make_list_of(datum_copy(list_at(ins, 0)),
                               offset_relocate(list_at(ins, 1), delta),
-                              offset_relocate(list_at(ins, 2), delta));
+                              datum_copy(list_at(ins, 2)));
   }
   if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
     return datum_make_list_of(

@@ -279,7 +279,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         if (!datum_is_nil(&v)) {
           *routine_offset(r) += 1;
         } else {
-          *routine_offset(r) = prg.if_false;
+          *routine_offset(r) += prg.if_false;
         }
         continue;
       }
