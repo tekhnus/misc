@@ -39,11 +39,10 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
   if (*p + 1 != vec_length(dst)) {
     return "relocation can only be done to the slice end";
   }
-  size_t delta = *p;
   // the "+ 1" comes because of the final :end
   for (int i = 0; i + 1 < list_length(src); ++i) {
     datum *ins = list_at(src, i);
-    *vec_at(dst, *p) = instruction_relocate(ins, delta);
+    *vec_at(dst, *p) = datum_copy(ins);
     *p = vec_append_new(dst);
   }
   return NULL;
@@ -53,11 +52,10 @@ EXPORT char *vec_relocate_2(vec *dst, size_t *p, vec *src) {
   if (*p + 1 != vec_length(dst)) {
     return "relocation can only be done to the slice end";
   }
-  size_t delta = *p;
   // the "+ 1" comes because of the final :end
   for (size_t i = 0; i + 1 < vec_length(src); ++i) {
     datum *ins = vec_at(src, i);
-    *vec_at(dst, *p) = instruction_relocate(ins, delta);
+    *vec_at(dst, *p) = datum_copy(ins);
     *p = vec_append_new(dst);
   }
   return NULL;
@@ -144,14 +142,14 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
     size_t false_end = *off;
     *off = vec_append_new(sl);
-    *vec_at(sl, true_end) =
-        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off - true_end));
+    *vec_at(sl, true_end) = datum_make_list_of(datum_make_symbol(":nop"),
+                                               datum_make_int(*off - true_end));
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-    *vec_at(sl, false_end) =
-        datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*off - false_end));
+    *vec_at(sl, false_end) = datum_make_list_of(
+        datum_make_symbol(":nop"), datum_make_int(*off - false_end));
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
@@ -170,8 +168,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     size_t loop_start = *off;
     err = prog_append_expression(sl, off, body, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
-    *vec_at(sl, *off) = datum_make_list_of(datum_make_symbol(":nop"),
-                                           datum_make_int(pre_condition_check - *off));
+    *vec_at(sl, *off) = datum_make_list_of(
+        datum_make_symbol(":nop"), datum_make_int(pre_condition_check - *off));
     *off = vec_append_new(sl);
     size_t loop_end = *off;
     *vec_at(sl, condition_check) =
@@ -482,8 +480,8 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
 
 EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) =
-      datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(next - *begin));
+  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":nop"),
+                                           datum_make_int(next - *begin));
   *begin = next;
 }
 
@@ -655,46 +653,4 @@ EXPORT void move_values_to_variables(vec *sl, size_t *begin, datum *var,
     datum source = compdata_get_top_polyindex(compdata);
     prog_append_move(sl, begin, &target, &source, compdata);
   }
-}
-
-LOCAL datum instruction_relocate(datum *ins, size_t delta) {
-  if (datum_is_the_symbol(list_at(ins, 0), ":end")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":if")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                              offset_relocate(list_at(ins, 1), delta),
-                              datum_copy(list_at(ins, 2)));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":put-prog")) {
-    return datum_make_list_of(
-        datum_copy(list_at(ins, 0)), datum_copy(list_at(ins, 1)),
-        datum_copy(list_at(ins, 2)), datum_copy(list_at(ins, 3)));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":set-closures")) {
-    return datum_make_list_of(datum_copy(list_at(ins, 0)),
-                              offset_relocate(list_at(ins, 1), delta),
-                              offset_relocate(list_at(ins, 2), delta));
-  }
-  if (datum_is_the_symbol(list_at(ins, 0), ":nop")) {
-    return datum_copy(ins);
-  }
-  datum res = datum_copy(ins);
-  if (list_length(&res) < 2) {
-    fprintf(stderr, "malformed instruction: %s\n", datum_repr(&res));
-    exit(EXIT_FAILURE);
-  }
-  datum *nxt = list_at(&res, list_length(&res) - 1);
-  list_pop(&res);
-  datum dd = offset_relocate(nxt, delta);
-  list_append(&res, dd);
-  return res;
-}
-
-LOCAL datum offset_relocate(datum *ins, size_t delta) {
-  if (!datum_is_integer(ins)) {
-    fprintf(stderr, "error: offset_relocate");
-    exit(EXIT_FAILURE);
-  }
-  return datum_make_int(ins->integer_value + delta);
 }

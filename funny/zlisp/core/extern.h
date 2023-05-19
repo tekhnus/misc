@@ -98,7 +98,6 @@ struct result {
 LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
-LOCAL datum offset_relocate(datum *ins,size_t delta);
 void move_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
 LOCAL void compdata_give_names(datum *compdata,datum *var);
 LOCAL datum list_subtract(datum *a,datum *b);
@@ -128,7 +127,6 @@ void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
 LOCAL char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
 LOCAL char *prog_append_consume_expression(vec *sl,size_t *off,datum *source,int *i,datum *compdata,extension *ext);
 char *vec_relocate_2(vec *dst,size_t *p,vec *src);
-LOCAL datum instruction_relocate(datum *ins,size_t delta);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
 char *vec_relocate(vec *dst,size_t *p,datum *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);

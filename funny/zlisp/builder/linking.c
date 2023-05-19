@@ -17,7 +17,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   *bdr_p = vec_append_new(sl);
   assert(bdr_put_prog + 1 == ep_start);
   *vec_at(sl, bdr_put_prog) = get_put_prog(*bdr_p - bdr_put_prog, 0, ep_start);
-  compdata_put(builder_compdata, datum_make_symbol(":anon"));  
+  compdata_put(builder_compdata, datum_make_symbol(":anon"));
   prog_append_call(
       sl, bdr_p, 0,
       datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
@@ -134,7 +134,8 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   // a jump is done so that we're at the end of the slice.
   size_t jmp_off = *p;
   *p = vec_append_new(sl);
-  *vec_at(sl, jmp_off) =  datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(*p - jmp_off));
+  *vec_at(sl, jmp_off) = datum_make_list_of(datum_make_symbol(":nop"),
+                                            datum_make_int(*p - jmp_off));
   size_t put_prog_off = *p;
   *p = vec_append_new(sl);
   size_t prog_off = *p;

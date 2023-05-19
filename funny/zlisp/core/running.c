@@ -241,9 +241,6 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         goto body;
       }
       state_stack_put_all(r, args);
-      if (*routine_offset(r) + 1 != prg.yield_next) {
-        fprintf(stderr, "bad yield_next!\n");
-      }
       *routine_offset(r) += 1;
       goto body;
     }
