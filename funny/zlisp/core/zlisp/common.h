@@ -127,6 +127,7 @@ datum get_put_prog(size_t next,int capture,size_t prog_off);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
 void prog_append_nop(vec *sl,size_t *begin);
+datum get_nop(ptrdiff_t delta);
 datum compdata_make();
 datum *compdata_alloc_make();
 bool compdata_has_value(datum *compdata);

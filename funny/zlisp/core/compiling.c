@@ -142,14 +142,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
     size_t false_end = *off;
     *off = vec_append_new(sl);
-    *vec_at(sl, true_end) = datum_make_list_of(datum_make_symbol(":nop"),
-                                               datum_make_int(*off - true_end));
+    *vec_at(sl, true_end) = get_nop(*off - true_end);
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-    *vec_at(sl, false_end) = datum_make_list_of(
-        datum_make_symbol(":nop"), datum_make_int(*off - false_end));
+    *vec_at(sl, false_end) = get_nop(*off - false_end);
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
@@ -168,8 +166,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     size_t loop_start = *off;
     err = prog_append_expression(sl, off, body, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
-    *vec_at(sl, *off) = datum_make_list_of(
-        datum_make_symbol(":nop"), datum_make_int(pre_condition_check - *off));
+    *vec_at(sl, *off) = get_nop(pre_condition_check - *off);
     *off = vec_append_new(sl);
     size_t loop_end = *off;
     *vec_at(sl, condition_check) =
@@ -483,6 +480,10 @@ EXPORT void prog_append_nop(vec *sl, size_t *begin) {
   *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":nop"),
                                            datum_make_int(next - *begin));
   *begin = next;
+}
+
+EXPORT datum get_nop(ptrdiff_t delta) {
+  return datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(delta));
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
