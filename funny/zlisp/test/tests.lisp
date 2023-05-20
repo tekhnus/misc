@@ -120,13 +120,13 @@ fntest
 70
 
 fntest
-{defn2 twice (arg)
+{defnx twice (arg)
  {return (/std/+ arg arg)}
  {return (twice 35)}}
 70
 
 fntest
-{defn2 twice (arg)
+{defnx twice (arg)
  {return (/std/+ arg arg)}
  defn four-times (arg)
  {return (/std/+ (../twice arg) (../twice arg))}

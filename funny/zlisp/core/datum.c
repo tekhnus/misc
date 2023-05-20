@@ -162,7 +162,7 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
       datum *item = list_at(e, i);
       if (datum_is_the_symbol(item, "defn")) {
         inhibit_newline = 2;
-      } else if (datum_is_the_symbol(item, "defn2")) {
+      } else if (datum_is_the_symbol(item, "defnx")) {
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "fntest")) {
         inhibit_double_newline = 2;
