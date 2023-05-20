@@ -94,8 +94,8 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
       datum_copy(e));
 
   extension ext = null_extension_make();
-  char *err = prog_compile_and_relocate(&est->program, &mod,
-                                        &est->compdata, &ext);
+  char *err =
+      prog_compile_and_relocate(&est->program, &mod, &est->compdata, &ext);
   est->instruction = vec_length(&est->program) - 1;
   if (err != NULL) {
     char err2[256];

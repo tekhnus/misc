@@ -40,8 +40,8 @@ int main(int argc, char **argv) {
   bp = prog_build_init(&sl, &compdata, &builder_compdata);
   datum set = datum_make_bytestring(argv[1]);
   struct lisp_extension extension = standard_extension_make();
-  char *err = prog_build(&sl, &bp, &src.ok_value, &compdata,
-                         &builder_compdata, &set, &extension.base);
+  char *err = prog_build(&sl, &bp, &src.ok_value, &compdata, &builder_compdata,
+                         &set, &extension.base);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
@@ -57,9 +57,9 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return res;
 }
 
-EXPORT char *prog_build(vec *sl, size_t *bp, datum *source,
-                        datum *compdata, datum *builder_compdata,
-                        datum *settings, extension *ext) {
+EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
+                        datum *builder_compdata, datum *settings,
+                        extension *ext) {
   size_t pval = vec_length(sl) - 1;
   size_t *p = &pval;
   size_t start_p = *p;
@@ -77,7 +77,8 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source,
     return NULL;
   }
   *vec_at(sl, *bp) = prog_get_jmp(*p - *bp);
-  res = prog_link_deps(sl, p, builder_compdata, start_p, compile_module,
+  datum *input_meta = extract_meta(*sl, start_p);
+  res = prog_link_deps(sl, p, builder_compdata, input_meta, compile_module,
                        settings, ext);
   *bp = *p;
   if (res != NULL) {

@@ -5,7 +5,8 @@
 void module_to_filename(char *fname,char *module);
 #define LOCAL static
 LOCAL fdatum compile_module(char *module,datum *settings,extension *extension);
-char *prog_link_deps(vec *sl,size_t *bdr_p,datum *builder_compdata,size_t p,fdatum(*module_bytecode)(char *,datum *,extension *),datum *settings,extension *ext);
+char *prog_link_deps(vec *sl,size_t *bdr_p,datum *builder_compdata,datum *input_meta,fdatum(*module_bytecode)(char *,datum *,extension *),datum *settings,extension *ext);
+datum *extract_meta(vec sl,size_t run_main_off);
 datum *get_host_ffi_settings();
 #define EXPORT
 char *prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);

@@ -12,8 +12,8 @@ struct extension {
 };
 #endif
 
-EXPORT char *prog_compile_and_relocate(vec *sl, datum *source,
-                                       datum *compdata, extension *ext) {
+EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
+                                       extension *ext) {
   size_t pp = vec_length(sl) - 1;
   size_t *p = &pp;
   fdatum bytecode = prog_compile(source, compdata, ext);

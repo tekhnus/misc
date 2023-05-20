@@ -29,11 +29,11 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   return bdr;
 }
 
-EXPORT char *
-prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata, size_t p,
-               fdatum (*module_bytecode)(char *, datum *, extension *),
-               datum *settings, extension *ext) {
-  datum *input_meta = extract_meta(*sl, p);
+EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata,
+                            datum *input_meta,
+                            fdatum (*module_bytecode)(char *, datum *,
+                                                      extension *),
+                            datum *settings, extension *ext) {
   if (input_meta == NULL) {
     return NULL;
   }
@@ -159,7 +159,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   return NULL;
 }
 
-LOCAL datum *extract_meta(vec sl, size_t run_main_off) {
+EXPORT datum *extract_meta(vec sl, size_t run_main_off) {
   datum *first_main_instruction = vec_at(&sl, run_main_off);
   if (!datum_is_list(first_main_instruction) ||
       list_length(first_main_instruction) == 0 ||
