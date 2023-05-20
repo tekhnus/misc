@@ -72,17 +72,19 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source,
   datum nil = datum_make_nil();
   prog_append_yield(sl, p, datum_make_symbol("halt"), yield_count, 0, nil,
                     compdata);
+  size_t p_end = prog_append_something(sl, p); // filled below.
   if (!bp) {
     return NULL;
   }
-  res = prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
+  *vec_at(sl, *bp) = prog_get_jmp(*p - *bp);
+  res = prog_link_deps(sl, p, builder_compdata, start_p, compile_module,
                        settings, ext);
+  *bp = *p;
   if (res != NULL) {
     return res;
   }
   // we jump to the end so that the p points to the slice end.
-  *vec_at(sl, *p) = prog_get_jmp(*bp - *p);
-  *p = *bp;
+  *vec_at(sl, p_end) = prog_get_jmp(*bp - p_end);
   *p = vec_length(sl) - 1;
   return NULL;
 }
