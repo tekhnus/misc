@@ -455,6 +455,10 @@ LOCAL char *prog_init_routine(vec *sl, size_t *s, datum *args, datum *stmt,
   return prog_append_expression(sl, s, stmt, routine_compdata, ext);
 }
 
+EXPORT size_t vec_append_new(vec *s) {
+  return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
+}
+
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
                                   datum *compdata) {
   size_t next = vec_append_new(sl);

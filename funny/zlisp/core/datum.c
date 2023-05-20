@@ -338,10 +338,6 @@ EXPORT vec vec_make_of(size_t count, ...) {
   return e;
 }
 
-EXPORT size_t vec_append_new(vec *s) {
-  return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
-}
-
 EXPORT void vec_extend(vec *s, datum *instructions) {
   for (int i = 0; i < list_length(instructions); ++i) {
     datum *ins = list_at(instructions, i);

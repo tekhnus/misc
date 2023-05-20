@@ -71,7 +71,6 @@ bool datum_is_the_symbol(datum *d,char *val);
 vec vec_make(size_t capacity);
 size_t vec_append(vec *s,datum x);
 vec vec_make_of(size_t count,...);
-size_t vec_append_new(vec *s);
 void vec_extend(vec *s,datum *instructions);
 datum *vec_at(vec *s,size_t index);
 size_t vec_length(vec *s);
@@ -124,6 +123,7 @@ void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bo
 void prog_append_copy(vec *sl,size_t *begin,datum *val,datum *compdata);
 datum get_put_prog(size_t next,int capture,size_t prog_off);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
+size_t vec_append_new(vec *s);
 void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
 datum prog_get_jmp(ptrdiff_t delta);
 datum compdata_make();
