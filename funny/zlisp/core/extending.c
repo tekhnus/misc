@@ -99,8 +99,6 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
       datum_copy(e));
 
   extension ext = null_extension_make();
-  // this is a hack in order to make the relocation possible.
-  prog_append_nop(&est->program, &est->instruction);
   char *err = prog_compile_and_relocate(&est->program, &est->instruction, &mod,
                                         &est->compdata, &ext);
   if (err != NULL) {
