@@ -118,8 +118,7 @@ struct extension {
 };
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
-char *vec_relocate(vec *dst,size_t *p,datum *src);
-char *vec_relocate_2(vec *dst,size_t *p,vec *src);
+char *vec_relocate(vec *dst,size_t *p,vec *src);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
 void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
 void prog_append_copy(vec *sl,size_t *begin,datum *val,datum *compdata);

@@ -137,7 +137,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   size_t put_prog_off = *p;
   *p = vec_append_new(sl);
   size_t prog_off = *p;
-  char *er = vec_relocate_2(sl, p, bc);
+  char *er = vec_relocate(sl, p, bc);
   if (er != NULL) {
     return er;
   }

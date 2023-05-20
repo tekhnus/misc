@@ -18,7 +18,8 @@ EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
-  char *res = vec_relocate(sl, p, &bytecode.ok_value);
+  vec *bc = list_to_vec(&bytecode.ok_value);
+  char *res = vec_relocate(sl, p, bc);
   if (res != NULL) {
     return res;
   }
@@ -35,20 +36,7 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   return fdatum_make_ok(vec_to_datum(&sl));
 }
 
-EXPORT char *vec_relocate(vec *dst, size_t *p, datum *src) {
-  if (*p + 1 != vec_length(dst)) {
-    return "relocation can only be done to the slice end";
-  }
-  // the "+ 1" comes because of the final :end
-  for (int i = 0; i + 1 < list_length(src); ++i) {
-    datum *ins = list_at(src, i);
-    *vec_at(dst, *p) = datum_copy(ins);
-    *p = vec_append_new(dst);
-  }
-  return NULL;
-}
-
-EXPORT char *vec_relocate_2(vec *dst, size_t *p, vec *src) {
+EXPORT char *vec_relocate(vec *dst, size_t *p, vec *src) {
   if (*p + 1 != vec_length(dst)) {
     return "relocation can only be done to the slice end";
   }
