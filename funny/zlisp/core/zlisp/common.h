@@ -138,10 +138,6 @@ void store_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata)
 void move_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
-datum *state_stack_at(routine *r,datum *offset);
-void state_stack_set(routine *r,datum *target,datum value);
-void state_stack_put(routine *r,datum value);
-void state_stack_put_all(routine *r,datum list);
 datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 typedef struct lisp_extension lisp_extension;

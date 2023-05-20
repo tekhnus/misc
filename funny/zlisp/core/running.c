@@ -398,7 +398,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
-EXPORT datum *state_stack_at(routine *r, datum *offset) {
+LOCAL datum *state_stack_at(routine *r, datum *offset) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
@@ -412,7 +412,7 @@ EXPORT datum *state_stack_at(routine *r, datum *offset) {
   return vec_at(&vars, idx->integer_value);
 }
 
-EXPORT void state_stack_set(routine *r, datum *target, datum value) {
+LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   assert(datum_is_list(target) && list_length(target) == 2);
   datum *frame_index = list_at(target, 0);
   assert(datum_is_integer(frame_index));
@@ -432,11 +432,11 @@ EXPORT void state_stack_set(routine *r, datum *target, datum value) {
   }
 }
 
-EXPORT void state_stack_put(routine *r, datum value) {
+LOCAL void state_stack_put(routine *r, datum value) {
   vec_append(&r->frames[routine_get_count(r) - 2]->state, value);
 }
 
-EXPORT void state_stack_put_all(routine *r, datum list) {
+LOCAL void state_stack_put_all(routine *r, datum list) {
   if (!datum_is_list(&list)) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
