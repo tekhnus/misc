@@ -69,10 +69,18 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
     if (i >= list_length(source)) {
       break;
     }
+    int i_before = i;
     char *err =
         prog_append_consume_expression(sl, off, source, &i, compdata, ext);
     if (err != NULL) {
       return err;
+    }
+    if (i < list_length(source)) {
+        prog_append_yield(sl, off,
+                      datum_make_list_of(datum_make_symbol("debugger"),
+                                         datum_make_symbol("statement"),
+                                         list_copy(source, i_before, i)),
+                      0, 0, datum_make_nil(), compdata);
     }
   }
   return NULL;
