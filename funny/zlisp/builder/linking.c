@@ -29,11 +29,13 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   return bdr;
 }
 
-EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata,
+EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata,
                             datum *input_meta,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
                             datum *settings, extension *ext) {
+  size_t bdr_p_val = vec_length(sl) - 1;
+  size_t *bdr_p = &bdr_p_val;
   if (input_meta == NULL) {
     return NULL;
   }
@@ -51,6 +53,7 @@ EXPORT char *prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata,
   prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
+  *bdr_p = vec_length(sl) - 1;
   return NULL;
 }
 
