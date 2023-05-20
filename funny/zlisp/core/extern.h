@@ -130,7 +130,7 @@ LOCAL char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *comp
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL char *prog_append_consume_expression(vec *sl,size_t *off,datum *source,int *i,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
-size_t vec_append_new(vec *s);
+LOCAL size_t vec_append_new(vec *s);
 char *vec_relocate(vec *dst,size_t *p,vec *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);

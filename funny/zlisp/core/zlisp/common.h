@@ -122,7 +122,6 @@ void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bo
 void prog_append_copy(vec *sl,size_t *begin,datum *val,datum *compdata);
 datum get_put_prog(size_t next,int capture,size_t prog_off);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
-size_t vec_append_new(vec *s);
 void prog_append_something(vec *s,size_t *begin);
 void vec_extend(vec *s,datum *instructions);
 vec vec_create_slice();
