@@ -34,11 +34,11 @@ int main(int argc, char **argv) {
   vec sl = vec_create_slice();
   // the interpreter will start from the first instruction,
   // so the first call of append_new must be for the starting point.
-  size_t bp = 0;
+  size_t bp;
   size_t p; // will be initialized by build_init
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
-  bp = prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
+  bp = prog_build_init(&sl, &compdata, &builder_compdata);
   p = vec_length(&sl) - 1;
   datum set = datum_make_bytestring(argv[1]);
   struct lisp_extension extension = standard_extension_make();
@@ -62,6 +62,9 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
                         datum *settings, extension *ext) {
+  if (*p == 424242) {
+    *p = vec_length(sl) - 1;
+  }
   size_t start_p = *p;
   char *res = prog_compile_and_relocate(sl, p, source, compdata, ext);
   if (res != NULL) {

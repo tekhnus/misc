@@ -33,8 +33,9 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
   *routine_ = routine_make(lisp_extension_builder_prg, NULL);
   *compdata = compdata_make();
   datum lisp_extension_builder_compdata = compdata_make();
-  prog_build_init(program, instruction, &lisp_extension_builder_prg, compdata,
+  lisp_extension_builder_prg = prog_build_init(program, compdata,
                   &lisp_extension_builder_compdata);
+  *instruction = vec_length(program) - 1;
   struct extension lisp_extension_ext = null_extension_make();
   char fname[256] = {0};
   module_to_filename(fname, "extensions");

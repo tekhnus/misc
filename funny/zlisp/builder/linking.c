@@ -5,8 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
+EXPORT size_t prog_build_init(vec *sl,
                               datum *compdata, datum *builder_compdata) {
+  size_t bdr;
+  size_t e;
+  size_t *bdr_p = &bdr;
+  size_t *ep = &e;
   *bdr_p = 0;
   datum nil = datum_make_nil();
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0, nil,

@@ -21,12 +21,12 @@ compdata-make = (/prelude/c-function selflib "compdata_alloc_make" '(() pointer)
 make-routine-with-empty-state = (/prelude/c-function selflib "routine_make_alloc" '((sizet pointer) pointer))
 prog-slice-make = (/prelude/c-function selflib "vec_create_slice" '(() progslice))
 prog-build-one-c-host = (/prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer pointer) pointer))
-prog-build-init = (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet))
+prog-build-init = (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer) sizet))
 get-host-ffi-settings = (/prelude/c-function buildlib "get_host_ffi_settings" '(() pointer))
 ext-make = (/prelude/c-function buildlib "standard_extension_alloc_make" '(() pointer))
 
-defn init-prog (sl pptr bpptr compdata bdrcompdata)
-{nothing = (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) compdata bdrcompdata)
+defn init-prog (sl compdata bdrcompdata)
+{nothing = (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata)
  return nothing}
 
 defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata ex)
