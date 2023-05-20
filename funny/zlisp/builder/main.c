@@ -79,14 +79,11 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   *vec_at(sl, *bp) = prog_get_jmp(*p - *bp);
   res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                        settings, ext);
-  *p = vec_length(sl) - 1;
   *bp = vec_length(sl) - 1;
   if (res != NULL) {
     return res;
   }
-  // we jump to the end so that the p points to the slice end.
   *vec_at(sl, p_end) = prog_get_jmp(*bp - p_end);
-  *p = vec_length(sl) - 1;
   return NULL;
 }
 

@@ -134,7 +134,6 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   if (err != NULL) {
     return err;
   }
-  // a jump is done so that we're at the end of the slice.
   size_t put_prog_off = prog_append_something(sl, p); // filled below
   size_t prog_off = *p;
   vec_relocate(sl, p, bc);
