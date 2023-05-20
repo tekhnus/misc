@@ -78,8 +78,9 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   if (res != NULL) {
     return res;
   }
-  // this is a hack in order to make the relocation possible.
-  prog_append_nop(sl, p);
+  // we jump to the end so that the p points to the slice end.
+  *vec_at(sl, *p) = get_nop(*bp - *p);
+  *p = *bp;
   return NULL;
 }
 
