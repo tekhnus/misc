@@ -12,11 +12,11 @@ EXPORT size_t prog_build_init(vec *sl,
   prog_append_yield(sl, &e, datum_make_symbol("halt"), 0, 0, nil,
                     builder_compdata);
   size_t bdr_put_prog = e;
-  e = vec_append_new(sl);
+  prog_append_something(sl, &e);  // filled below
   size_t ep_start = e;
   prog_append_yield(sl, &e, datum_make_symbol("plain"), 0, 0, nil, compdata);
   size_t jm = e;
-  e = vec_append_new(sl);
+  prog_append_something(sl, &e);  // filled below
   assert(bdr_put_prog + 1 == ep_start);
   *vec_at(sl, bdr_put_prog) = get_put_prog(e - bdr_put_prog, 0, ep_start);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));
@@ -25,7 +25,8 @@ EXPORT size_t prog_build_init(vec *sl,
       datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
       false, datum_make_symbol("plain"), 0, 0, builder_compdata);
   size_t bdr = e;
-  e = vec_append_new(sl);
+  prog_append_something(sl, &e);  // this is first builder instruction.
+  // filled by prog_build.
   *vec_at(sl, jm) = prog_get_jmp(e - jm);
   return bdr;
 }
@@ -134,10 +135,10 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   }
   // a jump is done so that we're at the end of the slice.
   size_t jmp_off = *p;
-  *p = vec_append_new(sl);
+  prog_append_something(sl, p);  // filled below
   *vec_at(sl, jmp_off) = prog_get_jmp(*p - jmp_off);
   size_t put_prog_off = *p;
-  *p = vec_append_new(sl);
+  prog_append_something(sl, p);  // filled below
   size_t prog_off = *p;
   char *er = vec_relocate(sl, p, bc);
   if (er != NULL) {
