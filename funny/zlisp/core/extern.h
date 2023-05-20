@@ -67,9 +67,7 @@ LOCAL char *null_extension_call(extension *self,vec *sl,size_t *begin,datum *sou
 extension null_extension_make();
 LOCAL char *lisp_extension_call(extension *self_,vec *sl,size_t *begin,datum *source,int *i,datum *compdata);
 lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
-datum *routine_get_value(datum *rout,datum *idx);
 typedef struct routine routine;
-int get_function_arity(datum *routine,datum *idx,vec sl);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 LOCAL size_t routine_get_stack_size(routine *r);
 void state_stack_set(routine *r,datum *target,datum value);

@@ -58,25 +58,15 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   }
   char aritynm[128] = {0};
   sprintf(aritynm, ".%s.arity", op->symbol_value);
-  datum arityname = datum_make_symbol(aritynm);
-  datum aritypi = compdata_get_polyindex(&self->compdata, &arityname);
-  if (datum_is_nil(&aritypi)) {
-    return NULL;
+  datum arity_statement = datum_make_symbol(aritynm);
+  fdatum arityc = lisp_extension_run(&arity_statement, self);
+  if (fdatum_is_panic(arityc)) {
+    return arityc.panic_message;
   }
-  datum *val = routine_get_value(&self->routine_, &aritypi);
-  fprintf(stderr, "val: %s -> %s\n", datum_repr(&arityname), datum_repr(val));
-  int arity;
-  if (datum_is_the_symbol(op, "defnx")) {
-    arity = 4;
-  } else if (datum_is_the_symbol(op, "switch")) {
-    arity = 3;
-  } else if (datum_is_the_symbol(op, "fntest")) {
-    arity = 3;
-  } else if (datum_is_the_symbol(op, "backquote")) {
-    arity = 2;
-  } else {
-    return "fail";
-  }
+  assert(datum_is_list(&arityc.ok_value) && list_length(&arityc.ok_value) == 1);
+  datum *arityd = list_at(&arityc.ok_value, 0);
+  assert(datum_is_integer(arityd));
+  int arity = arityd->integer_value;
   *i += arity;
   datum invokation_statement = list_copy(source, *i - arity, *i);
   for (int i = 1; i < list_length(&invokation_statement); ++i) {
