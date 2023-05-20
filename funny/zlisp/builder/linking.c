@@ -44,7 +44,7 @@ prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata, size_t p,
     return err;
   }
   datum v = datum_make_symbol("__main__");
-  prog_append_put_var(sl, bdr_p, &v, builder_compdata);
+  prog_append_copy(sl, bdr_p, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
   prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false, false,
@@ -74,7 +74,7 @@ LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps, datum *compdata) {
     datum *dep = list_at(deps, i);
     get_varname(varname, dep);
     datum vn = datum_make_symbol(varname);
-    prog_append_put_var(sl, p, &vn, compdata);
+    prog_append_copy(sl, p, &vn, compdata);
   }
 }
 

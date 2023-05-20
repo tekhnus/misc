@@ -111,7 +111,7 @@ void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bo
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);
-void prog_append_put_var(vec *sl,size_t *begin,datum *val,datum *compdata);
+void prog_append_copy(vec *sl,size_t *begin,datum *val,datum *compdata);
 datum get_put_prog(size_t next,int capture,size_t prog_off);
 LOCAL char *prog_init_routine(vec *sl,size_t *s,datum *args,datum *stmt,datum *routine_compdata,extension *ext);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);

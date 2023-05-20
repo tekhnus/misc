@@ -268,7 +268,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
                                          datum_make_symbol("compdata"),
                                          debug_compdata),
                       0, 0, datum_make_nil(), compdata);
-    prog_append_put_var(sl, off, head, compdata);
+    prog_append_copy(sl, off, head, compdata);
     return NULL;
   }
   if (!datum_is_list(head) || datum_is_nil(head)) {
@@ -387,7 +387,7 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
   *begin = next;
 }
 
-EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
+EXPORT void prog_append_copy(vec *sl, size_t *begin, datum *val,
                                 datum *compdata) {
   size_t next = vec_append_new(sl);
   if (!datum_is_symbol(val)) {
@@ -402,7 +402,7 @@ EXPORT void prog_append_put_var(vec *sl, size_t *begin, datum *val,
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
   *vec_at(sl, *begin) =
-      datum_make_list_of(datum_make_symbol(":put-var"), target_polyindex,
+      datum_make_list_of(datum_make_symbol(":copy"), target_polyindex,
                          polyindex, datum_make_int(next));
   *begin = next;
 }

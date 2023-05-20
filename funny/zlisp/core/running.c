@@ -8,7 +8,7 @@ enum prog_type {
   PROG_IF,
   PROG_JMP,
   PROG_PUT_CONST,
-  PROG_PUT_VAR,
+  PROG_COPY,
   PROG_MOVE,
   PROG_CALL,
   PROG_COLLECT,
@@ -281,7 +281,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) += 1;
         continue;
       }
-      if (prg.type == PROG_PUT_VAR) {
+      if (prg.type == PROG_COPY) {
         datum *er = state_stack_at(r, prg.put_var_offset);
         state_stack_set(r, prg.put_var_target, datum_copy(er));
         *routine_offset(r) += 1;
@@ -328,8 +328,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_PUT_CONST;
     res.put_const_value = list_at(d, 1);
     res.put_const_next = (list_at(d, 2)->integer_value);
-  } else if (!strcmp(opsym, ":put-var")) {
-    res.type = PROG_PUT_VAR;
+  } else if (!strcmp(opsym, ":copy")) {
+    res.type = PROG_COPY;
     res.put_var_target = list_at(d, 1);
     res.put_var_offset = list_at(d, 2);
     res.put_var_next = (list_at(d, 3)->integer_value);
