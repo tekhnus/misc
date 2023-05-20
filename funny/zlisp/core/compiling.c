@@ -119,7 +119,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
     size_t if_instruction = *off;
     *off = vec_append_new(sl);
-    size_t true_begin = *off;
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
@@ -129,9 +128,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
     size_t true_end = *off;
     *off = vec_append_new(sl);
-    *vec_at(sl, if_instruction) =
-        datum_make_list_of(datum_make_symbol(":if"), datum_make_int(true_begin),
-                           datum_make_int(*off - if_instruction));
+    *vec_at(sl, if_instruction) = get_if(*off - if_instruction);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
       return err;
@@ -163,15 +160,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     size_t condition_check = *off;
     compdata_del(compdata);
     *off = vec_append_new(sl);
-    size_t loop_start = *off;
     err = prog_append_expression(sl, off, body, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     *vec_at(sl, *off) = get_nop(pre_condition_check - *off);
     *off = vec_append_new(sl);
     size_t loop_end = *off;
-    *vec_at(sl, condition_check) =
-        datum_make_list_of(datum_make_symbol(":if"), datum_make_int(loop_start),
-                           datum_make_int(loop_end - condition_check));
+    *vec_at(sl, condition_check) = get_if(loop_end - condition_check);
     return NULL;
   }
   if (*i < list_length(source) &&
@@ -477,6 +471,10 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
 
 EXPORT datum get_nop(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(delta));
+}
+
+LOCAL datum get_if(ptrdiff_t delta) {
+  return datum_make_list_of(datum_make_symbol(":if"), datum_make_int(0), datum_make_int(delta));
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,

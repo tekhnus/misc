@@ -120,6 +120,7 @@ void compdata_put(datum *compdata,datum var);
 void store_values_to_variables(vec *sl,size_t *begin,datum *var,datum *compdata);
 datum get_nop(ptrdiff_t delta);
 LOCAL char *prog_append_merge_compdata(vec *sl,size_t *begin,datum *compdata,datum *another_compdata);
+LOCAL datum get_if(ptrdiff_t delta);
 LOCAL void compdata_del(datum *compdata);
 LOCAL void prog_append_collect(vec *sl,size_t count,size_t *begin,datum *compdata);
 LOCAL size_t compdata_get_length(datum *compdata);

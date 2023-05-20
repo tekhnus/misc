@@ -74,7 +74,7 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
     return NULL;
   }
   res = prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
-                        settings, ext);
+                       settings, ext);
   if (res != NULL) {
     return res;
   }
