@@ -37,14 +37,11 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
 }
 
 EXPORT char *vec_relocate(vec *dst, size_t *p, vec *src) {
-  if (*p + 1 != vec_length(dst)) {
-    return "relocation can only be done to the slice end";
-  }
+  assert(*p + 1 == vec_length(dst));
   // the "+ 1" comes because of the final :end
   for (size_t i = 0; i + 1 < vec_length(src); ++i) {
     datum *ins = vec_at(src, i);
-    size_t pp = *p;
-    prog_append_something(dst, p); // filled immediately.
+    size_t pp = prog_append_something(dst, p); // filled immediately.
     *vec_at(dst, pp) = datum_copy(ins);
   }
   return NULL;
@@ -114,8 +111,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    size_t if_instruction = *off;
-    prog_append_something(sl, off); // filled below.
+    size_t if_instruction = prog_append_something(sl, off); // filled below.
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
@@ -123,8 +119,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    size_t true_end = *off;
-    prog_append_something(sl, off); // filled below.
+    size_t true_end = prog_append_something(sl, off); // filled below.
     *vec_at(sl, if_instruction) = get_if(*off - if_instruction);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
@@ -134,8 +129,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    size_t false_end = *off;
-    prog_append_something(sl, off);
+    size_t false_end = prog_append_something(sl, off);
     *vec_at(sl, true_end) = prog_get_jmp(*off - true_end);
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
@@ -154,13 +148,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     if (err != NULL) {
       return err;
     }
-    size_t condition_check = *off;
-    prog_append_something(sl, off); // filled below.
+    size_t condition_check = prog_append_something(sl, off); // filled below.
     compdata_del(compdata);
     err = prog_append_expression(sl, off, body, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
-    size_t jump_back = *off;
-    prog_append_something(sl, off); // filled immediately.
+    size_t jump_back = prog_append_something(sl, off); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = *off;
     *vec_at(sl, condition_check) = get_if(loop_end - condition_check);
@@ -187,8 +179,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     datum *name = list_at(source, (*i)++);
     datum *args = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
-    size_t put_prog_off = *off;
-    prog_append_something(sl, off); // filled below.
+    size_t put_prog_off = prog_append_something(sl, off); // filled below.
     datum routine_compdata = datum_copy(compdata);
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
@@ -457,9 +448,11 @@ LOCAL size_t vec_append_new(vec *s) {
   return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
 }
 
-EXPORT void prog_append_something(vec *s, size_t *begin) {
+EXPORT size_t prog_append_something(vec *s, size_t *begin) {
+  size_t cur = *begin;
   size_t next = vec_append_new(s);
   *begin = next;
+  return cur;
 }
 
 EXPORT vec vec_create_slice() {
