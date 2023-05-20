@@ -87,6 +87,7 @@ void list_append(datum *list,datum value);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
+vec vec_copy(vec *src);
 vec *list_to_vec(datum *val);
 typedef struct read_result read_result;
 enum read_result_type {
@@ -123,7 +124,6 @@ void prog_append_copy(vec *sl,size_t *begin,datum *val,datum *compdata);
 datum get_put_prog(size_t next,int capture,size_t prog_off);
 void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 void prog_append_something(vec *s,size_t *begin);
-void vec_extend(vec *s,datum *instructions);
 vec vec_create_slice();
 void prog_append_put_const(vec *sl,size_t *begin,datum *val,datum *compdata);
 datum prog_get_jmp(ptrdiff_t delta);

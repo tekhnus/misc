@@ -23,8 +23,7 @@ int main(int argc, char **argv) {
   assert(read_result_is_ok(rr));
   assert(datum_is_list(&rr.ok_value));
   assert(list_length(&rr.ok_value) == 1);
-  vec sl = vec_make(16 * 1024);
-  vec_extend(&sl, list_at(&rr.ok_value, 0));
+  vec sl = vec_copy(list_to_vec(list_at(&rr.ok_value, 0)));
   datum s = routine_make(0, NULL); // running starts from the first instruction.
   result res = routine_run_with_handler(sl, &s, host_ffi);
   if (!datum_is_the_symbol(&res.type, "halt")) {

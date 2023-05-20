@@ -465,7 +465,7 @@ LOCAL frame frame_copy(frame *src) {
   return dst;
 }
 
-LOCAL vec vec_copy(vec *src) {
+EXPORT vec vec_copy(vec *src) {
   vec dst = vec_make(src->capacity);
   for (size_t i = 0; i < src->length; ++i) {
     vec_append(&dst, datum_copy(vec_at(src, i)));
