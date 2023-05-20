@@ -75,8 +75,14 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   if (!bp) {
     return NULL;
   }
-  return prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
+  res = prog_link_deps(sl, bp, builder_compdata, start_p, compile_module,
                         settings, ext);
+  if (res != NULL) {
+    return res;
+  }
+  // this is a hack in order to make the relocation possible.
+  prog_append_nop(sl, p);
+  return NULL;
 }
 
 LOCAL fdatum compile_module(char *module, datum *settings,

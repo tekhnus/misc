@@ -54,8 +54,6 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
     fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);
   }
-  // this is a hack in order to make the relocation possible.
-  prog_append_nop(program, instruction);
   result init_res = routine_run_with_handler(*program, routine_, host_ffi);
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
     fprintf(stderr, "while initializing extensions: %s\n",
