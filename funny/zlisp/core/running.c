@@ -21,41 +21,30 @@ struct prog {
   enum prog_type type;
   union {
     struct {
-      ptrdiff_t if_true;
       ptrdiff_t if_false;
     };
-    ptrdiff_t nop_next;
+    ptrdiff_t jmp_next;
     struct {
       struct datum *put_const_value;
-      ptrdiff_t put_const_next;
     };
     struct {
-      datum *put_var_target;
-      datum *put_var_offset;
-      ptrdiff_t put_var_next;
+      datum *copy_target;
+      datum *copy_offset;
     };
     struct {
       datum *move_target;
       datum *move_offset;
-      ptrdiff_t move_next;
     };
     struct {
       struct datum *call_indices;
       size_t call_capture_count;
       bool call_pop_one;
-      bool call_pre;
       struct datum *call_type;
       size_t call_arg_count;
       size_t call_return_count;
-      ptrdiff_t call_next;
     };
     struct {
       size_t collect_count;
-      ptrdiff_t collect_next;
-    };
-    struct {
-      size_t uncollect_count;
-      ptrdiff_t uncollect_next;
     };
     struct {
       ptrdiff_t put_prog_value;
@@ -67,7 +56,6 @@ struct prog {
       size_t yield_count;
       size_t yield_recieve_count;
       struct datum *yield_meta;
-      ptrdiff_t yield_next;
     };
   };
 };
@@ -263,7 +251,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_JMP) {
-        *routine_offset(r) += prg.nop_next;
+        *routine_offset(r) += prg.jmp_next;
         continue;
       }
       if (prg.type == PROG_IF) {
@@ -281,8 +269,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_COPY) {
-        datum *er = state_stack_at(r, prg.put_var_offset);
-        state_stack_set(r, prg.put_var_target, datum_copy(er));
+        datum *er = state_stack_at(r, prg.copy_offset);
+        state_stack_set(r, prg.copy_target, datum_copy(er));
         *routine_offset(r) += 1;
         continue;
       }
@@ -321,14 +309,14 @@ LOCAL prog datum_to_prog(datum *d) {
     res.if_false = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":jmp")) {
     res.type = PROG_JMP;
-    res.nop_next = (list_at(d, 1)->integer_value);
+    res.jmp_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
     res.put_const_value = list_at(d, 1);
   } else if (!strcmp(opsym, ":copy")) {
     res.type = PROG_COPY;
-    res.put_var_target = list_at(d, 1);
-    res.put_var_offset = list_at(d, 2);
+    res.copy_target = list_at(d, 1);
+    res.copy_offset = list_at(d, 2);
   } else if (!strcmp(opsym, ":move")) {
     res.type = PROG_MOVE;
     res.move_target = list_at(d, 1);
