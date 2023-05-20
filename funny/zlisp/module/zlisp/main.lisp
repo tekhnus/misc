@@ -20,13 +20,10 @@ buildlib = (/std/first-good-value `(~(/prelude/shared-library "libzlisp-build-li
 compdata-make = (/prelude/c-function selflib "compdata_alloc_make" '(() pointer))
 make-routine-with-empty-state = (/prelude/c-function selflib "routine_make_alloc" '((sizet pointer) pointer))
 prog-slice-make = (/prelude/c-function selflib "vec_create_slice" '(() progslice))
-prog-slice-append-new- = (/prelude/c-function selflib "vec_append_new" '((pointer) sizet))
 prog-build-one-c-host = (/prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer pointer) pointer))
 prog-build-init = (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet))
 get-host-ffi-settings = (/prelude/c-function buildlib "get_host_ffi_settings" '(() pointer))
 ext-make = (/prelude/c-function buildlib "standard_extension_alloc_make" '(() pointer))
-defn prog-slice-append-new (sl)
-{return (/prelude/prog-slice-append-new- (/prelude/wrap-pointer-into-pointer sl))}
 
 defn init-prog (sl pptr bpptr compdata bdrcompdata)
 {nothing = (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) compdata bdrcompdata)
@@ -79,6 +76,5 @@ export
  (repr-pointer repr-pointer)
  (make-routine-with-empty-state make-routine-with-empty-state)
  (prog-slice-make prog-slice-make)
- (prog-slice-append-new prog-slice-append-new)
  (compdata-make compdata-make)
  (ext-make ext-make)}

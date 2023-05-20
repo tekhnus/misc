@@ -22,7 +22,6 @@ req
  (repr-pointer "zlisp" repr-pointer)
  (mres "zlisp" make-routine-with-empty-state)
  (psm "zlisp" prog-slice-make)
- (psan "zlisp" prog-slice-append-new)
  (cdm "zlisp" compdata-make)
  (em "zlisp" ext-make)}
 
