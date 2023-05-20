@@ -47,7 +47,6 @@ struct prog {
       size_t collect_count;
     };
     struct {
-      ptrdiff_t put_prog_value;
       int put_prog_capture;
       ptrdiff_t put_prog_next;
     };
@@ -334,9 +333,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.collect_count = list_at(d, 1)->integer_value;
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
-    res.put_prog_value = (list_at(d, 1)->integer_value);
-    res.put_prog_capture = list_at(d, 2)->integer_value;
-    res.put_prog_next = (list_at(d, 3)->integer_value);
+    res.put_prog_capture = list_at(d, 1)->integer_value;
+    res.put_prog_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);

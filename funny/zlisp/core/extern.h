@@ -112,7 +112,7 @@ datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);
 void prog_append_copy(vec *sl,size_t *begin,datum *val,datum *compdata);
-datum get_put_prog(size_t next,int capture,size_t prog_off);
+datum get_put_prog(size_t next,int capture);
 LOCAL char *prog_init_routine(vec *sl,size_t *s,datum *args,datum *stmt,datum *routine_compdata,extension *ext);
 LOCAL void compdata_start_new_section(datum *compdata);
 void compdata_put(datum *compdata,datum var);

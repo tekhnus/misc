@@ -198,7 +198,7 @@ def main():
             pdata[-1].varz[-1].append(form)
             ip += 1
         elif op == sexpdata.Symbol(":put-prog"):
-            pr, capture, nex = args
+            capture, nex = args
             if capture == 0:
                 capture_size = 0
             else:
