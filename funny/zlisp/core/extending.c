@@ -52,11 +52,19 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   char nm[128] = {0};
   sprintf(nm, ".%s", op->symbol_value);
   datum name = datum_make_symbol(nm);
-  // fprintf(stderr, "compdata: %s\n", datum_repr(&self->compdata));
   datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (datum_is_nil(&pi)) {
     return NULL;
   }
+  char aritynm[128] = {0};
+  sprintf(aritynm, ".%s.arity", op->symbol_value);
+  datum arityname = datum_make_symbol(aritynm);
+  datum aritypi = compdata_get_polyindex(&self->compdata, &arityname);
+  if (datum_is_nil(&aritypi)) {
+    return NULL;
+  }
+  datum *val = routine_get_value(&self->routine_, &aritypi);
+  fprintf(stderr, "val: %s -> %s\n", datum_repr(&arityname), datum_repr(val));
   int arity;
   if (datum_is_the_symbol(op, "defnx")) {
     arity = 4;

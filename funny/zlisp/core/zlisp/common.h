@@ -145,6 +145,7 @@ void state_stack_put_all(routine *r,datum list);
 datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 int get_function_arity(datum *routine,datum *idx,vec sl);
+datum *routine_get_value(datum *rout,datum *idx);
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   extension base;

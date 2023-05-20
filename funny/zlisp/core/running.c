@@ -543,6 +543,11 @@ EXPORT int get_function_arity(datum *routine, datum *idx, vec sl) {
   return prg.yield_recieve_count;
 }
 
+EXPORT datum *routine_get_value(datum *rout, datum *idx) {
+  routine rt = get_routine_from_datum(rout);
+  return state_stack_at(&rt, idx);
+}
+
 LOCAL routine get_routine_from_datum(datum *e) {
   if (!datum_is_frame(e)) {
     fprintf(stderr, "get_routine_from_datum: not a routine: %s\n",
