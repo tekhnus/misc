@@ -21,7 +21,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   prog_append_call(
       sl, &e, 0,
       datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
-      false, datum_make_symbol("plain"), 0, 0, builder_compdata);
+      datum_make_symbol("plain"), 0, 0, builder_compdata);
   size_t bdr =
       prog_append_something(sl, &e); // this is first builder instruction.
   // filled by prog_build.
@@ -48,7 +48,7 @@ prog_link_deps(vec *sl, size_t *bdr_p, datum *builder_compdata, size_t p,
   prog_append_copy(sl, bdr_p, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false, false,
+  prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
   return NULL;
@@ -142,7 +142,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, 0, datum_make_list_of(fn_index), false, false,
+  prog_append_call(sl, p, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum names = datum_make_nil();

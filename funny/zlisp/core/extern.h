@@ -107,7 +107,7 @@ datum compdata_make();
 LOCAL void prog_append_recieve(vec *sl,size_t *begin,datum *args,datum meta,datum *compdata);
 LOCAL void prog_append_move(vec *sl,size_t *begin,datum *target,datum *source,datum *compdata);
 LOCAL size_t vec_append_new(vec *s);
-void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,bool pre,datum type,int arg_count,int return_count,datum *compdata);
+void prog_append_call(vec *sl,size_t *begin,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum *compdata);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);

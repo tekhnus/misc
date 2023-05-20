@@ -346,16 +346,14 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
-  prog_append_call(sl, off, capture_size, indices, !mut, false, target,
-                   arg_count, ret_count, compdata);
+  prog_append_call(sl, off, capture_size, indices, !mut, target, arg_count,
+                   ret_count, compdata);
   return NULL;
 }
 
 EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
-                             datum indices, bool pop_one, bool pre, datum type,
+                             datum indices, bool pop_one, datum type,
                              int arg_count, int return_count, datum *compdata) {
-  if (pre == !pre) {
-  }
   *vec_at(sl, *begin) = datum_make_list_of(
       datum_make_symbol(":call"), datum_make_int(capture_size), indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
