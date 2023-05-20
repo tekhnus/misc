@@ -61,8 +61,6 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
                         datum *settings, extension *ext) {
-  // this is a hack in order to make the relocation possible.
-  prog_append_nop(sl, p);
   size_t start_p = *p;
   char *res = prog_compile_and_relocate(sl, p, source, compdata, ext);
   if (res != NULL) {
