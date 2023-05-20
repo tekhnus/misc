@@ -19,10 +19,7 @@ EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
     return bytecode.panic_message;
   }
   vec *bc = list_to_vec(&bytecode.ok_value);
-  char *res = vec_relocate(sl, p, bc);
-  if (res != NULL) {
-    return res;
-  }
+  vec_relocate(sl, p, bc);
   return NULL;
 }
 
@@ -36,7 +33,7 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   return fdatum_make_ok(vec_to_datum(&sl));
 }
 
-EXPORT char *vec_relocate(vec *dst, size_t *p, vec *src) {
+EXPORT void vec_relocate(vec *dst, size_t *p, vec *src) {
   assert(*p + 1 == vec_length(dst));
   // the "+ 1" comes because of the final :end
   for (size_t i = 0; i + 1 < vec_length(src); ++i) {
@@ -44,7 +41,6 @@ EXPORT char *vec_relocate(vec *dst, size_t *p, vec *src) {
     size_t pp = prog_append_something(dst, p); // filled immediately.
     *vec_at(dst, pp) = datum_copy(ins);
   }
-  return NULL;
 }
 
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,

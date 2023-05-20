@@ -130,7 +130,7 @@ LOCAL char *prog_append_consume_expression(vec *sl,size_t *off,datum *source,int
 size_t prog_append_something(vec *s,size_t *begin);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
 vec vec_create_slice();
-char *vec_relocate(vec *dst,size_t *p,vec *src);
+void vec_relocate(vec *dst,size_t *p,vec *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
 fdatum datum_read_one(FILE *stre);

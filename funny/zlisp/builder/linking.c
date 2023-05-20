@@ -135,10 +135,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   *vec_at(sl, jmp_off) = prog_get_jmp(*p - jmp_off);
   size_t put_prog_off = prog_append_something(sl, p); // filled below
   size_t prog_off = *p;
-  char *er = vec_relocate(sl, p, bc);
-  if (er != NULL) {
-    return er;
-  }
+  vec_relocate(sl, p, bc);
   assert(put_prog_off + 1 == prog_off);
   *vec_at(sl, put_prog_off) = get_put_prog(*p - put_prog_off, 0, prog_off);
   compdata_put(compdata, datum_make_symbol(":anon"));
