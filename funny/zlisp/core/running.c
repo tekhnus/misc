@@ -6,7 +6,7 @@
 
 enum prog_type {
   PROG_IF,
-  PROG_NOP,
+  PROG_JMP,
   PROG_PUT_CONST,
   PROG_PUT_VAR,
   PROG_MOVE,
@@ -263,7 +263,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) += prg.put_prog_next;
         continue;
       }
-      if (prg.type == PROG_NOP) {
+      if (prg.type == PROG_JMP) {
         *routine_offset(r) += prg.nop_next;
         continue;
       }
@@ -321,8 +321,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_IF;
     res.if_true = (list_at(d, 1)->integer_value);
     res.if_false = (list_at(d, 2)->integer_value);
-  } else if (!strcmp(opsym, ":nop")) {
-    res.type = PROG_NOP;
+  } else if (!strcmp(opsym, ":jmp")) {
+    res.type = PROG_JMP;
     res.nop_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;

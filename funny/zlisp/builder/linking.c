@@ -24,7 +24,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
       false, datum_make_symbol("plain"), 0, 0, builder_compdata);
   size_t jm = *ep;
   *ep = vec_append_new(sl);
-  *vec_at(sl, jm) = get_nop(*ep - jm);
+  *vec_at(sl, jm) = prog_get_jmp(*ep - jm);
   return 42;
 }
 
@@ -133,7 +133,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   // a jump is done so that we're at the end of the slice.
   size_t jmp_off = *p;
   *p = vec_append_new(sl);
-  *vec_at(sl, jmp_off) = get_nop(*p - jmp_off);
+  *vec_at(sl, jmp_off) = prog_get_jmp(*p - jmp_off);
   size_t put_prog_off = *p;
   *p = vec_append_new(sl);
   size_t prog_off = *p;

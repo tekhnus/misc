@@ -79,7 +79,7 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
     return res;
   }
   // we jump to the end so that the p points to the slice end.
-  *vec_at(sl, *p) = get_nop(*bp - *p);
+  *vec_at(sl, *p) = prog_get_jmp(*bp - *p);
   *p = *bp;
   return NULL;
 }

@@ -139,12 +139,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     }
     size_t false_end = *off;
     *off = vec_append_new(sl);
-    *vec_at(sl, true_end) = get_nop(*off - true_end);
+    *vec_at(sl, true_end) = prog_get_jmp(*off - true_end);
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-    *vec_at(sl, false_end) = get_nop(*off - false_end);
+    *vec_at(sl, false_end) = prog_get_jmp(*off - false_end);
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
@@ -162,7 +162,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     *off = vec_append_new(sl);
     err = prog_append_expression(sl, off, body, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
-    *vec_at(sl, *off) = get_nop(pre_condition_check - *off);
+    *vec_at(sl, *off) = prog_get_jmp(pre_condition_check - *off);
     *off = vec_append_new(sl);
     size_t loop_end = *off;
     *vec_at(sl, condition_check) = get_if(loop_end - condition_check);
@@ -469,8 +469,8 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT datum get_nop(ptrdiff_t delta) {
-  return datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(delta));
+EXPORT datum prog_get_jmp(ptrdiff_t delta) {
+  return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
 }
 
 LOCAL datum get_if(ptrdiff_t delta) {
