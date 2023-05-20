@@ -7,30 +7,27 @@
 
 EXPORT size_t prog_build_init(vec *sl,
                               datum *compdata, datum *builder_compdata) {
-  size_t bdr;
-  size_t e;
-  size_t *bdr_p = &bdr;
-  size_t *ep = &e;
-  *bdr_p = 0;
+  size_t e = 0;
   datum nil = datum_make_nil();
-  prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0, nil,
+  prog_append_yield(sl, &e, datum_make_symbol("halt"), 0, 0, nil,
                     builder_compdata);
-  *ep = vec_append_new(sl);
-  size_t ep_start = *ep;
-  prog_append_yield(sl, ep, datum_make_symbol("plain"), 0, 0, nil, compdata);
-  size_t bdr_put_prog = *bdr_p;
-  *bdr_p = vec_append_new(sl);
+  size_t bdr_put_prog = e;
+  e = vec_append_new(sl);
+  size_t ep_start = e;
+  prog_append_yield(sl, &e, datum_make_symbol("plain"), 0, 0, nil, compdata);
+  size_t jm = e;
+  e = vec_append_new(sl);
   assert(bdr_put_prog + 1 == ep_start);
-  *vec_at(sl, bdr_put_prog) = get_put_prog(*bdr_p - bdr_put_prog, 0, ep_start);
+  *vec_at(sl, bdr_put_prog) = get_put_prog(e - bdr_put_prog, 0, ep_start);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));
   prog_append_call(
-      sl, bdr_p, 0,
+      sl, &e, 0,
       datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
       false, datum_make_symbol("plain"), 0, 0, builder_compdata);
-  size_t jm = *ep;
-  *ep = vec_append_new(sl);
-  *vec_at(sl, jm) = prog_get_jmp(*ep - jm);
-  return *bdr_p;
+  size_t bdr = e;
+  e = vec_append_new(sl);
+  *vec_at(sl, jm) = prog_get_jmp(e - jm);
+  return bdr;
 }
 
 EXPORT char *
