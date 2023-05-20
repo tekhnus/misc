@@ -28,10 +28,8 @@ EXPORT extension *standard_extension_alloc_make() {
 
 LOCAL char *standard_extension_init(vec *program, size_t *instruction,
                                     datum *routine_, datum *compdata) {
-  *program = vec_make(16 * 1024);
-  size_t lisp_extension_builder_prg = vec_append_new(program);
-  // *instruction = vec_append_new(program); // instruction is initialized by
-  // build_init
+  *program = vec_create_slice();
+  size_t lisp_extension_builder_prg = 0;
   *routine_ = routine_make(lisp_extension_builder_prg, NULL);
   *compdata = compdata_make();
   datum lisp_extension_builder_compdata = compdata_make();

@@ -19,7 +19,7 @@ req
 buildlib = (/std/first-good-value `(~(/prelude/shared-library "libzlisp-build-lib.so")))
 compdata-make = (/prelude/c-function selflib "compdata_alloc_make" '(() pointer))
 make-routine-with-empty-state = (/prelude/c-function selflib "routine_make_alloc" '((sizet pointer) pointer))
-prog-slice-make = (/prelude/c-function selflib "vec_make" '((sizet) progslice))
+prog-slice-make = (/prelude/c-function selflib "vec_create_slice" '(() progslice))
 prog-slice-append-new- = (/prelude/c-function selflib "vec_append_new" '((pointer) sizet))
 prog-build-one-c-host = (/prelude/c-function buildlib "prog_build" '((pointer pointer pointer pointer pointer pointer pointer pointer) pointer))
 prog-build-init = (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer pointer pointer) sizet))

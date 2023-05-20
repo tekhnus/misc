@@ -459,6 +459,20 @@ EXPORT size_t vec_append_new(vec *s) {
   return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
 }
 
+EXPORT void vec_extend(vec *s, datum *instructions) {
+  for (int i = 0; i < list_length(instructions); ++i) {
+    datum *ins = list_at(instructions, i);
+    size_t index = vec_append_new(s);
+    *vec_at(s, index) = *ins;
+  }
+}
+
+EXPORT vec vec_create_slice() {
+  vec sl = vec_make(16 * 1024);
+  vec_append_new(&sl);
+  return sl;
+}
+
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
                                   datum *compdata) {
   size_t next = vec_append_new(sl);

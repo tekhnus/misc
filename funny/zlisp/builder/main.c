@@ -31,10 +31,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "file error: %s\n", src.panic_message);
     return EXIT_FAILURE;
   }
-  vec sl = vec_make(16 * 1024);
+  vec sl = vec_create_slice();
   // the interpreter will start from the first instruction,
   // so the first call of append_new must be for the starting point.
-  size_t bp = vec_append_new(&sl);
+  size_t bp = 0;
   size_t p; // will be initialized by build_init
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
