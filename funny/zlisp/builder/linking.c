@@ -168,9 +168,8 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
 LOCAL datum *extract_meta(vec sl, size_t run_main_off) {
   datum *first_main_instruction = vec_at(&sl, run_main_off);
   if (!datum_is_list(first_main_instruction) ||
-      list_length(first_main_instruction) != 6 ||
-      !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield") ||
-      !datum_is_integer(list_at(first_main_instruction, 5))) {
+      list_length(first_main_instruction) == 0 ||
+      !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")) {
     return NULL;
   }
   return list_at(first_main_instruction, 4);

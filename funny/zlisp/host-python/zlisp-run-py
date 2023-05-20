@@ -107,7 +107,7 @@ def main():
     ins = prog[ip]
     op, args = ins[0], ins[1:]
     if op == sexpdata.Symbol(":yield"):
-        _, cnt, recieve_cnt, meta, nex = args
+        _, cnt, recieve_cnt, meta = args
         pdata[-1].ip += 1
     else:
         raise RuntimeError("should have started with yield")
@@ -117,7 +117,7 @@ def main():
         # print(ins)
         op, args = ins[0], ins[1:]
         if op == sexpdata.Symbol(":if"):
-            if_true, if_false = args
+            if_false, = args
             if pop_stack():
                 ip += 1
             else:
@@ -126,11 +126,11 @@ def main():
             nex, = args
             ip += nex
         elif op == sexpdata.Symbol(":put-const"):
-            value, nex = args
+            value, = args
             pdata[-1].varz[-1].append((value))
             ip += 1
         elif op == sexpdata.Symbol(":copy"):
-            target, offset, nex = args
+            target, offset = args
             tframe, tindx = target
             frame, indx = offset
             if tindx == len(pdata[-1].varz[tframe]):
@@ -140,7 +140,7 @@ def main():
             )
             ip += 1
         elif op == sexpdata.Symbol(":move"):
-            target, offset, nex = args
+            target, offset = args
             tframe, tindx = target
             frame, indx = offset
             if tindx == len(pdata[-1].varz[tframe]):
@@ -152,7 +152,7 @@ def main():
             pdata[-1].varz[frame].pop()  # WARNING: works only because we move the top cell.
             ip += 1
         elif op == sexpdata.Symbol(":call"):
-            capture_cnt, indices, pop_one, pre, target, arg_cnt, ret_cnt, nex = args
+            capture_cnt, indices, pop_one, target, arg_cnt, ret_cnt = args
             if target != sexpdata.Symbol("plain"):
                 raise RuntimeError("only plain targets are currently supported")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
@@ -183,14 +183,14 @@ def main():
                     pref = ">" if i == ip else " "
                     print(i, pref, prog[i])
                 raise RuntimeError("expected a yield-reciever")
-            _, cnt, recieve_cnt, meta, nex = args
+            _, cnt, recieve_cnt, meta = args
             if arg_cnt != recieve_cnt:
                 raise RuntimeError(
                     f"arg count {arg_cnt} and recieve count {recieve_cnt} are different"
                 )
             ip += 1
         elif op == sexpdata.Symbol(":collect"):
-            cnt, nex = args
+            cnt, = args
             form = []
             for _ in range(cnt):
                 val = pop_stack()
@@ -207,7 +207,7 @@ def main():
             pdata[-1].varz[-1].append(p)
             ip += nex
         elif op == sexpdata.Symbol(":yield"):
-            target, cnt, recieve_cnt, meta, nex = args
+            target, cnt, recieve_cnt, meta = args
             if target == sexpdata.Symbol("plain"):
                 rvalues = [pop_stack() for _ in range(cnt)]
 
@@ -221,7 +221,7 @@ def main():
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
                     raise RuntimeError ("expected a call")
-                capture_cnt, indices, pop_one, pre, _, arg_cnt, ret_cnt, nex = args
+                capture_cnt, indices, pop_one, _, arg_cnt, ret_cnt = args
 
                 # update the routine
                 frame, indx = indices[-1]

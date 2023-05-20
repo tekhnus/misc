@@ -172,8 +172,7 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   if (index < 0) {
     error_instruction = datum_make_list_of(
         datum_make_symbol(":yield"), datum_make_symbol("panic"),
-        datum_make_int(1), datum_make_int(31415926), datum_make_nil(),
-        datum_make_int(index));
+        datum_make_int(1), datum_make_int(31415926), datum_make_nil());
     return &error_instruction;
   }
   return vec_at(sl, index);
@@ -319,39 +318,32 @@ LOCAL prog datum_to_prog(datum *d) {
   char *opsym = list_at(d, 0)->symbol_value;
   if (!strcmp(opsym, ":if")) {
     res.type = PROG_IF;
-    res.if_true = (list_at(d, 1)->integer_value);
-    res.if_false = (list_at(d, 2)->integer_value);
+    res.if_false = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":jmp")) {
     res.type = PROG_JMP;
     res.nop_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
     res.put_const_value = list_at(d, 1);
-    res.put_const_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":copy")) {
     res.type = PROG_COPY;
     res.put_var_target = list_at(d, 1);
     res.put_var_offset = list_at(d, 2);
-    res.put_var_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":move")) {
     res.type = PROG_MOVE;
     res.move_target = list_at(d, 1);
     res.move_offset = list_at(d, 2);
-    res.move_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;
     res.call_indices = list_at(d, 2);
     res.call_pop_one = list_at(d, 3)->integer_value;
-    res.call_pre = list_at(d, 4)->integer_value;
-    res.call_type = list_at(d, 5);
-    res.call_arg_count = list_at(d, 6)->integer_value;
-    res.call_return_count = list_at(d, 7)->integer_value;
-    res.call_next = list_at(d, 8)->integer_value;
+    res.call_type = list_at(d, 4);
+    res.call_arg_count = list_at(d, 5)->integer_value;
+    res.call_return_count = list_at(d, 6)->integer_value;
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
-    res.collect_next = list_at(d, 2)->integer_value;
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_value = (list_at(d, 1)->integer_value);
@@ -363,7 +355,6 @@ LOCAL prog datum_to_prog(datum *d) {
     res.yield_count = list_at(d, 2)->integer_value;
     res.yield_recieve_count = list_at(d, 3)->integer_value;
     res.yield_meta = list_at(d, 4);
-    res.yield_next = (list_at(d, 5)->integer_value);
   } else {
     res.type = PROG_UNKNOWN;
   }
