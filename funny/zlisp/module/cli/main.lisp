@@ -26,37 +26,35 @@ req
  (em "zlisp" ext-make)}
 
 readme = "A basic REPL for zlisp."
-defn repl (sl nsp pptr bpptr compdata bdrcompdata ex)
+defn repl (sl nsp bpptr compdata bdrcompdata ex)
 {tmp = (/prelude/fprintf stdout "> ")
  switch (/zlisp/rd stdin)
  {{(:eof)
    {return (/prelude/fprintf stdout "")}}
   {(:ok datum)
-   maybe-prog = (/zlisp/comp-prg-new sl pptr bpptr datum compdata bdrcompdata ex)
+   maybe-prog = (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
    switch maybe-prog
    {{(:ok progxxx)
      switch (/zlisp/eval-new sl nsp)
      {{(:ok val ctxt)
        ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
-       {return (../repl sl ctxt pptr bpptr compdata bdrcompdata ex)}}
+       {return (../repl sl ctxt bpptr compdata bdrcompdata ex)}}
       {(:err msg)
        ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg)
-       {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)}}}}
+       {return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
     {(:err msg)
      ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg)
-     {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)}}}}
+     {return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
   {(:err msg)
    ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msg)
-   {return (../repl sl nsp pptr bpptr compdata bdrcompdata ex)}}}}
+   {return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
 
 sl = (/prelude/psm)
 bpptr = (/prelude/wrap-pointer-into-pointer 0)
-pptr = (/prelude/wrap-pointer-into-pointer 42)
 rt = (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0))
 compdata = (/prelude/cdm)
 bdrcompdata = (/prelude/cdm)
 ex = (/prelude/em)
 bpval = (/zlisp/iprog sl compdata bdrcompdata)
 bpptr = (/prelude/wrap-pointer-into-pointer bpval)
-pptr = (/prelude/wrap-pointer-into-pointer 424242)
-ignored = (repl sl rt pptr bpptr compdata bdrcompdata ex)
+ignored = (repl sl rt bpptr compdata bdrcompdata ex)

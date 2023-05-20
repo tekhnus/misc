@@ -46,9 +46,10 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
   datum initialization_statements = src.ok_value;
   datum set = datum_make_bytestring("c-prelude");
   char *res =
-      prog_build(program, instruction, &lisp_extension_builder_prg,
+      prog_build(program, &lisp_extension_builder_prg,
                  &initialization_statements, compdata,
                  &lisp_extension_builder_compdata, &set, &lisp_extension_ext);
+  *instruction = vec_length(program) - 1;
   if (res) {
     fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);

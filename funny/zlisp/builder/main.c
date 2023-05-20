@@ -35,14 +35,12 @@ int main(int argc, char **argv) {
   // the interpreter will start from the first instruction,
   // so the first call of append_new must be for the starting point.
   size_t bp;
-  size_t p; // will be initialized by build_init
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
   bp = prog_build_init(&sl, &compdata, &builder_compdata);
-  p = vec_length(&sl) - 1;
   datum set = datum_make_bytestring(argv[1]);
   struct lisp_extension extension = standard_extension_make();
-  char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,
+  char *err = prog_build(&sl, &bp, &src.ok_value, &compdata,
                          &builder_compdata, &set, &extension.base);
   if (err != NULL) {
     fprintf(stderr, "compilation error: %s\n", err);
@@ -59,12 +57,11 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
   return res;
 }
 
-EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
+EXPORT char *prog_build(vec *sl, size_t *bp, datum *source,
                         datum *compdata, datum *builder_compdata,
                         datum *settings, extension *ext) {
-  if (*p == 424242) {
-    *p = vec_length(sl) - 1;
-  }
+  size_t pval = vec_length(sl) - 1;
+  size_t *p = &pval;
   size_t start_p = *p;
   char *res = prog_compile_and_relocate(sl, p, source, compdata, ext);
   if (res != NULL) {
@@ -85,6 +82,7 @@ EXPORT char *prog_build(vec *sl, size_t *p, size_t *bp, datum *source,
   // we jump to the end so that the p points to the slice end.
   *vec_at(sl, *p) = prog_get_jmp(*bp - *p);
   *p = *bp;
+  *p = vec_length(sl) - 1;
   return NULL;
 }
 

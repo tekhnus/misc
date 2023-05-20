@@ -2,7 +2,7 @@
 #undef INTERFACE
 #include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
-char *prog_build(vec *sl,size_t *p,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
+char *prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
 fdatum file_source(char *fname);
 void module_to_filename(char *fname,char *module);
 size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata);
