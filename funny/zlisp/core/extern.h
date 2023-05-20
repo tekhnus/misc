@@ -132,7 +132,7 @@ char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,
 vec vec_create_slice();
 void vec_relocate(vec *dst,size_t *p,vec *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
-char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
+char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum datum_read_one(FILE *stre);
 typedef struct read_result read_result;
 enum read_result_type {

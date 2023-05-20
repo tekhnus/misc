@@ -115,7 +115,7 @@ struct extension {
   char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt, int *i,
                 datum *compdata);
 };
-char *prog_compile_and_relocate(vec *sl,size_t *p,datum *source,datum *compdata,extension *ext);
+char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 void vec_relocate(vec *dst,size_t *p,vec *src);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);

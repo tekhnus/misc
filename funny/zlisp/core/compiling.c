@@ -12,14 +12,17 @@ struct extension {
 };
 #endif
 
-EXPORT char *prog_compile_and_relocate(vec *sl, size_t *p, datum *source,
+EXPORT char *prog_compile_and_relocate(vec *sl, datum *source,
                                        datum *compdata, extension *ext) {
+  size_t pp = vec_length(sl) - 1;
+  size_t *p = &pp;
   fdatum bytecode = prog_compile(source, compdata, ext);
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
   vec *bc = list_to_vec(&bytecode.ok_value);
   vec_relocate(sl, p, bc);
+  *p = vec_length(sl) - 1;
   return NULL;
 }
 

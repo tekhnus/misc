@@ -63,7 +63,8 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source,
   size_t pval = vec_length(sl) - 1;
   size_t *p = &pval;
   size_t start_p = *p;
-  char *res = prog_compile_and_relocate(sl, p, source, compdata, ext);
+  char *res = prog_compile_and_relocate(sl, source, compdata, ext);
+  *p = vec_length(sl) - 1;
   if (res != NULL) {
     return res;
   }
