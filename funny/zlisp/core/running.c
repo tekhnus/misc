@@ -5,7 +5,6 @@
 #include <string.h>
 
 enum prog_type {
-  PROG_END,
   PROG_IF,
   PROG_NOP,
   PROG_PUT_CONST,
@@ -15,6 +14,7 @@ enum prog_type {
   PROG_COLLECT,
   PROG_PUT_PROG,
   PROG_YIELD,
+  PROG_UNKNOWN,
 };
 
 struct prog {
@@ -317,9 +317,7 @@ LOCAL prog datum_to_prog(datum *d) {
     exit(EXIT_FAILURE);
   }
   char *opsym = list_at(d, 0)->symbol_value;
-  if (!strcmp(opsym, ":end")) {
-    res.type = PROG_END;
-  } else if (!strcmp(opsym, ":if")) {
+  if (!strcmp(opsym, ":if")) {
     res.type = PROG_IF;
     res.if_true = (list_at(d, 1)->integer_value);
     res.if_false = (list_at(d, 2)->integer_value);
@@ -367,8 +365,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.yield_meta = list_at(d, 4);
     res.yield_next = (list_at(d, 5)->integer_value);
   } else {
-    fprintf(stderr, "datum_to_prog incomplete\n");
-    exit(EXIT_FAILURE);
+    res.type = PROG_UNKNOWN;
   }
   return res;
 }
