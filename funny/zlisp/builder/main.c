@@ -38,7 +38,8 @@ int main(int argc, char **argv) {
   size_t p; // will be initialized by build_init
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
-  prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
+  bp = prog_build_init(&sl, &p, &bp, &compdata, &builder_compdata);
+  p = vec_length(&sl) - 1;
   datum set = datum_make_bytestring(argv[1]);
   struct lisp_extension extension = standard_extension_make();
   char *err = prog_build(&sl, &p, &bp, &src.ok_value, &compdata,

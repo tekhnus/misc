@@ -30,7 +30,7 @@ defn prog-slice-append-new (sl)
 
 defn init-prog (sl pptr bpptr compdata bdrcompdata)
 {nothing = (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) compdata bdrcompdata)
- return 42}
+ return nothing}
 
 defn compile-prog-new (sl pptr bpptr src compdata bdrcompdata ex)
 {e = (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer pptr) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)

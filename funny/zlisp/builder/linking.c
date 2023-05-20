@@ -7,6 +7,7 @@
 
 EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
                               datum *compdata, datum *builder_compdata) {
+  *bdr_p = 0;
   datum nil = datum_make_nil();
   prog_append_yield(sl, bdr_p, datum_make_symbol("halt"), 0, 0, nil,
                     builder_compdata);
@@ -25,7 +26,7 @@ EXPORT size_t prog_build_init(vec *sl, size_t *ep, size_t *bdr_p,
   size_t jm = *ep;
   *ep = vec_append_new(sl);
   *vec_at(sl, jm) = prog_get_jmp(*ep - jm);
-  return 42;
+  return *bdr_p;
 }
 
 EXPORT char *
