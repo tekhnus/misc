@@ -475,13 +475,6 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT void prog_append_nop(vec *sl, size_t *begin) {
-  size_t next = vec_append_new(sl);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":nop"),
-                                           datum_make_int(next - *begin));
-  *begin = next;
-}
-
 EXPORT datum get_nop(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":nop"), datum_make_int(delta));
 }
