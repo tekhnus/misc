@@ -57,24 +57,20 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   if (datum_is_nil(&pi)) {
     return NULL;
   }
-  datum invokation_statement;
-  // int arity = get_function_arity(&self->routine_, &pi, self->program);
-  // fprintf(stderr, "%s -> %s -> %d\n", nm, datum_repr(&pi), arity);
+  int arity;
   if (datum_is_the_symbol(op, "defnx")) {
-    *i += 4;
-    invokation_statement = list_copy(source, *i - 4, *i);
+    arity = 4;
   } else if (datum_is_the_symbol(op, "switch")) {
-    *i += 3;
-    invokation_statement = list_copy(source, *i - 3, *i);
+    arity = 3;
   } else if (datum_is_the_symbol(op, "fntest")) {
-    *i += 3;
-    invokation_statement = list_copy(source, *i - 3, *i);
+    arity = 3;
   } else if (datum_is_the_symbol(op, "backquote")) {
-    *i += 2;
-    invokation_statement = list_copy(source, *i - 2, *i);
+    arity = 2;
   } else {
     return "fail";
   }
+  *i += arity;
+  datum invokation_statement = list_copy(source, *i - arity, *i);
   for (int i = 1; i < list_length(&invokation_statement); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement, i));
     datum quoted = datum_make_list_of(datum_make_symbol("brackets"),
