@@ -76,11 +76,11 @@ EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
       return err;
     }
     if (i < list_length(source)) {
-        prog_append_yield(sl, off,
-                      datum_make_list_of(datum_make_symbol("debugger"),
-                                         datum_make_symbol("statement"),
-                                         list_copy(source, i_before, i)),
-                      0, 0, datum_make_nil(), compdata);
+      prog_append_yield(sl, off,
+                        datum_make_list_of(datum_make_symbol("debugger"),
+                                           datum_make_symbol("statement"),
+                                           list_copy(source, i_before, i)),
+                        0, 0, datum_make_nil(), compdata);
     }
   }
   return NULL;
