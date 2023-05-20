@@ -52,13 +52,14 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   char nm[128] = {0};
   sprintf(nm, ".%s", op->symbol_value);
   datum name = datum_make_symbol(nm);
+  // fprintf(stderr, "compdata: %s\n", datum_repr(&self->compdata));
   datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (datum_is_nil(&pi)) {
     return NULL;
   }
   datum invokation_statement;
-  /* int arity = get_function_arity(&self->routine_, &pi, self->program); */
-  /* fprintf(stderr, "%s -> %s -> %d\n", nm, datum_repr(&pi), arity); */
+  // int arity = get_function_arity(&self->routine_, &pi, self->program);
+  // fprintf(stderr, "%s -> %s -> %d\n", nm, datum_repr(&pi), arity);
   if (datum_is_the_symbol(op, "defn2")) {
     *i += 4;
     invokation_statement = list_copy(source, *i - 4, *i);

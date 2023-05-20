@@ -370,7 +370,7 @@ LOCAL void print_backtrace(vec sl, routine *r) {
     if (offset < 0) {
       offset = -offset;
     }
-    for (ptrdiff_t i = offset - 30; i <= offset + 3; ++i) {
+    for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
       if (i < 0) {
         continue;
       }
@@ -530,14 +530,15 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 }
 
 EXPORT int get_function_arity(datum *routine, datum *idx, vec sl) {
-  struct routine r = get_routine_from_datum(routine);
-  datum *f = state_stack_at(&r, idx);
-  struct routine ff = get_routine_from_datum(f);
-  ptrdiff_t off = *routine_offset(&ff);
+  struct routine program_routine = get_routine_from_datum(routine);
+  datum *fun_datum = state_stack_at(&program_routine, idx);
+  struct routine fun_routine = get_routine_from_datum(fun_datum);
+  // datum re = vec_to_datum(&fun_routine.frames[fun_routine.cnt - 1]->state);
+  // fprintf(stderr, "fun: %s\n", datum_repr(&re));
+  ptrdiff_t off = *routine_offset(&fun_routine);
+  // fprintf(stderr, "off: %d\n", (int) off);
   prog prg = datum_to_prog(instruction_at(&sl, off));
-  /* for (int delta = 0; delta < 1; ++delta) { */
-  /*   fprintf(stderr, "%s\n", datum_repr(instruction_at(&sl, off + delta))); */
-  /* } */
+  // print_backtrace(sl, &fun_routine);
   assert(prg.type == PROG_YIELD);
   return prg.yield_recieve_count;
 }
