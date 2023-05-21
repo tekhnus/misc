@@ -347,21 +347,21 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   return NULL;
 }
 
-EXPORT void prog_append_bytecode(vec *dst, size_t *p, vec *src) {
-  *p = vec_length(dst) - 1;
+EXPORT void prog_append_bytecode(vec *sl, size_t *begin, vec *src) {
+  size_t begin_ = *begin;
   for (size_t i = 0; i + 1 < vec_length(src); ++i) {
     datum *ins = vec_at(src, i);
-    size_t pp = prog_append_something(dst, p); // filled immediately.
-    *vec_at(dst, pp) = datum_copy(ins);
+    size_t pp = prog_append_something(sl, &begin_); // filled immediately.
+    *vec_at(sl, pp) = datum_copy(ins);
   }
-  *p = vec_length(dst) - 1;
 }
 
 EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
                              datum indices, bool pop_one, datum type,
                              int arg_count, int return_count, datum *compdata) {
-  *begin = vec_length(sl) - 1;
-  *vec_at(sl, *begin) = datum_make_list_of(
+  size_t begin_ = *begin;
+  begin_ = vec_length(sl) - 1;
+  *vec_at(sl, begin_) = datum_make_list_of(
       datum_make_symbol(":call"), datum_make_int(capture_size), indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
       datum_make_int(return_count));
@@ -379,7 +379,8 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
 
 EXPORT void prog_append_copy(vec *sl, size_t *begin, datum *val,
                              datum *compdata) {
-  *begin = vec_length(sl) - 1;
+  size_t begin_ = *begin;
+  begin_ = vec_length(sl) - 1;
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
@@ -391,15 +392,16 @@ EXPORT void prog_append_copy(vec *sl, size_t *begin, datum *val,
   }
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":copy"),
+  *vec_at(sl, begin_) = datum_make_list_of(datum_make_symbol(":copy"),
                                            target_polyindex, polyindex);
   vec_append_new(sl);
 }
 
 LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
                             datum *source, datum *compdata) {
-  *begin = vec_length(sl) - 1;
-  *vec_at(sl, *begin) = datum_make_list_of(
+  size_t begin_ = *begin;
+  begin_ = vec_length(sl) - 1;
+  *vec_at(sl, begin_) = datum_make_list_of(
       datum_make_symbol(":move"), datum_copy(target), datum_copy(source));
   compdata_del(compdata);
   vec_append_new(sl);
@@ -408,8 +410,9 @@ LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
-  *begin = vec_length(sl) - 1;
-  *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":yield"), type,
+  size_t begin_ = *begin;
+  begin_ = vec_length(sl) - 1;
+  *vec_at(sl, begin_) = datum_make_list_of(datum_make_symbol(":yield"), type,
                                            datum_make_int(count),
                                            datum_make_int(recieve_count), meta);
   for (size_t i = 0; i < count; ++i) {
@@ -422,16 +425,18 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
 }
 
 EXPORT size_t prog_append_something(vec *s, size_t *begin) {
-  *begin = vec_length(s) - 1;
-  size_t cur = *begin;
+  size_t begin_ = *begin;
+  begin_ = vec_length(s) - 1;
+  size_t cur = begin_;
   vec_append_new(s);
   return cur;
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
                                   datum *compdata) {
-  *begin = vec_length(sl) - 1;
-  *vec_at(sl, *begin) =
+  size_t begin_ = *begin;
+  begin_ = vec_length(sl) - 1;
+  *vec_at(sl, begin_) =
       datum_make_list_of(datum_make_symbol(":put-const"), datum_copy(val));
   compdata_put(compdata, datum_make_symbol(":anon"));
   vec_append_new(sl);
@@ -439,8 +444,9 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
                                datum *compdata) {
-  *begin = vec_length(sl) - 1;
-  *vec_at(sl, *begin) =
+  size_t begin_ = *begin;
+  begin_ = vec_length(sl) - 1;
+  *vec_at(sl, begin_) =
       datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);

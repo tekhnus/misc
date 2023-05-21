@@ -128,7 +128,7 @@ void prog_append_yield(vec *sl,size_t *begin,datum type,size_t count,size_t reci
 LOCAL char *prog_append_consume_expression(vec *sl,size_t *off,datum *source,int *i,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
 vec vec_create_slice();
-void prog_append_bytecode(vec *dst,size_t *p,vec *src);
+void prog_append_bytecode(vec *sl,size_t *begin,vec *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum datum_read_one(FILE *stre);
