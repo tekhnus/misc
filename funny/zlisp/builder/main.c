@@ -76,7 +76,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   if (!bp) {
     return NULL;
   }
-  *vec_at(sl, *bp) = prog_get_jmp(*p - *bp);
+  *vec_at(sl, *bp) = prog_get_jmp(vec_length(sl) - 1 - *bp);
   res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                        settings, ext);
   *bp = vec_length(sl) - 1;

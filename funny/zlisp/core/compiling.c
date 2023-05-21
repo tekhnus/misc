@@ -109,8 +109,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     size_t true_end = prog_append_something(sl, off); // filled below.
-    *off = vec_length(sl) - 1;
-    *vec_at(sl, if_instruction) = prog_get_if(*off - if_instruction);
+    *vec_at(sl, if_instruction) = prog_get_if(vec_length(sl) - 1 - if_instruction);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
       return err;
@@ -120,22 +119,19 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     size_t false_end = prog_append_something(sl, off);
-    *off = vec_length(sl) - 1;
-    *vec_at(sl, true_end) = prog_get_jmp(*off - true_end);
+    *vec_at(sl, true_end) = prog_get_jmp(vec_length(sl) - 1 - true_end);
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
-    *off = vec_length(sl) - 1;
-    *vec_at(sl, false_end) = prog_get_jmp(*off - false_end);
+    *vec_at(sl, false_end) = prog_get_jmp(vec_length(sl) - 1 - false_end);
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
     datum *cond = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
     char *err;
-    *off = vec_length(sl) - 1;
-    size_t pre_condition_check = *off;
+    size_t pre_condition_check = vec_length(sl) - 1;
     datum pre_condition_check_compdata = datum_copy(compdata);
     err = prog_append_expression(sl, off, cond, compdata, ext);
     if (err != NULL) {
@@ -147,8 +143,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     size_t jump_back = prog_append_something(sl, off); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
-    *off = vec_length(sl) - 1;
-    size_t loop_end = *off;
+    size_t loop_end = vec_length(sl) - 1;
     *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check);
     return NULL;
   }
@@ -178,7 +173,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     compdata_put(&routine_compdata, datum_copy(name));
     compdata_start_new_section(&routine_compdata);
 
-    size_t prog_off = *off;
+    size_t prog_off = vec_length(sl) - 1;
     if (datum_is_the_symbol(name, "__magically_called__")) {
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
@@ -192,8 +187,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     assert(put_prog_off + 1 == prog_off);
-    *off = vec_length(sl) - 1;
-    *vec_at(sl, put_prog_off) = prog_get_put_prog(*off - put_prog_off, 2);
+    *vec_at(sl, put_prog_off) = prog_get_put_prog(vec_length(sl) - 1 - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
@@ -360,6 +354,7 @@ EXPORT void prog_append_bytecode(vec *dst, size_t *p, vec *src) {
     size_t pp = prog_append_something(dst, p); // filled immediately.
     *vec_at(dst, pp) = datum_copy(ins);
   }
+  *p = vec_length(dst) - 1;
 }
 
 EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
@@ -430,7 +425,6 @@ EXPORT size_t prog_append_something(vec *s, size_t *begin) {
   *begin = vec_length(s) - 1;
   size_t cur = *begin;
   vec_append_new(s);
-  *begin = vec_length(s) - 1;
   return cur;
 }
 
