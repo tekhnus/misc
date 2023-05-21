@@ -21,7 +21,7 @@ EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
     return bytecode.panic_message;
   }
   vec *bc = list_to_vec(&bytecode.ok_value);
-  vec_relocate(sl, p, bc);
+  prog_append_bytecode(sl, p, bc);
   *p = vec_length(sl) - 1;
   return NULL;
 }
@@ -34,16 +34,6 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
     return fdatum_make_panic(err);
   }
   return fdatum_make_ok(vec_to_datum(&sl));
-}
-
-EXPORT void vec_relocate(vec *dst, size_t *p, vec *src) {
-  assert(*p + 1 == vec_length(dst));
-  // the "+ 1" comes because of the final :end
-  for (size_t i = 0; i + 1 < vec_length(src); ++i) {
-    datum *ins = vec_at(src, i);
-    size_t pp = prog_append_something(dst, p); // filled immediately.
-    *vec_at(dst, pp) = datum_copy(ins);
-  }
 }
 
 EXPORT char *prog_append_expressions(vec *sl, size_t *off, datum *source,
@@ -357,9 +347,20 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
   return NULL;
 }
 
+EXPORT void prog_append_bytecode(vec *dst, size_t *p, vec *src) {
+  *p = vec_length(dst) - 1;
+  for (size_t i = 0; i + 1 < vec_length(src); ++i) {
+    datum *ins = vec_at(src, i);
+    size_t pp = prog_append_something(dst, p); // filled immediately.
+    *vec_at(dst, pp) = datum_copy(ins);
+  }
+  *p = vec_length(dst) - 1;
+}
+
 EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
                              datum indices, bool pop_one, datum type,
                              int arg_count, int return_count, datum *compdata) {
+  *begin = vec_length(sl) - 1;
   *vec_at(sl, *begin) = datum_make_list_of(
       datum_make_symbol(":call"), datum_make_int(capture_size), indices,
       datum_make_int(pop_one), type, datum_make_int(arg_count),
@@ -375,10 +376,12 @@ EXPORT void prog_append_call(vec *sl, size_t *begin, size_t capture_size,
   }
   size_t next = vec_append_new(sl);
   *begin = next;
+  *begin = vec_length(sl) - 1;
 }
 
 EXPORT void prog_append_copy(vec *sl, size_t *begin, datum *val,
                              datum *compdata) {
+  *begin = vec_length(sl) - 1;
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
@@ -394,20 +397,24 @@ EXPORT void prog_append_copy(vec *sl, size_t *begin, datum *val,
                                            target_polyindex, polyindex);
   size_t next = vec_append_new(sl);
   *begin = next;
+  *begin = vec_length(sl) - 1;
 }
 
 LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
                             datum *source, datum *compdata) {
+  *begin = vec_length(sl) - 1;
   *vec_at(sl, *begin) = datum_make_list_of(
       datum_make_symbol(":move"), datum_copy(target), datum_copy(source));
   compdata_del(compdata);
   size_t next = vec_append_new(sl);
   *begin = next;
+  *begin = vec_length(sl) - 1;
 }
 
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
+  *begin = vec_length(sl) - 1;
   *vec_at(sl, *begin) = datum_make_list_of(datum_make_symbol(":yield"), type,
                                            datum_make_int(count),
                                            datum_make_int(recieve_count), meta);
@@ -419,26 +426,32 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
   }
   size_t next = vec_append_new(sl);
   *begin = next;
+  *begin = vec_length(sl) - 1;
 }
 
 EXPORT size_t prog_append_something(vec *s, size_t *begin) {
+  *begin = vec_length(s) - 1;
   size_t cur = *begin;
   size_t next = vec_append_new(s);
   *begin = next;
+  *begin = vec_length(s) - 1;
   return cur;
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
                                   datum *compdata) {
+  *begin = vec_length(sl) - 1;
   *vec_at(sl, *begin) =
       datum_make_list_of(datum_make_symbol(":put-const"), datum_copy(val));
   compdata_put(compdata, datum_make_symbol(":anon"));
   size_t next = vec_append_new(sl);
   *begin = next;
+  *begin = vec_length(sl) - 1;
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
                                datum *compdata) {
+  *begin = vec_length(sl) - 1;
   *vec_at(sl, *begin) =
       datum_make_list_of(datum_make_symbol(":collect"), datum_make_int(count));
   for (size_t i = 0; i < count; ++i) {
@@ -447,6 +460,7 @@ LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
   compdata_put(compdata, datum_make_symbol(":anon"));
   size_t next = vec_append_new(sl);
   *begin = next;
+  *begin = vec_length(sl) - 1;
 }
 
 EXPORT datum get_put_prog(size_t next, int capture) {
