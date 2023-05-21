@@ -189,7 +189,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       datum met = datum_make_nil();
       prog_append_yield(sl, off, target, 0, 0, met, &routine_compdata);
     }
-    char *err = prog_init_routine(sl, off, args, body, &routine_compdata, ext);
+    prog_append_yield(sl, off, datum_make_symbol("plain"), 0, list_length(args),
+                      datum_make_nil(), &routine_compdata);
+    store_values_to_variables(sl, off, args, &routine_compdata);
+    char *err = prog_append_expression(sl, off, body, &routine_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -402,11 +405,6 @@ LOCAL void prog_append_move(vec *sl, size_t *begin, datum *target,
   *begin = next;
 }
 
-EXPORT datum get_put_prog(size_t next, int capture) {
-  return datum_make_list_of(datum_make_symbol(":put-prog"),
-                            datum_make_int(capture), datum_make_int(next));
-}
-
 EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
@@ -423,38 +421,11 @@ EXPORT void prog_append_yield(vec *sl, size_t *begin, datum type, size_t count,
   *begin = next;
 }
 
-LOCAL void prog_append_recieve(vec *sl, size_t *begin, datum *args, datum meta,
-                               datum *compdata) {
-  prog_append_yield(sl, begin, datum_make_symbol("plain"), 0, list_length(args),
-                    meta, compdata);
-  store_values_to_variables(sl, begin, args, compdata);
-}
-
-LOCAL char *prog_init_routine(vec *sl, size_t *s, datum *args, datum *stmt,
-                              datum *routine_compdata, extension *ext) {
-  if (args == NULL) {
-    return "args can't be null";
-  } else {
-    prog_append_recieve(sl, s, args, datum_make_nil(), routine_compdata);
-  }
-  return prog_append_expression(sl, s, stmt, routine_compdata, ext);
-}
-
-LOCAL size_t vec_append_new(vec *s) {
-  return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
-}
-
 EXPORT size_t prog_append_something(vec *s, size_t *begin) {
   size_t cur = *begin;
   size_t next = vec_append_new(s);
   *begin = next;
   return cur;
-}
-
-EXPORT vec vec_create_slice() {
-  vec sl = vec_make(16 * 1024);
-  vec_append_new(&sl);
-  return sl;
 }
 
 EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
@@ -464,14 +435,6 @@ EXPORT void prog_append_put_const(vec *sl, size_t *begin, datum *val,
   compdata_put(compdata, datum_make_symbol(":anon"));
   size_t next = vec_append_new(sl);
   *begin = next;
-}
-
-EXPORT datum prog_get_jmp(ptrdiff_t delta) {
-  return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
-}
-
-LOCAL datum get_if(ptrdiff_t delta) {
-  return datum_make_list_of(datum_make_symbol(":if"), datum_make_int(delta));
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
@@ -484,6 +447,19 @@ LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
   compdata_put(compdata, datum_make_symbol(":anon"));
   size_t next = vec_append_new(sl);
   *begin = next;
+}
+
+EXPORT datum get_put_prog(size_t next, int capture) {
+  return datum_make_list_of(datum_make_symbol(":put-prog"),
+                            datum_make_int(capture), datum_make_int(next));
+}
+
+EXPORT datum prog_get_jmp(ptrdiff_t delta) {
+  return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
+}
+
+LOCAL datum get_if(ptrdiff_t delta) {
+  return datum_make_list_of(datum_make_symbol(":if"), datum_make_int(delta));
 }
 
 EXPORT datum compdata_make() {
@@ -641,4 +617,14 @@ EXPORT void move_values_to_variables(vec *sl, size_t *begin, datum *var,
     datum source = compdata_get_top_polyindex(compdata);
     prog_append_move(sl, begin, &target, &source, compdata);
   }
+}
+
+EXPORT vec vec_create_slice() {
+  vec sl = vec_make(16 * 1024);
+  vec_append_new(&sl);
+  return sl;
+}
+
+LOCAL size_t vec_append_new(vec *s) {
+  return vec_append(s, datum_make_list_of(datum_make_symbol(":end")));
 }

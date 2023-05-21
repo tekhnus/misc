@@ -29,8 +29,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   return bdr;
 }
 
-EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata,
-                            datum *input_meta,
+EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
                             datum *settings, extension *ext) {
