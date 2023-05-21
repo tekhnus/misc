@@ -36,7 +36,7 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
     return NULL;
   }
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
-  store_values_to_variables(sl, bdr_p, &s, builder_compdata);
+  store_values_to_variables(sl, &s, builder_compdata);
   char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
                               builder_compdata, ext);
   if (err != NULL) {
@@ -156,7 +156,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
     vn = datum_make_symbol(varname);
     list_append(&names, vn);
   }
-  store_values_to_variables(sl, p, &names, compdata);
+  store_values_to_variables(sl, &names, compdata);
   return NULL;
 }
 
