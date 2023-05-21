@@ -60,7 +60,7 @@ EXPORT datum *get_host_ffi_settings() { // used in lisp
 EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
                         datum *builder_compdata, datum *settings,
                         extension *ext) {
-  size_t start_p = vec_length(sl) - 1;
+  size_t start_p = prog_get_next_index(sl);
   char *res = prog_compile_and_relocate(sl, source, compdata, ext);
   datum *input_meta = extract_meta(*sl, start_p);
   if (res != NULL) {
@@ -74,10 +74,10 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   if (!bp) {
     return NULL;
   }
-  *vec_at(sl, *bp) = prog_get_jmp(vec_length(sl) - 1 - *bp);
+  *vec_at(sl, *bp) = prog_get_jmp(prog_get_next_index(sl) - *bp);
   res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                        settings, ext);
-  *bp = vec_length(sl) - 1;
+  *bp = prog_get_next_index(sl);
   if (res != NULL) {
     return res;
   }

@@ -10,19 +10,19 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   datum nil = datum_make_nil();
   prog_append_yield(sl, datum_make_symbol("halt"), 0, 0, nil, builder_compdata);
   size_t bdr_put_prog = prog_append_something(sl); // filled below
-  size_t ep_start = vec_length(sl) - 1;
+  size_t ep_start = prog_get_next_index(sl);
   prog_append_yield(sl, datum_make_symbol("plain"), 0, 0, nil, compdata);
   size_t jm = prog_append_something(sl); // filled below
   assert(bdr_put_prog + 1 == ep_start);
   *vec_at(sl, bdr_put_prog) =
-      prog_get_put_prog(vec_length(sl) - 1 - bdr_put_prog, 0);
+      prog_get_put_prog(prog_get_next_index(sl) - bdr_put_prog, 0);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));
   prog_append_call(
       sl, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
       false, datum_make_symbol("plain"), 0, 0, builder_compdata);
   size_t bdr = prog_append_something(sl); // this is first builder instruction.
   // filled by prog_build.
-  *vec_at(sl, jm) = prog_get_jmp(vec_length(sl) - 1 - jm);
+  *vec_at(sl, jm) = prog_get_jmp(prog_get_next_index(sl) - jm);
   return bdr;
 }
 
@@ -116,8 +116,8 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   if (transitive_deps == NULL) {
     return "error: null extract_meta for reqs";
   }
-  assert(vec_length(module_sl) - 1 >= 1);
-  size_t last_instruction = vec_length(module_sl) - 1 - 1;
+  assert(prog_get_next_index(module_sl) >= 1);
+  size_t last_instruction = prog_get_next_index(module_sl) - 1;
   datum *syms = extract_meta(*module_sl, last_instruction);
   if (syms == NULL) {
     return "error: null extract_meta for exports";
@@ -128,11 +128,11 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
     return err;
   }
   size_t put_prog_off = prog_append_something(sl); // filled below
-  size_t prog_off = vec_length(sl) - 1;
+  size_t prog_off = prog_get_next_index(sl);
   prog_append_bytecode(sl, module_sl);
   assert(put_prog_off + 1 == prog_off);
   *vec_at(sl, put_prog_off) =
-      prog_get_put_prog(vec_length(sl) - 1 - put_prog_off, 0);
+      prog_get_put_prog(prog_get_next_index(sl) - put_prog_off, 0);
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);
   prog_put_deps(sl, transitive_deps, compdata);
