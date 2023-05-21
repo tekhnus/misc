@@ -342,9 +342,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   return NULL;
 }
 
-EXPORT void prog_append_bytecode(vec *sl, vec *src) {
-  for (size_t i = 0; i + 1 < vec_length(src); ++i) {
-    datum *ins = vec_at(src, i);
+EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
+  for (size_t i = 0; i < vec_length(src_sl) - 1; ++i) {
+    datum *ins = vec_at(src_sl, i);
     size_t pp = prog_append_something(sl); // filled immediately.
     *vec_at(sl, pp) = datum_copy(ins);
   }

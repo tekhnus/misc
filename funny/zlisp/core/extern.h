@@ -48,8 +48,7 @@ LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL fdatum prog_read_usages(datum *spec);
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i,
-                datum *compdata);
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
 };
 LOCAL char *prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext);
 LOCAL char *prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext);
@@ -127,7 +126,7 @@ void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datu
 LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 vec vec_create_slice();
-void prog_append_bytecode(vec *sl,vec *src);
+void prog_append_bytecode(vec *sl,vec *src_sl);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum datum_read_one(FILE *stre);
@@ -176,7 +175,7 @@ datum vec_pop(vec *v);
 datum datum_copy(datum *d);
 void list_append(datum *list,datum value);
 datum datum_make_nil();
-datum vec_to_datum(vec *sl);
+datum vec_to_datum(vec *v);
 size_t vec_length(vec *s);
 datum *vec_at(vec *s,size_t index);
 vec vec_make_of(size_t count,...);

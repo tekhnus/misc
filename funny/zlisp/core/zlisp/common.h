@@ -73,7 +73,7 @@ size_t vec_append(vec *s,datum x);
 vec vec_make_of(size_t count,...);
 datum *vec_at(vec *s,size_t index);
 size_t vec_length(vec *s);
-datum vec_to_datum(vec *sl);
+datum vec_to_datum(vec *v);
 datum vec_pop(vec *v);
 datum datum_make_nil();
 bool datum_is_list(datum *e);
@@ -112,13 +112,12 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i,
-                datum *compdata);
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
 };
 char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
-void prog_append_bytecode(vec *sl,vec *src);
+void prog_append_bytecode(vec *sl,vec *src_sl);
 void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum *compdata);
 void prog_append_copy(vec *sl,datum *val,datum *compdata);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
