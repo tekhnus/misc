@@ -103,7 +103,6 @@ bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 LOCAL void prog_append_move(vec *sl,datum *target,datum *source,datum *compdata);
-LOCAL size_t vec_append_new(vec *s);
 void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum *compdata);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
@@ -118,7 +117,7 @@ LOCAL char *prog_append_merge_compdata(vec *sl,datum *compdata,datum *another_co
 size_t prog_get_next_index(vec *sl);
 LOCAL datum prog_get_if(ptrdiff_t delta);
 LOCAL void compdata_del(datum *compdata);
-size_t prog_append_something(vec *s);
+size_t prog_append_something(vec *sl);
 LOCAL void prog_append_collect(vec *sl,size_t count,datum *compdata);
 LOCAL size_t compdata_get_length(datum *compdata);
 void prog_append_put_const(vec *sl,datum *val,datum *compdata);
