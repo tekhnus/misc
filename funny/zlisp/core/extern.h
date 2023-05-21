@@ -48,11 +48,11 @@ LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL fdatum prog_read_usages(datum *spec);
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt, int *i,
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i,
                 datum *compdata);
 };
-LOCAL char *prog_append_exports(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
-LOCAL char *prog_append_usages(vec *sl,size_t *begin,datum *spec,datum *compdata,extension *ext);
+LOCAL char *prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext);
+LOCAL char *prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext);
 typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   extension base;
@@ -63,9 +63,9 @@ struct lisp_extension {
   fdatum (*yield_handler)(datum *, datum *);
 };
 LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
-LOCAL char *null_extension_call(extension *self,vec *sl,size_t *begin,datum *source,int *i,datum *compdata);
+LOCAL char *null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata);
 extension null_extension_make();
-LOCAL char *lisp_extension_call(extension *self_,vec *sl,size_t *begin,datum *source,int *i,datum *compdata);
+LOCAL char *lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata);
 lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
@@ -123,10 +123,10 @@ size_t prog_append_something(vec *s);
 LOCAL void prog_append_collect(vec *sl,size_t count,datum *compdata);
 LOCAL size_t compdata_get_length(datum *compdata);
 void prog_append_put_const(vec *sl,datum *val,datum *compdata);
-LOCAL char *prog_append_expression(vec *sl,size_t *begin,datum *stmt,datum *compdata,extension *ext);
+LOCAL char *prog_append_expression(vec *sl,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
-LOCAL char *prog_append_consume_expression(vec *sl,size_t *off,datum *source,int *i,datum *compdata,extension *ext);
-char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
+LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext);
+char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 vec vec_create_slice();
 void prog_append_bytecode(vec *sl,vec *src);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);

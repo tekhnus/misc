@@ -32,11 +32,11 @@ EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
+LOCAL char *lisp_extension_call(extension *self_, vec *sl,
                                 datum *source, int *i, datum *compdata) {
   extension nu = null_extension_make();
   int i_val = *i;
-  char *err = null_extension_call(&nu, sl, begin, source, i, compdata);
+  char *err = null_extension_call(&nu, sl, source, i, compdata);
   if (err != NULL) {
     return err;
   }
@@ -83,7 +83,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, size_t *begin,
   assert(datum_is_list(&res.ok_value));
   assert(list_length(&res.ok_value) == 1);
   // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
-  return prog_append_expressions(sl, begin, &res.ok_value, compdata, self_);
+  return prog_append_expressions(sl, &res.ok_value, compdata, self_);
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
@@ -112,24 +112,24 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   return fdatum_make_ok(res.value);
 }
 
-LOCAL char *null_extension_call(extension *self, vec *sl, size_t *begin,
+LOCAL char *null_extension_call(extension *self, vec *sl,
                                 datum *source, int *i, datum *compdata) {
   datum *op = list_at(source, *i);
   datum stmt;
   if (datum_is_the_symbol(op, "req")) {
     *i += 2;
     stmt = list_copy(source, *i - 2, *i);
-    return prog_append_usages(sl, begin, &stmt, compdata, self);
+    return prog_append_usages(sl, &stmt, compdata, self);
   }
   if (datum_is_the_symbol(op, "export")) {
     *i += 2;
     stmt = list_copy(source, *i - 2, *i);
-    return prog_append_exports(sl, begin, &stmt, compdata, self);
+    return prog_append_exports(sl, &stmt, compdata, self);
   }
   return NULL;
 }
 
-LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
+LOCAL char *prog_append_usages(vec *sl, datum *spec,
                                datum *compdata, extension *ext) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
@@ -152,7 +152,7 @@ LOCAL char *prog_append_usages(vec *sl, size_t *begin, datum *spec,
               datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
           datum_make_list_of(datum_make_symbol("brackets"))));
   datum code = datum_make_list_of(stmt);
-  prog_append_expressions(sl, begin, &code, compdata, ext);
+  prog_append_expressions(sl, &code, compdata, ext);
   return NULL;
 }
 
@@ -191,7 +191,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   return fdatum_make_ok(datum_make_list_of(vars, specs));
 }
 
-LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
+LOCAL char *prog_append_exports(vec *sl, datum *spec,
                                 datum *compdata, extension *ext) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
@@ -218,7 +218,7 @@ LOCAL char *prog_append_exports(vec *sl, size_t *begin, datum *spec,
       datum_make_list_of(datum_make_symbol("brackets"), datum_make_nil(),
                          datum_make_symbol("="), return_expr);
   datum code = datum_make_list_of(stmt);
-  prog_append_expressions(sl, begin, &code, compdata, ext);
+  prog_append_expressions(sl, &code, compdata, ext);
 
   return NULL;
 }

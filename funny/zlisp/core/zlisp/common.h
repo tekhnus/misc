@@ -112,12 +112,12 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, size_t *begin, datum *stmt, int *i,
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i,
                 datum *compdata);
 };
 char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
-char *prog_append_expressions(vec *sl,size_t *off,datum *source,datum *compdata,extension *ext);
+char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 void prog_append_bytecode(vec *sl,vec *src);
 void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum *compdata);
 void prog_append_copy(vec *sl,datum *val,datum *compdata);
