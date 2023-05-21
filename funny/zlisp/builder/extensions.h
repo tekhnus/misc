@@ -8,7 +8,7 @@ void module_to_filename(char *fname,char *module);
 size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata);
 #define LOCAL static
 extension *standard_extension_alloc_make();
-LOCAL char *standard_extension_init(vec *program,size_t *instruction,datum *routine_,datum *compdata);
+LOCAL char *standard_extension_init(vec *program,datum *routine_,datum *compdata);
 struct lisp_extension standard_extension_make();
 #define EXPORT
 #define EXPORT_INTERFACE 0

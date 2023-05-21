@@ -30,14 +30,12 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
                             datum *settings, extension *ext) {
-  size_t bdr_p_val = vec_length(sl) - 1;
-  size_t *bdr_p = &bdr_p_val;
   if (input_meta == NULL) {
     return NULL;
   }
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
   store_values_to_variables(sl, &s, builder_compdata);
-  char *err = prog_build_deps(sl, bdr_p, input_meta, module_bytecode, settings,
+  char *err = prog_build_deps(sl, input_meta, module_bytecode, settings,
                               builder_compdata, ext);
   if (err != NULL) {
     return err;
@@ -45,22 +43,21 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   datum v = datum_make_symbol("__main__");
   prog_append_copy(sl, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
-  prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
+  prog_put_deps(sl, input_meta, builder_compdata);
   prog_append_call(sl, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
-  *bdr_p = vec_length(sl) - 1;
   return NULL;
 }
 
-LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
+LOCAL char *prog_build_deps(vec *sl, datum *deps,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
                             datum *settings, datum *compdata, extension *ext) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
     char *err =
-        prog_build_dep(sl, p, dep, module_bytecode, settings, compdata, ext);
+        prog_build_dep(sl, dep, module_bytecode, settings, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -68,9 +65,7 @@ LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
   return NULL;
 }
 
-LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps, datum *compdata) {
-  if (p == p + 1) {
-  }
+LOCAL void prog_put_deps(vec *sl, datum *deps, datum *compdata) {
   char varname[1024];
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
@@ -94,7 +89,7 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
   strcat(res, sym);
 }
 
-LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
+LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *,
                                                      extension *),
                            datum *settings, datum *compdata, extension *ext) {
@@ -127,7 +122,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   if (syms == NULL) {
     return "error: null extract_meta for exports";
   }
-  char *err = prog_build_deps(sl, p, transitive_deps, module_bytecode, settings,
+  char *err = prog_build_deps(sl, transitive_deps, module_bytecode, settings,
                               compdata, ext);
   if (err != NULL) {
     return err;
@@ -140,7 +135,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
       prog_get_put_prog(vec_length(sl) - 1 - put_prog_off, 0);
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);
-  prog_put_deps(sl, p, transitive_deps, compdata);
+  prog_put_deps(sl, transitive_deps, compdata);
   prog_append_call(sl, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);

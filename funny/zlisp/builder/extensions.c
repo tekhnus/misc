@@ -6,11 +6,11 @@
 
 EXPORT struct lisp_extension standard_extension_make() {
   vec program;
-  size_t instruction;
+  size_t instruction = 0;
   datum routine_;
   datum compdata;
   char *err =
-      standard_extension_init(&program, &instruction, &routine_, &compdata);
+      standard_extension_init(&program, &routine_, &compdata);
   if (err != NULL) {
     fprintf(stderr, "%s\n", err);
     exit(EXIT_FAILURE);
@@ -26,7 +26,7 @@ EXPORT extension *standard_extension_alloc_make() {
   return &res->base;
 }
 
-LOCAL char *standard_extension_init(vec *program, size_t *instruction,
+LOCAL char *standard_extension_init(vec *program,
                                     datum *routine_, datum *compdata) {
   *program = vec_create_slice();
   size_t lisp_extension_builder_prg = 0;
@@ -35,7 +35,6 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
   datum lisp_extension_builder_compdata = compdata_make();
   lisp_extension_builder_prg =
       prog_build_init(program, compdata, &lisp_extension_builder_compdata);
-  *instruction = vec_length(program) - 1;
   struct extension lisp_extension_ext = null_extension_make();
   char fname[256] = {0};
   module_to_filename(fname, "extensions");
@@ -48,7 +47,6 @@ LOCAL char *standard_extension_init(vec *program, size_t *instruction,
   char *res = prog_build(
       program, &lisp_extension_builder_prg, &initialization_statements,
       compdata, &lisp_extension_builder_compdata, &set, &lisp_extension_ext);
-  *instruction = vec_length(program) - 1;
   if (res) {
     fprintf(stderr, "while building extensions: %s\n", res);
     exit(EXIT_FAILURE);
