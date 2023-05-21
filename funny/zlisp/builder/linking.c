@@ -137,6 +137,7 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   size_t prog_off = *p;
   prog_append_bytecode(sl, p, bc);
   assert(put_prog_off + 1 == prog_off);
+  *p = vec_length(sl) - 1;
   *vec_at(sl, put_prog_off) = prog_get_put_prog(*p - put_prog_off, 0);
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);

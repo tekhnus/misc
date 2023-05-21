@@ -109,6 +109,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     size_t true_end = prog_append_something(sl, off); // filled below.
+    *off = vec_length(sl) - 1;
     *vec_at(sl, if_instruction) = prog_get_if(*off - if_instruction);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
@@ -119,11 +120,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     size_t false_end = prog_append_something(sl, off);
+    *off = vec_length(sl) - 1;
     *vec_at(sl, true_end) = prog_get_jmp(*off - true_end);
     err = prog_append_merge_compdata(sl, off, compdata, false_compdata);
     if (err != NULL) {
       return err;
     }
+    *off = vec_length(sl) - 1;
     *vec_at(sl, false_end) = prog_get_jmp(*off - false_end);
     return NULL;
   }
@@ -131,6 +134,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     datum *cond = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
     char *err;
+    *off = vec_length(sl) - 1;
     size_t pre_condition_check = *off;
     datum pre_condition_check_compdata = datum_copy(compdata);
     err = prog_append_expression(sl, off, cond, compdata, ext);
@@ -143,6 +147,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     size_t jump_back = prog_append_something(sl, off); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
+    *off = vec_length(sl) - 1;
     size_t loop_end = *off;
     *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check);
     return NULL;
@@ -187,6 +192,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     assert(put_prog_off + 1 == prog_off);
+    *off = vec_length(sl) - 1;
     *vec_at(sl, put_prog_off) = prog_get_put_prog(*off - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
