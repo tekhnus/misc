@@ -342,7 +342,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.yield_meta = list_at(d, 4);
   } else {
     fprintf(stderr, "unknown instruction: %s\n", datum_repr(d));
-    exit(EXIT_FAILURE); 
+    exit(EXIT_FAILURE);
   }
   return res;
 }

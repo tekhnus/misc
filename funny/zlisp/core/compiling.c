@@ -180,6 +180,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (err != NULL) {
       return err;
     }
+    datum errm = datum_make_bytestring("routine guard reached");
+    prog_append_put_const(sl, &errm, &routine_compdata);
+    prog_append_yield(sl, datum_make_symbol("panic"), 1, 0, datum_make_nil(),
+                      &routine_compdata);
     assert(put_prog_off + 1 == prog_off);
     *vec_at(sl, put_prog_off) =
         prog_get_put_prog(prog_get_next_index(sl) - put_prog_off, 2);

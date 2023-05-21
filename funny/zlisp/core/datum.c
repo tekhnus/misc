@@ -341,7 +341,7 @@ EXPORT vec vec_make_of(size_t count, ...) {
 EXPORT datum *vec_at(vec *s, size_t index) {
   if (index >= s->length) {
     fprintf(stderr, "prog slice index overflow\n");
-    exit(EXIT_FAILURE);
+    assert(false);
   }
   return s->begin + index;
 }

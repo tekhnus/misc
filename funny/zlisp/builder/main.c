@@ -62,10 +62,10 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
                         extension *ext) {
   size_t start_p = prog_get_next_index(sl);
   char *res = prog_compile_and_relocate(sl, source, compdata, ext);
-  datum *input_meta = extract_meta(*sl, start_p);
   if (res != NULL) {
     return res;
   }
+  datum *input_meta = extract_meta(*sl, start_p);
   int yield_count = compdata_has_value(compdata) ? 1 : 0;
   datum nil = datum_make_nil();
   prog_append_yield(sl, datum_make_symbol("halt"), yield_count, 0, nil,
