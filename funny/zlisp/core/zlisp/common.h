@@ -143,10 +143,9 @@ typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   extension base;
   vec program;
-  size_t instruction;
   datum routine_;
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
 };
-lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 extension null_extension_make();

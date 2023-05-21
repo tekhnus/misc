@@ -6,7 +6,6 @@
 
 EXPORT struct lisp_extension standard_extension_make() {
   vec program;
-  size_t instruction = 0;
   datum routine_;
   datum compdata;
   char *err =
@@ -15,7 +14,7 @@ EXPORT struct lisp_extension standard_extension_make() {
     fprintf(stderr, "%s\n", err);
     exit(EXIT_FAILURE);
   }
-  return lisp_extension_make(program, instruction, routine_, compdata,
+  return lisp_extension_make(program, routine_, compdata,
                              host_ffi);
 }
 

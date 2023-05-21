@@ -8,20 +8,18 @@ typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   extension base;
   vec program;
-  size_t instruction;
   datum routine_;
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
 };
 #endif
 
-EXPORT lisp_extension lisp_extension_make(vec program, size_t instruction,
+EXPORT lisp_extension lisp_extension_make(vec program,
                                           datum routine_, datum compdata,
                                           fdatum (*yield_handler)(datum *,
                                                                   datum *)) {
   lisp_extension e = {{.call = lisp_extension_call},
                       program,
-                      instruction,
                       routine_,
                       compdata,
                       yield_handler};
@@ -96,7 +94,6 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   extension ext = null_extension_make();
   char *err =
       prog_compile_and_relocate(&est->program, &mod, &est->compdata, &ext);
-  est->instruction = vec_length(&est->program) - 1;
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;

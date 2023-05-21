@@ -57,7 +57,6 @@ typedef struct lisp_extension lisp_extension;
 struct lisp_extension {
   extension base;
   vec program;
-  size_t instruction;
   datum routine_;
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
@@ -66,7 +65,7 @@ LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
 LOCAL char *null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata);
 extension null_extension_make();
 LOCAL char *lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata);
-lisp_extension lisp_extension_make(vec program,size_t instruction,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 LOCAL size_t routine_get_stack_size(routine *r);
