@@ -7,23 +7,22 @@
 
 EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                               datum *builder_compdata) {
-  size_t e = 0;
   datum nil = datum_make_nil();
-  prog_append_yield(sl, &e, datum_make_symbol("halt"), 0, 0, nil,
+  prog_append_yield(sl, datum_make_symbol("halt"), 0, 0, nil,
                     builder_compdata);
-  size_t bdr_put_prog = prog_append_something(sl, &e); // filled below
+  size_t bdr_put_prog = prog_append_something(sl); // filled below
   size_t ep_start = vec_length(sl) - 1;
-  prog_append_yield(sl, &e, datum_make_symbol("plain"), 0, 0, nil, compdata);
-  size_t jm = prog_append_something(sl, &e); // filled below
+  prog_append_yield(sl, datum_make_symbol("plain"), 0, 0, nil, compdata);
+  size_t jm = prog_append_something(sl); // filled below
   assert(bdr_put_prog + 1 == ep_start);
   *vec_at(sl, bdr_put_prog) = prog_get_put_prog(vec_length(sl) - 1 - bdr_put_prog, 0);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));
   prog_append_call(
-      sl, &e, 0,
+      sl, 0,
       datum_make_list_of(compdata_get_top_polyindex(builder_compdata)), false,
       datum_make_symbol("plain"), 0, 0, builder_compdata);
   size_t bdr =
-      prog_append_something(sl, &e); // this is first builder instruction.
+      prog_append_something(sl); // this is first builder instruction.
   // filled by prog_build.
   *vec_at(sl, jm) = prog_get_jmp(vec_length(sl) - 1 - jm);
   return bdr;
@@ -46,10 +45,10 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
     return err;
   }
   datum v = datum_make_symbol("__main__");
-  prog_append_copy(sl, bdr_p, &v, builder_compdata);
+  prog_append_copy(sl, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
   prog_put_deps(sl, bdr_p, input_meta, builder_compdata);
-  prog_append_call(sl, bdr_p, 0, datum_make_list_of(fn_index), false,
+  prog_append_call(sl, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
                    builder_compdata);
   *bdr_p = vec_length(sl) - 1;
@@ -72,12 +71,13 @@ LOCAL char *prog_build_deps(vec *sl, size_t *p, datum *deps,
 }
 
 LOCAL void prog_put_deps(vec *sl, size_t *p, datum *deps, datum *compdata) {
+  if (p == p + 1) {}
   char varname[1024];
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
     get_varname(varname, dep);
     datum vn = datum_make_symbol(varname);
-    prog_append_copy(sl, p, &vn, compdata);
+    prog_append_copy(sl, &vn, compdata);
   }
 }
 
@@ -133,15 +133,15 @@ LOCAL char *prog_build_dep(vec *sl, size_t *p, datum *dep_and_sym,
   if (err != NULL) {
     return err;
   }
-  size_t put_prog_off = prog_append_something(sl, p); // filled below
+  size_t put_prog_off = prog_append_something(sl); // filled below
   size_t prog_off = vec_length(sl) - 1;
-  prog_append_bytecode(sl, p, bc);
+  prog_append_bytecode(sl, bc);
   assert(put_prog_off + 1 == prog_off);
   *vec_at(sl, put_prog_off) = prog_get_put_prog(vec_length(sl) - 1 - put_prog_off, 0);
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum fn_index = compdata_get_top_polyindex(compdata);
   prog_put_deps(sl, p, transitive_deps, compdata);
-  prog_append_call(sl, p, 0, datum_make_list_of(fn_index), false,
+  prog_append_call(sl, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), compdata);
   datum names = datum_make_nil();
