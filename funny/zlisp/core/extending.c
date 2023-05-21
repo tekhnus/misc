@@ -14,8 +14,8 @@ struct lisp_extension {
 };
 #endif
 
-EXPORT lisp_extension lisp_extension_make(vec program,
-                                          datum routine_, datum compdata,
+EXPORT lisp_extension lisp_extension_make(vec program, datum routine_,
+                                          datum compdata,
                                           fdatum (*yield_handler)(datum *,
                                                                   datum *)) {
   lisp_extension e = {{.call = lisp_extension_call},
@@ -30,8 +30,8 @@ EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL char *lisp_extension_call(extension *self_, vec *sl,
-                                datum *source, int *i, datum *compdata) {
+LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
+                                int *i, datum *compdata) {
   extension nu = null_extension_make();
   int i_val = *i;
   char *err = null_extension_call(&nu, sl, source, i, compdata);
@@ -109,8 +109,8 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   return fdatum_make_ok(res.value);
 }
 
-LOCAL char *null_extension_call(extension *self, vec *sl,
-                                datum *source, int *i, datum *compdata) {
+LOCAL char *null_extension_call(extension *self, vec *sl, datum *source, int *i,
+                                datum *compdata) {
   datum *op = list_at(source, *i);
   datum stmt;
   if (datum_is_the_symbol(op, "req")) {
@@ -126,8 +126,8 @@ LOCAL char *null_extension_call(extension *self, vec *sl,
   return NULL;
 }
 
-LOCAL char *prog_append_usages(vec *sl, datum *spec,
-                               datum *compdata, extension *ext) {
+LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
+                               extension *ext) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -188,8 +188,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
   return fdatum_make_ok(datum_make_list_of(vars, specs));
 }
 
-LOCAL char *prog_append_exports(vec *sl, datum *spec,
-                                datum *compdata, extension *ext) {
+LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
+                                extension *ext) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
     return res.panic_message;

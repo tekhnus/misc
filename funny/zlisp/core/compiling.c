@@ -7,8 +7,7 @@
 #if INTERFACE
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i,
-                datum *compdata);
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
 };
 #endif
 
@@ -32,8 +31,8 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   return fdatum_make_ok(vec_to_datum(&sl));
 }
 
-EXPORT char *prog_append_expressions(vec *sl, datum *source,
-                                     datum *compdata, extension *ext) {
+EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
+                                     extension *ext) {
   assert(datum_is_list(source));
   int i = 0;
   for (;;) {
@@ -41,8 +40,7 @@ EXPORT char *prog_append_expressions(vec *sl, datum *source,
       break;
     }
     int i_before = i;
-    char *err =
-        prog_append_consume_expression(sl, source, &i, compdata, ext);
+    char *err = prog_append_consume_expression(sl, source, &i, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -57,15 +55,14 @@ EXPORT char *prog_append_expressions(vec *sl, datum *source,
   return NULL;
 }
 
-LOCAL char *prog_append_expression(vec *sl, datum *stmt,
-                                   datum *compdata, extension *ext) {
+LOCAL char *prog_append_expression(vec *sl, datum *stmt, datum *compdata,
+                                   extension *ext) {
   datum exprs = datum_make_list_of(*stmt);
   return prog_append_expressions(sl, &exprs, compdata, ext);
 }
 
-LOCAL char *prog_append_consume_expression(vec *sl, datum *source,
-                                           int *i, datum *compdata,
-                                           extension *ext) {
+LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
+                                           datum *compdata, extension *ext) {
   int i_val = *i;
   char *err = ext->call(ext, sl, source, i, compdata);
   if (err != NULL) {
@@ -426,8 +423,7 @@ EXPORT size_t prog_append_something(vec *s) {
   return cur;
 }
 
-EXPORT void prog_append_put_const(vec *sl, datum *val,
-                                  datum *compdata) {
+EXPORT void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
   size_t begin_ = vec_length(sl) - 1;
   *vec_at(sl, begin_) =
       datum_make_list_of(datum_make_symbol(":put-const"), datum_copy(val));
@@ -435,8 +431,7 @@ EXPORT void prog_append_put_const(vec *sl, datum *val,
   vec_append_new(sl);
 }
 
-LOCAL void prog_append_collect(vec *sl, size_t count,
-                               datum *compdata) {
+LOCAL void prog_append_collect(vec *sl, size_t count, datum *compdata) {
   size_t begin_;
   begin_ = vec_length(sl) - 1;
   *vec_at(sl, begin_) =
@@ -565,8 +560,7 @@ LOCAL char *prog_append_merge_compdata(vec *sl, datum *compdata,
   return NULL;
 }
 
-EXPORT void store_values_to_variables(vec *sl, datum *var,
-                                      datum *compdata) {
+EXPORT void store_values_to_variables(vec *sl, datum *var, datum *compdata) {
   if (!datum_is_list(var)) {
     fprintf(stderr, "error: compdata_give_names\n");
     exit(EXIT_FAILURE);
@@ -606,8 +600,7 @@ LOCAL void compdata_give_names(datum *compdata, datum *var) {
   }
 }
 
-LOCAL void move_values_to_variables(vec *sl, datum *var,
-                                     datum *compdata) {
+LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata) {
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));

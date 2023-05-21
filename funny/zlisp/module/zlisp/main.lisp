@@ -24,7 +24,6 @@ prog-build-one-c-host = (/prelude/c-function buildlib "prog_build" '((pointer po
 prog-build-init = (/prelude/c-function buildlib "prog_build_init" '((pointer pointer pointer) sizet))
 get-host-ffi-settings = (/prelude/c-function buildlib "get_host_ffi_settings" '(() pointer))
 ext-make = (/prelude/c-function buildlib "standard_extension_alloc_make" '(() pointer))
-
 defn init-prog (sl compdata bdrcompdata)
 {nothing = (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata)
  return nothing}

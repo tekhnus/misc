@@ -8,14 +8,12 @@ EXPORT struct lisp_extension standard_extension_make() {
   vec program;
   datum routine_;
   datum compdata;
-  char *err =
-      standard_extension_init(&program, &routine_, &compdata);
+  char *err = standard_extension_init(&program, &routine_, &compdata);
   if (err != NULL) {
     fprintf(stderr, "%s\n", err);
     exit(EXIT_FAILURE);
   }
-  return lisp_extension_make(program, routine_, compdata,
-                             host_ffi);
+  return lisp_extension_make(program, routine_, compdata, host_ffi);
 }
 
 EXPORT extension *standard_extension_alloc_make() {
@@ -25,8 +23,8 @@ EXPORT extension *standard_extension_alloc_make() {
   return &res->base;
 }
 
-LOCAL char *standard_extension_init(vec *program,
-                                    datum *routine_, datum *compdata) {
+LOCAL char *standard_extension_init(vec *program, datum *routine_,
+                                    datum *compdata) {
   *program = vec_create_slice();
   size_t lisp_extension_builder_prg = 0;
   *routine_ = routine_make(lisp_extension_builder_prg, NULL);
