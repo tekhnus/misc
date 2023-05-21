@@ -109,7 +109,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     size_t true_end = prog_append_something(sl, off); // filled below.
-    *vec_at(sl, if_instruction) = get_if(*off - if_instruction);
+    *vec_at(sl, if_instruction) = prog_get_if(*off - if_instruction);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
       return err;
@@ -144,7 +144,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
     size_t jump_back = prog_append_something(sl, off); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = *off;
-    *vec_at(sl, condition_check) = get_if(loop_end - condition_check);
+    *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check);
     return NULL;
   }
   if (*i < list_length(source) &&
@@ -187,7 +187,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     assert(put_prog_off + 1 == prog_off);
-    *vec_at(sl, put_prog_off) = get_put_prog(*off - put_prog_off, 2);
+    *vec_at(sl, put_prog_off) = prog_get_put_prog(*off - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
@@ -463,16 +463,16 @@ LOCAL void prog_append_collect(vec *sl, size_t count, size_t *begin,
   *begin = vec_length(sl) - 1;
 }
 
-EXPORT datum get_put_prog(size_t next, int capture) {
+EXPORT datum prog_get_put_prog(ptrdiff_t delta, int capture) {
   return datum_make_list_of(datum_make_symbol(":put-prog"),
-                            datum_make_int(capture), datum_make_int(next));
+                            datum_make_int(capture), datum_make_int(delta));
 }
 
 EXPORT datum prog_get_jmp(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
 }
 
-LOCAL datum get_if(ptrdiff_t delta) {
+LOCAL datum prog_get_if(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":if"), datum_make_int(delta));
 }
 
