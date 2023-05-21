@@ -109,7 +109,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     size_t true_end = prog_append_something(sl); // filled below.
-    *vec_at(sl, if_instruction) = prog_get_if(vec_length(sl) - 1 - if_instruction);
+    *vec_at(sl, if_instruction) =
+        prog_get_if(vec_length(sl) - 1 - if_instruction);
     err = prog_append_merge_compdata(sl, off, false_compdata, compdata);
     if (err != NULL) {
       return err;
@@ -187,7 +188,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, size_t *off, datum *source,
       return err;
     }
     assert(put_prog_off + 1 == prog_off);
-    *vec_at(sl, put_prog_off) = prog_get_put_prog(vec_length(sl) - 1 - put_prog_off, 2);
+    *vec_at(sl, put_prog_off) =
+        prog_get_put_prog(vec_length(sl) - 1 - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
     store_values_to_variables(sl, off, &name_singleton, compdata);
@@ -355,9 +357,9 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src) {
   }
 }
 
-EXPORT void prog_append_call(vec *sl, size_t capture_size,
-                             datum indices, bool pop_one, datum type,
-                             int arg_count, int return_count, datum *compdata) {
+EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
+                             bool pop_one, datum type, int arg_count,
+                             int return_count, datum *compdata) {
   size_t begin_ = vec_length(sl) - 1;
   *vec_at(sl, begin_) = datum_make_list_of(
       datum_make_symbol(":call"), datum_make_int(capture_size), indices,
@@ -375,8 +377,7 @@ EXPORT void prog_append_call(vec *sl, size_t capture_size,
   vec_append_new(sl);
 }
 
-EXPORT void prog_append_copy(vec *sl, datum *val,
-                             datum *compdata) {
+EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
   size_t begin_ = vec_length(sl) - 1;
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
@@ -394,8 +395,8 @@ EXPORT void prog_append_copy(vec *sl, datum *val,
   vec_append_new(sl);
 }
 
-LOCAL void prog_append_move(vec *sl, datum *target,
-                            datum *source, datum *compdata) {
+LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
+                            datum *compdata) {
   size_t begin_;
   begin_ = vec_length(sl) - 1;
   *vec_at(sl, begin_) = datum_make_list_of(
@@ -613,7 +614,8 @@ LOCAL void compdata_give_names(datum *compdata, datum *var) {
 
 EXPORT void move_values_to_variables(vec *sl, size_t *begin, datum *var,
                                      datum *compdata) {
-  if (begin == begin + 1) {}
+  if (begin == begin + 1) {
+  }
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
