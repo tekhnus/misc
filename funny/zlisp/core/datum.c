@@ -310,7 +310,7 @@ EXPORT vec vec_make(size_t capacity) {
   return res;
 }
 
-EXPORT size_t vec_append(vec *s, datum x) {
+EXPORT datum *vec_append(vec *s, datum x) {
   if (s->length == s->capacity) {
     size_t new_capacity = (s->capacity + 1) * 2;
     datum *new_begin = malloc(sizeof(datum) * new_capacity);
@@ -323,7 +323,7 @@ EXPORT size_t vec_append(vec *s, datum x) {
   }
   size_t res = s->length++;
   (s->begin)[res] = x;
-  return res;
+  return s->begin + res;
 }
 
 EXPORT vec vec_make_of(size_t count, ...) {

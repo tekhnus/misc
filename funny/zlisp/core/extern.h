@@ -179,7 +179,7 @@ datum vec_to_datum(vec *v);
 size_t vec_length(vec *s);
 datum *vec_at(vec *s,size_t index);
 vec vec_make_of(size_t count,...);
-size_t vec_append(vec *s,datum x);
+datum *vec_append(vec *s,datum x);
 vec vec_make(size_t capacity);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
