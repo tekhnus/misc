@@ -14,7 +14,6 @@ enum prog_type {
   PROG_COLLECT,
   PROG_PUT_PROG,
   PROG_YIELD,
-  PROG_UNKNOWN,
 };
 
 struct prog {
@@ -342,7 +341,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.yield_recieve_count = list_at(d, 3)->integer_value;
     res.yield_meta = list_at(d, 4);
   } else {
-    res.type = PROG_UNKNOWN;
+    fprintf(stderr, "unknown instruction: %s\n", datum_repr(d));
+    exit(EXIT_FAILURE); 
   }
   return res;
 }
