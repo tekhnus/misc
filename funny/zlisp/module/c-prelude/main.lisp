@@ -192,41 +192,22 @@ defn extern-pointer (handle c-name signature)
  {return {list {:ok res}}}}
 
 export
-{{call-extension-1
-  call-extension-1}
- {panic
-  panic}
- {head
-  head}
- {tail
-  tail}
- {cons
-  cons}
- {eq
-  eq}
- {dereference
-  dereference}
- {dlsym
-  dlsym}
- {c-function
-  c-function}
- {eq
-  eq}
- {annotate
-  annotate}
- {is-constant
-  is-constant}
- {repr
-  repr}
- {concat-bytestrings
-  concat-bytestrings}
- {+
-  +}
- {wrap-pointer-into-pointer
-  wrap-pointer-into-pointer}
- {shared-library
-  shared-library}
- {extern-pointer
-  extern-pointer}
- {selflib
-  selflib}}
+{{call-extension-1 call-extension-1}
+ {panic panic}
+ {head head}
+ {tail tail}
+ {cons cons}
+ {eq eq}
+ {dereference dereference}
+ {dlsym dlsym}
+ {c-function c-function}
+ {eq eq}
+ {annotate annotate}
+ {is-constant is-constant}
+ {repr repr}
+ {concat-bytestrings concat-bytestrings}
+ {+ +}
+ {wrap-pointer-into-pointer wrap-pointer-into-pointer}
+ {shared-library shared-library}
+ {extern-pointer extern-pointer}
+ {selflib selflib}}

@@ -1,44 +1,18 @@
 req
-{{std
-  "std"}
- {decons-pat
-  "std"
-  decons-pat}
- {eq
-  "std"
-  eq}
- {head
-  "std"
-  head}
- {tail
-  "std"
-  tail}
- {repr
-  "std"
-  repr}
- {append
-  "std"
-  append}
- {list-at
-  "std"
-  list-at}
- {+
-  "std"
-  +}
- {panic
-  "std"
-  panic}
- {cons
-  "std"
-  cons}
- {prelude
-  "prelude"}
- {print
-  "prelude"
-  print}
- {concat-bytestrings
-  "std"
-  concat-bytestrings}}
+{{std "std"}
+ {decons-pat "std" decons-pat}
+ {eq "std" eq}
+ {head "std" head}
+ {tail "std" tail}
+ {repr "std" repr}
+ {append "std" append}
+ {list-at "std" list-at}
+ {+ "std" +}
+ {panic "std" panic}
+ {cons "std" cons}
+ {prelude "prelude"}
+ {print "prelude" print}
+ {concat-bytestrings "std" concat-bytestrings}}
 
 panics = '()
 fntest

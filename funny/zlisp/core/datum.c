@@ -71,7 +71,7 @@ EXPORT datum datum_make_frame(frame fr) {
 EXPORT char *datum_repr(datum *e) { return datum_repr_bounded(e, 8); }
 
 EXPORT char *datum_repr_bounded(datum *e, size_t depth) {
-  return datum_format_bounded(e, depth, 0, false, true, " ");
+  return datum_format_bounded(e, depth, 0, false, FLAT, " ");
 }
 
 LOCAL char *escape_string(char *s) {
@@ -90,8 +90,12 @@ LOCAL char *escape_string(char *s) {
   return quoted;
 }
 
+const int NON_FLAT = 0;
+const int FLAT_CHILDREN = 1;
+const int FLAT = 2;
+
 EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
-                                  bool pretty, bool flat, char *spacing) {
+                                  bool pretty, int flat, char *spacing) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (depth == 0) {
@@ -141,11 +145,12 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     }
     int inhibit_newline = -100;
     int inhibit_double_newline = -100;
+    int inhibit_child_newlines = -100;
     for (int i = first; i < list_length(e); ++i) {
       if (i > first) {
         if (sep[0] != '\n') {
           end += sprintf(end, "%s", sep);
-        } else if (inhibit_newline >= 0 || flat) {
+        } else if (inhibit_newline >= 0 || flat == FLAT) {
           end += sprintf(end, " ");
         } else if (inhibit_newline == -1 || inhibit_double_newline >= 0) {
           end += sprintf(end, "\n");
@@ -179,20 +184,33 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "req")) {
         inhibit_newline = 0;
+        inhibit_child_newlines = 1;
       } else if (datum_is_the_symbol(item, "export")) {
         inhibit_newline = 0;
+        inhibit_child_newlines = 1;
       }
       char *child_sep = "\n";
       if (datum_is_list(item) && list_length(item) > 0 &&
           !datum_is_the_symbol(list_at(item, 0), "brackets")) {
         child_sep = " ";
       }
+      int child_flatness = flat;
+      if (flat == FLAT_CHILDREN) {
+        child_flatness = FLAT;
+      }
+      if (inhibit_newline >= 0) {
+        child_flatness = FLAT;
+      }
+      if (inhibit_child_newlines >= 0) {
+        child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
+      }
       end += sprintf(end, "%s",
                      datum_format_bounded(item, depth - 1, start + 1, pretty,
-                                          flat || (inhibit_newline >= 0),
+                                          child_flatness,
                                           child_sep));
       --inhibit_newline;
       --inhibit_double_newline;
+      --inhibit_child_newlines;
     }
     if (strlen(pair) > 0) {
       end += sprintf(end, "%c", pair[1]);

@@ -1,36 +1,15 @@
 req
-{{prelude
-  "prelude"}
- {panic-
-  "prelude"
-  panic}
- {head-
-  "prelude"
-  head}
- {tail-
-  "prelude"
-  tail}
- {cons-
-  "prelude"
-  cons}
- {eq-
-  "prelude"
-  eq}
- {annotate-
-  "prelude"
-  annotate}
- {is-constant-
-  "prelude"
-  is-constant}
- {repr-
-  "prelude"
-  repr}
- {concat-bytestrings-
-  "prelude"
-  concat-bytestrings}
- {+-
-  "prelude"
-  +}}
+{{prelude "prelude"}
+ {panic- "prelude" panic}
+ {head- "prelude" head}
+ {tail- "prelude" tail}
+ {cons- "prelude" cons}
+ {eq- "prelude" eq}
+ {annotate- "prelude" annotate}
+ {is-constant- "prelude" is-constant}
+ {repr- "prelude" repr}
+ {concat-bytestrings- "prelude" concat-bytestrings}
+ {+- "prelude" +}}
 
 defn panic (x)
 {(/prelude/panic- @0 x)
@@ -182,41 +161,22 @@ defn first-good-value (x)
  (panic @0 "first-good-value: no good value")}
 
 export
-{{panic
-  panic}
- {head
-  head}
- {tail
-  tail}
- {cons
-  cons}
- {eq
-  eq}
- {eq
-  eq}
- {annotate
-  annotate}
- {is-constant
-  is-constant}
- {repr
-  repr}
- {concat-bytestrings
-  concat-bytestrings}
- {+
-  +}
- {length
-  length}
- {decons-pat
-  decons-pat}
- {append
-  append}
- {list-at
-  list-at}
- {switch-fun
-  switch-fun}
- {first-good-value
-  first-good-value}
- {type
-  type}
- {not
-  not}}
+{{panic panic}
+ {head head}
+ {tail tail}
+ {cons cons}
+ {eq eq}
+ {eq eq}
+ {annotate annotate}
+ {is-constant is-constant}
+ {repr repr}
+ {concat-bytestrings concat-bytestrings}
+ {+ +}
+ {length length}
+ {decons-pat decons-pat}
+ {append append}
+ {list-at list-at}
+ {switch-fun switch-fun}
+ {first-good-value first-good-value}
+ {type type}
+ {not not}}
