@@ -206,8 +206,7 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
       }
       end += sprintf(end, "%s",
                      datum_format_bounded(item, depth - 1, start + 1, pretty,
-                                          child_flatness,
-                                          child_sep));
+                                          child_flatness, child_sep));
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;
