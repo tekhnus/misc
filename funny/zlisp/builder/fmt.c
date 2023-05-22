@@ -77,7 +77,7 @@ LOCAL datum rewrite(datum *source) {
       }
       continue;
     }
-    if (datum_is_the_symbol(elem, "export") && i + 1 < list_length(source)) {
+    if (datum_is_the_symbol(elem, "__xxx__") && i + 1 < list_length(source)) {
       list_append(&res, rewrite(elem));
       elem = list_at(source, ++i);
       assert(datum_is_list(elem));
