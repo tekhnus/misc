@@ -11,18 +11,18 @@ req
  {testing "testing"}
  {fntest- "testing" fntestx}}
 
-defn .switch (exp argz)
+defn .switch {exp argz}
 {if (/std/not- (/std/eq- (/std/head- argz) 'brackets))
  {return "expected brackets"}
  {}
  {return {list {'brackets 'args '= exp (/std/switch-fun (/std/tail- argz))}}}}
 
 .switch.arity = 3
-defn .fntest (body expect)
+defn .fntest {body expect}
 {return (/testing/fntest- body expect)}
 
 .fntest.arity = 3
-defn .backquote (exp)
+defn .backquote {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
  {return {list {'brackets 'quote exp}}}
  {if (/std/not- exp)
@@ -34,7 +34,7 @@ defn .backquote (exp)
    {return {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
 
 .backquote.arity = 2
-defn .defnx (name args body)
-{return {list {'brackets 'defn name '() {list {'brackets 'defn '__magically_called__ args body '() '= {list {'__magically_called__ '@mut '@0 '@up2}} 'return :shouldnt-go-here}} '() '= {list {name '@mut '@0}}}}}
+defn .defnx {name args body}
+{return {list {'brackets 'defn name {list 'brackets} {list {'brackets 'defn '__magically_called__ args body '() '= {list {'__magically_called__ '@mut '@0 '@up2}} 'return :shouldnt-go-here}} '() '= {list {name '@mut '@0}}}}}
 
 .defnx.arity = 4

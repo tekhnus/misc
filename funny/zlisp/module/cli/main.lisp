@@ -26,7 +26,7 @@ req
  {em "zlisp" ext-make}}
 
 readme = "A basic REPL for zlisp."
-defn repl (sl nsp bpptr compdata bdrcompdata ex)
+defn repl {sl nsp bpptr compdata bdrcompdata ex}
 {tmp = (/prelude/fprintf stdout "> ")
  switch (/zlisp/rd stdin)
  {{(:eof)

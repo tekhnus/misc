@@ -11,79 +11,79 @@ req
  {concat-bytestrings- "prelude" concat-bytestrings}
  {+- "prelude" +}}
 
-defn panic (x)
+defn panic {x}
 {(/prelude/panic- @0 x)
  {return {}}}
 
-defn head (x)
+defn head {x}
 {return (/prelude/head- x)}
 
-defn tail (x)
+defn tail {x}
 {return (/prelude/tail- x)}
 
-defn cons (x xs)
+defn cons {x xs}
 {return (/prelude/cons- x xs)}
 
-defn eq (x y)
+defn eq {x y}
 {return (/prelude/eq- x y)}
 
-defn annotate (x)
+defn annotate {x}
 {return (/prelude/annotate- x)}
 
-defn is-constant (x)
+defn is-constant {x}
 {return (/prelude/is-constant- x)}
 
-defn repr (x)
+defn repr {x}
 {return (/prelude/repr- x)}
 
-defn concat-bytestrings (x y)
+defn concat-bytestrings {x y}
 {return (/prelude/concat-bytestrings- x y)}
 
-defn + (x y)
+defn + {x y}
 {return (/prelude/+- x y)}
 
-defn not (x)
+defn not {x}
 {if x
  {return '()}
  {return '(())}}
 
-defn last (a0)
+defn last {a0}
 {if (../tail a0)
  {return (../last (../tail a0))}
  {return (../head a0)}}
 
-defn type (x)
+defn type {x}
 {return (../head (../annotate x))}
 
-defn length (x)
+defn length {x}
 {n = 0
  while x
  {n = (../+ n 1)
   x = (../tail x)}
  {return n}}
 
-defn concat (a0 a1)
+defn concat {a0 a1}
 {if a0
  {return (../cons (../head a0) (../concat (../tail a0) a1))}
  {return a1}}
 
-defn zip (a0 a1)
+defn zip {a0 a1}
 {if a0
  {return (../cons {list {(../head a0) (../head a1)}} (../zip (../tail a0) (../tail a1)))}
  {return '()}}
 
-defn map (a0 a1)
+defn map {a0 a1}
 {if a1
  {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
  {return '()}}
 
 panic-block = '(argz (/std/panic @0 "wrong fn call"))
-defn list-at (xs n)
+defn list-at {xs n}
 {if (../eq n 0)
  {{return (../head xs)}}
  {{return (../list-at (../tail xs) (../+ n -1))}}}
 
-defn swtchone (a0)
+defn swtchone {a0}
 {if a0
  {firstarg = (../head a0)
   cond = (../head firstarg)
@@ -92,7 +92,7 @@ defn swtchone (a0)
   {return {list {'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) {list {'brackets 'args '= '(/std/list-at prearg 1) body}} rest}}}}
  {return '(/std/panic @0 "nothing matched")}}
 
-defn decons-pat (a0 a1)
+defn decons-pat {a0 a1}
 {pat = a0
  val = a1
  if (../is-constant pat)
@@ -117,7 +117,7 @@ defn decons-pat (a0 a1)
      {{return '(:ok ())}}}}
    {(../panic @0 "decons-pat met an unsupported type")}}}}
 
-defn decons-vars (a0)
+defn decons-vars {a0}
 {if (../is-constant a0)
  {return '()}
  {if (../eq (../type a0) :symbol)
@@ -129,10 +129,10 @@ defn decons-vars (a0)
    (panic @0 "decons-var met an unsupported type")}}}
 
 switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5))
-defn make-assignment (x)
+defn make-assignment {x}
 {return {list {'brackets (../head x) '= (../list-at x 1)}}}
 
-defn switch-clause (a0)
+defn switch-clause {a0}
 {if (../not (../eq (../head a0) 'brackets))
  {return "expected brackets"}
  {}
@@ -144,15 +144,15 @@ defn switch-clause (a0)
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
  {return {list {checker body}}}}
 
-defn switch-fun (a0)
+defn switch-fun {a0}
 {return (../swtchone (../map switch-clause a0))}
 
-defn append (x xs)
+defn append {x xs}
 {if xs
  {return (../cons (../head xs) (../append x (../tail xs)))}
  {return {list {x}}}}
 
-defn first-good-value (x)
+defn first-good-value {x}
 {if x
  {first-arg = (../head x)
   {if (../eq :ok (../head first-arg))

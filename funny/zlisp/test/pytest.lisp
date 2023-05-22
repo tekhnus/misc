@@ -73,16 +73,16 @@ fntest
  3)
 
 fntest
-{defn twice (arg)
+{defn twice {arg}
  {return (std/+ arg arg)}
  return (twice 35)}
 70
 
 fntest
-{defn adderf (n)
+{defn adderf {n}
  {m = {return @1 {}}
   return (std/+ n m)}
- defn adder (n)
+ defn adder {n}
  {a = adderf
   () = (a @0 @mut n)
   return a}
@@ -90,7 +90,7 @@ fntest
 7
 
 fntest
-{defn fib ()
+{defn fib {}
  {return 3
   return 5
   return 8
@@ -106,14 +106,14 @@ fntest
  13)
 
 fntest
-{defn fff (x)
+{defn fff {x}
  {return (std/+ x 42)}
  yyy = (fff 1)
  return yyy}
 43
 
 fntest
-{defn multi-ret ()
+{defn multi-ret {}
  {return {42 34}}
  (x y) = (multi-ret @2)
  return `(~x ~y)}
@@ -122,16 +122,16 @@ fntest
 
 fntest
 {y = 3
- defn fff ()
+ defn fff {}
  {x = 2
-  defn ggg ()
+  defn ggg {}
   {return (std/+ x 40)}
   return ggg}
  ggg-in-fff = (fff @mut)
  return (fff/ggg-in-fff)}
 42
 
-defn print-all (xs)
+defn print-all {xs}
 {if xs
  {res = (/prelude/print (/std/head xs))
   () = (../print-all @0 (/std/tail xs))
