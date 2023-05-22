@@ -46,6 +46,7 @@ struct fdatum {
 };
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL fdatum prog_read_usages(datum *spec);
+LOCAL datum list_to_brackets(datum *list);
 typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);

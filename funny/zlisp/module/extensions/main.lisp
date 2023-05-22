@@ -35,6 +35,6 @@ defn .backquote {exp}
 
 .backquote.arity = 2
 defn .defnx {name args body}
-{return {list {'brackets 'defn name {list 'brackets} {list {'brackets 'defn '__magically_called__ args body '() '= {list {'__magically_called__ '@mut '@0 '@up2}} 'return :shouldnt-go-here}} '() '= {list {name '@mut '@0}}}}}
+{return {list {'brackets 'defn name {list 'brackets} {list {'brackets 'defn '__magically_called__ args body {list 'brackets} '= {list {'__magically_called__ '@mut '@0 '@up2}} 'return :shouldnt-go-here}} {list 'brackets} '= {list {name '@mut '@0}}}}}
 
 .defnx.arity = 4

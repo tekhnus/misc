@@ -126,6 +126,14 @@ LOCAL char *null_extension_call(extension *self, vec *sl, datum *source, int *i,
   return NULL;
 }
 
+LOCAL datum list_to_brackets(datum *list) {
+  datum res = datum_make_list_of(datum_make_symbol("brackets"));
+  for (int k = 0; k < list_length(list); ++k) {
+    list_append(&res, datum_copy(list_at(list, k)));
+  }
+  return res;
+}
+
 LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
                                extension *ext) {
   fdatum res = prog_read_usages(spec);
@@ -139,7 +147,7 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
   datum *vars = list_at(&re, 0);
   datum *meta = list_at(&re, 1);
   datum stmt = datum_make_list_of(
-      datum_make_symbol("brackets"), datum_copy(vars), datum_make_symbol("="),
+      datum_make_symbol("brackets"), list_to_brackets(vars), datum_make_symbol("="),
       datum_make_list_of(
           datum_make_symbol("brackets"), datum_make_symbol("return"),
           datum_make_list_of(datum_make_symbol("at"),
@@ -215,7 +223,7 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   }
   list_append(&return_expr, vals);
   datum stmt =
-      datum_make_list_of(datum_make_symbol("brackets"), datum_make_nil(),
+    datum_make_list_of(datum_make_symbol("brackets"), datum_make_list_of(datum_make_symbol("brackets")),
                          datum_make_symbol("="), return_expr);
   datum code = datum_make_list_of(stmt);
   prog_append_expressions(sl, &code, compdata, ext);

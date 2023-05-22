@@ -84,7 +84,7 @@ fntest
   return (std/+ n m)}
  defn adder {n}
  {a = adderf
-  () = (a @0 @mut n)
+  {} = (a @0 @mut n)
   return a}
  return ((adder 3) 4)}
 7
@@ -95,10 +95,10 @@ fntest
   return 5
   return 8
   return 13}
- (x) = (fib @mut)
- (y) = (fib @mut)
- (z) = (fib @mut)
- (t) = (fib @mut)
+ {x} = (fib @mut)
+ {y} = (fib @mut)
+ {z} = (fib @mut)
+ {t} = (fib @mut)
  return `(~x ~y ~z ~t)}
 '(3
  5
@@ -115,7 +115,7 @@ fntest
 fntest
 {defn multi-ret {}
  {return {42 34}}
- (x y) = (multi-ret @2)
+ {x y} = (multi-ret @2)
  return `(~x ~y)}
 '(42
  34)
@@ -134,13 +134,13 @@ fntest
 defn print-all {xs}
 {if xs
  {res = (/prelude/print (/std/head xs))
-  () = (../print-all @0 (/std/tail xs))
+  {} = (../print-all @0 (/std/tail xs))
   return {}}
  {return {}}}
 
 if panics
-{() = (print-all @0 panics)
- () = (/std/panic @0 "FAILED")
+{{} = (print-all @0 panics)
+ {} = (/std/panic @0 "FAILED")
  x = 42}
 
 {x = 33}
