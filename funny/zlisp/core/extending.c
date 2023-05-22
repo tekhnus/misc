@@ -233,7 +233,10 @@ LOCAL fdatum prog_read_exports(datum *spec) {
   datum expressions = datum_make_nil();
   datum *items = list_at(spec, 1);
   for (; index < list_length(items); ++index) {
-    datum *item = list_at(items, index);
+    datum *item_ = list_at(items, index);
+    assert(datum_is_the_symbol(list_at(item_, 0), "brackets"));
+    datum item_val = list_get_tail(item_);
+    datum *item = &item_val;
     if (!datum_is_list(item) || list_length(item) != 2) {
       return fdatum_make_panic("wrong export spec");
     }
