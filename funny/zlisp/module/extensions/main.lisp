@@ -1,15 +1,35 @@
 req
-{(std "std")
- (switch-fun "std" switch-fun)
- (not- "std" not)
- (eq- "std" eq)
- (type- "std" type)
- (length- "std" length)
- (head- "std" head)
- (tail- "std" tail)
- (cons- "std" cons)
- (testing "testing")
- (fntest- "testing" fntestx)}
+{{std
+  "std"}
+ {switch-fun
+  "std"
+  switch-fun}
+ {not-
+  "std"
+  not}
+ {eq-
+  "std"
+  eq}
+ {type-
+  "std"
+  type}
+ {length-
+  "std"
+  length}
+ {head-
+  "std"
+  head}
+ {tail-
+  "std"
+  tail}
+ {cons-
+  "std"
+  cons}
+ {testing
+  "testing"}
+ {fntest-
+  "testing"
+  fntestx}}
 
 defn .switch (exp argz)
 {if (/std/not- (/std/eq- (/std/head- argz) 'brackets))

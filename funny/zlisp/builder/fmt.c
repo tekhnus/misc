@@ -77,6 +77,24 @@ LOCAL datum rewrite(datum *source) {
       }
       continue;
     }
+    if (datum_is_the_symbol(elem, "req") && i + 1 < list_length(source)) {
+      list_append(&res, rewrite(elem));
+      elem = list_at(source, ++i);
+      assert(datum_is_list(elem));
+      assert(list_length(elem) > 0);
+      assert(datum_is_the_symbol(list_at(elem, 0), "brackets"));
+      datum items = datum_make_list_of(datum_make_symbol("brackets"));
+      for (int j = 1; j < list_length(elem); ++j) {
+        datum *item = list_at(elem, j);
+        datum new_item = datum_make_list_of(datum_make_symbol("brackets"));
+        for (int k = 0; k < list_length(item); ++k) {
+          list_append(&new_item, datum_copy(list_at(item, k)));
+        }
+        list_append(&items, new_item);
+      }
+      list_append(&res, items);
+      continue;
+    }
     list_append(&res, rewrite(elem));
   }
   return res;
