@@ -74,14 +74,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "quote")) {
     datum *val = list_at(source, (*i)++);
-    if (datum_is_list(val) && list_length(val) > 0 && datum_is_the_symbol(list_at(val, 0), "brackets")) {
-      for (int i = 1; i < list_length(val); ++i) {
-        prog_append_put_const(sl, list_at(val, i), compdata);
-      }
-    } else {
-      fprintf(stderr, "!!! %s\n", datum_repr(val));
-      exit(EXIT_FAILURE);
-    }
+    prog_append_put_const(sl, val, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(head, "list")) {

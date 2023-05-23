@@ -13,10 +13,10 @@ req
  {fntest- "testing" fntestx}}
 
 defn .switch {exp argz}
-{if (/std/not- (/std/eq- (/std/head- argz) {quote {brackets}}))
+{if (/std/not- (/std/eq- (/std/head- argz) 'brackets))
  {return "expected brackets"}
  {}
- {return {list {{quote {brackets}} {quote {args}} {quote {=}} exp (/std/switch-fun (/std/tail- argz))}}}}
+ {return {list {'brackets 'args '= exp (/std/switch-fun (/std/tail- argz))}}}}
 
 .switch.arity = 3
 defn .fntest {body expect}
@@ -25,17 +25,17 @@ defn .fntest {body expect}
 .fntest.arity = 3
 defn .backquote {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return {list {{quote {brackets}} {quote {quote}} {list {{quote {brackets}} exp}}}}}
+ {return {list {'brackets 'quote exp}}}
  {if (/std/not- exp)
-  {return {list {{quote {brackets}} {quote {quote}} {list {{quote {brackets}} exp}}}}}
+  {return {list {'brackets 'quote exp}}}
   {if (/std/eq- (/std/length- exp) 3)
-   {if (/std/eq- (/std/list-at- exp 1) {quote {tilde}})
+   {if (/std/eq- (/std/list-at- exp 1) 'tilde)
     {return (/std/list-at- exp 2)}
-    {return {list {{quote {/std/cons}} (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}
-   {return {list {{quote {/std/cons}} (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
+    {return {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}
+   {return {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
 
 .backquote.arity = 2
 defn .defnx {name args body}
-{return {list {{quote {brackets}} {quote {defn}} name {list {quote {brackets}}} {list {{quote {brackets}} {quote {defn}} {quote {__magically_called__}} args body {list {quote {brackets}}} {quote {=}} {list {{quote {__magically_called__}} {quote {@mut}} {quote {@0}} {quote {@up2}}}} {quote {return}} :shouldnt-go-here}} {list {quote {brackets}}} {quote {=}} {list {name {quote {@mut}} {quote {@0}}}}}}}
+{return {list {'brackets 'defn name {list 'brackets} {list {'brackets 'defn '__magically_called__ args body {list 'brackets} '= {list {'__magically_called__ '@mut '@0 '@up2}} 'return :shouldnt-go-here}} {list 'brackets} '= {list {name '@mut '@0}}}}}
 
 .defnx.arity = 4

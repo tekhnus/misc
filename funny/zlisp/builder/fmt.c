@@ -55,22 +55,9 @@ LOCAL datum rewrite(datum *source) {
   /*     datum_is_the_symbol(list_at(source, 0), "brackets")) { */
   /*   return datum_copy(list_at(source, 1)); */
   /* } */
-  if (datum_is_list(source) && list_length(source) == 3 &&
-      datum_is_the_symbol(list_at(source, 0), "brackets") &&
-      datum_is_the_symbol(list_at(source, 1), "quote")) {
-    datum *val_ = list_at(source, 2);
-    assert(datum_is_list(val_) && list_length(val_) > 0 && datum_is_the_symbol(list_at(val_, 0), "brackets"));
-    datum vals = list_get_tail(val_);
-    if (datum_is_list(&vals) && list_length(&vals) == 1) {
-      datum *val = list_at(&vals, 0);
-      if (datum_is_list(val) && list_length(val) > 0 && !datum_is_the_symbol(list_at(val, 0), "brackets")) {
-        datum res = datum_make_list_of(datum_make_symbol("brackets"));
-        for (int i = 0; i < list_length(val); ++i) {
-          list_append(&res, datum_copy(list_at(val, i)));
-        }
-        return datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("list"), datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("quote"), res));
-      }
-    }
+  if (datum_is_list(source) && list_length(source) == 2 &&
+      datum_is_the_symbol(list_at(source, 0), "quote")) {
+    return datum_copy(source);
   }
   if (datum_is_list(source) && list_length(source) > 0 &&
       datum_is_the_symbol(list_at(source, 0), "tilde")) {

@@ -21,7 +21,7 @@ req
  {libc "libc"}
  {print "libc" print}}
 
-panics = {list {quote {}}}
+panics = '()
 fntest
 {return "hello, world!"}
 "hello, world!"
@@ -35,31 +35,16 @@ fntest
 7
 
 fntest
-{return (/std/length {list {quote {1 2 3}}})}
+{return (/std/length '(1 2 3))}
 3
 
 fntest
-{return (/std/length {list {quote {}}})}
+{return (/std/length '())}
 0
 
 fntest
-{return (/std/type {list {quote {}}})}
+{return (/std/type '())}
 :list
-
-fntest
-{return {quote {42}}}
-42
-
-fntest
-{return {list {quote {42 33}}}}
-{list
- {42
-  33}}
-
-fntest
-{return {list {quote {}}}}
-{list
- {}}
 
 fntest
 {return `42}
@@ -67,94 +52,70 @@ fntest
 
 fntest
 {return `(42 33)}
-{list
- {quote
-  {42
-   33}}}
+'(42
+ 33)
 
 fntest
 {return `(42 33 55)}
-{list
- {quote
-  {42
-   33
-   55}}}
+'(42
+ 33
+ 55)
 
 fntest
 {return `()}
-{list
- {quote
-  {}}}
+'()
 
 fntest
 {return `(42 (33 1))}
-{list
- {quote
-  {42
-   (33 1)}}}
+'(42
+ (33 1))
 
 fntest
 {return `(42 (/std/+ 33 1))}
-{list
- {quote
-  {42
-   (/std/+ 33 1)}}}
+'(42
+ (/std/+ 33 1))
 
 fntest
 {return `(42 ~(/std/+ 33 1))}
-{list
- {quote
-  {42
-   34}}}
+'(42
+ 34)
 
 fntest
 {return `(42 ~{list {(/std/+ 33 1) `foo}})}
-{list
- {quote
-  {42
-   (34 foo)}}}
+'(42
+ (34 foo))
 
 fntest
 {return {list {(/std/+ 4 3) 8}}}
-{list
- {quote
-  {7
-   8}}}
+'(7
+ 8)
 
 fntest
-{return (/std/list-at {list {quote {1 2}}} 1)}
+{return (/std/list-at '(1 2) 1)}
 2
 
 fntest
 {return (/std/eq :foo :bar)}
-{list
- {quote
-  {}}}
+'()
 
 fntest
 {bar = :foo
  {return (/std/eq :foo bar)}}
-{list
- {quote
-  {()}}}
+'(())
 
 fntest
-{return (/std/append 5 {list {quote {1 2 3 4}}})}
-{list
- {quote
-  {1
-   2
-   3
-   4
-   5}}}
+{return (/std/append 5 '(1 2 3 4))}
+'(1
+ 2
+ 3
+ 4
+ 5)
 
 fntest
 {return `(1 2 ~(/std/+ 1 2))}
-{list
- {quote
-  {1
-   2
-   3}}}
+'(1
+ 2
+ 3)
 
 fntest
 {defn twice {arg}
@@ -217,12 +178,10 @@ fntest
  {z} = (fib @mut)
  {t} = (fib @mut)
  {return `(~x ~y ~z ~t)}}
-{list
- {quote
-  {3
-   5
-   8
-   13}}}
+'(3
+ 5
+ 8
+ 13)
 
 fntest
 {defn far-fib {}
@@ -242,12 +201,10 @@ fntest
  {z} = (more-far-fib @mut @event-loop)
  {t} = (more-far-fib @mut @event-loop)
  {return `(~x ~y ~z ~t)}}
-{list
- {quote
-  {3
-   5
-   8
-   13}}}
+'(3
+ 5
+ 8
+ 13)
 
 fntest
 {res = (/prelude/fprintf stderr "hello")
@@ -259,10 +216,8 @@ fntest
  {{} = {return {42 34}}}
  {x y} = (multi-ret @2)
  {return `(~x ~y)}}
-{list
- {quote
-  {42
-   34}}}
+'(42
+ 34)
 
 fntest
 {defn foo {x}
@@ -274,11 +229,9 @@ fntest
  b = (fee @mut 33)
  c = (fee @mut 14 15)
  {return `(~a ~b ~c)}}
-{list
- {quote
-  {42
-   34
-   :done}}}
+'(42
+ 34
+ :done)
 
 fntest
 {defn cl-holder {x xs}
@@ -301,10 +254,8 @@ fntest
  a = (cl-head xs2)
  b = (cl-head (cl-tail xs2))
  {return `(~a ~b)}}
-{list
- {quote
-  {34
-   42}}}
+'(34
+ 42)
 
 fntest
 {defn fff {x}
@@ -331,7 +282,7 @@ fntest
 fntest
 {defn do-something {x}
  {res = (/libc/print x)
-  {return {quote {do-something-value}}}}
+  {return 'do-something-value}}
  defn interceptor {arg}
  {{ext-pointer arg-} = (../do-something @mut @(host "call-extension-1") @2 arg)
   res = (/libc/print "extension:")
@@ -340,10 +291,9 @@ fntest
   res = (/libc/print arg-)
   host-res = {return @1 @(host "call-extension") {ext-pointer arg-}}
   {} = (../interceptor @0 @something host-res)}
- res = (interceptor {quote {arg}})
+ res = (interceptor 'arg)
  {return res}}
-{quote
- {do-something-value}}
+'do-something-value
 
 fntest
 {defn wrapper {}
@@ -354,10 +304,8 @@ fntest
  {} = (wrapper @mut @0)
  res = (wrapper 42)
  {return res}}
-{list
- {quote
-  {42
-   42}}}
+'(42
+ 42)
 
 fntest
 {if 3

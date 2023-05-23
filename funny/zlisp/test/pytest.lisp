@@ -14,24 +14,22 @@ req
  {print "prelude" print}
  {concat-bytestrings "std" concat-bytestrings}}
 
-panics = {list {quote {}}}
+panics = '()
 fntest
-{return (std/head {list {quote {42 5 3}}})}
+{return (std/head '(42 5 3))}
 42
 
 fntest
-{return (std/tail {list {quote {42 5 3}}})}
-{list
- {quote
-  {5
-   3}}}
+{return (std/tail '(42 5 3))}
+'(5
+ 3)
 
 fntest
-{return (std/head (std/tail {list {quote {42 5 3}}}))}
+{return (std/head (std/tail '(42 5 3)))}
 5
 
 fntest
-{return (std/list-at {list {quote {42 5 3}}} 1)}
+{return (std/list-at '(42 5 3) 1)}
 5
 
 fntest
@@ -44,45 +42,35 @@ fntest
 
 fntest
 {return {list {(/std/+ 4 3) 8}}}
-{list
- {quote
-  {7
-   8}}}
+'(7
+ 8)
 
 fntest
-{return (std/list-at {list {quote {1 2}}} 1)}
+{return (std/list-at '(1 2) 1)}
 2
 
 fntest
 {return (std/eq :foo :bar)}
-{list
- {quote
-  {}}}
+'()
 
 fntest
 {bar = :foo
  return (std/eq :foo bar)}
-{list
- {quote
-  {()}}}
+'(())
 
 fntest
-{return (std/append 5 {list {quote {1 2 3 4}}})}
-{list
- {quote
-  {1
-   2
-   3
-   4
-   5}}}
+{return (std/append 5 '(1 2 3 4))}
+'(1
+ 2
+ 3
+ 4
+ 5)
 
 fntest
 {return `(1 2 ~(std/+ 1 2))}
-{list
- {quote
-  {1
-   2
-   3}}}
+'(1
+ 2
+ 3)
 
 fntest
 {defn twice {arg}
@@ -112,12 +100,10 @@ fntest
  {z} = (fib @mut)
  {t} = (fib @mut)
  return `(~x ~y ~z ~t)}
-{list
- {quote
-  {3
-   5
-   8
-   13}}}
+'(3
+ 5
+ 8
+ 13)
 
 fntest
 {defn fff {x}
@@ -131,10 +117,8 @@ fntest
  {return {42 34}}
  {x y} = (multi-ret @2)
  return `(~x ~y)}
-{list
- {quote
-  {42
-   34}}}
+'(42
+ 34)
 
 fntest
 {y = 3
