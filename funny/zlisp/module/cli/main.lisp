@@ -51,7 +51,7 @@ defn repl {sl nsp bpptr compdata bdrcompdata ex}
 
 sl = (/prelude/psm)
 bpptr = (/prelude/wrap-pointer-into-pointer 0)
-rt = (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0))
+rt = (/prelude/mres (/prelude/dereference bpptr {quote {int64}}) (/prelude/wrap-pointer-into-pointer 0))
 compdata = (/prelude/cdm)
 bdrcompdata = (/prelude/cdm)
 ex = (/prelude/em)

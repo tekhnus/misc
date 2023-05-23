@@ -44,8 +44,8 @@ defn + {x y}
 
 defn not {x}
 {if x
- {return '()}
- {return '(())}}
+ {return {list {quote {}}}}
+ {return {list {quote {()}}}}}
 
 defn last {a0}
 {if (../tail a0)
@@ -70,14 +70,14 @@ defn concat {a0 a1}
 defn zip {a0 a1}
 {if a0
  {return (../cons {list {(../head a0) (../head a1)}} (../zip (../tail a0) (../tail a1)))}
- {return '()}}
+ {return {list {quote {}}}}}
 
 defn map {a0 a1}
 {if a1
  {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
- {return '()}}
+ {return {list {quote {}}}}}
 
-panic-block = '(argz (/std/panic @0 "wrong fn call"))
+panic-block = {list {quote {argz (/std/panic @0 "wrong fn call")}}}
 defn list-at {xs n}
 {if (../eq n 0)
  {{return (../head xs)}}
@@ -89,16 +89,16 @@ defn swtchone {a0}
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
-  {return {list {'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) {list {'brackets 'args '= '(/std/list-at prearg 1) body}} rest}}}}
- {return '(/std/panic @0 "nothing matched")}}
+  {return {list {{quote {brackets}} {quote {prearg}} {quote {=}} cond {quote {if}} {list {quote {/std/eq (/std/head prearg) :ok}}} {list {{quote {brackets}} {quote {args}} {quote {=}} {list {quote {/std/list-at prearg 1}}} body}} rest}}}}
+ {return {list {quote {/std/panic @0 "nothing matched"}}}}}
 
 defn decons-pat {a0 a1}
 {pat = a0
  val = a1
  if (../is-constant pat)
  {{if (../eq pat val)
-   {return '(:ok ())}
-   {return '(:err)}}}
+   {return {list {quote {:ok ()}}}}
+   {return {list {quote {:err}}}}}}
  {if (../eq (../type pat) :symbol)
   {{return {list {:ok {list val}}}}}
   {if (../eq (../type pat) :list)
@@ -107,41 +107,41 @@ defn decons-pat {a0 a1}
      {first-decons = (../decons-pat (../head pat) (../head val))
       rest-decons = (../decons-pat (../tail pat) (../tail val))
       {if (../eq :err (../head rest-decons))
-       {return '(:err)}
+       {return {list {quote {:err}}}}
        {if (../eq :err (../head first-decons))
-        {return '(:err)}
+        {return {list {quote {:err}}}}
         {return {list {:ok (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}}}
-     {{return '(:err)}}}
+     {{return {list {quote {:err}}}}}}
     {if val
-     {{return '(:err)}}
-     {{return '(:ok ())}}}}
+     {{return {list {quote {:err}}}}}
+     {{return {list {quote {:ok ()}}}}}}}
    {(../panic @0 "decons-pat met an unsupported type")}}}}
 
 defn decons-vars {a0}
 {if (../is-constant a0)
- {return '()}
+ {return {list {quote {}}}}
  {if (../eq (../type a0) :symbol)
   {return {list {a0}}}
   {if (../eq (../type a0) :list)
    {if a0
     {return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))}
-    {return '()}}
+    {return {list {quote {}}}}}
    (panic @0 "decons-var met an unsupported type")}}}
 
-switch-defines = '((/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5))
+switch-defines = {list {quote {(/std/list-at args 0) (/std/list-at args 1) (/std/list-at args 2) (/std/list-at args 3) (/std/list-at args 4) (/std/list-at args 5)}}}
 defn make-assignment {x}
-{return {list {'brackets (../head x) '= (../list-at x 1)}}}
+{return {list {{quote {brackets}} (../head x) {quote {=}} (../list-at x 1)}}}
 
 defn switch-clause {a0}
-{if (../not (../eq (../head a0) 'brackets))
+{if (../not (../eq (../head a0) {quote {brackets}}))
  {return "expected brackets"}
  {}
  a1 = (../tail a0)
  sig = (../head a1)
  cmds = (../tail a1)
- checker = {list {'/std/decons-pat {list {'brackets 'quote {list {'brackets sig}}}} 'args}}
+ checker = {list {{quote {/std/decons-pat}} {list {{quote {brackets}} {quote {quote}} {list {{quote {brackets}} sig}}}} {quote {args}}}}
  vars = (../decons-vars sig)
- body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
+ body = (../cons {quote {brackets}} (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
  {return {list {checker body}}}}
 
 defn switch-fun {a0}
