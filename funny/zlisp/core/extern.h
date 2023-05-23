@@ -149,6 +149,9 @@ struct read_result {
   };
 };
 read_result datum_read_all(FILE *stre);
+read_result datum_read_all_new(FILE *stre);
+read_result datum_read_new(FILE *strm);
+read_result datum_read_impl(FILE *strm,bool new);
 read_result datum_read(FILE *strm);
 LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);

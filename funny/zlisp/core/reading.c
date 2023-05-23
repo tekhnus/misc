@@ -219,6 +219,14 @@ LOCAL struct token token_read(FILE *strm) {
 }
 
 EXPORT read_result datum_read(FILE *strm) {
+  return datum_read_impl(strm, false);
+}
+
+EXPORT read_result datum_read_new(FILE *strm) {
+  return datum_read_impl(strm, true);
+}
+
+EXPORT read_result datum_read_impl(FILE *strm, bool new) {
   struct token tok = token_read(strm);
   if (tok.type == TOKEN_ERROR) {
     return read_result_make_panic(tok.error_message);
@@ -239,7 +247,7 @@ EXPORT read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_BRACKET) {
     read_result elem;
     datum list = datum_make_nil();
-    if (tok.type == TOKEN_LEFT_BRACKET) {
+    if (tok.type == TOKEN_LEFT_BRACKET || new) {
       list_append(&list, datum_make_symbol("brackets"));
     }
     for (;;) {
@@ -247,6 +255,9 @@ EXPORT read_result datum_read(FILE *strm) {
         list_append(&list, elem.ok_value);
       }
       if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
+        if (new) {
+          read_result_make_ok(datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("call"), list));
+        }
         return read_result_make_ok(list);
       }
       if (tok.type == TOKEN_LEFT_BRACKET &&
@@ -282,6 +293,21 @@ EXPORT read_result datum_read(FILE *strm) {
     return read_result_make_ok(res);
   }
   return read_result_make_panic("unhandled token type");
+}
+
+EXPORT read_result datum_read_all_new(FILE *stre) {
+  read_result rr;
+  datum res = datum_make_nil();
+  for (; read_result_is_ok(rr = datum_read_new(stre));) {
+    list_append(&res, rr.ok_value);
+  }
+  if (read_result_is_panic(rr)) {
+    return read_result_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
+    return read_result_make_panic("unmatched right paren");
+  }
+  return read_result_make_ok(res);
 }
 
 EXPORT read_result datum_read_all(FILE *stre) {
