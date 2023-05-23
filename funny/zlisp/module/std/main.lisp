@@ -139,7 +139,7 @@ defn switch-clause {a0}
  a1 = (../tail a0)
  sig = (../head a1)
  cmds = (../tail a1)
- checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
+ checker = {list {'/std/decons-pat {list {'brackets 'quote {list {'brackets sig}}}} 'args}}
  vars = (../decons-vars sig)
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
  {return {list {checker body}}}}

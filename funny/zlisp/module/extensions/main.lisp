@@ -25,9 +25,9 @@ defn .fntest {body expect}
 .fntest.arity = 3
 defn .backquote {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return {list {'brackets 'quote exp}}}
+ {return {list {'brackets 'quote {list {'brackets exp}}}}}
  {if (/std/not- exp)
-  {return {list {'brackets 'quote exp}}}
+  {return {list {'brackets 'quote {list {'brackets exp}}}}}
   {if (/std/eq- (/std/length- exp) 3)
    {if (/std/eq- (/std/list-at- exp 1) 'tilde)
     {return (/std/list-at- exp 2)}

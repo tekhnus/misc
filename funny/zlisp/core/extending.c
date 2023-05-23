@@ -70,7 +70,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   for (int i = 1; i < list_length(&invokation_statement); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement, i));
     datum quoted = datum_make_list_of(datum_make_symbol("brackets"),
-                                      datum_make_symbol("quote"), orig);
+                                      datum_make_symbol("quote"), datum_make_list_of(datum_make_symbol("brackets"), orig));
     *list_at(&invokation_statement, i) = quoted;
   }
   *list_at(&invokation_statement, 0) = name;

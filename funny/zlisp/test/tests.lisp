@@ -47,6 +47,18 @@ fntest
 :list
 
 fntest
+{return {quote {42}}}
+42
+
+fntest
+{return {list {quote {42 33}}}}
+{list {42 33}}
+
+fntest
+{return {list {quote {}}}}
+{list {}}
+
+fntest
 {return `42}
 42
 
