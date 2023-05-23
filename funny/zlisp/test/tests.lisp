@@ -31,6 +31,10 @@ fntest
 7
 
 fntest
+{return {call {/std/+ 4 3}}}
+7
+
+fntest
 {return (/std/length '(1 2 3))}
 3
 
