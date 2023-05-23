@@ -179,7 +179,8 @@ LOCAL struct token token_read(FILE *strm) {
     if (c == 0) {
       sym = datum_make_symbol(nm[0]);
     } else {
-      sym = datum_make_list_of(datum_make_symbol("polysym"));
+      sym = datum_make_list_of(datum_make_symbol("brackets"),
+                               datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
         datum comp = datum_make_symbol(nm[cc]);
         list_append(&sym, comp);

@@ -134,9 +134,11 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
         datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
       pair = "{}";
-    } else if (pretty && list_length(e) > 0 &&
-               datum_is_the_symbol(list_at(e, 0), "polysym")) {
-      first = 1;
+    }
+    if (pretty && list_length(e) > 1 &&
+        datum_is_the_symbol(list_at(e, 0), "brackets") &&
+        datum_is_the_symbol(list_at(e, 1), "polysym")) {
+      first = 2;
       pair = "";
       sep = "/";
     }
