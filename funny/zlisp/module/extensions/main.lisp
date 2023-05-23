@@ -6,6 +6,7 @@ req
  {type- "std" type}
  {length- "std" length}
  {head- "std" head}
+ {list-at- "std" list-at}
  {tail- "std" tail}
  {cons- "std" cons}
  {testing "testing"}
@@ -27,9 +28,9 @@ defn .backquote {exp}
  {return {list {'brackets 'quote exp}}}
  {if (/std/not- exp)
   {return {list {'brackets 'quote exp}}}
-  {if (/std/eq- (/std/length- exp) 2)
-   {if (/std/eq- (/std/head- exp) 'tilde)
-    {return (/std/head- (/std/tail- exp))}
+  {if (/std/eq- (/std/length- exp) 3)
+   {if (/std/eq- (/std/list-at- exp 1) 'tilde)
+    {return (/std/list-at- exp 2)}
     {return {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}
    {return {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
 

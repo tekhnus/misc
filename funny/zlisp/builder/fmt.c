@@ -60,7 +60,7 @@ LOCAL datum rewrite(datum *source) {
     return datum_copy(source);
   }
   if (datum_is_list(source) && list_length(source) > 0 &&
-      datum_is_the_symbol(list_at(source, 0), "at")) {
+      datum_is_the_symbol(list_at(source, 0), "tilde")) {
     datum vals = datum_make_list_of(datum_make_symbol("brackets"));
     for (int i = 0; i < list_length(source); ++i) {
       datum *elem = list_at(source, i);
