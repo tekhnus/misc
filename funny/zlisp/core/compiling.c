@@ -264,7 +264,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (!datum_is_list(head) || datum_is_nil(head)) {
     return "expected an s-expression";
   }
-  datum *fn = list_at(head, 0);
+  return prog_append_apply(sl, head, compdata, ext);
+}
+
+LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
+                              extension *ext) {
+  datum *fn = list_at(s_expr, 0);
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;
   bool mut = false;
@@ -280,8 +285,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   datum *fns = &fnsv;
   int index = 1;
-  while (index < list_length(head)) {
-    datum *tag = list_at(head, index);
+  while (index < list_length(s_expr)) {
+    datum *tag = list_at(s_expr, index);
     if (!datum_is_list(tag) || list_length(tag) != 3 ||
         !datum_is_the_symbol(list_at(tag, 0), "brackets") ||
         !datum_is_the_symbol(list_at(tag, 1), "at")) {
@@ -345,8 +350,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
   }
   int before = compdata_get_length(compdata);
-  for (; index < list_length(head); ++index) {
-    datum *arg = list_at(head, index);
+  for (; index < list_length(s_expr); ++index) {
+    datum *arg = list_at(s_expr, index);
     char *err = prog_append_expression(sl, arg, compdata, ext);
     if (err != NULL) {
       return err;
