@@ -87,8 +87,10 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   datum mod = datum_make_list_of(
       datum_make_symbol("return"),
-      datum_make_list_of(datum_make_symbol("at"), datum_make_int(0)),
-      datum_make_list_of(datum_make_symbol("at"), datum_make_symbol("halt")),
+      datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("at"),
+                         datum_make_int(0)),
+      datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("at"),
+                         datum_make_symbol("halt")),
       datum_copy(e));
 
   extension ext = null_extension_make();
@@ -151,10 +153,11 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
       datum_make_symbol("="),
       datum_make_list_of(
           datum_make_symbol("brackets"), datum_make_symbol("return"),
-          datum_make_list_of(datum_make_symbol("at"),
+          datum_make_list_of(datum_make_symbol("brackets"),
+                             datum_make_symbol("at"),
                              datum_make_int(list_length(vars))),
           datum_make_list_of(
-              datum_make_symbol("at"),
+              datum_make_symbol("brackets"), datum_make_symbol("at"),
               datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
           datum_make_list_of(datum_make_symbol("brackets"))));
   datum code = datum_make_list_of(stmt);
@@ -216,7 +219,7 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum return_expr = datum_make_list_of(
       datum_make_symbol("brackets"), datum_make_symbol("return"),
       datum_make_list_of(
-          datum_make_symbol("at"),
+          datum_make_symbol("brackets"), datum_make_symbol("at"),
           datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))));
   datum vals = datum_make_list_of(datum_make_symbol("brackets"));
   for (int i = 0; i < list_length(exprs); ++i) {
