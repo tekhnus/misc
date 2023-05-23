@@ -95,9 +95,8 @@ def merge(x, y, extvars):
 
 def main():
     bc = sys.stdin.read()
+    bc = bc.replace("{", "(").replace("}", ")")  # eww
     prog = sexpdata.loads(bc)
-    assert prog[0] == sexpdata.Symbol("brackets")
-    prog = prog[1:]
     ip = 0
     pdata = [State()]
 
