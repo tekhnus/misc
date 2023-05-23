@@ -74,6 +74,7 @@ vec vec_make_of(size_t count,...);
 datum *vec_at(vec *s,size_t index);
 size_t vec_length(vec *s);
 datum vec_to_datum(vec *v);
+datum vec_to_bracket_datum(vec *v);
 datum vec_pop(vec *v);
 datum datum_make_nil();
 bool datum_is_list(datum *e);
@@ -89,6 +90,7 @@ int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
 vec vec_copy(vec *src);
 vec *list_to_vec(datum *val);
+vec brackets_to_vec(datum *val);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,

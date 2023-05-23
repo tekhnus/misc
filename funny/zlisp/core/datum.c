@@ -375,6 +375,14 @@ EXPORT datum vec_to_datum(vec *v) {
   return res;
 }
 
+EXPORT datum vec_to_bracket_datum(vec *v) {
+  datum res = datum_make_list_of(datum_make_symbol("brackets"));
+  for (size_t i = 0; i < vec_length(v); ++i) {
+    list_append(&res, datum_copy(vec_at(v, i)));
+  }
+  return res;
+}
+
 EXPORT datum vec_pop(vec *v) {
   size_t len = vec_length(v);
   assert(len > 0);
@@ -495,4 +503,15 @@ EXPORT vec vec_copy(vec *src) {
 EXPORT vec *list_to_vec(datum *val) {
   assert(datum_is_list(val));
   return &val->list_value;
+}
+
+EXPORT vec brackets_to_vec(datum *val) {
+  assert(datum_is_list(val));
+  assert(list_length(val) > 0);
+  assert(datum_is_the_symbol(list_at(val, 0), "brackets"));
+  vec res = vec_make(list_length(val));
+  for (int i = 1; i < list_length(val); ++i) {
+    vec_append(&res, datum_copy(list_at(val, i)));
+  }
+  return res;
 }
