@@ -3,6 +3,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+extern const int NON_FLAT;
+extern const int NON_FLAT;
+extern const int FLAT_CHILDREN;
+extern const int FLAT_CHILDREN;
+extern const int FLAT;
+extern const int FLAT;
 typedef struct datum datum;
 #include <inttypes.h>
 #include <stdio.h>

@@ -196,10 +196,7 @@ datum *list_at(datum *list,unsigned index);
 bool datum_is_the_symbol(datum *d,char *val);
 int list_length(datum *seq);
 bool datum_is_list(datum *e);
-extern const int FLAT_CHILDREN;
-extern const int NON_FLAT;
 LOCAL char *escape_string(char *s);
-extern const int FLAT;
 char *datum_format_bounded(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
 char *datum_repr_bounded(datum *e,size_t depth);
 char *datum_repr(datum *e);
@@ -216,5 +213,11 @@ datum datum_make_list_of_impl(size_t count,datum *values);
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
                           (datum[]){__VA_ARGS__})
+extern const int FLAT;
+extern const int FLAT;
+extern const int FLAT_CHILDREN;
+extern const int FLAT_CHILDREN;
+extern const int NON_FLAT;
+extern const int NON_FLAT;
 #define EXPORT_INTERFACE 0
 #define INTERFACE 0

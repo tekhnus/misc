@@ -12,10 +12,18 @@
 #include <string.h>
 
 #if EXPORT_INTERFACE
+extern const int NON_FLAT;
+extern const int FLAT_CHILDREN;
+extern const int FLAT;
+
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
                           (datum[]){__VA_ARGS__})
 #endif
+
+const int NON_FLAT = 0;
+const int FLAT_CHILDREN = 1;
+const int FLAT = 2;
 
 enum fdatumype {
   FDATUM_OK,
@@ -89,10 +97,6 @@ LOCAL char *escape_string(char *s) {
   quoted[i++] = '\0';
   return quoted;
 }
-
-const int NON_FLAT = 0;
-const int FLAT_CHILDREN = 1;
-const int FLAT = 2;
 
 EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
                                   bool pretty, int flat, char *spacing) {
