@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  read_result rr = datum_read_all_new(f);
+  read_result rr = datum_read_all(f);
   fclose(f);
   if (read_result_is_panic(rr)) {
     fprintf(stderr, "zlisp-run couldn't parse bytecode: %s\n",
