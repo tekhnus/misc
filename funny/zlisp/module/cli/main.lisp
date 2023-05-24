@@ -27,34 +27,41 @@ req
 
 readme = "A basic REPL for zlisp."
 defn repl {sl nsp bpptr compdata bdrcompdata ex}
-{tmp = (/prelude/fprintf stdout "> ")
- switch (/zlisp/rd stdin)
+{tmp = {call {/prelude/fprintf stdout "> "}}
+ switch {call {/zlisp/rd stdin}}
  {{{:eof}
-   {return (/prelude/fprintf stdout "")}}
-  {{:ok datum}
-   maybe-prog = (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
+   {return {call {/prelude/fprintf stdout ""}}}}
+  {{:ok
+    datum}
+   maybe-prog = {call {/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex}}
    switch maybe-prog
-   {{{:ok progxxx}
-     switch (/zlisp/eval-new sl nsp)
-     {{{:ok val ctxt}
-       ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
-       {return (../repl sl ctxt bpptr compdata bdrcompdata ex)}}
-      {{:err msg}
-       ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg)
-       {return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
-    {{:err msg}
-     ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg)
-     {return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
-  {{:err msg}
-   ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msg)
-   {return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
+   {{{:ok
+      progxxx}
+     switch {call {/zlisp/eval-new sl nsp}}
+     {{{:ok
+        val
+        ctxt}
+       ignored = {call {/prelude/fprintf-bytestring stdout "%s\n" {call {/zlisp/repr-pointer val}}}}
+       {return {call {../repl sl ctxt bpptr compdata bdrcompdata ex}}}}
+      {{:err
+        msg}
+       ignored = {call {/prelude/fprintf-bytestring stderr "eval error: %s\n" msg}}
+       {return {call {../repl sl nsp bpptr compdata bdrcompdata ex}}}}}}
+    {{:err
+      msg}
+     ignored = {call {/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg}}
+     {return {call {../repl sl nsp bpptr compdata bdrcompdata ex}}}}}}
+  {{:err
+    msg}
+   ignored = {call {/prelude/fprintf-bytestring stderr "read error: %s\n" msg}}
+   {return {call {../repl sl nsp bpptr compdata bdrcompdata ex}}}}}}
 
-sl = (/prelude/psm)
-bpptr = (/prelude/wrap-pointer-into-pointer 0)
-rt = (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0))
-compdata = (/prelude/cdm)
-bdrcompdata = (/prelude/cdm)
-ex = (/prelude/em)
-bpval = (/zlisp/iprog sl compdata bdrcompdata)
-bpptr = (/prelude/wrap-pointer-into-pointer bpval)
-ignored = (repl sl rt bpptr compdata bdrcompdata ex)
+sl = {call {/prelude/psm}}
+bpptr = {call {/prelude/wrap-pointer-into-pointer 0}}
+rt = {call {/prelude/mres {call {/prelude/dereference bpptr 'int64}} {call {/prelude/wrap-pointer-into-pointer 0}}}}
+compdata = {call {/prelude/cdm}}
+bdrcompdata = {call {/prelude/cdm}}
+ex = {call {/prelude/em}}
+bpval = {call {/zlisp/iprog sl compdata bdrcompdata}}
+bpptr = {call {/prelude/wrap-pointer-into-pointer bpval}}
+ignored = {call {repl sl rt bpptr compdata bdrcompdata ex}}
