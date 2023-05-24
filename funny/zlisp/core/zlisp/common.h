@@ -119,7 +119,6 @@ read_result datum_read(FILE *strm);
 read_result datum_read_new(FILE *strm);
 read_result datum_read_impl(FILE *strm,bool new);
 read_result datum_read_all_new(FILE *stre);
-read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 typedef struct extension extension;
 struct extension {

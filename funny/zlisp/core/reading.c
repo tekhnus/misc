@@ -311,21 +311,6 @@ EXPORT read_result datum_read_all_new(FILE *stre) {
   return read_result_make_ok(res);
 }
 
-EXPORT read_result datum_read_all(FILE *stre) {
-  read_result rr;
-  datum res = datum_make_nil();
-  for (; read_result_is_ok(rr = datum_read(stre));) {
-    list_append(&res, rr.ok_value);
-  }
-  if (read_result_is_panic(rr)) {
-    return read_result_make_panic(rr.panic_message);
-  }
-  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
-    return read_result_make_panic("unmatched right paren");
-  }
-  return read_result_make_ok(res);
-}
-
 EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   read_result rr = datum_read(stre);
   if (read_result_is_panic(rr)) {
