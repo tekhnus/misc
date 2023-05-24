@@ -69,7 +69,7 @@ defn dereference {what how}
    {return (../deref what how)}}}}
 
 defn pointer-call-and-deserialize {fn-ptr signature params}
-{fnparamst = (../head signature)
+{fnparamst = {call {../head signature}}
  rettype = (../head (../tail signature))
  s = (../serialize-params params fnparamst)
  rawres = (../pointer-call fn-ptr {list {fnparamst rettype}} s)
@@ -85,7 +85,7 @@ defn dlopen-null {}
 
 dlsym-pointer = {return @1 @{host "dlsym"} {list {}}}
 defn dlsym {x y}
-{return (../pointer-call-and-deserialize dlsym-pointer {list {{list {'pointer 'string}} 'pointer}} {list {x y}})}
+{return {call {../pointer-call-and-deserialize dlsym-pointer {list {{list {'pointer 'string}} 'pointer}} {list {x y}}}}}
 
 defn c-data-pointer {handle c-name signature}
 {fn-pointer-pointer = (../dlsym handle c-name)
@@ -150,8 +150,8 @@ defn c-function {handle c-name signature}
  {} = (../obj @0 @mut fn-ptr signature)
  return obj}
 
-selflib = (dlopen-null)
-annotate-pointer = (dereference (dlsym selflib "builtin_annotate") 'int64)
+selflib = {call {dlopen-null}}
+annotate-pointer = (dereference {call {dlsym selflib "builtin_annotate"}} 'int64)
 defn annotate {x}
 {r = {return @1 @{host "call-extension"} {annotate-pointer x}}
  return r}

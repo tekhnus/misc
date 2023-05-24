@@ -256,7 +256,7 @@ EXPORT read_result datum_read_impl(FILE *strm, bool new) {
       }
       if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
         if (new) {
-          read_result_make_ok(datum_make_list_of(
+          return read_result_make_ok(datum_make_list_of(
               datum_make_symbol("brackets"), datum_make_symbol("call"), list));
         }
         return read_result_make_ok(list);

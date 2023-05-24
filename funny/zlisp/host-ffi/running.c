@@ -167,6 +167,7 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
     datum *a = list_at(args, arg_cnt);
 
     if (!datum_is_integer(a)) {
+      // fprintf(stderr, "!!! %s\n", datum_repr(a));
       return "int pointer expected, got something else";
     }
     cargs[arg_cnt] = (void *)a->integer_value;
