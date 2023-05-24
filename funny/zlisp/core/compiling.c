@@ -391,6 +391,8 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
 EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
                              bool pop_one, datum type, int arg_count,
                              int return_count, datum *compdata) {
+  assert(datum_is_list(&indices));
+  indices = list_to_brackets(&indices);
   vec_append(sl, datum_make_list_of(
                      datum_make_symbol(":call"), datum_make_int(capture_size),
                      indices, datum_make_int(pop_one), type,
@@ -637,3 +639,11 @@ EXPORT vec vec_create_slice() {
 }
 
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
+
+LOCAL datum list_to_brackets(datum *list) {
+  datum res = datum_make_list_of(datum_make_symbol("brackets"));
+  for (int k = 0; k < list_length(list); ++k) {
+    list_append(&res, datum_copy(list_at(list, k)));
+  }
+  return res;
+}

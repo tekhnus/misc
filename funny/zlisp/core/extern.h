@@ -46,7 +46,6 @@ struct fdatum {
 };
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL fdatum prog_read_usages(datum *spec);
-LOCAL datum list_to_brackets(datum *list);
 typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
@@ -104,6 +103,8 @@ bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 LOCAL void prog_append_move(vec *sl,datum *target,datum *source,datum *compdata);
+LOCAL datum list_to_brackets(datum *list);
+LOCAL datum list_to_brackets(datum *list);
 void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum *compdata);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_polyindex(datum *compdata,datum *var);
@@ -167,7 +168,7 @@ LOCAL bool read_result_is_right_paren(read_result x);
 LOCAL bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
-LOCAL datum brackets_to_list(datum *val);
+datum brackets_to_list(datum *val);
 vec brackets_to_vec(datum *val);
 vec *list_to_vec(datum *val);
 vec vec_copy(vec *src);

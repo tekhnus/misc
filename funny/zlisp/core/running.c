@@ -158,7 +158,7 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   if (index < 0) {
     error_instruction = datum_make_list_of(
         datum_make_symbol(":yield"), datum_make_symbol("panic"),
-        datum_make_int(1), datum_make_int(31415926), datum_make_nil());
+        datum_make_int(1), datum_make_int(31415926), datum_make_list_of(datum_make_symbol("brackets")));
     return &error_instruction;
   }
   return vec_at(sl, index);
@@ -322,7 +322,9 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;
-    res.call_indices = list_at(d, 2);
+    datum *xxx = malloc(sizeof(datum));
+    *xxx = brackets_to_list(list_at(d, 2));
+    res.call_indices = xxx;
     res.call_pop_one = list_at(d, 3)->integer_value;
     res.call_type = list_at(d, 4);
     res.call_arg_count = list_at(d, 5)->integer_value;

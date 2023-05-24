@@ -539,7 +539,7 @@ EXPORT vec brackets_to_vec(datum *val) {
   return res;
 }
 
-LOCAL datum brackets_to_list(datum *val) {
+EXPORT datum brackets_to_list(datum *val) {
   assert(datum_is_list(val));
   assert(list_length(val) > 0);
   assert(datum_is_the_symbol(list_at(val, 0), "brackets"));
