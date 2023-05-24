@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  read_result rr = datum_read_all(f);
+  read_result rr = datum_read_all_new(f);
   fclose(f);
   if (read_result_is_panic(rr)) {
     fprintf(stderr, "fmt couldn't parse source: %s\n", rr.panic_message);
