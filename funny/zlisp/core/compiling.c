@@ -276,6 +276,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (!datum_is_list(head) || datum_is_nil(head)) {
     return "expected an s-expression";
   }
+  // fprintf(stderr, "old-style call: %s\n", datum_repr(head));
   return prog_append_apply(sl, head, compdata, ext);
 }
 
