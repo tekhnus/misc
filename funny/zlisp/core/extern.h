@@ -148,6 +148,7 @@ struct read_result {
     char *panic_message;
   };
 };
+read_result datum_read_all(FILE *stre);
 read_result datum_read_all_new(FILE *stre);
 read_result datum_read_new(FILE *strm);
 read_result datum_read_impl(FILE *strm,bool new);
