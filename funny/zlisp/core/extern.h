@@ -169,6 +169,7 @@ LOCAL bool read_result_is_eof(read_result x);
 bool read_result_is_panic(read_result x);
 bool read_result_is_ok(read_result x);
 datum brackets_to_list(datum *val);
+LOCAL datum brackets_to_list_flat(datum *val);
 vec brackets_to_vec(datum *val);
 vec *list_to_vec(datum *val);
 vec vec_copy(vec *src);

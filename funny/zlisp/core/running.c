@@ -313,12 +313,20 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_const_value = list_at(d, 1);
   } else if (!strcmp(opsym, ":copy")) {
     res.type = PROG_COPY;
-    res.copy_target = list_at(d, 1);
-    res.copy_offset = list_at(d, 2);
+    datum *xxx = malloc(sizeof(datum));
+    *xxx = brackets_to_list(list_at(d, 1));
+    res.copy_target = xxx;
+    xxx = malloc(sizeof(datum));
+    *xxx = brackets_to_list(list_at(d, 2));
+    res.copy_offset = xxx;
   } else if (!strcmp(opsym, ":move")) {
     res.type = PROG_MOVE;
-    res.move_target = list_at(d, 1);
-    res.move_offset = list_at(d, 2);
+    datum *xxx = malloc(sizeof(datum));
+    *xxx = brackets_to_list(list_at(d, 1));
+    res.move_target = xxx;
+    xxx = malloc(sizeof(datum));
+    *xxx = brackets_to_list(list_at(d, 2));
+    res.move_offset = xxx;
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;

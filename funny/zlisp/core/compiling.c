@@ -421,13 +421,13 @@ EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":copy"),
-                                    target_polyindex, polyindex));
+                                    list_to_brackets(&target_polyindex), list_to_brackets(&polyindex)));
 }
 
 LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
                             datum *compdata) {
   vec_append(sl, datum_make_list_of(datum_make_symbol(":move"),
-                                    datum_copy(target), datum_copy(source)));
+                                    list_to_brackets((target)), list_to_brackets((source))));
   compdata_del(compdata);
 }
 
@@ -641,9 +641,12 @@ EXPORT vec vec_create_slice() {
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
 
 LOCAL datum list_to_brackets(datum *list) {
+  if (!datum_is_list(list)) {
+    return datum_copy(list);
+  }
   datum res = datum_make_list_of(datum_make_symbol("brackets"));
   for (int k = 0; k < list_length(list); ++k) {
-    list_append(&res, datum_copy(list_at(list, k)));
+    list_append(&res, list_to_brackets(list_at(list, k)));
   }
   return res;
 }
