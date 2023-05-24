@@ -451,7 +451,7 @@ EXPORT size_t prog_append_something(vec *sl) {
   return cur;
 }
 
-EXPORT void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
+LOCAL void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
   vec_append(
       sl, datum_make_list_of(datum_make_symbol(":put-const"), datum_copy(val)));
   compdata_put(compdata, datum_make_symbol(":anon"));
@@ -568,7 +568,7 @@ EXPORT datum compdata_get_shape(datum *compdata) {
 
 LOCAL char *prog_append_merge_compdata(vec *sl, datum *compdata,
                                        datum *another_compdata) {
-  datum nil = datum_make_nil();
+  datum nil = datum_make_list_of(datum_make_symbol("brackets"));
   datum vars = list_subtract(compdata_get_top_section(another_compdata),
                              compdata_get_top_section(compdata));
   if (datum_is_bytestring(&vars)) {
