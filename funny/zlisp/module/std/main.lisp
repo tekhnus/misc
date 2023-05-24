@@ -147,6 +147,8 @@ defn switch-clause {a0}
  {}
  a1 = {call {../tail a0}}
  sig = {call {../head a1}}
+ warning = "brackets"
+ {if (../eq (../type sig) :list) {sig = (../tail sig)} {}}
  cmds = {call {../tail a1}}
  checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
  vars = {call {../decons-vars sig}}
