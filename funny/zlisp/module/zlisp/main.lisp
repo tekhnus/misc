@@ -16,7 +16,7 @@ req
  {tail "std" tail}
  {panic "std" panic}}
 
-buildlib = (/std/first-good-value `(~(/prelude/shared-library "libzlisp-build-lib.so")))
+buildlib = (/std/first-good-value {list (/prelude/shared-library "libzlisp-build-lib.so")})
 compdata-make = (/prelude/c-function selflib "compdata_alloc_make" {list {{list {}} 'pointer}})
 make-routine-with-empty-state = (/prelude/c-function selflib "routine_make_alloc" {list {{list {'sizet 'pointer}} 'pointer}})
 prog-slice-make = (/prelude/c-function selflib "vec_create_slice" {list {{list {}} 'progslice}})
@@ -31,8 +31,8 @@ defn init-prog {sl compdata bdrcompdata}
 defn compile-prog-new {sl bpptr src compdata bdrcompdata ex}
 {e = (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)
  {if (/std/eq 0 (/prelude/dereference e 'int64))
-  {return `(:ok :nothing)}
-  {return `(:err ~(/prelude/dereference e 'string))}}}
+  {return {list {:ok :nothing}}}
+  {return {list {:err (/prelude/dereference e 'string)}}}}}
 
 routine-run-and-get-value-c-host-new = (/prelude/c-function selflib "routine_run_in_ffi_host" {list {{list {'progslice 'pointer}} 'fdatum}})
 fdatum-is-panic = (/prelude/c-function selflib "fdatum_is_panic" {list {{list {'fdatum}} 'int}})
@@ -52,9 +52,9 @@ defn eval-new {sl rt0}
 {res = (/prelude/routine-run-and-get-value-c-host-new sl rt0)
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
   {msg = (../fdatum-get-panic-message res)
-   {return `(:err ~msg)}}
+   {return {list {:err msg}}}}
   {val = (../fdatum-get-value res)
-   {return `(:ok ~val ~rt0)}}}}
+   {return {list {:ok val rt0}}}}}}
 
 datum-read-one = (/prelude/c-function selflib "datum_read_one" {list {{list {'pointer}} 'fdatum}})
 defn read {strm}
@@ -63,9 +63,9 @@ defn read {strm}
   {msg = (../fdatum-get-panic-message res)
    {if (/std/eq msg "eof")
     {return {list {':eof}}}
-    {return `(:err ~msg)}}}
+    {return {list {:err msg}}}}}
   {maybeval = (../fdatum-get-value res)
-   {return `(:ok ~maybeval)}}}}
+   {return {list {:ok maybeval}}}}}}
 
 export
 {{compile-prog-new compile-prog-new}
