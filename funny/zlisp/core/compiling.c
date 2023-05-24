@@ -434,7 +434,7 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
 EXPORT void prog_append_yield(vec *sl, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
-  vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
+  vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), list_to_brackets(&type),
                                     datum_make_int(count),
                                     datum_make_int(recieve_count), list_to_brackets(&meta)));
   for (size_t i = 0; i < count; ++i) {

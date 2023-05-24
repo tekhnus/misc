@@ -234,10 +234,10 @@ def main():
                 ip += 1
             elif (
                 isinstance(target, list)
-                and len(target) == 2
+                and len(target) == 3
                 and target[0] == sexpdata.Symbol("host")
             ):
-                instruction = target[1]
+                instruction = target[1:]
                 arg = pop_stack()
                 if (
                     isinstance(instruction, list)

@@ -346,10 +346,12 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_prog_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
-    res.yield_type = list_at(d, 1);
+    datum *xxx = malloc(sizeof(datum));
+    *xxx = brackets_to_list(list_at(d, 1));
+    res.yield_type = xxx;
     res.yield_count = list_at(d, 2)->integer_value;
     res.yield_recieve_count = list_at(d, 3)->integer_value;
-    datum *xxx = malloc(sizeof(datum));
+    xxx = malloc(sizeof(datum));
     *xxx = brackets_to_list(list_at(d, 4));
     res.yield_meta = xxx;
   } else {
