@@ -12,38 +12,35 @@ req
  {+- "prelude" +}}
 
 defn panic {x}
-{{call
-  {/prelude/panic-
-   @0
-   x}}
+{(/prelude/panic- @0 x )
  {return {}}}
 
 defn head {x}
-{return {call {/prelude/head- x}}}
+{return (/prelude/head- x )}
 
 defn tail {x}
-{return {call {/prelude/tail- x}}}
+{return (/prelude/tail- x )}
 
 defn cons {x xs}
-{return {call {/prelude/cons- x xs}}}
+{return (/prelude/cons- x xs )}
 
 defn eq {x y}
-{return {call {/prelude/eq- x y}}}
+{return (/prelude/eq- x y )}
 
 defn annotate {x}
-{return {call {/prelude/annotate- x}}}
+{return (/prelude/annotate- x )}
 
 defn is-constant {x}
-{return {call {/prelude/is-constant- x}}}
+{return (/prelude/is-constant- x )}
 
 defn repr {x}
-{return {call {/prelude/repr- x}}}
+{return (/prelude/repr- x )}
 
 defn concat-bytestrings {x y}
-{return {call {/prelude/concat-bytestrings- x y}}}
+{return (/prelude/concat-bytestrings- x y )}
 
 defn + {x y}
-{return {call {/prelude/+- x y}}}
+{return (/prelude/+- x y )}
 
 defn not {x}
 {if x
@@ -51,130 +48,121 @@ defn not {x}
  {return {list {{list {}}}}}}
 
 defn last {a0}
-{if {call {../tail a0}}
- {return {call {../last {call {../tail a0}}}}}
- {return {call {../head a0}}}}
+{if (../tail a0 )
+ {return (../last (../tail a0 ) )}
+ {return (../head a0 )}}
 
 defn type {x}
-{return {call {../head {call {../annotate x}}}}}
+{return (../head (../annotate x ) )}
 
 defn length {x}
 {n = 0
  while x
- {n = {call {../+ n 1}}
-  x = {call {../tail x}}}
+ {n = (../+ n 1 )
+  x = (../tail x )}
  {return n}}
 
 defn concat {a0 a1}
 {if a0
- {return {call {../cons {call {../head a0}} {call {../concat {call {../tail a0}} a1}}}}}
+ {return (../cons (../head a0 ) (../concat (../tail a0 ) a1 ) )}
  {return a1}}
 
 defn zip {a0 a1}
 {if a0
- {return {call {../cons {list {{call {../head a0}} {call {../head a1}}}} {call {../zip {call {../tail a0}} {call {../tail a1}}}}}}}
+ {return (../cons {list {(../head a0 ) (../head a1 )}} (../zip (../tail a0 ) (../tail a1 ) ) )}
  {return {list {}}}}
 
 defn map {a0 a1}
 {if a1
- {return {call {../cons {call {../a0 {call {../head a1}}}} {call {../map a0 {call {../tail a1}}}}}}}
+ {return (../cons (../a0 (../head a1 ) ) (../map a0 (../tail a1 ) ) )}
  {return {list {}}}}
 
 panic-block = {list {'argz {list {'/std/panic '@0 '"wrong fn call"}}}}
 defn list-at {xs n}
-{if {call {../eq n 0}}
- {{return {call {../head xs}}}}
- {{return {call {../list-at {call {../tail xs}} {call {../+ n -1}}}}}}}
+{if (../eq n 0 )
+ {{return (../head xs )}}
+ {{return (../list-at (../tail xs ) (../+ n -1 ) )}}}
 
 defn swtchone {a0}
 {if a0
- {firstarg = {call {../head a0}}
-  cond = {call {../head firstarg}}
-  body = {call {../list-at firstarg 1}}
-  rest = {call {../swtchone {call {../tail a0}}}}
+ {firstarg = (../head a0 )
+  cond = (../head firstarg )
+  body = (../list-at firstarg 1 )
+  rest = (../swtchone (../tail a0 ) )
   {return {list {'brackets 'prearg '= cond 'if {list {'/std/eq {list {'/std/head 'prearg}} ':ok}} {list {'brackets 'args '= {list {'/std/list-at 'prearg '1}} body}} rest}}}}
  {return {list {'/std/panic '@0 '"nothing matched"}}}}
 
 defn decons-pat {a0 a1}
 {pat = a0
  val = a1
- if {call {../is-constant pat}}
- {{if {call {../eq pat val}}
+ if (../is-constant pat )
+ {{if (../eq pat val )
    {return {list {':ok {list {}}}}}
    {return {list {':err}}}}}
- {if {call {../eq {call {../type pat}} :symbol}}
+ {if (../eq (../type pat ) :symbol )
   {{return {list {:ok {list val}}}}}
-  {if {call {../eq {call {../type pat}} :list}}
+  {if (../eq (../type pat ) :list )
    {if pat
     {if val
-     {first-decons = {call {../decons-pat {call {../head pat}} {call {../head val}}}}
-      rest-decons = {call {../decons-pat {call {../tail pat}} {call {../tail val}}}}
-      {if {call {../eq :err {call {../head rest-decons}}}}
+     {first-decons = (../decons-pat (../head pat ) (../head val ) )
+      rest-decons = (../decons-pat (../tail pat ) (../tail val ) )
+      {if (../eq :err (../head rest-decons ) )
        {return {list {':err}}}
-       {if {call {../eq :err {call {../head first-decons}}}}
+       {if (../eq :err (../head first-decons ) )
         {return {list {':err}}}
-        {return {list {:ok {call {../concat {call {../list-at first-decons 1}} {call {../list-at rest-decons 1}}}}}}}}}}
+        {return {list {:ok (../concat (../list-at first-decons 1 ) (../list-at rest-decons 1 ) )}}}}}}
      {{return {list {':err}}}}}
     {if val
      {{return {list {':err}}}}
      {{return {list {':ok {list {}}}}}}}}
-   {{call
-     {../panic
-      @0
-      "decons-pat met an unsupported type"}}}}}}
+   {(../panic @0 "decons-pat met an unsupported type" )}}}}
 
 defn decons-vars {a0}
-{if {call {../is-constant a0}}
+{if (../is-constant a0 )
  {return {list {}}}
- {if {call {../eq {call {../type a0}} :symbol}}
+ {if (../eq (../type a0 ) :symbol )
   {return {list {a0}}}
-  {if {call {../eq {call {../type a0}} :list}}
+  {if (../eq (../type a0 ) :list )
    {if a0
-    {return {call {../concat {call {../decons-vars {call {../head a0}}}} {call {../decons-vars {call {../tail a0}}}}}}}
+    {return (../concat (../decons-vars (../head a0 ) ) (../decons-vars (../tail a0 ) ) )}
     {return {list {}}}}
-   {call
-    {panic
-     @0
-     "decons-var met an unsupported type"}}}}}
+   (panic @0 "decons-var met an unsupported type" )}}}
 
 switch-defines = {list {{list {'/std/list-at 'args '0}} {list {'/std/list-at 'args '1}} {list {'/std/list-at 'args '2}} {list {'/std/list-at 'args '3}} {list {'/std/list-at 'args '4}} {list {'/std/list-at 'args '5}}}}
 defn make-assignment {x}
-{return {list {'brackets {call {../head x}} '= {call {../list-at x 1}}}}}
+{return {list {'brackets (../head x ) '= (../list-at x 1 )}}}
 
 defn switch-clause {a0}
-{if {call {../not {call {../eq {call {../head a0}} 'brackets}}}}
+{if (../not (../eq (../head a0 ) 'brackets ) )
  {return "expected brackets"}
  {}
- a1 = {call {../tail a0}}
- sig = {call {../head a1}}
+ a1 = (../tail a0 )
+ sig = (../head a1 )
  warning = "brackets"
- {if {call {../eq {call {../type sig}} :list}}
-  {sig = {call {../tail sig}}}
+ {if (../eq (../type sig ) :list )
+  {sig = (../tail sig )}
   {}}
- cmds = {call {../tail a1}}
+ cmds = (../tail a1 )
  checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
- vars = {call {../decons-vars sig}}
- body = {call {../cons 'brackets {call {../concat {call {../map make-assignment {call {../zip vars switch-defines}}}} cmds}}}}
+ vars = (../decons-vars sig )
+ body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines ) ) cmds ) )
  {return {list {checker body}}}}
 
 defn switch-fun {a0}
-{return {call {../swtchone {call {../map switch-clause a0}}}}}
+{return (../swtchone (../map switch-clause a0 ) )}
 
 defn append {x xs}
 {if xs
- {return {call {../cons {call {../head xs}} {call {../append x {call {../tail xs}}}}}}}
+ {return (../cons (../head xs ) (../append x (../tail xs ) ) )}
  {return {list {x}}}}
 
 defn first-good-value {x}
 {if x
- {first-arg = {call {../head x}}
-  {if {call {../eq :ok {call {../head first-arg}}}}
-   {{return {call {../list-at first-arg 1}}}}
-   {{return {call {../first-good-value {call {../tail x}}}}}}}}
- {call
-  {panic
-   @0
-   "first-good-value: no good value"}}}
+ {first-arg = (../head x )
+  {if (../eq :ok (../head first-arg ) )
+   {{return (../list-at first-arg 1 )}}
+   {{return (../first-good-value (../tail x ) )}}}}
+ (panic @0 "first-good-value: no good value" )}
 
 export
 {{panic panic}

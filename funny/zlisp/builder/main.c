@@ -126,7 +126,7 @@ EXPORT fdatum file_source(char *fname) {
     return fdatum_make_panic(err);
   }
 
-  read_result rr = datum_read_all(stre);
+  read_result rr = datum_read_all_new(stre);
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
   }
