@@ -422,22 +422,25 @@ EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":copy"),
-                                    list_to_brackets(&target_polyindex), list_to_brackets(&polyindex)));
+                                    list_to_brackets(&target_polyindex),
+                                    list_to_brackets(&polyindex)));
 }
 
 LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
                             datum *compdata) {
   vec_append(sl, datum_make_list_of(datum_make_symbol(":move"),
-                                    list_to_brackets((target)), list_to_brackets((source))));
+                                    list_to_brackets((target)),
+                                    list_to_brackets((source))));
   compdata_del(compdata);
 }
 
 EXPORT void prog_append_yield(vec *sl, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
-  vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), list_to_brackets(&type),
-                                    datum_make_int(count),
-                                    datum_make_int(recieve_count), list_to_brackets(&meta)));
+  vec_append(sl, datum_make_list_of(
+                     datum_make_symbol(":yield"), list_to_brackets(&type),
+                     datum_make_int(count), datum_make_int(recieve_count),
+                     list_to_brackets(&meta)));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }

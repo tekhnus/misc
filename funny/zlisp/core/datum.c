@@ -137,9 +137,9 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     end += sprintf(end, "(");
     // 1 because brackets
     for (int i = 1; i < list_length(vals); ++i) {
-      end += sprintf(
-        end, "%s ",
-        datum_format_bounded(list_at(vals, i), depth, start, pretty, flat, "\n"));
+      end += sprintf(end, "%s ",
+                     datum_format_bounded(list_at(vals, i), depth, start,
+                                          pretty, flat, "\n"));
     }
     end += sprintf(end, ")");
   } else if (datum_is_list(e)) {
@@ -543,7 +543,7 @@ LOCAL datum brackets_to_list_flat(datum *val) {
   if (!datum_is_list(val)) {
     return datum_copy(val);
   }
-  if(datum_is_nil(val) || !datum_is_the_symbol(list_at(val, 0), "brackets")) {
+  if (datum_is_nil(val) || !datum_is_the_symbol(list_at(val, 0), "brackets")) {
     return datum_copy(val);
   }
   datum res = datum_make_nil();
@@ -557,7 +557,7 @@ EXPORT datum brackets_to_list(datum *val) {
   if (!datum_is_list(val)) {
     return datum_copy(val);
   }
-  if(datum_is_nil(val) || !datum_is_the_symbol(list_at(val, 0), "brackets")) {
+  if (datum_is_nil(val) || !datum_is_the_symbol(list_at(val, 0), "brackets")) {
     return datum_copy(val);
   }
   datum res = datum_make_nil();

@@ -158,7 +158,8 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   if (index < 0) {
     error_instruction = datum_make_list_of(
         datum_make_symbol(":yield"), datum_make_symbol("panic"),
-        datum_make_int(1), datum_make_int(31415926), datum_make_list_of(datum_make_symbol("brackets")));
+        datum_make_int(1), datum_make_int(31415926),
+        datum_make_list_of(datum_make_symbol("brackets")));
     return &error_instruction;
   }
   return vec_at(sl, index);
