@@ -73,13 +73,6 @@ fntest
   '5}}
 
 fntest
-{return `(1 2 ~(std/+ 1 2))}
-{list
- {'1
-  '2
-  '3}}
-
-fntest
 {defn twice {arg}
  {return (std/+ arg arg)}
  return (twice 35)}
@@ -106,7 +99,7 @@ fntest
  {y} = (fib @mut)
  {z} = (fib @mut)
  {t} = (fib @mut)
- return `(~x ~y ~z ~t)}
+ return {list {x y z t}}}
 {list
  {'3
   '5
@@ -124,7 +117,7 @@ fntest
 {defn multi-ret {}
  {return {42 34}}
  {x y} = (multi-ret @2)
- return `(~x ~y)}
+ return {list {x y}}}
 {list
  {'42
   '34}}

@@ -51,53 +51,21 @@ fntest
 42
 
 fntest
-{return `(42 33)}
+{return `{42 (/std/+ 33 1)}}
 {list
- {'42
-  '33}}
-
-fntest
-{return `(42 33 55)}
-{list
- {'42
-  '33
-  '55}}
-
-fntest
-{return `()}
-{list
- {}}
-
-fntest
-{return `(42 (33 1))}
-{list
- {'42
-  {list
-   {'33
-    '1}}}}
-
-fntest
-{return `(42 (/std/+ 33 1))}
-{list
- {'42
+ {'brackets
+  '42
   {list
    {'/std/+
     '33
     '1}}}}
 
 fntest
-{return `(42 ~(/std/+ 33 1))}
+{return `{42 ~(/std/+ 33 1)}}
 {list
- {'42
+ {'brackets
+  '42
   '34}}
-
-fntest
-{return `(42 ~{list {(/std/+ 33 1) `foo}})}
-{list
- {'42
-  {list
-   {'34
-    'foo}}}}
 
 fntest
 {return {list {(/std/+ 4 3) 8}}}
@@ -129,13 +97,6 @@ fntest
   '3
   '4
   '5}}
-
-fntest
-{return `(1 2 ~(/std/+ 1 2))}
-{list
- {'1
-  '2
-  '3}}
 
 fntest
 {defn twice {arg}
@@ -197,7 +158,7 @@ fntest
  {y} = (fib @mut)
  {z} = (fib @mut)
  {t} = (fib @mut)
- {return `(~x ~y ~z ~t)}}
+ {return {list {x y z t}}}}
 {list
  {'3
   '5
@@ -221,7 +182,7 @@ fntest
  {y} = (more-far-fib @mut @event-loop)
  {z} = (more-far-fib @mut @event-loop)
  {t} = (more-far-fib @mut @event-loop)
- {return `(~x ~y ~z ~t)}}
+ {return {list {x y z t}}}}
 {list
  {'3
   '5
@@ -237,7 +198,7 @@ fntest
 {defn multi-ret {}
  {{} = {return {42 34}}}
  {x y} = (multi-ret @2)
- {return `(~x ~y)}}
+ {return {list {x y}}}}
 {list
  {'42
   '34}}
@@ -251,7 +212,7 @@ fntest
  a = (fee @mut 41)
  b = (fee @mut 33)
  c = (fee @mut 14 15)
- {return `(~a ~b ~c)}}
+ {return {list {a b c}}}}
 {list
  {'42
   '34
@@ -277,7 +238,7 @@ fntest
  xs2 = (cl-cons 34 xs1)
  a = (cl-head xs2)
  b = (cl-head (cl-tail xs2))
- {return `(~a ~b)}}
+ {return {list {a b}}}}
 {list
  {'34
   '42}}
@@ -323,7 +284,7 @@ fntest
 fntest
 {defn wrapper {}
  {defn __magically_called__ {x}
-  {return `(~x ~x)}
+  {return {list {x x}}}
   {} = (__magically_called__ @mut @0 @up)
   {return 33}}
  {} = (wrapper @mut @0)
