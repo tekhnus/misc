@@ -87,7 +87,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_the_symbol(head, "call")) {
     datum *exp = list_at(source, (*i)++);
-    assert(datum_is_list(exp) && list_length(exp) > 0 && datum_is_the_symbol(list_at(exp, 0), "brackets"));
+    assert(datum_is_list(exp) && list_length(exp) > 0 &&
+           datum_is_the_symbol(list_at(exp, 0), "brackets"));
     datum expr = list_get_tail(exp);
     return prog_append_apply(sl, &expr, compdata, ext);
   }
@@ -219,16 +220,21 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
           !datum_is_the_symbol(list_at(tag, 1), "at")) {
         break;
       }
-      datum *content = list_at(tag, 2);
-      if (datum_is_integer(content)) {
-        recieve_count = content->integer_value;
+      datum content = datum_copy(list_at(tag, 2));
+      if (datum_is_list(&content)) {
+        if (datum_is_the_symbol(list_at(&content, 0), "brackets")) {
+          content = list_get_tail(&content);
+        }
+      }
+      if (datum_is_integer(&content)) {
+        recieve_count = content.integer_value;
         ++(*i);
-      } else if (datum_is_list(content) && list_length(content) == 2 &&
-                 datum_is_the_symbol(list_at(content, 0), "meta")) {
-        meta = datum_copy(list_at(content, 1));
+      } else if (datum_is_list(&content) && list_length(&content) == 2 &&
+                 datum_is_the_symbol(list_at(&content, 0), "meta")) {
+        meta = datum_copy(list_at(&content, 1));
         ++(*i);
       } else if (!target_defined) {
-        target = datum_copy(content);
+        target = datum_copy(&content);
         target_defined = true;
         ++(*i);
       } else {
@@ -298,15 +304,20 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
         !datum_is_the_symbol(list_at(tag, 1), "at")) {
       break;
     }
-    datum *content = list_at(tag, 2);
-    if (datum_is_integer(content)) {
-      ret_count = content->integer_value;
+    datum content = datum_copy(list_at(tag, 2));
+    if (datum_is_list(&content)) {
+      if (datum_is_the_symbol(list_at(&content, 0), "brackets")) {
+        content = list_get_tail(&content);
+      }
+    }
+    if (datum_is_integer(&content)) {
+      ret_count = content.integer_value;
       ++index;
-    } else if (datum_is_the_symbol(content, "mut")) {
+    } else if (datum_is_the_symbol(&content, "mut")) {
       mut = true;
       ++index;
     } else if (!target_is_set) {
-      target = datum_copy(content);
+      target = datum_copy(&content);
       target_is_set = true;
       ++index;
     } else {
