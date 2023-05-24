@@ -103,7 +103,8 @@ defn decons-pat {a0 a1}
   {{return {list {:ok {list val}}}}}
   {if (../eq (../type pat ) :list )
    {if pat
-    {if val
+    {if (../eq (../head pat) 'brackets) {pat = (../tail pat)} {}
+     if val
      {first-decons = (../decons-pat (../head pat ) (../head val ) )
       rest-decons = (../decons-pat (../tail pat ) (../tail val ) )
       {if (../eq :err (../head rest-decons ) )
@@ -140,12 +141,12 @@ defn switch-clause {a0}
  sig = (../head a1 )
  warning = "brackets"
  {if (../eq (../type sig ) :list )
-  {sig = (../tail sig )}
-  {}}
+  {stripped-sig = (../tail sig )}
+  {stripped-sig = sig}}
  {if sig {} {{} = (../panic "empty signature")}}
  cmds = (../tail a1 )
  checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
- vars = (../decons-vars sig )
+ vars = (../decons-vars stripped-sig )
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines ) ) cmds ) )
  {return {list {checker body}}}}
 
