@@ -142,6 +142,7 @@ defn switch-clause {a0}
  {if (../eq (../type sig ) :list )
   {sig = (../tail sig )}
   {}}
+ {if sig {} {{} = (../panic "empty signature")}}
  cmds = (../tail a1 )
  checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
  vars = (../decons-vars sig )
