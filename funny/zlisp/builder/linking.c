@@ -162,5 +162,7 @@ EXPORT datum *extract_meta(vec sl, size_t run_main_off) {
       !datum_is_the_symbol(list_at(first_main_instruction, 0), ":yield")) {
     return NULL;
   }
-  return list_at(first_main_instruction, 4);
+  datum *xxx = malloc(sizeof(datum));
+  *xxx = brackets_to_list(list_at(first_main_instruction, 4));
+  return xxx;
 }
