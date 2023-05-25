@@ -108,38 +108,34 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     sprintf(buf, "<truncated>");
   } else if (datum_is_integer(e)) {
     sprintf(buf, "%" PRId64, e->integer_value);
-  } else if (datum_is_list(e) && list_length(e) == 3 &&
-             datum_is_the_symbol(list_at(e, 0), "brackets") &&
-             datum_is_the_symbol(list_at(e, 1), "quote")) {
+  } else if (datum_is_list(e) && list_length(e) == 2 &&
+             datum_is_the_symbol(list_at(e, 0), "quote")) {
     end += sprintf(
         end, "'%s",
-        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 2 &&
              datum_is_the_symbol(list_at(e, 0), "at")) {
     end += sprintf(
         end, "@%s",
         datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
-  } else if (datum_is_list(e) && list_length(e) == 3 &&
-             datum_is_the_symbol(list_at(e, 0), "brackets") &&
-             datum_is_the_symbol(list_at(e, 1), "backquote")) {
+  } else if (datum_is_list(e) && list_length(e) == 2 &&
+             datum_is_the_symbol(list_at(e, 0), "backquote")) {
     end += sprintf(
         end, "`%s",
-        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
-  } else if (datum_is_list(e) && list_length(e) == 3 &&
-             datum_is_the_symbol(list_at(e, 0), "brackets") &&
+        datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
+  } else if (datum_is_list(e) && list_length(e) == 2 &&
              datum_is_the_symbol(list_at(e, 1), "tilde")) {
     end += sprintf(
         end, "~%s",
-        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
     char *sep = spacing;
-    if (datum_is_list(e) && list_length(e) == 3 &&
-        datum_is_the_symbol(list_at(e, 0), "brackets") &&
-        datum_is_the_symbol(list_at(e, 1), "call")) {
+    if (datum_is_list(e) && list_length(e) == 2 &&
+        datum_is_the_symbol(list_at(e, 0), "call")) {
       first = 0;
-      e = list_at(e, 2);
+      e = list_at(e, 1);
       pair = "()";
     } else if (pretty && list_length(e) > 0 &&
                datum_is_the_symbol(list_at(e, 0), "polysym")) {

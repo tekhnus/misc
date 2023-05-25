@@ -97,15 +97,13 @@ defn nth {n xs}
  [if n
   [return (../nth (../tail n) (../tail xs))]
   [return (../head xs)]]
- (../panic
-  "nth fail")]
+ (../panic "nth fail")]
 
 defn get-fn-ptr {handle c-name}
 [fn-pointer-pointer = (../dlsym handle c-name)
  fn-ptr = (../dereference fn-pointer-pointer 'int64)
  if (../eq fn-ptr 0)
- (../panic
-  "couldn't load C function")
+ (../panic "couldn't load C function")
  [return fn-ptr]]
 
 defn c-function-0 {fn-ptr signature}

@@ -56,8 +56,7 @@ fntest
  ['brackets
   '42
   [list
-   ['brackets
-    'call
+   ['call
     [list
      ['/std/+
       '33

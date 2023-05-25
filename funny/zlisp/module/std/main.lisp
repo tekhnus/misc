@@ -12,9 +12,7 @@ req
  [+- "prelude" +]]
 
 defn panic {x}
-[(/prelude/panic-
-  @0
-  x)
+[(/prelude/panic- @0 x)
  [return []]]
 
 defn head {x}
@@ -87,11 +85,7 @@ defn list-at {xs n}
 
 defn swtchone {a0}
 [if a0
- {firstarg = (../head a0)
-  cond = (../head firstarg)
-  body = (../list-at firstarg 1)
-  rest = (../swtchone (../tail a0))
-  return [list ['brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) [list ['brackets 'args '= '(/std/list-at prearg 1) body]] rest]]}
+ {firstarg = (../head a0) cond = (../head firstarg) body = (../list-at firstarg 1) rest = (../swtchone (../tail a0)) return [list ['brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) [list ['brackets 'args '= '(/std/list-at prearg 1) body]] rest]]}
  [return '(/std/panic @0 "nothing matched")]]
 
 defn decons-pat {a0 a1}
@@ -120,9 +114,7 @@ defn decons-pat {a0 a1}
     [if val
      [[return [list [':err]]]]
      [[return [list [':ok [list []]]]]]]]
-   [(../panic
-     @0
-     "decons-pat met an unsupported type")]]]]
+   [(../panic @0 "decons-pat met an unsupported type")]]]]
 
 defn decons-vars {a0}
 [if (../is-constant a0)
@@ -133,9 +125,7 @@ defn decons-vars {a0}
    [if a0
     [return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))]
     [return [list []]]]
-   (panic
-    @0
-    "decons-var met an unsupported type")]]]
+   (panic @0 "decons-var met an unsupported type")]]]
 
 switch-defines = [list ['(/std/list-at args 0) '(/std/list-at args 1) '(/std/list-at args 2) '(/std/list-at args 3) '(/std/list-at args 4) '(/std/list-at args 5)]]
 defn make-assignment {x}
@@ -175,9 +165,7 @@ defn first-good-value {x}
   [if (../eq :ok (../head first-arg))
    [[return (../list-at first-arg 1)]]
    [[return (../first-good-value (../tail x))]]]]
- (panic
-  @0
-  "first-good-value: no good value")]
+ (panic @0 "first-good-value: no good value")]
 
 export
 [[panic panic]

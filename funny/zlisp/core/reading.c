@@ -297,8 +297,8 @@ LOCAL read_result datum_read(FILE *strm) {
       list_append(&list, elem.ok_value);
     }
     if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
-      return read_result_make_ok(datum_make_list_of(
-          datum_make_symbol("brackets"), datum_make_symbol("call"), list));
+      return read_result_make_ok(
+          datum_make_list_of(datum_make_symbol("call"), list));
     }
     if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
       return read_result_make_ok(list);
