@@ -32,8 +32,8 @@ defn .backquote {exp}
   {if (/std/eq- (/std/length- exp ) 3 )
    {if (/std/eq- (/std/list-at- exp 1 ) 'tilde )
     {return (/std/list-at- exp 2 )}
-    {return {list {'/std/cons (../.backquote (/std/head- exp ) ) (../.backquote (/std/tail- exp ) )}}}}
-   {return {list {'/std/cons (../.backquote (/std/head- exp ) ) (../.backquote (/std/tail- exp ) )}}}}}}
+    {return {list {'brackets 'call {list {'brackets '/std/cons (../.backquote (/std/head- exp ) ) (../.backquote (/std/tail- exp ) )}}}}}}
+   {return {list {'brackets 'call {list {'brackets '/std/cons (../.backquote (/std/head- exp ) ) (../.backquote (/std/tail- exp ) )}}}}}}}}
 
 .backquote.arity = 2
 defn .defnx {name args body}

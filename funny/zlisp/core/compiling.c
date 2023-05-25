@@ -277,7 +277,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return "expected an s-expression";
   }
   fprintf(stderr, "old-style call: %s\n", datum_repr(head));
-  return prog_append_apply(sl, head, compdata, ext);
+  return "a plain list is not an expression";
 }
 
 LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
