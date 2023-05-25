@@ -137,18 +137,19 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     char *pair = "{}";
     char *sep = spacing;
     if (datum_is_list(e) && list_length(e) == 3 &&
-             datum_is_the_symbol(list_at(e, 0), "brackets") &&
+        datum_is_the_symbol(list_at(e, 0), "brackets") &&
         datum_is_the_symbol(list_at(e, 1), "call")) {
       first = 1;
       e = list_at(e, 2);
       pair = "()";
     } else if (pretty && list_length(e) > 1 &&
-        datum_is_the_symbol(list_at(e, 0), "brackets") &&
-        datum_is_the_symbol(list_at(e, 1), "polysym")) {
+               datum_is_the_symbol(list_at(e, 0), "brackets") &&
+               datum_is_the_symbol(list_at(e, 1), "polysym")) {
       first = 2;
       pair = "";
       sep = "/";
-    } else if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
+    } else if (list_length(e) > 0 &&
+               datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
       pair = "[]";
     }
@@ -538,7 +539,10 @@ EXPORT datum brackets_to_list(datum *val) {
   return res;
 }
 
-LOCAL datum list_to_brackets(datum *list) {
+EXPORT datum list_to_brackets(datum *list) {
+  if (!datum_is_list(list)) {
+    return datum_copy(list);
+  }
   datum res = datum_make_list_of(datum_make_symbol("brackets"));
   for (int k = 0; k < list_length(list); ++k) {
     list_append(&res, datum_copy(list_at(list, k)));

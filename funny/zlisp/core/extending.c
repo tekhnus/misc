@@ -133,14 +133,6 @@ LOCAL char *null_extension_call(extension *self, vec *sl, datum *source, int *i,
   return NULL;
 }
 
-LOCAL datum list_to_brackets(datum *list) {
-  datum res = datum_make_list_of(datum_make_symbol("brackets"));
-  for (int k = 0; k < list_length(list); ++k) {
-    list_append(&res, datum_copy(list_at(list, k)));
-  }
-  return res;
-}
-
 LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
                                extension *ext) {
   fdatum res = prog_read_usages(spec);

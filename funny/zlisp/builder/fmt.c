@@ -40,14 +40,6 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-LOCAL datum list_to_brackets(datum *list) {
-  datum res = datum_make_list_of(datum_make_symbol("brackets"));
-  for (int k = 0; k < list_length(list); ++k) {
-    list_append(&res, datum_copy(list_at(list, k)));
-  }
-  return res;
-}
-
 LOCAL datum rewrite(datum *source) {
   if (!datum_is_list(source)) {
     return datum_copy(source);

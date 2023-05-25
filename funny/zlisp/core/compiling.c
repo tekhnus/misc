@@ -636,14 +636,3 @@ EXPORT vec vec_create_slice() {
 }
 
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
-
-LOCAL datum list_to_brackets(datum *list) {
-  if (!datum_is_list(list)) {
-    return datum_copy(list);
-  }
-  datum res = datum_make_list_of(datum_make_symbol("brackets"));
-  for (int k = 0; k < list_length(list); ++k) {
-    list_append(&res, list_to_brackets(list_at(list, k)));
-  }
-  return res;
-}
