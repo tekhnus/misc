@@ -2,47 +2,47 @@ req
 []
 
 defn call-extension-1 [fnptr x]
-[r = [return @1 @[host "call-extension"] [fnptr x]]
+[r = [return @1 @{host "call-extension"} [fnptr x]]
  return r]
 
-deref-pointer = [return @1 @[host "deref-pointer"] [list []]]
+deref-pointer = [return @1 @{host "deref-pointer"} [list []]]
 defn deref [x y]
-[r = [return @1 @[host "call-extension"] [deref-pointer x y]]
+[r = [return @1 @{host "call-extension"} [deref-pointer x y]]
  return r]
 
-mkptr-pointer = [return @1 @[host "mkptr-pointer"] [list []]]
+mkptr-pointer = [return @1 @{host "mkptr-pointer"} [list []]]
 defn mkptr [x y]
-[r = [return @1 @[host "call-extension"] [mkptr-pointer x y]]
+[r = [return @1 @{host "call-extension"} [mkptr-pointer x y]]
  return r]
 
-pointer-call-pointer = [return @1 @[host "pointer-call-pointer"] [list []]]
+pointer-call-pointer = [return @1 @{host "pointer-call-pointer"} [list []]]
 defn pointer-call [x y z]
-[r = [return @1 @[host "call-extension"] [pointer-call-pointer x y z]]
+[r = [return @1 @{host "call-extension"} [pointer-call-pointer x y z]]
  return r]
 
-panic-pointer = [return @1 @[host "panic"] [list []]]
+panic-pointer = [return @1 @{host "panic"} [list []]]
 defn panic [x]
-[ignored-result = [return @1 @[host "call-extension"] [panic-pointer x]]
+[ignored-result = [return @1 @{host "call-extension"} [panic-pointer x]]
  return []]
 
-head-pointer = [return @1 @[host "head"] [list []]]
+head-pointer = [return @1 @{host "head"} [list []]]
 defn head [x]
-[r = [return @1 @[host "call-extension-1"] [head-pointer x]]
+[r = [return @1 @{host "call-extension-1"} [head-pointer x]]
  return r]
 
-tail-pointer = [return @1 @[host "tail"] [list []]]
+tail-pointer = [return @1 @{host "tail"} [list []]]
 defn tail [x]
-[r = [return @1 @[host "call-extension-1"] [tail-pointer x]]
+[r = [return @1 @{host "call-extension-1"} [tail-pointer x]]
  return r]
 
-cons-pointer = [return @1 @[host "cons"] [list []]]
+cons-pointer = [return @1 @{host "cons"} [list []]]
 defn cons [x xs]
-[r = [return @1 @[host "call-extension"] [cons-pointer x xs]]
+[r = [return @1 @{host "call-extension"} [cons-pointer x xs]]
  return r]
 
-eq-pointer = [return @1 @[host "eq"] [list []]]
+eq-pointer = [return @1 @{host "eq"} [list []]]
 defn eq [x y]
-[r = [return @1 @[host "call-extension"] [eq-pointer x y]]
+[r = [return @1 @{host "call-extension"} [eq-pointer x y]]
  return r]
 
 defn serialize-param [param signature]
@@ -75,15 +75,15 @@ defn pointer-call-and-deserialize [fn-ptr signature params]
  rawres = (../pointer-call fn-ptr [list [fnparamst rettype]] s)
  return (../dereference rawres rettype)]
 
-rtld-lazy = [return @1 @[host "RTLD_LAZY"] [list []]]
-dlopen-pointer = [return @1 @[host "dlopen"] [list []]]
+rtld-lazy = [return @1 @{host "RTLD_LAZY"} [list []]]
+dlopen-pointer = [return @1 @{host "dlopen"} [list []]]
 defn dlopen [x]
 [return (../pointer-call-and-deserialize dlopen-pointer [list [[list ['string 'sizet]] 'pointer]] [list [x rtld-lazy]])]
 
 defn dlopen-null []
 [return (../pointer-call-and-deserialize dlopen-pointer [list [[list ['pointer 'sizet]] 'pointer]] [list [(../mkptr 0 'sizet) rtld-lazy]])]
 
-dlsym-pointer = [return @1 @[host "dlsym"] [list []]]
+dlsym-pointer = [return @1 @{host "dlsym"} [list []]]
 defn dlsym [x y]
 [return (../pointer-call-and-deserialize dlsym-pointer [list [[list ['pointer 'string]] 'pointer]] [list [x y]])]
 
@@ -155,27 +155,27 @@ defn c-function [handle c-name signature]
 selflib = (dlopen-null)
 annotate-pointer = (dereference (dlsym selflib "builtin_annotate") 'int64)
 defn annotate [x]
-[r = [return @1 @[host "call-extension"] [annotate-pointer x]]
+[r = [return @1 @{host "call-extension"} [annotate-pointer x]]
  return r]
 
 is-constant-pointer = (dereference (dlsym selflib "builtin_is_constant") 'int64)
 defn is-constant [x]
-[r = [return @1 @[host "call-extension"] [is-constant-pointer x]]
+[r = [return @1 @{host "call-extension"} [is-constant-pointer x]]
  return r]
 
 repr-pointer = (dereference (dlsym selflib "builtin_repr") 'int64)
 defn repr [x]
-[r = [return @1 @[host "call-extension"] [repr-pointer x]]
+[r = [return @1 @{host "call-extension"} [repr-pointer x]]
  return r]
 
 concat-bytestrings-pointer = (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64)
 defn concat-bytestrings [x y]
-[r = [return @1 @[host "call-extension"] [concat-bytestrings-pointer x y]]
+[r = [return @1 @{host "call-extension"} [concat-bytestrings-pointer x y]]
  return r]
 
 +-pointer = (dereference (dlsym selflib "builtin_add") 'int64)
 defn + [x y]
-[r = [return @1 @[host "call-extension"] [+-pointer x y]]
+[r = [return @1 @{host "call-extension"} [+-pointer x y]]
  return r]
 
 defn wrap-pointer-into-pointer [p]

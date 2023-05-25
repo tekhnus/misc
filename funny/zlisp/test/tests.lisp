@@ -274,12 +274,12 @@ fntest
  [res = (/libc/print x)
   [return 'do-something-value]]
  defn interceptor [arg]
- [[ext-pointer arg-] = (../do-something @mut @[host "call-extension-1"] @2 arg)
+ [[ext-pointer arg-] = (../do-something @mut @{host "call-extension-1"} @2 arg)
   res = (/libc/print "extension:")
   res = (/libc/print ext-pointer)
   res = (/libc/print "argument:")
   res = (/libc/print arg-)
-  host-res = [return @1 @[host "call-extension"] [ext-pointer arg-]]
+  host-res = [return @1 @{host "call-extension"} [ext-pointer arg-]]
   [] = (../interceptor @0 @something host-res)]
  res = (interceptor 'arg)
  [return res]]

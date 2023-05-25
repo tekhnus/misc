@@ -221,7 +221,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
         break;
       }
       datum content = datum_copy(list_at(tag, 2));
-      datum content_val = brackets_to_list(&content);
+      datum content_val = datum_copy(&content);
       if (datum_is_integer(&content)) {
         recieve_count = content.integer_value;
         ++(*i);
@@ -303,7 +303,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       break;
     }
     datum content = datum_copy(list_at(tag, 2));
-    datum content_val = brackets_to_list(&content);
+    datum content_val = datum_copy(&content);
     if (datum_is_integer(&content)) {
       ret_count = content.integer_value;
       ++index;
@@ -414,25 +414,22 @@ EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":copy"),
-                                    target_polyindex,
-                                    polyindex));
+                                    target_polyindex, polyindex));
 }
 
 LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
                             datum *compdata) {
   vec_append(sl, datum_make_list_of(datum_make_symbol(":move"),
-                                    datum_copy(target),
-                                    datum_copy(source)));
+                                    datum_copy(target), datum_copy(source)));
   compdata_del(compdata);
 }
 
 EXPORT void prog_append_yield(vec *sl, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
-  vec_append(sl, datum_make_list_of(
-                     datum_make_symbol(":yield"), type,
-                     datum_make_int(count), datum_make_int(recieve_count),
-                     meta));
+  vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
+                                    datum_make_int(count),
+                                    datum_make_int(recieve_count), meta));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
