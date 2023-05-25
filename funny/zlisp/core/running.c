@@ -314,26 +314,16 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_const_value = list_at(d, 1);
   } else if (!strcmp(opsym, ":copy")) {
     res.type = PROG_COPY;
-    datum *xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 1));
-    res.copy_target = xxx;
-    xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 2));
-    res.copy_offset = xxx;
+    res.copy_target = list_at(d, 1);
+    res.copy_offset = list_at(d, 2);
   } else if (!strcmp(opsym, ":move")) {
     res.type = PROG_MOVE;
-    datum *xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 1));
-    res.move_target = xxx;
-    xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 2));
-    res.move_offset = xxx;
+    res.move_target = list_at(d, 1);
+    res.move_offset = list_at(d, 2);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;
-    datum *xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 2));
-    res.call_indices = xxx;
+    res.call_indices = list_at(d, 2);
     res.call_pop_one = list_at(d, 3)->integer_value;
     res.call_type = list_at(d, 4);
     res.call_arg_count = list_at(d, 5)->integer_value;
@@ -347,14 +337,10 @@ LOCAL prog datum_to_prog(datum *d) {
     res.put_prog_next = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
-    datum *xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 1));
-    res.yield_type = xxx;
+    res.yield_type = list_at(d, 1);
     res.yield_count = list_at(d, 2)->integer_value;
     res.yield_recieve_count = list_at(d, 3)->integer_value;
-    xxx = malloc(sizeof(datum));
-    *xxx = brackets_to_list(list_at(d, 4));
-    res.yield_meta = xxx;
+    res.yield_meta = list_at(d, 4);
   } else {
     fprintf(stderr, "unknown instruction: %s\n", datum_repr(d));
     exit(EXIT_FAILURE);
