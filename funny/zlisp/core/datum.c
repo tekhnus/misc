@@ -155,7 +155,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     }
     if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
-      pair = "{}";
+      pair = "[]";
     }
     if (pretty && list_length(e) > 1 &&
         datum_is_the_symbol(list_at(e, 0), "brackets") &&

@@ -153,10 +153,10 @@ LOCAL struct token token_read(FILE *strm) {
   if (c == '(') {
     return (struct token){.type = TOKEN_LEFT_PAREN};
   }
-  if (c == '}') {
+  if (c == ']') {
     return (struct token){.type = TOKEN_RIGHT_BRACKET};
   }
-  if (c == '{') {
+  if (c == '[') {
     return (struct token){.type = TOKEN_LEFT_BRACKET};
   }
   if (isdigit(c) || c == '-') {
