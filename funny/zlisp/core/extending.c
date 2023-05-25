@@ -70,14 +70,12 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   for (int i = 1; i < list_length(&invokation_statement); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement, i));
     assert(!datum_is_nil(&orig));
-    datum quoted = datum_make_list_of(datum_make_symbol("brackets"),
-                                      datum_make_symbol("quote"), orig);
+    datum quoted = datum_make_list_of(datum_make_symbol("quote"), orig);
     *list_at(&invokation_statement, i) = quoted;
   }
   *list_at(&invokation_statement, 0) = name;
   datum call_statement =
-      datum_make_list_of(datum_make_symbol("brackets"),
-                         datum_make_symbol("call"), invokation_statement);
+      datum_make_list_of(datum_make_symbol("call"), invokation_statement);
   fdatum res = lisp_extension_run(&call_statement, self);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
@@ -143,15 +141,15 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
   datum *vars = list_at(&re, 0);
   datum *meta = list_at(&re, 1);
   datum stmt = datum_make_list_of(
-      datum_make_symbol("brackets"), datum_copy(vars), datum_make_symbol("="),
+      datum_copy(vars), datum_make_symbol("="),
       datum_make_list_of(
-          datum_make_symbol("brackets"), datum_make_symbol("return"),
+          datum_make_symbol("return"),
           datum_make_list_of(datum_make_symbol("at"),
                              datum_make_int(list_length(vars))),
           datum_make_list_of(
               datum_make_symbol("at"),
               datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
-          datum_make_list_of(datum_make_symbol("brackets"))));
+          datum_make_nil()));
   datum code = datum_make_list_of(stmt);
   prog_append_expressions(sl, &code, compdata, ext);
   return NULL;
@@ -209,18 +207,17 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum *exprs = list_at(&re, 1);
 
   datum return_expr = datum_make_list_of(
-      datum_make_symbol("brackets"), datum_make_symbol("return"),
+      datum_make_symbol("return"),
       datum_make_list_of(
           datum_make_symbol("at"),
           datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))));
-  datum vals = datum_make_list_of(datum_make_symbol("brackets"));
+  datum vals = datum_make_nil();
   for (int i = 0; i < list_length(exprs); ++i) {
     list_append(&vals, datum_copy(list_at(exprs, i)));
   }
   list_append(&return_expr, vals);
   datum stmt =
-      datum_make_list_of(datum_make_symbol("brackets"), datum_make_nil(),
-                         datum_make_symbol("="), return_expr);
+      datum_make_list_of(datum_make_nil(), datum_make_symbol("="), return_expr);
   datum code = datum_make_list_of(stmt);
   prog_append_expressions(sl, &code, compdata, ext);
 
