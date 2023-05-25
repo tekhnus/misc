@@ -169,8 +169,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum *name = list_at(source, (*i)++);
     datum *args_ = list_at(source, (*i)++);
     // fprintf(stderr, "%s\n", datum_repr(name));
-    assert(datum_is_the_symbol(list_at(args_, 0), "brackets"));
-    datum argsval = list_get_tail(args_);
+    datum argsval = datum_copy(args_);
     datum *args = &argsval;
     datum *body = list_at(source, (*i)++);
     size_t put_prog_off = prog_append_something(sl); // filled below.

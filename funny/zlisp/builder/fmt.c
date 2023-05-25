@@ -44,49 +44,35 @@ LOCAL datum rewrite(datum *source) {
   if (!datum_is_list(source)) {
     return datum_copy(source);
   }
-  /* if (datum_is_list(source) && list_length(source) == 2 && */
-  /*     datum_is_the_symbol(list_at(source, 0), "brackets")) { */
-  /*   return datum_copy(list_at(source, 1)); */
+  /* if (datum_is_list(source) && list_length(source) == 3 && */
+  /*     datum_is_the_symbol(list_at(source, 0), "brackets") && */
+  /*     datum_is_the_symbol(list_at(source, 1), "at") && */
+  /*     datum_is_list(list_at(source, 2)) && !datum_is_nil(list_at(source, 2))
+   * && */
+  /*     datum_is_the_symbol(list_at(list_at(source, 2), 0), "brackets")) { */
+  /*   return datum_make_list_of(datum_make_symbol("brackets"), */
+  /*                             datum_copy(list_at(source, 1)), */
+  /*                             brackets_to_list(list_at(source, 2))); */
   /* } */
-  if (datum_is_list(source) && list_length(source) == 3 &&
-      datum_is_the_symbol(list_at(source, 0), "brackets") &&
-      datum_is_the_symbol(list_at(source, 1), "at") &&
-      datum_is_list(list_at(source, 2)) && !datum_is_nil(list_at(source, 2)) &&
-      datum_is_the_symbol(list_at(list_at(source, 2), 0), "brackets")) {
-    return datum_make_list_of(datum_make_symbol("brackets"),
-                              datum_copy(list_at(source, 1)),
-                              brackets_to_list(list_at(source, 2)));
-  }
-  if (datum_is_list(source) && list_length(source) > 0 &&
-      datum_is_the_symbol(list_at(source, 0), "tilde")) {
-    datum vals = datum_make_list_of(datum_make_symbol("brackets"));
-    for (int i = 0; i < list_length(source); ++i) {
-      datum *elem = list_at(source, i);
-      list_append(&vals, *elem);
-    }
-    return vals;
-  }
+  /* if (datum_is_list(source) && list_length(source) > 0 && */
+  /*     datum_is_the_symbol(list_at(source, 0), "tilde")) { */
+  /*   datum vals = datum_make_list_of(datum_make_symbol("brackets")); */
+  /*   for (int i = 0; i < list_length(source); ++i) { */
+  /*     datum *elem = list_at(source, i); */
+  /*     list_append(&vals, *elem); */
+  /*   } */
+  /*   return vals; */
+  /* } */
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
-    if ((datum_is_list(elem) && list_length(elem) == 3 &&
-         datum_is_the_symbol(list_at(elem, 1), "=")) ||
-        (datum_is_list(elem) && list_length(elem) == 2 &&
-         datum_is_the_symbol(list_at(elem, 0), "req")) ||
-        (datum_is_list(elem) && list_length(elem) == 2 &&
-         datum_is_the_symbol(list_at(elem, 0), "export")) ||
-        (datum_is_list(elem) && list_length(elem) == 3 &&
-         datum_is_the_symbol(list_at(elem, 0), "fntest"))) {
-      for (int j = 0; j < list_length(elem); ++j) {
-        list_append(&res, rewrite(list_at(elem, j)));
-      }
-      continue;
-    }
-    if (datum_is_list(elem) && i + 2 < list_length(source) &&
-        datum_is_the_symbol(list_at(source, i + 1), "=")) {
+    if (i + 3 < list_length(source) &&
+        (datum_is_the_symbol(list_at(source, i), "defn") ||
+         datum_is_the_symbol(list_at(source, i), "defnx"))) {
+      list_append(&res, rewrite(list_at(source, i++)));
+      list_append(&res, rewrite(list_at(source, i++)));
       list_append(&res, brackets_to_list(list_at(source, i++)));
-      list_append(&res, datum_copy(list_at(source, i++)));
-      list_append(&res, datum_copy(list_at(source, i++)));
+      list_append(&res, rewrite(list_at(source, i++)));
       --i;
       continue;
     }
