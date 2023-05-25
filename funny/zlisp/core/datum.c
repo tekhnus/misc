@@ -147,7 +147,8 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     char *pair = "()";
     char *sep = spacing;
     if(!datum_is_the_symbol(list_at(e, 0), "brackets")) {
-      fprintf(stderr, "bare list repr not implemented");
+      datum xxx = list_to_brackets(e);
+      fprintf(stderr, "bare list repr not implemented: %s", datum_repr(&xxx));
       exit(EXIT_FAILURE);
     }
     if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
@@ -568,6 +569,14 @@ EXPORT datum brackets_to_list(datum *val) {
   datum res = datum_make_nil();
   for (int i = 1; i < list_length(val); ++i) {
     list_append(&res, brackets_to_list(list_at(val, i)));
+  }
+  return res;
+}
+
+LOCAL datum list_to_brackets(datum *list) {
+  datum res = datum_make_list_of(datum_make_symbol("brackets"));
+  for (int k = 0; k < list_length(list); ++k) {
+    list_append(&res, datum_copy(list_at(list, k)));
   }
   return res;
 }

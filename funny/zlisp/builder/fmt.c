@@ -31,7 +31,8 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   datum source = rewrite(&rr.ok_value);
-  char *res = datum_format_bounded(&source, 128, 0, true, false, "\n\n");
+  datum src = list_to_brackets(&source);
+  char *res = datum_format_bounded(&src, 128, 0, true, false, "\n\n");
   res[strlen(res) - 1] = 0;
   res += 1;
   fprintf(f, "%s\n", res);
