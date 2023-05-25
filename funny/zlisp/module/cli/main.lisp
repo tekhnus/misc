@@ -39,10 +39,9 @@ defn repl {sl nsp bpptr compdata bdrcompdata ex}
       progxxx}
      switch (/zlisp/eval-new sl nsp )
      {{{:ok
-        val
-        ctxt}
+        val}
        ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val ) )
-       {return (../repl sl ctxt bpptr compdata bdrcompdata ex )}}
+       {return (../repl sl nsp bpptr compdata bdrcompdata ex )}}
       {{:err
         msg}
        ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg )

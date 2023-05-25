@@ -54,7 +54,7 @@ defn eval-new {sl rt0}
   {msg = (../fdatum-get-panic-message res )
    {return {list {:err msg}}}}
   {val = (../fdatum-get-value res )
-   {return {list {:ok val rt0}}}}}}
+   {return {list {:ok val}}}}}}
 
 datum-read-one = (/prelude/c-function selflib "datum_read_one" {list {{list {'pointer}} 'fdatum}} )
 defn read {strm}
