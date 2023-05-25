@@ -89,9 +89,9 @@ defn decons-pat {a0 a1}
   [[return [list [:ok [list val]]]]]
   [if (../eq (../type pat) :list)
    [if pat
-    [if (../eq (../head pat) 'brackets)
-     [pat = (../tail pat)]
-     []
+    [
+     
+     
      if val
      [first-decons = (../decons-pat (../head pat) (../head val))
       rest-decons = (../decons-pat (../tail pat) (../tail val))
