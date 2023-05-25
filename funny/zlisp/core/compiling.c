@@ -285,11 +285,9 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   bool mut = false;
   size_t ret_count = 1;
   datum fnsv;
-  if (datum_is_list(fn) && list_length(fn) >= 2 &&
-      datum_is_the_symbol(list_at(fn, 0), "brackets") &&
-      datum_is_the_symbol(list_at(fn, 1), "polysym")) {
+  if (datum_is_list(fn) && list_length(fn) >= 1 &&
+      datum_is_the_symbol(list_at(fn, 0), "polysym")) {
     fnsv = list_get_tail(fn);
-    fnsv = list_get_tail(&fnsv);
   } else {
     fnsv = datum_make_list_of(datum_copy(fn));
   }
