@@ -125,7 +125,6 @@ defn switch-clause {a0}
 [
  [a1 = a0]
  sig = (../head a1)
- warning = "brackets"
  [if sig
   []
   [{} = (../panic "empty signature")]]

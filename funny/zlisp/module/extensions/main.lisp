@@ -2,10 +2,7 @@ req
 {{std "std"} {switch-fun "std" switch-fun} {not- "std" not} {eq- "std" eq} {type- "std" type} {panic- "std" panic} {length- "std" length} {head- "std" head} {list-at- "std" list-at} {tail- "std" tail} {cons- "std" cons} {testing "testing"} {fntest- "testing" fntestx}}
 
 defn .switch {exp argz}
-[if (/std/not- (/std/eq- (/std/head- argz) 'brackets))
- [return "expected brackets"]
- []
- [return [list ['args '= exp (/std/switch-fun (/std/tail- argz))]]]]
+[return [list ['args '= exp (/std/switch-fun argz)]]]
 
 .switch.arity = 3
 defn .fntest {body expect}
