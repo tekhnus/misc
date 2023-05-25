@@ -204,7 +204,6 @@ int list_length(datum *seq);
 bool datum_is_list(datum *e);
 LOCAL char *escape_string(char *s);
 char *datum_format_bounded(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
-char *datum_repr_bounded(datum *e,size_t depth);
 char *datum_repr(datum *e);
 datum datum_make_frame(frame fr);
 datum datum_make_int(int64_t value);
