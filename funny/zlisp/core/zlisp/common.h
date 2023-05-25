@@ -103,7 +103,8 @@ enum read_result_type {
   READ_RESULT_PANIC,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
-  READ_RESULT_RIGHT_BRACKET,
+  READ_RESULT_RIGHT_SQUARE,
+  READ_RESULT_RIGHT_CURLY,
 };
 typedef enum read_result_type read_result_type;
 struct read_result {

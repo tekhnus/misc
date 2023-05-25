@@ -16,7 +16,8 @@ EXPORT read_result datum_read_all(FILE *stre) {
   if (read_result_is_panic(rr)) {
     return read_result_make_panic(rr.panic_message);
   }
-  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
+  if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
+      read_result_is_right_curly(rr)) {
     return read_result_make_panic("unmatched right paren");
   }
   return read_result_make_ok(res);
@@ -27,7 +28,8 @@ EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   if (read_result_is_panic(rr)) {
     return fdatum_make_panic(rr.panic_message);
   }
-  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
+  if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
+      read_result_is_right_curly(rr)) {
     return fdatum_make_panic("unmatched right paren");
   }
   if (read_result_is_eof(rr)) {
@@ -52,8 +54,12 @@ LOCAL bool read_result_is_right_paren(read_result x) {
   return x.type == READ_RESULT_RIGHT_PAREN;
 }
 
-LOCAL bool read_result_is_right_bracket(read_result x) {
-  return x.type == READ_RESULT_RIGHT_BRACKET;
+LOCAL bool read_result_is_right_square(read_result x) {
+  return x.type == READ_RESULT_RIGHT_SQUARE;
+}
+
+LOCAL bool read_result_is_right_curly(read_result x) {
+  return x.type == READ_RESULT_RIGHT_CURLY;
 }
 
 LOCAL read_result read_result_make_ok(datum e) {
@@ -76,8 +82,13 @@ LOCAL read_result read_result_make_right_paren(void) {
   return result;
 }
 
-LOCAL read_result read_result_make_right_bracket(void) {
-  read_result result = {.type = READ_RESULT_RIGHT_BRACKET};
+LOCAL read_result read_result_make_right_square(void) {
+  read_result result = {.type = READ_RESULT_RIGHT_SQUARE};
+  return result;
+}
+
+LOCAL read_result read_result_make_right_curly(void) {
+  read_result result = {.type = READ_RESULT_RIGHT_CURLY};
   return result;
 }
 
@@ -124,7 +135,7 @@ enum token_type {
   TOKEN_DATUM,
   TOKEN_RIGHT_PAREN,
   TOKEN_LEFT_PAREN,
-  TOKEN_RIGHT_BRACKET,
+  TOKEN_RIGHT_SQUARE,
   TOKEN_LEFT_BRACKET,
   TOKEN_CONTROL_SEQUENCE,
   TOKEN_ERROR,
@@ -154,7 +165,7 @@ LOCAL struct token token_read(FILE *strm) {
     return (struct token){.type = TOKEN_LEFT_PAREN};
   }
   if (c == ']') {
-    return (struct token){.type = TOKEN_RIGHT_BRACKET};
+    return (struct token){.type = TOKEN_RIGHT_SQUARE};
   }
   if (c == '[') {
     return (struct token){.type = TOKEN_LEFT_BRACKET};
@@ -262,8 +273,8 @@ LOCAL read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_RIGHT_PAREN) {
     return read_result_make_right_paren();
   }
-  if (tok.type == TOKEN_RIGHT_BRACKET) {
-    return read_result_make_right_bracket();
+  if (tok.type == TOKEN_RIGHT_SQUARE) {
+    return read_result_make_right_square();
   }
   if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_BRACKET) {
     read_result elem;
@@ -277,8 +288,7 @@ LOCAL read_result datum_read(FILE *strm) {
         return read_result_make_ok(datum_make_list_of(
             datum_make_symbol("brackets"), datum_make_symbol("call"), list));
       }
-      if (tok.type == TOKEN_LEFT_BRACKET &&
-          read_result_is_right_bracket(elem)) {
+      if (tok.type == TOKEN_LEFT_BRACKET && read_result_is_right_square(elem)) {
         return read_result_make_ok(list);
       }
       if (read_result_is_eof(elem)) {
