@@ -136,7 +136,7 @@ enum token_type {
   TOKEN_RIGHT_PAREN,
   TOKEN_LEFT_PAREN,
   TOKEN_RIGHT_SQUARE,
-  TOKEN_LEFT_BRACKET,
+  TOKEN_LEFT_SQUARE,
   TOKEN_CONTROL_SEQUENCE,
   TOKEN_ERROR,
   TOKEN_EOF,
@@ -168,7 +168,7 @@ LOCAL struct token token_read(FILE *strm) {
     return (struct token){.type = TOKEN_RIGHT_SQUARE};
   }
   if (c == '[') {
-    return (struct token){.type = TOKEN_LEFT_BRACKET};
+    return (struct token){.type = TOKEN_LEFT_SQUARE};
   }
   if (isdigit(c) || c == '-') {
     int64_t sign = 1;
@@ -276,7 +276,7 @@ LOCAL read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_RIGHT_SQUARE) {
     return read_result_make_right_square();
   }
-  if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_BRACKET) {
+  if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE) {
     read_result elem;
     datum list = datum_make_nil();
     list_append(&list, datum_make_symbol("brackets"));
@@ -288,7 +288,7 @@ LOCAL read_result datum_read(FILE *strm) {
         return read_result_make_ok(datum_make_list_of(
             datum_make_symbol("brackets"), datum_make_symbol("call"), list));
       }
-      if (tok.type == TOKEN_LEFT_BRACKET && read_result_is_right_square(elem)) {
+      if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
         return read_result_make_ok(list);
       }
       if (read_result_is_eof(elem)) {
