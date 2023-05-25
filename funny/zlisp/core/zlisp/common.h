@@ -113,10 +113,10 @@ struct read_result {
     char *panic_message;
   };
 };
-bool read_result_is_ok(read_result x);
-bool read_result_is_panic(read_result x);
 read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
+bool read_result_is_ok(read_result x);
+bool read_result_is_panic(read_result x);
 typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);

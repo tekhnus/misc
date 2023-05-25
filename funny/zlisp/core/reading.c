@@ -7,6 +7,35 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+EXPORT read_result datum_read_all(FILE *stre) {
+  read_result rr;
+  datum res = datum_make_nil();
+  for (; read_result_is_ok(rr = datum_read(stre));) {
+    list_append(&res, rr.ok_value);
+  }
+  if (read_result_is_panic(rr)) {
+    return read_result_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
+    return read_result_make_panic("unmatched right paren");
+  }
+  return read_result_make_ok(res);
+}
+
+EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
+  read_result rr = datum_read(stre);
+  if (read_result_is_panic(rr)) {
+    return fdatum_make_panic(rr.panic_message);
+  }
+  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
+    return fdatum_make_panic("unmatched right paren");
+  }
+  if (read_result_is_eof(rr)) {
+    return fdatum_make_panic("eof");
+  }
+  return fdatum_make_ok(datum_make_list_of(rr.ok_value));
+}
+
 EXPORT bool read_result_is_ok(read_result x) {
   return x.type == READ_RESULT_OK;
 }
@@ -281,33 +310,4 @@ LOCAL read_result datum_read(FILE *strm) {
     return read_result_make_ok(res);
   }
   return read_result_make_panic("unhandled token type");
-}
-
-EXPORT read_result datum_read_all(FILE *stre) {
-  read_result rr;
-  datum res = datum_make_nil();
-  for (; read_result_is_ok(rr = datum_read(stre));) {
-    list_append(&res, rr.ok_value);
-  }
-  if (read_result_is_panic(rr)) {
-    return read_result_make_panic(rr.panic_message);
-  }
-  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
-    return read_result_make_panic("unmatched right paren");
-  }
-  return read_result_make_ok(res);
-}
-
-EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
-  read_result rr = datum_read(stre);
-  if (read_result_is_panic(rr)) {
-    return fdatum_make_panic(rr.panic_message);
-  }
-  if (read_result_is_right_paren(rr) || read_result_is_right_bracket(rr)) {
-    return fdatum_make_panic("unmatched right paren");
-  }
-  if (read_result_is_eof(rr)) {
-    return fdatum_make_panic("eof");
-  }
-  return fdatum_make_ok(datum_make_list_of(rr.ok_value));
 }
