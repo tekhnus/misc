@@ -137,6 +137,8 @@ enum token_type {
   TOKEN_LEFT_PAREN,
   TOKEN_RIGHT_SQUARE,
   TOKEN_LEFT_SQUARE,
+  TOKEN_RIGHT_CURLY,
+  TOKEN_LEFT_CURLY,
   TOKEN_CONTROL_SEQUENCE,
   TOKEN_ERROR,
   TOKEN_EOF,
@@ -169,6 +171,12 @@ LOCAL struct token token_read(FILE *strm) {
   }
   if (c == '[') {
     return (struct token){.type = TOKEN_LEFT_SQUARE};
+  }
+  if (c == '}') {
+    return (struct token){.type = TOKEN_RIGHT_CURLY};
+  }
+  if (c == '{') {
+    return (struct token){.type = TOKEN_LEFT_CURLY};
   }
   if (isdigit(c) || c == '-') {
     int64_t sign = 1;
@@ -276,26 +284,31 @@ LOCAL read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_RIGHT_SQUARE) {
     return read_result_make_right_square();
   }
-  if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE) {
+  if (tok.type == TOKEN_RIGHT_CURLY) {
+    return read_result_make_right_curly();
+  }
+  if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE ||
+      tok.type == TOKEN_LEFT_CURLY) {
     read_result elem;
     datum list = datum_make_nil();
-    list_append(&list, datum_make_symbol("brackets"));
-    for (;;) {
-      while (read_result_is_ok(elem = datum_read(strm))) {
-        list_append(&list, elem.ok_value);
-      }
-      if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
-        return read_result_make_ok(datum_make_list_of(
-            datum_make_symbol("brackets"), datum_make_symbol("call"), list));
-      }
-      if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
-        return read_result_make_ok(list);
-      }
-      if (read_result_is_eof(elem)) {
-        return read_result_make_panic("expected ')', got EOS");
-      } else {
-        break;
-      }
+    if (tok.type != TOKEN_LEFT_CURLY) {
+      list_append(&list, datum_make_symbol("brackets"));
+    }
+    while (read_result_is_ok(elem = datum_read(strm))) {
+      list_append(&list, elem.ok_value);
+    }
+    if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
+      return read_result_make_ok(datum_make_list_of(
+          datum_make_symbol("brackets"), datum_make_symbol("call"), list));
+    }
+    if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
+      return read_result_make_ok(list);
+    }
+    if (tok.type == TOKEN_LEFT_CURLY && read_result_is_right_curly(elem)) {
+      return read_result_make_ok(list);
+    }
+    if (read_result_is_eof(elem)) {
+      return read_result_make_panic("expected ')', got EOS");
     }
     return elem;
   }
