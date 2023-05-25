@@ -166,12 +166,12 @@ LOCAL struct token token_read(FILE *strm) {
   if (c == '(') {
     return (struct token){.type = TOKEN_LEFT_PAREN};
   }
-  if (c == ']') {
-    return (struct token){.type = TOKEN_RIGHT_SQUARE};
-  }
-  if (c == '[') {
-    return (struct token){.type = TOKEN_LEFT_SQUARE};
-  }
+  /* if (c == ']') { */
+  /*   return (struct token){.type = TOKEN_RIGHT_SQUARE}; */
+  /* } */
+  /* if (c == '[') { */
+  /*   return (struct token){.type = TOKEN_LEFT_SQUARE}; */
+  /* } */
   if (c == '}') {
     return (struct token){.type = TOKEN_RIGHT_CURLY};
   }
@@ -290,9 +290,6 @@ LOCAL read_result datum_read(FILE *strm) {
       tok.type == TOKEN_LEFT_CURLY) {
     read_result elem;
     datum list = datum_make_nil();
-    if (tok.type == TOKEN_LEFT_SQUARE) {
-      list_append(&list, datum_make_symbol("brackets"));
-    }
     while (read_result_is_ok(elem = datum_read(strm))) {
       list_append(&list, elem.ok_value);
     }
