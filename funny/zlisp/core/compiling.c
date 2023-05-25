@@ -244,12 +244,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_list(head)) {
     datum parts;
-    if (list_length(head) > 0 &&
-        datum_is_the_symbol(list_at(head, 0), "brackets")) {
-      parts = list_get_tail(head);
-    } else {
-      parts = datum_copy(head);
-    }
+    parts = datum_copy(head);
     return prog_append_expressions(sl, &parts, compdata, ext);
   }
   if (datum_is_constant(head)) {
