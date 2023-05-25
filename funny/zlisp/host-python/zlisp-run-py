@@ -95,7 +95,7 @@ def merge(x, y, extvars):
 
 def main():
     bc = sys.stdin.read()
-    bc = bc.replace("[", "(").replace("]", ")")  # eww
+    bc = bc.replace("[", "(").replace("]", ")").replace("{", "(").replace("}", ")")  # eww
     prog = sexpdata.loads(bc)
     ip = 0
     pdata = [State()]

@@ -170,8 +170,6 @@ LOCAL datum list_to_brackets(datum *list);
 LOCAL datum list_to_brackets(datum *list);
 LOCAL datum list_to_brackets(datum *list);
 datum brackets_to_list(datum *val);
-LOCAL datum brackets_to_list_flat(datum *val);
-vec brackets_to_vec(datum *val);
 vec *list_to_vec(datum *val);
 vec vec_copy(vec *src);
 LOCAL frame frame_copy(frame *src);
