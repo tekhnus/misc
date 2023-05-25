@@ -242,12 +242,16 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) > 0 &&
-      datum_is_the_symbol(list_at(head, 0), "brackets")) {
-    datum parts = list_get_tail(head);
+  if (datum_is_list(head)) {
+    datum parts;
+    if (list_length(head) > 0 &&
+        datum_is_the_symbol(list_at(head, 0), "brackets")) {
+      parts = list_get_tail(head);
+    } else {
+      parts = datum_copy(head);
+    }
     return prog_append_expressions(sl, &parts, compdata, ext);
   }
-
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, head, compdata);
     return NULL;
@@ -262,11 +266,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_copy(sl, head, compdata);
     return NULL;
   }
-  if (!datum_is_list(head) || datum_is_nil(head)) {
-    return "expected an s-expression";
-  }
-  fprintf(stderr, "old-style call: %s\n", datum_repr(head));
-  return "a plain list is not an expression";
+  return "unexpected datum type in expression";
 }
 
 LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
