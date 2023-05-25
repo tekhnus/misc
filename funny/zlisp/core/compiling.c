@@ -215,12 +215,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum meta = datum_make_nil();
     while (*i < list_length(source)) {
       datum *tag = list_at(source, *i);
-      if (!datum_is_list(tag) || list_length(tag) != 3 ||
-          !datum_is_the_symbol(list_at(tag, 0), "brackets") ||
-          !datum_is_the_symbol(list_at(tag, 1), "at")) {
+      if (!datum_is_list(tag) || list_length(tag) != 2 ||
+          !datum_is_the_symbol(list_at(tag, 0), "at")) {
         break;
       }
-      datum content = datum_copy(list_at(tag, 2));
+      datum content = datum_copy(list_at(tag, 1));
       datum content_val = datum_copy(&content);
       if (datum_is_integer(&content)) {
         recieve_count = content.integer_value;
@@ -295,12 +294,11 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   int index = 1;
   while (index < list_length(s_expr)) {
     datum *tag = list_at(s_expr, index);
-    if (!datum_is_list(tag) || list_length(tag) != 3 ||
-        !datum_is_the_symbol(list_at(tag, 0), "brackets") ||
-        !datum_is_the_symbol(list_at(tag, 1), "at")) {
+    if (!datum_is_list(tag) || list_length(tag) != 2 ||
+        !datum_is_the_symbol(list_at(tag, 0), "at")) {
       break;
     }
-    datum content = datum_copy(list_at(tag, 2));
+    datum content = datum_copy(list_at(tag, 1));
     datum content_val = datum_copy(&content);
     if (datum_is_integer(&content)) {
       ret_count = content.integer_value;

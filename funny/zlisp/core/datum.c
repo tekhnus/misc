@@ -114,12 +114,11 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     end += sprintf(
         end, "'%s",
         datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
-  } else if (datum_is_list(e) && list_length(e) == 3 &&
-             datum_is_the_symbol(list_at(e, 0), "brackets") &&
-             datum_is_the_symbol(list_at(e, 1), "at")) {
+  } else if (datum_is_list(e) && list_length(e) == 2 &&
+             datum_is_the_symbol(list_at(e, 0), "at")) {
     end += sprintf(
         end, "@%s",
-        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 3 &&
              datum_is_the_symbol(list_at(e, 0), "brackets") &&
              datum_is_the_symbol(list_at(e, 1), "backquote")) {
