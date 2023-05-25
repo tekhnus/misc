@@ -147,7 +147,8 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     char *pair = "()";
     char *sep = spacing;
     if(!datum_is_the_symbol(list_at(e, 0), "brackets")) {
-      fprintf(stderr, "!!! %s\n", datum_repr(list_at(e, 0)));
+      fprintf(stderr, "bare list repr not implemented");
+      exit(EXIT_FAILURE);
     }
     if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
