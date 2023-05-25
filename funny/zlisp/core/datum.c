@@ -146,13 +146,8 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     end += sprintf(end, ")");
   } else if (datum_is_list(e)) {
     int first = 0;
-    char *pair = "()";
+    char *pair = "{}";
     char *sep = spacing;
-    if (!datum_is_the_symbol(list_at(e, 0), "brackets")) {
-      datum xxx = list_to_brackets(e);
-      fprintf(stderr, "bare list repr not implemented: %s", datum_repr(&xxx));
-      exit(EXIT_FAILURE);
-    }
     if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
       pair = "[]";
