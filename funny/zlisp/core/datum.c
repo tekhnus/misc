@@ -280,7 +280,8 @@ fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
     return fdatum_make_panic("fdatum_get_value expected a pointer");
   }
   datum *val = (datum *)arg->integer_value;
-  char *res = datum_repr(val);
+  assert(datum_is_list(val) && list_length(val) == 1);
+  char *res = datum_repr(list_at(val, 0));
   return fdatum_make_ok(datum_make_list_of(datum_make_bytestring(res)));
 }
 
