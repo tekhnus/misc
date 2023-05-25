@@ -1,25 +1,5 @@
 req
-[[prelude "prelude"]
- [fprintf "libc" fprintf]
- [stderr "libc" stderr]
- [std "std"]
- [decons-pat "std" decons-pat]
- [eq "std" eq]
- [head "std" head]
- [repr "std" repr]
- [append "std" append]
- [length "std" length]
- [list-at "std" list-at]
- [type "std" type]
- [+ "std" +]
- [panic "std" panic]
- [concat-bytestrings "std" concat-bytestrings]
- [cons "std" cons]
- [tail "std" tail]
- [panic "std" panic]
- [not "std" not]
- [libc "libc"]
- [print "libc" print]]
+{{prelude "prelude"} {fprintf "libc" fprintf} {stderr "libc" stderr} {std "std"} {decons-pat "std" decons-pat} {eq "std" eq} {head "std" head} {repr "std" repr} {append "std" append} {length "std" length} {list-at "std" list-at} {type "std" type} {+ "std" +} {panic "std" panic} {concat-bytestrings "std" concat-bytestrings} {cons "std" cons} {tail "std" tail} {panic "std" panic} {not "std" not} {libc "libc"} {print "libc" print}}
 
 panics = [list []]
 fntest

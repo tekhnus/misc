@@ -76,6 +76,14 @@ LOCAL datum rewrite(datum *source) {
       --i;
       continue;
     }
+    if (i + 1 < list_length(source) &&
+        (datum_is_the_symbol(list_at(source, i), "req") ||
+         datum_is_the_symbol(list_at(source, i), "export"))) {
+      list_append(&res, rewrite(list_at(source, i++)));
+      list_append(&res, brackets_to_list(list_at(source, i++)));
+      --i;
+      continue;
+    }
     list_append(&res, rewrite(elem));
   }
   return res;

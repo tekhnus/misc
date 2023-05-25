@@ -160,14 +160,13 @@ LOCAL fdatum prog_read_usages(datum *spec) {
       !datum_is_the_symbol(list_at(spec, 0), "req")) {
     return fdatum_make_panic("wrong usage spec");
   }
-  int index = 1;
+  int index = 0;
   datum vars = datum_make_nil();
   datum specs = datum_make_nil();
   datum *items = list_at(spec, 1);
   for (; index < list_length(items); ++index) {
     datum *item_ = list_at(items, index);
-    assert(datum_is_the_symbol(list_at(item_, 0), "brackets"));
-    datum item_val = list_get_tail(item_);
+    datum item_val = datum_copy(item_);
     datum *item = &item_val;
     if (!datum_is_list(item) || list_length(item) < 2 ||
         list_length(item) > 3) {
@@ -229,14 +228,13 @@ LOCAL fdatum prog_read_exports(datum *spec) {
       !datum_is_the_symbol(list_at(spec, 0), "export")) {
     return fdatum_make_panic("wrong export spec");
   }
-  int index = 1;
+  int index = 0;
   datum names = datum_make_nil();
   datum expressions = datum_make_nil();
   datum *items = list_at(spec, 1);
   for (; index < list_length(items); ++index) {
     datum *item_ = list_at(items, index);
-    assert(datum_is_the_symbol(list_at(item_, 0), "brackets"));
-    datum item_val = list_get_tail(item_);
+    datum item_val = datum_copy(item_);
     datum *item = &item_val;
     if (!datum_is_list(item) || list_length(item) != 2) {
       return fdatum_make_panic("wrong export spec");

@@ -1,16 +1,5 @@
 req
-[[prelude "prelude"]
- [shared-library "prelude" shared-library]
- [c-function "prelude" c-function]
- [extern-pointer "prelude" extern-pointer]
- [std "std"]
- [decons-pat "std" decons-pat]
- [eq "std" eq]
- [head "std" head]
- [cons "std" cons]
- [repr "std" repr]
- [panic "std" panic]
- [first-good-value "std" first-good-value]]
+{{prelude "prelude"} {shared-library "prelude" shared-library} {c-function "prelude" c-function} {extern-pointer "prelude" extern-pointer} {std "std"} {decons-pat "std" decons-pat} {eq "std" eq} {head "std" head} {cons "std" cons} {repr "std" repr} {panic "std" panic} {first-good-value "std" first-good-value}}
 
 libc = (/std/first-good-value [list [(/prelude/shared-library "libc.so.6") (/prelude/shared-library "libSystem.B.dylib")]])
 malloc = (/prelude/c-function libc "malloc" [list [[list ['sizet]] 'pointer]])
@@ -27,14 +16,4 @@ defn print {val}
 [return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))]
 
 export
-[[malloc malloc]
- [fopen fopen]
- [fread fread]
- [feof feof]
- [fprintf fprintf]
- [fprintf-bytestring fprintf-bytestring]
- [printfptr printfptr]
- [stdin stdin]
- [stdout stdout]
- [stderr stderr]
- [print print]]
+{{malloc malloc} {fopen fopen} {fread fread} {feof feof} {fprintf fprintf} {fprintf-bytestring fprintf-bytestring} {printfptr printfptr} {stdin stdin} {stdout stdout} {stderr stderr} {print print}}

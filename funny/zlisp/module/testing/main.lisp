@@ -1,10 +1,5 @@
 req
-[[std "std"]
- [eq "std" eq]
- [decons-pat "std" decons-pat]
- [head "std" head]
- [concat-bytestrings "std" concat-bytestrings]
- [panic "std" panic]]
+{{std "std"} {eq "std" eq} {decons-pat "std" decons-pat} {head "std" head} {concat-bytestrings "std" concat-bytestrings} {panic "std" panic}}
 
 defn fntestx {body expect}
 [repr-expect = [list ['brackets 'call [list ['/std/repr expect]]]]
@@ -14,4 +9,4 @@ defn fntestx {body expect}
  return [list ['brackets 'defn 'calltest '{} body 'val '= '(calltest) 'if fact-equals-expect [list ['brackets 'panics '= 'panics]] append-panics]]]
 
 export
-[[fntestx fntestx]]
+{{fntestx fntestx}}

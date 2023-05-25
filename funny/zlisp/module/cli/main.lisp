@@ -1,29 +1,5 @@
 req
-[[prelude "prelude"]
- [wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer]
- [dereference "prelude" dereference]
- [std "std"]
- [decons-pat "std" decons-pat]
- [eq "std" eq]
- [head "std" head]
- [repr "std" repr]
- [list-at "std" list-at]
- [panic "std" panic]
- [fprintf "libc" fprintf]
- [fprintf-bytestring "libc" fprintf-bytestring]
- [stdout "libc" stdout]
- [stderr "libc" stderr]
- [stdin "libc" stdin]
- [zlisp "zlisp"]
- [comp-prg-new "zlisp" compile-prog-new]
- [iprog "zlisp" init-prog]
- [eval-new "zlisp" eval-new]
- [rd "zlisp" read]
- [repr-pointer "zlisp" repr-pointer]
- [mres "zlisp" make-routine-with-empty-state]
- [psm "zlisp" prog-slice-make]
- [cdm "zlisp" compdata-make]
- [em "zlisp" ext-make]]
+{{prelude "prelude"} {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer} {dereference "prelude" dereference} {std "std"} {decons-pat "std" decons-pat} {eq "std" eq} {head "std" head} {repr "std" repr} {list-at "std" list-at} {panic "std" panic} {fprintf "libc" fprintf} {fprintf-bytestring "libc" fprintf-bytestring} {stdout "libc" stdout} {stderr "libc" stderr} {stdin "libc" stdin} {zlisp "zlisp"} {comp-prg-new "zlisp" compile-prog-new} {iprog "zlisp" init-prog} {eval-new "zlisp" eval-new} {rd "zlisp" read} {repr-pointer "zlisp" repr-pointer} {mres "zlisp" make-routine-with-empty-state} {psm "zlisp" prog-slice-make} {cdm "zlisp" compdata-make} {em "zlisp" ext-make}}
 
 readme = "A basic REPL for zlisp."
 defn repl {sl nsp bpptr compdata bdrcompdata ex}

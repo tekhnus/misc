@@ -1,5 +1,5 @@
 req
-[]
+{}
 
 defn print {a0}
 [r = [return @1 @{host "eval" "print(x[1][0])"} [list a0]]
@@ -50,15 +50,4 @@ defn repr {a0}
  return r]
 
 export
-[[print print]
- [panic panic]
- [head head]
- [tail tail]
- [cons cons]
- [eq eq]
- [eq eq]
- [annotate annotate]
- [is-constant is-constant]
- [repr repr]
- [concat-bytestrings concat-bytestrings]
- [+ +]]
+{{print print} {panic panic} {head head} {tail tail} {cons cons} {eq eq} {eq eq} {annotate annotate} {is-constant is-constant} {repr repr} {concat-bytestrings concat-bytestrings} {+ +}}
