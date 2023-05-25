@@ -32,11 +32,11 @@ defn .backquote {exp}
   [if (/std/eq- (/std/length- exp) 2)
    [if (/std/eq- (/std/list-at- exp 0) 'tilde)
     [return (/std/list-at- exp 1)]
-    [return [list ['brackets 'call [list ['brackets '/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]
-   [return [list ['brackets 'call [list ['brackets '/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]]]
+    [return [list ['brackets 'call [list ['/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]
+   [return [list ['brackets 'call [list ['/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]]]
 
 .backquote.arity = 2
 defn .defnx {name args body}
-[return [list ['brackets 'defn name '{} [list ['brackets 'defn '__magically_called__ args body '{} '= '(__magically_called__ @mut @0 @up2) 'return :shouldnt-go-here]] '{} '= [list ['brackets 'call [list ['brackets name '@mut '@0]]]]]]]
+[return [list ['brackets 'defn name '{} [list ['brackets 'defn '__magically_called__ args body '{} '= '(__magically_called__ @mut @0 @up2) 'return :shouldnt-go-here]] '{} '= [list ['brackets 'call [list [name '@mut '@0]]]]]]]
 
 .defnx.arity = 4

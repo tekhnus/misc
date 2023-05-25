@@ -59,8 +59,7 @@ fntest
    ['brackets
     'call
     [list
-     ['brackets
-      '/std/+
+     ['/std/+
       '33
       '1]]]]]]
 

@@ -156,7 +156,7 @@ defn switch-clause {a0}
   [{} = (../panic "empty signature")]]
  cmds = (../tail a1)
  quoted-sig = [list ['brackets 'quote sig]]
- checker = [list ['brackets 'call [list ['brackets '/std/decons-pat quoted-sig 'args]]]]
+ checker = [list ['brackets 'call [list ['/std/decons-pat quoted-sig 'args]]]]
  vars = (../decons-vars stripped-sig)
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
  [return [list [checker body]]]]

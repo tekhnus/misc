@@ -290,7 +290,7 @@ LOCAL read_result datum_read(FILE *strm) {
       tok.type == TOKEN_LEFT_CURLY) {
     read_result elem;
     datum list = datum_make_nil();
-    if (tok.type != TOKEN_LEFT_CURLY) {
+    if (tok.type == TOKEN_LEFT_SQUARE) {
       list_append(&list, datum_make_symbol("brackets"));
     }
     while (read_result_is_ok(elem = datum_read(strm))) {
