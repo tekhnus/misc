@@ -138,7 +138,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     if (datum_is_list(e) && list_length(e) == 3 &&
         datum_is_the_symbol(list_at(e, 0), "brackets") &&
         datum_is_the_symbol(list_at(e, 1), "call")) {
-      first = 1;
+      first = 0;
       e = list_at(e, 2);
       pair = "()";
     } else if (pretty && list_length(e) > 0 &&
