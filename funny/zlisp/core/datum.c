@@ -142,10 +142,6 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
       first = 1;
       pair = "";
       sep = "/";
-    } else if (list_length(e) > 0 &&
-               datum_is_the_symbol(list_at(e, 0), "brackets")) {
-      first = 1;
-      pair = "[]";
     }
     if (strlen(pair) > 0) {
       end += sprintf(end, "%c", pair[0]);
