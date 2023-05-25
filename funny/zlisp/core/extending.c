@@ -75,7 +75,9 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
     *list_at(&invokation_statement, i) = quoted;
   }
   *list_at(&invokation_statement, 0) = name;
-  fdatum res = lisp_extension_run(&invokation_statement, self);
+  invokation_statement = list_to_brackets(&invokation_statement);
+  datum call_statement = datum_make_list_of(datum_make_symbol("brackets"), datum_make_symbol("call"), invokation_statement);
+  fdatum res = lisp_extension_run(&call_statement, self);
   if (fdatum_is_panic(res)) {
     return res.panic_message;
   }

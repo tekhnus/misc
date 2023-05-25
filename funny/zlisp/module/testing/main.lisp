@@ -7,7 +7,12 @@ req
  {panic "std" panic}}
 
 defn fntestx {body expect}
-{return {list {'brackets 'defn 'calltest {list 'brackets} body 'val '= {list {'calltest}} 'if {list {'/std/eq 'val expect}} {list {'brackets 'panics '= 'panics}} {list {'brackets 'panics '= {list {'/std/cons {list {'/std/concat-bytestrings {list {'/std/concat-bytestrings {list {'/std/repr 'val}} '" != "}} {list {'/std/repr expect}}}} 'panics}}}}}}}
+{
+repr-expect = {list {'brackets 'call {list {'brackets '/std/repr expect}}}}
+fact-equals-expect = {list {'brackets 'call {list {'brackets '/std/eq 'val expect}}}}
+new-panic = {list {'brackets 'call {list {'brackets '/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") repr-expect}}}}
+append-panics = {list {'brackets 'panics '= {list {'brackets 'call {list {'brackets '/std/cons new-panic 'panics}}}}}}
+return {list {'brackets 'defn 'calltest {list 'brackets} body 'val '= '(calltest) 'if fact-equals-expect {list {'brackets 'panics '= 'panics}} append-panics}}}
 
 export
 {{fntestx fntestx}}

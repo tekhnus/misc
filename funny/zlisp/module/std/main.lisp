@@ -77,7 +77,7 @@ defn map {a0 a1}
  {return (../cons (../a0 (../head a1 ) ) (../map a0 (../tail a1 ) ) )}
  {return {list {}}}}
 
-panic-block = {list {'argz {list {'/std/panic '@0 '"wrong fn call"}}}}
+panic-block = {list {'argz '(/std/panic @0 "wrong fn call")}}
 defn list-at {xs n}
 {if (../eq n 0 )
  {{return (../head xs )}}
@@ -89,8 +89,8 @@ defn swtchone {a0}
   cond = (../head firstarg )
   body = (../list-at firstarg 1 )
   rest = (../swtchone (../tail a0 ) )
-  {return {list {'brackets 'prearg '= cond 'if {list {'/std/eq {list {'/std/head 'prearg}} ':ok}} {list {'brackets 'args '= {list {'/std/list-at 'prearg '1}} body}} rest}}}}
- {return {list {'/std/panic '@0 '"nothing matched"}}}}
+  {return {list {'brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) {list {'brackets 'args '= '(/std/list-at prearg 1) body}} rest}}}}
+ {return '(/std/panic @0 "nothing matched")}}
 
 defn decons-pat {a0 a1}
 {pat = a0
@@ -131,7 +131,7 @@ defn decons-vars {a0}
     {return {list {}}}}
    (panic @0 "decons-var met an unsupported type" )}}}
 
-switch-defines = {list {{list {'/std/list-at 'args '0}} {list {'/std/list-at 'args '1}} {list {'/std/list-at 'args '2}} {list {'/std/list-at 'args '3}} {list {'/std/list-at 'args '4}} {list {'/std/list-at 'args '5}}}}
+switch-defines = {list {'(/std/list-at args 0) '(/std/list-at args 1) '(/std/list-at args 2) '(/std/list-at args 3) '(/std/list-at args 4) '(/std/list-at args 5)}}
 defn make-assignment {x}
 {return {list {'brackets (../head x ) '= (../list-at x 1 )}}}
 
@@ -149,7 +149,8 @@ defn switch-clause {a0}
   {}
   {{} = (../panic "empty signature" )}}
  cmds = (../tail a1 )
- checker = {list {'/std/decons-pat {list {'brackets 'quote sig}} 'args}}
+ quoted-sig = {list {'brackets 'quote sig}}
+ checker = {list {'brackets 'call {list {'brackets '/std/decons-pat quoted-sig 'args}}}}
  vars = (../decons-vars stripped-sig )
  body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines ) ) cmds ) )
  {return {list {checker body}}}}
