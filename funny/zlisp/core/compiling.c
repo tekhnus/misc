@@ -221,20 +221,16 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
         break;
       }
       datum content = datum_copy(list_at(tag, 2));
-      if (datum_is_list(&content)) {
-        if (datum_is_the_symbol(list_at(&content, 0), "brackets")) {
-          content = list_get_tail(&content);
-        }
-      }
+      datum content_val = brackets_to_list(&content);
       if (datum_is_integer(&content)) {
         recieve_count = content.integer_value;
         ++(*i);
-      } else if (datum_is_list(&content) && list_length(&content) == 2 &&
-                 datum_is_the_symbol(list_at(&content, 0), "meta")) {
-        meta = datum_copy(list_at(&content, 1));
+      } else if (datum_is_list(&content_val) && list_length(&content_val) == 2 &&
+                 datum_is_the_symbol(list_at(&content_val, 0), "meta")) {
+        meta = datum_copy(list_at(&content_val, 1));
         ++(*i);
       } else if (!target_defined) {
-        target = datum_copy(&content);
+        target = datum_copy(&content_val);
         target_defined = true;
         ++(*i);
       } else {
@@ -306,11 +302,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       break;
     }
     datum content = datum_copy(list_at(tag, 2));
-    if (datum_is_list(&content)) {
-      if (datum_is_the_symbol(list_at(&content, 0), "brackets")) {
-        content = list_get_tail(&content);
-      }
-    }
+    datum content_val = brackets_to_list(&content);
     if (datum_is_integer(&content)) {
       ret_count = content.integer_value;
       ++index;
@@ -318,7 +310,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       mut = true;
       ++index;
     } else if (!target_is_set) {
-      target = datum_copy(&content);
+      target = datum_copy(&content_val);
       target_is_set = true;
       ++index;
     } else {
@@ -396,7 +388,7 @@ EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
   indices = list_to_brackets(&indices);
   vec_append(sl, datum_make_list_of(
                      datum_make_symbol(":call"), datum_make_int(capture_size),
-                     indices, datum_make_int(pop_one), type,
+                     indices, datum_make_int(pop_one), list_to_brackets(&type),
                      datum_make_int(arg_count), datum_make_int(return_count)));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);

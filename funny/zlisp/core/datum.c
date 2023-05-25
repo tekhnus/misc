@@ -146,6 +146,9 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     int first = 0;
     char *pair = "()";
     char *sep = spacing;
+    if(!datum_is_the_symbol(list_at(e, 0), "brackets")) {
+      fprintf(stderr, "!!! %s\n", datum_repr(list_at(e, 0)));
+    }
     if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
       first = 1;
       pair = "{}";
