@@ -158,7 +158,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     datum names;
     if (datum_is_list(head)) {
-      names = brackets_to_list(head);
+      names = datum_copy(head);
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
