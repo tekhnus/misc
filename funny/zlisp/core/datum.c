@@ -198,7 +198,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
       }
       char *child_sep = "\n";
       if (datum_is_list(item) && list_length(item) > 0 &&
-          !datum_is_the_symbol(list_at(item, 0), "brackets")) {
+          datum_is_the_symbol(list_at(item, 0), "call")) {
         child_sep = " ";
       }
       int child_flatness = flat;
