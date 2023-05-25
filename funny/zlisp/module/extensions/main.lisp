@@ -29,9 +29,9 @@ defn .backquote [exp]
  [return [list ['brackets 'quote exp]]]
  [if (/std/not- exp)
   [return [list ['brackets 'list [list ['brackets]]]]]
-  [if (/std/eq- (/std/length- exp) 3)
-   [if (/std/eq- (/std/list-at- exp 1) 'tilde)
-    [return (/std/list-at- exp 2)]
+  [if (/std/eq- (/std/length- exp) 2)
+   [if (/std/eq- (/std/list-at- exp 0) 'tilde)
+    [return (/std/list-at- exp 1)]
     [return [list ['brackets 'call [list ['brackets '/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]
    [return [list ['brackets 'call [list ['brackets '/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]]]
 
