@@ -75,7 +75,7 @@ defn list-at {xs n}
 
 defn swtchone {a0}
 [if a0
- {firstarg = (../head a0) cond = (../head firstarg) body = (../list-at firstarg 1) rest = (../swtchone (../tail a0)) return [list ['brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) [list ['brackets 'args '= '(/std/list-at prearg 1) body]] rest]]}
+ {firstarg = (../head a0) cond = (../head firstarg) body = (../list-at firstarg 1) rest = (../swtchone (../tail a0)) return [list ['prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) [list ['args '= '(/std/list-at prearg 1) body]] rest]]}
  [return '(/std/panic @0 "nothing matched")]]
 
 defn decons-pat {a0 a1}
@@ -119,7 +119,7 @@ defn decons-vars {a0}
 
 switch-defines = [list ['(/std/list-at args 0) '(/std/list-at args 1) '(/std/list-at args 2) '(/std/list-at args 3) '(/std/list-at args 4) '(/std/list-at args 5)]]
 defn make-assignment {x}
-[return [list ['brackets (../head x) '= (../list-at x 1)]]]
+[return [list [(../head x) '= (../list-at x 1)]]]
 
 defn switch-clause {a0}
 [if (../not (../eq (../head a0) 'brackets))
@@ -135,10 +135,10 @@ defn switch-clause {a0}
   []
   [{} = (../panic "empty signature")]]
  cmds = (../tail a1)
- quoted-sig = [list ['brackets 'quote sig]]
- checker = [list ['brackets 'call [list ['/std/decons-pat quoted-sig 'args]]]]
+ quoted-sig = [list ['quote sig]]
+ checker = [list ['call [list ['/std/decons-pat quoted-sig 'args]]]]
  vars = (../decons-vars stripped-sig)
- body = (../cons 'brackets (../concat (../map make-assignment (../zip vars switch-defines)) cmds))
+ body = (../concat (../map make-assignment (../zip vars switch-defines)) cmds)
  [return [list [checker body]]]]
 
 defn switch-fun {a0}

@@ -5,7 +5,7 @@ defn .switch {exp argz}
 [if (/std/not- (/std/eq- (/std/head- argz) 'brackets))
  [return "expected brackets"]
  []
- [return [list ['brackets 'args '= exp (/std/switch-fun (/std/tail- argz))]]]]
+ [return [list ['args '= exp (/std/switch-fun (/std/tail- argz))]]]]
 
 .switch.arity = 3
 defn .fntest {body expect}
@@ -14,17 +14,17 @@ defn .fntest {body expect}
 .fntest.arity = 3
 defn .backquote {exp}
 [if (/std/not- (/std/eq- (/std/type- exp) :list))
- [return [list ['brackets 'quote exp]]]
+ [return [list ['quote exp]]]
  [if (/std/not- exp)
-  [return [list ['brackets 'list [list ['brackets]]]]]
+  [return [list ['list [list []]]]]
   [if (/std/eq- (/std/length- exp) 2)
    [if (/std/eq- (/std/list-at- exp 0) 'tilde)
     [return (/std/list-at- exp 1)]
-    [return [list ['brackets 'call [list ['/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]
-   [return [list ['brackets 'call [list ['/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]]]
+    [return [list ['call [list ['/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]
+   [return [list ['call [list ['/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))]]]]]]]]
 
 .backquote.arity = 2
 defn .defnx {name args body}
-[return [list ['brackets 'defn name '{} [list ['brackets 'defn '__magically_called__ args body '{} '= '(__magically_called__ @mut @0 @up2) 'return :shouldnt-go-here]] '{} '= [list ['brackets 'call [list [name '@mut '@0]]]]]]]
+[return [list ['defn name '{} [list ['defn '__magically_called__ args body '{} '= '(__magically_called__ @mut @0 @up2) 'return :shouldnt-go-here]] '{} '= [list ['call [list [name '@mut '@0]]]]]]]
 
 .defnx.arity = 4

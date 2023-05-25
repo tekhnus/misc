@@ -31,10 +31,9 @@ fntest
 42
 
 fntest
-[return `[42 (/std/+ 33 1)]]
+[return `{42 (/std/+ 33 1)}]
 [list
- ['brackets
-  '42
+ ['42
   [list
    ['call
     [list
@@ -43,10 +42,9 @@ fntest
       '1]]]]]]
 
 fntest
-[return `[42 {tilde (/std/+ 33 1)}]]
+[return `{42 {tilde (/std/+ 33 1)}}]
 [list
- ['brackets
-  '42
+ ['42
   '34]]
 
 fntest
