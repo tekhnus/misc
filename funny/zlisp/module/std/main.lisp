@@ -87,11 +87,11 @@ defn list-at {xs n}
 
 defn swtchone {a0}
 [if a0
- [firstarg = (../head a0)
+ {firstarg = (../head a0)
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
-  [return [list ['brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) [list ['brackets 'args '= '(/std/list-at prearg 1) body]] rest]]]]
+  return [list ['brackets 'prearg '= cond 'if '(/std/eq (/std/head prearg) :ok) [list ['brackets 'args '= '(/std/list-at prearg 1) body]] rest]]}
  [return '(/std/panic @0 "nothing matched")]]
 
 defn decons-pat {a0 a1}
