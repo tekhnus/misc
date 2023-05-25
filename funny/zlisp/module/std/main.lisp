@@ -122,10 +122,8 @@ defn make-assignment {x}
 [return [list [(../head x) '= (../list-at x 1)]]]
 
 defn switch-clause {a0}
-[if (../not (../eq (../head a0) 'brackets))
- [return "expected brackets"]
- []
- a1 = (../tail a0)
+[
+ [a1 = a0]
  sig = (../head a1)
  warning = "brackets"
  [if (../eq (../type sig) :list)
