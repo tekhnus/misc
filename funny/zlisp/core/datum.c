@@ -132,32 +132,25 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     end += sprintf(
         end, "~%s",
         datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
-  } else if (datum_is_list(e) && list_length(e) == 3 &&
-             datum_is_the_symbol(list_at(e, 0), "brackets") &&
-             datum_is_the_symbol(list_at(e, 1), "call")) {
-    datum *vals = list_at(e, 2);
-    end += sprintf(end, "(");
-    // 1 because brackets
-    for (int i = 1; i < list_length(vals); ++i) {
-      end += sprintf(
-          end, "%s ",
-          datum_repr_impl(list_at(vals, i), depth, start, pretty, flat, "\n"));
-    }
-    end += sprintf(end, ")");
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
     char *sep = spacing;
-    if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
+    if (datum_is_list(e) && list_length(e) == 3 &&
+             datum_is_the_symbol(list_at(e, 0), "brackets") &&
+        datum_is_the_symbol(list_at(e, 1), "call")) {
       first = 1;
-      pair = "[]";
-    }
-    if (pretty && list_length(e) > 1 &&
+      e = list_at(e, 2);
+      pair = "()";
+    } else if (pretty && list_length(e) > 1 &&
         datum_is_the_symbol(list_at(e, 0), "brackets") &&
         datum_is_the_symbol(list_at(e, 1), "polysym")) {
       first = 2;
       pair = "";
       sep = "/";
+    } else if (list_length(e) > 0 && datum_is_the_symbol(list_at(e, 0), "brackets")) {
+      first = 1;
+      pair = "[]";
     }
     if (strlen(pair) > 0) {
       end += sprintf(end, "%c", pair[0]);
