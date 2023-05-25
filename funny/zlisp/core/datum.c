@@ -381,22 +381,6 @@ EXPORT datum vec_to_datum(vec *v) {
   return res;
 }
 
-EXPORT datum vec_to_bracket_datum(vec *v) {
-  datum res = datum_make_list_of(datum_make_symbol("brackets"));
-  for (size_t i = 0; i < vec_length(v); ++i) {
-    list_append(&res, datum_to_bracket_datum(vec_at(v, i)));
-  }
-  return res;
-}
-
-LOCAL datum datum_to_bracket_datum(datum *v) {
-  datum res = datum_make_list_of(datum_make_symbol("brackets"));
-  for (int i = 0; i < list_length(v); ++i) {
-    list_append(&res, datum_copy(list_at(v, i)));
-  }
-  return res;
-}
-
 EXPORT datum vec_pop(vec *v) {
   size_t len = vec_length(v);
   assert(len > 0);
@@ -517,29 +501,4 @@ EXPORT vec vec_copy(vec *src) {
 EXPORT vec *list_to_vec(datum *val) {
   assert(datum_is_list(val));
   return &val->list_value;
-}
-
-EXPORT datum brackets_to_list(datum *val) {
-  if (!datum_is_list(val)) {
-    return datum_copy(val);
-  }
-  if (datum_is_nil(val) || !datum_is_the_symbol(list_at(val, 0), "brackets")) {
-    return datum_copy(val);
-  }
-  datum res = datum_make_nil();
-  for (int i = 1; i < list_length(val); ++i) {
-    list_append(&res, brackets_to_list(list_at(val, i)));
-  }
-  return res;
-}
-
-EXPORT datum list_to_brackets(datum *list) {
-  if (!datum_is_list(list)) {
-    return datum_copy(list);
-  }
-  datum res = datum_make_list_of(datum_make_symbol("brackets"));
-  for (int k = 0; k < list_length(list); ++k) {
-    list_append(&res, datum_copy(list_at(list, k)));
-  }
-  return res;
 }
