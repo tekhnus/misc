@@ -66,6 +66,9 @@ LOCAL datum rewrite(datum *source) {
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
+    if (datum_is_the_symbol(elem, "brackets")) {
+      continue;
+    }
     if (i + 3 < list_length(source) &&
         (datum_is_the_symbol(list_at(source, i), "defn") ||
          datum_is_the_symbol(list_at(source, i), "defnx"))) {
