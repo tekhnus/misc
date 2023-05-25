@@ -87,9 +87,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_the_symbol(head, "call")) {
     datum *exp = list_at(source, (*i)++);
-    datum expr;
-    expr = datum_copy(exp);
-    return prog_append_apply(sl, &expr, compdata, ext);
+    return prog_append_apply(sl, exp, compdata, ext);
   }
   if (datum_is_the_symbol(head, "if")) {
     datum *cond = list_at(source, (*i)++);
@@ -166,10 +164,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_the_symbol(head, "defn")) {
     datum *name = list_at(source, (*i)++);
-    datum *args_ = list_at(source, (*i)++);
+    datum *args = list_at(source, (*i)++);
     // fprintf(stderr, "%s\n", datum_repr(name));
-    datum argsval = datum_copy(args_);
-    datum *args = &argsval;
     datum *body = list_at(source, (*i)++);
     size_t put_prog_off = prog_append_something(sl); // filled below.
     datum routine_compdata = datum_copy(compdata);
@@ -212,18 +208,16 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
           !datum_is_the_symbol(list_at(tag, 0), "at")) {
         break;
       }
-      datum content = datum_copy(list_at(tag, 1));
-      datum content_val = datum_copy(&content);
-      if (datum_is_integer(&content)) {
-        recieve_count = content.integer_value;
+      datum *content_val = list_at(tag, 1);
+      if (datum_is_integer(content_val)) {
+        recieve_count = content_val->integer_value;
         ++(*i);
-      } else if (datum_is_list(&content_val) &&
-                 list_length(&content_val) == 2 &&
-                 datum_is_the_symbol(list_at(&content_val, 0), "meta")) {
-        meta = datum_copy(list_at(&content_val, 1));
+      } else if (datum_is_list(content_val) && list_length(content_val) == 2 &&
+                 datum_is_the_symbol(list_at(content_val, 0), "meta")) {
+        meta = datum_copy(list_at(content_val, 1));
         ++(*i);
       } else if (!target_defined) {
-        target = datum_copy(&content_val);
+        target = datum_copy(content_val);
         target_defined = true;
         ++(*i);
       } else {
@@ -243,9 +237,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_list(head)) {
-    datum parts;
-    parts = datum_copy(head);
-    return prog_append_expressions(sl, &parts, compdata, ext);
+    return prog_append_expressions(sl, head, compdata, ext);
   }
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, head, compdata);
@@ -286,16 +278,15 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
         !datum_is_the_symbol(list_at(tag, 0), "at")) {
       break;
     }
-    datum content = datum_copy(list_at(tag, 1));
-    datum content_val = datum_copy(&content);
-    if (datum_is_integer(&content)) {
-      ret_count = content.integer_value;
+    datum *content = list_at(tag, 1);
+    if (datum_is_integer(content)) {
+      ret_count = content->integer_value;
       ++index;
-    } else if (datum_is_the_symbol(&content, "mut")) {
+    } else if (datum_is_the_symbol(content, "mut")) {
       mut = true;
       ++index;
     } else if (!target_is_set) {
-      target = datum_copy(&content_val);
+      target = datum_copy(content);
       target_is_set = true;
       ++index;
     } else {
