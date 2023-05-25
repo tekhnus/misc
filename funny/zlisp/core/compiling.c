@@ -158,12 +158,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     datum names;
     if (datum_is_list(head)) {
-      assert(!datum_is_nil(head));
-      if (!datum_is_the_symbol(list_at(head, 0), "brackets")) {
-        fprintf(stderr, "!!! %s\n", datum_repr(head));
-        assert(datum_is_the_symbol(list_at(head, 0), "brackets"));
-      }
-      names = list_get_tail(head);
+      names = brackets_to_list(head);
     } else {
       names = datum_make_list_of(datum_copy(head));
     }

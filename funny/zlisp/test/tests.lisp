@@ -147,7 +147,7 @@ fntest
   [return (/std/+ n m)]]
  defn adder [n]
  [a = adderf
-  [] = (../a @0 @mut n)
+  {} = (../a @0 @mut n)
   [return a]]
  [return ((adder 3) 4)]]
 7
@@ -158,10 +158,10 @@ fntest
   [return 5]
   [return 8]
   [return 13]]
- [x] = (fib @mut)
- [y] = (fib @mut)
- [z] = (fib @mut)
- [t] = (fib @mut)
+ {x} = (fib @mut)
+ {y} = (fib @mut)
+ {z} = (fib @mut)
+ {t} = (fib @mut)
  [return [list [x y z t]]]]
 [list
  ['3
@@ -182,10 +182,10 @@ fntest
    x]
   [return @event-loop
    13]]
- [x] = (more-far-fib @mut @event-loop)
- [y] = (more-far-fib @mut @event-loop)
- [z] = (more-far-fib @mut @event-loop)
- [t] = (more-far-fib @mut @event-loop)
+ {x} = (more-far-fib @mut @event-loop)
+ {y} = (more-far-fib @mut @event-loop)
+ {z} = (more-far-fib @mut @event-loop)
+ {t} = (more-far-fib @mut @event-loop)
  [return [list [x y z t]]]]
 [list
  ['3
@@ -200,8 +200,8 @@ fntest
 
 fntest
 [defn multi-ret []
- [[] = [return [42 34]]]
- [x y] = (multi-ret @2)
+ [{} = [return [42 34]]]
+ {x y} = (multi-ret @2)
  [return [list [x y]]]]
 [list
  ['42
@@ -210,7 +210,7 @@ fntest
 fntest
 [defn foo [x]
  [y = [return @1 (/std/+ x 1)]
-  [z t] = [return @2 (/std/+ y 1)]
+  {z t} = [return @2 (/std/+ y 1)]
   [return :done]]
  fee = foo
  a = (fee @mut 41)
@@ -224,17 +224,17 @@ fntest
 
 fntest
 [defn cl-holder [x xs]
- [[] = [return []]
-  [] = [return [x xs]]]
+ [{} = [return []]
+  {} = [return [x xs]]]
  defn cl-cons [x xs]
  [holder = cl-holder
-  [] = (../holder @0 @mut x xs)
+  {} = (../holder @0 @mut x xs)
   [return holder]]
  defn cl-head [xs]
- [[h r] = (../xs @2)
+ [{h r} = (../xs @2)
   [return h]]
  defn cl-tail [xs]
- [[h r] = (../xs @2)
+ [{h r} = (../xs @2)
   [return r]]
  cl-nil = :nil
  xs0 = cl-nil
@@ -274,13 +274,13 @@ fntest
  [res = (/libc/print x)
   [return 'do-something-value]]
  defn interceptor [arg]
- [[ext-pointer arg-] = (../do-something @mut @{host "call-extension-1"} @2 arg)
+ [{ext-pointer arg-} = (../do-something @mut @{host "call-extension-1"} @2 arg)
   res = (/libc/print "extension:")
   res = (/libc/print ext-pointer)
   res = (/libc/print "argument:")
   res = (/libc/print arg-)
   host-res = [return @1 @{host "call-extension"} [ext-pointer arg-]]
-  [] = (../interceptor @0 @something host-res)]
+  {} = (../interceptor @0 @something host-res)]
  res = (interceptor 'arg)
  [return res]]
 'do-something-value
@@ -289,9 +289,9 @@ fntest
 [defn wrapper []
  [defn __magically_called__ [x]
   [return [list [x x]]]
-  [] = (__magically_called__ @mut @0 @up)
+  {} = (__magically_called__ @mut @0 @up)
   [return 33]]
- [] = (wrapper @mut @0)
+ {} = (wrapper @mut @0)
  res = (wrapper 42)
  [return res]]
 [list
@@ -323,13 +323,13 @@ fntest
 defn print-all [xs]
 [if xs
  [res = (/libc/print (/std/head xs))
-  [] = (../print-all @0 (/std/tail xs))
+  {} = (../print-all @0 (/std/tail xs))
   return []]
- [[] = [return []]]]
+ [{} = [return []]]]
 
 if panics
-[[] = (print-all @0 panics)
- [] = (/std/panic @0 "FAILED")]
+[{} = (print-all @0 panics)
+ {} = (/std/panic @0 "FAILED")]
 
 []
 

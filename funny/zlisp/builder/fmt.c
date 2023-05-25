@@ -82,10 +82,9 @@ LOCAL datum rewrite(datum *source) {
       }
       continue;
     }
-    if (datum_is_list(elem) && i + 1 < list_length(source) &&
-        datum_is_the_symbol(list_at(source, i + 1), "__xxx__") &&
-        i + 2 < list_length(source)) {
-      list_append(&res, list_to_brackets(list_at(source, i++)));
+    if (datum_is_list(elem) && i + 2 < list_length(source) &&
+        datum_is_the_symbol(list_at(source, i + 1), "=")) {
+      list_append(&res, brackets_to_list(list_at(source, i++)));
       list_append(&res, datum_copy(list_at(source, i++)));
       list_append(&res, datum_copy(list_at(source, i++)));
       --i;
