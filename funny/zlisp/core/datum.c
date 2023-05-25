@@ -76,7 +76,13 @@ EXPORT datum datum_make_frame(frame fr) {
   return e;
 }
 
-EXPORT char *datum_repr(datum *e) { return datum_format_bounded(e, 8, 0, false, FLAT, " "); }
+EXPORT char *datum_repr(datum *e) {
+  return datum_repr_impl(e, 128, 0, false, FLAT, " ");
+}
+
+EXPORT char *datum_repr_pretty(datum *e) {
+  return datum_repr_impl(e, 128, 0, true, NON_FLAT, "\n\n");
+}
 
 LOCAL char *escape_string(char *s) {
   size_t len = strlen(s) * 2;
@@ -94,8 +100,8 @@ LOCAL char *escape_string(char *s) {
   return quoted;
 }
 
-EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
-                                  bool pretty, int flat, char *spacing) {
+LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
+                            int flat, char *spacing) {
   char *buf = malloc(1024 * sizeof(char));
   char *end = buf;
   if (depth == 0) {
@@ -107,25 +113,25 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
              datum_is_the_symbol(list_at(e, 1), "quote")) {
     end += sprintf(
         end, "'%s",
-        datum_format_bounded(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 3 &&
              datum_is_the_symbol(list_at(e, 0), "brackets") &&
              datum_is_the_symbol(list_at(e, 1), "at")) {
     end += sprintf(
         end, "@%s",
-        datum_format_bounded(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 3 &&
              datum_is_the_symbol(list_at(e, 0), "brackets") &&
              datum_is_the_symbol(list_at(e, 1), "backquote")) {
     end += sprintf(
         end, "`%s",
-        datum_format_bounded(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 3 &&
              datum_is_the_symbol(list_at(e, 0), "brackets") &&
              datum_is_the_symbol(list_at(e, 1), "tilde")) {
     end += sprintf(
         end, "~%s",
-        datum_format_bounded(list_at(e, 2), depth, start, pretty, flat, "\n"));
+        datum_repr_impl(list_at(e, 2), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 3 &&
              datum_is_the_symbol(list_at(e, 0), "brackets") &&
              datum_is_the_symbol(list_at(e, 1), "call")) {
@@ -133,16 +139,16 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
     end += sprintf(end, "(");
     // 1 because brackets
     for (int i = 1; i < list_length(vals); ++i) {
-      end += sprintf(end, "%s ",
-                     datum_format_bounded(list_at(vals, i), depth, start,
-                                          pretty, flat, "\n"));
+      end += sprintf(
+          end, "%s ",
+          datum_repr_impl(list_at(vals, i), depth, start, pretty, flat, "\n"));
     }
     end += sprintf(end, ")");
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "()";
     char *sep = spacing;
-    if(!datum_is_the_symbol(list_at(e, 0), "brackets")) {
+    if (!datum_is_the_symbol(list_at(e, 0), "brackets")) {
       datum xxx = list_to_brackets(e);
       fprintf(stderr, "bare list repr not implemented: %s", datum_repr(&xxx));
       exit(EXIT_FAILURE);
@@ -223,8 +229,8 @@ EXPORT char *datum_format_bounded(datum *e, size_t depth, size_t start,
         child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
       }
       end += sprintf(end, "%s",
-                     datum_format_bounded(item, depth - 1, start + 1, pretty,
-                                          child_flatness, child_sep));
+                     datum_repr_impl(item, depth - 1, start + 1, pretty,
+                                     child_flatness, child_sep));
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;

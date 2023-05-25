@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
   }
   datum source = rewrite(&rr.ok_value);
   datum src = list_to_brackets(&source);
-  char *res = datum_format_bounded(&src, 128, 0, true, false, "\n\n");
+  char *res = datum_repr_pretty(&src);
   res[strlen(res) - 1] = 0;
   res += 1;
   fprintf(f, "%s\n", res);

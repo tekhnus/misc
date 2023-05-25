@@ -225,7 +225,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       if (datum_is_integer(&content)) {
         recieve_count = content.integer_value;
         ++(*i);
-      } else if (datum_is_list(&content_val) && list_length(&content_val) == 2 &&
+      } else if (datum_is_list(&content_val) &&
+                 list_length(&content_val) == 2 &&
                  datum_is_the_symbol(list_at(&content_val, 0), "meta")) {
         meta = datum_copy(list_at(&content_val, 1));
         ++(*i);

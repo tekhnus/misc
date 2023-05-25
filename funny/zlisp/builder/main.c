@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   datum d = vec_to_bracket_datum(&sl);
-  printf("%s\n", datum_format_bounded(&d, 128, 0, false, FLAT, " "));
+  printf("%s\n", datum_repr(&d));
   return EXIT_SUCCESS;
 }
 
