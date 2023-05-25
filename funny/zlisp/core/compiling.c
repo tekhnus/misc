@@ -386,10 +386,9 @@ EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
                              bool pop_one, datum type, int arg_count,
                              int return_count, datum *compdata) {
   assert(datum_is_list(&indices));
-  indices = list_to_brackets(&indices);
   vec_append(sl, datum_make_list_of(
                      datum_make_symbol(":call"), datum_make_int(capture_size),
-                     indices, datum_make_int(pop_one), list_to_brackets(&type),
+                     indices, datum_make_int(pop_one), type,
                      datum_make_int(arg_count), datum_make_int(return_count)));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);
@@ -415,15 +414,15 @@ EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":copy"),
-                                    list_to_brackets(&target_polyindex),
-                                    list_to_brackets(&polyindex)));
+                                    target_polyindex,
+                                    polyindex));
 }
 
 LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
                             datum *compdata) {
   vec_append(sl, datum_make_list_of(datum_make_symbol(":move"),
-                                    list_to_brackets((target)),
-                                    list_to_brackets((source))));
+                                    datum_copy(target),
+                                    datum_copy(source)));
   compdata_del(compdata);
 }
 
@@ -431,9 +430,9 @@ EXPORT void prog_append_yield(vec *sl, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
   vec_append(sl, datum_make_list_of(
-                     datum_make_symbol(":yield"), list_to_brackets(&type),
+                     datum_make_symbol(":yield"), type,
                      datum_make_int(count), datum_make_int(recieve_count),
-                     list_to_brackets(&meta)));
+                     meta));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
