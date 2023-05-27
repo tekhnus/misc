@@ -14,13 +14,13 @@ req
  {fntest- "testing" fntestx}}
 
 defn .switch {exp argz}
-{return {list {'args '= exp (/std/switch-fun argz)}}}
+{return {list {'args ':= exp (/std/switch-fun argz)}}}
 
-.switch.arity = 3
+.switch.arity := 3
 defn .fntest {body expect}
 {return (/testing/fntest- body expect)}
 
-.fntest.arity = 3
+.fntest.arity := 3
 defn .backquote {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
  {return {list {'quote exp}}}
@@ -32,8 +32,8 @@ defn .backquote {exp}
     {return {list {'call {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
    {return {list {'call {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}}}
 
-.backquote.arity = 2
+.backquote.arity := 2
 defn .defnx {name args body}
-{return {list {'defn name '{} {list {'defn '__magically_called__ args body '{} '= '(__magically_called__ @mut @0 @up2) 'return :shouldnt-go-here}} '{} '= {list {'call {list {name '@mut '@0}}}}}}}
+{return {list {'defn name '{} {list {'defn '__magically_called__ args body '{} ':= '(__magically_called__ @mut @0 @up2) 'return :shouldnt-go-here}} '{} ':= {list {'call {list {name '@mut '@0}}}}}}}
 
-.defnx.arity = 4
+.defnx.arity := 4

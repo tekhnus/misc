@@ -146,6 +146,23 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (*i < list_length(source) &&
+      datum_is_the_symbol(list_at(source, *i), ":=")) {
+    (*i)++;
+    datum *expr = list_at(source, (*i)++);
+    char *err = prog_append_expression(sl, expr, compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
+    datum names;
+    if (datum_is_list(head)) {
+      names = datum_copy(head);
+    } else {
+      names = datum_make_list_of(datum_copy(head));
+    }
+    store_values_to_variables(sl, &names, compdata);
+    return NULL;
+  }
+  if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
     datum *expr = list_at(source, (*i)++);

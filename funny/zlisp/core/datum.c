@@ -185,6 +185,9 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
       } else if (i + 1 < list_length(e) &&
                  datum_is_the_symbol(list_at(e, i + 1), "=")) {
         inhibit_newline = 2;
+      } else if (i + 1 < list_length(e) &&
+                 datum_is_the_symbol(list_at(e, i + 1), ":=")) {
+        inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "req")) {
         inhibit_newline = 0;
         inhibit_child_newlines = 1;
