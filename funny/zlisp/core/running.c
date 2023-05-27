@@ -283,9 +283,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       if (prg.type == PROG_MOVE) {
         datum *er = state_stack_at(r, prg.move_offset);
         state_stack_set(r, prg.move_target, *er);
-        *er = datum_make_nil();
-        state_stack_pop(r); // WARNING: works only while we always move the top
-                            // of the stack!
+        *er = datum_make_symbol("__guard__");
+        datum guard = state_stack_pop(r);
+        assert(datum_is_the_symbol(&guard, "__guard__"));
         *routine_offset(r) += 1;
         continue;
       }
