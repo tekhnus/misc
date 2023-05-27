@@ -33,11 +33,6 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
 
 EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
                                      extension *ext) {
-  return prog_append_expressions_impl(sl, source, compdata, ext);
-}
-
-LOCAL char *prog_append_expressions_impl(vec *sl, datum *source,
-                                         datum *compdata, extension *ext) {
   assert(datum_is_list(source));
   int i = 0;
   for (;;) {
@@ -63,7 +58,7 @@ LOCAL char *prog_append_expressions_impl(vec *sl, datum *source,
 LOCAL char *prog_append_expression(vec *sl, datum *stmt, datum *compdata,
                                    extension *ext) {
   datum exprs = datum_make_list_of(*stmt);
-  return prog_append_expressions_impl(sl, &exprs, compdata, ext);
+  return prog_append_expressions(sl, &exprs, compdata, ext);
 }
 
 LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
@@ -150,27 +145,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check);
     return NULL;
   }
-  /* if (*i < list_length(source) && */
-  /*     datum_is_the_symbol(list_at(source, *i), ":=")) { */
-  /*   (*i)++; */
-  /*   datum *expr = list_at(source, (*i)++); */
-  /*   datum names; */
-  /*   if (datum_is_list(head)) { */
-  /*     names = datum_copy(head); */
-  /*   } else { */
-  /*     names = datum_make_list_of(datum_copy(head)); */
-  /*   } */
-  /*   for (int j = 0; j < list_length(&names); ++j) { */
-  /*     compdata_put(compdata, datum_make_symbol(":anon")); */
-  /*   } */
-  /*   compdata_give_names(compdata, &names); */
-  /*   char *err = prog_append_expression(sl, expr, compdata, ext); */
-  /*   if (err != NULL) { */
-  /*     return err; */
-  /*   } */
-  /*   move_values_to_variables(sl, &names, compdata); */
-  /*   return NULL; */
-  /* } */
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), ":=")) {
     (*i)++;
@@ -277,7 +251,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_list(head)) {
-    return prog_append_expressions_impl(sl, head, compdata, ext);
+    return prog_append_expressions(sl, head, compdata, ext);
   }
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, head, compdata);

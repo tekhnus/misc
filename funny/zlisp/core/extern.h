@@ -125,7 +125,6 @@ void prog_append_put_const(vec *sl,datum *val,datum *compdata);
 LOCAL char *prog_append_expression(vec *sl,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext);
-LOCAL char *prog_append_expressions_impl(vec *sl,datum *source,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 vec vec_create_slice();
 void prog_append_bytecode(vec *sl,vec *src_sl);
