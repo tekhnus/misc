@@ -151,7 +151,7 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
     vn = datum_make_symbol(varname);
     list_append(&names, vn);
   }
-  store_values_to_variables(sl, &names, compdata);
+  compdata_give_names(compdata, &names);
   return NULL;
 }
 

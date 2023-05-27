@@ -627,7 +627,7 @@ EXPORT void store_values_to_variables(vec *sl, datum *var, datum *compdata) {
   }
 }
 
-LOCAL void compdata_give_names(datum *compdata, datum *var) {
+EXPORT void compdata_give_names(datum *compdata, datum *var) {
   for (int i = 0; i < list_length(var); ++i) {
     compdata_del(compdata);
   }
@@ -639,7 +639,7 @@ LOCAL void compdata_give_names(datum *compdata, datum *var) {
   }
 }
 
-LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata) {
+EXPORT void move_values_to_variables(vec *sl, datum *var, datum *compdata) {
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
