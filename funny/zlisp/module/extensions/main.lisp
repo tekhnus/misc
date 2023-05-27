@@ -14,7 +14,7 @@ req
  {fntest- "testing" fntestx}}
 
 defn .switch {exp argz}
-{return {list {'args ':= exp (/std/switch-fun argz)}}}
+{return {list {'args '= exp (/std/switch-fun argz)}}}
 
 .switch.arity := 3
 defn .fntest {body expect}
