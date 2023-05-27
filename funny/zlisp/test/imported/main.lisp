@@ -1,6 +1,8 @@
 req
 {}
 
-some-variable := 42
+some-variable :=
+42
+
 export
 {}
