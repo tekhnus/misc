@@ -211,37 +211,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     move_values_to_variables(sl, &names, compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(head, "defn")) {
-    datum *name = list_at(source, (*i)++);
-    datum *args = list_at(source, (*i)++);
-    // fprintf(stderr, "%s\n", datum_repr(name));
-    datum *body = list_at(source, (*i)++);
-    size_t put_prog_off = prog_append_something(sl); // filled below.
-    datum routine_compdata = datum_copy(compdata);
-    compdata_put(&routine_compdata, datum_copy(name));
-    compdata_start_new_section(&routine_compdata);
-
-    size_t prog_off = prog_get_next_index(sl);
-    prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
-                      datum_make_nil(), &routine_compdata);
-    compdata_give_names(&routine_compdata, args);
-    char *err = prog_append_expression(sl, body, &routine_compdata, future_compdata, ext);
-    if (err != NULL) {
-      return err;
-    }
-    datum errm = datum_make_bytestring("routine guard reached");
-    prog_append_put_const(sl, &errm, &routine_compdata);
-    prog_append_yield(sl, datum_make_symbol("panic"), 1, 0, datum_make_nil(),
-                      &routine_compdata);
-    assert(put_prog_off + 1 == prog_off);
-    compdata_put(compdata, datum_make_symbol(":anon"));
-    datum pi = compdata_get_top_polyindex(compdata);
-    *vec_at(sl, put_prog_off) =
-      prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
-    datum name_singleton = datum_make_list_of(datum_copy(name));
-    compdata_give_names(compdata, &name_singleton);
-    return NULL;
-  }
   if (datum_is_the_symbol(head, "fn") ||
       datum_is_the_symbol(head, "magically_called_fn")) {
     datum *args = list_at(source, (*i)++);
