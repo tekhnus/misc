@@ -433,13 +433,10 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   assert(datum_is_integer(value_index));
   size_t value_index_ = value_index->integer_value;
   assert(value_index_ <= vec_length(frame));
-  if (value_index_ == vec_length(frame)) {
-    vec_append(frame, value);
-  } else if (value_index_ < vec_length(frame)) {
-    *vec_at(frame, value_index_) = value;
-  } else {
-    assert(false);
-  }
+  while (value_index_ >= vec_length(frame)) {
+    vec_append(frame, datum_make_symbol("__undefined__"));
+  };
+  *vec_at(frame, value_index_) = value;
 }
 
 LOCAL void state_stack_put(routine *r, datum value) {

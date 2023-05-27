@@ -104,6 +104,12 @@ def main():
         v = pdata[-1].varz[-1].pop()
         return v
 
+    def set_stack(target, p):
+        tframe, tindx = target
+        while tindx >= len(pdata[-1].varz[tframe]):
+            pdata[-1].varz[tframe].append(None)
+        pdata[-1].varz[tframe][tindx] = p
+
     ip = pdata[-1].ip
     ins = prog[ip]
     op, args = ins[0], ins[1:]
@@ -128,32 +134,22 @@ def main():
             ip += nex
         elif op == sexpdata.Symbol(":put-const"):
             target, value = args
-            tframe, tindx = target
-            if tindx == len(pdata[-1].varz[tframe]):
-                pdata[-1].varz[tframe].append(None)
-            pdata[-1].varz[tframe][tindx] = copy.deepcopy(value)
+            set_stack(target, copy.deepcopy(value))
             ip += 1
         elif op == sexpdata.Symbol(":copy"):
             target, offset = args
-            tframe, tindx = target
             frame, indx = offset
-            if tindx == len(pdata[-1].varz[tframe]):
-                pdata[-1].varz[tframe].append(None)
-            pdata[-1].varz[tframe][tindx] = (
-                copy.deepcopy(pdata[-1].varz[frame][indx])
-            )
+            set_stack(target,
+                copy.deepcopy(pdata[-1].varz[frame][indx]))
             ip += 1
         elif op == sexpdata.Symbol(":move"):
             target, offset = args
-            tframe, tindx = target
             frame, indx = offset
-            if tindx == len(pdata[-1].varz[tframe]):
-                pdata[-1].varz[tframe].append(None)
-            pdata[-1].varz[tframe][tindx] = (
+            set_stack(target,
                 pdata[-1].varz[frame][indx]
             )
-            pdata[-1].varz[frame][indx] = None
-            pdata[-1].varz[frame].pop()  # WARNING: works only because we move the top cell.
+            assert indx + 1 == len(pdata[-1].varz[frame])
+            pdata[-1].varz[frame].pop()
             ip += 1
         elif op == sexpdata.Symbol(":call"):
             capture_cnt, indices, pop_one, target, arg_cnt, ret_cnt = args
@@ -207,10 +203,10 @@ def main():
                 capture_size = 0
             else:
                 capture_size = len(pdata[-1].varz)
-            tframe, tindx = target
-            if tindx == len(pdata[-1].varz[tframe]):
-                pdata[-1].varz[tframe].append(None)
             p = [ip + 1, [[]], capture_size]
+            tframe, tindx = target
+            while tindx >= len(pdata[-1].varz[tframe]):
+                pdata[-1].varz[tframe].append(None)
             pdata[-1].varz[tframe][tindx] = p
             ip += nex
         elif op == sexpdata.Symbol(":yield"):
