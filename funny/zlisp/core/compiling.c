@@ -159,7 +159,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    store_values_to_variables(sl, &names, compdata);
+    compdata_give_names(compdata, &names);
     return NULL;
   }
   if (*i < list_length(source) &&
@@ -197,7 +197,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
-    store_values_to_variables(sl, args, &routine_compdata);
+    compdata_give_names(&routine_compdata, args);
     char *err = prog_append_expression(sl, body, &routine_compdata, ext);
     if (err != NULL) {
       return err;
@@ -211,7 +211,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
         prog_get_put_prog(prog_get_next_index(sl) - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
     datum name_singleton = datum_make_list_of(datum_copy(name));
-    store_values_to_variables(sl, &name_singleton, compdata);
+    compdata_give_names(compdata, &name_singleton);
     return NULL;
   }
   if (datum_is_the_symbol(head, "fn") || datum_is_the_symbol(head, "magically_called_fn")) {
@@ -229,7 +229,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
-    store_values_to_variables(sl, args, &routine_compdata);
+    compdata_give_names(&routine_compdata, args);
     char *err = prog_append_expression(sl, body, &routine_compdata, ext);
     if (err != NULL) {
       return err;
