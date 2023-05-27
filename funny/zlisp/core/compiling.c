@@ -485,9 +485,10 @@ EXPORT size_t prog_append_something(vec *sl) {
 }
 
 EXPORT void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
-  vec_append(
-      sl, datum_make_list_of(datum_make_symbol(":put-const"), datum_copy(val)));
   compdata_put(compdata, datum_make_symbol(":anon"));
+  datum target_polyindex = compdata_get_top_polyindex(compdata);
+  vec_append(
+             sl, datum_make_list_of(datum_make_symbol(":put-const"), target_polyindex, datum_copy(val)));
 }
 
 LOCAL void prog_append_collect(vec *sl, size_t count, datum *compdata) {

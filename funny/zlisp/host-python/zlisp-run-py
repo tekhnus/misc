@@ -127,8 +127,11 @@ def main():
             nex, = args
             ip += nex
         elif op == sexpdata.Symbol(":put-const"):
-            value, = args
-            pdata[-1].varz[-1].append((value))
+            target, value = args
+            tframe, tindx = target
+            if tindx == len(pdata[-1].varz[tframe]):
+                pdata[-1].varz[tframe].append(None)
+            pdata[-1].varz[tframe][tindx] = copy.deepcopy(value)
             ip += 1
         elif op == sexpdata.Symbol(":copy"):
             target, offset = args

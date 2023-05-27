@@ -24,6 +24,7 @@ struct prog {
     };
     ptrdiff_t jmp_next;
     struct {
+      datum *put_const_target;
       struct datum *put_const_value;
     };
     struct {
@@ -270,7 +271,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_PUT_CONST) {
-        state_stack_put(r, datum_copy(prg.put_const_value));
+        state_stack_set(r, prg.put_const_target, datum_copy(prg.put_const_value));
         *routine_offset(r) += 1;
         continue;
       }
@@ -318,7 +319,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.jmp_next = (list_at(d, 1)->integer_value);
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
-    res.put_const_value = list_at(d, 1);
+    res.put_const_target = list_at(d, 1);
+    res.put_const_value = list_at(d, 2);
   } else if (!strcmp(opsym, ":copy")) {
     res.type = PROG_COPY;
     res.copy_target = list_at(d, 1);
