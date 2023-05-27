@@ -254,13 +254,11 @@ fntest
   ':done}}
 
 fntest
-{cl-holder := {fn {x
-   xs}
+{cl-holder := {fn {x xs}
   {{} := {return {}}
    {} := {return {x
      xs}}}}
- cl-cons := {fn {x
-   xs}
+ cl-cons := {fn {x xs}
   {holder := cl-holder
    {} := (../holder @0 @mut x xs)
    {return holder}}}

@@ -41,8 +41,7 @@ is-constant := {fn {a0}
    {list
     a0}}
   return r}}
-eq := {fn {a0
-  a1}
+eq := {fn {a0 a1}
  {r := {return @1
    @{host
     "eval"
@@ -67,8 +66,7 @@ annotate := {fn {a0}
    {list
     a0}}
   return r}}
-+ := {fn {a0
-  a1}
++ := {fn {a0 a1}
  {r := {return @1
    @{host
     "eval"
@@ -77,8 +75,7 @@ annotate := {fn {a0}
     {a0
      a1}}}
   return r}}
-cons := {fn {a0
-  a1}
+cons := {fn {a0 a1}
  {r := {return @1
    @{host
     "eval"
@@ -87,8 +84,7 @@ cons := {fn {a0
     {a0
      a1}}}
   return r}}
-concat-bytestrings := {fn {a0
-  a1}
+concat-bytestrings := {fn {a0 a1}
  {r := {return @1
    @{host
     "eval"

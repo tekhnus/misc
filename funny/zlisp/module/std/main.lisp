@@ -18,11 +18,9 @@ head := {fn {x}
  {return (/prelude/head- x)}}
 tail := {fn {x}
  {return (/prelude/tail- x)}}
-cons := {fn {x
-  xs}
+cons := {fn {x xs}
  {return (/prelude/cons- x xs)}}
-eq := {fn {x
-  y}
+eq := {fn {x y}
  {return (/prelude/eq- x y)}}
 annotate := {fn {x}
  {return (/prelude/annotate- x)}}
@@ -30,11 +28,9 @@ is-constant := {fn {x}
  {return (/prelude/is-constant- x)}}
 repr := {fn {x}
  {return (/prelude/repr- x)}}
-concat-bytestrings := {fn {x
-  y}
+concat-bytestrings := {fn {x y}
  {return (/prelude/concat-bytestrings- x y)}}
-+ := {fn {x
-  y}
++ := {fn {x y}
  {return (/prelude/+- x y)}}
 not := {fn {x}
  {if x
@@ -55,21 +51,18 @@ length := {fn {x}
   {n = (../+ n 1)
    x = (../tail x)}
   {return n}}}
-concat := {fn {a0
-  a1}
+concat := {fn {a0 a1}
  {if a0
   {return (../cons (../head a0) (../concat (../tail a0) a1))}
   {return a1}}}
-zip := {fn {a0
-  a1}
+zip := {fn {a0 a1}
  {if a0
   {return (../cons {list
      {(../head a0)
       (../head a1)}} (../zip (../tail a0) (../tail a1)))}
   {return {list
     {}}}}}
-map := {fn {a0
-  a1}
+map := {fn {a0 a1}
  {if a1
   {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
   {return {list
@@ -79,8 +72,7 @@ panic-block := {list
   '(/std/panic
    @0
    "wrong fn call")}}
-list-at := {fn {xs
-  n}
+list-at := {fn {xs n}
  {if (../eq n 0)
   {{return (../head xs)}}
   {{return (../list-at (../tail xs) (../+ n -1))}}}}
@@ -109,8 +101,7 @@ swtchone := {fn {a0}
   {return '(/std/panic
     @0
     "nothing matched")}}}
-decons-pat := {fn {a0
-  a1}
+decons-pat := {fn {a0 a1}
  {pat := a0
   val := a1
   if (../is-constant pat)
@@ -210,8 +201,7 @@ switch-clause := {fn {a0}
      body}}}}}
 switch-fun := {fn {a0}
  {return (../swtchone (../map switch-clause a0))}}
-append := {fn {x
-  xs}
+append := {fn {x xs}
  {if xs
   {return (../cons (../head xs) (../append x (../tail xs)))}
   {return {list

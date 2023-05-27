@@ -172,6 +172,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "fn")) {
         inhibit_newline = 1;
+        inhibit_child_newlines = 1;
       } else if (datum_is_the_symbol(item, "fntest")) {
         inhibit_double_newline = 2;
       } else if (datum_is_the_symbol(item, "return")) {

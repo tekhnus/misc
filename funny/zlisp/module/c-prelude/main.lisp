@@ -1,8 +1,7 @@
 req
 {}
 
-call-extension-1 := {fn {fnptr
-  x}
+call-extension-1 := {fn {fnptr x}
  {r := {return @1
    @{host
     "call-extension"}
@@ -14,8 +13,7 @@ deref-pointer := {return @1
   "deref-pointer"}
  {list
   {}}}
-deref := {fn {x
-  y}
+deref := {fn {x y}
  {r := {return @1
    @{host
     "call-extension"}
@@ -28,8 +26,7 @@ mkptr-pointer := {return @1
   "mkptr-pointer"}
  {list
   {}}}
-mkptr := {fn {x
-  y}
+mkptr := {fn {x y}
  {r := {return @1
    @{host
     "call-extension"}
@@ -42,9 +39,7 @@ pointer-call-pointer := {return @1
   "pointer-call-pointer"}
  {list
   {}}}
-pointer-call := {fn {x
-  y
-  z}
+pointer-call := {fn {x y z}
  {r := {return @1
    @{host
     "call-extension"}
@@ -94,8 +89,7 @@ cons-pointer := {return @1
   "cons"}
  {list
   {}}}
-cons := {fn {x
-  xs}
+cons := {fn {x xs}
  {r := {return @1
    @{host
     "call-extension"}
@@ -108,8 +102,7 @@ eq-pointer := {return @1
   "eq"}
  {list
   {}}}
-eq := {fn {x
-  y}
+eq := {fn {x y}
  {r := {return @1
    @{host
     "call-extension"}
@@ -117,8 +110,7 @@ eq := {fn {x
     x
     y}}
   return r}}
-serialize-param := {fn {param
-  signature}
+serialize-param := {fn {param signature}
  {if (../eq signature 'pointer)
   {return param}
   {if (../eq signature 'fdatum)
@@ -126,14 +118,12 @@ serialize-param := {fn {param
    {if (../eq signature 'progslice)
     {return param}
     {return (../mkptr param signature)}}}}}
-serialize-params := {fn {params
-  signature}
+serialize-params := {fn {params signature}
  {if params
   {return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
   {return {list
     {}}}}}
-dereference := {fn {what
-  how}
+dereference := {fn {what how}
  {if (../eq how 'pointer)
   {return what}
   {if (../eq how 'fdatum)
@@ -141,9 +131,7 @@ dereference := {fn {what
    {if (../eq how 'progslice)
     {return what}
     {return (../deref what how)}}}}}
-pointer-call-and-deserialize := {fn {fn-ptr
-  signature
-  params}
+pointer-call-and-deserialize := {fn {fn-ptr signature params}
  {fnparamst := (../head signature)
   rettype := (../head (../tail signature))
   s := (../serialize-params params fnparamst)
@@ -182,8 +170,7 @@ dlsym-pointer := {return @1
   "dlsym"}
  {list
   {}}}
-dlsym := {fn {x
-  y}
+dlsym := {fn {x y}
  {return (../pointer-call-and-deserialize dlsym-pointer {list
     {{list
       {'pointer
@@ -191,54 +178,45 @@ dlsym := {fn {x
      'pointer}} {list
     {x
      y}})}}
-c-data-pointer := {fn {handle
-  c-name
-  signature}
+c-data-pointer := {fn {handle c-name signature}
  {fn-pointer-pointer := (../dlsym handle c-name)
   fn-pointer := (../dereference fn-pointer-pointer 'int64)
   return fn-pointer}}
-nth := {fn {n
-  xs}
+nth := {fn {n xs}
  {if xs
   {if n
    {return (../nth (../tail n) (../tail xs))}
    {return (../head xs)}}
   (../panic "nth fail")}}
-get-fn-ptr := {fn {handle
-  c-name}
+get-fn-ptr := {fn {handle c-name}
  {fn-pointer-pointer := (../dlsym handle c-name)
   fn-ptr := (../dereference fn-pointer-pointer 'int64)
   if (../eq fn-ptr 0)
   (../panic "couldn't load C function")
   {return fn-ptr}}}
-c-function-0 := {fn {fn-ptr
-  signature}
+c-function-0 := {fn {fn-ptr signature}
  {return {}
   return (../pointer-call-and-deserialize fn-ptr signature {list
     {}})}}
-c-function-1 := {fn {fn-ptr
-  signature}
+c-function-1 := {fn {fn-ptr signature}
  {{a1} := {return @1
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
     a1})}}
-c-function-2 := {fn {fn-ptr
-  signature}
+c-function-2 := {fn {fn-ptr signature}
  {{a1 a2} := {return @2
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
     {a1
      a2}})}}
-c-function-3 := {fn {fn-ptr
-  signature}
+c-function-3 := {fn {fn-ptr signature}
  {{a1 a2 a3} := {return @3
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
     {a1
      a2
      a3}})}}
-c-function-4 := {fn {fn-ptr
-  signature}
+c-function-4 := {fn {fn-ptr signature}
  {{a1 a2 a3 a4} := {return @4
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
@@ -246,8 +224,7 @@ c-function-4 := {fn {fn-ptr
      a2
      a3
      a4}})}}
-c-function-5 := {fn {fn-ptr
-  signature}
+c-function-5 := {fn {fn-ptr signature}
  {{a1 a2 a3 a4 a5} := {return @5
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
@@ -256,8 +233,7 @@ c-function-5 := {fn {fn-ptr
      a3
      a4
      a5}})}}
-c-function-6 := {fn {fn-ptr
-  signature}
+c-function-6 := {fn {fn-ptr signature}
  {{a1 a2 a3 a4 a5 a6} := {return @6
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
@@ -267,8 +243,7 @@ c-function-6 := {fn {fn-ptr
      a4
      a5
      a6}})}}
-c-function-7 := {fn {fn-ptr
-  signature}
+c-function-7 := {fn {fn-ptr signature}
  {{a1 a2 a3 a4 a5 a6 a7} := {return @7
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
@@ -279,8 +254,7 @@ c-function-7 := {fn {fn-ptr
      a5
      a6
      a7}})}}
-c-function-8 := {fn {fn-ptr
-  signature}
+c-function-8 := {fn {fn-ptr signature}
  {{a1 a2 a3 a4 a5 a6 a7 a8} := {return @8
    {}}
   return (../pointer-call-and-deserialize fn-ptr signature {list
@@ -292,9 +266,7 @@ c-function-8 := {fn {fn-ptr
      a6
      a7
      a8}})}}
-c-function := {fn {handle
-  c-name
-  signature}
+c-function := {fn {handle c-name signature}
  {argssig := (../head signature)
   objs := {list
    {c-function-0
@@ -336,8 +308,7 @@ repr := {fn {x}
     x}}
   return r}}
 concat-bytestrings-pointer := (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64)
-concat-bytestrings := {fn {x
-  y}
+concat-bytestrings := {fn {x y}
  {r := {return @1
    @{host
     "call-extension"}
@@ -346,8 +317,7 @@ concat-bytestrings := {fn {x
     y}}
   return r}}
 +-pointer := (dereference (dlsym selflib "builtin_add") 'int64)
-+ := {fn {x
-  y}
++ := {fn {x y}
  {r := {return @1
    @{host
     "call-extension"}
@@ -366,9 +336,7 @@ shared-library := {fn {path}
   {return {list
     {:ok
      r}}}}}
-extern-pointer := {fn {handle
-  c-name
-  signature}
+extern-pointer := {fn {handle c-name signature}
  {res := (../c-data-pointer handle c-name signature)
   if (../eq 0 res)
   {return {list

@@ -6,8 +6,7 @@ req
  {concat-bytestrings "std" concat-bytestrings}
  {panic "std" panic}}
 
-fntestx := {fn {body
-  expect}
+fntestx := {fn {body expect}
  {repr-expect := {list
    {'call
     {list

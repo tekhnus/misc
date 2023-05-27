@@ -29,12 +29,7 @@ args := 0
 prearg := 0
 comment := "this is a workaround for switch"
 readme := "A basic REPL for zlisp."
-repl := {fn {sl
-  nsp
-  bpptr
-  compdata
-  bdrcompdata
-  ex}
+repl := {fn {sl nsp bpptr compdata bdrcompdata ex}
  {tmp := (/prelude/fprintf stdout "> ")
   ignored := 0
   switch (/zlisp/rd stdin)
