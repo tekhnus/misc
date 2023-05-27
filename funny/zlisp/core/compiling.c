@@ -176,7 +176,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    store_values_to_variables(sl, &names, compdata);
+    move_values_to_variables(sl, &names, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(head, "defn")) {
