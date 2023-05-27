@@ -22,6 +22,9 @@ req
  {print "libc" print}}
 
 panics := {list {}}
+val := 0
+calltest := 0
+
 fntest
 {return "hello, world!"}
 "hello, world!"
@@ -132,8 +135,8 @@ fntest
 {x := 0
  y := 1
  while (/std/not (/std/eq x 5))
- {y := (/std/+ y y)
-  x := (/std/+ x 1)}
+ {y = (/std/+ y y)
+  x = (/std/+ x 1)}
  {return y}}
 32
 
@@ -272,9 +275,9 @@ fntest
  defn interceptor {arg}
  {{ext-pointer arg-} := (../do-something @mut @{host "call-extension-1"} @2 arg)
   res := (/libc/print "extension:")
-  res := (/libc/print ext-pointer)
-  res := (/libc/print "argument:")
-  res := (/libc/print arg-)
+  res = (/libc/print ext-pointer)
+  res = (/libc/print "argument:")
+  res = (/libc/print arg-)
   host-res := {return @1 @{host "call-extension"} {ext-pointer arg-}}
   {} := (../interceptor @0 @something host-res)}
  res := (interceptor 'arg)
@@ -303,9 +306,9 @@ fntest
 fntest
 {x := -5
  while (/std/not (/std/eq x 0))
- {x := (/std/+ x 1)}
- defn f {x}
- {return x}
+ {x = (/std/+ x 1)}
+ defn f {t}
+ {return t}
  if 3
  {return 42}
  {return 25}}
@@ -328,5 +331,3 @@ if panics
  {} := (/std/panic @0 "FAILED")}
 
 {}
-
-x := "if at the end of the module doesn't work well, so here is this statement:)"

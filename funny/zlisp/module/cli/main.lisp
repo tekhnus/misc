@@ -28,6 +28,7 @@ req
 readme := "A basic REPL for zlisp."
 defn repl {sl nsp bpptr compdata bdrcompdata ex}
 {tmp := (/prelude/fprintf stdout "> ")
+ ignored := 0
  switch (/zlisp/rd stdin)
  {{{:eof}
    return (/prelude/fprintf stdout "")}
@@ -40,19 +41,19 @@ defn repl {sl nsp bpptr compdata bdrcompdata ex}
      switch (/zlisp/eval-new sl nsp)
      {{{:ok
         val}
-       ignored := (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
+       ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
        return (../repl sl nsp bpptr compdata bdrcompdata ex)}
       {{:err
-        msg}
-       ignored := (/prelude/fprintf-bytestring stderr "eval error: %s\n" msg)
+        msga}
+       ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msga)
        return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
     {{:err
-      msg}
-     ignored := (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msg)
+      msgb}
+     ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msgb)
      return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
   {{:err
-    msg}
-   ignored := (/prelude/fprintf-bytestring stderr "read error: %s\n" msg)
+    msgc}
+   ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msgc)
    return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
 
 sl := (/prelude/psm)
@@ -62,5 +63,5 @@ compdata := (/prelude/cdm)
 bdrcompdata := (/prelude/cdm)
 ex := (/prelude/em)
 bpval := (/zlisp/iprog sl compdata bdrcompdata)
-bpptr := (/prelude/wrap-pointer-into-pointer bpval)
+bpptr = (/prelude/wrap-pointer-into-pointer bpval)
 ignored := (repl sl rt bpptr compdata bdrcompdata ex)

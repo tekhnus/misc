@@ -592,6 +592,7 @@ EXPORT void store_values_to_variables(vec *sl, datum *var, datum *compdata) {
     compdata_give_names(compdata, var);
   }
   if (set) {
+    fprintf(stderr, "warning: redefinition: %s\n", datum_repr(var));
     move_values_to_variables(sl, var, compdata);
   }
 }

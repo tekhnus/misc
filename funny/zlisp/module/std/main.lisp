@@ -58,8 +58,8 @@ defn type {x}
 defn length {x}
 {n := 0
  while x
- {n := (../+ n 1)
-  x := (../tail x)}
+ {n = (../+ n 1)
+  x = (../tail x)}
  {return n}}
 
 defn concat {a0 a1}
