@@ -17,7 +17,6 @@ req
 panics := {list {}}
 val := 0
 calltest := 0
-
 fntest
 {return (std/head {list {'42 '5 '3}})}
 42
@@ -145,7 +144,6 @@ defn print-all {xs}
 
 if panics
 {{} := (print-all @0 panics)
- {} := (/std/panic @0 "FAILED")
-}
+ {} := (/std/panic @0 "FAILED")}
 
 {}

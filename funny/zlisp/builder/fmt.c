@@ -40,9 +40,6 @@ int main(int argc, char **argv) {
 }
 
 LOCAL datum rewrite(datum *source) {
-  if (datum_is_the_symbol(source, "=")) {
-    return datum_make_symbol(":=");
-  }
   if (!datum_is_list(source)) {
     return datum_copy(source);
   }

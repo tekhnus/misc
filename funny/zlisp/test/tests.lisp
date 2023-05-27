@@ -24,7 +24,6 @@ req
 panics := {list {}}
 val := 0
 calltest := 0
-
 fntest
 {return "hello, world!"}
 "hello, world!"
