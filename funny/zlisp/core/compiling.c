@@ -190,11 +190,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     compdata_start_new_section(&routine_compdata);
 
     size_t prog_off = prog_get_next_index(sl);
-    if (datum_is_the_symbol(name, "__magically_called__")) {
-      datum target = datum_make_symbol("plain");
-      datum met = datum_make_nil();
-      prog_append_yield(sl, target, 0, 0, met, &routine_compdata);
-    }
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);

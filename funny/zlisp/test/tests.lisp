@@ -284,9 +284,8 @@ fntest
 
 fntest
 {defn wrapper {}
- {defn __magically_called__ {x}
-  {return {list {x x}}}
-  {} := (__magically_called__ @mut @0 @up)
+ {mco := {magically_called_fn {x} {return {list {x x}}}}
+  {} := (mco @mut @0 @up)
   {return 33}}
  {} := (wrapper @mut @0)
  res := (wrapper 42)
