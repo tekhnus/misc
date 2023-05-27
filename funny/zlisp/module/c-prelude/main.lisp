@@ -201,7 +201,6 @@ export
  {dereference dereference}
  {dlsym dlsym}
  {c-function c-function}
- {eq eq}
  {annotate annotate}
  {is-constant is-constant}
  {repr repr}

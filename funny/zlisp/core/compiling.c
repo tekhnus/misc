@@ -604,9 +604,12 @@ EXPORT void compdata_give_names(datum *compdata, datum *var) {
     compdata_del(compdata);
   }
   for (int i = 0; i < list_length(var); ++i) {
-    // datum target = compdata_get_polyindex(compdata, list_at(var, i));
-    // fprintf(stderr, "%s\n", datum_repr(list_at(var, i)));
-    // assert(datum_is_nil(&target));
+    datum target = compdata_get_polyindex(compdata, list_at(var, i));
+    if (!datum_is_nil(&target)) {
+      fprintf(stderr, "erorr: redefinition of %s\n",
+              datum_repr(list_at(var, i)));
+      exit(EXIT_FAILURE);
+    }
     compdata_put(compdata, datum_copy(list_at(var, i)));
   }
 }

@@ -12,7 +12,6 @@ req
  {list-at "std" list-at}
  {type "std" type}
  {+ "std" +}
- {panic "std" panic}
  {concat-bytestrings "std" concat-bytestrings}
  {cons "std" cons}
  {tail "std" tail}

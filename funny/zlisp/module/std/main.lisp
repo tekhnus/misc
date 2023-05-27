@@ -167,7 +167,6 @@ export
  {tail tail}
  {cons cons}
  {eq eq}
- {eq eq}
  {annotate annotate}
  {is-constant is-constant}
  {repr repr}
