@@ -369,6 +369,7 @@ fntest
 5
 
 print-all := 42
+
 print-all = {fn {xs}
  {if xs
   {res := (/libc/print (/std/head xs))

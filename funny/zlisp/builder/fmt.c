@@ -56,7 +56,8 @@ LOCAL datum rewrite(datum *source) {
     /*   --i; */
     /*   list_append(&res, rewrite(name)); */
     /*   list_append(&res, datum_make_symbol(":=")); */
-    /*   list_append(&res, datum_make_list_of(datum_make_symbol("fn"), *args, *body)); */
+    /*   list_append(&res, datum_make_list_of(datum_make_symbol("fn"), *args,
+     * *body)); */
     /*   continue; */
     /* } */
     list_append(&res, rewrite(elem));

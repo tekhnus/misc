@@ -51,6 +51,7 @@ not := {fn {x}
       {}}}}}}}
 
 last := 42
+
 last = {fn {a0}
  {if (../tail a0)
   {return (../last (../tail a0))}
@@ -67,12 +68,14 @@ length := {fn {x}
   {return n}}}
 
 concat := 42
+
 concat = {fn {a0 a1}
  {if a0
   {return (../cons (../head a0) (../concat (../tail a0) a1))}
   {return a1}}}
 
 zip := 42
+
 zip = {fn {a0 a1}
  {if a0
   {return (../cons {list
@@ -82,6 +85,7 @@ zip = {fn {a0 a1}
     {}}}}}
 
 map := 42
+
 map = {fn {a0 a1}
  {if a1
   {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
@@ -95,12 +99,14 @@ panic-block := {list
    "wrong fn call")}}
 
 list-at := 42
+
 list-at = {fn {xs n}
  {if (../eq n 0)
   {{return (../head xs)}}
   {{return (../list-at (../tail xs) (../+ n -1))}}}}
 
 swtchone := 42
+
 swtchone = {fn {a0}
  {if a0
   {firstarg := (../head a0)
@@ -128,6 +134,7 @@ swtchone = {fn {a0}
     "nothing matched")}}}
 
 decons-pat := 42
+
 decons-pat = {fn {a0 a1}
  {pat := a0
   val := a1
@@ -170,6 +177,7 @@ decons-pat = {fn {a0 a1}
     {(../panic @0 "decons-pat met an unsupported type")}}}}}
 
 decons-vars := 42
+
 decons-vars = {fn {a0}
  {if (../is-constant a0)
   {return {list
@@ -236,12 +244,15 @@ switch-fun := {fn {a0}
  {return (../swtchone (../map switch-clause a0))}}
 
 append := 42
+
 append = {fn {x xs}
  {if xs
   {return (../cons (../head xs) (../append x (../tail xs)))}
   {return {list
     {x}}}}}
+
 first-good-value := 42
+
 first-good-value = {fn {x}
  {if x
   {first-arg := (../head x)

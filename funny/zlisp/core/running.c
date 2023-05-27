@@ -232,10 +232,11 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       goto body;
     }
   body:
-    if (true) {}
+    if (true) {
+    }
     ptrdiff_t prev_offset = *routine_offset(r);
     for (;;) {
-      if (*routine_offset(r) >= (ptrdiff_t) vec_length(&sl)) {
+      if (*routine_offset(r) >= (ptrdiff_t)vec_length(&sl)) {
         state_stack_put(r, datum_make_bytestring("jumped out of bounds"));
         *routine_offset(r) = -prev_offset;
         continue;
@@ -272,7 +273,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_PUT_CONST) {
-        state_stack_set(r, prg.put_const_target, datum_copy(prg.put_const_value));
+        state_stack_set(r, prg.put_const_target,
+                        datum_copy(prg.put_const_value));
         *routine_offset(r) += 1;
         continue;
       }
@@ -422,7 +424,7 @@ LOCAL bool state_stack_has(routine *r, datum *offset) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
-  if(frame->integer_value >= (int)routine_get_count(r)) {
+  if (frame->integer_value >= (int)routine_get_count(r)) {
     return false;
   }
   struct frame *f = r->frames[frame->integer_value];
