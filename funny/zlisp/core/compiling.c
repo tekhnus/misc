@@ -468,15 +468,15 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
 EXPORT void prog_append_yield(vec *sl, datum type, size_t count,
                               size_t recieve_count, datum meta,
                               datum *compdata) {
-  vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
-                                    datum_make_int(count),
-                                    datum_make_int(recieve_count), meta));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
   for (size_t i = 0; i < recieve_count; ++i) {
     compdata_put(compdata, datum_make_symbol(":anon"));
   }
+  vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
+                                    datum_make_int(count),
+                                    datum_make_int(recieve_count), meta));
 }
 
 EXPORT size_t prog_append_something(vec *sl) {
