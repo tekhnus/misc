@@ -214,6 +214,36 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     store_values_to_variables(sl, &name_singleton, compdata);
     return NULL;
   }
+  if (datum_is_the_symbol(head, "fn") || datum_is_the_symbol(head, "magically_called_fn")) {
+    datum *args = list_at(source, (*i)++);
+    datum *body = list_at(source, (*i)++);
+    size_t put_prog_off = prog_append_something(sl); // filled below.
+    datum routine_compdata = datum_copy(compdata);
+    compdata_start_new_section(&routine_compdata);
+
+    size_t prog_off = prog_get_next_index(sl);
+    if (datum_is_the_symbol(head, "magically_called_fn")) {
+      datum target = datum_make_symbol("plain");
+      datum met = datum_make_nil();
+      prog_append_yield(sl, target, 0, 0, met, &routine_compdata);
+    }
+    prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
+                      datum_make_nil(), &routine_compdata);
+    store_values_to_variables(sl, args, &routine_compdata);
+    char *err = prog_append_expression(sl, body, &routine_compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
+    datum errm = datum_make_bytestring("routine guard reached");
+    prog_append_put_const(sl, &errm, &routine_compdata);
+    prog_append_yield(sl, datum_make_symbol("panic"), 1, 0, datum_make_nil(),
+                      &routine_compdata);
+    assert(put_prog_off + 1 == prog_off);
+    *vec_at(sl, put_prog_off) =
+        prog_get_put_prog(prog_get_next_index(sl) - put_prog_off, 2);
+    compdata_put(compdata, datum_make_symbol(":anon"));
+    return NULL;
+  }
   if (datum_is_the_symbol(head, "return")) {
     datum target = datum_make_symbol("plain");
     bool target_defined = false;

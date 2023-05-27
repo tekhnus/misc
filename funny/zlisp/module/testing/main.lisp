@@ -11,7 +11,7 @@ defn fntestx {body expect}
  fact-equals-expect := {list {'call {list {'/std/eq 'val expect}}}}
  new-panic := {list {'call {list {'/std/concat-bytestrings '(/std/concat-bytestrings (/std/repr val) " != ") repr-expect}}}}
  append-panics := {list {'panics '= {list {'call {list {'/std/cons new-panic 'panics}}}}}}
- return {list {'defn 'calltest '{} body 'val '= '(calltest) 'if fact-equals-expect {list {'panics '= 'panics}} append-panics}}}
+ return {list {'calltest '= {list {'fn '{} body}} 'val '= '(calltest) 'if fact-equals-expect {list {'panics '= 'panics}} append-panics}}}
 
 export
 {{fntestx fntestx}}
