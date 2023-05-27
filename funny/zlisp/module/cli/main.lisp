@@ -28,7 +28,6 @@ req
 args := 0
 prearg := 0
 comment := "this is a workaround for switch"
-
 readme := "A basic REPL for zlisp."
 defn repl {sl nsp bpptr compdata bdrcompdata ex}
 {tmp := (/prelude/fprintf stdout "> ")

@@ -9,6 +9,9 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                               datum *builder_compdata) {
   datum nil = datum_make_nil();
   prog_append_yield(sl, datum_make_symbol("halt"), 0, 0, nil, builder_compdata);
+  prog_append_put_const(sl, &nil, builder_compdata);
+  datum s = datum_make_list_of(datum_make_symbol("__main__"));
+  compdata_give_names(builder_compdata, &s);
   size_t bdr_put_prog = prog_append_something(sl); // filled below
   size_t ep_start = prog_get_next_index(sl);
   prog_append_yield(sl, datum_make_symbol("plain"), 0, 0, nil, compdata);
@@ -34,7 +37,7 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
     return NULL;
   }
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
-  store_values_to_variables(sl, &s, builder_compdata);
+  move_values_to_variables(sl, &s, builder_compdata);
   char *err = prog_build_deps(sl, input_meta, module_bytecode, settings,
                               builder_compdata, ext);
   if (err != NULL) {

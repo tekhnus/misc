@@ -214,7 +214,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     compdata_give_names(compdata, &name_singleton);
     return NULL;
   }
-  if (datum_is_the_symbol(head, "fn") || datum_is_the_symbol(head, "magically_called_fn")) {
+  if (datum_is_the_symbol(head, "fn") ||
+      datum_is_the_symbol(head, "magically_called_fn")) {
     datum *args = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
     size_t put_prog_off = prog_append_something(sl); // filled below.
@@ -466,7 +467,7 @@ EXPORT size_t prog_append_something(vec *sl) {
   return cur;
 }
 
-LOCAL void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
+EXPORT void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
   vec_append(
       sl, datum_make_list_of(datum_make_symbol(":put-const"), datum_copy(val)));
   compdata_put(compdata, datum_make_symbol(":anon"));
@@ -596,35 +597,6 @@ LOCAL char *prog_append_merge_compdata(vec *sl, datum *compdata,
   assert(datum_eq(compdata_get_top_section(another_compdata),
                   compdata_get_top_section(compdata)));
   return NULL;
-}
-
-EXPORT void store_values_to_variables(vec *sl, datum *var, datum *compdata) {
-  if (!datum_is_list(var)) {
-    fprintf(stderr, "error: compdata_give_names\n");
-    exit(EXIT_FAILURE);
-  }
-  assert(sl);
-  bool put = false;
-  bool set = false;
-  for (int i = 0; i < list_length(var); ++i) {
-    datum polyindex = compdata_get_polyindex(compdata, list_at(var, i));
-    if (datum_is_nil(&polyindex)) {
-      put = true;
-    } else {
-      set = true;
-    }
-  }
-  if (put && set) {
-    fprintf(stderr, "mixed assignment: %s\n", datum_repr(var));
-    exit(EXIT_FAILURE);
-  }
-  if (put) {
-    compdata_give_names(compdata, var);
-  }
-  if (set) {
-    fprintf(stderr, "warning: redefinition: %s\n", datum_repr(var));
-    move_values_to_variables(sl, var, compdata);
-  }
 }
 
 EXPORT void compdata_give_names(datum *compdata, datum *var) {

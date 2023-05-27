@@ -95,7 +95,6 @@ struct result {
 LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
-void store_values_to_variables(vec *sl,datum *var,datum *compdata);
 LOCAL datum list_subtract(datum *a,datum *b);
 LOCAL datum *compdata_get_top_section(datum *compdata);
 bool compdata_has_value(datum *compdata);
@@ -121,7 +120,7 @@ size_t prog_append_something(vec *sl);
 LOCAL char *prog_append_apply(vec *sl,datum *s_expr,datum *compdata,extension *ext);
 LOCAL void prog_append_collect(vec *sl,size_t count,datum *compdata);
 LOCAL size_t compdata_get_length(datum *compdata);
-LOCAL void prog_append_put_const(vec *sl,datum *val,datum *compdata);
+void prog_append_put_const(vec *sl,datum *val,datum *compdata);
 LOCAL char *prog_append_expression(vec *sl,datum *stmt,datum *compdata,extension *ext);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext);
