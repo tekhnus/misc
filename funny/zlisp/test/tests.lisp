@@ -120,12 +120,12 @@ fntest
 140
 
 fntest
-{defn fib {n}
+{fib := {fn {n}
  {if (/std/eq n 0)
   {return 0}
   {if (/std/eq n 1)
    {return 1}
-   {return (/std/+ (../fib (/std/+ n -1)) (../fib (/std/+ n -2)))}}}
+   {return (/std/+ (../fib (/std/+ n -1)) (../fib (/std/+ n -2)))}}}}
  return (fib 5)}
 5
 

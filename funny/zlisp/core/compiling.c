@@ -33,6 +33,12 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
 
 EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
                                      extension *ext) {
+  datum future_compdata = datum_copy(compdata);
+  return prog_append_expressions_impl(sl, source, compdata, &future_compdata, ext);
+}
+
+LOCAL char *prog_append_expressions_impl(vec *sl, datum *source, datum *compdata, datum *future_compdata,
+                                     extension *ext) {
   assert(datum_is_list(source));
   int i = 0;
   for (;;) {
@@ -40,7 +46,7 @@ EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
       break;
     }
     int i_before = i;
-    char *err = prog_append_consume_expression(sl, source, &i, compdata, ext);
+    char *err = prog_append_consume_expression(sl, source, &i, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -55,14 +61,14 @@ EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
   return NULL;
 }
 
-LOCAL char *prog_append_expression(vec *sl, datum *stmt, datum *compdata,
+LOCAL char *prog_append_expression(vec *sl, datum *stmt, datum *compdata, datum *future_compdata,
                                    extension *ext) {
   datum exprs = datum_make_list_of(*stmt);
-  return prog_append_expressions(sl, &exprs, compdata, ext);
+  return prog_append_expressions_impl(sl, &exprs, compdata, future_compdata, ext);
 }
 
 LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
-                                           datum *compdata, extension *ext) {
+                                           datum *compdata, datum *future_compdata, extension *ext) {
   int i_val = *i;
   char *err = ext->call(ext, sl, source, i, compdata);
   if (err != NULL) {
@@ -80,20 +86,20 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (datum_is_the_symbol(head, "list")) {
     datum *vals = list_at(source, (*i)++);
     int before = compdata_get_length(compdata);
-    prog_append_expression(sl, vals, compdata, ext);
+    prog_append_expression(sl, vals, compdata, future_compdata, ext);
     int after = compdata_get_length(compdata);
     prog_append_collect(sl, after - before, compdata);
     return NULL;
   }
   if (datum_is_the_symbol(head, "call")) {
     datum *exp = list_at(source, (*i)++);
-    return prog_append_apply(sl, exp, compdata, ext);
+    return prog_append_apply(sl, exp, compdata, future_compdata, ext);
   }
   if (datum_is_the_symbol(head, "if")) {
     datum *cond = list_at(source, (*i)++);
     datum *true_branch = list_at(source, (*i)++);
     datum *false_branch = list_at(source, (*i)++);
-    char *err = prog_append_expression(sl, cond, compdata, ext);
+    char *err = prog_append_expression(sl, cond, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -101,7 +107,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    err = prog_append_expression(sl, true_branch, compdata, ext);
+    err = prog_append_expression(sl, true_branch, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -112,7 +118,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (err != NULL) {
       return err;
     }
-    err = prog_append_expression(sl, false_branch, false_compdata, ext);
+    err = prog_append_expression(sl, false_branch, false_compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -131,13 +137,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     char *err;
     size_t pre_condition_check = prog_get_next_index(sl);
     datum pre_condition_check_compdata = datum_copy(compdata);
-    err = prog_append_expression(sl, cond, compdata, ext);
+    err = prog_append_expression(sl, cond, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
-    err = prog_append_expression(sl, body, compdata, ext);
+    err = prog_append_expression(sl, body, compdata, future_compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
@@ -170,15 +176,20 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       datum_is_the_symbol(list_at(source, *i), ":=")) {
     (*i)++;
     datum *expr = list_at(source, (*i)++);
-    char *err = prog_append_expression(sl, expr, compdata, ext);
-    if (err != NULL) {
-      return err;
-    }
     datum names;
     if (datum_is_list(head)) {
       names = datum_copy(head);
     } else {
       names = datum_make_list_of(datum_copy(head));
+    }
+    datum future_compdata_for_val = datum_copy(compdata);
+    for (int j = 0; j < list_length(&names); ++j) {
+      compdata_put(&future_compdata_for_val, datum_make_symbol(":anon"));
+    }
+    compdata_give_names(&future_compdata_for_val, &names);
+    char *err = prog_append_expression(sl, expr, compdata, &future_compdata_for_val, ext);
+    if (err != NULL) {
+      return err;
     }
     compdata_give_names(compdata, &names);
     return NULL;
@@ -187,7 +198,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
     datum *expr = list_at(source, (*i)++);
-    char *err = prog_append_expression(sl, expr, compdata, ext);
+    char *err = prog_append_expression(sl, expr, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -214,7 +225,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);
-    char *err = prog_append_expression(sl, body, &routine_compdata, ext);
+    char *err = prog_append_expression(sl, body, &routine_compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -236,7 +247,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum *args = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
     size_t put_prog_off = prog_append_something(sl); // filled below.
-    datum routine_compdata = datum_copy(compdata);
+    datum routine_compdata = datum_copy(future_compdata);
     compdata_start_new_section(&routine_compdata);
 
     size_t prog_off = prog_get_next_index(sl);
@@ -248,7 +259,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);
-    char *err = prog_append_expression(sl, body, &routine_compdata, ext);
+    char *err = prog_append_expression(sl, body, &routine_compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -293,7 +304,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum *component = list_at(source, (*i)++);
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
-    char *err = prog_append_expression(sl, component, compdata, ext);
+    char *err = prog_append_expression(sl, component, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -303,7 +314,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_list(head)) {
-    return prog_append_expressions(sl, head, compdata, ext);
+    return prog_append_expressions_impl(sl, head, compdata, future_compdata, ext);
   }
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, head, compdata);
@@ -322,7 +333,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   return "unexpected datum type in expression";
 }
 
-LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
+LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata, datum *future_compdata,
                               extension *ext) {
   datum *fn = list_at(s_expr, 0);
   datum target = datum_make_symbol("plain");
@@ -393,7 +404,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       }
       list_append(&indices, idx);
     } else {
-      char *err = prog_append_expression(sl, component, compdata, ext);
+      char *err = prog_append_expression(sl, component, compdata, future_compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -404,7 +415,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   int before = compdata_get_length(compdata);
   for (; index < list_length(s_expr); ++index) {
     datum *arg = list_at(s_expr, index);
-    char *err = prog_append_expression(sl, arg, compdata, ext);
+    char *err = prog_append_expression(sl, arg, compdata, future_compdata, ext);
     if (err != NULL) {
       return err;
     }
