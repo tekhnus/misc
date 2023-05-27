@@ -68,6 +68,7 @@ lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fda
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 LOCAL size_t routine_get_stack_size(routine *r);
+LOCAL bool state_stack_has(routine *r,datum *offset);
 LOCAL void state_stack_set(routine *r,datum *target,datum value);
 datum routine_make(ptrdiff_t prg,routine *context);
 LOCAL datum state_stack_collect(routine *r,size_t count);

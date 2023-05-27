@@ -155,9 +155,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   /*   } else { */
   /*     names = datum_make_list_of(datum_copy(head)); */
   /*   } */
-  /*   datum nil = datum_make_symbol("foo"); */
   /*   for (int j = 0; j < list_length(&names); ++j) { */
-  /*     prog_append_put_const(sl, &nil, compdata); */
+  /*     compdata_put(compdata, datum_make_symbol(":anon")); */
   /*   } */
   /*   compdata_give_names(compdata, &names); */
   /*   char *err = prog_append_expression(sl, expr, compdata, ext); */

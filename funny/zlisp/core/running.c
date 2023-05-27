@@ -277,12 +277,22 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_COPY) {
+        if (!state_stack_has(r, prg.copy_offset)) {
+          state_stack_put(r, datum_make_bytestring("wrong copy offset\n"));
+          *routine_offset(r) = -*routine_offset(r);
+          continue;
+        }
         datum *er = state_stack_at(r, prg.copy_offset);
         state_stack_set(r, prg.copy_target, datum_copy(er));
         *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_MOVE) {
+        if (!state_stack_has(r, prg.move_offset)) {
+          state_stack_put(r, datum_make_bytestring("wrong move offset\n"));
+          *routine_offset(r) = -*routine_offset(r);
+          continue;
+        }
         datum *er = state_stack_at(r, prg.move_offset);
         state_stack_set(r, prg.move_target, *er);
         *er = datum_make_symbol("__guard__");
@@ -408,6 +418,24 @@ LOCAL void print_backtrace(vec sl, routine *r) {
   fprintf(stderr, "=========\n");
 }
 
+LOCAL bool state_stack_has(routine *r, datum *offset) {
+  assert(datum_is_list(offset) && list_length(offset) > 0);
+  datum *frame = list_at(offset, 0);
+  assert(datum_is_integer(frame));
+  if(frame->integer_value >= (int)routine_get_count(r)) {
+    return false;
+  }
+  struct frame *f = r->frames[frame->integer_value];
+  assert(list_length(offset) == 2);
+  datum *idx = list_at(offset, 1);
+  assert(datum_is_integer(idx));
+  vec vars = f->state;
+  if ((size_t)idx->integer_value >= vec_length(&vars)) {
+    return false;
+  }
+  return true;
+}
+
 LOCAL datum *state_stack_at(routine *r, datum *offset) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
@@ -432,7 +460,6 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   datum *value_index = list_at(target, 1);
   assert(datum_is_integer(value_index));
   size_t value_index_ = value_index->integer_value;
-  assert(value_index_ <= vec_length(frame));
   while (value_index_ >= vec_length(frame)) {
     vec_append(frame, datum_make_symbol("__undefined__"));
   };
