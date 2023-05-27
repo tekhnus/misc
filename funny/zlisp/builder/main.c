@@ -77,10 +77,10 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   *vec_at(sl, *bp) = prog_get_jmp(prog_get_next_index(sl) - *bp);
   res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                        settings, ext);
-  *bp = prog_get_next_index(sl);
   if (res != NULL) {
     return res;
   }
+  *bp = prog_get_next_index(sl);
   *vec_at(sl, p_end) = prog_get_jmp(*bp - p_end);
   return NULL;
 }
