@@ -120,7 +120,8 @@ fntest
   '5}}
 
 fntest
-{twice := {fn {arg}
+{twice := 42
+ twice = {fn {arg}
   {return (/std/+ arg arg)}}
  {return (twice 35)}}
 70
@@ -140,7 +141,8 @@ fntest
 140
 
 fntest
-{fib := {fn {n}
+{fib := 42
+ fib = {fn {n}
   {if (/std/eq n 0)
    {return 0}
    {if (/std/eq n 1)
@@ -310,7 +312,8 @@ fntest
 {do-something := {fn {x}
   {res := (/libc/print x)
    {return 'do-something-value}}}
- interceptor := {fn {arg}
+ interceptor := 42
+ interceptor = {fn {arg}
   {{ext-pointer arg-} := (../do-something @mut @{host
      "call-extension-1"} @2 arg)
    res := (/libc/print "extension:")
@@ -365,7 +368,8 @@ fntest
  {return a}}
 5
 
-print-all := {fn {xs}
+print-all := 42
+print-all = {fn {xs}
  {if xs
   {res := (/libc/print (/std/head xs))
    {} := (../print-all @0 (/std/tail xs))

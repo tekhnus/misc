@@ -216,7 +216,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum *args = list_at(source, (*i)++);
     datum *body = list_at(source, (*i)++);
     size_t put_prog_off = prog_append_something(sl); // filled below.
-    datum routine_compdata = datum_copy(future_compdata);
+    datum routine_compdata = datum_copy(compdata);
     compdata_start_new_section(&routine_compdata);
 
     size_t prog_off = prog_get_next_index(sl);

@@ -136,7 +136,8 @@ serialize-param := {fn {param signature}
     {return param}
     {return (../mkptr param signature)}}}}}
 
-serialize-params := {fn {params signature}
+serialize-params := 42
+serialize-params = {fn {params signature}
  {if params
   {return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
   {return {list
@@ -210,7 +211,8 @@ c-data-pointer := {fn {handle c-name signature}
   fn-pointer := (../dereference fn-pointer-pointer 'int64)
   return fn-pointer}}
 
-nth := {fn {n xs}
+nth := 42
+nth = {fn {n xs}
  {if xs
   {if n
    {return (../nth (../tail n) (../tail xs))}

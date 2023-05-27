@@ -167,7 +167,8 @@ fntest
  return (fff/ggg-in-fff)}
 42
 
-print-all := {fn {xs}
+print-all := 42
+print-all = {fn {xs}
  {if xs
   {res := (/prelude/print (/std/head xs))
    {} := (../print-all @0 (/std/tail xs))
