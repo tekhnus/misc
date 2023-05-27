@@ -19,10 +19,14 @@ req
     '=
     exp
     (/std/switch-fun argz)}}}}
+
 .switch.arity := 3
+
 .fntest := {fn {body expect}
  {return (/testing/fntest- body expect)}}
+
 .fntest.arity := 3
+
 .backquote := {fn {exp}
  {if (/std/not- (/std/eq- (/std/type- exp) :list))
   {return {list
@@ -48,7 +52,9 @@ req
         {'/std/cons
          (../.backquote (/std/head- exp))
          (../.backquote (/std/tail- exp))}}}}}}}}}
+
 .backquote.arity := 2
+
 .defnx := {fn {name args body}
  {return {list
    {name
@@ -79,4 +85,5 @@ req
        {name
         '@mut
         '@0}}}}}}}}
+
 .defnx.arity := 4

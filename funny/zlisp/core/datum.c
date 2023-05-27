@@ -155,7 +155,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
           end += sprintf(end, "%s", sep);
         } else if (inhibit_newline >= 0 || flat == FLAT) {
           end += sprintf(end, " ");
-        } else if (inhibit_newline == -1 || inhibit_double_newline >= 0) {
+        } else if (inhibit_double_newline >= 0) {
           end += sprintf(end, "\n");
           for (size_t i = 0; i < start; ++i) {
             end += sprintf(end, " ");
@@ -192,9 +192,11 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
         inhibit_child_newlines = 1;
       } else if (datum_is_the_symbol(item, "req")) {
         inhibit_newline = 0;
+        inhibit_double_newline = 1;
         inhibit_child_newlines = 1;
       } else if (datum_is_the_symbol(item, "export")) {
         inhibit_newline = 0;
+        inhibit_double_newline = 1;
         inhibit_child_newlines = 1;
       }
       char *child_sep = "\n";

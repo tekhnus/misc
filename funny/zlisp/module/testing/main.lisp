@@ -52,5 +52,6 @@ fntestx := {fn {body expect}
       '=
       'panics}}
     append-panics}}}}
+
 export
 {{fntestx fntestx}}

@@ -9,6 +9,7 @@ print := {fn {a0}
    {list
     a0}}
   return r}}
+
 debug-print := {fn {a0}
  {r := {return @1
    @{host
@@ -17,6 +18,7 @@ debug-print := {fn {a0}
    {list
     a0}}
   return r}}
+
 head := {fn {a0}
  {r := {return @1
    @{host
@@ -25,6 +27,7 @@ head := {fn {a0}
    {list
     a0}}
   return r}}
+
 tail := {fn {a0}
  {r := {return @1
    @{host
@@ -33,6 +36,7 @@ tail := {fn {a0}
    {list
     a0}}
   return r}}
+
 is-constant := {fn {a0}
  {r := {return @1
    @{host
@@ -41,6 +45,7 @@ is-constant := {fn {a0}
    {list
     a0}}
   return r}}
+
 eq := {fn {a0 a1}
  {r := {return @1
    @{host
@@ -50,6 +55,7 @@ eq := {fn {a0 a1}
     {a0
      a1}}}
   return r}}
+
 panic := {fn {a0}
  {ignored-result := {return @1
    @{host
@@ -58,6 +64,7 @@ panic := {fn {a0}
    {list
     a0}}
   return {}}}
+
 annotate := {fn {a0}
  {r := {return @1
    @{host
@@ -66,6 +73,7 @@ annotate := {fn {a0}
    {list
     a0}}
   return r}}
+
 + := {fn {a0 a1}
  {r := {return @1
    @{host
@@ -75,6 +83,7 @@ annotate := {fn {a0}
     {a0
      a1}}}
   return r}}
+
 cons := {fn {a0 a1}
  {r := {return @1
    @{host
@@ -84,6 +93,7 @@ cons := {fn {a0 a1}
     {a0
      a1}}}
   return r}}
+
 concat-bytestrings := {fn {a0 a1}
  {r := {return @1
    @{host
@@ -93,6 +103,7 @@ concat-bytestrings := {fn {a0 a1}
     {a0
      a1}}}
   return r}}
+
 repr := {fn {a0}
  {r := {return @1
    @{host
@@ -101,6 +112,7 @@ repr := {fn {a0}
    {list
     a0}}
   return r}}
+
 export
 {{print print}
  {panic panic}

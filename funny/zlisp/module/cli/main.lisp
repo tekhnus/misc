@@ -26,9 +26,13 @@ req
  {em "zlisp" ext-make}}
 
 args := 0
+
 prearg := 0
+
 comment := "this is a workaround for switch"
+
 readme := "A basic REPL for zlisp."
+
 repl := {fn {sl nsp bpptr compdata bdrcompdata ex}
  {tmp := (/prelude/fprintf stdout "> ")
   ignored := 0
@@ -58,12 +62,21 @@ repl := {fn {sl nsp bpptr compdata bdrcompdata ex}
      msgc}
     ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msgc)
     return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
+
 sl := (/prelude/psm)
+
 bpptr := (/prelude/wrap-pointer-into-pointer 0)
+
 rt := (/prelude/mres (/prelude/dereference bpptr 'int64) (/prelude/wrap-pointer-into-pointer 0))
+
 compdata := (/prelude/cdm)
+
 bdrcompdata := (/prelude/cdm)
+
 ex := (/prelude/em)
+
 bpval := (/zlisp/iprog sl compdata bdrcompdata)
+
 bpptr = (/prelude/wrap-pointer-into-pointer bpval)
+
 ignored := (repl sl rt bpptr compdata bdrcompdata ex)

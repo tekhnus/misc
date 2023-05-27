@@ -22,8 +22,11 @@ req
 
 panics := {list
  {}}
+
 val := 0
+
 calltest := 0
+
 fntest
 {return "hello, world!"}
 "hello, world!"
@@ -368,7 +371,9 @@ print-all := {fn {xs}
    {} := (../print-all @0 (/std/tail xs))
    return {}}
   {{} := {return {}}}}}
+
 if panics
+
 {{} := (print-all @0 panics)
  {} := (/std/panic @0 "FAILED")}
 

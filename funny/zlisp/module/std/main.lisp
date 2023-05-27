@@ -14,24 +14,34 @@ req
 panic := {fn {x}
  {(/prelude/panic- @0 x)
   {return {}}}}
+
 head := {fn {x}
  {return (/prelude/head- x)}}
+
 tail := {fn {x}
  {return (/prelude/tail- x)}}
+
 cons := {fn {x xs}
  {return (/prelude/cons- x xs)}}
+
 eq := {fn {x y}
  {return (/prelude/eq- x y)}}
+
 annotate := {fn {x}
  {return (/prelude/annotate- x)}}
+
 is-constant := {fn {x}
  {return (/prelude/is-constant- x)}}
+
 repr := {fn {x}
  {return (/prelude/repr- x)}}
+
 concat-bytestrings := {fn {x y}
  {return (/prelude/concat-bytestrings- x y)}}
+
 + := {fn {x y}
  {return (/prelude/+- x y)}}
+
 not := {fn {x}
  {if x
   {return {list
@@ -39,22 +49,27 @@ not := {fn {x}
   {return {list
     {{list
       {}}}}}}}
+
 last := {fn {a0}
  {if (../tail a0)
   {return (../last (../tail a0))}
   {return (../head a0)}}}
+
 type := {fn {x}
  {return (../head (../annotate x))}}
+
 length := {fn {x}
  {n := 0
   while x
   {n = (../+ n 1)
    x = (../tail x)}
   {return n}}}
+
 concat := {fn {a0 a1}
  {if a0
   {return (../cons (../head a0) (../concat (../tail a0) a1))}
   {return a1}}}
+
 zip := {fn {a0 a1}
  {if a0
   {return (../cons {list
@@ -62,20 +77,24 @@ zip := {fn {a0 a1}
       (../head a1)}} (../zip (../tail a0) (../tail a1)))}
   {return {list
     {}}}}}
+
 map := {fn {a0 a1}
  {if a1
   {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
   {return {list
     {}}}}}
+
 panic-block := {list
  {'argz
   '(/std/panic
    @0
    "wrong fn call")}}
+
 list-at := {fn {xs n}
  {if (../eq n 0)
   {{return (../head xs)}}
   {{return (../list-at (../tail xs) (../+ n -1))}}}}
+
 swtchone := {fn {a0}
  {if a0
   {firstarg := (../head a0)
@@ -101,6 +120,7 @@ swtchone := {fn {a0}
   {return '(/std/panic
     @0
     "nothing matched")}}}
+
 decons-pat := {fn {a0 a1}
  {pat := a0
   val := a1
@@ -141,6 +161,7 @@ decons-pat := {fn {a0 a1}
           {list
            {}}}}}}}}
     {(../panic @0 "decons-pat met an unsupported type")}}}}}
+
 decons-vars := {fn {a0}
  {if (../is-constant a0)
   {return {list
@@ -154,6 +175,7 @@ decons-vars := {fn {a0}
      {return {list
        {}}}}
     (panic @0 "decons-var met an unsupported type")}}}}
+
 switch-defines := {list
  {'(/std/list-at
    args
@@ -173,11 +195,13 @@ switch-defines := {list
   '(/std/list-at
    args
    5)}}
+
 make-assignment := {fn {x}
  {return {list
    {(../head x)
     ':=
     (../list-at x 1)}}}}
+
 switch-clause := {fn {a0}
  {{a1 := a0}
   sig := (../head a1)
@@ -199,13 +223,16 @@ switch-clause := {fn {a0}
   {return {list
     {checker
      body}}}}}
+
 switch-fun := {fn {a0}
  {return (../swtchone (../map switch-clause a0))}}
+
 append := {fn {x xs}
  {if xs
   {return (../cons (../head xs) (../append x (../tail xs)))}
   {return {list
     {x}}}}}
+
 first-good-value := {fn {x}
  {if x
   {first-arg := (../head x)
@@ -213,6 +240,7 @@ first-good-value := {fn {x}
     {{return (../list-at first-arg 1)}}
     {{return (../first-good-value (../tail x))}}}}
   (panic @0 "first-good-value: no good value")}}
+
 export
 {{panic panic}
  {head head}
