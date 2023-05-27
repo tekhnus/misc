@@ -13,27 +13,11 @@ req
  {testing "testing"}
  {fntest- "testing" fntestx}}
 
-defn .switch {exp argz}
-{return {list {'args '= exp (/std/switch-fun argz)}}}
-
+.switch := {fn {exp argz} {return {list {'args '= exp (/std/switch-fun argz)}}}}
 .switch.arity := 3
-defn .fntest {body expect}
-{return (/testing/fntest- body expect)}
-
+.fntest := {fn {body expect} {return (/testing/fntest- body expect)}}
 .fntest.arity := 3
-defn .backquote {exp}
-{if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return {list {'quote exp}}}
- {if (/std/not- exp)
-  {return {list {'list {list {}}}}}
-  {if (/std/eq- (/std/length- exp) 2)
-   {if (/std/eq- (/std/list-at- exp 0) 'tilde)
-    {return (/std/list-at- exp 1)}
-    {return {list {'call {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}
-   {return {list {'call {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}}}
-
+.backquote := {fn {exp} {if (/std/not- (/std/eq- (/std/type- exp) :list)) {return {list {'quote exp}}} {if (/std/not- exp) {return {list {'list {list {}}}}} {if (/std/eq- (/std/length- exp) 2) {if (/std/eq- (/std/list-at- exp 0) 'tilde) {return (/std/list-at- exp 1)} {return {list {'call {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}} {return {list {'call {list {'/std/cons (../.backquote (/std/head- exp)) (../.backquote (/std/tail- exp))}}}}}}}}}
 .backquote.arity := 2
-defn .defnx {name args body}
-{return {list {'defn name '{} {list {'mc ':= {list {'magically_called_fn args body}} '{} ':= '(mc @mut @0 @up2) 'return :shouldnt-go-here}} '{} ':= {list {'call {list {name '@mut '@0}}}}}}}
-
+.defnx := {fn {name args body} {return {list {'defn name '{} {list {'mc ':= {list {'magically_called_fn args body}} '{} ':= '(mc @mut @0 @up2) 'return :shouldnt-go-here}} '{} ':= {list {'call {list {name '@mut '@0}}}}}}}}
 .defnx.arity := 4
