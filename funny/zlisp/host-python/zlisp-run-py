@@ -202,13 +202,16 @@ def main():
             pdata[-1].varz[-1].append(form)
             ip += 1
         elif op == sexpdata.Symbol(":put-prog"):
-            capture, nex = args
+            target, capture, nex = args
             if capture == 0:
                 capture_size = 0
             else:
                 capture_size = len(pdata[-1].varz)
+            tframe, tindx = target
+            if tindx == len(pdata[-1].varz[tframe]):
+                pdata[-1].varz[tframe].append(None)
             p = [ip + 1, [[]], capture_size]
-            pdata[-1].varz[-1].append(p)
+            pdata[-1].varz[tframe][tindx] = p
             ip += nex
         elif op == sexpdata.Symbol(":yield"):
             target, cnt, recieve_cnt, meta = args

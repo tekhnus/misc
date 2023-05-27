@@ -224,9 +224,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("panic"), 1, 0, datum_make_nil(),
                       &routine_compdata);
     assert(put_prog_off + 1 == prog_off);
-    *vec_at(sl, put_prog_off) =
-        prog_get_put_prog(prog_get_next_index(sl) - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
+    datum pi = compdata_get_top_polyindex(compdata);
+    *vec_at(sl, put_prog_off) =
+      prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
     datum name_singleton = datum_make_list_of(datum_copy(name));
     compdata_give_names(compdata, &name_singleton);
     return NULL;
@@ -257,9 +258,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("panic"), 1, 0, datum_make_nil(),
                       &routine_compdata);
     assert(put_prog_off + 1 == prog_off);
-    *vec_at(sl, put_prog_off) =
-        prog_get_put_prog(prog_get_next_index(sl) - put_prog_off, 2);
     compdata_put(compdata, datum_make_symbol(":anon"));
+    datum pi = compdata_get_top_polyindex(compdata);
+    *vec_at(sl, put_prog_off) =
+      prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
     return NULL;
   }
   if (datum_is_the_symbol(head, "return")) {
@@ -500,9 +502,9 @@ LOCAL void prog_append_collect(vec *sl, size_t count, datum *compdata) {
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT datum prog_get_put_prog(ptrdiff_t delta, int capture) {
+EXPORT datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
   return datum_make_list_of(datum_make_symbol(":put-prog"),
-                            datum_make_int(capture), datum_make_int(delta));
+                            datum_copy(target), datum_make_int(capture), datum_make_int(delta));
 }
 
 EXPORT datum prog_get_jmp(ptrdiff_t delta) {

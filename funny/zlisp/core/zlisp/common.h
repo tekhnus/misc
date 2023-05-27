@@ -128,7 +128,7 @@ void prog_append_copy(vec *sl,datum *val,datum *compdata);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
 size_t prog_append_something(vec *sl);
 void prog_append_put_const(vec *sl,datum *val,datum *compdata);
-datum prog_get_put_prog(ptrdiff_t delta,int capture);
+datum prog_get_put_prog(datum *target,ptrdiff_t delta,int capture);
 datum prog_get_jmp(ptrdiff_t delta);
 datum compdata_make();
 datum *compdata_alloc_make();

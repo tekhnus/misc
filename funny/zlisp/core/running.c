@@ -47,6 +47,7 @@ struct prog {
       size_t collect_count;
     };
     struct {
+      datum *put_prog_target;
       int put_prog_capture;
       ptrdiff_t put_prog_next;
     };
@@ -253,7 +254,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         size_t put_prog_value = *routine_offset(r) + 1;
         datum prog_ptr =
             routine_make(put_prog_value, prg.put_prog_capture ? r : NULL);
-        state_stack_put(r, prog_ptr);
+        state_stack_set(r, prg.put_prog_target, prog_ptr);
         *routine_offset(r) += prg.put_prog_next;
         continue;
       }
@@ -342,8 +343,9 @@ LOCAL prog datum_to_prog(datum *d) {
     res.collect_count = list_at(d, 1)->integer_value;
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
-    res.put_prog_capture = list_at(d, 1)->integer_value;
-    res.put_prog_next = (list_at(d, 2)->integer_value);
+    res.put_prog_target = list_at(d, 1);
+    res.put_prog_capture = list_at(d, 2)->integer_value;
+    res.put_prog_next = (list_at(d, 3)->integer_value);
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);
