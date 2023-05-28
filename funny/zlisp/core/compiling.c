@@ -109,9 +109,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (err != NULL) {
       return err;
     }
+    before = compdata_get_length(compdata);
     err = prog_append_consume_expression(sl, source, i, false_compdata, ext);
     if (err != NULL) {
       return err;
+    }
+    after = compdata_get_length(compdata);
+    if (after != before) {
+      fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
+      return "bad if branch";
     }
     size_t false_end = prog_append_something(sl);
     *vec_at(sl, true_end) = prog_get_jmp(prog_get_next_index(sl) - true_end);
