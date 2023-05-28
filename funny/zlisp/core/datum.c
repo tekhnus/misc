@@ -80,7 +80,10 @@ EXPORT char *datum_repr(datum *e) {
   return datum_repr_impl(e, 128, 0, false, FLAT, " ");
 }
 
-EXPORT char *datum_repr_pretty(datum *e) {
+EXPORT char *datum_repr_pretty(datum *e, extension *ext) {
+  ext = ext ? ext : ext;
+  /* datum cd = compdata_make(); */
+  /* prog_compile(e, &cd, ext); */
   return datum_repr_impl(e, 128, 0, true, NON_FLAT, "\n\n");
 }
 

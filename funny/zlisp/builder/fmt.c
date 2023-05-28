@@ -3,6 +3,7 @@
 #endif
 #include <assert.h>
 #include <fmt.h>
+#include "extensions.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,7 +32,9 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   datum source = rewrite(&rr.ok_value);
-  char *res = datum_repr_pretty(&source);
+  lisp_extension ext;
+  // ext = standard_extension_make();
+  char *res = datum_repr_pretty(&source, &ext.base);
   res[strlen(res) - 1] = 0;
   res += 1;
   fprintf(f, "%s\n", res);

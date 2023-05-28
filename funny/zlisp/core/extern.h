@@ -197,7 +197,7 @@ bool datum_is_the_symbol(datum *d,char *val);
 int list_length(datum *seq);
 bool datum_is_list(datum *e);
 LOCAL char *escape_string(char *s);
-char *datum_repr_pretty(datum *e);
+char *datum_repr_pretty(datum *e,extension *ext);
 LOCAL char *datum_repr_impl(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
 char *datum_repr(datum *e);
 datum datum_make_frame(frame fr);

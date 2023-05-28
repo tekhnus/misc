@@ -55,7 +55,11 @@ datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
 datum datum_make_frame(frame fr);
 char *datum_repr(datum *e);
-char *datum_repr_pretty(datum *e);
+typedef struct extension extension;
+struct extension {
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
+};
+char *datum_repr_pretty(datum *e,extension *ext);
 typedef struct fdatum fdatum;
 struct fdatum {
   int type;
@@ -115,10 +119,6 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
-typedef struct extension extension;
-struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
-};
 char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
