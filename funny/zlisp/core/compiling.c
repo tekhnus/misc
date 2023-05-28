@@ -78,9 +78,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_the_symbol(head, "list")) {
-    datum *vals = list_at(source, (*i)++);
     int before = compdata_get_length(compdata);
-    prog_append_expression(sl, vals, compdata, ext);
+    prog_append_consume_expression(sl, source, i, compdata, ext);
     int after = compdata_get_length(compdata);
     prog_append_collect(sl, after - before, compdata);
     return NULL;
@@ -90,10 +89,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return prog_append_apply(sl, exp, compdata, ext);
   }
   if (datum_is_the_symbol(head, "if")) {
-    datum *cond = list_at(source, (*i)++);
-    datum *true_branch = list_at(source, (*i)++);
-    datum *false_branch = list_at(source, (*i)++);
-    char *err = prog_append_expression(sl, cond, compdata, ext);
+    char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -101,7 +97,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    err = prog_append_expression(sl, true_branch, compdata, ext);
+    err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -112,7 +108,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (err != NULL) {
       return err;
     }
-    err = prog_append_expression(sl, false_branch, false_compdata, ext);
+    err = prog_append_consume_expression(sl, source, i, false_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -126,18 +122,16 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
-    datum *cond = list_at(source, (*i)++);
-    datum *body = list_at(source, (*i)++);
     char *err;
     size_t pre_condition_check = prog_get_next_index(sl);
     datum pre_condition_check_compdata = datum_copy(compdata);
-    err = prog_append_expression(sl, cond, compdata, ext);
+    err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
-    err = prog_append_expression(sl, body, compdata, ext);
+    err = prog_append_consume_expression(sl, source, i, compdata, ext);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
@@ -179,8 +173,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_the_symbol(head, "fn") ||
       datum_is_the_symbol(head, "magically_called_fn")) {
-    datum *args = list_at(source, (*i)++);
-    datum *body = list_at(source, (*i)++);
     size_t put_prog_off = prog_append_something(sl); // filled below.
     datum routine_compdata = datum_copy(compdata);
     compdata_start_new_section(&routine_compdata);
@@ -191,10 +183,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       datum met = datum_make_nil();
       prog_append_yield(sl, target, 0, 0, met, &routine_compdata);
     }
+    datum *args = list_at(source, (*i)++);
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);
-    char *err = prog_append_expression(sl, body, &routine_compdata, ext);
+    char *err = prog_append_consume_expression(sl, source, i, &routine_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -236,10 +229,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
         return "unknown return tag";
       }
     }
-    datum *component = list_at(source, (*i)++);
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
-    char *err = prog_append_expression(sl, component, compdata, ext);
+    char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
