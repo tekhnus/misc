@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
   lisp_extension ext;
-  ext = standard_extension_make();
+  // ext = standard_extension_make();
   char *filename = argv[1];
   fprintf(stderr, "formatting %s\n", filename);
   FILE *f = fopen(filename, "r");
@@ -50,30 +50,20 @@ LOCAL datum rewrite(datum *source) {
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
-    if (datum_is_list(elem) && !datum_is_nil(elem)) {
-      int len = list_length(elem);
-      datum *head = list_at(elem, 0);
-      if (datum_is_the_symbol(head, "return__") && len == 2) {
-        for (int j = 0; j < len; ++j) {
-          list_append(&res, rewrite(list_at(elem, j)));
-        }
-        continue;
-      }
+
+    if (i + 3 < list_length(source) &&
+        (datum_is_the_symbol(list_at(source, i), "if"))) {
+      datum *head = list_at(source, i++);
+      datum *cond = list_at(source, i++);
+      datum *tb = list_at(source, i++);
+      datum *fb = list_at(source, i++);
+      --i;
+      list_append(&res, rewrite(head));
+      list_append(&res, rewrite(cond));
+      list_append(&res, datum_make_list_of(datum_make_symbol("list"), rewrite(tb)));
+      list_append(&res, datum_make_list_of(datum_make_symbol("list"), rewrite(fb)));
+      continue;
     }
-    /* if (i + 3 < list_length(source) && */
-    /*     (datum_is_the_symbol(list_at(source, i), "defn_") || */
-    /*      datum_is_the_symbol(list_at(source, i), "defnx__"))) { */
-    /*   list_at(source, i++); */
-    /*   datum *name = list_at(source, i++); */
-    /*   datum *args = list_at(source, i++); */
-    /*   datum *body = list_at(source, i++); */
-    /*   --i; */
-    /*   list_append(&res, rewrite(name)); */
-    /*   list_append(&res, datum_make_symbol(":=")); */
-    /*   list_append(&res, datum_make_list_of(datum_make_symbol("fn"), *args,
-     * *body)); */
-    /*   continue; */
-    /* } */
     list_append(&res, rewrite(elem));
   }
   return res;

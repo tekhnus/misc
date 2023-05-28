@@ -91,7 +91,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return prog_append_apply(sl, exp, compdata, ext);
   }
   if (datum_is_the_symbol(head, "if")) {
-    datum *cond = list_at(source, *i);
+    // datum *cond = list_at(source, *i);
     char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
@@ -107,8 +107,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     size_t after = compdata_get_length(compdata);
     if (after != before) {
-      fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
-      return "bad if branch";
+      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond)); */
+      /* return "bad if branch"; */
     }
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
@@ -124,8 +124,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     after = compdata_get_length(compdata);
     if (after != before) {
-      fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
-      return "bad if branch";
+      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond)); */
+      /* return "bad if branch"; */
     }
     size_t false_end = prog_append_something(sl);
     *vec_at(sl, true_end) = prog_get_jmp(prog_get_next_index(sl) - true_end);
