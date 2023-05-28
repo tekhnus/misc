@@ -7,7 +7,7 @@ req
  {panic "std" panic}}
 
 fntestx := fn {body expect}
-{repr-expect := #{'call
+#{repr-expect := #{'call
   #{'/std/repr
    expect}}
  fact-equals-expect := #{'call

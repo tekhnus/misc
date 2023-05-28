@@ -2,7 +2,7 @@ req
 {}
 
 print := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "print(x[1][0])"}
@@ -10,7 +10,7 @@ print := fn {a0}
  return r}
 
 debug-print := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "print(x[1][0])"}
@@ -18,7 +18,7 @@ debug-print := fn {a0}
  return r}
 
 head := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "head(x)"}
@@ -26,7 +26,7 @@ head := fn {a0}
  return r}
 
 tail := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "tail(x)"}
@@ -34,7 +34,7 @@ tail := fn {a0}
  return r}
 
 is-constant := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "is_constant(x)"}
@@ -42,7 +42,7 @@ is-constant := fn {a0}
  return r}
 
 eq := fn {a0 a1}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "eq(x)"}
@@ -51,7 +51,7 @@ eq := fn {a0 a1}
  return r}
 
 panic := fn {a0}
-{ignored-result := {return @1
+#{ignored-result := {return @1
   @{host
    "eval"
    "panic(x)"}
@@ -59,7 +59,7 @@ panic := fn {a0}
  return {}}
 
 annotate := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "annotate(x)"}
@@ -67,7 +67,7 @@ annotate := fn {a0}
  return r}
 
 + := fn {a0 a1}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "add(x)"}
@@ -76,7 +76,7 @@ annotate := fn {a0}
  return r}
 
 cons := fn {a0 a1}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "cons(x)"}
@@ -85,7 +85,7 @@ cons := fn {a0 a1}
  return r}
 
 concat-bytestrings := fn {a0 a1}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "concat_bytestrings(x)"}
@@ -94,7 +94,7 @@ concat-bytestrings := fn {a0 a1}
  return r}
 
 repr := fn {a0}
-{r := {return @1
+#{r := {return @1
   @{host
    "eval"
    "repre(x)"}

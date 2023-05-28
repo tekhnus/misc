@@ -36,7 +36,7 @@ readme := "A basic REPL for zlisp."
 repl := 42
 
 repl = fn {sl nsp bpptr compdata bdrcompdata ex}
-{tmp := (/prelude/fprintf stdout "> ")
+#{tmp := (/prelude/fprintf stdout "> ")
  ignored := 0
  maybe-prog := 42
  datum := 42

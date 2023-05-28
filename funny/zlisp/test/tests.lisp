@@ -106,7 +106,7 @@ fntest
 fntest
 {twice := 42
  twice = fn {arg}
- {return (/std/+ arg arg)}
+ #{return (/std/+ arg arg)}
  {return (twice 35)}}
 70
 
@@ -120,14 +120,14 @@ fntest
 {defnx twice {arg}
  {return (/std/+ arg arg)}
  four-times := fn {arg}
- {return (/std/+ (../twice arg) (../twice arg))}
+ #{return (/std/+ (../twice arg) (../twice arg))}
  {return (four-times 35)}}
 140
 
 fntest
 {fib := 42
  fib = fn {n}
- {if (/std/eq n 0)
+ #{if (/std/eq n 0)
   #{return 0}
   #{if (/std/eq n 1)
    #{return 1}
@@ -146,11 +146,11 @@ fntest
 
 fntest
 {adderf := fn {n}
- {m := {return @1
+ #{m := {return @1
    {}}
   {return (/std/+ n m)}}
  adder := fn {n}
- {a := adderf
+ #{a := adderf
   {} := (../a @0 @mut n)
   {return a}}
  {return ((adder 3) 4)}}
@@ -158,7 +158,7 @@ fntest
 
 fntest
 {fib := fn {}
- {{return 3}
+ #{{return 3}
   {return 5}
   {return 8}
   {return 13}}
@@ -177,13 +177,13 @@ fntest
 
 fntest
 {far-fib := fn {}
- {{return @event-loop
+ #{{return @event-loop
    3}
   {return @event-loop
    5}
   {return 8}}
  more-far-fib := fn {}
- {x := (../far-fib)
+ #{x := (../far-fib)
   {return @event-loop
    x}
   {return @event-loop
@@ -208,7 +208,7 @@ fntest
 
 fntest
 {multi-ret := fn {}
- {{} := {return {42
+ #{{} := {return {42
     34}}}
  {x y} := (multi-ret @2)
  {return #{x
@@ -218,7 +218,7 @@ fntest
 
 fntest
 {foo := fn {x}
- {y := {return @1
+ #{y := {return @1
    (/std/+ x 1)}
   {z t} := {return @2
    (/std/+ y 1)}
@@ -236,18 +236,18 @@ fntest
 
 fntest
 {cl-holder := fn {x xs}
- {{} := {return {}}
+ #{{} := {return {}}
   {} := {return {x
     xs}}}
  cl-cons := fn {x xs}
- {holder := cl-holder
+ #{holder := cl-holder
   {} := (../holder @0 @mut x xs)
   {return holder}}
  cl-head := fn {xs}
- {{h r} := (../xs @2)
+ #{{h r} := (../xs @2)
   {return h}}
  cl-tail := fn {xs}
- {{h r} := (../xs @2)
+ #{{h r} := (../xs @2)
   {return r}}
  cl-nil := :nil
  xs0 := cl-nil
@@ -262,16 +262,16 @@ fntest
 
 fntest
 {fff := fn {x}
- {return (/std/+ x 42)}
+ #{return (/std/+ x 42)}
  yyy := (fff 1)
  {return yyy}}
 43
 
 fntest
 {fff := fn {}
- {x := 2
+ #{x := 2
   ggg := fn {}
-  {return (/std/+ x 40)}
+  #{return (/std/+ x 40)}
   {return ggg}}
  ggg-in-fff := (fff @mut)
  {return (fff/ggg-in-fff)}}
@@ -284,11 +284,11 @@ fntest
 
 fntest
 {do-something := fn {x}
- {res := (/libc/print x)
+ #{res := (/libc/print x)
   {return 'do-something-value}}
  interceptor := 42
  interceptor = fn {arg}
- {{ext-pointer arg-} := (../do-something @mut @{host
+ #{{ext-pointer arg-} := (../do-something @mut @{host
     "call-extension-1"} @2 arg)
   res := (/libc/print "extension:")
   res = (/libc/print ext-pointer)
@@ -306,7 +306,7 @@ fntest
 
 fntest
 {wrapper := fn {}
- {mco := {magically_called_fn
+ #{mco := {magically_called_fn
    {x}
    {return #{x
      x}}}
@@ -329,7 +329,7 @@ fntest
  while (/std/not (/std/eq x 0))
  {x = (/std/+ x 1)}
  f := fn {t}
- {return t}
+ #{return t}
  if 3
  #{return 42}
  #{return 25}}
@@ -343,7 +343,7 @@ fntest
 print-all := 42
 
 print-all = fn {xs}
-{res := 42
+#{res := 42
  if xs
  #{res = (/libc/print (/std/head xs))
   {} := (../print-all @0 (/std/tail xs))
