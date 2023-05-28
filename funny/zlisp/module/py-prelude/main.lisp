@@ -2,7 +2,6 @@ req
 {}
 
 print := fn {a0}
-
 {r := {return @1
   @{host
    "eval"
@@ -12,7 +11,6 @@ print := fn {a0}
  return r}
 
 debug-print := fn {a0}
-
 {r := {return @1
   @{host
    "eval"
@@ -22,7 +20,6 @@ debug-print := fn {a0}
  return r}
 
 head := fn {a0}
-
 {r := {return @1
   @{host
    "eval"
@@ -32,7 +29,6 @@ head := fn {a0}
  return r}
 
 tail := fn {a0}
-
 {r := {return @1
   @{host
    "eval"
@@ -42,7 +38,6 @@ tail := fn {a0}
  return r}
 
 is-constant := fn {a0}
-
 {r := {return @1
   @{host
    "eval"
@@ -52,7 +47,6 @@ is-constant := fn {a0}
  return r}
 
 eq := fn {a0 a1}
-
 {r := {return @1
   @{host
    "eval"
@@ -63,7 +57,6 @@ eq := fn {a0 a1}
  return r}
 
 panic := fn {a0}
-
 {ignored-result := {return @1
   @{host
    "eval"
@@ -73,7 +66,6 @@ panic := fn {a0}
  return {}}
 
 annotate := fn {a0}
-
 {r := {return @1
   @{host
    "eval"
@@ -83,7 +75,6 @@ annotate := fn {a0}
  return r}
 
 + := fn {a0 a1}
-
 {r := {return @1
   @{host
    "eval"
@@ -94,7 +85,6 @@ annotate := fn {a0}
  return r}
 
 cons := fn {a0 a1}
-
 {r := {return @1
   @{host
    "eval"
@@ -105,7 +95,6 @@ cons := fn {a0 a1}
  return r}
 
 concat-bytestrings := fn {a0 a1}
-
 {r := {return @1
   @{host
    "eval"
@@ -116,7 +105,6 @@ concat-bytestrings := fn {a0 a1}
  return r}
 
 repr := fn {a0}
-
 {r := {return @1
   @{host
    "eval"

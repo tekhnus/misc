@@ -12,48 +12,37 @@ req
  {+- "prelude" +}}
 
 panic := fn {x}
-
 {(/prelude/panic- @0 x)
  {return {}}}
 
 head := fn {x}
-
 {return (/prelude/head- x)}
 
 tail := fn {x}
-
 {return (/prelude/tail- x)}
 
 cons := fn {x xs}
-
 {return (/prelude/cons- x xs)}
 
 eq := fn {x y}
-
 {return (/prelude/eq- x y)}
 
 annotate := fn {x}
-
 {return (/prelude/annotate- x)}
 
 is-constant := fn {x}
-
 {return (/prelude/is-constant- x)}
 
 repr := fn {x}
-
 {return (/prelude/repr- x)}
 
 concat-bytestrings := fn {x y}
-
 {return (/prelude/concat-bytestrings- x y)}
 
 + := fn {x y}
-
 {return (/prelude/+- x y)}
 
 not := fn {x}
-
 {if x
  {return {list
    {}}}
@@ -64,17 +53,14 @@ not := fn {x}
 last := 42
 
 last = fn {a0}
-
 {if (../tail a0)
  {return (../last (../tail a0))}
  {return (../head a0)}}
 
 type := fn {x}
-
 {return (../head (../annotate x))}
 
 length := fn {x}
-
 {n := 0
  while x
  {n = (../+ n 1)
@@ -84,7 +70,6 @@ length := fn {x}
 concat := 42
 
 concat = fn {a0 a1}
-
 {if a0
  {return (../cons (../head a0) (../concat (../tail a0) a1))}
  {return a1}}
@@ -92,7 +77,6 @@ concat = fn {a0 a1}
 zip := 42
 
 zip = fn {a0 a1}
-
 {if a0
  {return (../cons {list
     {(../head a0)
@@ -103,7 +87,6 @@ zip = fn {a0 a1}
 map := 42
 
 map = fn {a0 a1}
-
 {if a1
  {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
  {return {list
@@ -118,7 +101,6 @@ panic-block := {list
 list-at := 42
 
 list-at = fn {xs n}
-
 {if (../eq n 0)
  {{return (../head xs)}}
  {{return (../list-at (../tail xs) (../+ n -1))}}}
@@ -126,7 +108,6 @@ list-at = fn {xs n}
 swtchone := 42
 
 swtchone = fn {a0}
-
 {if a0
  {firstarg := (../head a0)
   cond := (../head firstarg)
@@ -155,7 +136,6 @@ swtchone = fn {a0}
 decons-pat := 42
 
 decons-pat = fn {a0 a1}
-
 {pat := a0
  val := a1
  if (../is-constant pat)
@@ -199,7 +179,6 @@ decons-pat = fn {a0 a1}
 decons-vars := 42
 
 decons-vars = fn {a0}
-
 {if (../is-constant a0)
  {return {list
    {}}}
@@ -234,14 +213,12 @@ switch-defines := {list
    5)}}
 
 make-assignment := fn {x}
-
 {return {list
   {(../head x)
    ':=
    (../list-at x 1)}}}
 
 switch-clause := fn {a0}
-
 {{a1 := a0}
  sig := (../head a1)
  {if sig
@@ -264,13 +241,11 @@ switch-clause := fn {a0}
     body}}}}
 
 switch-fun := fn {a0}
-
 {return (../swtchone (../map switch-clause a0))}
 
 append := 42
 
 append = fn {x xs}
-
 {if xs
  {return (../cons (../head xs) (../append x (../tail xs)))}
  {return {list
@@ -279,7 +254,6 @@ append = fn {x xs}
 first-good-value := 42
 
 first-good-value = fn {x}
-
 {if x
  {first-arg := (../head x)
   {if (../eq :ok (../head first-arg))

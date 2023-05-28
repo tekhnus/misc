@@ -14,7 +14,6 @@ req
  {fntest- "testing" fntestx}}
 
 .switch := fn {exp argz}
-
 {return {list
   {'args
    '=
@@ -24,7 +23,6 @@ req
 .switch.arity := 3
 
 .fntest := fn {body expect}
-
 {return (/testing/fntest- body expect)}
 
 .fntest.arity := 3
@@ -32,7 +30,6 @@ req
 .backquote := 42
 
 .backquote = fn {exp}
-
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
  {return {list
    {'quote
@@ -61,7 +58,6 @@ req
 .backquote.arity := 2
 
 .defnx := fn {name args body}
-
 {return {list
   {name
    ':=
