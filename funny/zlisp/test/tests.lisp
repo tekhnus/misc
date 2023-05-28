@@ -121,8 +121,8 @@ fntest
 
 fntest
 {twice := 42
- twice = {fn {arg}
-  {return (/std/+ arg arg)}}
+ twice = fn {arg}
+ {return (/std/+ arg arg)}
  {return (twice 35)}}
 70
 
