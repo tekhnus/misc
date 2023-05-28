@@ -113,10 +113,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
         prog_get_if(prog_get_next_index(sl) - if_instruction);
-    err = prog_append_merge_compdata(sl, false_compdata, compdata);
-    if (err != NULL) {
-      return err;
-    }
+    /* err = prog_append_merge_compdata(sl, false_compdata, compdata); */
+    /* if (err != NULL) { */
+    /*   return err; */
+    /* } */
     before = compdata_get_length(compdata);
     err = prog_append_consume_expression(sl, source, i, false_compdata, ext);
     if (err != NULL) {
@@ -129,10 +129,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     size_t false_end = prog_append_something(sl);
     *vec_at(sl, true_end) = prog_get_jmp(prog_get_next_index(sl) - true_end);
-    err = prog_append_merge_compdata(sl, compdata, false_compdata);
-    if (err != NULL) {
-      return err;
-    }
+    /* err = prog_append_merge_compdata(sl, compdata, false_compdata); */
+    /* if (err != NULL) { */
+    /*   return err; */
+    /* } */
     *vec_at(sl, false_end) = prog_get_jmp(prog_get_next_index(sl) - false_end);
     return NULL;
   }
