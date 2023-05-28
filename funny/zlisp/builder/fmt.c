@@ -12,7 +12,10 @@ int main(int argc, char **argv) {
     printf("usage: %s <file>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
+  lisp_extension ext;
+  ext = standard_extension_make();
   char *filename = argv[1];
+  fprintf(stderr, "formatting %s\n", filename);
   FILE *f = fopen(filename, "r");
   if (f == NULL) {
     perror("while opening file (C host)");
@@ -32,8 +35,6 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   datum source = rewrite(&rr.ok_value);
-  lisp_extension ext;
-  // ext = standard_extension_make();
   char *res = datum_repr_pretty(&source, &ext.base);
   res[strlen(res) - 1] = 0;
   res += 1;
