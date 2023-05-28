@@ -147,6 +147,9 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     err = prog_append_consume_expression(sl, source, i, compdata, ext);
+    if (err != NULL) {
+      return err;
+    }
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
