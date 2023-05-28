@@ -119,7 +119,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     size_t after = compdata_get_length(compdata);
     if (after != before) {
-      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond)); */
+      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
+       */
       /* return "bad if branch"; */
     }
     size_t true_end = prog_append_something(sl); // filled below.
@@ -136,7 +137,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     after = compdata_get_length(compdata);
     if (after != before) {
-      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond)); */
+      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
+       */
       /* return "bad if branch"; */
     }
     size_t false_end = prog_append_something(sl);
