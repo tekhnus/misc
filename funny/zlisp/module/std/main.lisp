@@ -108,11 +108,15 @@ list-at = fn {xs n}
 swtchone := 42
 
 swtchone = fn {a0}
-{if a0
- {firstarg := (../head a0)
-  cond := (../head firstarg)
-  body := (../list-at firstarg 1)
-  rest := (../swtchone (../tail a0))
+{firstarg := 42
+ cond := 42
+ body := 42
+ rest := 42
+ if a0
+ {firstarg = (../head a0)
+  cond = (../head firstarg)
+  body = (../list-at firstarg 1)
+  rest = (../swtchone (../tail a0))
   return {list
    {'prearg
     '=
@@ -138,6 +142,8 @@ decons-pat := 42
 decons-pat = fn {a0 a1}
 {pat := a0
  val := a1
+ first-decons := 42
+ rest-decons := 42
  if (../is-constant pat)
  {{if (../eq pat val)
    {return {list
@@ -154,8 +160,8 @@ decons-pat = fn {a0 a1}
   {if (../eq (../type pat) :list)
    {if pat
     {if val
-     {first-decons := (../decons-pat (../head pat) (../head val))
-      rest-decons := (../decons-pat (../tail pat) (../tail val))
+     {first-decons = (../decons-pat (../head pat) (../head val))
+      rest-decons = (../decons-pat (../tail pat) (../tail val))
       {if (../eq :err (../head rest-decons))
        {return {list
          {':err}}}
@@ -215,7 +221,7 @@ switch-defines := {list
 make-assignment := fn {x}
 {return {list
   {(../head x)
-   ':=
+   '=
    (../list-at x 1)}}}
 
 switch-clause := fn {a0}
@@ -254,8 +260,9 @@ append = fn {x xs}
 first-good-value := 42
 
 first-good-value = fn {x}
-{if x
- {first-arg := (../head x)
+{first-arg := 42
+ if x
+ {first-arg = (../head x)
   {if (../eq :ok (../head first-arg))
    {{return (../list-at first-arg 1)}}
    {{return (../first-good-value (../tail x))}}}}

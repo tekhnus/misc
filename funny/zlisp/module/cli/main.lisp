@@ -38,12 +38,19 @@ repl := 42
 repl = fn {sl nsp bpptr compdata bdrcompdata ex}
 {tmp := (/prelude/fprintf stdout "> ")
  ignored := 0
+ maybe-prog := 42
+ datum := 42
+ progxxx := 42
+ val := 42
+ msga := 42
+ msgb := 42
+ msgc := 42
  switch (/zlisp/rd stdin)
  {{{:eof}
    return (/prelude/fprintf stdout "")}
   {{:ok
     datum}
-   maybe-prog := (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
+   maybe-prog = (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
    switch maybe-prog
    {{{:ok
       progxxx}

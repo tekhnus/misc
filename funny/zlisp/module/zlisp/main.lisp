@@ -105,12 +105,14 @@ repr-pointer := fn {x}
 
 eval-new := fn {sl rt0}
 {res := (/prelude/routine-run-and-get-value-c-host-new sl rt0)
+ msg := 42
+ val := 42
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
-  {msg := (../fdatum-get-panic-message res)
+  {msg = (../fdatum-get-panic-message res)
    {return {list
      {:err
       msg}}}}
-  {val := (../fdatum-get-value res)
+  {val = (../fdatum-get-value res)
    {return {list
      {:ok
       val}}}}}}
@@ -122,15 +124,17 @@ datum-read-one := (/prelude/c-function selflib "datum_read_one" {list
 
 read := fn {strm}
 {res := (/prelude/datum-read-one strm)
+ msg := 42
+ maybeval := 42
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
-  {msg := (../fdatum-get-panic-message res)
+  {msg = (../fdatum-get-panic-message res)
    {if (/std/eq msg "eof")
     {return {list
       {':eof}}}
     {return {list
       {:err
        msg}}}}}
-  {maybeval := (../fdatum-get-value res)
+  {maybeval = (../fdatum-get-value res)
    {return {list
      {:ok
       maybeval}}}}}}

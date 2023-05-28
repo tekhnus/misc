@@ -170,8 +170,9 @@ fntest
 print-all := 42
 
 print-all = fn {xs}
-{if xs
- {res := (/prelude/print (/std/head xs))
+{res := 42
+ if xs
+ {res = (/prelude/print (/std/head xs))
   {} := (../print-all @0 (/std/tail xs))
   return {}}
  {return {}}}

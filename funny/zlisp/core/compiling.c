@@ -83,6 +83,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return prog_append_apply(sl, exp, compdata, ext);
   }
   if (datum_is_the_symbol(head, "if")) {
+    datum *cond = list_at(source, *i);
     char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
@@ -91,9 +92,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     compdata_del(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
+    size_t before = compdata_get_length(compdata);
     err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
+    }
+    size_t after = compdata_get_length(compdata);
+    if (after != before) {
+      fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
+      return "bad if branch";
     }
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
@@ -571,7 +578,11 @@ EXPORT void move_values_to_variables(vec *sl, datum *var, datum *compdata) {
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
-    assert(!datum_is_nil(&target));
+    if(datum_is_nil(&target)) {
+      fprintf(stderr, "error: assignment to undeclared variable %s\n",
+              datum_repr(list_at(var, idx)));
+      exit(EXIT_FAILURE);
+    }
     datum source = compdata_get_top_polyindex(compdata);
     prog_append_move(sl, &target, &source, compdata);
   }
