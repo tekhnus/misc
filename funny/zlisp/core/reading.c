@@ -309,6 +309,9 @@ LOCAL read_result datum_read(FILE *strm) {
     return elem;
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
+    /* if (datum_is_the_symbol(&tok.control_sequence_symbol, "quote")) { */
+    /*   return read_result_make_ok(tok.control_sequence_symbol); */
+    /* } */
     read_result v = datum_read(strm);
     if (read_result_is_panic(v)) {
       return v;
