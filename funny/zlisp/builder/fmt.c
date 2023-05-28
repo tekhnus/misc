@@ -46,6 +46,16 @@ LOCAL datum rewrite(datum *source) {
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
+    if (datum_is_list(elem) && !datum_is_nil(elem)) {
+      int len = list_length(elem);
+      datum *head = list_at(elem, 0);
+      if (datum_is_the_symbol(head, "fn") && len == 3) {
+        for (int j = 0; j < len; ++j) {
+          list_append(&res, rewrite(list_at(elem, j)));
+        }
+        continue;
+      }
+    }
     /* if (i + 3 < list_length(source) && */
     /*     (datum_is_the_symbol(list_at(source, i), "defn_") || */
     /*      datum_is_the_symbol(list_at(source, i), "defnx__"))) { */

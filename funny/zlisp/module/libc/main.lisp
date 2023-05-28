@@ -71,8 +71,9 @@ stderr := (/std/first-good-value {list
   {(/prelude/extern-pointer libc "stderr" 'pointer)
    (/prelude/extern-pointer libc "__stderrp" 'pointer)}})
 
-print := {fn {val}
- {return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))}}
+print := fn {val}
+
+{return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))}
 
 export
 {{malloc malloc}

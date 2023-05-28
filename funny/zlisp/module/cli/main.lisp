@@ -35,35 +35,36 @@ readme := "A basic REPL for zlisp."
 
 repl := 42
 
-repl = {fn {sl nsp bpptr compdata bdrcompdata ex}
- {tmp := (/prelude/fprintf stdout "> ")
-  ignored := 0
-  switch (/zlisp/rd stdin)
-  {{{:eof}
-    return (/prelude/fprintf stdout "")}
-   {{:ok
-     datum}
-    maybe-prog := (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
-    switch maybe-prog
-    {{{:ok
-       progxxx}
-      switch (/zlisp/eval-new sl nsp)
-      {{{:ok
-         val}
-        ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
-        return (../repl sl nsp bpptr compdata bdrcompdata ex)}
-       {{:err
-         msga}
-        ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msga)
-        return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
-     {{:err
-       msgb}
-      ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msgb)
-      return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
-   {{:err
-     msgc}
-    ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msgc)
-    return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}}
+repl = fn {sl nsp bpptr compdata bdrcompdata ex}
+
+{tmp := (/prelude/fprintf stdout "> ")
+ ignored := 0
+ switch (/zlisp/rd stdin)
+ {{{:eof}
+   return (/prelude/fprintf stdout "")}
+  {{:ok
+    datum}
+   maybe-prog := (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
+   switch maybe-prog
+   {{{:ok
+      progxxx}
+     switch (/zlisp/eval-new sl nsp)
+     {{{:ok
+        val}
+       ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
+       return (../repl sl nsp bpptr compdata bdrcompdata ex)}
+      {{:err
+        msga}
+       ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msga)
+       return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
+    {{:err
+      msgb}
+     ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msgb)
+     return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
+  {{:err
+    msgc}
+   ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msgc)
+   return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
 
 sl := (/prelude/psm)
 

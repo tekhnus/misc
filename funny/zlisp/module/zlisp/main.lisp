@@ -63,19 +63,21 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {list
     {}}
    'pointer}})
 
-init-prog := {fn {sl compdata bdrcompdata}
- {nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata)
-  return nothing}}
+init-prog := fn {sl compdata bdrcompdata}
 
-compile-prog-new := {fn {sl bpptr src compdata bdrcompdata ex}
- {e := (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)
-  {if (/std/eq 0 (/prelude/dereference e 'int64))
-   {return {list
-     {:ok
-      :nothing}}}
-   {return {list
-     {:err
-      (/prelude/dereference e 'string)}}}}}}
+{nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata)
+ return nothing}
+
+compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
+
+{e := (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)
+ {if (/std/eq 0 (/prelude/dereference e 'int64))
+  {return {list
+    {:ok
+     :nothing}}}
+  {return {list
+    {:err
+     (/prelude/dereference e 'string)}}}}}
 
 routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {list
   {{list
@@ -90,50 +92,55 @@ fdatum-is-panic := (/prelude/c-function selflib "fdatum_is_panic" {list
 
 fdatum-get-value-ptr := (/prelude/dlsym selflib "fdatum_get_value")
 
-fdatum-get-value := {fn {x}
- {return (/prelude/call-extension-1 (/prelude/dereference fdatum-get-value-ptr 'int64) x)}}
+fdatum-get-value := fn {x}
+
+{return (/prelude/call-extension-1 (/prelude/dereference fdatum-get-value-ptr 'int64) x)}
 
 fdatum-get-panic-message-ptr := (/prelude/dlsym selflib "fdatum_get_panic_message")
 
-fdatum-get-panic-message := {fn {x}
- {return (/prelude/call-extension-1 (/prelude/dereference fdatum-get-panic-message-ptr 'int64) x)}}
+fdatum-get-panic-message := fn {x}
+
+{return (/prelude/call-extension-1 (/prelude/dereference fdatum-get-panic-message-ptr 'int64) x)}
 
 fdatum-repr-datum-pointer-ptr := (/prelude/dlsym selflib "fdatum_repr_datum_pointer")
 
-repr-pointer := {fn {x}
- {return (/prelude/call-extension-1 (/prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)}}
+repr-pointer := fn {x}
 
-eval-new := {fn {sl rt0}
- {res := (/prelude/routine-run-and-get-value-c-host-new sl rt0)
-  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
-   {msg := (../fdatum-get-panic-message res)
-    {return {list
-      {:err
-       msg}}}}
-   {val := (../fdatum-get-value res)
-    {return {list
-      {:ok
-       val}}}}}}}
+{return (/prelude/call-extension-1 (/prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)}
+
+eval-new := fn {sl rt0}
+
+{res := (/prelude/routine-run-and-get-value-c-host-new sl rt0)
+ {if (/std/eq (/prelude/fdatum-is-panic res) 1)
+  {msg := (../fdatum-get-panic-message res)
+   {return {list
+     {:err
+      msg}}}}
+  {val := (../fdatum-get-value res)
+   {return {list
+     {:ok
+      val}}}}}}
 
 datum-read-one := (/prelude/c-function selflib "datum_read_one" {list
   {{list
     {'pointer}}
    'fdatum}})
 
-read := {fn {strm}
- {res := (/prelude/datum-read-one strm)
-  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
-   {msg := (../fdatum-get-panic-message res)
-    {if (/std/eq msg "eof")
-     {return {list
-       {':eof}}}
-     {return {list
-       {:err
-        msg}}}}}
-   {maybeval := (../fdatum-get-value res)
+read := fn {strm}
+
+{res := (/prelude/datum-read-one strm)
+ {if (/std/eq (/prelude/fdatum-is-panic res) 1)
+  {msg := (../fdatum-get-panic-message res)
+   {if (/std/eq msg "eof")
     {return {list
-      {:ok
-       maybeval}}}}}}}
+      {':eof}}}
+    {return {list
+      {:err
+       msg}}}}}
+  {maybeval := (../fdatum-get-value res)
+   {return {list
+     {:ok
+      maybeval}}}}}}
 
 export
 {{compile-prog-new compile-prog-new}
