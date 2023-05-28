@@ -53,7 +53,7 @@ LOCAL datum rewrite(datum *source) {
     if (datum_is_list(elem) && !datum_is_nil(elem)) {
       int len = list_length(elem);
       datum *head = list_at(elem, 0);
-      if (datum_is_the_symbol(head, "fn") && len == 3) {
+      if (datum_is_the_symbol(head, "return__") && len == 2) {
         for (int j = 0; j < len; ++j) {
           list_append(&res, rewrite(list_at(elem, j)));
         }
