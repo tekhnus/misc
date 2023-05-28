@@ -14,41 +14,35 @@ req
  {print "prelude" print}
  {concat-bytestrings "std" concat-bytestrings}}
 
-panics := {list
- {}}
+panics := #{}
 
 val := 0
 
 calltest := 0
 
 fntest
-{return (std/head {list
-   {'42
-    '5
-    '3}})}
+{return (std/head #{'42
+   '5
+   '3})}
 42
 
 fntest
-{return (std/tail {list
-   {'42
-    '5
-    '3}})}
-{list
- {'5
-  '3}}
+{return (std/tail #{'42
+   '5
+   '3})}
+#{'5
+ '3}
 
 fntest
-{return (std/head (std/tail {list
-    {'42
-     '5
-     '3}}))}
+{return (std/head (std/tail #{'42
+    '5
+    '3}))}
 5
 
 fntest
-{return (std/list-at {list
-   {'42
-    '5
-    '3}} 1)}
+{return (std/list-at #{'42
+   '5
+   '3} 1)}
 5
 
 fntest
@@ -60,43 +54,35 @@ fntest
 7
 
 fntest
-{return {list
-  {(/std/+ 4 3)
-   8}}}
-{list
- {'7
-  '8}}
+{return #{(/std/+ 4 3)
+  8}}
+#{'7
+ '8}
 
 fntest
-{return (std/list-at {list
-   {'1
-    '2}} 1)}
+{return (std/list-at #{'1
+   '2} 1)}
 2
 
 fntest
 {return (std/eq :foo :bar)}
-{list
- {}}
+#{}
 
 fntest
 {bar := :foo
  return (std/eq :foo bar)}
-{list
- {{list
-   {}}}}
+#{#{}}
 
 fntest
-{return (std/append 5 {list
-   {'1
-    '2
-    '3
-    '4}})}
-{list
- {'1
-  '2
-  '3
-  '4
-  '5}}
+{return (std/append 5 #{'1
+   '2
+   '3
+   '4})}
+#{'1
+ '2
+ '3
+ '4
+ '5}
 
 fntest
 {twice := fn {arg}
@@ -126,16 +112,14 @@ fntest
  {y} := (fib @mut)
  {z} := (fib @mut)
  {t} := (fib @mut)
- return {list
-  {x
-   y
-   z
-   t}}}
-{list
- {'3
-  '5
-  '8
-  '13}}
+ return #{x
+  y
+  z
+  t}}
+#{'3
+ '5
+ '8
+ '13}
 
 fntest
 {fff := fn {x}
@@ -149,12 +133,10 @@ fntest
  {return {42
    34}}
  {x y} := (multi-ret @2)
- return {list
-  {x
-   y}}}
-{list
- {'42
-  '34}}
+ return #{x
+  y}}
+#{'42
+ '34}
 
 fntest
 {y := 3

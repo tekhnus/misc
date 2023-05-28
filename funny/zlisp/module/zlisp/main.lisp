@@ -16,52 +16,38 @@ req
  {tail "std" tail}
  {panic "std" panic}}
 
-buildlib := (/std/first-good-value {list
-  (/prelude/shared-library "libzlisp-build-lib.so")})
+buildlib := (/std/first-good-value #(/prelude/shared-library
+  "libzlisp-build-lib.so"))
 
-compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {list
-  {{list
-    {}}
-   'pointer}})
+compdata-make := (/prelude/c-function selflib "compdata_alloc_make" #{#{}
+  'pointer})
 
-make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {list
-  {{list
-    {'sizet
-     'pointer}}
-   'pointer}})
+make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" #{#{'sizet
+   'pointer}
+  'pointer})
 
-prog-slice-make := (/prelude/c-function selflib "vec_create_slice" {list
-  {{list
-    {}}
-   'progslice}})
+prog-slice-make := (/prelude/c-function selflib "vec_create_slice" #{#{}
+  'progslice})
 
-prog-build-one-c-host := (/prelude/c-function buildlib "prog_build" {list
-  {{list
-    {'pointer
-     'pointer
-     'pointer
-     'pointer
-     'pointer
-     'pointer
-     'pointer}}
-   'pointer}})
+prog-build-one-c-host := (/prelude/c-function buildlib "prog_build" #{#{'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer}
+  'pointer})
 
-prog-build-init := (/prelude/c-function buildlib "prog_build_init" {list
-  {{list
-    {'pointer
-     'pointer
-     'pointer}}
-   'sizet}})
+prog-build-init := (/prelude/c-function buildlib "prog_build_init" #{#{'pointer
+   'pointer
+   'pointer}
+  'sizet})
 
-get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {list
-  {{list
-    {}}
-   'pointer}})
+get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" #{#{}
+  'pointer})
 
-ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {list
-  {{list
-    {}}
-   'pointer}})
+ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" #{#{}
+  'pointer})
 
 init-prog := fn {sl compdata bdrcompdata}
 {nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata)
@@ -70,23 +56,17 @@ init-prog := fn {sl compdata bdrcompdata}
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {e := (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)
  {if (/std/eq 0 (/prelude/dereference e 'int64))
-  {return {list
-    {:ok
-     :nothing}}}
-  {return {list
-    {:err
-     (/prelude/dereference e 'string)}}}}}
+  {return #{:ok
+    :nothing}}
+  {return #{:err
+    (/prelude/dereference e 'string)}}}}
 
-routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {list
-  {{list
-    {'progslice
-     'pointer}}
-   'fdatum}})
+routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" #{#{'progslice
+   'pointer}
+  'fdatum})
 
-fdatum-is-panic := (/prelude/c-function selflib "fdatum_is_panic" {list
-  {{list
-    {'fdatum}}
-   'int}})
+fdatum-is-panic := (/prelude/c-function selflib "fdatum_is_panic" #{#{'fdatum}
+  'int})
 
 fdatum-get-value-ptr := (/prelude/dlsym selflib "fdatum_get_value")
 
@@ -109,18 +89,14 @@ eval-new := fn {sl rt0}
  val := 42
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
   {msg = (../fdatum-get-panic-message res)
-   {return {list
-     {:err
-      msg}}}}
+   {return #{:err
+     msg}}}
   {val = (../fdatum-get-value res)
-   {return {list
-     {:ok
-      val}}}}}}
+   {return #{:ok
+     val}}}}}
 
-datum-read-one := (/prelude/c-function selflib "datum_read_one" {list
-  {{list
-    {'pointer}}
-   'fdatum}})
+datum-read-one := (/prelude/c-function selflib "datum_read_one" #{#{'pointer}
+  'fdatum})
 
 read := fn {strm}
 {res := (/prelude/datum-read-one strm)
@@ -129,15 +105,12 @@ read := fn {strm}
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
   {msg = (../fdatum-get-panic-message res)
    {if (/std/eq msg "eof")
-    {return {list
-      {':eof}}}
-    {return {list
-      {:err
-       msg}}}}}
+    {return #{':eof}}
+    {return #{:err
+      msg}}}}
   {maybeval = (../fdatum-get-value res)
-   {return {list
-     {:ok
-      maybeval}}}}}}
+   {return #{:ok
+     maybeval}}}}}
 
 export
 {{compile-prog-new compile-prog-new}

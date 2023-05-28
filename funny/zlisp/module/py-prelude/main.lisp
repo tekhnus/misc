@@ -6,8 +6,7 @@ print := fn {a0}
   @{host
    "eval"
    "print(x[1][0])"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 debug-print := fn {a0}
@@ -15,8 +14,7 @@ debug-print := fn {a0}
   @{host
    "eval"
    "print(x[1][0])"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 head := fn {a0}
@@ -24,8 +22,7 @@ head := fn {a0}
   @{host
    "eval"
    "head(x)"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 tail := fn {a0}
@@ -33,8 +30,7 @@ tail := fn {a0}
   @{host
    "eval"
    "tail(x)"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 is-constant := fn {a0}
@@ -42,8 +38,7 @@ is-constant := fn {a0}
   @{host
    "eval"
    "is_constant(x)"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 eq := fn {a0 a1}
@@ -51,9 +46,8 @@ eq := fn {a0 a1}
   @{host
    "eval"
    "eq(x)"}
-  {list
-   {a0
-    a1}}}
+  #{a0
+   a1}}
  return r}
 
 panic := fn {a0}
@@ -61,8 +55,7 @@ panic := fn {a0}
   @{host
    "eval"
    "panic(x)"}
-  {list
-   a0}}
+  #a0}
  return {}}
 
 annotate := fn {a0}
@@ -70,8 +63,7 @@ annotate := fn {a0}
   @{host
    "eval"
    "annotate(x)"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 + := fn {a0 a1}
@@ -79,9 +71,8 @@ annotate := fn {a0}
   @{host
    "eval"
    "add(x)"}
-  {list
-   {a0
-    a1}}}
+  #{a0
+   a1}}
  return r}
 
 cons := fn {a0 a1}
@@ -89,9 +80,8 @@ cons := fn {a0 a1}
   @{host
    "eval"
    "cons(x)"}
-  {list
-   {a0
-    a1}}}
+  #{a0
+   a1}}
  return r}
 
 concat-bytestrings := fn {a0 a1}
@@ -99,9 +89,8 @@ concat-bytestrings := fn {a0 a1}
   @{host
    "eval"
    "concat_bytestrings(x)"}
-  {list
-   {a0
-    a1}}}
+  #{a0
+   a1}}
  return r}
 
 repr := fn {a0}
@@ -109,8 +98,7 @@ repr := fn {a0}
   @{host
    "eval"
    "repre(x)"}
-  {list
-   a0}}
+  #a0}
  return r}
 
 export

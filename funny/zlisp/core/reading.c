@@ -117,7 +117,7 @@ LOCAL bool consume_control_sequence(char c, datum *form) {
     return true;
   }
   if (c == '#') {
-    *form = datum_make_symbol("hash");
+    *form = datum_make_symbol("list");
     return true;
   }
   if (c == '^') {

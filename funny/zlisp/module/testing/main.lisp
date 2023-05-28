@@ -7,51 +7,39 @@ req
  {panic "std" panic}}
 
 fntestx := fn {body expect}
-{repr-expect := {list
-  {'call
-   {list
-    {'/std/repr
-     expect}}}}
- fact-equals-expect := {list
-  {'call
-   {list
-    {'/std/eq
-     'val
-     expect}}}}
- new-panic := {list
-  {'call
-   {list
-    {'/std/concat-bytestrings
-     '(/std/concat-bytestrings
-      (/std/repr val)
-      " != ")
-     repr-expect}}}}
- append-panics := {list
-  {'panics
-   '=
-   {list
-    {'call
-     {list
-      {'/std/cons
-       new-panic
-       'panics}}}}}}
- return {list
-  {'calltest
-   '=
-   {list
-    {'fn
-     '{}
-     body}}
+{repr-expect := #{'call
+  #{'/std/repr
+   expect}}
+ fact-equals-expect := #{'call
+  #{'/std/eq
    'val
+   expect}}
+ new-panic := #{'call
+  #{'/std/concat-bytestrings
+   '(/std/concat-bytestrings
+    (/std/repr val)
+    " != ")
+   repr-expect}}
+ append-panics := #{'panics
+  '=
+  #{'call
+   #{'/std/cons
+    new-panic
+    'panics}}}
+ return #{'calltest
+  '=
+  #{'fn
+   '{}
+   body}
+  'val
+  '=
+  '(calltest)
+  'if
+  fact-equals-expect
+  #{'panics
    '=
-   '(calltest)
-   'if
-   fact-equals-expect
-   {list
-    {'panics
-     '=
-     'panics}}
-   append-panics}}}
+   'panics}
+  append-panics}}
 
 export
 {{fntestx fntestx}}

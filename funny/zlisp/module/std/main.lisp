@@ -44,11 +44,8 @@ concat-bytestrings := fn {x y}
 
 not := fn {x}
 {if x
- {return {list
-   {}}}
- {return {list
-   {{list
-     {}}}}}}
+ {return #{}}
+ {return #{#{}}}}
 
 last := 42
 
@@ -78,25 +75,21 @@ zip := 42
 
 zip = fn {a0 a1}
 {if a0
- {return (../cons {list
-    {(../head a0)
-     (../head a1)}} (../zip (../tail a0) (../tail a1)))}
- {return {list
-   {}}}}
+ {return (../cons #{(../head a0)
+    (../head a1)} (../zip (../tail a0) (../tail a1)))}
+ {return #{}}}
 
 map := 42
 
 map = fn {a0 a1}
 {if a1
  {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
- {return {list
-   {}}}}
+ {return #{}}}
 
-panic-block := {list
- {'argz
-  '(/std/panic
-   @0
-   "wrong fn call")}}
+panic-block := #{'argz
+ '(/std/panic
+  @0
+  "wrong fn call")}
 
 list-at := 42
 
@@ -117,22 +110,20 @@ swtchone = fn {a0}
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
-  return {list
-   {'prearg
+  return #{'prearg
+   '=
+   cond
+   'if
+   '(/std/eq
+    (/std/head prearg)
+    :ok)
+   #{'args
     '=
-    cond
-    'if
-    '(/std/eq
-     (/std/head prearg)
-     :ok)
-    {list
-     {'args
-      '=
-      '(/std/list-at
-       prearg
-       1)
-      body}}
-    rest}}}
+    '(/std/list-at
+     prearg
+     1)
+    body}
+   rest}}
  {return '(/std/panic
    @0
    "nothing matched")}}
@@ -146,83 +137,66 @@ decons-pat = fn {a0 a1}
  rest-decons := 42
  if (../is-constant pat)
  {{if (../eq pat val)
-   {return {list
-     {':ok
-      {list
-       {}}}}}
-   {return {list
-     {':err}}}}}
+   {return #{':ok
+     #{}}}
+   {return #{':err}}}}
  {if (../eq (../type pat) :symbol)
-  {{return {list
-     {:ok
-      {list
-       val}}}}}
+  {{return #{:ok
+     #val}}}
   {if (../eq (../type pat) :list)
    {if pat
     {if val
      {first-decons = (../decons-pat (../head pat) (../head val))
       rest-decons = (../decons-pat (../tail pat) (../tail val))
       {if (../eq :err (../head rest-decons))
-       {return {list
-         {':err}}}
+       {return #{':err}}
        {if (../eq :err (../head first-decons))
-        {return {list
-          {':err}}}
-        {return {list
-          {:ok
-           (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}}}
-     {{return {list
-        {':err}}}}}
+        {return #{':err}}
+        {return #{:ok
+          (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}}
+     {{return #{':err}}}}
     {if val
-     {{return {list
-        {':err}}}}
-     {{return {list
-        {':ok
-         {list
-          {}}}}}}}}
+     {{return #{':err}}}
+     {{return #{':ok
+        #{}}}}}}
    {(../panic @0 "decons-pat met an unsupported type")}}}}
 
 decons-vars := 42
 
 decons-vars = fn {a0}
 {if (../is-constant a0)
- {return {list
-   {}}}
+ {return #{}}
  {if (../eq (../type a0) :symbol)
-  {return {list
-    {a0}}}
+  {return #{a0}}
   {if (../eq (../type a0) :list)
    {if a0
     {return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))}
-    {return {list
-      {}}}}
+    {return #{}}}
    (panic @0 "decons-var met an unsupported type")}}}
 
-switch-defines := {list
- {'(/std/list-at
-   args
-   0)
-  '(/std/list-at
-   args
-   1)
-  '(/std/list-at
-   args
-   2)
-  '(/std/list-at
-   args
-   3)
-  '(/std/list-at
-   args
-   4)
-  '(/std/list-at
-   args
-   5)}}
+switch-defines := #{'(/std/list-at
+  args
+  0)
+ '(/std/list-at
+  args
+  1)
+ '(/std/list-at
+  args
+  2)
+ '(/std/list-at
+  args
+  3)
+ '(/std/list-at
+  args
+  4)
+ '(/std/list-at
+  args
+  5)}
 
 make-assignment := fn {x}
-{return {list
-  {(../head x)
-   '=
-   (../list-at x 1)}}}
+{return #{(../head x)
+  '=
+  (../list-at x 1)}}
 
 switch-clause := fn {a0}
 {{a1 := a0}
@@ -231,20 +205,16 @@ switch-clause := fn {a0}
   {}
   {{} := (../panic "empty signature")}}
  cmds := (../tail a1)
- quoted-sig := {list
-  {'quote
-   sig}}
- checker := {list
-  {'call
-   {list
-    {'/std/decons-pat
-     quoted-sig
-     'args}}}}
+ quoted-sig := #{'quote
+  sig}
+ checker := #{'call
+  #{'/std/decons-pat
+   quoted-sig
+   'args}}
  vars := (../decons-vars sig)
  body := (../concat (../map make-assignment (../zip vars switch-defines)) cmds)
- {return {list
-   {checker
-    body}}}}
+ {return #{checker
+   body}}}
 
 switch-fun := fn {a0}
 {return (../swtchone (../map switch-clause a0))}
@@ -254,8 +224,7 @@ append := 42
 append = fn {x xs}
 {if xs
  {return (../cons (../head xs) (../append x (../tail xs)))}
- {return {list
-   {x}}}}
+ {return #{x}}}
 
 first-good-value := 42
 

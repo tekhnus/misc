@@ -20,8 +20,7 @@ req
  {libc "libc"}
  {print "libc" print}}
 
-panics := {list
- {}}
+panics := #{}
 
 val := 0
 
@@ -40,20 +39,17 @@ fntest
 7
 
 fntest
-{return (/std/length {list
-   {'1
-    '2
-    '3}})}
+{return (/std/length #{'1
+   '2
+   '3})}
 3
 
 fntest
-{return (/std/length {list
-   {}})}
+{return (/std/length #{})}
 0
 
 fntest
-{return (/std/type {list
-   {}})}
+{return (/std/type #{})}
 :list
 
 fntest
@@ -63,61 +59,49 @@ fntest
 fntest
 {return `{42
   (/std/+ 33 1)}}
-{list
- {'42
-  {list
-   {'call
-    {list
-     {'/std/+
-      '33
-      '1}}}}}}
+#{'42
+ #{'call
+  #{'/std/+
+   '33
+   '1}}}
 
 fntest
 {return `{42
   {tilde
    (/std/+ 33 1)}}}
-{list
- {'42
-  '34}}
+#{'42
+ '34}
 
 fntest
-{return {list
-  {(/std/+ 4 3)
-   8}}}
-{list
- {'7
-  '8}}
+{return #{(/std/+ 4 3)
+  8}}
+#{'7
+ '8}
 
 fntest
-{return (/std/list-at {list
-   {'1
-    '2}} 1)}
+{return (/std/list-at #{'1
+   '2} 1)}
 2
 
 fntest
 {return (/std/eq :foo :bar)}
-{list
- {}}
+#{}
 
 fntest
 {bar := :foo
  {return (/std/eq :foo bar)}}
-{list
- {{list
-   {}}}}
+#{#{}}
 
 fntest
-{return (/std/append 5 {list
-   {'1
-    '2
-    '3
-    '4}})}
-{list
- {'1
-  '2
-  '3
-  '4
-  '5}}
+{return (/std/append 5 #{'1
+   '2
+   '3
+   '4})}
+#{'1
+ '2
+ '3
+ '4
+ '5}
 
 fntest
 {twice := 42
@@ -182,16 +166,14 @@ fntest
  {y} := (fib @mut)
  {z} := (fib @mut)
  {t} := (fib @mut)
- {return {list
-   {x
-    y
-    z
-    t}}}}
-{list
- {'3
-  '5
-  '8
-  '13}}
+ {return #{x
+   y
+   z
+   t}}}
+#{'3
+ '5
+ '8
+ '13}
 
 fntest
 {far-fib := fn {}
@@ -210,16 +192,14 @@ fntest
  {y} := (more-far-fib @mut @event-loop)
  {z} := (more-far-fib @mut @event-loop)
  {t} := (more-far-fib @mut @event-loop)
- {return {list
-   {x
-    y
-    z
-    t}}}}
-{list
- {'3
-  '5
-  '8
-  '13}}
+ {return #{x
+   y
+   z
+   t}}}
+#{'3
+ '5
+ '8
+ '13}
 
 fntest
 {res := (/prelude/fprintf stderr "hello")
@@ -231,12 +211,10 @@ fntest
  {{} := {return {42
     34}}}
  {x y} := (multi-ret @2)
- {return {list
-   {x
-    y}}}}
-{list
- {'42
-  '34}}
+ {return #{x
+   y}}}
+#{'42
+ '34}
 
 fntest
 {foo := fn {x}
@@ -249,14 +227,12 @@ fntest
  a := (fee @mut 41)
  b := (fee @mut 33)
  c := (fee @mut 14 15)
- {return {list
-   {a
-    b
-    c}}}}
-{list
- {'42
-  '34
-  ':done}}
+ {return #{a
+   b
+   c}}}
+#{'42
+ '34
+ ':done}
 
 fntest
 {cl-holder := fn {x xs}
@@ -279,12 +255,10 @@ fntest
  xs2 := (cl-cons 34 xs1)
  a := (cl-head xs2)
  b := (cl-head (cl-tail xs2))
- {return {list
-   {a
-    b}}}}
-{list
- {'34
-  '42}}
+ {return #{a
+   b}}}
+#{'34
+ '42}
 
 fntest
 {fff := fn {x}
@@ -334,17 +308,15 @@ fntest
 {wrapper := fn {}
  {mco := {magically_called_fn
    {x}
-   {return {list
-     {x
-      x}}}}
+   {return #{x
+     x}}}
   {} := (mco @mut @0 @up)
   {return 33}}
  {} := (wrapper @mut @0)
  res := (wrapper 42)
  {return res}}
-{list
- {'42
-  '42}}
+#{'42
+ '42}
 
 fntest
 {if 3

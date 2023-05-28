@@ -14,11 +14,10 @@ req
  {fntest- "testing" fntestx}}
 
 .switch := fn {exp argz}
-{return {list
-  {'args
-   '=
-   exp
-   (/std/switch-fun argz)}}}
+{return #{'args
+  '=
+  exp
+  (/std/switch-fun argz)}}
 
 .switch.arity := 3
 
@@ -31,61 +30,48 @@ req
 
 .backquote = fn {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return {list
-   {'quote
-    exp}}}
+ {return #{'quote
+   exp}}
  {if (/std/not- exp)
-  {return {list
-    {'list
-     {list
-      {}}}}}
+  {return #{'list
+    #{}}}
   {if (/std/eq- (/std/length- exp) 2)
    {if (/std/eq- (/std/list-at- exp 0) 'tilde)
     {return (/std/list-at- exp 1)}
-    {return {list
-      {'call
-       {list
-        {'/std/cons
-         (../.backquote (/std/head- exp))
-         (../.backquote (/std/tail- exp))}}}}}}
-   {return {list
-     {'call
-      {list
-       {'/std/cons
-        (../.backquote (/std/head- exp))
-        (../.backquote (/std/tail- exp))}}}}}}}}
+    {return #{'call
+      #{'/std/cons
+       (../.backquote (/std/head- exp))
+       (../.backquote (/std/tail- exp))}}}}
+   {return #{'call
+     #{'/std/cons
+      (../.backquote (/std/head- exp))
+      (../.backquote (/std/tail- exp))}}}}}}
 
 .backquote.arity := 2
 
 .defnx := fn {name args body}
-{return {list
-  {name
-   ':=
-   {list
-    {'fn
-     '{}
-     {list
-      {'mc
-       ':=
-       {list
-        {'magically_called_fn
-         args
-         body}}
-       '{}
-       ':=
-       '(mc
-        @mut
-        @0
-        @up2)
-       'return
-       :shouldnt-go-here}}}}
+{return #{name
+  ':=
+  #{'fn
    '{}
-   ':=
-   {list
-    {'call
-     {list
-      {name
-       '@mut
-       '@0}}}}}}}
+   #{'mc
+    ':=
+    #{'magically_called_fn
+     args
+     body}
+    '{}
+    ':=
+    '(mc
+     @mut
+     @0
+     @up2)
+    'return
+    :shouldnt-go-here}}
+  '{}
+  ':=
+  #{'call
+   #{name
+    '@mut
+    '@0}}}}
 
 .defnx.arity := 4

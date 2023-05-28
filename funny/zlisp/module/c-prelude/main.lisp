@@ -12,8 +12,7 @@ call-extension-1 := fn {fnptr x}
 deref-pointer := {return @1
  @{host
   "deref-pointer"}
- {list
-  {}}}
+ #{}}
 
 deref := fn {x y}
 {r := {return @1
@@ -27,8 +26,7 @@ deref := fn {x y}
 mkptr-pointer := {return @1
  @{host
   "mkptr-pointer"}
- {list
-  {}}}
+ #{}}
 
 mkptr := fn {x y}
 {r := {return @1
@@ -42,8 +40,7 @@ mkptr := fn {x y}
 pointer-call-pointer := {return @1
  @{host
   "pointer-call-pointer"}
- {list
-  {}}}
+ #{}}
 
 pointer-call := fn {x y z}
 {r := {return @1
@@ -58,8 +55,7 @@ pointer-call := fn {x y z}
 panic-pointer := {return @1
  @{host
   "panic"}
- {list
-  {}}}
+ #{}}
 
 panic := fn {x}
 {ignored-result := {return @1
@@ -72,8 +68,7 @@ panic := fn {x}
 head-pointer := {return @1
  @{host
   "head"}
- {list
-  {}}}
+ #{}}
 
 head := fn {x}
 {r := {return @1
@@ -86,8 +81,7 @@ head := fn {x}
 tail-pointer := {return @1
  @{host
   "tail"}
- {list
-  {}}}
+ #{}}
 
 tail := fn {x}
 {r := {return @1
@@ -100,8 +94,7 @@ tail := fn {x}
 cons-pointer := {return @1
  @{host
   "cons"}
- {list
-  {}}}
+ #{}}
 
 cons := fn {x xs}
 {r := {return @1
@@ -115,8 +108,7 @@ cons := fn {x xs}
 eq-pointer := {return @1
  @{host
   "eq"}
- {list
-  {}}}
+ #{}}
 
 eq := fn {x y}
 {r := {return @1
@@ -141,8 +133,7 @@ serialize-params := 42
 serialize-params = fn {params signature}
 {if params
  {return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
- {return {list
-   {}}}}
+ {return #{}}}
 
 dereference := fn {what how}
 {if (../eq how 'pointer)
@@ -157,55 +148,42 @@ pointer-call-and-deserialize := fn {fn-ptr signature params}
 {fnparamst := (../head signature)
  rettype := (../head (../tail signature))
  s := (../serialize-params params fnparamst)
- rawres := (../pointer-call fn-ptr {list
-   {fnparamst
-    rettype}} s)
+ rawres := (../pointer-call fn-ptr #{fnparamst
+   rettype} s)
  return (../dereference rawres rettype)}
 
 rtld-lazy := {return @1
  @{host
   "RTLD_LAZY"}
- {list
-  {}}}
+ #{}}
 
 dlopen-pointer := {return @1
  @{host
   "dlopen"}
- {list
-  {}}}
+ #{}}
 
 dlopen := fn {x}
-{return (../pointer-call-and-deserialize dlopen-pointer {list
-   {{list
-     {'string
-      'sizet}}
-    'pointer}} {list
-   {x
-    rtld-lazy}})}
+{return (../pointer-call-and-deserialize dlopen-pointer #{#{'string
+    'sizet}
+   'pointer} #{x
+   rtld-lazy})}
 
 dlopen-null := fn {}
-{return (../pointer-call-and-deserialize dlopen-pointer {list
-   {{list
-     {'pointer
-      'sizet}}
-    'pointer}} {list
-   {(../mkptr 0 'sizet)
-    rtld-lazy}})}
+{return (../pointer-call-and-deserialize dlopen-pointer #{#{'pointer
+    'sizet}
+   'pointer} #{(../mkptr 0 'sizet)
+   rtld-lazy})}
 
 dlsym-pointer := {return @1
  @{host
   "dlsym"}
- {list
-  {}}}
+ #{}}
 
 dlsym := fn {x y}
-{return (../pointer-call-and-deserialize dlsym-pointer {list
-   {{list
-     {'pointer
-      'string}}
-    'pointer}} {list
-   {x
-    y}})}
+{return (../pointer-call-and-deserialize dlsym-pointer #{#{'pointer
+    'string}
+   'pointer} #{x
+   y})}
 
 c-data-pointer := fn {handle c-name signature}
 {fn-pointer-pointer := (../dlsym handle c-name)
@@ -230,97 +208,87 @@ get-fn-ptr := fn {handle c-name}
 
 c-function-0 := fn {fn-ptr signature}
 {return {}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{})}
 
 c-function-1 := fn {fn-ptr signature}
 {{a1} := {return @1
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   a1})}
+ return (../pointer-call-and-deserialize fn-ptr signature #a1)}
 
 c-function-2 := fn {fn-ptr signature}
 {{a1 a2} := {return @2
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2})}
 
 c-function-3 := fn {fn-ptr signature}
 {{a1 a2 a3} := {return @3
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2
-    a3}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2
+   a3})}
 
 c-function-4 := fn {fn-ptr signature}
 {{a1 a2 a3 a4} := {return @4
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2
-    a3
-    a4}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2
+   a3
+   a4})}
 
 c-function-5 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5} := {return @5
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2
-    a3
-    a4
-    a5}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2
+   a3
+   a4
+   a5})}
 
 c-function-6 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6} := {return @6
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2
-    a3
-    a4
-    a5
-    a6}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2
+   a3
+   a4
+   a5
+   a6})}
 
 c-function-7 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6 a7} := {return @7
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2
-    a3
-    a4
-    a5
-    a6
-    a7}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2
+   a3
+   a4
+   a5
+   a6
+   a7})}
 
 c-function-8 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6 a7 a8} := {return @8
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature {list
-   {a1
-    a2
-    a3
-    a4
-    a5
-    a6
-    a7
-    a8}})}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1
+   a2
+   a3
+   a4
+   a5
+   a6
+   a7
+   a8})}
 
 c-function := fn {handle c-name signature}
 {argssig := (../head signature)
- objs := {list
-  {c-function-0
-   c-function-1
-   c-function-2
-   c-function-3
-   c-function-4
-   c-function-5
-   c-function-6
-   c-function-7
-   c-function-8}}
+ objs := #{c-function-0
+  c-function-1
+  c-function-2
+  c-function-3
+  c-function-4
+  c-function-5
+  c-function-6
+  c-function-7
+  c-function-8}
  obj := (../nth argssig objs)
  fn-ptr := (../get-fn-ptr handle c-name)
  {} := (../obj @0 @mut fn-ptr signature)
@@ -386,22 +354,18 @@ wrap-pointer-into-pointer := fn {p}
 shared-library := fn {path}
 {r := (../dlopen path)
  if (../eq 0 (../dereference r 'int64))
- {return {list
-   {:err
-    "shared-library failed"}}}
- {return {list
-   {:ok
-    r}}}}
+ {return #{:err
+   "shared-library failed"}}
+ {return #{:ok
+   r}}}
 
 extern-pointer := fn {handle c-name signature}
 {res := (../c-data-pointer handle c-name signature)
  if (../eq 0 res)
- {return {list
-   {:err
-    "extern-pointer failed"}}}
- {return {list
-   {:ok
-    res}}}}
+ {return #{:err
+   "extern-pointer failed"}}
+ {return #{:ok
+   res}}}
 
 export
 {{call-extension-1 call-extension-1}
