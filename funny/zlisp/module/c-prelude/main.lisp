@@ -213,7 +213,7 @@ c-function-0 := fn {fn-ptr signature}
 c-function-1 := fn {fn-ptr signature}
 {{a1} := {return @1
   {}}
- return (../pointer-call-and-deserialize fn-ptr signature #a1)}
+ return (../pointer-call-and-deserialize fn-ptr signature #{a1})}
 
 c-function-2 := fn {fn-ptr signature}
 {{a1 a2} := {return @2

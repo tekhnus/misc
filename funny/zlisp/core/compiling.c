@@ -73,7 +73,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_the_symbol(head, "list")) {
     int before = compdata_get_length(compdata);
-    prog_append_consume_expression(sl, source, i, compdata, ext);
+    datum *vals = list_at(source, (*i)++);
+    if (!datum_is_list(vals)) {
+      fprintf(stderr, "bad: %s\n", datum_repr(vals));
+      return "bad";
+    }
+    int j = 0;
+    while (j < list_length(vals)) {
+      prog_append_consume_expression(sl, vals, &j, compdata, ext);
+    }
     int after = compdata_get_length(compdata);
     prog_append_collect(sl, after - before, compdata);
     return NULL;
@@ -584,7 +592,7 @@ EXPORT void move_values_to_variables(vec *sl, datum *var, datum *compdata) {
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
-    if(datum_is_nil(&target)) {
+    if (datum_is_nil(&target)) {
       fprintf(stderr, "error: assignment to undeclared variable %s\n",
               datum_repr(list_at(var, idx)));
       exit(EXIT_FAILURE);

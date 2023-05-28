@@ -6,7 +6,7 @@ print := fn {a0}
   @{host
    "eval"
    "print(x[1][0])"}
-  #a0}
+  #{a0}}
  return r}
 
 debug-print := fn {a0}
@@ -14,7 +14,7 @@ debug-print := fn {a0}
   @{host
    "eval"
    "print(x[1][0])"}
-  #a0}
+  #{a0}}
  return r}
 
 head := fn {a0}
@@ -22,7 +22,7 @@ head := fn {a0}
   @{host
    "eval"
    "head(x)"}
-  #a0}
+  #{a0}}
  return r}
 
 tail := fn {a0}
@@ -30,7 +30,7 @@ tail := fn {a0}
   @{host
    "eval"
    "tail(x)"}
-  #a0}
+  #{a0}}
  return r}
 
 is-constant := fn {a0}
@@ -38,7 +38,7 @@ is-constant := fn {a0}
   @{host
    "eval"
    "is_constant(x)"}
-  #a0}
+  #{a0}}
  return r}
 
 eq := fn {a0 a1}
@@ -55,7 +55,7 @@ panic := fn {a0}
   @{host
    "eval"
    "panic(x)"}
-  #a0}
+  #{a0}}
  return {}}
 
 annotate := fn {a0}
@@ -63,7 +63,7 @@ annotate := fn {a0}
   @{host
    "eval"
    "annotate(x)"}
-  #a0}
+  #{a0}}
  return r}
 
 + := fn {a0 a1}
@@ -98,7 +98,7 @@ repr := fn {a0}
   @{host
    "eval"
    "repre(x)"}
-  #a0}
+  #{a0}}
  return r}
 
 export

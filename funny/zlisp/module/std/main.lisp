@@ -142,7 +142,7 @@ decons-pat = fn {a0 a1}
    {return #{':err}}}}
  {if (../eq (../type pat) :symbol)
   {{return #{:ok
-     #val}}}
+     #{val}}}}
   {if (../eq (../type pat) :list)
    {if pat
     {if val

@@ -16,8 +16,7 @@ req
  {tail "std" tail}
  {panic "std" panic}}
 
-buildlib := (/std/first-good-value #(/prelude/shared-library
-  "libzlisp-build-lib.so"))
+buildlib := (/std/first-good-value #{(/prelude/shared-library "libzlisp-build-lib.so")})
 
 compdata-make := (/prelude/c-function selflib "compdata_alloc_make" #{#{}
   'pointer})
