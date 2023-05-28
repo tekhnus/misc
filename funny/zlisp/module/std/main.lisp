@@ -60,7 +60,7 @@ type := fn {x}
 length := fn {x}
 {n := 0
  while x
- {n = (../+ n 1)
+ ^{n = (../+ n 1)
   x = (../tail x)}
  {return n}}
 

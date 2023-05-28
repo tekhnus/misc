@@ -86,6 +86,18 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_collect(sl, after - before, compdata);
     return NULL;
   }
+  if (datum_is_the_symbol(head, "flat")) {
+    datum *vals = list_at(source, (*i)++);
+    if (!datum_is_list(vals)) {
+      fprintf(stderr, "bad: %s\n", datum_repr(vals));
+      return "bad";
+    }
+    int j = 0;
+    while (j < list_length(vals)) {
+      prog_append_consume_expression(sl, vals, &j, compdata, ext);
+    }
+    return NULL;
+  }
   if (datum_is_the_symbol(head, "call")) {
     datum *exp = list_at(source, (*i)++);
     return prog_append_apply(sl, exp, compdata, ext);

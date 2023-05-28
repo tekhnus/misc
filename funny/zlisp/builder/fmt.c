@@ -51,19 +51,19 @@ LOCAL datum rewrite(datum *source) {
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
 
-    if (i + 3 < list_length(source) &&
-        (datum_is_the_symbol(list_at(source, i), "if"))) {
-      datum *head = list_at(source, i++);
-      datum *cond = list_at(source, i++);
-      datum *tb = list_at(source, i++);
-      datum *fb = list_at(source, i++);
-      --i;
-      list_append(&res, rewrite(head));
-      list_append(&res, rewrite(cond));
-      list_append(&res, datum_make_list_of(datum_make_symbol("list"), rewrite(tb)));
-      list_append(&res, datum_make_list_of(datum_make_symbol("list"), rewrite(fb)));
-      continue;
-    }
+    /* if (i + 3 < list_length(source) && */
+    /*     (datum_is_the_symbol(list_at(source, i), "if"))) { */
+    /*   datum *head = list_at(source, i++); */
+    /*   datum *cond = list_at(source, i++); */
+    /*   datum *tb = list_at(source, i++); */
+    /*   datum *fb = list_at(source, i++); */
+    /*   --i; */
+    /*   list_append(&res, rewrite(head)); */
+    /*   list_append(&res, rewrite(cond)); */
+    /*   list_append(&res, datum_make_list_of(datum_make_symbol("list"), rewrite(tb))); */
+    /*   list_append(&res, datum_make_list_of(datum_make_symbol("list"), rewrite(fb))); */
+    /*   continue; */
+    /* } */
     list_append(&res, rewrite(elem));
   }
   return res;
