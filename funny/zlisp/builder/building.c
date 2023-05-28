@@ -2,8 +2,8 @@
 #if INTERFACE
 #include "zlisp/common.h"
 #endif
-#include "zlisp/common.h"
 #include "building.h"
+#include "zlisp/common.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,7 +27,6 @@ EXPORT fdatum file_source(char *fname) {
   return fdatum_make_ok(rr.ok_value);
 }
 
-
 EXPORT void module_to_filename(char *fname, char *module) {
   char *zlisp_home = getenv("ZLISP");
   if (zlisp_home == NULL) {
@@ -41,7 +40,7 @@ EXPORT void module_to_filename(char *fname, char *module) {
 }
 
 EXPORT fdatum compile_module(char *module, datum *settings,
-                            extension *extension) {
+                             extension *extension) {
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
   }
