@@ -55,12 +55,6 @@ EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
   return NULL;
 }
 
-LOCAL char *prog_append_expression(vec *sl, datum *stmt, datum *compdata,
-                                   extension *ext) {
-  datum exprs = datum_make_list_of(*stmt);
-  return prog_append_expressions(sl, &exprs, compdata, ext);
-}
-
 LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
                                            datum *compdata, extension *ext) {
   int i_val = *i;
@@ -187,7 +181,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("plain"), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);
-    char *err = prog_append_consume_expression(sl, source, i, &routine_compdata, ext);
+    char *err =
+        prog_append_consume_expression(sl, source, i, &routine_compdata, ext);
     if (err != NULL) {
       return err;
     }
@@ -315,10 +310,10 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   for (int j = 0; j + chop < list_length(&shape); ++j) {
     ++capture_size;
   }
-  for (; fn_index < list_length(fns); ++fn_index) {
-    datum *component = list_at(fns, fn_index);
+  while (fn_index < list_length(fns)) {
     bool borrow = fn_index + 1 < list_length(fns) || mut;
     if (borrow) {
+      datum *component = list_at(fns, fn_index++);
       if (!datum_is_symbol(component)) {
         return "expected an lvalue";
       }
@@ -331,7 +326,8 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       }
       list_append(&indices, idx);
     } else {
-      char *err = prog_append_expression(sl, component, compdata, ext);
+      char *err =
+          prog_append_consume_expression(sl, fns, &fn_index, compdata, ext);
       if (err != NULL) {
         return err;
       }
@@ -340,9 +336,9 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
     }
   }
   int before = compdata_get_length(compdata);
-  for (; index < list_length(s_expr); ++index) {
-    datum *arg = list_at(s_expr, index);
-    char *err = prog_append_expression(sl, arg, compdata, ext);
+  while (index < list_length(s_expr)) {
+    char *err =
+        prog_append_consume_expression(sl, s_expr, &index, compdata, ext);
     if (err != NULL) {
       return err;
     }
