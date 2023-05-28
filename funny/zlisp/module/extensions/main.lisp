@@ -30,19 +30,19 @@ req
 
 .backquote = fn {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return #{'quote
+ #{return #{'quote
    exp}}
- {if (/std/not- exp)
-  {return #{'list
+ #{if (/std/not- exp)
+  #{return #{'list
     #{}}}
-  {if (/std/eq- (/std/length- exp) 2)
-   {if (/std/eq- (/std/list-at- exp 0) 'tilde)
-    {return (/std/list-at- exp 1)}
-    {return #{'call
+  #{if (/std/eq- (/std/length- exp) 2)
+   #{if (/std/eq- (/std/list-at- exp 0) 'tilde)
+    #{return (/std/list-at- exp 1)}
+    #{return #{'call
       #{'/std/cons
        (../.backquote (/std/head- exp))
        (../.backquote (/std/tail- exp))}}}}
-   {return #{'call
+   #{return #{'call
      #{'/std/cons
       (../.backquote (/std/head- exp))
       (../.backquote (/std/tail- exp))}}}}}}

@@ -44,15 +44,15 @@ concat-bytestrings := fn {x y}
 
 not := fn {x}
 {if x
- {return #{}}
- {return #{#{}}}}
+ #{return #{}}
+ #{return #{#{}}}}
 
 last := 42
 
 last = fn {a0}
 {if (../tail a0)
- {return (../last (../tail a0))}
- {return (../head a0)}}
+ #{return (../last (../tail a0))}
+ #{return (../head a0)}}
 
 type := fn {x}
 {return (../head (../annotate x))}
@@ -68,23 +68,23 @@ concat := 42
 
 concat = fn {a0 a1}
 {if a0
- {return (../cons (../head a0) (../concat (../tail a0) a1))}
- {return a1}}
+ #{return (../cons (../head a0) (../concat (../tail a0) a1))}
+ #{return a1}}
 
 zip := 42
 
 zip = fn {a0 a1}
 {if a0
- {return (../cons #{(../head a0)
+ #{return (../cons #{(../head a0)
     (../head a1)} (../zip (../tail a0) (../tail a1)))}
- {return #{}}}
+ #{return #{}}}
 
 map := 42
 
 map = fn {a0 a1}
 {if a1
- {return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
- {return #{}}}
+ #{return (../cons (../a0 (../head a1)) (../map a0 (../tail a1)))}
+ #{return #{}}}
 
 panic-block := #{'argz
  '(/std/panic
@@ -95,8 +95,8 @@ list-at := 42
 
 list-at = fn {xs n}
 {if (../eq n 0)
- {{return (../head xs)}}
- {{return (../list-at (../tail xs) (../+ n -1))}}}
+ #{{return (../head xs)}}
+ #{{return (../list-at (../tail xs) (../+ n -1))}}}
 
 swtchone := 42
 
@@ -106,7 +106,7 @@ swtchone = fn {a0}
  body := 42
  rest := 42
  if a0
- {firstarg = (../head a0)
+ #{firstarg = (../head a0)
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
@@ -124,7 +124,7 @@ swtchone = fn {a0}
      1)
     body}
    rest}}
- {return '(/std/panic
+ #{return '(/std/panic
    @0
    "nothing matched")}}
 
@@ -136,43 +136,43 @@ decons-pat = fn {a0 a1}
  first-decons := 42
  rest-decons := 42
  if (../is-constant pat)
- {{if (../eq pat val)
-   {return #{':ok
+ #{{if (../eq pat val)
+   #{return #{':ok
      #{}}}
-   {return #{':err}}}}
- {if (../eq (../type pat) :symbol)
-  {{return #{:ok
+   #{return #{':err}}}}
+ #{if (../eq (../type pat) :symbol)
+  #{{return #{:ok
      #{val}}}}
-  {if (../eq (../type pat) :list)
-   {if pat
-    {if val
-     {first-decons = (../decons-pat (../head pat) (../head val))
+  #{if (../eq (../type pat) :list)
+   #{if pat
+    #{if val
+     #{first-decons = (../decons-pat (../head pat) (../head val))
       rest-decons = (../decons-pat (../tail pat) (../tail val))
       {if (../eq :err (../head rest-decons))
-       {return #{':err}}
-       {if (../eq :err (../head first-decons))
-        {return #{':err}}
-        {return #{:ok
+       #{return #{':err}}
+       #{if (../eq :err (../head first-decons))
+        #{return #{':err}}
+        #{return #{:ok
           (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}}
-     {{return #{':err}}}}
-    {if val
-     {{return #{':err}}}
-     {{return #{':ok
+     #{{return #{':err}}}}
+    #{if val
+     #{{return #{':err}}}
+     #{{return #{':ok
         #{}}}}}}
-   {(../panic @0 "decons-pat met an unsupported type")}}}}
+   #{(../panic @0 "decons-pat met an unsupported type")}}}}
 
 decons-vars := 42
 
 decons-vars = fn {a0}
 {if (../is-constant a0)
- {return #{}}
- {if (../eq (../type a0) :symbol)
-  {return #{a0}}
-  {if (../eq (../type a0) :list)
-   {if a0
-    {return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))}
-    {return #{}}}
-   {{} := (panic @0 "decons-var met an unsupported type")}}}}
+ #{return #{}}
+ #{if (../eq (../type a0) :symbol)
+  #{return #{a0}}
+  #{if (../eq (../type a0) :list)
+   #{if a0
+    #{return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))}
+    #{return #{}}}
+   #{{} := (panic @0 "decons-var met an unsupported type")}}}}
 
 switch-defines := #{'(/std/list-at
   args
@@ -202,8 +202,8 @@ switch-clause := fn {a0}
 {{a1 := a0}
  sig := (../head a1)
  {if sig
-  {}
-  {{} := (../panic "empty signature")}}
+  #{}
+  #{{} := (../panic "empty signature")}}
  cmds := (../tail a1)
  quoted-sig := #{'quote
   sig}
@@ -223,19 +223,21 @@ append := 42
 
 append = fn {x xs}
 {if xs
- {return (../cons (../head xs) (../append x (../tail xs)))}
- {return #{x}}}
+ #{return (../cons (../head xs) (../append x (../tail xs)))}
+ #{return #{x}}}
 
 first-good-value := 42
 
 first-good-value = fn {x}
 {first-arg := 42
  if x
- {first-arg = (../head x)
+ #{first-arg = (../head x)
   {if (../eq :ok (../head first-arg))
-   {{return (../list-at first-arg 1)}}
-   {{return (../first-good-value (../tail x))}}}}
- (panic @0 "first-good-value: no good value")}
+   #{{return (../list-at first-arg 1)}}
+   #{{return (../first-good-value (../tail x))}}}}
+ #(panic
+  @0
+  "first-good-value: no good value")}
 
 export
 {{panic panic}

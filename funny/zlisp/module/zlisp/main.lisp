@@ -55,9 +55,9 @@ init-prog := fn {sl compdata bdrcompdata}
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {e := (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)
  {if (/std/eq 0 (/prelude/dereference e 'int64))
-  {return #{:ok
+  #{return #{:ok
     :nothing}}
-  {return #{:err
+  #{return #{:err
     (/prelude/dereference e 'string)}}}}
 
 routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" #{#{'progslice
@@ -87,10 +87,10 @@ eval-new := fn {sl rt0}
  msg := 42
  val := 42
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
-  {msg = (../fdatum-get-panic-message res)
+  #{msg = (../fdatum-get-panic-message res)
    {return #{:err
      msg}}}
-  {val = (../fdatum-get-value res)
+  #{val = (../fdatum-get-value res)
    {return #{:ok
      val}}}}}
 
@@ -102,12 +102,12 @@ read := fn {strm}
  msg := 42
  maybeval := 42
  {if (/std/eq (/prelude/fdatum-is-panic res) 1)
-  {msg = (../fdatum-get-panic-message res)
+  #{msg = (../fdatum-get-panic-message res)
    {if (/std/eq msg "eof")
-    {return #{':eof}}
-    {return #{:err
+    #{return #{':eof}}
+    #{return #{:err
       msg}}}}
-  {maybeval = (../fdatum-get-value res)
+  #{maybeval = (../fdatum-get-value res)
    {return #{:ok
      maybeval}}}}}
 

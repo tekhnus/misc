@@ -121,28 +121,28 @@ eq := fn {x y}
 
 serialize-param := fn {param signature}
 {if (../eq signature 'pointer)
- {return param}
- {if (../eq signature 'fdatum)
-  {return param}
-  {if (../eq signature 'progslice)
-   {return param}
-   {return (../mkptr param signature)}}}}
+ #{return param}
+ #{if (../eq signature 'fdatum)
+  #{return param}
+  #{if (../eq signature 'progslice)
+   #{return param}
+   #{return (../mkptr param signature)}}}}
 
 serialize-params := 42
 
 serialize-params = fn {params signature}
 {if params
- {return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
- {return #{}}}
+ #{return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
+ #{return #{}}}
 
 dereference := fn {what how}
 {if (../eq how 'pointer)
- {return what}
- {if (../eq how 'fdatum)
-  {return what}
-  {if (../eq how 'progslice)
-   {return what}
-   {return (../deref what how)}}}}
+ #{return what}
+ #{if (../eq how 'fdatum)
+  #{return what}
+  #{if (../eq how 'progslice)
+   #{return what}
+   #{return (../deref what how)}}}}
 
 pointer-call-and-deserialize := fn {fn-ptr signature params}
 {fnparamst := (../head signature)
@@ -194,17 +194,17 @@ nth := 42
 
 nth = fn {n xs}
 {if xs
- {if n
-  {return (../nth (../tail n) (../tail xs))}
-  {return (../head xs)}}
- {{} := (../panic @0 "nth fail")}}
+ #{if n
+  #{return (../nth (../tail n) (../tail xs))}
+  #{return (../head xs)}}
+ #{{} := (../panic @0 "nth fail")}}
 
 get-fn-ptr := fn {handle c-name}
 {fn-pointer-pointer := (../dlsym handle c-name)
  fn-ptr := (../dereference fn-pointer-pointer 'int64)
  if (../eq fn-ptr 0)
- {{} := (../panic @0 "couldn't load C function")}
- {return fn-ptr}}
+ #{{} := (../panic @0 "couldn't load C function")}
+ #{return fn-ptr}}
 
 c-function-0 := fn {fn-ptr signature}
 {return {}
@@ -354,17 +354,17 @@ wrap-pointer-into-pointer := fn {p}
 shared-library := fn {path}
 {r := (../dlopen path)
  if (../eq 0 (../dereference r 'int64))
- {return #{:err
+ #{return #{:err
    "shared-library failed"}}
- {return #{:ok
+ #{return #{:ok
    r}}}
 
 extern-pointer := fn {handle c-name signature}
 {res := (../c-data-pointer handle c-name signature)
  if (../eq 0 res)
- {return #{:err
+ #{return #{:err
    "extern-pointer failed"}}
- {return #{:ok
+ #{return #{:ok
    res}}}
 
 export

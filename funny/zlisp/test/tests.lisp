@@ -128,10 +128,10 @@ fntest
 {fib := 42
  fib = fn {n}
  {if (/std/eq n 0)
-  {return 0}
-  {if (/std/eq n 1)
-   {return 1}
-   {return (/std/+ (../fib (/std/+ n -1)) (../fib (/std/+ n -2)))}}}
+  #{return 0}
+  #{if (/std/eq n 1)
+   #{return 1}
+   #{return (/std/+ (../fib (/std/+ n -1)) (../fib (/std/+ n -2)))}}}
  return (fib 5)}
 5
 
@@ -320,8 +320,8 @@ fntest
 
 fntest
 {if 3
- {return 42}
- {return 25}}
+ #{return 42}
+ #{return 25}}
 42
 
 fntest
@@ -331,8 +331,8 @@ fntest
  f := fn {t}
  {return t}
  if 3
- {return 42}
- {return 25}}
+ #{return 42}
+ #{return 25}}
 42
 
 fntest
@@ -345,14 +345,14 @@ print-all := 42
 print-all = fn {xs}
 {res := 42
  if xs
- {res = (/libc/print (/std/head xs))
+ #{res = (/libc/print (/std/head xs))
   {} := (../print-all @0 (/std/tail xs))
   return {}}
- {{} := {return {}}}}
+ #{{} := {return {}}}}
 
 if panics
 
-{{} := (print-all @0 panics)
+#{{} := (print-all @0 panics)
  {} := (/std/panic @0 "FAILED")}
 
-{}
+#{}
