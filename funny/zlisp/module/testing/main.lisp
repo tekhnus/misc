@@ -21,26 +21,26 @@ fntestx := fn {body expect}
     " != ")
    repr-expect}}
  new-panics := #{'call
-   #{'/std/cons
-    new-panic
-    'panics}}
+  #{'/std/cons
+   new-panic
+   'panics}}
  append-panics := #{'panics
   '=
   new-panics}
  return #{'calltest
   '=
   'fn
-   '{}
-   #{'list body}
+  '{}
+  #{'list
+   body}
   'val
   '=
   '(calltest)
   'if
   fact-equals-expect
-  '#{panics
-   =
-   panics}
-  #{'list append-panics}}}
+  '#{panics = panics}
+  #{'list
+   append-panics}}}
 
 export
 {{fntestx fntestx}}

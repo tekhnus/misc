@@ -67,8 +67,9 @@ fntest
 
 fntest
 {return `{42
-  {tilde
-   (/std/+ 33 1)}}}
+  ~(/std/+
+   33
+   1)}}
 #{'42
  '34}
 

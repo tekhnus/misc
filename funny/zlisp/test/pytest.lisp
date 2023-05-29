@@ -93,7 +93,7 @@ fntest
 fntest
 {adderf := fn {n}
  #{m := return @1
-   ^{}
+  ^{}
   return (std/+ n m)}
  adder := fn {n}
  #{a := adderf

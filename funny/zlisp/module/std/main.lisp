@@ -137,28 +137,28 @@ decons-pat = fn {a0 a1}
  rest-decons := 42
  if (../is-constant pat)
  #{if (../eq pat val)
-   #{return #{':ok
-     #{}}}
-   #{return #{':err}}}
+  #{return #{':ok
+    #{}}}
+  #{return #{':err}}}
  #{if (../eq (../type pat) :symbol)
   #{return #{:ok
-     #{val}}}
+    #{val}}}
   #{if (../eq (../type pat) :list)
    #{if pat
     #{if val
      #{first-decons = (../decons-pat (../head pat) (../head val))
       rest-decons = (../decons-pat (../tail pat) (../tail val))
       if (../eq :err (../head rest-decons))
+      #{return #{':err}}
+      #{if (../eq :err (../head first-decons))
        #{return #{':err}}
-       #{if (../eq :err (../head first-decons))
-        #{return #{':err}}
-        #{return #{:ok
-          (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}
+       #{return #{:ok
+         (../concat (../list-at first-decons 1) (../list-at rest-decons 1))}}}}
      #{return #{':err}}}
     #{if val
      #{return #{':err}}
      #{return #{':ok
-        #{}}}}}
+       #{}}}}}
    #{(../panic @0 "decons-pat met an unsupported type")}}}}
 
 decons-vars := 42
@@ -202,8 +202,8 @@ switch-clause := fn {a0}
 #{a1 := a0
  sig := (../head a1)
  if sig
-  #{}
-  #{{} := (../panic "empty signature")}
+ #{}
+ #{{} := (../panic "empty signature")}
  cmds := (../tail a1)
  quoted-sig := #{'quote
   sig}
@@ -214,7 +214,7 @@ switch-clause := fn {a0}
  vars := (../decons-vars sig)
  body := (../concat (../map make-assignment (../zip vars switch-defines)) cmds)
  return #{checker
-   body}}
+  body}}
 
 switch-fun := fn {a0}
 #{return (../swtchone (../map switch-clause a0))}
@@ -233,11 +233,9 @@ first-good-value = fn {x}
  if x
  #{first-arg = (../head x)
   if (../eq :ok (../head first-arg))
-   #{return (../list-at first-arg 1)}
-   #{return (../first-good-value (../tail x))}}
- #{(panic
-  @0
-  "first-good-value: no good value")}}
+  #{return (../list-at first-arg 1)}
+  #{return (../first-good-value (../tail x))}}
+ #{(panic @0 "first-good-value: no good value")}}
 
 export
 {{panic panic}
