@@ -66,11 +66,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   datum *head = list_at(source, (*i)++);
-  if (datum_is_the_symbol(head, "quote")) {
-    datum *val = list_at(source, (*i)++);
-    prog_append_put_const(sl, val, compdata);
-    return NULL;
-  }
   if (datum_is_the_symbol(head, "list")) {
     int before = compdata_get_length(compdata);
     datum *vals = list_at(source, (*i)++);
@@ -271,6 +266,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     size_t after = compdata_get_length(compdata);
     argcnt = after - before;
     prog_append_yield(sl, target, argcnt, recieve_count, meta, compdata);
+    return NULL;
+  }
+  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "quote")) {
+    datum *val = list_at(head, 1);
+    prog_append_put_const(sl, val, compdata);
     return NULL;
   }
   if (datum_is_list(head)) {
