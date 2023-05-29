@@ -29,9 +29,9 @@ fntestx := fn {body expect}
   new-panics}
  return #{'calltest
   '=
-  #{'fn
+  'fn
    '{}
-   body}
+   #{'list body}
   'val
   '=
   '(calltest)

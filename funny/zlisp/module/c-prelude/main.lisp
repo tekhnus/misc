@@ -2,121 +2,121 @@ req
 {}
 
 call-extension-1 := fn {fnptr x}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {fnptr
-   x}}
+  ^{fnptr
+   x}
  return r}
 
-deref-pointer := {return @1
+deref-pointer := return @1
  @{host
   "deref-pointer"}
- #{}}
+ #{}
 
 deref := fn {x y}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {deref-pointer
+  ^{deref-pointer
    x
-   y}}
+   y}
  return r}
 
-mkptr-pointer := {return @1
+mkptr-pointer := return @1
  @{host
   "mkptr-pointer"}
- #{}}
+ #{}
 
 mkptr := fn {x y}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {mkptr-pointer
+  ^{mkptr-pointer
    x
-   y}}
+   y}
  return r}
 
-pointer-call-pointer := {return @1
+pointer-call-pointer := return @1
  @{host
   "pointer-call-pointer"}
- #{}}
+ #{}
 
 pointer-call := fn {x y z}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {pointer-call-pointer
+  ^{pointer-call-pointer
    x
    y
-   z}}
+   z}
  return r}
 
-panic-pointer := {return @1
+panic-pointer := return @1
  @{host
   "panic"}
- #{}}
+ #{}
 
 panic := fn {x}
-#{ignored-result := {return @1
+#{ignored-result := return @1
   @{host
    "call-extension"}
-  {panic-pointer
-   x}}
- return {}}
+  ^{panic-pointer
+   x}
+ return ^{}}
 
-head-pointer := {return @1
+head-pointer := return @1
  @{host
   "head"}
- #{}}
+ #{}
 
 head := fn {x}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension-1"}
-  {head-pointer
-   x}}
+  ^{head-pointer
+   x}
  return r}
 
-tail-pointer := {return @1
+tail-pointer := return @1
  @{host
   "tail"}
- #{}}
+ #{}
 
 tail := fn {x}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension-1"}
-  {tail-pointer
-   x}}
+  ^{tail-pointer
+   x}
  return r}
 
-cons-pointer := {return @1
+cons-pointer := return @1
  @{host
   "cons"}
- #{}}
+ #{}
 
 cons := fn {x xs}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {cons-pointer
+  ^{cons-pointer
    x
-   xs}}
+   xs}
  return r}
 
-eq-pointer := {return @1
+eq-pointer := return @1
  @{host
   "eq"}
- #{}}
+ #{}
 
 eq := fn {x y}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {eq-pointer
+  ^{eq-pointer
    x
-   y}}
+   y}
  return r}
 
 serialize-param := fn {param signature}
@@ -152,15 +152,15 @@ pointer-call-and-deserialize := fn {fn-ptr signature params}
    rettype} s)
  return (../dereference rawres rettype)}
 
-rtld-lazy := {return @1
+rtld-lazy := return @1
  @{host
   "RTLD_LAZY"}
- #{}}
+ #{}
 
-dlopen-pointer := {return @1
+dlopen-pointer := return @1
  @{host
   "dlopen"}
- #{}}
+ #{}
 
 dlopen := fn {x}
 #{return (../pointer-call-and-deserialize dlopen-pointer #{#{'string
@@ -174,10 +174,10 @@ dlopen-null := fn {}
    'pointer} #{(../mkptr 0 'sizet)
    rtld-lazy})}
 
-dlsym-pointer := {return @1
+dlsym-pointer := return @1
  @{host
   "dlsym"}
- #{}}
+ #{}
 
 dlsym := fn {x y}
 #{return (../pointer-call-and-deserialize dlsym-pointer #{#{'pointer
@@ -207,38 +207,38 @@ get-fn-ptr := fn {handle c-name}
  #{return fn-ptr}}
 
 c-function-0 := fn {fn-ptr signature}
-#{return {}
+#{return ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{})}
 
 c-function-1 := fn {fn-ptr signature}
-#{{a1} := {return @1
-  {}}
+#{a1 := return @1
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1})}
 
 c-function-2 := fn {fn-ptr signature}
-#{{a1 a2} := {return @2
-  {}}
+#{{a1 a2} := return @2
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2})}
 
 c-function-3 := fn {fn-ptr signature}
-#{{a1 a2 a3} := {return @3
-  {}}
+#{{a1 a2 a3} := return @3
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2
    a3})}
 
 c-function-4 := fn {fn-ptr signature}
-#{{a1 a2 a3 a4} := {return @4
-  {}}
+#{{a1 a2 a3 a4} := return @4
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2
    a3
    a4})}
 
 c-function-5 := fn {fn-ptr signature}
-#{{a1 a2 a3 a4 a5} := {return @5
-  {}}
+#{{a1 a2 a3 a4 a5} := return @5
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2
    a3
@@ -246,8 +246,8 @@ c-function-5 := fn {fn-ptr signature}
    a5})}
 
 c-function-6 := fn {fn-ptr signature}
-#{{a1 a2 a3 a4 a5 a6} := {return @6
-  {}}
+#{{a1 a2 a3 a4 a5 a6} := return @6
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2
    a3
@@ -256,8 +256,8 @@ c-function-6 := fn {fn-ptr signature}
    a6})}
 
 c-function-7 := fn {fn-ptr signature}
-#{{a1 a2 a3 a4 a5 a6 a7} := {return @7
-  {}}
+#{{a1 a2 a3 a4 a5 a6 a7} := return @7
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2
    a3
@@ -267,8 +267,8 @@ c-function-7 := fn {fn-ptr signature}
    a7})}
 
 c-function-8 := fn {fn-ptr signature}
-#{{a1 a2 a3 a4 a5 a6 a7 a8} := {return @8
-  {}}
+#{{a1 a2 a3 a4 a5 a6 a7 a8} := return @8
+  ^{}
  return (../pointer-call-and-deserialize fn-ptr signature #{a1
    a2
    a3
@@ -299,53 +299,53 @@ selflib := (dlopen-null)
 annotate-pointer := (dereference (dlsym selflib "builtin_annotate") 'int64)
 
 annotate := fn {x}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {annotate-pointer
-   x}}
+  ^{annotate-pointer
+   x}
  return r}
 
 is-constant-pointer := (dereference (dlsym selflib "builtin_is_constant") 'int64)
 
 is-constant := fn {x}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {is-constant-pointer
-   x}}
+  ^{is-constant-pointer
+   x}
  return r}
 
 repr-pointer := (dereference (dlsym selflib "builtin_repr") 'int64)
 
 repr := fn {x}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {repr-pointer
-   x}}
+  ^{repr-pointer
+   x}
  return r}
 
 concat-bytestrings-pointer := (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64)
 
 concat-bytestrings := fn {x y}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {concat-bytestrings-pointer
+  ^{concat-bytestrings-pointer
    x
-   y}}
+   y}
  return r}
 
 +-pointer := (dereference (dlsym selflib "builtin_add") 'int64)
 
 + := fn {x y}
-#{r := {return @1
+#{r := return @1
   @{host
    "call-extension"}
-  {+-pointer
+  ^{+-pointer
    x
-   y}}
+   y}
  return r}
 
 wrap-pointer-into-pointer := fn {p}

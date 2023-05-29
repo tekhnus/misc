@@ -92,8 +92,8 @@ fntest
 
 fntest
 {adderf := fn {n}
- #{m := {return @1
-   {}}
+ #{m := return @1
+   ^{}
   return (std/+ n m)}
  adder := fn {n}
  #{a := adderf
@@ -130,7 +130,7 @@ fntest
 
 fntest
 {multi-ret := fn {}
- #{return {42
+ #{return ^{42
    34}}
  {x y} := (multi-ret @2)
  return #{x
@@ -156,8 +156,8 @@ print-all = fn {xs}
  if xs
  #{res = (/prelude/print (/std/head xs))
   {} := (../print-all @0 (/std/tail xs))
-  return {}}
- #{return {}}}
+  return ^{}}
+ #{return ^{}}}
 
 if panics
 

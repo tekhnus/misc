@@ -22,7 +22,7 @@ req
 .switch.arity := 3
 
 .fntest := fn {body expect}
-#{return (/testing/fntest- body expect)}
+#{return #{'list (/testing/fntest- body expect)}}
 
 .fntest.arity := 3
 
