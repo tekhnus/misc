@@ -93,10 +93,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     return NULL;
   }
-  if (datum_is_the_symbol(head, "call")) {
-    datum *exp = list_at(source, (*i)++);
-    return prog_append_apply(sl, exp, compdata, ext);
-  }
   if (datum_is_the_symbol(head, "if")) {
     // datum *cond = list_at(source, *i);
     char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
@@ -271,6 +267,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "quote")) {
     datum *val = list_at(head, 1);
     prog_append_put_const(sl, val, compdata);
+    return NULL;
+  }
+  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "call")) {
+    datum *exp = list_at(head, 1);
+    return prog_append_apply(sl, exp, compdata, ext);
     return NULL;
   }
   if (datum_is_list(head)) {

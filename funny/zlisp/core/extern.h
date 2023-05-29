@@ -107,6 +107,7 @@ void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,dat
 datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_shape(datum *compdata);
 void prog_append_copy(vec *sl,datum *val,datum *compdata);
+LOCAL char *prog_append_apply(vec *sl,datum *s_expr,datum *compdata,extension *ext);
 datum prog_get_put_prog(datum *target,ptrdiff_t delta,int capture);
 datum compdata_get_top_polyindex(datum *compdata);
 void compdata_put(datum *compdata,datum var);
@@ -119,7 +120,6 @@ size_t prog_get_next_index(vec *sl);
 LOCAL datum prog_get_if(ptrdiff_t delta);
 LOCAL void compdata_del(datum *compdata);
 size_t prog_append_something(vec *sl);
-LOCAL char *prog_append_apply(vec *sl,datum *s_expr,datum *compdata,extension *ext);
 LOCAL void prog_append_collect(vec *sl,size_t count,datum *compdata);
 LOCAL size_t compdata_get_length(datum *compdata);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
