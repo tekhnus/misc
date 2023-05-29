@@ -81,18 +81,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_collect(sl, after - before, compdata);
     return NULL;
   }
-  if (datum_is_the_symbol(head, "flat")) {
-    datum *vals = list_at(source, (*i)++);
-    if (!datum_is_list(vals)) {
-      fprintf(stderr, "bad: %s\n", datum_repr(vals));
-      return "bad";
-    }
-    int j = 0;
-    while (j < list_length(vals)) {
-      prog_append_consume_expression(sl, vals, &j, compdata, ext);
-    }
-    return NULL;
-  }
   if (datum_is_the_symbol(head, "if")) {
     // datum *cond = list_at(source, *i);
     char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
@@ -272,6 +260,18 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "call")) {
     datum *exp = list_at(head, 1);
     return prog_append_apply(sl, exp, compdata, ext);
+    return NULL;
+  }
+  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "flat")) {
+    datum *vals = list_at(head, 1);
+    if (!datum_is_list(vals)) {
+      fprintf(stderr, "bad: %s\n", datum_repr(vals));
+      return "bad";
+    }
+    int j = 0;
+    while (j < list_length(vals)) {
+      prog_append_consume_expression(sl, vals, &j, compdata, ext);
+    }
     return NULL;
   }
   if (datum_is_list(head)) {
