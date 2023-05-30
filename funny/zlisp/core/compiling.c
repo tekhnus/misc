@@ -73,29 +73,22 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     size_t if_instruction = prog_append_something(sl); // filled below.
     compdata_del(compdata);
-    datum start_compdata = datum_copy(compdata);
-    datum false_compdata_val = datum_copy(compdata);
-    datum *false_compdata = &false_compdata_val;
+    datum false_compdata = datum_copy(compdata);
     err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
-    datum compdata_diff_true = list_subtract(compdata, &start_compdata);
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
         prog_get_if(prog_get_next_index(sl) - if_instruction);
-
-    err = prog_append_consume_expression(sl, source, i, false_compdata, ext);
+    err = prog_append_consume_expression(sl, source, i, &false_compdata, ext);
     if (err != NULL) {
       return err;
     }
-    datum compdata_diff_false = list_subtract(false_compdata, &start_compdata);
-    if (!datum_eq(&compdata_diff_true, &compdata_diff_false)) {
+    if (!datum_eq(compdata, &false_compdata)) {
       return "different if branches";
     }
-    size_t false_end = prog_append_something(sl);
     *vec_at(sl, true_end) = prog_get_jmp(prog_get_next_index(sl) - true_end);
-    *vec_at(sl, false_end) = prog_get_jmp(prog_get_next_index(sl) - false_end);
     return NULL;
   }
   if (datum_is_the_symbol(head, "while")) {
@@ -539,22 +532,6 @@ LOCAL size_t compdata_get_length(datum *compdata) {
 
 LOCAL datum *compdata_get_top_section(datum *compdata) {
   return list_get_last(compdata);
-}
-
-LOCAL datum list_subtract(datum *a, datum *b) {
-  if (list_length(a) < list_length(b)) {
-    return datum_make_bytestring("length mismatch");
-  };
-  for (int i = 0; i < list_length(b); ++i) {
-    if (!datum_eq(list_at(a, i), list_at(b, i))) {
-      return datum_make_bytestring("list_subtract error");
-    }
-  }
-  datum res = datum_make_nil();
-  for (int i = list_length(b); i < list_length(a); ++i) {
-    list_append(&res, datum_copy(list_at(a, i)));
-  }
-  return res;
 }
 
 EXPORT datum compdata_get_shape(datum *compdata) {

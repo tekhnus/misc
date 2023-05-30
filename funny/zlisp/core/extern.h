@@ -118,7 +118,6 @@ void compdata_give_names(datum *compdata,datum *var);
 datum prog_get_jmp(ptrdiff_t delta);
 size_t prog_get_next_index(vec *sl);
 LOCAL datum prog_get_if(ptrdiff_t delta);
-LOCAL datum list_subtract(datum *a,datum *b);
 LOCAL void compdata_del(datum *compdata);
 size_t prog_append_something(vec *sl);
 void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
