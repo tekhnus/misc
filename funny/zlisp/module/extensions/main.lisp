@@ -23,8 +23,8 @@ req
 .switch.arity := 3
 
 .fntest := fn {body expect}
-{return {'list
-  (/testing/fntest- body expect)}}
+{return
+  (/testing/fntest- body expect)}
 
 .fntest.arity := 3
 
@@ -35,8 +35,7 @@ req
  {return {'quote
    exp}}
  {if (/std/not- exp)
-  {return {'list
-    {}}}
+  {return {}}
   {if (/std/eq- (/std/length- exp) 2)
    {if (/std/eq- (/std/list-at- exp 0) 'tilde)
     {return (/std/list-at- exp 1)}
@@ -56,7 +55,7 @@ req
   ':=
   'fn
   '{}
-  {'list
+  {
    {'mc
     ':=
     'magically_called_fn

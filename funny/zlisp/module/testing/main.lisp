@@ -31,16 +31,14 @@ fntestx := fn {body expect}
   '=
   'fn
   '{}
-  {'list
-   body}
+   body
   'val
   '=
   '(calltest)
   'if
   fact-equals-expect
   '{panics = panics}
-  {'list
-   append-panics}}}
+  append-panics}}
 
 export
 {{fntestx fntestx}}

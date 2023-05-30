@@ -118,13 +118,12 @@ swtchone = fn {a0}
     '(/std/eq
      (/std/head prearg)
      :ok)
-    {'list
      {'args
       '=
       '(/std/list-at
        prearg
        1)
-      body}}
+      body}
     rest}}}
  {return '(/std/panic
    @0
