@@ -4,9 +4,9 @@
 #if INTERFACE
 #include <stdbool.h>
 #endif
+#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <assert.h>
 
 EXPORT read_result datum_read_all(FILE *stre) {
   read_result rr;
@@ -25,11 +25,11 @@ EXPORT read_result datum_read_all(FILE *stre) {
 }
 
 EXPORT void list_extend(datum *list, datum *another) {
-    assert(datum_is_list(list));
-    assert(datum_is_list(another));
-    for (int i = 0; i < list_length(another); ++i) {
-      list_append(list, *list_at(another, i));
-    }
+  assert(datum_is_list(list));
+  assert(datum_is_list(another));
+  for (int i = 0; i < list_length(another); ++i) {
+    list_append(list, *list_at(another, i));
+  }
 }
 
 EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
@@ -76,7 +76,8 @@ LOCAL read_result read_result_make_ok(datum e) {
   return result;
 }
 
-#define read_result_make_ok_of(...) read_result_make_ok(datum_make_list_of(__VA_ARGS__))
+#define read_result_make_ok_of(...)                                            \
+  read_result_make_ok(datum_make_list_of(__VA_ARGS__))
 
 LOCAL read_result read_result_make_panic(char *message) {
   read_result result = {.type = READ_RESULT_PANIC, .panic_message = message};
@@ -329,9 +330,11 @@ LOCAL read_result datum_read(FILE *strm) {
           "expected an expression after a control character");
     }
     if (datum_is_the_symbol(&tok.control_sequence_symbol, "backquote")) {
-       return read_result_make_ok_of(tok.control_sequence_symbol, *list_at(&v.ok_value, 0));
+      return read_result_make_ok_of(tok.control_sequence_symbol,
+                                    *list_at(&v.ok_value, 0));
     }
-    return read_result_make_ok_of(datum_make_list_of(tok.control_sequence_symbol, *list_at(&v.ok_value, 0)));
+    return read_result_make_ok_of(datum_make_list_of(
+        tok.control_sequence_symbol, *list_at(&v.ok_value, 0)));
   }
   return read_result_make_panic("unhandled token type");
 }
