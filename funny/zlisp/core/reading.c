@@ -24,14 +24,6 @@ EXPORT read_result datum_read_all(FILE *stre) {
   return read_result_make_ok(res);
 }
 
-EXPORT void list_extend(datum *list, datum *another) {
-  assert(datum_is_list(list));
-  assert(datum_is_list(another));
-  for (int i = 0; i < list_length(another); ++i) {
-    list_append(list, *list_at(another, i));
-  }
-}
-
 EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   read_result rr = datum_read(stre);
   if (read_result_is_panic(rr)) {

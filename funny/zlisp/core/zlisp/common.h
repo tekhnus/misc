@@ -93,6 +93,7 @@ datum list_copy(datum *list,int from,int to);
 datum *list_get_last(datum *list);
 datum list_get_tail(datum *list);
 void list_append(datum *list,datum value);
+void list_extend(datum *list,datum *another);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
@@ -116,7 +117,6 @@ struct read_result {
   };
 };
 read_result datum_read_all(FILE *stre);
-void list_extend(datum *list,datum *another);
 fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);

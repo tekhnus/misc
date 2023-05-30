@@ -473,6 +473,14 @@ EXPORT void list_append(datum *list, datum value) {
   vec_append(&list->list_value, value);
 }
 
+EXPORT void list_extend(datum *list, datum *another) {
+  assert(datum_is_list(list));
+  assert(datum_is_list(another));
+  for (int i = 0; i < list_length(another); ++i) {
+    list_append(list, *list_at(another, i));
+  }
+}
+
 EXPORT datum list_pop(datum *list) {
   assert(datum_is_list(list));
   return vec_pop(&list->list_value);
