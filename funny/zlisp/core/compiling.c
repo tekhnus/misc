@@ -237,17 +237,20 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "quote")) {
+  if (datum_is_list(head) && list_length(head) == 2 &&
+      datum_is_the_symbol(list_at(head, 0), "quote")) {
     datum *val = list_at(head, 1);
     prog_append_put_const(sl, val, compdata);
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "call")) {
+  if (datum_is_list(head) && list_length(head) == 2 &&
+      datum_is_the_symbol(list_at(head, 0), "call")) {
     datum *exp = list_at(head, 1);
     return prog_append_apply(sl, exp, compdata, ext);
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "flat")) {
+  if (datum_is_list(head) && list_length(head) == 2 &&
+      datum_is_the_symbol(list_at(head, 0), "flat")) {
     datum *vals = list_at(head, 1);
     if (!datum_is_list(vals)) {
       fprintf(stderr, "bad: %s\n", datum_repr(vals));
@@ -259,7 +262,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "list")) {
+  if (datum_is_list(head) && list_length(head) == 2 &&
+      datum_is_the_symbol(list_at(head, 0), "list")) {
     int before = compdata_get_length(compdata);
     datum *vals = list_at(head, 1);
     if (!datum_is_list(vals)) {
@@ -274,7 +278,8 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_collect(sl, after - before, compdata);
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) == 2 && datum_is_the_symbol(list_at(head, 0), "backquote")) {
+  if (datum_is_list(head) && list_length(head) == 2 &&
+      datum_is_the_symbol(list_at(head, 0), "backquote")) {
     int ii = 0;
     char *err = ext->call(ext, sl, head, &ii, compdata);
     if (err != NULL) {

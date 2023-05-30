@@ -14,10 +14,11 @@ req
  {fntest- "testing" fntestx}}
 
 .switch := fn {exp argz}
-#{return #{'flat #{'args
-  '=
-  exp
-  (/std/switch-fun argz)}}}
+#{return #{'flat
+  #{'args
+   '=
+   exp
+   (/std/switch-fun argz)}}}
 
 .switch.arity := 3
 
@@ -54,12 +55,13 @@ req
 #{src := #{name
   ':=
   'fn
-   '{}
-   #{'list #{'mc
+  '{}
+  #{'list
+   #{'mc
     ':=
     'magically_called_fn
-     args
-     body
+    args
+    body
     '{}
     ':=
     '(mc
@@ -74,6 +76,7 @@ req
    #{name
     '@mut
     '@0}}}
- return #{'flat src}}
+ return #{'flat
+  src}}
 
 .defnx.arity := 4

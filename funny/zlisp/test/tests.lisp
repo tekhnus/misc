@@ -148,7 +148,7 @@ fntest
 fntest
 {adderf := fn {n}
  #{m := return @1
-   ^{}
+  ^{}
   return (/std/+ n m)}
  adder := fn {n}
  #{a := adderf
@@ -168,9 +168,9 @@ fntest
  {z} := (fib @mut)
  {t} := (fib @mut)
  return #{x
-   y
-   z
-   t}}
+  y
+  z
+  t}}
 #{'3
  '5
  '8
@@ -179,24 +179,24 @@ fntest
 fntest
 {far-fib := fn {}
  #{return @event-loop
-   3
+  3
   return @event-loop
-   5
+  5
   return 8}
  more-far-fib := fn {}
  #{x := (../far-fib)
   return @event-loop
-   x
+  x
   return @event-loop
-   13}
+  13}
  {x} := (more-far-fib @mut @event-loop)
  {y} := (more-far-fib @mut @event-loop)
  {z} := (more-far-fib @mut @event-loop)
  {t} := (more-far-fib @mut @event-loop)
  return #{x
-   y
-   z
-   t}}
+  y
+  z
+  t}}
 #{'3
  '5
  '8
@@ -210,27 +210,27 @@ fntest
 fntest
 {multi-ret := fn {}
  #{{} := return ^{42
-    34}}
+   34}}
  {x y} := (multi-ret @2)
  return #{x
-   y}}
+  y}}
 #{'42
  '34}
 
 fntest
 {foo := fn {x}
  #{y := return @1
-   (/std/+ x 1)
+  (/std/+ x 1)
   {z t} := return @2
-   (/std/+ y 1)
+  (/std/+ y 1)
   return :done}
  fee := foo
  a := (fee @mut 41)
  b := (fee @mut 33)
  c := (fee @mut 14 15)
  return #{a
-   b
-   c}}
+  b
+  c}}
 #{'42
  '34
  ':done}
@@ -239,7 +239,7 @@ fntest
 {cl-holder := fn {x xs}
  #{{} := return ^{}
   {} := return ^{x
-    xs}}
+   xs}}
  cl-cons := fn {x xs}
  #{holder := cl-holder
   {} := (../holder @0 @mut x xs)
@@ -257,7 +257,7 @@ fntest
  a := (cl-head xs2)
  b := (cl-head (cl-tail xs2))
  return #{a
-   b}}
+  b}}
 #{'34
  '42}
 
@@ -296,10 +296,10 @@ fntest
   res = (/libc/print "argument:")
   res = (/libc/print arg-)
   host-res := return @1
-   @{host
-    "call-extension"}
-   ^{ext-pointer
-    arg-}
+  @{host
+   "call-extension"}
+  ^{ext-pointer
+   arg-}
   {} := (../interceptor @0 @something host-res)}
  res := (interceptor 'arg)
  return res}
@@ -308,9 +308,9 @@ fntest
 fntest
 {wrapper := fn {}
  #{mco := magically_called_fn
-   {x}
-   return #{x
-     x}
+  {x}
+  return #{x
+   x}
   {} := (mco @mut @0 @up)
   return 33}
  {} := (wrapper @mut @0)

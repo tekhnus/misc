@@ -141,13 +141,12 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
   datum *vars = list_at(&re, 0);
   datum *meta = list_at(&re, 1);
   datum stmt = datum_make_list_of(
-      datum_copy(vars), datum_make_symbol(":="),
-          datum_make_symbol("return"),
-          datum_make_list_of(datum_make_symbol("at"),
-                             datum_make_int(list_length(vars))),
-          datum_make_list_of(
-              datum_make_symbol("at"),
-              datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
+      datum_copy(vars), datum_make_symbol(":="), datum_make_symbol("return"),
+      datum_make_list_of(datum_make_symbol("at"),
+                         datum_make_int(list_length(vars))),
+      datum_make_list_of(
+          datum_make_symbol("at"),
+          datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
       datum_make_list_of(datum_make_symbol("flat"), datum_make_nil()));
   prog_append_expressions(sl, &stmt, compdata, ext);
   return NULL;
@@ -204,8 +203,7 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum *exprs = list_at(&re, 1);
 
   datum return_expr = datum_make_list_of(
-      datum_make_nil(), datum_make_symbol(":="),
-      datum_make_symbol("return"),
+      datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
       datum_make_list_of(
           datum_make_symbol("at"),
           datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))));
@@ -213,7 +211,8 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   for (int i = 0; i < list_length(exprs); ++i) {
     list_append(&vals, datum_copy(list_at(exprs, i)));
   }
-  list_append(&return_expr, datum_make_list_of(datum_make_symbol("flat"), vals));
+  list_append(&return_expr,
+              datum_make_list_of(datum_make_symbol("flat"), vals));
   prog_append_expressions(sl, &return_expr, compdata, ext);
 
   return NULL;
