@@ -302,7 +302,7 @@ c-function-8 := fn {fn-ptr signature}
 
 c-function := fn {handle c-name signature}
 #{argssig := (../head signature)
- objs := #{c-function-0
+ objs := {c-function-0
   c-function-1
   c-function-2
   c-function-3

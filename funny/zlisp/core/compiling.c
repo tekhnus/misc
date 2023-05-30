@@ -286,9 +286,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
   }
   if (datum_is_list(head)) {
-    fprintf(stderr, "warning: bare list %s\n", datum_repr(head));
-    exit(EXIT_FAILURE);
-    return prog_append_expressions(sl, head, compdata, ext);
+    int before = compdata_get_length(compdata);
+    datum *vals = head;
+    int j = 0;
+    while (j < list_length(vals)) {
+      prog_append_consume_expression(sl, vals, &j, compdata, ext);
+    }
+    int after = compdata_get_length(compdata);
+    prog_append_collect(sl, after - before, compdata);
+    return NULL;
   }
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, head, compdata);
