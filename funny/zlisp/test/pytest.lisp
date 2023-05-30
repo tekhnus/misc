@@ -14,33 +14,33 @@ req
  {print "prelude" print}
  {concat-bytestrings "std" concat-bytestrings}}
 
-panics := #{}
+panics := {}
 
 val := 0
 
 calltest := 0
 
 fntest
-{return (std/head #{'42
+{return (std/head {'42
    '5
    '3})}
 42
 
 fntest
-{return (std/tail #{'42
+{return (std/tail {'42
    '5
    '3})}
-#{'5
+{'5
  '3}
 
 fntest
-{return (std/head (std/tail #{'42
+{return (std/head (std/tail {'42
     '5
     '3}))}
 5
 
 fntest
-{return (std/list-at #{'42
+{return (std/list-at {'42
    '5
    '3} 1)}
 5
@@ -54,31 +54,31 @@ fntest
 7
 
 fntest
-{return #{(/std/+ 4 3)
+{return {(/std/+ 4 3)
   8}}
-#{'7
+{'7
  '8}
 
 fntest
-{return (std/list-at #{'1
+{return (std/list-at {'1
    '2} 1)}
 2
 
 fntest
 {return (std/eq :foo :bar)}
-#{}
+{}
 
 fntest
 {bar := :foo
  return (std/eq :foo bar)}
-#{#{}}
+{{}}
 
 fntest
-{return (std/append 5 #{'1
+{return (std/append 5 {'1
    '2
    '3
    '4})}
-#{'1
+{'1
  '2
  '3
  '4
@@ -86,17 +86,17 @@ fntest
 
 fntest
 {twice := fn {arg}
- #{return (std/+ arg arg)}
+ {return (std/+ arg arg)}
  return (twice 35)}
 70
 
 fntest
 {adderf := fn {n}
- #{m := return @1
+ {m := return @1
   ^{}
   return (std/+ n m)}
  adder := fn {n}
- #{a := adderf
+ {a := adderf
   {} := (a @0 @mut n)
   return a}
  return ((adder 3) 4)}
@@ -104,7 +104,7 @@ fntest
 
 fntest
 {fib := fn {}
- #{return 3
+ {return 3
   return 5
   return 8
   return 13}
@@ -112,38 +112,38 @@ fntest
  {y} := (fib @mut)
  {z} := (fib @mut)
  {t} := (fib @mut)
- return #{x
+ return {x
   y
   z
   t}}
-#{'3
+{'3
  '5
  '8
  '13}
 
 fntest
 {fff := fn {x}
- #{return (std/+ x 42)}
+ {return (std/+ x 42)}
  yyy := (fff 1)
  return yyy}
 43
 
 fntest
 {multi-ret := fn {}
- #{return ^{42
+ {return ^{42
    34}}
  {x y} := (multi-ret @2)
- return #{x
+ return {x
   y}}
-#{'42
+{'42
  '34}
 
 fntest
 {y := 3
  fff := fn {}
- #{x := 2
+ {x := 2
   ggg := fn {}
-  #{return (std/+ x 40)}
+  {return (std/+ x 40)}
   return ggg}
  ggg-in-fff := (fff @mut)
  return (fff/ggg-in-fff)}
@@ -152,16 +152,16 @@ fntest
 print-all := 42
 
 print-all = fn {xs}
-#{res := 42
+{res := 42
  if xs
- #{res = (/prelude/print (/std/head xs))
+ {res = (/prelude/print (/std/head xs))
   {} := (../print-all @0 (/std/tail xs))
   return ^{}}
- #{return ^{}}}
+ {return ^{}}}
 
 if panics
 
-#{{} := (print-all @0 panics)
+{{} := (print-all @0 panics)
  {} := (/std/panic @0 "FAILED")}
 
-#{}
+{}

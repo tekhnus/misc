@@ -47,6 +47,9 @@ LOCAL datum rewrite(datum *source) {
   if (!datum_is_list(source)) {
     return datum_copy(source);
   }
+  if (datum_is_list(source) && list_length(source) == 2 && datum_is_the_symbol(list_at(source, 0), "list")) {
+    return rewrite(list_at(source, 1));
+  }
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);

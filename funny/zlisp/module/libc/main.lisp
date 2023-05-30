@@ -12,49 +12,49 @@ req
  {panic "std" panic}
  {first-good-value "std" first-good-value}}
 
-libc := (/std/first-good-value #{(/prelude/shared-library "libc.so.6")
+libc := (/std/first-good-value {(/prelude/shared-library "libc.so.6")
   (/prelude/shared-library "libSystem.B.dylib")})
 
-malloc := (/prelude/c-function libc "malloc" #{#{'sizet}
+malloc := (/prelude/c-function libc "malloc" {{'sizet}
   'pointer})
 
-fopen := (/prelude/c-function libc "fopen" #{#{'string
+fopen := (/prelude/c-function libc "fopen" {{'string
    'string}
   'pointer})
 
-fread := (/prelude/c-function libc "fread" #{#{'pointer
+fread := (/prelude/c-function libc "fread" {{'pointer
    'sizet
    'sizet
    'pointer}
   'sizet})
 
-feof := (/prelude/c-function libc "feof" #{#{'pointer}
+feof := (/prelude/c-function libc "feof" {{'pointer}
   'int})
 
-fprintf := (/prelude/c-function libc "fprintf" #{#{'pointer
+fprintf := (/prelude/c-function libc "fprintf" {{'pointer
    'string}
   'sizet})
 
-fprintf-bytestring := (/prelude/c-function libc "fprintf" #{#{'pointer
+fprintf-bytestring := (/prelude/c-function libc "fprintf" {{'pointer
    'string
    'string}
   'sizet})
 
-printfptr := (/prelude/c-function libc "printf" #{#{'string
+printfptr := (/prelude/c-function libc "printf" {{'string
    'pointer}
   'sizet})
 
-stdin := (/std/first-good-value #{(/prelude/extern-pointer libc "stdin" 'pointer)
+stdin := (/std/first-good-value {(/prelude/extern-pointer libc "stdin" 'pointer)
   (/prelude/extern-pointer libc "__stdinp" 'pointer)})
 
-stdout := (/std/first-good-value #{(/prelude/extern-pointer libc "stdout" 'pointer)
+stdout := (/std/first-good-value {(/prelude/extern-pointer libc "stdout" 'pointer)
   (/prelude/extern-pointer libc "__stdoutp" 'pointer)})
 
-stderr := (/std/first-good-value #{(/prelude/extern-pointer libc "stderr" 'pointer)
+stderr := (/std/first-good-value {(/prelude/extern-pointer libc "stderr" 'pointer)
   (/prelude/extern-pointer libc "__stderrp" 'pointer)})
 
 print := fn {val}
-#{return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))}
+{return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))}
 
 export
 {{malloc malloc}
