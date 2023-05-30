@@ -116,6 +116,7 @@ struct read_result {
   };
 };
 read_result datum_read_all(FILE *stre);
+void list_extend(datum *list,datum *another);
 fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);

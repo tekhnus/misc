@@ -6,12 +6,13 @@
 #endif
 #include <ctype.h>
 #include <stdlib.h>
+#include <assert.h>
 
 EXPORT read_result datum_read_all(FILE *stre) {
   read_result rr;
   datum res = datum_make_nil();
   for (; read_result_is_ok(rr = datum_read(stre));) {
-    list_append(&res, rr.ok_value);
+    list_extend(&res, &rr.ok_value);
   }
   if (read_result_is_panic(rr)) {
     return read_result_make_panic(rr.panic_message);
@@ -21,6 +22,14 @@ EXPORT read_result datum_read_all(FILE *stre) {
     return read_result_make_panic("unmatched right paren");
   }
   return read_result_make_ok(res);
+}
+
+EXPORT void list_extend(datum *list, datum *another) {
+    assert(datum_is_list(list));
+    assert(datum_is_list(another));
+    for (int i = 0; i < list_length(another); ++i) {
+      list_append(list, *list_at(another, i));
+    }
 }
 
 EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
@@ -35,7 +44,7 @@ EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
   if (read_result_is_eof(rr)) {
     return fdatum_make_panic("eof");
   }
-  return fdatum_make_ok(datum_make_list_of(rr.ok_value));
+  return fdatum_make_ok(rr.ok_value);
 }
 
 EXPORT bool read_result_is_ok(read_result x) {
@@ -66,6 +75,8 @@ LOCAL read_result read_result_make_ok(datum e) {
   read_result result = {.type = READ_RESULT_OK, .ok_value = e};
   return result;
 }
+
+#define read_result_make_ok_of(...) read_result_make_ok(datum_make_list_of(__VA_ARGS__))
 
 LOCAL read_result read_result_make_panic(char *message) {
   read_result result = {.type = READ_RESULT_PANIC, .panic_message = message};
@@ -275,7 +286,7 @@ LOCAL read_result datum_read(FILE *strm) {
   }
   if (tok.type == TOKEN_DATUM) {
     datum val = tok.datum_value;
-    return read_result_make_ok(val);
+    return read_result_make_ok_of(val);
   }
   if (tok.type == TOKEN_RIGHT_PAREN) {
     return read_result_make_right_paren();
@@ -291,17 +302,17 @@ LOCAL read_result datum_read(FILE *strm) {
     read_result elem;
     datum list = datum_make_nil();
     while (read_result_is_ok(elem = datum_read(strm))) {
-      list_append(&list, elem.ok_value);
+      list_extend(&list, &elem.ok_value);
     }
     if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
-      return read_result_make_ok(
+      return read_result_make_ok_of(
           datum_make_list_of(datum_make_symbol("call"), list));
     }
     if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
-      return read_result_make_ok(list);
+      return read_result_make_ok_of(list);
     }
     if (tok.type == TOKEN_LEFT_CURLY && read_result_is_right_curly(elem)) {
-      return read_result_make_ok(list);
+      return read_result_make_ok_of(list);
     }
     if (read_result_is_eof(elem)) {
       return read_result_make_panic("expected ')', got EOS");
@@ -310,7 +321,7 @@ LOCAL read_result datum_read(FILE *strm) {
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
     /* if (datum_is_the_symbol(&tok.control_sequence_symbol, "quote")) { */
-    /*   return read_result_make_ok(tok.control_sequence_symbol); */
+    /*   return read_result_make_ok_of(tok.control_sequence_symbol); */
     /* } */
     read_result v = datum_read(strm);
     if (read_result_is_panic(v)) {
@@ -320,8 +331,8 @@ LOCAL read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum res = datum_make_list_of(tok.control_sequence_symbol, v.ok_value);
-    return read_result_make_ok(res);
+    datum res = datum_make_list_of(tok.control_sequence_symbol, *list_at(&v.ok_value, 0));
+    return read_result_make_ok_of(res);
   }
   return read_result_make_panic("unhandled token type");
 }

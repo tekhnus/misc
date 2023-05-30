@@ -160,6 +160,7 @@ LOCAL bool read_result_is_right_square(read_result x);
 LOCAL bool read_result_is_right_paren(read_result x);
 LOCAL read_result read_result_make_panic(char *message);
 bool read_result_is_panic(read_result x);
+void list_extend(datum *list,datum *another);
 LOCAL read_result datum_read(FILE *strm);
 bool read_result_is_ok(read_result x);
 read_result datum_read_all(FILE *stre);
