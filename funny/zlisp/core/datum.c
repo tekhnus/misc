@@ -184,6 +184,10 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
         }
       }
       datum *item = list_at(e, i);
+      while (datum_is_the_symbol(item, "backquote")) {
+        end += sprintf(end, "`");
+        item = list_at(e, ++i);
+      }
       if (datum_is_the_symbol(item, "defnx")) {
         inhibit_newline = 2;
       } else if (datum_is_the_symbol(item, "fn")) {
