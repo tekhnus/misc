@@ -51,15 +51,15 @@ req
 .backquote.arity := 2
 
 .defnx := fn {name args body}
-#{return #{name
+#{src := #{name
   ':=
-  #{'fn
+  'fn
    '{}
-   #{'mc
+   #{'list #{'mc
     ':=
-    #{'magically_called_fn
+    'magically_called_fn
      args
-     body}
+     body
     '{}
     ':=
     '(mc
@@ -73,6 +73,7 @@ req
   #{'call
    #{name
     '@mut
-    '@0}}}}
+    '@0}}}
+ return #{'flat src}}
 
 .defnx.arity := 4
