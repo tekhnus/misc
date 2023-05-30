@@ -110,20 +110,20 @@ swtchone = fn {a0}
   cond = (../head firstarg)
   body = (../list-at firstarg 1)
   rest = (../swtchone (../tail a0))
-  return #{'prearg
+  return #{'flat #{'prearg
    '=
    cond
    'if
    '(/std/eq
     (/std/head prearg)
     :ok)
-   #{'args
+   #{'list #{'args
     '=
     '(/std/list-at
      prearg
      1)
-    body}
-   rest}}
+    body}}
+   rest}}}
  #{return '(/std/panic
    @0
    "nothing matched")}}
@@ -194,9 +194,9 @@ switch-defines := #{'(/std/list-at
   5)}
 
 make-assignment := fn {x}
-#{return #{(../head x)
+#{return #{'flat #{(../head x)
   '=
-  (../list-at x 1)}}
+  (../list-at x 1)}}}
 
 switch-clause := fn {a0}
 #{a1 := a0
@@ -212,7 +212,7 @@ switch-clause := fn {a0}
    quoted-sig
    'args}}
  vars := (../decons-vars sig)
- body := (../concat (../map make-assignment (../zip vars switch-defines)) cmds)
+ body := #{'flat (../concat (../map make-assignment (../zip vars switch-defines)) cmds)}
  return #{checker
   body}}
 

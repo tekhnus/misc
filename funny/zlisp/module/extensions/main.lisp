@@ -14,10 +14,10 @@ req
  {fntest- "testing" fntestx}}
 
 .switch := fn {exp argz}
-#{return #{'args
+#{return #{'flat #{'args
   '=
   exp
-  (/std/switch-fun argz)}}
+  (/std/switch-fun argz)}}}
 
 .switch.arity := 3
 
