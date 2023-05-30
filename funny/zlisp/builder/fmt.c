@@ -47,26 +47,18 @@ LOCAL datum rewrite(datum *source) {
   if (!datum_is_list(source)) {
     return datum_copy(source);
   }
-  if (datum_is_list(source) && list_length(source) == 2 &&
-      datum_is_the_symbol(list_at(source, 0), "list")) {
-    return rewrite(list_at(source, 1));
-  }
   datum res = datum_make_nil();
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
 
-    if (i + 2 < list_length(source) &&
-        (datum_is_the_symbol(list_at(source, i), "fn__"))) {
-      datum *head = list_at(source, i++);
-      datum *args = list_at(source, i++);
-      datum *body = list_at(source, i++);
-      --i;
-      list_append(&res, rewrite(head));
-      list_append(&res, rewrite(args));
-      list_append(&res,
-                  datum_make_list_of(datum_make_symbol("list"), rewrite(body)));
-      continue;
-    }
+    /* if (i + 2 < list_length(source) && */
+    /*     (datum_is_the_symbol(list_at(source, i), "xxx"))) { */
+    /*   datum *head = list_at(source, i++); */
+    /*   datum *args = list_at(source, i++); */
+    /*   datum *body = list_at(source, i++); */
+    /*   --i; */
+    /*   continue; */
+    /* } */
     list_append(&res, rewrite(elem));
   }
   return res;

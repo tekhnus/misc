@@ -23,8 +23,7 @@ req
 .switch.arity := 3
 
 .fntest := fn {body expect}
-{return
-  (/testing/fntest- body expect)}
+{return (/testing/fntest- body expect)}
 
 .fntest.arity := 3
 
@@ -55,8 +54,7 @@ req
   ':=
   'fn
   '{}
-  {
-   {'mc
+  {{'mc
     ':=
     'magically_called_fn
     args

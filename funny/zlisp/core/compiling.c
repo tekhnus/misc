@@ -67,50 +67,34 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
-    // datum *cond = list_at(source, *i);
     char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
     size_t if_instruction = prog_append_something(sl); // filled below.
     compdata_del(compdata);
+    datum start_compdata = datum_copy(compdata);
     datum false_compdata_val = datum_copy(compdata);
     datum *false_compdata = &false_compdata_val;
-    size_t before = compdata_get_length(compdata);
     err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
-    size_t after = compdata_get_length(compdata);
-    if (after != before) {
-      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
-       */
-      /* return "bad if branch"; */
-    }
+    datum compdata_diff_true = list_subtract(compdata, &start_compdata);
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
         prog_get_if(prog_get_next_index(sl) - if_instruction);
-    /* err = prog_append_merge_compdata(sl, false_compdata, compdata); */
-    /* if (err != NULL) { */
-    /*   return err; */
-    /* } */
-    before = compdata_get_length(compdata);
+
     err = prog_append_consume_expression(sl, source, i, false_compdata, ext);
     if (err != NULL) {
       return err;
     }
-    after = compdata_get_length(compdata);
-    if (after != before) {
-      /* fprintf(stderr, "error: unsupported if branch %s\n", datum_repr(cond));
-       */
-      /* return "bad if branch"; */
+    datum compdata_diff_false = list_subtract(false_compdata, &start_compdata);
+    if (!datum_eq(&compdata_diff_true, &compdata_diff_false)) {
+      return "different if branches";
     }
     size_t false_end = prog_append_something(sl);
     *vec_at(sl, true_end) = prog_get_jmp(prog_get_next_index(sl) - true_end);
-    /* err = prog_append_merge_compdata(sl, compdata, false_compdata); */
-    /* if (err != NULL) { */
-    /*   return err; */
-    /* } */
     *vec_at(sl, false_end) = prog_get_jmp(prog_get_next_index(sl) - false_end);
     return NULL;
   }
@@ -260,22 +244,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     while (j < list_length(vals)) {
       prog_append_consume_expression(sl, vals, &j, compdata, ext);
     }
-    return NULL;
-  }
-  if (datum_is_list(head) && list_length(head) == 2 &&
-      datum_is_the_symbol(list_at(head, 0), "list")) {
-    int before = compdata_get_length(compdata);
-    datum *vals = list_at(head, 1);
-    if (!datum_is_list(vals)) {
-      fprintf(stderr, "bad: %s\n", datum_repr(vals));
-      return "bad";
-    }
-    int j = 0;
-    while (j < list_length(vals)) {
-      prog_append_consume_expression(sl, vals, &j, compdata, ext);
-    }
-    int after = compdata_get_length(compdata);
-    prog_append_collect(sl, after - before, compdata);
     return NULL;
   }
   if (datum_is_list(head) && list_length(head) == 2 &&
@@ -596,23 +564,6 @@ EXPORT datum compdata_get_shape(datum *compdata) {
     list_append(&res, ii);
   }
   return res;
-}
-
-LOCAL char *prog_append_merge_compdata(vec *sl, datum *compdata,
-                                       datum *another_compdata) {
-  datum nil = datum_make_bytestring("filler_for_compdata_merge");
-  datum vars = list_subtract(compdata_get_top_section(another_compdata),
-                             compdata_get_top_section(compdata));
-  if (datum_is_bytestring(&vars)) {
-    return "bad if branches";
-  }
-  for (int i = 0; i < list_length(&vars); ++i) {
-    prog_append_put_const(sl, &nil, compdata);
-  }
-  compdata_give_names(compdata, &vars);
-  assert(datum_eq(compdata_get_top_section(another_compdata),
-                  compdata_get_top_section(compdata)));
-  return NULL;
 }
 
 EXPORT void compdata_give_names(datum *compdata, datum *var) {

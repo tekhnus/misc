@@ -31,7 +31,7 @@ fntestx := fn {body expect}
   '=
   'fn
   '{}
-   body
+  body
   'val
   '=
   '(calltest)

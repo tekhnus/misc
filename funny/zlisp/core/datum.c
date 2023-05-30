@@ -135,7 +135,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
         end, "~%s",
         datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 2 &&
-             datum_is_the_symbol(list_at(e, 0), "list")) {
+             datum_is_the_symbol(list_at(e, 0), "hash")) {
     end += sprintf(
         end, "#%s",
         datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
