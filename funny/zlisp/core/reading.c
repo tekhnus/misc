@@ -320,9 +320,6 @@ LOCAL read_result datum_read(FILE *strm) {
     return elem;
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
-    /* if (datum_is_the_symbol(&tok.control_sequence_symbol, "quote")) { */
-    /*   return read_result_make_ok_of(tok.control_sequence_symbol); */
-    /* } */
     read_result v = datum_read(strm);
     if (read_result_is_panic(v)) {
       return v;
@@ -331,8 +328,10 @@ LOCAL read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    datum res = datum_make_list_of(tok.control_sequence_symbol, *list_at(&v.ok_value, 0));
-    return read_result_make_ok_of(res);
+    if (datum_is_the_symbol(&tok.control_sequence_symbol, "backquote")) {
+       return read_result_make_ok_of(tok.control_sequence_symbol, *list_at(&v.ok_value, 0));
+    }
+    return read_result_make_ok_of(datum_make_list_of(tok.control_sequence_symbol, *list_at(&v.ok_value, 0)));
   }
   return read_result_make_panic("unhandled token type");
 }

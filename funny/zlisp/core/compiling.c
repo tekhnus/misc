@@ -239,18 +239,6 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     return NULL;
   }
-  if (datum_is_list(head) && list_length(head) == 2 &&
-      datum_is_the_symbol(list_at(head, 0), "backquote")) {
-    int ii = 0;
-    char *err = ext->call(ext, sl, head, &ii, compdata);
-    if (err != NULL) {
-      return err;
-    }
-    if (ii > 0) {
-      assert(ii == list_length(head));
-      return NULL;
-    }
-  }
   if (datum_is_list(head)) {
     int before = compdata_get_length(compdata);
     datum *vals = head;
