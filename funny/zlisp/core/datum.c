@@ -186,7 +186,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
       datum *item = list_at(e, i);
       while (datum_is_the_symbol(item, "backquote")) {
         end += sprintf(end, "`");
-        item = list_at(e, ++i);
+        item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "defnx")) {
         inhibit_newline = 2;

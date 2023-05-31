@@ -53,18 +53,16 @@ req
 {res := {}
  ignored := 0
  item := 0
-val := 0
+ val := 0
  while (exp)
  ^{item = (/std/head- exp)
   ignored = if (/std/eq- item 'tilde)
   {exp = (/std/tail- exp)
    val = (/std/head- exp)
-   res = (/std/append- val res)
-  }
+   res = (/std/append- val res)}
   {res = (/std/append- item res)}
-  exp = (/std/tail- exp)
- }
-return res}
+  exp = (/std/tail- exp)}
+ return res}
 
 .backquote := fn {exp}
 {return {(../.backquotex (/std/list-at- exp 0))}}
