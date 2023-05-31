@@ -53,24 +53,24 @@ fntest
 :list
 
 fntest
-{return `42}
-42
+{return backquote 46}
+46
 
 fntest
-{return `{42
+{return `{47
   (/std/+ 33 1)}}
-{'42
+{'47
  {'call
   {'/std/+
    '33
    '1}}}
 
 fntest
-{return `{42
+{return `{48
   ~(/std/+
    33
    1)}}
-{'42
+{'48
  '34}
 
 fntest

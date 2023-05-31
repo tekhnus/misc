@@ -8,17 +8,17 @@ req
  {length- "std" length}
  {head- "std" head}
  {list-at- "std" list-at}
+ {append- "std" append}
  {tail- "std" tail}
  {cons- "std" cons}
  {testing "testing"}
  {fntest- "testing" fntestx}}
 
 .switch := fn {exp argz}
-{return 
-  {'args
-   '=
-   exp
-   (/std/switch-fun argz)}}
+{return {'args
+  '=
+  exp
+  (/std/switch-fun argz)}}
 
 .switch.arity := 3
 
@@ -27,7 +27,7 @@ req
 
 .fntest.arity := 3
 
-.backquotex := 42
+.backquotex := 44
 
 .backquotex = fn {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
@@ -47,7 +47,30 @@ req
       (../.backquotex (/std/head- exp))
       (../.backquotex (/std/tail- exp))}}}}}}
 
-.backquote := fn {exp} {return {(../.backquotex exp)}}
+.backquote2 := 43
+
+.backquote2 = fn {exp}
+{res := {}
+ ignored := 0
+ item := 0
+val := 0
+ while (exp)
+ ^{item = (/std/head- exp)
+  ignored = if (/std/eq- item 'tilde)
+  {exp = (/std/tail- exp)
+   val = (/std/head- exp)
+   res = (/std/append- res val)
+}
+  {res = (/std/append- item res)}
+  exp = (/std/tail- exp)
+  return res}}
+
+.backquote := fn {exp}
+{return {(../.backquotex exp)}}
+
+.backquote2 = fn {exp}
+{return (../.backquote2 exp)}
+
 .backquote.arity := 2
 
 .defnx := fn {name args body}
