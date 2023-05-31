@@ -59,11 +59,12 @@ val := 0
   ignored = if (/std/eq- item 'tilde)
   {exp = (/std/tail- exp)
    val = (/std/head- exp)
-   res = (/std/append- res val)
-}
+   res = (/std/append- val res)
+  }
   {res = (/std/append- item res)}
   exp = (/std/tail- exp)
-  return res}}
+ }
+return res}
 
 .backquote := fn {exp}
 {return {(../.backquotex (/std/list-at- exp 0))}}
