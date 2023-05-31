@@ -14,11 +14,11 @@ req
  {fntest- "testing" fntestx}}
 
 .switch := fn {exp argz}
-{return {'flat
+{return 
   {'args
    '=
    exp
-   (/std/switch-fun argz)}}}
+   (/std/switch-fun argz)}}
 
 .switch.arity := 3
 
@@ -27,9 +27,9 @@ req
 
 .fntest.arity := 3
 
-.backquote := 42
+.backquotex := 42
 
-.backquote = fn {exp}
+.backquotex = fn {exp}
 {if (/std/not- (/std/eq- (/std/type- exp) :list))
  {return {'quote
    exp}}
@@ -40,13 +40,14 @@ req
     {return (/std/list-at- exp 1)}
     {return {'call
       {'/std/cons
-       (../.backquote (/std/head- exp))
-       (../.backquote (/std/tail- exp))}}}}
+       (../.backquotex (/std/head- exp))
+       (../.backquotex (/std/tail- exp))}}}}
    {return {'call
      {'/std/cons
-      (../.backquote (/std/head- exp))
-      (../.backquote (/std/tail- exp))}}}}}}
+      (../.backquotex (/std/head- exp))
+      (../.backquotex (/std/tail- exp))}}}}}}
 
+.backquote := fn {exp} {return {(../.backquotex exp)}}
 .backquote.arity := 2
 
 .defnx := fn {name args body}
@@ -73,7 +74,6 @@ req
    {name
     '@mut
     '@0}}}
- return {'flat
-  src}}
+ return src}
 
 .defnx.arity := 4

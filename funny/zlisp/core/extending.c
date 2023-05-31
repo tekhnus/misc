@@ -82,7 +82,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   assert(datum_is_list(&res.ok_value));
   assert(list_length(&res.ok_value) == 1);
   // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
-  return prog_append_expressions(sl, &res.ok_value, compdata, self_);
+  return prog_append_expressions(sl, list_at(&res.ok_value, 0), compdata, self_);
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
