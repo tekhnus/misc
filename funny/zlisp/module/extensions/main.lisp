@@ -54,13 +54,14 @@ req
  ignored := 0
  item := 0
  val := 0
- while (exp)
+ while exp
  ^{item = (/std/head- exp)
   ignored = if (/std/eq- item 'tilde)
   {exp = (/std/tail- exp)
    val = (/std/head- exp)
    res = (/std/append- val res)}
-  {res = (/std/append- item res)}
+  {if (/std/eq- (/std/type- item) :list) {} {
+   res = (/std/append- item res)}}
   exp = (/std/tail- exp)}
  return res}
 

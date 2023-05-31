@@ -67,7 +67,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   int arity = arityd->integer_value;
   *i += arity;
   datum invokation_statement = list_copy(source, *i - arity, *i);
-  fprintf(stderr, "macro: %s\n", datum_repr(&invokation_statement));
+  // fprintf(stderr, "macro: %s\n", datum_repr(&invokation_statement));
   for (int i = 1; i < list_length(&invokation_statement); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement, i));
     datum quoted = datum_make_list_of(datum_make_symbol("quote"), orig);
@@ -76,17 +76,17 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   *list_at(&invokation_statement, 0) = name;
   datum call_statement =
       datum_make_list_of(datum_make_symbol("call"), invokation_statement);
-  fprintf(stderr, "call: %s\n", datum_repr(&call_statement));
+  // fprintf(stderr, "call: %s\n", datum_repr(&call_statement));
   fdatum res = lisp_extension_run(&call_statement, self);
   if (fdatum_is_panic(res)) {
-    fprintf(stderr, "call panic\n");
+    // fprintf(stderr, "call panic\n");
     return res.panic_message;
   }
-  fprintf(stderr, "call ok\n");
+  // fprintf(stderr, "call ok\n");
   assert(datum_is_list(&res.ok_value));
   assert(list_length(&res.ok_value) == 1);
-  datum src = list_copy(source, *i - arity, *i);
-  fprintf(stderr, "macro: %s -> %s\n", datum_repr(&src), datum_repr(list_at(&res.ok_value, 0)));
+  // datum src = list_copy(source, *i - arity, *i);
+  // fprintf(stderr, "macro: %s -> %s\n", datum_repr(&src), datum_repr(list_at(&res.ok_value, 0)));
   // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
   return prog_append_expressions(sl, list_at(&res.ok_value, 0), compdata, self_);
 }
