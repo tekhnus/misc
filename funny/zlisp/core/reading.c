@@ -324,7 +324,7 @@ LOCAL read_result datum_read(FILE *strm) {
     if (datum_is_the_symbol(&tok.control_sequence_symbol, "backquote") ||
         datum_is_the_symbol(&tok.control_sequence_symbol, "tilde__")) {
       return read_result_make_ok_of(tok.control_sequence_symbol,
-                                    *list_at(&v.ok_value, 0));
+                                    v.ok_value);
     }
     return read_result_make_ok_of(datum_make_list_of(
         tok.control_sequence_symbol, *list_at(&v.ok_value, 0)));

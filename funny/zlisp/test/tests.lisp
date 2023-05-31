@@ -53,7 +53,7 @@ fntest
 :list
 
 fntest
-{return backquote 46}
+{return `46}
 46
 
 fntest

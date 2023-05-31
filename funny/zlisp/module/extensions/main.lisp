@@ -66,7 +66,7 @@ val := 0
   return res}}
 
 .backquote := fn {exp}
-{return {(../.backquotex exp)}}
+{return {(../.backquotex (/std/list-at- exp 0))}}
 
 .backquote2 = fn {exp}
 {return (../.backquote2 exp)}
