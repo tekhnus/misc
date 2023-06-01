@@ -284,7 +284,7 @@ fntest
 fntest
 {do-something := fn {x}
  {res := (/libc/print x)
-  return 'do-something-value}
+  return 123}
  interceptor := 42
  interceptor = fn {arg}
  {{ext-pointer arg-} := (../do-something @mut @{host
@@ -301,7 +301,7 @@ fntest
   {} := (../interceptor @0 @something host-res)}
  res := (interceptor 'arg)
  return res}
-'do-something-value
+123
 
 fntest
 {wrapper := fn {}

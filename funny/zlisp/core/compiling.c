@@ -227,12 +227,15 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_the_symbol(head, "quote")) {
-    datum *val = list_at(list_at(source, (*i)++), 0);
-    prog_append_put_const(sl, val, compdata);
+    datum *val = list_at(source, (*i)++);
+    assert(datum_is_list(val));
+    for (int j = 0; j < list_length(val); ++j) {
+      prog_append_put_const(sl, list_at(val, j), compdata);
+    }
     return NULL;
   }
   if (datum_is_list(head) && list_length(head) == 2 &&
-      datum_is_the_symbol(list_at(head, 0), "quote")) {
+      datum_is_the_symbol(list_at(head, 0), "quote__")) {
     datum *val = list_at(head, 1);
     prog_append_put_const(sl, val, compdata);
     return NULL;
