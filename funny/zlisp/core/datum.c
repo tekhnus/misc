@@ -140,7 +140,7 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
         end, "#%s",
         datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e) && list_length(e) == 2 &&
-             datum_is_the_symbol(list_at(e, 0), "flat")) {
+             datum_is_the_symbol(list_at(e, 0), "flat__")) {
     end += sprintf(
         end, "^%s",
         datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
@@ -190,6 +190,10 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
       }
       while (datum_is_the_symbol(item, "tilde")) {
         end += sprintf(end, "~");
+        item = list_at(list_at(e, ++i), 0);
+      }
+      while (datum_is_the_symbol(item, "flat")) {
+        end += sprintf(end, "^");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "defnx")) {
