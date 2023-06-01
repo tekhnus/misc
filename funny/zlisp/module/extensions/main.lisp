@@ -41,10 +41,10 @@ req
    val = (/std/head- exp)
    val = (/std/head- val)
    res = (/std/append- val res)}
-  {if (/std/eq- (/std/type- item) :list) {
-res = (/std/append- (../.backquote item) res)
-} {
-   res = (/std/append- {'quote item} res)}}
+  {if (/std/eq- (/std/type- item) :list)
+   {res = (/std/append- (../.backquote item) res)}
+   {res = (/std/append- {'quote
+      item} res)}}
   exp = (/std/tail- exp)}
  return res}
 

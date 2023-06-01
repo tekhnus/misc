@@ -321,8 +321,9 @@ LOCAL read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    if (datum_is_the_symbol(&tok.control_sequence_symbol, "backquote") ||
-        datum_is_the_symbol(&tok.control_sequence_symbol, "tilde")) {
+    if (!datum_is_the_symbol(&tok.control_sequence_symbol, "quote") &&
+        !datum_is_the_symbol(&tok.control_sequence_symbol, "flat") &&
+        !datum_is_the_symbol(&tok.control_sequence_symbol, "at")) {
       return read_result_make_ok_of(tok.control_sequence_symbol,
                                     v.ok_value);
     }

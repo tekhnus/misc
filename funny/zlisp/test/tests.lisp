@@ -67,9 +67,7 @@ fntest
 
 fntest
 {return `{48
-  ~(/std/+
-   33
-   1)}}
+  ~(/std/+ 33 1)}}
 {'48
  '34}
 
