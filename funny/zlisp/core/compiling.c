@@ -214,6 +214,18 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, target, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
+  if (datum_is_the_symbol(head, "flat")) {
+    datum *vals = list_at(list_at(source, (*i)++), 0);
+    if (!datum_is_list(vals)) {
+      fprintf(stderr, "bad: %s\n", datum_repr(vals));
+      return "bad";
+    }
+    int j = 0;
+    while (j < list_length(vals)) {
+      prog_append_consume_expression(sl, vals, &j, compdata, ext);
+    }
+    return NULL;
+  }
   if (datum_is_list(head) && list_length(head) == 2 &&
       datum_is_the_symbol(list_at(head, 0), "quote")) {
     datum *val = list_at(head, 1);
