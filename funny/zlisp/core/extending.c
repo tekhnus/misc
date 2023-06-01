@@ -71,8 +71,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   list_append(&invokation_statement, name);
   for (int i = 1; i < list_length(&invokation_statement_); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement_, i));
-    datum quoted = datum_make_list_of(datum_make_symbol("quote"), orig);
-    list_append(&invokation_statement, quoted);
+    list_append(&invokation_statement, datum_make_symbol("quote"));
+    list_append(&invokation_statement, datum_make_list_of(orig));
   }
   datum call_statement =
       datum_make_list_of(datum_make_symbol("call"), invokation_statement);
