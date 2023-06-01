@@ -43,8 +43,8 @@ req
    res = (/std/append- val res)}
   {if (/std/eq- (/std/type- item) :list)
    {res = (/std/append- (../.backquote item) res)}
-   {res = (/std/append- {'quote
-      item} res)}}
+   {res = (/std/append- 'quote res)
+    res = (/std/append- {item} res)}}
   exp = (/std/tail- exp)}
  return res}
 

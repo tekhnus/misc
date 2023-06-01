@@ -66,14 +66,14 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   assert(datum_is_integer(arityd));
   int arity = arityd->integer_value;
   *i += arity;
-  datum invokation_statement = list_copy(source, *i - arity, *i);
-  // fprintf(stderr, "macro: %s\n", datum_repr(&invokation_statement));
-  for (int i = 1; i < list_length(&invokation_statement); ++i) {
-    datum orig = datum_copy(list_at(&invokation_statement, i));
+  datum invokation_statement_ = list_copy(source, *i - arity, *i);
+  datum invokation_statement = datum_make_nil();
+  list_append(&invokation_statement, name);
+  for (int i = 1; i < list_length(&invokation_statement_); ++i) {
+    datum orig = datum_copy(list_at(&invokation_statement_, i));
     datum quoted = datum_make_list_of(datum_make_symbol("quote"), orig);
-    *list_at(&invokation_statement, i) = quoted;
+    list_append(&invokation_statement, quoted);
   }
-  *list_at(&invokation_statement, 0) = name;
   datum call_statement =
       datum_make_list_of(datum_make_symbol("call"), invokation_statement);
   // fprintf(stderr, "call: %s\n", datum_repr(&call_statement));

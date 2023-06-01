@@ -205,11 +205,9 @@ switch-clause := fn {a0}
  {}
  {{} := (../panic "empty signature")}
  cmds := (../tail a1)
- quoted-sig := {'quote
-  sig}
  checker := {'call
   {'/std/decons-pat
-   quoted-sig
+   'quote {sig}
    'args}}
  vars := (../decons-vars sig)
  body := {(../concat (../map make-assignment (../zip vars switch-defines)) cmds)}
