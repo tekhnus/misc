@@ -53,8 +53,7 @@ req
 .defnx := fn {name args body}
 {src := {name
   ':=
-  'fn
-  '{}
+  'fn '{}
   {{'mc
     ':=
     'magically_called_fn
@@ -62,12 +61,8 @@ req
     body
     '{}
     ':=
-    '(mc
-     @mut
-     @0
-     @up2)
-    'return
-    :shouldnt-go-here}}
+    '(mc @mut @0 @up2)
+    'return :shouldnt-go-here}}
   '{}
   ':=
   {'call

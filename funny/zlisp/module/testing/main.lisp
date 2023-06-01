@@ -16,9 +16,7 @@ fntestx := fn {body expect}
    expect}}
  new-panic := {'call
   {'/std/concat-bytestrings
-   '(/std/concat-bytestrings
-    (/std/repr val)
-    " != ")
+   '(/std/concat-bytestrings (/std/repr val) " != ")
    repr-expect}}
  new-panics := {'call
   {'/std/cons
@@ -29,14 +27,12 @@ fntestx := fn {body expect}
   new-panics}
  return {'calltest
   '=
-  'fn
-  '{}
+  'fn '{}
   body
   'val
   '=
   '(calltest)
-  'if
-  fact-equals-expect
+  'if fact-equals-expect
   '{panics = panics}
   append-panics}}
 

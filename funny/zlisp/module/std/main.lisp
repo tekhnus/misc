@@ -87,9 +87,7 @@ map = fn {a0 a1}
  {return {}}}
 
 panic-block := {'argz
- '(/std/panic
-  @0
-  "wrong fn call")}
+ '(/std/panic @0 "wrong fn call")}
 
 list-at := 42
 
@@ -113,20 +111,13 @@ swtchone = fn {a0}
   return {'prearg
    '=
    cond
-   'if
-   '(/std/eq
-    (/std/head prearg)
-    :ok)
+   'if '(/std/eq (/std/head prearg) :ok)
    {'args
     '=
-    '(/std/list-at
-     prearg
-     1)
+    '(/std/list-at prearg 1)
     body}
    rest}}
- {return {'(/std/panic
-    @0
-    "nothing matched")}}}
+ {return {'(/std/panic @0 "nothing matched")}}}
 
 decons-pat := 42
 
@@ -174,24 +165,12 @@ decons-vars = fn {a0}
     {return {}}}
    {{} := (panic @0 "decons-var met an unsupported type")}}}}
 
-switch-defines := {'(/std/list-at
-  args
-  0)
- '(/std/list-at
-  args
-  1)
- '(/std/list-at
-  args
-  2)
- '(/std/list-at
-  args
-  3)
- '(/std/list-at
-  args
-  4)
- '(/std/list-at
-  args
-  5)}
+switch-defines := {'(/std/list-at args 0)
+ '(/std/list-at args 1)
+ '(/std/list-at args 2)
+ '(/std/list-at args 3)
+ '(/std/list-at args 4)
+ '(/std/list-at args 5)}
 
 make-assignment := fn {x}
 {return {{(../head x)
@@ -207,7 +186,8 @@ switch-clause := fn {a0}
  cmds := (../tail a1)
  checker := {'call
   {'/std/decons-pat
-   'quote {sig}
+   'quote
+   {sig}
    'args}}
  vars := (../decons-vars sig)
  body := {(../concat (../map make-assignment (../zip vars switch-defines)) cmds)}
