@@ -27,29 +27,9 @@ req
 
 .fntest.arity := 3
 
-.backquotex := 44
+.backquote := 43
 
-.backquotex = fn {exp}
-{if (/std/not- (/std/eq- (/std/type- exp) :list))
- {return {'quote
-   exp}}
- {if (/std/not- exp)
-  {return {}}
-  {if (/std/eq- (/std/length- exp) 2)
-   {if (/std/eq- (/std/list-at- exp 0) 'tilde)
-    {return (/std/list-at- exp 1)}
-    {return {'call
-      {'/std/cons
-       (../.backquotex (/std/head- exp))
-       (../.backquotex (/std/tail- exp))}}}}
-   {return {'call
-     {'/std/cons
-      (../.backquotex (/std/head- exp))
-      (../.backquotex (/std/tail- exp))}}}}}}
-
-.backquote2 := 43
-
-.backquote2 = fn {exp}
+.backquote = fn {exp}
 {res := {}
  ignored := 0
  item := 0
@@ -59,17 +39,14 @@ req
   ignored = if (/std/eq- item 'tilde)
   {exp = (/std/tail- exp)
    val = (/std/head- exp)
+   val = (/std/head- val)
    res = (/std/append- val res)}
-  {if (/std/eq- (/std/type- item) :list) {} {
-   res = (/std/append- item res)}}
+  {if (/std/eq- (/std/type- item) :list) {
+res = (/std/append- (../.backquote item) res)
+} {
+   res = (/std/append- {'quote item} res)}}
   exp = (/std/tail- exp)}
  return res}
-
-.backquote := fn {exp}
-{return {(../.backquotex (/std/list-at- exp 0))}}
-
-.backquote2 = fn {exp}
-{return (../.backquote2 exp)}
 
 .backquote.arity := 2
 
