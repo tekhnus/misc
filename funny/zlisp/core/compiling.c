@@ -184,10 +184,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     while (*i < list_length(source)) {
       datum *tag = list_at(source, *i);
       datum *content_val;
-      if (datum_is_list(tag) && list_length(tag) == 2 &&
-          datum_is_the_symbol(list_at(tag, 0), "at")) {
-        content_val = list_at(tag, 1);
-      } else if (datum_is_the_symbol(tag, "at")) {
+      if (datum_is_the_symbol(tag, "at")) {
         content_val = list_at(list_at(source, ++(*i)), 0);
       } else {
         break;
@@ -291,10 +288,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   while (index < list_length(s_expr)) {
     datum *tag = list_at(s_expr, index);
     datum *content;
-    if (datum_is_list(tag) && list_length(tag) == 2 &&
-        datum_is_the_symbol(list_at(tag, 0), "at")) {
-      content = list_at(tag, 1);
-    } else if (datum_is_the_symbol(tag, "at")) {
+    if (datum_is_the_symbol(tag, "at")) {
       content = list_at(list_at(s_expr, ++index), 0);
     } else {
       break;

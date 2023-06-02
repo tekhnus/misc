@@ -321,8 +321,7 @@ LOCAL read_result datum_read(FILE *strm) {
       return read_result_make_panic(
           "expected an expression after a control character");
     }
-    return read_result_make_ok_of(tok.control_sequence_symbol,
-                                  v.ok_value);
+    return read_result_make_ok_of(tok.control_sequence_symbol, v.ok_value);
   }
   return read_result_make_panic("unhandled token type");
 }

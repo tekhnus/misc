@@ -86,17 +86,18 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   assert(datum_is_list(&res.ok_value));
   assert(list_length(&res.ok_value) == 1);
   // datum src = list_copy(source, *i - arity, *i);
-  // fprintf(stderr, "macro: %s -> %s\n", datum_repr(&src), datum_repr(list_at(&res.ok_value, 0)));
-  // datum exprs = datum_make_list_of(*list_at(&res.ok_value, 0));
-  return prog_append_expressions(sl, list_at(&res.ok_value, 0), compdata, self_);
+  // fprintf(stderr, "macro: %s -> %s\n", datum_repr(&src),
+  // datum_repr(list_at(&res.ok_value, 0))); datum exprs =
+  // datum_make_list_of(*list_at(&res.ok_value, 0));
+  return prog_append_expressions(sl, list_at(&res.ok_value, 0), compdata,
+                                 self_);
 }
 
 LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
   datum mod = datum_make_list_of(
-      datum_make_symbol("return"),
-      datum_make_list_of(datum_make_symbol("at"), datum_make_int(0)),
-      datum_make_list_of(datum_make_symbol("at"), datum_make_symbol("halt")),
-      datum_copy(e));
+      datum_make_symbol("return"), datum_make_symbol("at"),
+      datum_make_list_of(datum_make_int(0)), datum_make_symbol("at"),
+      datum_make_list_of(datum_make_symbol("halt")), datum_copy(e));
 
   extension ext = null_extension_make();
   char *err =
@@ -147,10 +148,10 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
   datum *meta = list_at(&re, 1);
   datum stmt = datum_make_list_of(
       datum_copy(vars), datum_make_symbol(":="), datum_make_symbol("return"),
-      datum_make_list_of(datum_make_symbol("at"),
-                         datum_make_int(list_length(vars))),
+      datum_make_symbol("at"),
+      datum_make_list_of(datum_make_int(list_length(vars))),
+      datum_make_symbol("at"),
       datum_make_list_of(
-          datum_make_symbol("at"),
           datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
   prog_append_expressions(sl, &stmt, compdata, ext);
@@ -207,19 +208,17 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum *meta = list_at(&re, 0);
   datum *exprs = list_at(&re, 1);
 
-  datum return_expr = datum_make_list_of(
-      datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
-      datum_make_list_of(
-          datum_make_symbol("at"),
-          datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))));
+  datum return_expr =
+      datum_make_list_of(datum_make_nil(), datum_make_symbol(":="),
+                         datum_make_symbol("return"), datum_make_symbol("at"),
+                         datum_make_list_of(datum_make_list_of(
+                             datum_make_symbol("meta"), datum_copy(meta))));
   datum vals = datum_make_nil();
   for (int i = 0; i < list_length(exprs); ++i) {
     list_append(&vals, datum_copy(list_at(exprs, i)));
   }
-  list_append(&return_expr,
-              datum_make_symbol("flat"));
-  list_append(&return_expr,
-              datum_make_list_of(vals));
+  list_append(&return_expr, datum_make_symbol("flat"));
+  list_append(&return_expr, datum_make_list_of(vals));
   prog_append_expressions(sl, &return_expr, compdata, ext);
 
   return NULL;

@@ -67,8 +67,10 @@ req
   ':=
   {'call
    {name
-    '@mut
-    '@0}}}
+    quote
+    {@mut}
+    quote
+    {@0}}}}
  return src}
 
 .defnx.arity := 4
