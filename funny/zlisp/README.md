@@ -48,6 +48,7 @@ and two implementations:
 - Make an interceptor which records all host calls and can replay them during debugging
 - Make an RPC
 - Make a C++ debugger which is scriptable with zlisp
+- Make a shell which supports caching, reproducibility and transparent remote execution
 
 ### Building and running
 
