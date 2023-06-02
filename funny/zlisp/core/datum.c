@@ -114,11 +114,6 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     sprintf(buf, "<truncated>");
   } else if (datum_is_integer(e)) {
     sprintf(buf, "%" PRId64, e->integer_value);
-  } else if (datum_is_list(e) && list_length(e) == 2 &&
-             datum_is_the_symbol(list_at(e, 0), "at__")) {
-    end += sprintf(
-        end, "@%s",
-        datum_repr_impl(list_at(e, 1), depth, start, pretty, flat, "\n"));
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
@@ -175,7 +170,9 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
         end += sprintf(end, "@");
         item = list_at(list_at(e, ++i), 0);
       }
-      if (datum_is_the_symbol(item, "quote") && i + 1 < list_length(e) && datum_is_list(list_at(e, i + 1)) && list_length(list_at(e, i + 1)) == 1) {
+      if (datum_is_the_symbol(item, "quote") && i + 1 < list_length(e) &&
+          datum_is_list(list_at(e, i + 1)) &&
+          list_length(list_at(e, i + 1)) == 1) {
         end += sprintf(end, "'");
         ++i;
         assert(i < list_length(e));
