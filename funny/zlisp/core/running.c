@@ -42,6 +42,7 @@ struct prog {
       struct datum *call_type;
       size_t call_arg_count;
       size_t call_return_count;
+      struct datum *call_arg_index;
     };
     struct {
       size_t collect_count;
@@ -253,6 +254,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
+        // args = state_stack_collect_from(r, datum_copy(prg.call_arg_index), prg.call_arg_count);
         args = state_stack_collect(r, prg.call_arg_count);
         break;
       }
@@ -355,6 +357,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.call_type = list_at(d, 4);
     res.call_arg_count = list_at(d, 5)->integer_value;
     res.call_return_count = list_at(d, 6)->integer_value;
+    res.call_arg_index = list_at(d, 7);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
@@ -489,6 +492,25 @@ LOCAL void state_stack_put_all(routine *r, datum list) {
 
 LOCAL datum state_stack_pop(routine *r) {
   return vec_pop(r->frames[routine_get_count(r) - 2].state);
+}
+
+LOCAL datum state_stack_collect_from(routine *r, datum top_polyindex, size_t count) {
+  datum form = datum_make_nil();
+  for (size_t i = 0; i < count; ++i) {
+    datum *arg = state_stack_at(r, &top_polyindex);
+    list_append(&form, *arg);
+    *arg = datum_make_nil();
+    assert(datum_is_integer(list_at(&top_polyindex, 1)));
+    int64_t *idx = &list_at(&top_polyindex, 1)->integer_value;
+    assert(*idx > 0);
+    *idx -= 1;
+  }
+  datum res = datum_make_nil();
+  for (size_t i = 0; i < count; ++i) {
+    datum x = list_pop(&form);
+    list_append(&res, x);
+  }
+  return res;
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count) {

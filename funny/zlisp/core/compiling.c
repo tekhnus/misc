@@ -257,12 +257,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     return NULL;
   }
   if (datum_is_symbol(head)) {
-    datum debug_compdata = datum_copy(compdata);
-    prog_append_yield(sl,
-                      datum_make_list_of(datum_make_symbol("debugger"),
-                                         datum_make_symbol("compdata"),
-                                         debug_compdata),
-                      0, 0, datum_make_nil(), compdata);
+    /* datum debug_compdata = datum_copy(compdata); */
+    /* prog_append_yield(sl, */
+    /*                   datum_make_list_of(datum_make_symbol("debugger"), */
+    /*                                      datum_make_symbol("compdata"), */
+    /*                                      debug_compdata), */
+    /*                   0, 0, datum_make_nil(), compdata); */
     prog_append_copy(sl, head, compdata);
     return NULL;
   }
@@ -358,10 +358,11 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       return err;
     }
   }
+  datum top_arg_poly = compdata_get_top_polyindex(compdata);
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
   prog_append_call(sl, capture_size, indices, !mut, target, arg_count,
-                   ret_count, compdata);
+                   ret_count, top_arg_poly, compdata);
   return NULL;
 }
 
@@ -374,12 +375,12 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
 
 EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
                              bool pop_one, datum type, int arg_count,
-                             int return_count, datum *compdata) {
+                             int return_count, datum top_arg_polyindex, datum *compdata) {
   assert(datum_is_list(&indices));
   vec_append(sl, datum_make_list_of(
                      datum_make_symbol(":call"), datum_make_int(capture_size),
                      indices, datum_make_int(pop_one), type,
-                     datum_make_int(arg_count), datum_make_int(return_count)));
+                     datum_make_int(arg_count), datum_make_int(return_count), top_arg_polyindex));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);
   }

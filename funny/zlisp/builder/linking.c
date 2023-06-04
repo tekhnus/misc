@@ -23,7 +23,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
       prog_get_put_prog(&pi, prog_get_next_index(sl) - bdr_put_prog, 0);
   prog_append_call(
       sl, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
-      false, datum_make_symbol("plain"), 0, 0, builder_compdata);
+      false, datum_make_symbol("plain"), 0, 0, datum_make_nil(), builder_compdata);
   size_t bdr = prog_append_something(sl); // this is first builder instruction.
   // filled by prog_build.
   *vec_at(sl, jm) = prog_get_jmp(prog_get_next_index(sl) - jm);
@@ -48,9 +48,10 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   prog_append_copy(sl, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
   prog_put_deps(sl, input_meta, builder_compdata);
+  datum top_arg_index = compdata_get_top_polyindex(builder_compdata);
   prog_append_call(sl, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
-                   builder_compdata);
+                   top_arg_index, builder_compdata);
   return NULL;
 }
 
@@ -141,9 +142,10 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
       prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 0);
   datum fn_index = compdata_get_top_polyindex(compdata);
   prog_put_deps(sl, transitive_deps, compdata);
+  datum top_arg_index = compdata_get_top_polyindex(compdata);
   prog_append_call(sl, 0, datum_make_list_of(fn_index), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
-                   list_length(syms), compdata);
+                   list_length(syms), top_arg_index, compdata);
   datum names = datum_make_nil();
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
