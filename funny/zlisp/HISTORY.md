@@ -53,3 +53,9 @@ January-April 2023:
 - moved from "preprocessor" model to "compiler extensions" model
 - variable assignment implemented
 - while loop implemented
+
+May 2023:
+- the bytecode is now mostly "linear" instead of "jumping"
+- the bytecode is now position-independent
+- the syntax is redesigned: the curly brackets are introduced;
+  the statements are now not surrounded by brackets
