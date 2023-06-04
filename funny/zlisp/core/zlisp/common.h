@@ -54,6 +54,7 @@ datum datum_make_symbol(char *name);
 datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
 datum datum_make_frame(frame fr);
+frame *get_frame_from_datum(datum *d);
 char *datum_repr(datum *e);
 typedef struct extension extension;
 struct extension {

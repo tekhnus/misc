@@ -573,7 +573,7 @@ LOCAL routine get_routine_from_datum(datum *e) {
   rt.cnt = 0;
   for (int i = 0; i < list_length(e); ++i) {
     assert(datum_is_frame(list_at(e, i)));
-    rt.frames[rt.cnt++] = &list_at(e, i)->frame_value;
+    rt.frames[rt.cnt++] = get_frame_from_datum(list_at(e, i));
   }
   return rt;
 }

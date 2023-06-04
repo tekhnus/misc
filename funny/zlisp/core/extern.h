@@ -199,6 +199,7 @@ LOCAL char *escape_string(char *s);
 char *datum_repr_pretty(datum *e,extension *ext);
 LOCAL char *datum_repr_impl(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
 char *datum_repr(datum *e);
+frame *get_frame_from_datum(datum *d);
 datum datum_make_frame(frame fr);
 datum datum_make_int(int64_t value);
 datum datum_make_bytestring(char *text);

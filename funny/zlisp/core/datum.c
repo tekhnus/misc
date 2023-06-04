@@ -76,6 +76,11 @@ EXPORT datum datum_make_frame(frame fr) {
   return e;
 }
 
+EXPORT frame *get_frame_from_datum(datum *d) {
+  assert(datum_is_frame(d));
+  return &d->frame_value;
+}
+
 EXPORT char *datum_repr(datum *e) {
   return datum_repr_impl(e, 128, 0, false, FLAT, " ");
 }
@@ -493,11 +498,6 @@ EXPORT int list_index_of(datum *xs, datum *x) {
 }
 
 EXPORT datum datum_copy(datum *d) {
-  if (datum_is_frame(d)) {
-    frame f = frame_copy(&d->frame_value);
-    datum res = datum_make_frame(f);
-    return res;
-  }
   if (datum_is_list(d)) {
     datum e = datum_make_nil();
     for (int i = 0; i < list_length(d); ++i) {
@@ -505,6 +505,11 @@ EXPORT datum datum_copy(datum *d) {
       list_append(&e, item);
     }
     return e;
+  }
+  if (datum_is_frame(d)) {
+    frame f = frame_copy(&d->frame_value);
+    datum res = datum_make_frame(f);
+    return res;
   }
   return *d;
 }
