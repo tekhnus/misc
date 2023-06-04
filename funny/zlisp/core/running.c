@@ -105,26 +105,7 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
     if (datum_is_list(yield_type) && list_length(yield_type) == 3 &&
         datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
       datum *cmd = list_at(yield_type, 1);
-      if (datum_is_the_symbol(cmd, "compdata")) {
-        datum *compdata = list_at(yield_type, 2);
-        datum compdata_shape = compdata_get_shape(compdata);
-        routine rt = r;
-        while (get_child(sl, &rt)) {
-        }
-        datum state_shape = routine_get_shape(&rt);
-        if (list_length(&compdata_shape) != list_length(&state_shape)) {
-          fprintf(stderr, "compdata mismatch: %s != %s\n",
-                  datum_repr(&compdata_shape), datum_repr(&state_shape));
-          exit(EXIT_FAILURE);
-        }
-        int len = list_length(&compdata_shape);
-        if (!datum_eq(list_at(&compdata_shape, len - 1),
-                      list_at(&state_shape, len - 1))) {
-          fprintf(stderr, "compdata mismatch: %s != %s\n",
-                  datum_repr(&compdata_shape), datum_repr(&state_shape));
-          exit(EXIT_FAILURE);
-        }
-      } else if (datum_is_the_symbol(cmd, "statement")) {
+      if (datum_is_the_symbol(cmd, "statement")) {
         current_statement = *list_at(yield_type, 2);
       } else {
         fprintf(stderr, "unknown debugger cmd\n");
@@ -254,12 +235,12 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
-        datum res = state_stack_collect(r, prg.yield_count, first_index);
+        datum res = state_stack_invalidate_many(r, prg.yield_count, first_index);
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
         datum arg_index = datum_copy(prg.call_arg_index);
-        args = state_stack_collect(r, prg.call_arg_count, arg_index);
+        args = state_stack_invalidate_many(r, prg.call_arg_count, arg_index);
         break;
       }
       if (prg.type == PROG_PUT_PROG) {
@@ -313,7 +294,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_COLLECT) {
         datum first_index = datum_copy(prg.collect_top_index);
-        datum form = state_stack_collect(r, prg.collect_count, first_index);
+        datum form = state_stack_invalidate_many(r, prg.collect_count, first_index);
         state_stack_set(r, prg.collect_top_index, form);
         *routine_offset(r) += 1;
         continue;
@@ -465,24 +446,9 @@ LOCAL datum *state_stack_at(routine *r, datum *offset) {
   return vec_at(vars, idx->integer_value);
 }
 
-LOCAL datum *state_stack_top(routine *r) {
-  vec *top_state = r->frames[routine_get_count(r) - 2].state;
-  assert(vec_length(top_state) > 0);
-  return vec_at(top_state, vec_length(top_state) - 1);
-}
-
 LOCAL void state_stack_set(routine *r, datum *target, datum value) {
-  assert(datum_is_list(target) && list_length(target) == 2);
-  datum *frame_index = list_at(target, 0);
-  assert(datum_is_integer(frame_index));
-  size_t frame_index_ = frame_index->integer_value;
-  assert(frame_index_ < routine_get_count(r));
-  vec *frame = r->frames[frame_index_].state;
-  datum *value_index = list_at(target, 1);
-  assert(datum_is_integer(value_index));
-  size_t value_index_ = value_index->integer_value;
-  assert (value_index_ < vec_length(frame));
-  *vec_at(frame, value_index_) = value;
+  *state_stack_at(r, target) = value;
+  return;
 }
 
 LOCAL void state_stack_set_many(routine *r, datum idx, datum list) {
@@ -502,7 +468,7 @@ LOCAL datum state_stack_invalidate(routine *r, datum polyindex) {
   return res;
 }
 
-LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
+LOCAL datum state_stack_invalidate_many(routine *r, size_t count, datum top_polyindex) {
   datum form = datum_make_list(vec_make_copies(count, datum_make_nil()));
   for (size_t i = 0; i < count; ++i) {
     *list_at(&form, i) = state_stack_invalidate(r, top_polyindex);
@@ -511,25 +477,7 @@ LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
   return form;
 }
 
-LOCAL size_t routine_get_stack_size(routine *r) {
-  size_t res = 0;
-  for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
-    res += vec_length(r->frames[i].state);
-  }
-  return res;
-}
-
 LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
-
-LOCAL datum routine_get_shape(routine *r) {
-  size_t cnt = routine_get_count(r) - 1;
-  datum res = datum_make_list(vec_make_copies(cnt, datum_make_nil()));
-  for (size_t i = 0; i < cnt; ++i) {
-    datum ii = datum_make_int(vec_length(r->frames[i].state));
-    *list_at(&res, i) = ii;
-  }
-  return res;
-}
 
 LOCAL void routine_merge(routine *r, routine *rt_tail) {
   assert(r->cnt > 0);
