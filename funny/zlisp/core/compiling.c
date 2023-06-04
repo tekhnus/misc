@@ -49,7 +49,7 @@ EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
                         datum_make_list_of(datum_make_symbol("debugger"),
                                            datum_make_symbol("statement"),
                                            list_copy(source, i_before, i)),
-                        datum_make_nil(),
+                        compdata_get_next_polyindex(compdata),
                         0, 0, datum_make_nil(), compdata);
     }
   }
@@ -157,10 +157,10 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (datum_is_the_symbol(head, "magically_called_fn")) {
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
-      prog_append_yield(sl, target, datum_make_nil(), 0, 0, met, &routine_compdata);
+      prog_append_yield(sl, target, compdata_get_next_polyindex(&routine_compdata), 0, 0, met, &routine_compdata);
     }
     datum *args = list_at(source, (*i)++);
-    prog_append_yield(sl, datum_make_symbol("plain"), datum_make_nil(), 0, list_length(args),
+    prog_append_yield(sl, datum_make_symbol("plain"), compdata_get_next_polyindex(&routine_compdata), 0, list_length(args),
                       datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);
     char *err =
@@ -209,16 +209,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
+    datum idx = compdata_get_next_polyindex(compdata);
     char *err = prog_append_consume_expression(sl, source, i, compdata, ext);
     if (err != NULL) {
       return err;
     }
     size_t after = compdata_get_length(compdata);
     argcnt = after - before;
-    datum idx = datum_make_nil();
-    if (argcnt > 0) {
-      idx = compdata_get_top_polyindex(compdata);
-    }
     prog_append_yield(sl, target, idx, argcnt, recieve_count, meta, compdata);
     return NULL;
   }
@@ -252,14 +249,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     int before = compdata_get_length(compdata);
     datum *vals = head;
     int j = 0;
+    datum idx = compdata_get_next_polyindex(compdata);
     while (j < list_length(vals)) {
       prog_append_consume_expression(sl, vals, &j, compdata, ext);
     }
     int after = compdata_get_length(compdata);
-    datum idx = datum_make_nil();
-    if (after > before) {
-      idx = compdata_get_top_polyindex(compdata);
-    }
     prog_append_collect(sl, after - before, idx, compdata);
     return NULL;
   }
@@ -528,6 +522,14 @@ EXPORT datum compdata_get_top_polyindex(datum *compdata) {
   assert(frames > 0 && indices > 0);
   return datum_make_list_of(datum_make_int(frames - 1),
                             datum_make_int(indices - 1));
+}
+
+EXPORT datum compdata_get_next_polyindex(datum *compdata) {
+  size_t frames = list_length(compdata);
+  size_t indices = list_length(list_get_last(compdata));
+  assert(frames > 0);
+  return datum_make_list_of(datum_make_int(frames - 1),
+                            datum_make_int(indices));
 }
 
 LOCAL size_t compdata_get_length(datum *compdata) {

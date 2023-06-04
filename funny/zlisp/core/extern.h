@@ -116,6 +116,7 @@ LOCAL datum prog_get_if(ptrdiff_t delta,datum index);
 LOCAL void compdata_del(datum *compdata);
 size_t prog_append_something(vec *sl);
 datum compdata_get_top_polyindex(datum *compdata);
+datum compdata_get_next_polyindex(datum *compdata);
 void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
