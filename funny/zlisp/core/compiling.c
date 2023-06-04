@@ -72,6 +72,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (err != NULL) {
       return err;
     }
+    datum idx = compdata_get_top_polyindex(compdata);
     size_t if_instruction = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     datum false_compdata = datum_copy(compdata);
@@ -81,7 +82,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
-        prog_get_if(prog_get_next_index(sl) - if_instruction);
+      prog_get_if(prog_get_next_index(sl) - if_instruction, idx);
     err = prog_append_consume_expression(sl, source, i, &false_compdata, ext);
     if (err != NULL) {
       return err;
@@ -100,6 +101,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (err != NULL) {
       return err;
     }
+    datum idx = compdata_get_top_polyindex(compdata);
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     err = prog_append_consume_expression(sl, source, i, compdata, ext);
@@ -110,7 +112,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = prog_get_next_index(sl);
-    *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check);
+    *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check, idx);
     return NULL;
   }
   if (*i < list_length(source) &&
@@ -470,8 +472,8 @@ EXPORT datum prog_get_jmp(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
 }
 
-LOCAL datum prog_get_if(ptrdiff_t delta) {
-  return datum_make_list_of(datum_make_symbol(":if"), datum_make_int(delta));
+LOCAL datum prog_get_if(ptrdiff_t delta, datum index) {
+  return datum_make_list_of(datum_make_symbol(":if"), index, datum_make_int(delta));
 }
 
 EXPORT datum compdata_make() {

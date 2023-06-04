@@ -20,6 +20,7 @@ struct prog {
   enum prog_type type;
   union {
     struct {
+      datum *if_index;
       ptrdiff_t if_false;
     };
     ptrdiff_t jmp_next;
@@ -271,7 +272,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_IF) {
-        datum v = state_stack_pop(r);
+        datum v = state_stack_invalidate(r, *prg.if_index);
         if (!datum_is_nil(&v)) {
           *routine_offset(r) += 1;
         } else {
@@ -333,7 +334,8 @@ LOCAL prog datum_to_prog(datum *d) {
   char *opsym = list_at(d, 0)->symbol_value;
   if (!strcmp(opsym, ":if")) {
     res.type = PROG_IF;
-    res.if_false = (list_at(d, 1)->integer_value);
+    res.if_index = list_at(d, 1);
+    res.if_false = (list_at(d, 2)->integer_value);
   } else if (!strcmp(opsym, ":jmp")) {
     res.type = PROG_JMP;
     res.jmp_next = (list_at(d, 1)->integer_value);
@@ -500,6 +502,13 @@ LOCAL void state_stack_put_all(routine *r, datum list) {
 
 LOCAL datum state_stack_pop(routine *r) {
   return vec_pop(r->frames[routine_get_count(r) - 2].state);
+}
+
+LOCAL datum state_stack_invalidate(routine *r, datum polyindex) {
+  assert(state_stack_at(r, &polyindex) == state_stack_top(r));
+  datum res = *state_stack_at(r, &polyindex);
+  state_stack_pop(r);
+  return res;
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {

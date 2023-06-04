@@ -124,7 +124,7 @@ def main():
         # print(ins)
         op, args = ins[0], ins[1:]
         if op == sexpdata.Symbol(":if"):
-            if_false, = args
+            if_index, if_false = args
             if pop_stack():
                 ip += 1
             else:
