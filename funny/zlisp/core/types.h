@@ -56,10 +56,4 @@ struct vec {
   size_t capacity;
 };
 
-struct frame_view {
-  vec *state;
-  int type_id;
-  int parent_type_id;
-};
-
 #endif

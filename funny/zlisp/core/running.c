@@ -60,8 +60,14 @@ struct prog {
   };
 };
 
+struct frame {
+  vec *state;
+  int type_id;
+  int parent_type_id;
+};
+
 struct routine {
-  struct frame_view frames[10];
+  struct frame frames[10];
   size_t cnt;
 };
 
@@ -426,7 +432,7 @@ LOCAL bool state_stack_has(routine *r, datum *offset) {
   if (frame->integer_value >= (int)routine_get_count(r)) {
     return false;
   }
-  struct frame_view f = r->frames[frame->integer_value];
+  struct frame f = r->frames[frame->integer_value];
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
@@ -442,7 +448,7 @@ LOCAL datum *state_stack_at(routine *r, datum *offset) {
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
   assert(frame->integer_value < (int)routine_get_count(r));
-  struct frame_view f = r->frames[frame->integer_value];
+  struct frame f = r->frames[frame->integer_value];
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
@@ -549,7 +555,7 @@ EXPORT datum *routine_make_alloc(ptrdiff_t prg, routine *context) {
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(routine_get_count(r) > 0);
-  frame_view f = r->frames[routine_get_count(r) - 1];
+  struct frame f = r->frames[routine_get_count(r) - 1];
   assert(vec_length(f.state) == 1);
   datum *offset_datum = vec_at(f.state, 0);
   assert(datum_is_integer(offset_datum));
@@ -565,7 +571,25 @@ LOCAL routine get_routine_from_datum(datum *e) {
   routine rt;
   rt.cnt = 0;
   for (int i = 0; i < list_length(e); ++i) {
-    rt.frames[rt.cnt++] = get_frame_view_from_datum(list_at(e, i));
+    rt.frames[rt.cnt++] = get_frame_from_datum(list_at(e, i));
   }
   return rt;
+}
+
+LOCAL datum datum_make_frame(vec state, int type_id, int parent_type_id) {
+  return datum_make_list_of(vec_to_datum_nocopy(state), datum_make_int(type_id),
+                            datum_make_int(parent_type_id));
+}
+
+LOCAL struct frame get_frame_from_datum(datum *d) {
+  assert(datum_is_list(d));
+  assert(list_length(d) == 3);
+  assert(datum_is_list(list_at(d, 0)));
+  assert(datum_is_integer(list_at(d, 1)));
+  assert(datum_is_integer(list_at(d, 2)));
+  struct frame v;
+  v.state = &list_at(d, 0)->list_value;
+  v.type_id = list_at(d, 1)->integer_value;
+  v.parent_type_id = list_at(d, 2)->integer_value;
+  return v;
 }

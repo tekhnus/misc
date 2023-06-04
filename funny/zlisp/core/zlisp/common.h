@@ -45,14 +45,6 @@ bool datum_is_bytestring(datum *e);
 datum datum_make_symbol(char *name);
 datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
-datum datum_make_frame(vec state,int type_id,int parent_type_id);
-typedef struct frame_view frame_view;
-struct frame_view {
-  vec *state;
-  int type_id;
-  int parent_type_id;
-};
-frame_view get_frame_view_from_datum(datum *d);
 char *datum_repr(datum *e);
 typedef struct extension extension;
 struct extension {

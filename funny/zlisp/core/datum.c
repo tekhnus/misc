@@ -67,24 +67,6 @@ EXPORT datum datum_make_int(int64_t value) {
   return e;
 }
 
-EXPORT datum datum_make_frame(vec state, int type_id, int parent_type_id) {
-  return datum_make_list_of(vec_to_datum_nocopy(state), datum_make_int(type_id),
-                            datum_make_int(parent_type_id));
-}
-
-EXPORT frame_view get_frame_view_from_datum(datum *d) {
-  assert(datum_is_list(d));
-  assert(list_length(d) == 3);
-  assert(datum_is_list(list_at(d, 0)));
-  assert(datum_is_integer(list_at(d, 1)));
-  assert(datum_is_integer(list_at(d, 2)));
-  frame_view v;
-  v.state = &list_at(d, 0)->list_value;
-  v.type_id = list_at(d, 1)->integer_value;
-  v.parent_type_id = list_at(d, 2)->integer_value;
-  return v;
-}
-
 EXPORT char *datum_repr(datum *e) {
   return datum_repr_impl(e, 128, 0, false, FLAT, " ");
 }
