@@ -254,7 +254,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       prog_append_consume_expression(sl, vals, &j, compdata, ext);
     }
     int after = compdata_get_length(compdata);
-    prog_append_collect(sl, after - before, compdata);
+    datum idx = datum_make_nil();
+    if (after > before) {
+      idx = compdata_get_top_polyindex(compdata);
+    }
+    prog_append_collect(sl, after - before, idx, compdata);
     return NULL;
   }
   if (datum_is_constant(head)) {
@@ -448,9 +452,9 @@ EXPORT void prog_append_put_const(vec *sl, datum *val, datum *compdata) {
                                     target_polyindex, datum_copy(val)));
 }
 
-LOCAL void prog_append_collect(vec *sl, size_t count, datum *compdata) {
+LOCAL void prog_append_collect(vec *sl, size_t count, datum top_idx, datum *compdata) {
   vec_append(sl, datum_make_list_of(datum_make_symbol(":collect"),
-                                    datum_make_int(count)));
+                                    datum_make_int(count), top_idx));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }

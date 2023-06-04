@@ -46,6 +46,7 @@ struct prog {
     };
     struct {
       size_t collect_count;
+      struct datum *collect_top_index;
     };
     struct {
       datum *put_prog_target;
@@ -310,7 +311,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         continue;
       }
       if (prg.type == PROG_COLLECT) {
-        datum form = state_stack_collect(r, prg.collect_count, datum_make_nil());
+        datum form = state_stack_collect(r, prg.collect_count, *prg.collect_top_index);
         state_stack_put(r, form);
         *routine_offset(r) += 1;
         continue;
@@ -360,6 +361,7 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = list_at(d, 1)->integer_value;
+    res.collect_top_index = list_at(d, 2);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_target = list_at(d, 1);
@@ -506,13 +508,8 @@ LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
   }
   datum form = datum_make_nil();
   datum *top;
-  if (datum_is_nil(&top_polyindex)) {
-    top = state_stack_top(r);
-  } else {
-    top = state_stack_at(r, &top_polyindex);
-    assert(top == state_stack_top(r));
-  }
-  if (top == top + 1) {};
+  top = state_stack_at(r, &top_polyindex);
+  assert(top == state_stack_top(r));
   for (size_t i = 0; i < count; ++i) {
     list_append(&form, *top);
     --top;
