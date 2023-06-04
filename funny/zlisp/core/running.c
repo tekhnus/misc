@@ -221,7 +221,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
 
       if (prg.call_pop_one) {
-        state_stack_pop(r);
+        datum fn_index = datum_copy(prg.call_arg_index);
+        list_at(&fn_index, 1)->integer_value -= prg.call_arg_count;
+        state_stack_invalidate(r, fn_index);
       }
       state_stack_put_all(r, *argz);
       *routine_offset(r) += 1;
@@ -252,11 +254,11 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       prev_offset = *routine_offset(r);
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
-        datum res = state_stack_collect(r, prg.yield_count, *prg.yield_val_index);
+        datum res = state_stack_collect(r, prg.yield_count, datum_copy(prg.yield_val_index));
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
-        args = state_stack_collect(r, prg.call_arg_count, *prg.call_arg_index);
+        args = state_stack_collect(r, prg.call_arg_count, datum_copy(prg.call_arg_index));
         break;
       }
       if (prg.type == PROG_PUT_PROG) {
@@ -303,16 +305,13 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
           *routine_offset(r) = -*routine_offset(r);
           continue;
         }
-        datum *er = state_stack_at(r, prg.move_offset);
-        state_stack_set(r, prg.move_target, *er);
-        *er = datum_make_symbol("__guard__");
-        datum guard = state_stack_pop(r);
-        assert(datum_is_the_symbol(&guard, "__guard__"));
+        datum er = state_stack_invalidate(r, datum_copy(prg.move_offset));
+        state_stack_set(r, prg.move_target, er);
         *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_COLLECT) {
-        datum form = state_stack_collect(r, prg.collect_count, *prg.collect_top_index);
+        datum form = state_stack_collect(r, prg.collect_count, datum_copy(prg.collect_top_index));
         state_stack_put(r, form);
         *routine_offset(r) += 1;
         continue;
@@ -516,15 +515,9 @@ LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
     return datum_make_nil();
   }
   datum form = datum_make_nil();
-  datum *top;
-  top = state_stack_at(r, &top_polyindex);
-  assert(top == state_stack_top(r));
   for (size_t i = 0; i < count; ++i) {
-    list_append(&form, *top);
-    --top;
-  }
-  for (size_t i = 0; i < count; ++i) {
-    state_stack_pop(r);
+    list_append(&form, state_stack_invalidate(r, top_polyindex));
+    list_at(&top_polyindex, 1)->integer_value -= 1;
   }
   datum res = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
