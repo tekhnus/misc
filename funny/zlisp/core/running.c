@@ -510,6 +510,7 @@ LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
     top = state_stack_top(r);
   } else {
     top = state_stack_at(r, &top_polyindex);
+    assert(top == state_stack_top(r));
   }
   if (top == top + 1) {};
   for (size_t i = 0; i < count; ++i) {
