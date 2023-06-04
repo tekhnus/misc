@@ -411,6 +411,12 @@ EXPORT datum vec_to_datum(vec *v) {
   return res;
 }
 
+EXPORT datum vec_to_datum_nocopy(vec v) {
+  datum res = datum_make_nil();
+  res.list_value = v;
+  return res;
+}
+
 EXPORT datum vec_pop(vec *v) {
   size_t len = vec_length(v);
   assert(len > 0);
@@ -513,8 +519,8 @@ EXPORT datum datum_copy(datum *d) {
     return e;
   }
   if (datum_is_frame(d)) {
-    frame f = frame_copy(&d->frame_value);
-    datum res = datum_make_frame(f.state, f.type_id, f.parent_type_id);
+    frame_view f = get_frame_view_from_datum(d);
+    datum res = datum_make_frame(vec_copy(f.state), f.type_id, f.parent_type_id);
     return res;
   }
   return *d;
