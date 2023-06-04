@@ -8,13 +8,16 @@
 EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                               datum *builder_compdata) {
   datum nil = datum_make_nil();
-  prog_append_yield(sl, datum_make_symbol("halt"), compdata_get_next_polyindex(builder_compdata), 0, 0, nil, builder_compdata);
+  prog_append_yield(sl, datum_make_symbol("halt"),
+                    compdata_get_next_polyindex(builder_compdata), 0, 0, nil,
+                    builder_compdata);
   prog_append_put_const(sl, &nil, builder_compdata);
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
   compdata_give_names(builder_compdata, &s);
   size_t bdr_put_prog = prog_append_something(sl); // filled below
   size_t ep_start = prog_get_next_index(sl);
-  prog_append_yield(sl, datum_make_symbol("plain"), compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
+  prog_append_yield(sl, datum_make_symbol("plain"),
+                    compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
   size_t jm = prog_append_something(sl); // filled below
   assert(bdr_put_prog + 1 == ep_start);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));
@@ -51,8 +54,8 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   datum fai = compdata_get_next_polyindex(builder_compdata);
   prog_put_deps(sl, input_meta, builder_compdata);
   prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
-                   datum_make_symbol("plain"), list_length(input_meta), 0,
-                   fai, builder_compdata);
+                   datum_make_symbol("plain"), list_length(input_meta), 0, fai,
+                   builder_compdata);
   return NULL;
 }
 

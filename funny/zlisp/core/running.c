@@ -151,8 +151,8 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   if (index < 0) {
     error_instruction = datum_make_list_of(
         datum_make_symbol(":yield"), datum_make_symbol("interpreter-panic"),
-        datum_make_nil(),
-        datum_make_int(0), datum_make_int(31415926), datum_make_nil());
+        datum_make_nil(), datum_make_int(0), datum_make_int(31415926),
+        datum_make_nil());
     return &error_instruction;
   }
   return vec_at(sl, index);
@@ -195,8 +195,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       datum *argz = &err.value;
       if (prg.call_return_count != (long unsigned int)list_length(argz)) {
-        fprintf(stderr,
-                               "call count and yield count are not equal\n");
+        fprintf(stderr, "call count and yield count are not equal\n");
         *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
@@ -235,7 +234,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
-        datum res = state_stack_invalidate_many(r, prg.yield_count, first_index);
+        datum res =
+            state_stack_invalidate_many(r, prg.yield_count, first_index);
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
@@ -294,7 +294,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_COLLECT) {
         datum first_index = datum_copy(prg.collect_top_index);
-        datum form = state_stack_invalidate_many(r, prg.collect_count, first_index);
+        datum form =
+            state_stack_invalidate_many(r, prg.collect_count, first_index);
         state_stack_set(r, prg.collect_top_index, form);
         *routine_offset(r) += 1;
         continue;
@@ -468,7 +469,8 @@ LOCAL datum state_stack_invalidate(routine *r, datum polyindex) {
   return res;
 }
 
-LOCAL datum state_stack_invalidate_many(routine *r, size_t count, datum top_polyindex) {
+LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
+                                        datum top_polyindex) {
   datum form = datum_make_list(vec_make_copies(count, datum_make_nil()));
   for (size_t i = 0; i < count; ++i) {
     *list_at(&form, i) = state_stack_invalidate(r, top_polyindex);
@@ -494,7 +496,8 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
       context != NULL
           ? (context->frames[routine_get_count(context) - 2].type_id)
           : -1;
-  datum vars_datum = datum_make_frame(vec_make_copies(256, datum_make_symbol(":invalid")), prg, parent_type_id);
+  datum vars_datum = datum_make_frame(
+      vec_make_copies(256, datum_make_symbol(":invalid")), prg, parent_type_id);
   datum pc_frame_datum =
       datum_make_frame(vec_make_of(1, datum_make_int(prg)), -1, prg);
   datum res = datum_make_list_of(vars_datum, pc_frame_datum);
