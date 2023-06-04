@@ -482,7 +482,7 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   assert(datum_is_integer(value_index));
   size_t value_index_ = value_index->integer_value;
   while (value_index_ >= vec_length(frame)) {
-    vec_append(frame, datum_make_symbol("__undefined__"));
+    vec_append(frame, datum_make_symbol(":invalid"));
   };
   *vec_at(frame, value_index_) = value;
 }
@@ -498,33 +498,19 @@ LOCAL void state_stack_set_many(routine *r, datum idx, datum list) {
   }
 }
 
-LOCAL datum state_stack_pop(routine *r) {
-  return vec_pop(r->frames[routine_get_count(r) - 2].state);
-}
-
 LOCAL datum state_stack_invalidate(routine *r, datum polyindex) {
-  assert(state_stack_at(r, &polyindex) == state_stack_top(r));
   datum res = *state_stack_at(r, &polyindex);
-  state_stack_pop(r);
+  *state_stack_at(r, &polyindex) = datum_make_symbol(":invalid");
   return res;
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
-  if (count == 0) {
-    return datum_make_nil();
-  }
-  list_at(&top_polyindex, 1)->integer_value += count - 1;
   datum form = datum_make_nil();
   for (size_t i = 0; i < count; ++i) {
     list_append(&form, state_stack_invalidate(r, top_polyindex));
-    list_at(&top_polyindex, 1)->integer_value -= 1;
+    list_at(&top_polyindex, 1)->integer_value += 1;
   }
-  datum res = datum_make_nil();
-  for (size_t i = 0; i < count; ++i) {
-    datum x = list_pop(&form);
-    list_append(&res, x);
-  }
-  return res;
+  return form;
 }
 
 LOCAL size_t routine_get_stack_size(routine *r) {

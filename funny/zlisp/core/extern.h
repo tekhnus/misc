@@ -62,7 +62,6 @@ typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 LOCAL datum datum_make_frame(vec state,int type_id,int parent_type_id);
 LOCAL size_t routine_get_stack_size(routine *r);
-LOCAL datum state_stack_pop(routine *r);
 LOCAL datum *state_stack_top(routine *r);
 LOCAL bool state_stack_has(routine *r,datum *offset);
 LOCAL datum state_stack_invalidate(routine *r,datum polyindex);
