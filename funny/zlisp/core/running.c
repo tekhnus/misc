@@ -250,7 +250,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       prev_offset = *routine_offset(r);
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
-        datum res = state_stack_collect(r, prg.yield_count, datum_make_nil());
+        datum res = state_stack_collect(r, prg.yield_count, *prg.yield_val_index);
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
