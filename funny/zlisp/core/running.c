@@ -220,12 +220,11 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         goto body;
       }
 
+      datum fn_index = datum_copy(prg.call_arg_index);
       if (prg.call_pop_one) {
-        datum fn_index = datum_copy(prg.call_arg_index);
         list_at(&fn_index, 1)->integer_value -= 1;
-        state_stack_invalidate(r, fn_index);
       }
-      state_stack_put_all(r, *argz);
+      state_stack_set_many(r, fn_index, *argz);
       *routine_offset(r) += 1;
       goto body;
     }
@@ -237,7 +236,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
-      state_stack_put_all(r, args);
+      state_stack_set_many(r, datum_copy(prg.yield_val_index), args);
       *routine_offset(r) += 1;
       goto body;
     }
@@ -488,17 +487,14 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   *vec_at(frame, value_index_) = value;
 }
 
-LOCAL void state_stack_put(routine *r, datum value) {
-  vec_append(r->frames[routine_get_count(r) - 2].state, value);
-}
-
-LOCAL void state_stack_put_all(routine *r, datum list) {
+LOCAL void state_stack_set_many(routine *r, datum idx, datum list) {
   if (!datum_is_list(&list)) {
     fprintf(stderr, "put_all expected a list\n");
     exit(EXIT_FAILURE);
   }
   for (int i = 0; i < list_length(&list); ++i) {
-    state_stack_put(r, *list_at(&list, i));
+    state_stack_set(r, &idx, *list_at(&list, i));
+    list_at(&idx, 1)->integer_value += 1;
   }
 }
 
