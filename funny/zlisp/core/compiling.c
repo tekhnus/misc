@@ -361,6 +361,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       list_append(&indices, idx);
     }
   }
+  datum top_arg_poly = compdata_get_top_polyindex(compdata);
   int before = compdata_get_length(compdata);
   while (index < list_length(s_expr)) {
     char *err =
@@ -369,7 +370,6 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       return err;
     }
   }
-  datum top_arg_poly = compdata_get_top_polyindex(compdata);
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
   prog_append_call(sl, capture_size, indices, !mut, target, arg_count,
