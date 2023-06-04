@@ -543,10 +543,7 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
                     .type_id = -1,
                     .parent_type_id = prg};
   datum pc_frame_datum = datum_make_frame(pc_frame);
-  frame exec = {.state = vec_make_of(2, vars_datum, pc_frame_datum),
-                .type_id = prg,
-                .parent_type_id = parent_type_id};
-  datum res = datum_make_frame(exec);
+  datum res = datum_make_list_of(vars_datum, pc_frame_datum);
   return res;
 }
 
@@ -567,26 +564,16 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 }
 
 LOCAL routine get_routine_from_datum(datum *e) {
-  if (!datum_is_frame(e)) {
+  if (!datum_is_list(e)) {
     fprintf(stderr, "get_routine_from_datum: not a routine: %s\n",
             datum_repr(e));
     exit(EXIT_FAILURE);
   }
   routine rt;
   rt.cnt = 0;
-  frame *cell = &e->frame_value;
-  for (;;) {
-    if (vec_length(&cell->state) == 1) {
-      rt.frames[rt.cnt++] = cell;
-      break;
-    }
-    assert(vec_length(&cell->state) == 2);
-    datum *car = vec_at(&cell->state, 0);
-    datum *cdr = vec_at(&cell->state, 1);
-    assert(datum_is_frame(car));
-    rt.frames[rt.cnt++] = &car->frame_value;
-    assert(datum_is_frame(cdr));
-    cell = &cdr->frame_value;
+  for (int i = 0; i < list_length(e); ++i) {
+    assert(datum_is_frame(list_at(e, i)));
+    rt.frames[rt.cnt++] = &list_at(e, i)->frame_value;
   }
   return rt;
 }
