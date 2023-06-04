@@ -38,8 +38,6 @@ EXPORT bool datum_is_bytestring(datum *e) {
   return e->type == DATUM_BYTESTRING;
 }
 
-EXPORT bool datum_is_frame(datum *e) { return e->type == DATUM_FRAME; }
-
 EXPORT datum datum_make_symbol(char *name) {
   datum e;
   e.type = DATUM_SYMBOL;
@@ -69,16 +67,15 @@ EXPORT datum datum_make_int(int64_t value) {
   return e;
 }
 
-EXPORT datum datum_make_frame(frame fr) {
+EXPORT bool datum_is_frame(datum *e) { return e->type == DATUM_FRAME; }
+
+EXPORT datum datum_make_frame(vec state, int type_id, int parent_type_id) {
   datum e;
   e.type = DATUM_FRAME;
-  e.frame_value = fr;
+  e.frame_value.state = state;
+  e.frame_value.type_id = type_id;
+  e.frame_value.parent_type_id = parent_type_id;
   return e;
-}
-
-EXPORT frame *get_frame_from_datum(datum *d) {
-  assert(datum_is_frame(d));
-  return &d->frame_value;
 }
 
 EXPORT frame_view get_frame_view_from_datum(datum *d) {
@@ -517,7 +514,7 @@ EXPORT datum datum_copy(datum *d) {
   }
   if (datum_is_frame(d)) {
     frame f = frame_copy(&d->frame_value);
-    datum res = datum_make_frame(f);
+    datum res = datum_make_frame(f.state, f.type_id, f.parent_type_id);
     return res;
   }
   return *d;

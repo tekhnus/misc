@@ -51,12 +51,11 @@ datum datum_make_list_of_impl(size_t count,datum *values);
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);
-bool datum_is_frame(datum *e);
 datum datum_make_symbol(char *name);
 datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
-datum datum_make_frame(frame fr);
-frame *get_frame_from_datum(datum *d);
+bool datum_is_frame(datum *e);
+datum datum_make_frame(vec state,int type_id,int parent_type_id);
 typedef struct frame_view frame_view;
 struct frame_view {
   vec *state;
