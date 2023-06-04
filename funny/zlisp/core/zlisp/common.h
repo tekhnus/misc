@@ -116,7 +116,7 @@ char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *e
 void prog_append_bytecode(vec *sl,vec *src_sl);
 void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum top_arg_polyindex,datum *compdata);
 void prog_append_copy(vec *sl,datum *val,datum *compdata);
-void prog_append_yield(vec *sl,datum type,size_t count,size_t recieve_count,datum meta,datum *compdata);
+void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t count,size_t recieve_count,datum meta,datum *compdata);
 size_t prog_append_something(vec *sl);
 void prog_append_put_const(vec *sl,datum *val,datum *compdata);
 datum prog_get_put_prog(datum *target,ptrdiff_t delta,int capture);

@@ -54,6 +54,7 @@ struct prog {
     };
     struct {
       struct datum *yield_type;
+      struct datum *yield_val_index;
       size_t yield_count;
       size_t yield_recieve_count;
       struct datum *yield_meta;
@@ -167,6 +168,7 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   if (index < 0) {
     error_instruction = datum_make_list_of(
         datum_make_symbol(":yield"), datum_make_symbol("panic"),
+        datum_make_nil(),  // TODO(): !!!!
         datum_make_int(1), datum_make_int(31415926), datum_make_nil());
     return &error_instruction;
   }
@@ -368,9 +370,10 @@ LOCAL prog datum_to_prog(datum *d) {
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);
-    res.yield_count = list_at(d, 2)->integer_value;
-    res.yield_recieve_count = list_at(d, 3)->integer_value;
-    res.yield_meta = list_at(d, 4);
+    res.yield_val_index = list_at(d, 2);
+    res.yield_count = list_at(d, 3)->integer_value;
+    res.yield_recieve_count = list_at(d, 4)->integer_value;
+    res.yield_meta = list_at(d, 5);
   } else {
     fprintf(stderr, "unknown instruction: %s\n", datum_repr(d));
     exit(EXIT_FAILURE);

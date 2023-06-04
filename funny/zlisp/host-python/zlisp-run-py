@@ -114,7 +114,7 @@ def main():
     ins = prog[ip]
     op, args = ins[0], ins[1:]
     if op == sexpdata.Symbol(":yield"):
-        _, cnt, recieve_cnt, meta = args
+        _, val_idx, cnt, recieve_cnt, meta = args
         pdata[-1].ip += 1
     else:
         raise RuntimeError("should have started with yield")
@@ -183,7 +183,7 @@ def main():
                     pref = ">" if i == ip else " "
                     print(i, pref, prog[i])
                 raise RuntimeError("expected a yield-reciever")
-            _, cnt, recieve_cnt, meta = args
+            _, val_idx, cnt, recieve_cnt, meta = args
             if arg_cnt != recieve_cnt:
                 raise RuntimeError(
                     f"arg count {arg_cnt} and recieve count {recieve_cnt} are different"
@@ -210,7 +210,7 @@ def main():
             pdata[-1].varz[tframe][tindx] = p
             ip += nex
         elif op == sexpdata.Symbol(":yield"):
-            target, cnt, recieve_cnt, meta = args
+            target, val_idx, cnt, recieve_cnt, meta = args
             if target == sexpdata.Symbol("plain"):
                 rvalues = [pop_stack() for _ in range(cnt)]
 
