@@ -14,7 +14,6 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
-  DATUM_FRAME,
 };
 typedef enum datum_type datum_type;
 typedef struct vec vec;

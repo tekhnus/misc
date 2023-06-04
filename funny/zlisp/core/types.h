@@ -9,7 +9,6 @@ enum datum_type {
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
   DATUM_INTEGER,
-  DATUM_FRAME,
 };
 
 struct datum {
