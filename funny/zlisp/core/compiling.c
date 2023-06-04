@@ -28,7 +28,7 @@ EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
-  return fdatum_make_ok(vec_to_datum(&sl));
+  return fdatum_make_ok(datum_make_list(sl));
 }
 
 EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,

@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "compilation error: %s\n", err);
     return EXIT_FAILURE;
   }
-  datum d = vec_to_datum(&sl);
+  datum d = datum_make_list(sl);
   printf("%s\n", datum_repr(&d));
   return EXIT_SUCCESS;
 }

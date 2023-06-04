@@ -381,15 +381,7 @@ EXPORT datum *vec_at(vec *s, size_t index) {
 
 EXPORT size_t vec_length(vec *s) { return s->length; }
 
-EXPORT datum vec_to_datum(vec *v) {
-  datum res = datum_make_nil();
-  for (size_t i = 0; i < vec_length(v); ++i) {
-    list_append(&res, datum_copy(vec_at(v, i)));
-  }
-  return res;
-}
-
-EXPORT datum vec_to_datum_nocopy(vec v) {
+EXPORT datum datum_make_list(vec v) {
   datum res = datum_make_nil();
   res.list_value = v;
   return res;

@@ -577,7 +577,7 @@ LOCAL routine get_routine_from_datum(datum *e) {
 }
 
 LOCAL datum datum_make_frame(vec state, int type_id, int parent_type_id) {
-  return datum_make_list_of(vec_to_datum_nocopy(state), datum_make_int(type_id),
+  return datum_make_list_of(datum_make_list(state), datum_make_int(type_id),
                             datum_make_int(parent_type_id));
 }
 
