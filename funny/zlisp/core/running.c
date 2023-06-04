@@ -315,7 +315,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       if (prg.type == PROG_COLLECT) {
         datum first_index = datum_copy(prg.collect_top_index);
         datum form = state_stack_collect(r, prg.collect_count, first_index);
-        state_stack_put(r, form);
+        state_stack_set(r, prg.collect_top_index, form);
         *routine_offset(r) += 1;
         continue;
       }
