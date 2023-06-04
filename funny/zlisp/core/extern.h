@@ -23,12 +23,6 @@ struct vec {
   size_t length;
   size_t capacity;
 };
-typedef struct frame frame;
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
 struct datum {
   enum datum_type type;
   union {
@@ -36,9 +30,6 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct {
-      frame frame_value;
-    };
   };
 };
 struct fdatum {
@@ -166,7 +157,6 @@ LOCAL read_result datum_read(FILE *strm);
 bool read_result_is_ok(read_result x);
 read_result datum_read_all(FILE *stre);
 vec *list_to_vec(datum *val);
-LOCAL frame frame_copy(frame *src);
 vec vec_copy(vec *src);
 int list_index_of(datum *xs,datum *x);
 datum list_pop(datum *list);
@@ -175,7 +165,6 @@ datum list_get_tail(datum *list);
 datum *list_get_last(datum *list);
 datum list_copy(datum *list,int from,int to);
 datum vec_pop(vec *v);
-datum vec_to_datum_nocopy(vec v);
 datum datum_copy(datum *d);
 void list_append(datum *list,datum value);
 datum datum_make_nil();
@@ -194,14 +183,14 @@ fdatum fdatum_make_panic(char *message);
 fdatum fdatum_make_ok(datum v);
 bool fdatum_is_panic(fdatum result);
 bool datum_is_nil(datum *e);
-datum *list_at(datum *list,unsigned index);
 bool datum_is_the_symbol(datum *d,char *val);
-int list_length(datum *seq);
-bool datum_is_list(datum *e);
 LOCAL char *escape_string(char *s);
 char *datum_repr_pretty(datum *e,extension *ext);
 LOCAL char *datum_repr_impl(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
 char *datum_repr(datum *e);
+datum *list_at(datum *list,unsigned index);
+int list_length(datum *seq);
+bool datum_is_list(datum *e);
 typedef struct frame_view frame_view;
 struct frame_view {
   vec *state;
@@ -209,8 +198,8 @@ struct frame_view {
   int parent_type_id;
 };
 frame_view get_frame_view_from_datum(datum *d);
+datum vec_to_datum_nocopy(vec v);
 datum datum_make_frame(vec state,int type_id,int parent_type_id);
-bool datum_is_frame(datum *e);
 datum datum_make_int(int64_t value);
 datum datum_make_bytestring(char *text);
 datum datum_make_symbol(char *name);

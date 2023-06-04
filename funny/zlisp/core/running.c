@@ -187,10 +187,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         char *buf = bufbeg;
         buf[0] = '\0';
         for (size_t j = 0; j < routine_get_count(&rt); ++j) {
-          buf +=
-              sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
-                      (rt.frames[j].parent_type_id), (rt.frames[j].type_id),
-                      vec_length(rt.frames[j].state));
+          buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
+                         (rt.frames[j].parent_type_id), (rt.frames[j].type_id),
+                         vec_length(rt.frames[j].state));
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         state_stack_put(r, datum_make_bytestring(bufbeg));
@@ -530,15 +529,13 @@ LOCAL void routine_merge(routine *r, routine *rt_tail) {
 
 EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
-  int parent_type_id = context != NULL
-              ? (context->frames[routine_get_count(context) - 2].type_id)
-    : -1;
-  datum vars_datum = datum_make_frame(
-      vec_make(1024),
-      prg,
-      parent_type_id);
-  datum pc_frame_datum = datum_make_frame(vec_make_of(1, datum_make_int(prg)),
-                                          -1, prg);
+  int parent_type_id =
+      context != NULL
+          ? (context->frames[routine_get_count(context) - 2].type_id)
+          : -1;
+  datum vars_datum = datum_make_frame(vec_make(1024), prg, parent_type_id);
+  datum pc_frame_datum =
+      datum_make_frame(vec_make_of(1, datum_make_int(prg)), -1, prg);
   datum res = datum_make_list_of(vars_datum, pc_frame_datum);
   return res;
 }
@@ -568,7 +565,6 @@ LOCAL routine get_routine_from_datum(datum *e) {
   routine rt;
   rt.cnt = 0;
   for (int i = 0; i < list_length(e); ++i) {
-    assert(datum_is_frame(list_at(e, i)));
     rt.frames[rt.cnt++] = get_frame_view_from_datum(list_at(e, i));
   }
   return rt;

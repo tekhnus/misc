@@ -67,23 +67,21 @@ EXPORT datum datum_make_int(int64_t value) {
   return e;
 }
 
-EXPORT bool datum_is_frame(datum *e) { return e->type == DATUM_FRAME; }
-
 EXPORT datum datum_make_frame(vec state, int type_id, int parent_type_id) {
-  datum e;
-  e.type = DATUM_FRAME;
-  e.frame_value.state = state;
-  e.frame_value.type_id = type_id;
-  e.frame_value.parent_type_id = parent_type_id;
-  return e;
+  return datum_make_list_of(vec_to_datum_nocopy(state), datum_make_int(type_id),
+                            datum_make_int(parent_type_id));
 }
 
 EXPORT frame_view get_frame_view_from_datum(datum *d) {
-  assert(datum_is_frame(d));
+  assert(datum_is_list(d));
+  assert(list_length(d) == 3);
+  assert(datum_is_list(list_at(d, 0)));
+  assert(datum_is_integer(list_at(d, 1)));
+  assert(datum_is_integer(list_at(d, 2)));
   frame_view v;
-  v.state = &d->frame_value.state;
-  v.type_id = d->frame_value.type_id;
-  v.parent_type_id = d->frame_value.parent_type_id;
+  v.state = &list_at(d, 0)->list_value;
+  v.type_id = list_at(d, 1)->integer_value;
+  v.parent_type_id = list_at(d, 2)->integer_value;
   return v;
 }
 
@@ -256,8 +254,6 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
     end += sprintf(end, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
     end += sprintf(end, "\"%s\"", escape_string(e->bytestring_value));
-  } else if (datum_is_frame(e)) {
-    sprintf(buf, "<some frame>");
   } else {
     sprintf(buf, "<fmt not implemented>");
   }
@@ -518,20 +514,7 @@ EXPORT datum datum_copy(datum *d) {
     }
     return e;
   }
-  if (datum_is_frame(d)) {
-    frame_view f = get_frame_view_from_datum(d);
-    datum res = datum_make_frame(vec_copy(f.state), f.type_id, f.parent_type_id);
-    return res;
-  }
   return *d;
-}
-
-LOCAL frame frame_copy(frame *src) {
-  frame dst;
-  dst.state = vec_copy(&src->state);
-  dst.type_id = src->type_id;
-  dst.parent_type_id = src->parent_type_id;
-  return dst;
 }
 
 EXPORT vec vec_copy(vec *src) {

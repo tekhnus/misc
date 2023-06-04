@@ -26,12 +26,6 @@ struct vec {
   size_t length;
   size_t capacity;
 };
-typedef struct frame frame;
-struct frame {
-  vec state;
-  int type_id;
-  int parent_type_id;
-};
 struct datum {
   enum datum_type type;
   union {
@@ -39,9 +33,6 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    struct {
-      frame frame_value;
-    };
   };
 };
 datum datum_make_list_of_impl(size_t count,datum *values);
@@ -54,7 +45,6 @@ bool datum_is_bytestring(datum *e);
 datum datum_make_symbol(char *name);
 datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
-bool datum_is_frame(datum *e);
 datum datum_make_frame(vec state,int type_id,int parent_type_id);
 typedef struct frame_view frame_view;
 struct frame_view {
