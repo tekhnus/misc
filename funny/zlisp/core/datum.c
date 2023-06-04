@@ -343,6 +343,14 @@ EXPORT vec vec_make(size_t capacity) {
   return res;
 }
 
+EXPORT vec vec_make_copies(size_t length, datum val) {
+  vec res = vec_make(length);
+  for (size_t i = 0; i < length; ++i) {
+    vec_append(&res, datum_copy(&val));
+  }
+  return res;
+}
+
 EXPORT datum *vec_append(vec *s, datum x) {
   if (s->length == s->capacity) {
     size_t new_capacity = (s->capacity + 1) * 2;

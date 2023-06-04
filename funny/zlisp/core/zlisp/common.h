@@ -68,6 +68,7 @@ bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
 bool datum_is_the_symbol(datum *d,char *val);
 vec vec_make(size_t capacity);
+vec vec_make_copies(size_t length,datum val);
 datum *vec_append(vec *s,datum x);
 vec vec_make_of(size_t count,...);
 datum *vec_at(vec *s,size_t index);

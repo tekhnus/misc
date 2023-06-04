@@ -39,7 +39,7 @@ struct prog {
     struct {
       struct datum *call_indices;
       size_t call_capture_count;
-      bool call_pop_one;
+      bool call_invalidate_function;
       struct datum *call_type;
       size_t call_arg_count;
       size_t call_return_count;
@@ -221,7 +221,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
 
       datum fn_index = datum_copy(prg.call_arg_index);
-      if (prg.call_pop_one) {
+      if (prg.call_invalidate_function) {
         list_at(&fn_index, 1)->integer_value -= 1;
       }
       state_stack_set_many(r, fn_index, *argz);
@@ -356,7 +356,7 @@ LOCAL prog datum_to_prog(datum *d) {
     res.type = PROG_CALL;
     res.call_capture_count = list_at(d, 1)->integer_value;
     res.call_indices = list_at(d, 2);
-    res.call_pop_one = list_at(d, 3)->integer_value;
+    res.call_invalidate_function = list_at(d, 3)->integer_value;
     res.call_type = list_at(d, 4);
     res.call_arg_count = list_at(d, 5)->integer_value;
     res.call_return_count = list_at(d, 6)->integer_value;
@@ -481,9 +481,7 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   datum *value_index = list_at(target, 1);
   assert(datum_is_integer(value_index));
   size_t value_index_ = value_index->integer_value;
-  while (value_index_ >= vec_length(frame)) {
-    vec_append(frame, datum_make_symbol(":invalid"));
-  };
+  assert (value_index_ < vec_length(frame));
   *vec_at(frame, value_index_) = value;
 }
 
@@ -505,9 +503,9 @@ LOCAL datum state_stack_invalidate(routine *r, datum polyindex) {
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count, datum top_polyindex) {
-  datum form = datum_make_nil();
+  datum form = datum_make_list(vec_make_copies(count, datum_make_nil()));
   for (size_t i = 0; i < count; ++i) {
-    list_append(&form, state_stack_invalidate(r, top_polyindex));
+    *list_at(&form, i) = state_stack_invalidate(r, top_polyindex);
     list_at(&top_polyindex, 1)->integer_value += 1;
   }
   return form;
@@ -524,10 +522,11 @@ LOCAL size_t routine_get_stack_size(routine *r) {
 LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 
 LOCAL datum routine_get_shape(routine *r) {
-  datum res = datum_make_nil();
-  for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
+  size_t cnt = routine_get_count(r) - 1;
+  datum res = datum_make_list(vec_make_copies(cnt, datum_make_nil()));
+  for (size_t i = 0; i < cnt; ++i) {
     datum ii = datum_make_int(vec_length(r->frames[i].state));
-    list_append(&res, ii);
+    *list_at(&res, i) = ii;
   }
   return res;
 }
@@ -547,7 +546,7 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
       context != NULL
           ? (context->frames[routine_get_count(context) - 2].type_id)
           : -1;
-  datum vars_datum = datum_make_frame(vec_make(1024), prg, parent_type_id);
+  datum vars_datum = datum_make_frame(vec_make_copies(256, datum_make_symbol(":invalid")), prg, parent_type_id);
   datum pc_frame_datum =
       datum_make_frame(vec_make_of(1, datum_make_int(prg)), -1, prg);
   datum res = datum_make_list_of(vars_datum, pc_frame_datum);
