@@ -254,8 +254,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
-        // args = state_stack_collect_from(r, datum_copy(prg.call_arg_index), prg.call_arg_count);
-        args = state_stack_collect(r, prg.call_arg_count, datum_make_nil());
+        args = state_stack_collect(r, prg.call_arg_count, *prg.call_arg_index);
         break;
       }
       if (prg.type == PROG_PUT_PROG) {
