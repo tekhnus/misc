@@ -19,7 +19,9 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    frame frame_value;
+    struct {
+      frame frame_value;
+    };
   };
 };
 
@@ -59,6 +61,12 @@ struct vec {
 
 struct frame {
   vec state;
+  int type_id;
+  int parent_type_id;
+};
+
+struct frame_view {
+  vec *state;
   int type_id;
   int parent_type_id;
 };

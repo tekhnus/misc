@@ -61,7 +61,7 @@ struct prog {
 };
 
 struct routine {
-  struct frame *frames[10];
+  struct frame_view frames[10];
   size_t cnt;
 };
 
@@ -175,9 +175,9 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
                                              prg.call_indices);
       bool good = true;
       for (size_t i = 0; i < routine_get_count(&rt); ++i) {
-        if ((i == 0 && -1 != (rt.frames[0]->parent_type_id)) ||
+        if ((i == 0 && -1 != (rt.frames[0].parent_type_id)) ||
             (i > 0 &&
-             (rt.frames[i]->parent_type_id != rt.frames[i - 1]->type_id))) {
+             (rt.frames[i].parent_type_id != rt.frames[i - 1].type_id))) {
           good = false;
           break;
         }
@@ -189,8 +189,8 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         for (size_t j = 0; j < routine_get_count(&rt); ++j) {
           buf +=
               sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
-                      (rt.frames[j]->parent_type_id), (rt.frames[j]->type_id),
-                      vec_length(&rt.frames[j]->state));
+                      (rt.frames[j].parent_type_id), (rt.frames[j].type_id),
+                      vec_length(rt.frames[j].state));
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         state_stack_put(r, datum_make_bytestring(bufbeg));
@@ -427,12 +427,12 @@ LOCAL bool state_stack_has(routine *r, datum *offset) {
   if (frame->integer_value >= (int)routine_get_count(r)) {
     return false;
   }
-  struct frame *f = r->frames[frame->integer_value];
+  struct frame_view f = r->frames[frame->integer_value];
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
-  vec vars = f->state;
-  if ((size_t)idx->integer_value >= vec_length(&vars)) {
+  vec *vars = f.state;
+  if ((size_t)idx->integer_value >= vec_length(vars)) {
     return false;
   }
   return true;
@@ -443,13 +443,13 @@ LOCAL datum *state_stack_at(routine *r, datum *offset) {
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
   assert(frame->integer_value < (int)routine_get_count(r));
-  struct frame *f = r->frames[frame->integer_value];
+  struct frame_view f = r->frames[frame->integer_value];
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
-  vec vars = f->state;
-  assert((size_t)idx->integer_value < vec_length(&vars));
-  return vec_at(&vars, idx->integer_value);
+  vec *vars = f.state;
+  assert((size_t)idx->integer_value < vec_length(vars));
+  return vec_at(vars, idx->integer_value);
 }
 
 LOCAL void state_stack_set(routine *r, datum *target, datum value) {
@@ -458,7 +458,7 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
   assert(datum_is_integer(frame_index));
   size_t frame_index_ = frame_index->integer_value;
   assert(frame_index_ < routine_get_count(r));
-  vec *frame = &r->frames[frame_index_]->state;
+  vec *frame = r->frames[frame_index_].state;
   datum *value_index = list_at(target, 1);
   assert(datum_is_integer(value_index));
   size_t value_index_ = value_index->integer_value;
@@ -469,7 +469,7 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
 }
 
 LOCAL void state_stack_put(routine *r, datum value) {
-  vec_append(&r->frames[routine_get_count(r) - 2]->state, value);
+  vec_append(r->frames[routine_get_count(r) - 2].state, value);
 }
 
 LOCAL void state_stack_put_all(routine *r, datum list) {
@@ -483,7 +483,7 @@ LOCAL void state_stack_put_all(routine *r, datum list) {
 }
 
 LOCAL datum state_stack_pop(routine *r) {
-  return vec_pop(&r->frames[routine_get_count(r) - 2]->state);
+  return vec_pop(r->frames[routine_get_count(r) - 2].state);
 }
 
 LOCAL datum state_stack_collect(routine *r, size_t count) {
@@ -503,7 +503,7 @@ LOCAL datum state_stack_collect(routine *r, size_t count) {
 LOCAL size_t routine_get_stack_size(routine *r) {
   size_t res = 0;
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
-    res += vec_length(&r->frames[i]->state);
+    res += vec_length(r->frames[i].state);
   }
   return res;
 }
@@ -513,7 +513,7 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 LOCAL datum routine_get_shape(routine *r) {
   datum res = datum_make_nil();
   for (size_t i = 0; i < routine_get_count(r) - 1; ++i) {
-    datum ii = datum_make_int(vec_length(&r->frames[i]->state));
+    datum ii = datum_make_int(vec_length(r->frames[i].state));
     list_append(&res, ii);
   }
   return res;
@@ -531,7 +531,7 @@ LOCAL void routine_merge(routine *r, routine *rt_tail) {
 EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
   int parent_type_id = context != NULL
-              ? (context->frames[routine_get_count(context) - 2]->type_id)
+              ? (context->frames[routine_get_count(context) - 2].type_id)
     : -1;
   frame vars = {
       .state = vec_make(1024),
@@ -556,9 +556,9 @@ EXPORT datum *routine_make_alloc(ptrdiff_t prg, routine *context) {
 
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(routine_get_count(r) > 0);
-  frame *f = r->frames[routine_get_count(r) - 1];
-  assert(vec_length(&f->state) == 1);
-  datum *offset_datum = vec_at(&f->state, 0);
+  frame_view f = r->frames[routine_get_count(r) - 1];
+  assert(vec_length(f.state) == 1);
+  datum *offset_datum = vec_at(f.state, 0);
   assert(datum_is_integer(offset_datum));
   return &offset_datum->integer_value;
 }
@@ -573,7 +573,7 @@ LOCAL routine get_routine_from_datum(datum *e) {
   rt.cnt = 0;
   for (int i = 0; i < list_length(e); ++i) {
     assert(datum_is_frame(list_at(e, i)));
-    rt.frames[rt.cnt++] = get_frame_from_datum(list_at(e, i));
+    rt.frames[rt.cnt++] = get_frame_view_from_datum(list_at(e, i));
   }
   return rt;
 }

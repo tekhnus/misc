@@ -81,6 +81,15 @@ EXPORT frame *get_frame_from_datum(datum *d) {
   return &d->frame_value;
 }
 
+EXPORT frame_view get_frame_view_from_datum(datum *d) {
+  assert(datum_is_frame(d));
+  frame_view v;
+  v.state = &d->frame_value.state;
+  v.type_id = d->frame_value.type_id;
+  v.parent_type_id = d->frame_value.parent_type_id;
+  return v;
+}
+
 EXPORT char *datum_repr(datum *e) {
   return datum_repr_impl(e, 128, 0, false, FLAT, " ");
 }

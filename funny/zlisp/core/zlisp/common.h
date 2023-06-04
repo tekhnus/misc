@@ -39,7 +39,9 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    frame frame_value;
+    struct {
+      frame frame_value;
+    };
   };
 };
 datum datum_make_list_of_impl(size_t count,datum *values);
@@ -55,6 +57,13 @@ datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
 datum datum_make_frame(frame fr);
 frame *get_frame_from_datum(datum *d);
+typedef struct frame_view frame_view;
+struct frame_view {
+  vec *state;
+  int type_id;
+  int parent_type_id;
+};
+frame_view get_frame_view_from_datum(datum *d);
 char *datum_repr(datum *e);
 typedef struct extension extension;
 struct extension {

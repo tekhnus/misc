@@ -36,7 +36,9 @@ struct datum {
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
-    frame frame_value;
+    struct {
+      frame frame_value;
+    };
   };
 };
 struct fdatum {
@@ -199,6 +201,13 @@ LOCAL char *escape_string(char *s);
 char *datum_repr_pretty(datum *e,extension *ext);
 LOCAL char *datum_repr_impl(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
 char *datum_repr(datum *e);
+typedef struct frame_view frame_view;
+struct frame_view {
+  vec *state;
+  int type_id;
+  int parent_type_id;
+};
+frame_view get_frame_view_from_datum(datum *d);
 frame *get_frame_from_datum(datum *d);
 datum datum_make_frame(frame fr);
 datum datum_make_int(int64_t value);
