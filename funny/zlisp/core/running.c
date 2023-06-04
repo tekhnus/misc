@@ -222,6 +222,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
 
       if (prg.call_pop_one) {
         datum fn_index = datum_copy(prg.call_arg_index);
+        list_at(&fn_index, 1)->integer_value -= 1;
         state_stack_invalidate(r, fn_index);
       }
       state_stack_put_all(r, *argz);
@@ -259,7 +260,6 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_CALL) {
         datum arg_index = datum_copy(prg.call_arg_index);
-        list_at(&arg_index, 1)->integer_value += 1;
         args = state_stack_collect(r, prg.call_arg_count, arg_index);
         break;
       }

@@ -355,7 +355,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       list_append(&indices, idx);
     }
   }
-  datum top_arg_poly = compdata_get_top_polyindex(compdata);
+  datum top_arg_poly = compdata_get_next_polyindex(compdata);
   int before = compdata_get_length(compdata);
   while (index < list_length(s_expr)) {
     char *err =

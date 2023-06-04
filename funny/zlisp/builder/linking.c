@@ -19,11 +19,12 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   assert(bdr_put_prog + 1 == ep_start);
   compdata_put(builder_compdata, datum_make_symbol(":anon"));
   datum pi = compdata_get_top_polyindex(builder_compdata);
+  datum fai = compdata_get_next_polyindex(builder_compdata);
   *vec_at(sl, bdr_put_prog) =
       prog_get_put_prog(&pi, prog_get_next_index(sl) - bdr_put_prog, 0);
   prog_append_call(
       sl, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
-      false, datum_make_symbol("plain"), 0, 0, pi, builder_compdata);
+      false, datum_make_symbol("plain"), 0, 0, fai, builder_compdata);
   size_t bdr = prog_append_something(sl); // this is first builder instruction.
   // filled by prog_build.
   *vec_at(sl, jm) = prog_get_jmp(prog_get_next_index(sl) - jm);
@@ -47,10 +48,11 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   datum v = datum_make_symbol("__main__");
   prog_append_copy(sl, &v, builder_compdata);
   datum fn_index = compdata_get_top_polyindex(builder_compdata);
+  datum fai = compdata_get_next_polyindex(builder_compdata);
   prog_put_deps(sl, input_meta, builder_compdata);
   prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
                    datum_make_symbol("plain"), list_length(input_meta), 0,
-                   fn_index, builder_compdata);
+                   fai, builder_compdata);
   return NULL;
 }
 
@@ -140,10 +142,11 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   *vec_at(sl, put_prog_off) =
       prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 0);
   datum fn_index = compdata_get_top_polyindex(compdata);
+  datum fai = compdata_get_next_polyindex(compdata);
   prog_put_deps(sl, transitive_deps, compdata);
   prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
-                   list_length(syms), fn_index, compdata);
+                   list_length(syms), fai, compdata);
   datum names = datum_make_nil();
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
