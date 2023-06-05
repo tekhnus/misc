@@ -38,6 +38,10 @@ datum datum_make_list_of_impl(size_t count,datum *values);
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
                           (datum[]){__VA_ARGS__})
+vec vec_make_of_impl(size_t count,datum *values);
+#define vec_make_of(...)                                                \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+                          (datum[]){__VA_ARGS__})
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);
@@ -70,7 +74,6 @@ bool datum_is_the_symbol(datum *d,char *val);
 vec vec_make(size_t capacity);
 vec vec_make_copies(size_t length,datum val);
 datum *vec_append(vec *s,datum x);
-vec vec_make_of(size_t count,...);
 datum *vec_at(vec *s,size_t index);
 size_t vec_length(vec *s);
 datum datum_make_list(vec v);

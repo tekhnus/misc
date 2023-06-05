@@ -169,7 +169,6 @@ datum datum_make_nil();
 datum datum_make_list(vec v);
 size_t vec_length(vec *s);
 datum *vec_at(vec *s,size_t index);
-vec vec_make_of(size_t count,...);
 datum datum_copy(datum *d);
 datum *vec_append(vec *s,datum x);
 vec vec_make_copies(size_t length,datum val);
@@ -198,6 +197,10 @@ bool datum_is_bytestring(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_symbol(datum *e);
 #define EXPORT
+vec vec_make_of_impl(size_t count,datum *values);
+#define vec_make_of(...)                                                \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+                          (datum[]){__VA_ARGS__})
 datum datum_make_list_of_impl(size_t count,datum *values);
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \

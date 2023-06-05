@@ -19,6 +19,11 @@ extern const int FLAT;
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
                           (datum[]){__VA_ARGS__})
+
+#define vec_make_of(...)                                                \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+                          (datum[]){__VA_ARGS__})
+
 #endif
 
 const int NON_FLAT = 0;
@@ -367,15 +372,12 @@ EXPORT datum *vec_append(vec *s, datum x) {
   return s->begin + res;
 }
 
-EXPORT vec vec_make_of(size_t count, ...) {
+EXPORT vec vec_make_of_impl(size_t count, datum *values) {
   vec e = vec_make(count);
-  va_list args;
-  va_start(args, count);
   for (size_t i = 0; i < count; ++i) {
-    datum elem = va_arg(args, datum);
+    datum elem = values[i];
     vec_append(&e, elem);
   }
-  va_end(args);
   return e;
 }
 

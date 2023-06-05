@@ -67,15 +67,15 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   int arity = arityd->integer_value;
   *i += arity;
   datum invokation_statement_ = list_copy(source, *i - arity, *i);
-  datum invokation_statement = datum_make_nil();
-  list_append(&invokation_statement, name);
+  vec invokation_statement = vec_make(0);
+  vec_append(&invokation_statement, name);
   for (int i = 1; i < list_length(&invokation_statement_); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement_, i));
-    list_append(&invokation_statement, datum_make_symbol("quote"));
-    list_append(&invokation_statement, datum_make_list_of(orig));
+    vec_append(&invokation_statement, datum_make_symbol("quote"));
+    vec_append(&invokation_statement, datum_make_list_of(orig));
   }
   datum call_statement =
-      datum_make_list_of(datum_make_symbol("call"), invokation_statement);
+    datum_make_list_of(datum_make_symbol("call"), datum_make_list(invokation_statement));
   // fprintf(stderr, "call: %s\n", datum_repr(&call_statement));
   fdatum res = lisp_extension_run(&call_statement, self);
   if (fdatum_is_panic(res)) {
@@ -164,8 +164,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     return fdatum_make_panic("wrong usage spec");
   }
   int index = 0;
-  datum vars = datum_make_nil();
-  datum specs = datum_make_nil();
+  vec vars = vec_make(0);
+  vec specs = vec_make(0);
   datum *items = list_at(spec, 1);
   for (; index < list_length(items); ++index) {
     datum *item_ = list_at(items, index);
@@ -189,10 +189,10 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     } else {
       return fdatum_make_panic("wrong usage spec: wrong item length");
     }
-    list_append(&vars, datum_copy(item_var));
-    list_append(&specs, item_spec);
+    vec_append(&vars, datum_copy(item_var));
+    vec_append(&specs, item_spec);
   }
-  return fdatum_make_ok(datum_make_list_of(vars, specs));
+  return fdatum_make_ok(datum_make_list_of(datum_make_list(vars), datum_make_list(specs)));
 }
 
 LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,

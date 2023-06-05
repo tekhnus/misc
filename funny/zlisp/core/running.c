@@ -499,7 +499,7 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
   datum vars_datum = datum_make_frame(
       vec_make_copies(256, datum_make_symbol(":invalid")), prg, parent_type_id);
   datum pc_frame_datum =
-      datum_make_frame(vec_make_of(1, datum_make_int(prg)), -1, prg);
+      datum_make_frame(vec_make_of(datum_make_int(prg)), -1, prg);
   datum res = datum_make_list_of(vars_datum, pc_frame_datum);
   return res;
 }
