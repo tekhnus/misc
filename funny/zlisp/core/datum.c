@@ -348,6 +348,10 @@ EXPORT vec vec_make(size_t capacity) {
   return res;
 }
 
+EXPORT datum list_make_copies(size_t length, datum val) {
+  return datum_make_list(vec_make_copies(length, val));
+}
+
 EXPORT vec vec_make_copies(size_t length, datum val) {
   vec res = vec_make(length);
   for (size_t i = 0; i < length; ++i) {
@@ -419,12 +423,12 @@ EXPORT bool datum_is_nil(datum *e) {
 }
 
 EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
-  datum e = datum_make_nil();
+  vec vals = vec_make_copies(count, datum_make_nil());
   for (size_t i = 0; i < count; ++i) {
     datum elem = values[i];
-    list_append(&e, elem);
+    *vec_at(&vals, i) = elem;
   }
-  return e;
+  return datum_make_list(vals);
 }
 
 EXPORT int list_length(datum *seq) {
@@ -438,9 +442,9 @@ EXPORT datum *list_at(datum *list, unsigned index) {
 }
 
 EXPORT datum list_copy(datum *list, int from, int to) {
-  datum res = datum_make_nil();
-  for (int i = from; i < to; ++i) {
-    list_append(&res, datum_copy(list_at(list, i)));
+  datum res = list_make_copies(to - from, datum_make_nil());
+  for (int i = 0; from + i < to; ++i) {
+    *list_at(&res, i) = datum_copy(list_at(list, from + i));
   }
   return res;
 }
@@ -454,9 +458,9 @@ EXPORT datum *list_get_last(datum *list) {
 EXPORT datum list_get_tail(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);
-  datum e = datum_make_nil();
+  datum e = list_make_copies(list_length(list) - 1, datum_make_nil());
   for (int i = 1; i < list_length(list); ++i) {
-    list_append(&e, datum_copy(list_at(list, i)));
+    *list_at(&e, i - 1) = datum_copy(list_at(list, i));
   }
   return e;
 }
@@ -465,11 +469,10 @@ EXPORT void list_append(datum *list, datum value) {
   vec_append(&list->list_value, value);
 }
 
-EXPORT void list_extend(datum *list, datum *another) {
-  assert(datum_is_list(list));
+EXPORT void vec_extend(vec *list, datum *another) {
   assert(datum_is_list(another));
   for (int i = 0; i < list_length(another); ++i) {
-    list_append(list, *list_at(another, i));
+    vec_append(list, *list_at(another, i));
   }
 }
 
@@ -491,12 +494,7 @@ EXPORT int list_index_of(datum *xs, datum *x) {
 
 EXPORT datum datum_copy(datum *d) {
   if (datum_is_list(d)) {
-    datum e = datum_make_nil();
-    for (int i = 0; i < list_length(d); ++i) {
-      datum item = datum_copy(list_at(d, i));
-      list_append(&e, item);
-    }
-    return e;
+    return list_copy(d, 0, list_length(d));
   }
   return *d;
 }

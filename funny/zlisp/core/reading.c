@@ -10,9 +10,9 @@
 
 EXPORT read_result datum_read_all(FILE *stre) {
   read_result rr;
-  datum res = datum_make_nil();
+  vec res = vec_make(0);
   for (; read_result_is_ok(rr = datum_read(stre));) {
-    list_extend(&res, &rr.ok_value);
+    vec_extend(&res, &rr.ok_value);
   }
   if (read_result_is_panic(rr)) {
     return read_result_make_panic(rr.panic_message);
@@ -21,7 +21,7 @@ EXPORT read_result datum_read_all(FILE *stre) {
       read_result_is_right_curly(rr)) {
     return read_result_make_panic("unmatched right paren");
   }
-  return read_result_make_ok(res);
+  return read_result_make_ok(datum_make_list(res));
 }
 
 EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
@@ -295,19 +295,19 @@ LOCAL read_result datum_read(FILE *strm) {
   if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE ||
       tok.type == TOKEN_LEFT_CURLY) {
     read_result elem;
-    datum list = datum_make_nil();
+    vec list = vec_make(0);
     while (read_result_is_ok(elem = datum_read(strm))) {
-      list_extend(&list, &elem.ok_value);
+      vec_extend(&list, &elem.ok_value);
     }
     if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
       return read_result_make_ok_of(
-          datum_make_list_of(datum_make_symbol("call"), list));
+                                    datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
     }
     if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
-      return read_result_make_ok_of(list);
+      return read_result_make_ok_of(datum_make_list(list));
     }
     if (tok.type == TOKEN_LEFT_CURLY && read_result_is_right_curly(elem)) {
-      return read_result_make_ok_of(list);
+      return read_result_make_ok_of(datum_make_list(list));
     }
     if (read_result_is_eof(elem)) {
       return read_result_make_panic("expected ')', got EOS");
