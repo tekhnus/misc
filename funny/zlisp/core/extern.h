@@ -16,20 +16,15 @@ enum datum_type {
   DATUM_INTEGER,
 };
 typedef enum datum_type datum_type;
-typedef struct vec vec;
 typedef struct array array;
 struct array {
   datum *begin;
   size_t length;
 };
-struct vec {
-  array storage;
-  size_t length;
-};
 struct datum {
   enum datum_type type;
   union {
-    vec list_value;
+    array list_value;
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
@@ -42,6 +37,7 @@ struct fdatum {
 };
 LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL fdatum prog_read_usages(datum *spec);
+typedef struct vec vec;
 typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
@@ -49,6 +45,10 @@ struct extension {
 LOCAL char *prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext);
 LOCAL char *prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext);
 typedef struct lisp_extension lisp_extension;
+struct vec {
+  array storage;
+  size_t length;
+};
 struct lisp_extension {
   extension base;
   vec program;
@@ -162,14 +162,19 @@ LOCAL read_result datum_read(FILE *strm);
 bool read_result_is_ok(read_result x);
 read_result datum_read_all(FILE *stre);
 vec list_to_vec(datum *val);
+LOCAL array array_copy(array *arr);
+LOCAL vec array_to_vec(array arr);
 vec vec_copy(vec *src);
 int list_index_of(datum *xs,datum *x);
 void vec_extend(vec *list,datum *another);
 datum list_get_tail(datum *list);
 datum *list_get_last(datum *list);
 datum list_copy(datum *list,int from,int to);
+size_t array_length(array *arr);
 datum vec_pop(vec *v);
 datum datum_make_nil();
+datum *array_at(array *arr,size_t i);
+LOCAL array vec_to_array(vec v);
 size_t vec_length(vec *s);
 datum *vec_at(vec *s,size_t index);
 datum datum_copy(datum *d);

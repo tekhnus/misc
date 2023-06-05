@@ -400,9 +400,20 @@ EXPORT datum *vec_at(vec *s, size_t index) {
 
 EXPORT size_t vec_length(vec *s) { return s->length; }
 
+LOCAL array vec_to_array(vec v) {
+  if (v.length == v.storage.length) {
+    return v.storage;
+  }
+  array res = array_make_uninitialized(vec_length(&v));
+  for (size_t i = 0; i < vec_length(&v); ++i) {
+    *array_at(&res, i) = *vec_at(&v, i);
+  }
+  return res;
+}
+
 EXPORT datum datum_make_list(vec v) {
   datum res = datum_make_nil();
-  res.list_value = v;
+  res.list_value = vec_to_array(v);
   return res;
 }
 
@@ -417,7 +428,7 @@ EXPORT datum vec_pop(vec *v) {
 EXPORT datum datum_make_nil() {
   datum e;
   e.type = DATUM_LIST;
-  e.list_value = vec_make(0);
+  e.list_value = vec_make(0).storage;
   return e;
 }
 
@@ -436,14 +447,22 @@ EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
   return datum_make_list(vals);
 }
 
+EXPORT size_t array_length(array *arr) {
+  return arr->length;
+}
+
+EXPORT datum *array_at(array *arr, size_t i) {
+  return arr->begin + i;
+}
+
 EXPORT int list_length(datum *seq) {
   assert(datum_is_list(seq));
-  return vec_length(&seq->list_value);
+  return array_length(&seq->list_value);
 }
 
 EXPORT datum *list_at(datum *list, unsigned index) {
   assert(datum_is_list(list));
-  return vec_at(&list->list_value, index);
+  return array_at(&list->list_value, index);
 }
 
 EXPORT datum list_copy(datum *list, int from, int to) {
@@ -503,8 +522,22 @@ EXPORT vec vec_copy(vec *src) {
   return dst;
 }
 
+LOCAL vec array_to_vec(array arr) {
+  vec res;
+  res.length = arr.length;
+  res.storage = arr;
+  return res;
+}
+
+LOCAL array array_copy(array *arr) {
+  array res = array_make_uninitialized(arr->length);
+  for (size_t i = 0; i < arr->length; ++i) {
+    *array_at(&res, i) = datum_copy(array_at(arr, i));
+  }
+  return res;
+}
+
 EXPORT vec list_to_vec(datum *val) {
   assert(datum_is_list(val));
-  vec res = vec_copy(&val->list_value);
-  return res;
+  return array_to_vec(array_copy(&val->list_value));
 }

@@ -19,20 +19,15 @@ enum datum_type {
   DATUM_INTEGER,
 };
 typedef enum datum_type datum_type;
-typedef struct vec vec;
 typedef struct array array;
 struct array {
   datum *begin;
   size_t length;
 };
-struct vec {
-  array storage;
-  size_t length;
-};
 struct datum {
   enum datum_type type;
   union {
-    vec list_value;
+    array list_value;
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
@@ -42,6 +37,11 @@ datum datum_make_list_of_impl(size_t count,datum *values);
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
                           (datum[]){__VA_ARGS__})
+typedef struct vec vec;
+struct vec {
+  array storage;
+  size_t length;
+};
 vec vec_make_of_impl(size_t count,datum *values);
 #define vec_make_of(...)                                                \
   vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
@@ -87,6 +87,8 @@ datum vec_pop(vec *v);
 datum datum_make_nil();
 bool datum_is_list(datum *e);
 bool datum_is_nil(datum *e);
+size_t array_length(array *arr);
+datum *array_at(array *arr,size_t i);
 int list_length(datum *seq);
 datum *list_at(datum *list,unsigned index);
 datum list_copy(datum *list,int from,int to);

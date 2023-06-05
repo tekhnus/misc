@@ -65,7 +65,7 @@ struct prog {
 };
 
 struct frame {
-  vec *state;
+  array *state;
   int type_id;
   int parent_type_id;
 };
@@ -181,7 +181,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         for (size_t j = 0; j < routine_get_count(&rt); ++j) {
           buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
                          (rt.frames[j].parent_type_id), (rt.frames[j].type_id),
-                         vec_length(rt.frames[j].state));
+                         array_length(rt.frames[j].state));
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         fprintf(stderr, "%s", bufbeg);
@@ -426,8 +426,8 @@ LOCAL bool state_stack_has(routine *r, datum *offset) {
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
-  vec *vars = f.state;
-  if ((size_t)idx->integer_value >= vec_length(vars)) {
+  array *vars = f.state;
+  if ((size_t)idx->integer_value >= array_length(vars)) {
     return false;
   }
   return true;
@@ -442,9 +442,9 @@ LOCAL datum *state_stack_at(routine *r, datum *offset) {
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
-  vec *vars = f.state;
-  assert((size_t)idx->integer_value < vec_length(vars));
-  return vec_at(vars, idx->integer_value);
+  array *vars = f.state;
+  assert((size_t)idx->integer_value < array_length(vars));
+  return array_at(vars, idx->integer_value);
 }
 
 LOCAL void state_stack_set(routine *r, datum *target, datum value) {
@@ -514,8 +514,8 @@ EXPORT datum *routine_make_alloc(ptrdiff_t prg, routine *context) {
 LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(routine_get_count(r) > 0);
   struct frame f = r->frames[routine_get_count(r) - 1];
-  assert(vec_length(f.state) == 1);
-  datum *offset_datum = vec_at(f.state, 0);
+  assert(array_length(f.state) == 1);
+  datum *offset_datum = array_at(f.state, 0);
   assert(datum_is_integer(offset_datum));
   return &offset_datum->integer_value;
 }

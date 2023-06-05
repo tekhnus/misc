@@ -14,7 +14,7 @@ enum datum_type {
 struct datum {
   enum datum_type type;
   union {
-    vec list_value;
+    array list_value;
     char *symbol_value;
     char *bytestring_value;
     int64_t integer_value;
