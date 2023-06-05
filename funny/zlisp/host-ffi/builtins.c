@@ -85,11 +85,12 @@ fdatum builtin_cons(datum *args) {
   if (!datum_is_list(tail)) {
     return fdatum_make_panic("cons requires a list as a second argument");
   }
-  datum e = datum_make_list_of(datum_copy(head));
-  for (size_t i = 0; i < vec_length(&tail->list_value); ++i) {
-    list_append(&e, datum_copy(list_at(tail, i)));
+  vec vc = vec_make_copies(list_length(tail) + 1, datum_make_nil());
+  *vec_at(&vc, 0) = datum_copy(head);
+  for (int i = 0; i < list_length(tail); ++i) {
+    *vec_at(&vc, i + 1) = datum_copy(list_at(tail, i));
   }
-  return fdatum_make_ok(datum_make_list_of(e));
+  return fdatum_make_ok(datum_make_list_of(datum_make_list(vc)));
 }
 
 fdatum builtin_head(datum *args) {

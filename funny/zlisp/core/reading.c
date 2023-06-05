@@ -231,11 +231,13 @@ LOCAL struct token token_read(FILE *strm) {
     if (c == 0) {
       sym = datum_make_symbol(nm[0]);
     } else {
-      sym = datum_make_list_of(datum_make_symbol("polysym"));
+      vec elems = vec_make(0);
+      vec_append(&elems, datum_make_symbol("polysym"));
       for (int cc = 0; cc <= c; ++cc) {
         datum comp = datum_make_symbol(nm[cc]);
-        list_append(&sym, comp);
+        vec_append(&elems, comp);
       }
+      sym = datum_make_list(elems);
     }
     return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
   }

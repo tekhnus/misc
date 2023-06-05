@@ -316,7 +316,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       return "unknown tag";
     }
   }
-  datum indices = datum_make_nil();
+  vec indices = vec_make(0);
   int fn_index = 0;
   int chop = 0;
   if (fn_index < list_length(fns) &&
@@ -348,7 +348,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
           return "function not found";
         }
       }
-      list_append(&indices, idx);
+      vec_append(&indices, idx);
     } else {
       char *err =
           prog_append_consume_expression(sl, fns, &fn_index, compdata, ext);
@@ -356,7 +356,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
         return err;
       }
       datum idx = compdata_get_top_polyindex(compdata);
-      list_append(&indices, idx);
+      vec_append(&indices, idx);
     }
   }
   datum top_arg_poly = compdata_get_next_polyindex(compdata);
@@ -370,7 +370,7 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
-  prog_append_call(sl, capture_size, indices, !mut, target, arg_count,
+  prog_append_call(sl, capture_size, datum_make_list(indices), !mut, target, arg_count,
                    ret_count, top_arg_poly, compdata);
   return NULL;
 }

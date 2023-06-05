@@ -150,19 +150,20 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), fai, compdata);
-  datum names = datum_make_nil();
+  vec names = vec_make(0);
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
   vn = datum_make_symbol(varname);
-  list_append(&names, vn);
+  vec_append(&names, vn);
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
     datum depsym = datum_make_list_of(datum_copy(dep), datum_copy(sym));
     get_varname(varname, &depsym);
     vn = datum_make_symbol(varname);
-    list_append(&names, vn);
+    vec_append(&names, vn);
   }
-  compdata_give_names(compdata, &names);
+  datum names_ = datum_make_list(names);
+  compdata_give_names(compdata, &names_);
   return NULL;
 }
 

@@ -47,19 +47,10 @@ LOCAL datum rewrite(datum *source) {
   if (!datum_is_list(source)) {
     return datum_copy(source);
   }
-  datum res = datum_make_nil();
+  vec res = vec_make(0);
   for (int i = 0; i < list_length(source); ++i) {
     datum *elem = list_at(source, i);
-
-    /* if (i + 2 < list_length(source) && */
-    /*     (datum_is_the_symbol(list_at(source, i), "xxx"))) { */
-    /*   datum *head = list_at(source, i++); */
-    /*   datum *args = list_at(source, i++); */
-    /*   datum *body = list_at(source, i++); */
-    /*   --i; */
-    /*   continue; */
-    /* } */
-    list_append(&res, rewrite(elem));
+    vec_append(&res, rewrite(elem));
   }
-  return res;
+  return datum_make_list(res);
 }

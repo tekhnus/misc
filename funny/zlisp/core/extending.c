@@ -208,18 +208,19 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum *meta = list_at(&re, 0);
   datum *exprs = list_at(&re, 1);
 
-  datum return_expr =
-      datum_make_list_of(datum_make_nil(), datum_make_symbol(":="),
+  vec return_expr =
+      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
                          datum_make_symbol("return"), datum_make_symbol("at"),
                          datum_make_list_of(datum_make_list_of(
                              datum_make_symbol("meta"), datum_copy(meta))));
-  datum vals = datum_make_nil();
+  vec vals = vec_make(0);
   for (int i = 0; i < list_length(exprs); ++i) {
-    list_append(&vals, datum_copy(list_at(exprs, i)));
+    vec_append(&vals, datum_copy(list_at(exprs, i)));
   }
-  list_append(&return_expr, datum_make_symbol("flat"));
-  list_append(&return_expr, datum_make_list_of(vals));
-  prog_append_expressions(sl, &return_expr, compdata, ext);
+  vec_append(&return_expr, datum_make_symbol("flat"));
+  vec_append(&return_expr, datum_make_list_of(datum_make_list(vals)));
+  datum return_expr_ = datum_make_list(return_expr);
+  prog_append_expressions(sl, &return_expr_, compdata, ext);
 
   return NULL;
 }
@@ -230,8 +231,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
     return fdatum_make_panic("wrong export spec");
   }
   int index = 0;
-  datum names = datum_make_nil();
-  datum expressions = datum_make_nil();
+  vec names = vec_make(0);
+  vec expressions = vec_make(0);
   datum *items = list_at(spec, 1);
   for (; index < list_length(items); ++index) {
     datum *item_ = list_at(items, index);
@@ -245,8 +246,8 @@ LOCAL fdatum prog_read_exports(datum *spec) {
       return fdatum_make_panic("wrong export spec");
     }
     datum *item_expression = list_at(item, 1);
-    list_append(&names, datum_copy(item_name));
-    list_append(&expressions, datum_copy(item_expression));
+    vec_append(&names, datum_copy(item_name));
+    vec_append(&expressions, datum_copy(item_expression));
   }
-  return fdatum_make_ok(datum_make_list_of(names, expressions));
+  return fdatum_make_ok(datum_make_list_of(datum_make_list(names), datum_make_list(expressions)));
 }
