@@ -87,7 +87,6 @@ datum *list_at(datum *list,unsigned index);
 datum list_copy(datum *list,int from,int to);
 datum *list_get_last(datum *list);
 datum list_get_tail(datum *list);
-void list_append(datum *list,datum value);
 void vec_extend(vec *list,datum *another);
 datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);

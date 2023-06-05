@@ -586,3 +586,8 @@ EXPORT vec vec_create_slice() {
 }
 
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
+
+
+LOCAL void list_append(datum *list, datum value) {
+  vec_append(&list->list_value, value);
+}

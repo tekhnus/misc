@@ -465,10 +465,6 @@ EXPORT datum list_get_tail(datum *list) {
   return e;
 }
 
-EXPORT void list_append(datum *list, datum value) {
-  vec_append(&list->list_value, value);
-}
-
 EXPORT void vec_extend(vec *list, datum *another) {
   assert(datum_is_list(another));
   for (int i = 0; i < list_length(another); ++i) {
