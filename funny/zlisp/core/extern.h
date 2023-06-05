@@ -171,7 +171,6 @@ datum list_get_tail(datum *list);
 datum *list_get_last(datum *list);
 datum list_copy(datum *list,int from,int to);
 size_t array_length(array *arr);
-datum vec_pop(vec *v);
 datum datum_make_nil();
 datum *array_at(array *arr,size_t i);
 LOCAL array vec_to_array(vec v);

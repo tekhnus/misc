@@ -417,14 +417,6 @@ EXPORT datum datum_make_list(vec v) {
   return res;
 }
 
-EXPORT datum vec_pop(vec *v) {
-  size_t len = vec_length(v);
-  assert(len > 0);
-  datum *res = vec_at(v, len - 1);
-  --v->length;
-  return *res;
-}
-
 EXPORT datum datum_make_nil() {
   datum e;
   e.type = DATUM_LIST;
