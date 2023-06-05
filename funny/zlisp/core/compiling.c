@@ -324,14 +324,14 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
     ++fn_index;
     chop = 1;
   }
-  datum shape = compdata_get_shape(compdata);
+  size_t frames = compdata_get_frame_count(compdata);
   if (fn_index < list_length(fns) &&
       datum_is_the_symbol(list_at(fns, fn_index), "empty-symbol")) {
     ++fn_index;
-    chop = list_length(&shape);
+    chop = frames;
   }
   size_t capture_size = 0;
-  for (int j = 0; j + chop < list_length(&shape); ++j) {
+  for (int j = 0; j + chop < (int)frames; ++j) {
     ++capture_size;
   }
   while (fn_index < list_length(fns)) {
@@ -543,17 +543,12 @@ LOCAL size_t compdata_get_length(datum *compdata) {
   return list_length(list_get_last(compdata));
 }
 
-LOCAL datum *compdata_get_top_section(datum *compdata) {
-  return list_get_last(compdata);
+LOCAL size_t compdata_get_frame_count(datum *compdata) {
+  return list_length(compdata);
 }
 
-EXPORT datum compdata_get_shape(datum *compdata) {
-  datum res = datum_make_nil();
-  for (int i = 0; i < list_length(compdata); ++i) {
-    datum ii = datum_make_int(list_length(list_at(compdata, i)));
-    list_append(&res, ii);
-  }
-  return res;
+LOCAL datum *compdata_get_top_section(datum *compdata) {
+  return list_get_last(compdata);
 }
 
 EXPORT void compdata_give_names(datum *compdata, datum *var) {
