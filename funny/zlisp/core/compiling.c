@@ -502,7 +502,7 @@ EXPORT void compdata_put(datum *compdata, datum var) {
 
 LOCAL void compdata_del(datum *compdata) {
   datum *last_frame = list_get_last(compdata);
-  list_pop(last_frame);
+  *last_frame = list_pop_slow(last_frame);
 }
 
 EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
@@ -595,4 +595,10 @@ LOCAL void list_append_slow(datum *list, datum value) {
   }
   *list_at(&newlist, list_length(list)) = value;
   *list = newlist;
+}
+
+
+LOCAL datum list_pop_slow(datum *list) {
+  assert(list_length(list) > 0);
+  return list_copy(list, 0, list_length(list) - 1);
 }

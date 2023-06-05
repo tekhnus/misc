@@ -477,11 +477,6 @@ EXPORT void vec_extend(vec *list, datum *another) {
   }
 }
 
-EXPORT datum list_pop(datum *list) {
-  assert(datum_is_list(list));
-  return vec_pop(&list->list_value);
-}
-
 EXPORT int list_index_of(datum *xs, datum *x) {
   assert(datum_is_list(xs));
   int i = list_length(xs) - 1;

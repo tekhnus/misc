@@ -93,7 +93,6 @@ datum list_copy(datum *list,int from,int to);
 datum *list_get_last(datum *list);
 datum list_get_tail(datum *list);
 void vec_extend(vec *list,datum *another);
-datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
 vec vec_copy(vec *src);
