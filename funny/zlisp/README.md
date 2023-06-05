@@ -32,7 +32,6 @@ and two implementations:
 
 - Implement sanitized extensions and/or self-describing identifiers and/or implicit imports
 
-- Migrate from vector to a fixed-size list as core data type
 - Achieve zero memory leakage
 - Get rid of keywords; evaluate them into integers
 - Make environment handling in FFI impementation error-resistant and zero-cost
