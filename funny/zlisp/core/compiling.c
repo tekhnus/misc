@@ -497,7 +497,7 @@ EXPORT bool compdata_has_value(datum *compdata) {
 
 EXPORT void compdata_put(datum *compdata, datum var) {
   datum *last_frame = list_get_last(compdata);
-  list_append(last_frame, var);
+  list_append_slow(last_frame, var);
 }
 
 LOCAL void compdata_del(datum *compdata) {
@@ -520,7 +520,7 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 
 LOCAL void compdata_start_new_section(datum *compdata) {
   datum nil = datum_make_nil();
-  list_append(compdata, nil);
+  list_append_slow(compdata, nil);
 }
 
 EXPORT datum compdata_get_top_polyindex(datum *compdata) {
@@ -588,6 +588,11 @@ EXPORT vec vec_create_slice() {
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
 
 
-LOCAL void list_append(datum *list, datum value) {
-  vec_append(&list->list_value, value);
+LOCAL void list_append_slow(datum *list, datum value) {
+  datum newlist = list_make_copies(list_length(list) + 1, datum_make_nil());
+  for (int i = 0; i < list_length(list); ++i) {
+    *list_at(&newlist, i) = *list_at(list, i);
+  }
+  *list_at(&newlist, list_length(list)) = value;
+  *list = newlist;
 }

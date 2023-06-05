@@ -88,7 +88,7 @@ LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 LOCAL datum *compdata_get_top_section(datum *compdata);
-LOCAL void list_append(datum *list,datum value);
+LOCAL void list_append_slow(datum *list,datum value);
 bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
