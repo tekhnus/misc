@@ -74,8 +74,8 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
     vec_append(&invokation_statement, datum_make_symbol("quote"));
     vec_append(&invokation_statement, datum_make_list_of(orig));
   }
-  datum call_statement =
-    datum_make_list_of(datum_make_symbol("call"), datum_make_list(invokation_statement));
+  datum call_statement = datum_make_list_of(
+      datum_make_symbol("call"), datum_make_list(invokation_statement));
   // fprintf(stderr, "call: %s\n", datum_repr(&call_statement));
   fdatum res = lisp_extension_run(&call_statement, self);
   if (fdatum_is_panic(res)) {
@@ -192,7 +192,8 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     vec_append(&vars, datum_copy(item_var));
     vec_append(&specs, item_spec);
   }
-  return fdatum_make_ok(datum_make_list_of(datum_make_list(vars), datum_make_list(specs)));
+  return fdatum_make_ok(
+      datum_make_list_of(datum_make_list(vars), datum_make_list(specs)));
 }
 
 LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
@@ -210,9 +211,9 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
 
   vec return_expr =
       vec_make_of(datum_make_nil(), datum_make_symbol(":="),
-                         datum_make_symbol("return"), datum_make_symbol("at"),
-                         datum_make_list_of(datum_make_list_of(
-                             datum_make_symbol("meta"), datum_copy(meta))));
+                  datum_make_symbol("return"), datum_make_symbol("at"),
+                  datum_make_list_of(datum_make_list_of(
+                      datum_make_symbol("meta"), datum_copy(meta))));
   vec vals = vec_make(0);
   for (int i = 0; i < list_length(exprs); ++i) {
     vec_append(&vals, datum_copy(list_at(exprs, i)));
@@ -249,5 +250,6 @@ LOCAL fdatum prog_read_exports(datum *spec) {
     vec_append(&names, datum_copy(item_name));
     vec_append(&expressions, datum_copy(item_expression));
   }
-  return fdatum_make_ok(datum_make_list_of(datum_make_list(names), datum_make_list(expressions)));
+  return fdatum_make_ok(
+      datum_make_list_of(datum_make_list(names), datum_make_list(expressions)));
 }

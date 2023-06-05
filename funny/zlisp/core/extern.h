@@ -209,9 +209,9 @@ bool datum_is_integer(datum *e);
 bool datum_is_symbol(datum *e);
 #define EXPORT
 vec vec_make_of_impl(size_t count,datum *values);
-#define vec_make_of(...)                                                \
-  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
-                          (datum[]){__VA_ARGS__})
+#define vec_make_of(...)                                                       \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
+                   (datum[]){__VA_ARGS__})
 datum datum_make_list_of_impl(size_t count,datum *values);
 #define datum_make_list_of(...)                                                \
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \

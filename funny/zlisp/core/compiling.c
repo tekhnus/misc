@@ -370,8 +370,8 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
-  prog_append_call(sl, capture_size, datum_make_list(indices), !mut, target, arg_count,
-                   ret_count, top_arg_poly, compdata);
+  prog_append_call(sl, capture_size, datum_make_list(indices), !mut, target,
+                   arg_count, ret_count, top_arg_poly, compdata);
   return NULL;
 }
 
@@ -587,7 +587,6 @@ EXPORT vec vec_create_slice() {
 
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
 
-
 LOCAL void list_append_slow(datum *list, datum value) {
   datum newlist = list_make_copies(list_length(list) + 1, datum_make_nil());
   for (int i = 0; i < list_length(list); ++i) {
@@ -596,7 +595,6 @@ LOCAL void list_append_slow(datum *list, datum value) {
   *list_at(&newlist, list_length(list)) = value;
   *list = newlist;
 }
-
 
 LOCAL datum list_pop_slow(datum *list) {
   assert(list_length(list) > 0);

@@ -43,9 +43,9 @@ struct vec {
   size_t length;
 };
 vec vec_make_of_impl(size_t count,datum *values);
-#define vec_make_of(...)                                                \
-  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
-                          (datum[]){__VA_ARGS__})
+#define vec_make_of(...)                                                       \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
+                   (datum[]){__VA_ARGS__})
 bool datum_is_symbol(datum *e);
 bool datum_is_integer(datum *e);
 bool datum_is_bytestring(datum *e);

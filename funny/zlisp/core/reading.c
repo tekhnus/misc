@@ -301,7 +301,7 @@ LOCAL read_result datum_read(FILE *strm) {
     }
     if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
       return read_result_make_ok_of(
-                                    datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
+          datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
     }
     if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
       return read_result_make_ok_of(datum_make_list(list));

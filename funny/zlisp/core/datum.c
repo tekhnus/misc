@@ -20,9 +20,9 @@ extern const int FLAT;
   datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
                           (datum[]){__VA_ARGS__})
 
-#define vec_make_of(...)                                                \
-  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
-                          (datum[]){__VA_ARGS__})
+#define vec_make_of(...)                                                       \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
+                   (datum[]){__VA_ARGS__})
 
 #endif
 
@@ -447,13 +447,9 @@ EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
   return datum_make_list(vals);
 }
 
-EXPORT size_t array_length(array *arr) {
-  return arr->length;
-}
+EXPORT size_t array_length(array *arr) { return arr->length; }
 
-EXPORT datum *array_at(array *arr, size_t i) {
-  return arr->begin + i;
-}
+EXPORT datum *array_at(array *arr, size_t i) { return arr->begin + i; }
 
 EXPORT int list_length(datum *seq) {
   assert(datum_is_list(seq));
