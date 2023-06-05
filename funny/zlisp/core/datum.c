@@ -340,11 +340,17 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
+EXPORT array array_make_uninitialized(size_t length) {
+  array res;
+  res.begin = malloc(length * sizeof(datum));
+  res.length = length;
+  return res;
+}
+
 EXPORT vec vec_make(size_t capacity) {
   vec res;
-  res.begin = malloc(capacity * sizeof(datum));
+  res.storage = array_make_uninitialized(capacity);
   res.length = 0;
-  res.capacity = capacity;
   return res;
 }
 
@@ -361,19 +367,18 @@ EXPORT vec vec_make_copies(size_t length, datum val) {
 }
 
 EXPORT datum *vec_append(vec *s, datum x) {
-  if (s->length == s->capacity) {
-    size_t new_capacity = (s->capacity + 1) * 2;
+  if (s->length == s->storage.length) {
+    size_t new_capacity = (s->storage.length + 1) * 2;
     datum *new_begin = malloc(sizeof(datum) * new_capacity);
     for (size_t i = 0; i < s->length; ++i) {
-      new_begin[i] = s->begin[i];
+      new_begin[i] = s->storage.begin[i];
     }
-    s->capacity = new_capacity;
-    // free(s->begin);
-    s->begin = new_begin;
+    s->storage.length = new_capacity;
+    s->storage.begin = new_begin;
   }
   size_t res = s->length++;
-  (s->begin)[res] = x;
-  return s->begin + res;
+  (s->storage.begin)[res] = x;
+  return s->storage.begin + res;
 }
 
 EXPORT vec vec_make_of_impl(size_t count, datum *values) {
@@ -390,7 +395,7 @@ EXPORT datum *vec_at(vec *s, size_t index) {
     fprintf(stderr, "prog slice index overflow\n");
     assert(false);
   }
-  return s->begin + index;
+  return s->storage.begin + index;
 }
 
 EXPORT size_t vec_length(vec *s) { return s->length; }
@@ -496,7 +501,7 @@ EXPORT datum datum_copy(datum *d) {
 }
 
 EXPORT vec vec_copy(vec *src) {
-  vec dst = vec_make(src->capacity);
+  vec dst = vec_make(src->storage.length);
   for (size_t i = 0; i < src->length; ++i) {
     vec_append(&dst, datum_copy(vec_at(src, i)));
   }

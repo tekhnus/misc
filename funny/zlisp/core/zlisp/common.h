@@ -20,10 +20,14 @@ enum datum_type {
 };
 typedef enum datum_type datum_type;
 typedef struct vec vec;
-struct vec {
+typedef struct array array;
+struct array {
   datum *begin;
   size_t length;
-  size_t capacity;
+};
+struct vec {
+  array storage;
+  size_t length;
 };
 struct datum {
   enum datum_type type;
@@ -71,6 +75,7 @@ fdatum fdatum_make_panic(char *message);
 bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
 bool datum_is_the_symbol(datum *d,char *val);
+array array_make_uninitialized(size_t length);
 vec vec_make(size_t capacity);
 datum list_make_copies(size_t length,datum val);
 vec vec_make_copies(size_t length,datum val);

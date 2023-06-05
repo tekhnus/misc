@@ -49,10 +49,14 @@ struct result {
   datum value;
 };
 
-struct vec {
+struct array {
   datum *begin;
   size_t length;
-  size_t capacity;
+};
+
+struct vec {
+  array storage;
+  size_t length;
 };
 
 #endif
