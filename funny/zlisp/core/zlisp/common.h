@@ -92,7 +92,7 @@ datum list_pop(datum *list);
 int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
 vec vec_copy(vec *src);
-vec *list_to_vec(datum *val);
+vec list_to_vec(datum *val);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,

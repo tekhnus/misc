@@ -120,14 +120,14 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   if (fdatum_is_panic(stts)) {
     return stts.panic_message;
   }
-  vec *module_sl = list_to_vec(&stts.ok_value);
-  datum *transitive_deps = extract_meta(*module_sl, 0);
+  vec module_sl = list_to_vec(&stts.ok_value);
+  datum *transitive_deps = extract_meta(module_sl, 0);
   if (transitive_deps == NULL) {
     return "error: null extract_meta for reqs";
   }
-  assert(prog_get_next_index(module_sl) >= 1);
-  size_t last_instruction = prog_get_next_index(module_sl) - 1;
-  datum *syms = extract_meta(*module_sl, last_instruction);
+  assert(prog_get_next_index(&module_sl) >= 1);
+  size_t last_instruction = prog_get_next_index(&module_sl) - 1;
+  datum *syms = extract_meta(module_sl, last_instruction);
   if (syms == NULL) {
     return "error: null extract_meta for exports";
   }
@@ -138,7 +138,7 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   }
   size_t put_prog_off = prog_append_something(sl); // filled below
   size_t prog_off = prog_get_next_index(sl);
-  prog_append_bytecode(sl, module_sl);
+  prog_append_bytecode(sl, &module_sl);
   assert(put_prog_off + 1 == prog_off);
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum pi = compdata_get_top_polyindex(compdata);

@@ -156,7 +156,7 @@ bool read_result_is_panic(read_result x);
 LOCAL read_result datum_read(FILE *strm);
 bool read_result_is_ok(read_result x);
 read_result datum_read_all(FILE *stre);
-vec *list_to_vec(datum *val);
+vec list_to_vec(datum *val);
 vec vec_copy(vec *src);
 int list_index_of(datum *xs,datum *x);
 datum list_pop(datum *list);

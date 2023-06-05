@@ -17,8 +17,8 @@ EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
   if (fdatum_is_panic(bytecode)) {
     return bytecode.panic_message;
   }
-  vec *bc = list_to_vec(&bytecode.ok_value);
-  prog_append_bytecode(sl, bc);
+  vec bc = list_to_vec(&bytecode.ok_value);
+  prog_append_bytecode(sl, &bc);
   return NULL;
 }
 
