@@ -72,7 +72,8 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   datum nil = datum_make_nil();
   prog_append_yield(sl, datum_make_symbol("halt"), idx, yield_count, 0, nil,
                     compdata);
-  size_t p_end = prog_append_something(sl); // filled below.
+  size_t p_end = prog_get_next_index(sl);
+  ptrdiff_t *p_end_ = prog_append_jmp(sl); // filled below.
   if (!bp) {
     return NULL;
   }
@@ -83,7 +84,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
     return res;
   }
   *bp = prog_get_next_index(sl);
-  *vec_at(sl, p_end) = prog_get_jmp(*bp - p_end);
+  *p_end_ = (*bp - p_end);
   return NULL;
 }
 
