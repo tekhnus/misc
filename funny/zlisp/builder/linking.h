@@ -2,7 +2,6 @@
 #undef INTERFACE
 datum *extract_meta(vec sl,size_t run_main_off);
 #define LOCAL static
-LOCAL void prog_put_deps(vec *sl,datum *deps,datum *compdata);
 LOCAL char *prog_build_dep(vec *sl,datum *dep_and_sym,fdatum(*module_bytecode)(char *,datum *,extension *),datum *settings,datum *compdata,extension *ext);
 LOCAL void get_varname(char *res,datum *dep_and_sym);
 LOCAL char *prog_build_deps(vec *sl,datum *deps,fdatum(*module_bytecode)(char *,datum *,extension *),datum *settings,datum *compdata,extension *ext);

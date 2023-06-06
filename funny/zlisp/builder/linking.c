@@ -88,16 +88,6 @@ LOCAL char *prog_build_deps(vec *sl, datum *deps,
   return NULL;
 }
 
-LOCAL void prog_put_deps(vec *sl, datum *deps, datum *compdata) {
-  char varname[1024];
-  for (int i = 0; i < list_length(deps); ++i) {
-    datum *dep = list_at(deps, i);
-    get_varname(varname, dep);
-    datum vn = datum_make_symbol(varname);
-    prog_append_copy(sl, &vn, compdata);
-  }
-}
-
 LOCAL void get_varname(char *res, datum *dep_and_sym) {
   char *dep = list_at(dep_and_sym, 0)->bytestring_value;
   char *sym;

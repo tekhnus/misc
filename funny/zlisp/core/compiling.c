@@ -382,7 +382,7 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
   }
 }
 
-EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
+LOCAL void prog_append_call(vec *sl, size_t capture_size, datum indices,
                              bool pop_one, datum type, int arg_count,
                              int return_count, datum top_arg_polyindex,
                              datum *compdata) {
@@ -403,7 +403,7 @@ EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
   }
 }
 
-EXPORT datum prog_append_copy(vec *sl, datum *val, datum *compdata) {
+LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata) {
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
@@ -441,7 +441,7 @@ EXPORT void prog_append_yield(vec *sl, datum type, datum yield_val_index,
                                     datum_make_int(recieve_count), meta));
 }
 
-EXPORT size_t prog_append_something(vec *sl) {
+LOCAL size_t prog_append_something(vec *sl) {
   size_t cur = prog_get_next_index(sl);
   vec_append(sl, datum_make_nil());
   return cur;

@@ -123,10 +123,7 @@ char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension 
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 void prog_append_bytecode(vec *sl,vec *src_sl);
-void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum top_arg_polyindex,datum *compdata);
-datum prog_append_copy(vec *sl,datum *val,datum *compdata);
 void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t count,size_t recieve_count,datum meta,datum *compdata);
-size_t prog_append_something(vec *sl);
 void prog_append_put_const(vec *sl,datum *val,datum *compdata);
 ptrdiff_t *prog_append_put_prog(vec *sl,int capture,datum *compdata);
 ptrdiff_t *prog_append_jmp(vec *sl);
