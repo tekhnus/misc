@@ -473,9 +473,9 @@ EXPORT ptrdiff_t *prog_append_put_prog(vec *sl, int capture, datum *compdata) {
 
 EXPORT ptrdiff_t *prog_append_jmp(vec *sl) {
   datum ins = prog_get_jmp(100500);
-  ptrdiff_t *delt = &list_at(&ins, 1)->integer_value;
+  size_t offset = prog_get_next_index(sl);
   vec_append(sl, ins);
-  return delt;
+  return prog_get_jmp_delta(sl, offset);
 }
 
 LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
