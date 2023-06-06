@@ -14,17 +14,13 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   prog_append_put_const(sl, &nil, builder_compdata);
   datum s = datum_make_list_of(datum_make_symbol("__main__"));
   compdata_give_names(builder_compdata, &s);
-  size_t bdr_put_prog = prog_append_something(sl); // filled below
-  size_t ep_start = prog_get_next_index(sl);
+  size_t bdr_put_prog = prog_get_next_index(sl);
+  ptrdiff_t *bdr_put_prog_ = prog_append_put_prog(sl, 0, builder_compdata);
   prog_append_yield(sl, datum_make_symbol("plain"),
                     compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
   size_t jm = prog_append_something(sl); // filled below
-  assert(bdr_put_prog + 1 == ep_start);
-  compdata_put(builder_compdata, datum_make_symbol(":anon"));
-  datum pi = compdata_get_top_polyindex(builder_compdata);
   datum fai = compdata_get_next_polyindex(builder_compdata);
-  *vec_at(sl, bdr_put_prog) =
-      prog_get_put_prog(&pi, prog_get_next_index(sl) - bdr_put_prog, 0);
+  *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;
   prog_append_call(
       sl, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
       false, datum_make_symbol("plain"), 0, 0, fai, builder_compdata);
@@ -136,14 +132,10 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   if (err != NULL) {
     return err;
   }
-  size_t put_prog_off = prog_append_something(sl); // filled below
-  size_t prog_off = prog_get_next_index(sl);
+  size_t ppo = prog_get_next_index(sl);
+  ptrdiff_t *put_prog_off_ = prog_append_put_prog(sl, 0, compdata);
   prog_append_bytecode(sl, &module_sl);
-  assert(put_prog_off + 1 == prog_off);
-  compdata_put(compdata, datum_make_symbol(":anon"));
-  datum pi = compdata_get_top_polyindex(compdata);
-  *vec_at(sl, put_prog_off) =
-      prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 0);
+  *put_prog_off_ = prog_get_next_index(sl) - ppo;
   datum fn_index = compdata_get_top_polyindex(compdata);
   datum fai = compdata_get_next_polyindex(compdata);
   prog_put_deps(sl, transitive_deps, compdata);

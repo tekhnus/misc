@@ -463,7 +463,15 @@ LOCAL void prog_append_collect(vec *sl, size_t count, datum top_idx,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
+EXPORT ptrdiff_t *prog_append_put_prog(vec *sl, int capture, datum *compdata) {
+  datum target = compdata_put(compdata, datum_make_symbol(":anon"));
+  datum ins = prog_get_put_prog(&target, 100500, capture);
+  ptrdiff_t *delt = &list_at(&ins, 3)->integer_value;
+  vec_append(sl, ins);
+  return delt;
+}
+
+LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
   return datum_make_list_of(datum_make_symbol(":put-prog"), datum_copy(target),
                             datum_make_int(capture), datum_make_int(delta));
 }
@@ -495,9 +503,10 @@ EXPORT bool compdata_has_value(datum *compdata) {
          datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
-EXPORT void compdata_put(datum *compdata, datum var) {
+EXPORT datum compdata_put(datum *compdata, datum var) {
   datum *last_frame = list_get_last(compdata);
   list_append_slow(last_frame, var);
+  return compdata_get_top_polyindex(compdata);
 }
 
 LOCAL void compdata_del(datum *compdata) {
