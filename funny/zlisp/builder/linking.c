@@ -12,7 +12,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                     compdata_get_next_polyindex(builder_compdata), 0, 0, nil,
                     builder_compdata);
   prog_append_put_const(sl, &nil, builder_compdata);
-  datum s = datum_make_list_of(datum_make_symbol("__main__"));
+  prog_append_put_const(sl, &nil, builder_compdata);
+  datum s = datum_make_list_of(datum_make_symbol("__main__"), datum_make_symbol("__dep__"));
   compdata_give_names(builder_compdata, &s);
   size_t bdr_put_prog = prog_get_next_index(sl);
   ptrdiff_t *bdr_put_prog_ = prog_append_put_prog(sl, 0, builder_compdata);
@@ -141,6 +142,10 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   ptrdiff_t *put_prog_off_ = prog_append_put_prog(sl, 0, compdata);
   prog_append_bytecode(sl, &module_sl);
   *put_prog_off_ = prog_get_next_index(sl) - ppo;
+  datum s = datum_make_list_of(datum_make_symbol("__dep__"));
+  move_values_to_variables(sl, &s, compdata);
+  datum depsy = datum_make_symbol("__dep__");
+  prog_append_copy(sl, &depsy, compdata);
   datum fn_index = compdata_get_top_polyindex(compdata);
   datum fai = compdata_get_next_polyindex(compdata);
   prog_put_deps(sl, transitive_deps, compdata);
