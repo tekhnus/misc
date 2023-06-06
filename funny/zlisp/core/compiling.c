@@ -383,9 +383,9 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
 }
 
 LOCAL void prog_append_call(vec *sl, size_t capture_size, datum indices,
-                             bool pop_one, datum type, int arg_count,
-                             int return_count, datum top_arg_polyindex,
-                             datum *compdata) {
+                            bool pop_one, datum type, int arg_count,
+                            int return_count, datum top_arg_polyindex,
+                            datum *compdata) {
   assert(datum_is_list(&indices));
   vec_append(sl, datum_make_list_of(
                      datum_make_symbol(":call"), datum_make_int(capture_size),

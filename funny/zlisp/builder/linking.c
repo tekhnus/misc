@@ -26,12 +26,15 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   compdata_give_names(builder_compdata, &xx);
   extension ext = null_extension_make();
 
-  vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), datum_make_symbol("__start__")));
+  vec call_sexp = vec_make_of(datum_make_list_of(
+      datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"),
+      datum_make_symbol("__start__")));
   vec_append(&call_sexp, datum_make_symbol("at"));
   vec_append(&call_sexp, datum_make_list_of(datum_make_symbol("mut")));
   vec_append(&call_sexp, datum_make_symbol("at"));
   vec_append(&call_sexp, datum_make_list_of(datum_make_int(0)));
-  datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp)));
+  datum call_stmt = datum_make_list_of(datum_make_list_of(
+      datum_make_symbol("call"), datum_make_list(call_sexp)));
   char *res = prog_compile_and_relocate(sl, &call_stmt, builder_compdata, &ext);
   if (res != NULL) {
     fprintf(stderr, "%s\n", res);
@@ -60,7 +63,9 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
     return err;
   }
 
-  vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), datum_make_symbol("__main__")));
+  vec call_sexp = vec_make_of(datum_make_list_of(
+      datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"),
+      datum_make_symbol("__main__")));
   char varname[1024];
   for (int i = 0; i < list_length(input_meta); ++i) {
     datum *dep = list_at(input_meta, i);
@@ -68,7 +73,8 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
     datum vn = datum_make_symbol(varname);
     vec_append(&call_sexp, vn);
   }
-  datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp)));
+  datum call_stmt = datum_make_list_of(datum_make_list_of(
+      datum_make_symbol("call"), datum_make_list(call_sexp)));
   char *res = prog_compile_and_relocate(sl, &call_stmt, builder_compdata, ext);
   return res;
 }
@@ -150,7 +156,8 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   datum xxx = datum_make_list_of(vn);
   compdata_give_names(compdata, &xxx);
 
-  vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), vn));
+  vec call_sexp = vec_make_of(datum_make_list_of(
+      datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), vn));
   vec_append(&call_sexp, datum_make_symbol("at"));
   vec_append(&call_sexp, datum_make_list_of(datum_make_symbol("mut")));
   vec_append(&call_sexp, datum_make_symbol("at"));
@@ -161,7 +168,8 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
     datum vn = datum_make_symbol(varname);
     vec_append(&call_sexp, vn);
   }
-  datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp)));
+  datum call_stmt = datum_make_list_of(datum_make_list_of(
+      datum_make_symbol("call"), datum_make_list(call_sexp)));
   char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext);
   if (res != NULL) {
     return res;
