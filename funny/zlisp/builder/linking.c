@@ -20,11 +20,24 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                     compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
   size_t jm = prog_get_next_index(sl);
   ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
-  datum fai = compdata_get_next_polyindex(builder_compdata);
+  // datum fai = compdata_get_next_polyindex(builder_compdata);
   *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;
-  prog_append_call(
-      sl, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
-      false, datum_make_symbol("plain"), 0, 0, fai, builder_compdata);
+  datum xx = datum_make_list_of(datum_make_symbol("__start__"));
+  compdata_give_names(builder_compdata, &xx);
+  extension ext = null_extension_make();
+
+  vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), datum_make_symbol("__start__")));
+  vec_append(&call_sexp, datum_make_symbol("at"));
+  vec_append(&call_sexp, datum_make_list_of(datum_make_symbol("mut")));
+  vec_append(&call_sexp, datum_make_symbol("at"));
+  vec_append(&call_sexp, datum_make_list_of(datum_make_int(0)));
+  datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp)));
+  char *res = prog_compile_and_relocate(sl, &call_stmt, builder_compdata, &ext);
+  if (res != NULL) {
+    fprintf(stderr, "%s\n", res);
+    exit(EXIT_FAILURE);
+  }
+
   size_t bdr = prog_get_next_index(sl);
   prog_append_jmp(sl); // this is first builder instruction.
   // filled by prog_build.
