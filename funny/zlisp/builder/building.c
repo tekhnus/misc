@@ -82,7 +82,10 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
     return res;
   }
   *bp = prog_get_next_index(sl);
-  *p_end_ = (*bp - p_end);
+  // filled in next build
+  prog_append_something(sl);
+  size_t ind = prog_get_next_index(sl);
+  *p_end_ = (ind - p_end);
   return NULL;
 }
 
