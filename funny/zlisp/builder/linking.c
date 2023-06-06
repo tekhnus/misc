@@ -18,7 +18,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   ptrdiff_t *bdr_put_prog_ = prog_append_put_prog(sl, 0, builder_compdata);
   prog_append_yield(sl, datum_make_symbol("plain"),
                     compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
-  size_t jm = prog_append_something(sl); // filled below
+  size_t jm = prog_get_next_index(sl);
+  ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
   datum fai = compdata_get_next_polyindex(builder_compdata);
   *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;
   prog_append_call(
@@ -26,7 +27,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
       false, datum_make_symbol("plain"), 0, 0, fai, builder_compdata);
   size_t bdr = prog_append_something(sl); // this is first builder instruction.
   // filled by prog_build.
-  *vec_at(sl, jm) = prog_get_jmp(prog_get_next_index(sl) - jm);
+  *jm_ = prog_get_next_index(sl) - jm;
   return bdr;
 }
 

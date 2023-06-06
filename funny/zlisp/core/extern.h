@@ -97,6 +97,7 @@ LOCAL void list_append_slow(datum *list,datum value);
 bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
+ptrdiff_t *prog_append_jmp(vec *sl);
 ptrdiff_t *prog_append_put_prog(vec *sl,int capture,datum *compdata);
 LOCAL void prog_append_move(vec *sl,datum *target,datum *source,datum *compdata);
 void prog_append_call(vec *sl,size_t capture_size,datum indices,bool pop_one,datum type,int arg_count,int return_count,datum top_arg_polyindex,datum *compdata);
