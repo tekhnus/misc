@@ -12,8 +12,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                     compdata_get_next_polyindex(builder_compdata), 0, 0, nil,
                     builder_compdata);
   prog_append_put_const(sl, &nil, builder_compdata);
-  prog_append_put_const(sl, &nil, builder_compdata);
-  datum s = datum_make_list_of(datum_make_symbol("__main__"), datum_make_symbol("__dep__"));
+  datum s = datum_make_list_of(datum_make_symbol("__main__"));
   compdata_give_names(builder_compdata, &s);
   size_t bdr_put_prog = prog_get_next_index(sl);
   ptrdiff_t *bdr_put_prog_ = prog_append_put_prog(sl, 0, builder_compdata);
@@ -142,21 +141,36 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   ptrdiff_t *put_prog_off_ = prog_append_put_prog(sl, 0, compdata);
   prog_append_bytecode(sl, &module_sl);
   *put_prog_off_ = prog_get_next_index(sl) - ppo;
-  datum s = datum_make_list_of(datum_make_symbol("__dep__"));
-  move_values_to_variables(sl, &s, compdata);
-  datum depsy = datum_make_symbol("__dep__");
-  prog_append_copy(sl, &depsy, compdata);
-  datum fn_index = compdata_get_top_polyindex(compdata);
+  datum dep_singleton = datum_make_list_of(datum_copy(dep));
+  get_varname(varname, &dep_singleton);
+  vn = datum_make_symbol(varname);
+  datum xxx = datum_make_list_of(vn);
+  compdata_give_names(compdata, &xxx);
+
+  /* vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), datum_make_symbol("__dep__"))); */
+  /* vec_append(&call_sexp, datum_make_symbol("at")); */
+  /* vec_append(&call_sexp, datum_make_list_of(datum_make_int(list_length(syms)))); */
+  /* for (int i = 0; i < list_length(transitive_deps); ++i) { */
+  /*   datum *dep = list_at(transitive_deps, i); */
+  /*   get_varname(varname, dep); */
+  /*   datum vn = datum_make_symbol(varname); */
+  /*   vec_append(&call_sexp, vn); */
+  /* } */
+  /* datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp))); */
+  /* char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext); */
+  /* if (res != NULL) { */
+  /*   return res; */
+  /* } */
+
+  datum fn_index = compdata_get_polyindex(compdata, &vn);
   datum fai = compdata_get_next_polyindex(compdata);
   prog_put_deps(sl, transitive_deps, compdata);
   prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
                    datum_make_symbol("plain"), list_length(transitive_deps),
                    list_length(syms), fai, compdata);
+
+
   vec names = vec_make(0);
-  datum dep_singleton = datum_make_list_of(datum_copy(dep));
-  get_varname(varname, &dep_singleton);
-  vn = datum_make_symbol(varname);
-  vec_append(&names, vn);
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
     datum depsym = datum_make_list_of(datum_copy(dep), datum_copy(sym));
