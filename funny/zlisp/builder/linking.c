@@ -147,28 +147,22 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   datum xxx = datum_make_list_of(vn);
   compdata_give_names(compdata, &xxx);
 
-  /* vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), datum_make_symbol("__dep__"))); */
-  /* vec_append(&call_sexp, datum_make_symbol("at")); */
-  /* vec_append(&call_sexp, datum_make_list_of(datum_make_int(list_length(syms)))); */
-  /* for (int i = 0; i < list_length(transitive_deps); ++i) { */
-  /*   datum *dep = list_at(transitive_deps, i); */
-  /*   get_varname(varname, dep); */
-  /*   datum vn = datum_make_symbol(varname); */
-  /*   vec_append(&call_sexp, vn); */
-  /* } */
-  /* datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp))); */
-  /* char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext); */
-  /* if (res != NULL) { */
-  /*   return res; */
-  /* } */
-
-  datum fn_index = compdata_get_polyindex(compdata, &vn);
-  datum fai = compdata_get_next_polyindex(compdata);
-  prog_put_deps(sl, transitive_deps, compdata);
-  prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
-                   datum_make_symbol("plain"), list_length(transitive_deps),
-                   list_length(syms), fai, compdata);
-
+  vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), vn));
+  vec_append(&call_sexp, datum_make_symbol("at"));
+  vec_append(&call_sexp, datum_make_list_of(datum_make_symbol("mut")));
+  vec_append(&call_sexp, datum_make_symbol("at"));
+  vec_append(&call_sexp, datum_make_list_of(datum_make_int(list_length(syms))));
+  for (int i = 0; i < list_length(transitive_deps); ++i) {
+    datum *dep = list_at(transitive_deps, i);
+    get_varname(varname, dep);
+    datum vn = datum_make_symbol(varname);
+    vec_append(&call_sexp, vn);
+  }
+  datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp)));
+  char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext);
+  if (res != NULL) {
+    return res;
+  }
 
   vec names = vec_make(0);
   for (int i = 0; i < list_length(syms); ++i) {
