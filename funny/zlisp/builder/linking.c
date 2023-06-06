@@ -46,15 +46,18 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   if (err != NULL) {
     return err;
   }
-  datum v = datum_make_symbol("__main__");
-  prog_append_copy(sl, &v, builder_compdata);
-  datum fn_index = compdata_get_top_polyindex(builder_compdata);
-  datum fai = compdata_get_next_polyindex(builder_compdata);
-  prog_put_deps(sl, input_meta, builder_compdata);
-  prog_append_call(sl, 0, datum_make_list_of(datum_copy(&fn_index)), false,
-                   datum_make_symbol("plain"), list_length(input_meta), 0, fai,
-                   builder_compdata);
-  return NULL;
+
+  vec call_sexp = vec_make_of(datum_make_list_of(datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), datum_make_symbol("__main__")));
+  char varname[1024];
+  for (int i = 0; i < list_length(input_meta); ++i) {
+    datum *dep = list_at(input_meta, i);
+    get_varname(varname, dep);
+    datum vn = datum_make_symbol(varname);
+    vec_append(&call_sexp, vn);
+  }
+  datum call_stmt = datum_make_list_of(datum_make_list_of(datum_make_symbol("call"), datum_make_list(call_sexp)));
+  char *res = prog_compile_and_relocate(sl, &call_stmt, builder_compdata, ext);
+  return res;
 }
 
 LOCAL char *prog_build_deps(vec *sl, datum *deps,

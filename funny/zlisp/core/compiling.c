@@ -403,7 +403,7 @@ EXPORT void prog_append_call(vec *sl, size_t capture_size, datum indices,
   }
 }
 
-EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
+EXPORT datum prog_append_copy(vec *sl, datum *val, datum *compdata) {
   if (!datum_is_symbol(val)) {
     fprintf(stderr, "expected a symbol in put-var\n");
     exit(1);
@@ -417,6 +417,7 @@ EXPORT void prog_append_copy(vec *sl, datum *val, datum *compdata) {
   datum target_polyindex = compdata_get_top_polyindex(compdata);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":copy"),
                                     target_polyindex, polyindex));
+  return target_polyindex;
 }
 
 LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
@@ -514,7 +515,7 @@ EXPORT bool compdata_has_value(datum *compdata) {
          datum_is_the_symbol(list_get_last(outer_frame), ":anon");
 }
 
-EXPORT datum compdata_put(datum *compdata, datum var) {
+LOCAL datum compdata_put(datum *compdata, datum var) {
   datum *last_frame = list_get_last(compdata);
   list_append_slow(last_frame, var);
   return compdata_get_top_polyindex(compdata);
