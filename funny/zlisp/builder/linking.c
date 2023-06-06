@@ -25,7 +25,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   prog_append_call(
       sl, 0, datum_make_list_of(compdata_get_top_polyindex(builder_compdata)),
       false, datum_make_symbol("plain"), 0, 0, fai, builder_compdata);
-  size_t bdr = prog_append_something(sl); // this is first builder instruction.
+  size_t bdr = prog_get_next_index(sl);
+  prog_append_jmp(sl); // this is first builder instruction.
   // filled by prog_build.
   *jm_ = prog_get_next_index(sl) - jm;
   return bdr;

@@ -483,7 +483,11 @@ LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
                             datum_make_int(capture), datum_make_int(delta));
 }
 
-EXPORT datum prog_get_jmp(ptrdiff_t delta) {
+EXPORT ptrdiff_t *prog_get_jmp_delta(vec *sl, size_t offset) {
+  return &list_at(vec_at(sl, offset), 1)->integer_value;
+}
+
+LOCAL datum prog_get_jmp(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
 }
 

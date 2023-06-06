@@ -130,7 +130,7 @@ size_t prog_append_something(vec *sl);
 void prog_append_put_const(vec *sl,datum *val,datum *compdata);
 ptrdiff_t *prog_append_put_prog(vec *sl,int capture,datum *compdata);
 ptrdiff_t *prog_append_jmp(vec *sl);
-datum prog_get_jmp(ptrdiff_t delta);
+ptrdiff_t *prog_get_jmp_delta(vec *sl,size_t offset);
 datum compdata_make();
 datum *compdata_alloc_make();
 bool compdata_has_value(datum *compdata);
