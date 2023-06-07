@@ -75,6 +75,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   assert(bp != NULL);
   ptrdiff_t *builder_jmp = prog_get_jmp_delta(sl, *bp);
   *builder_jmp = prog_get_next_index(sl) - *bp;
+
   res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                        settings, ext);
   if (res != NULL) {

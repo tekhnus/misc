@@ -25,12 +25,12 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   size_t jm = prog_get_next_index(sl);
   ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
   *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;
-  datum xx = datum_make_list_of(datum_make_symbol("__start__"));
-  compdata_give_names(builder_compdata, &xx);
+  datum xx = datum_make_list_of(datum_make_symbol("__main__"));
+  move_values_to_variables(sl, &xx, builder_compdata);
 
   vec call_sexp = vec_make_of(datum_make_list_of(
       datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"),
-      datum_make_symbol("__start__")));
+      datum_make_symbol("__main__")));
   vec_append(&call_sexp, datum_make_symbol("at"));
   vec_append(&call_sexp, datum_make_list_of(datum_make_symbol("mut")));
   vec_append(&call_sexp, datum_make_symbol("at"));
@@ -42,6 +42,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
     fprintf(stderr, "%s\n", res);
     exit(EXIT_FAILURE);
   }
+
 
   size_t bdr = prog_get_next_index(sl);
   prog_append_jmp(sl); // this is first builder instruction.
@@ -57,8 +58,6 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   if (input_meta == NULL) {
     return NULL;
   }
-  datum s = datum_make_list_of(datum_make_symbol("__main__"));
-  move_values_to_variables(sl, &s, builder_compdata);
   char *err = prog_build_deps(sl, input_meta, module_bytecode, settings,
                               builder_compdata, ext);
   if (err != NULL) {
