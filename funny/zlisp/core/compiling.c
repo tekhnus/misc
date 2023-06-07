@@ -538,7 +538,7 @@ LOCAL void compdata_start_new_section(datum *compdata) {
   list_append_slow(compdata, nil);
 }
 
-EXPORT datum compdata_get_top_polyindex(datum *compdata) {
+LOCAL datum compdata_get_top_polyindex(datum *compdata) {
   size_t frames = list_length(compdata);
   size_t indices = list_length(list_get_last(compdata));
   assert(frames > 0 && indices > 0);

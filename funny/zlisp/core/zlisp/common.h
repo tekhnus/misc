@@ -130,7 +130,6 @@ ptrdiff_t *prog_get_jmp_delta(vec *sl,size_t offset);
 datum compdata_make();
 datum *compdata_alloc_make();
 datum compdata_get_polyindex(datum *compdata,datum *var);
-datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_next_polyindex(datum *compdata);
 void compdata_give_names(datum *compdata,datum *var);
 vec vec_create_slice();
