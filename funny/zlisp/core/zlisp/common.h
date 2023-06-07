@@ -133,7 +133,6 @@ datum compdata_get_polyindex(datum *compdata,datum *var);
 datum compdata_get_top_polyindex(datum *compdata);
 datum compdata_get_next_polyindex(datum *compdata);
 void compdata_give_names(datum *compdata,datum *var);
-void move_values_to_variables(vec *sl,datum *var,datum *compdata);
 vec vec_create_slice();
 size_t prog_get_next_index(vec *sl);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
