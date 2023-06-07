@@ -509,12 +509,6 @@ EXPORT datum *compdata_alloc_make() {
   return res;
 }
 
-EXPORT bool compdata_has_value(datum *compdata) {
-  datum *outer_frame = list_get_last(compdata);
-  return !datum_is_nil(outer_frame) &&
-         datum_is_the_symbol(list_get_last(outer_frame), ":anon");
-}
-
 LOCAL datum compdata_put(datum *compdata, datum var) {
   datum *last_frame = list_get_last(compdata);
   list_append_slow(last_frame, var);

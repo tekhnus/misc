@@ -94,7 +94,6 @@ result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *
 LOCAL datum *compdata_get_top_section(datum *compdata);
 LOCAL datum list_pop_slow(datum *list);
 LOCAL void list_append_slow(datum *list,datum value);
-bool compdata_has_value(datum *compdata);
 datum *compdata_alloc_make();
 datum compdata_make();
 ptrdiff_t *prog_get_jmp_delta(vec *sl,size_t offset);

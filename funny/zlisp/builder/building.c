@@ -66,11 +66,9 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
     return res;
   }
   datum *input_meta = extract_meta(*sl, start_p);
-  int yield_count = compdata_has_value(compdata) ? 1 : 0;
-  datum idx = yield_count > 0 ? compdata_get_top_polyindex(compdata)
-                              : compdata_get_next_polyindex(compdata);
+  datum idx = compdata_get_next_polyindex(compdata);
   datum nil = datum_make_nil();
-  prog_append_yield(sl, datum_make_symbol("halt"), idx, yield_count, 0, nil,
+  prog_append_yield(sl, datum_make_symbol("halt"), idx, 0, 0, nil,
                     compdata);
   size_t p_end = prog_get_next_index(sl);
   ptrdiff_t *p_end_ = prog_append_jmp(sl); // filled below.
