@@ -24,7 +24,6 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                     compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
   size_t jm = prog_get_next_index(sl);
   ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
-  // datum fai = compdata_get_next_polyindex(builder_compdata);
   *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;
   datum xx = datum_make_list_of(datum_make_symbol("__start__"));
   compdata_give_names(builder_compdata, &xx);
@@ -171,13 +170,6 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
     datum vn = datum_make_symbol(varname);
     vec_append(&call_sexp, vn);
   }
-  datum call_stmt = datum_make_list_of(datum_make_list_of(
-      datum_make_symbol("call"), datum_make_list(call_sexp)));
-  char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext);
-  if (res != NULL) {
-    return res;
-  }
-
   vec names = vec_make(0);
   for (int i = 0; i < list_length(syms); ++i) {
     datum *sym = list_at(syms, i);
@@ -187,7 +179,12 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
     vec_append(&names, vn);
   }
   datum names_ = datum_make_list(names);
-  compdata_give_names(compdata, &names_);
+  datum call_stmt = datum_make_list_of(names_, datum_make_symbol(":="), datum_make_list_of(
+      datum_make_symbol("call"), datum_make_list(call_sexp)));
+  char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext);
+  if (res != NULL) {
+    return res;
+  }
   return NULL;
 }
 
