@@ -464,14 +464,6 @@ LOCAL void prog_append_collect(vec *sl, size_t count, datum top_idx,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT ptrdiff_t *prog_append_put_prog(vec *sl, int capture, datum *compdata) {
-  datum target = compdata_put(compdata, datum_make_symbol(":anon"));
-  datum ins = prog_get_put_prog(&target, 100500, capture);
-  ptrdiff_t *delt = &list_at(&ins, 3)->integer_value;
-  vec_append(sl, ins);
-  return delt;
-}
-
 EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata) {
   datum target = compdata_put(compdata, datum_make_symbol(":anon"));
   datum ins = prog_get_put_prog(&target, 100500, 0);
@@ -576,7 +568,7 @@ LOCAL datum *compdata_get_top_section(datum *compdata) {
   return list_get_last(compdata);
 }
 
-EXPORT void compdata_give_names(datum *compdata, datum *var) {
+LOCAL void compdata_give_names(datum *compdata, datum *var) {
   for (int i = 0; i < list_length(var); ++i) {
     compdata_del(compdata);
   }

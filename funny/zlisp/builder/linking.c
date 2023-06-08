@@ -20,7 +20,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
     exit(EXIT_FAILURE);
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
-  ptrdiff_t *bdr_put_prog_ = prog_define_routine(sl, datum_make_symbol("__main__"), builder_compdata);
+  ptrdiff_t *bdr_put_prog_ =
+      prog_define_routine(sl, datum_make_symbol("__main__"), builder_compdata);
   return_expr = vec_make_of(
       datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
