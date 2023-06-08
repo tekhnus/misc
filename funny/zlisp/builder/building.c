@@ -67,15 +67,11 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   }
   datum *input_meta = extract_meta(*sl, start_p);
 
-   vec return_expr =
-      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
-                  datum_make_symbol("return"),
-                  datum_make_symbol("at"),
-                  datum_make_list_of(datum_make_symbol("halt")),
-                  datum_make_symbol("at"),
-                  datum_make_list_of(datum_make_int(0)),
-                  datum_make_symbol("flat"),
-                  datum_make_nil());
+  vec return_expr = vec_make_of(
+      datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
+      datum_make_symbol("at"), datum_make_list_of(datum_make_symbol("halt")),
+      datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
+      datum_make_symbol("flat"), datum_make_nil());
   datum ret_exp = datum_make_list(return_expr);
   char *res2 = prog_compile_and_relocate(sl, &ret_exp, builder_compdata, ext);
   if (res2 != NULL) {

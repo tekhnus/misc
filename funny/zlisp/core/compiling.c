@@ -428,8 +428,8 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
 }
 
 LOCAL void prog_append_yield(vec *sl, datum type, datum yield_val_index,
-                              size_t count, size_t recieve_count, datum meta,
-                              datum *compdata) {
+                             size_t count, size_t recieve_count, datum meta,
+                             datum *compdata) {
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }

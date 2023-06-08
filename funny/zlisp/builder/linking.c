@@ -8,15 +8,11 @@
 EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                               datum *builder_compdata) {
   extension ext = null_extension_make();
-  vec return_expr =
-      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
-                  datum_make_symbol("return"),
-                  datum_make_symbol("at"),
-                  datum_make_list_of(datum_make_symbol("halt")),
-                  datum_make_symbol("at"),
-                  datum_make_list_of(datum_make_int(0)),
-                  datum_make_symbol("flat"),
-                  datum_make_nil());
+  vec return_expr = vec_make_of(
+      datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
+      datum_make_symbol("at"), datum_make_list_of(datum_make_symbol("halt")),
+      datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
+      datum_make_symbol("flat"), datum_make_nil());
   datum ret_exp = datum_make_list(return_expr);
   char *res2 = prog_compile_and_relocate(sl, &ret_exp, builder_compdata, &ext);
   if (res2 != NULL) {
@@ -25,13 +21,10 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
   ptrdiff_t *bdr_put_prog_ = prog_append_put_prog(sl, 0, builder_compdata);
-  return_expr =
-      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
-                  datum_make_symbol("return"),
-                  datum_make_symbol("at"),
-                  datum_make_list_of(datum_make_int(0)),
-                  datum_make_symbol("flat"),
-                  datum_make_nil());
+  return_expr = vec_make_of(
+      datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
+      datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
+      datum_make_symbol("flat"), datum_make_nil());
   ret_exp = datum_make_list(return_expr);
   res2 = prog_compile_and_relocate(sl, &ret_exp, compdata, &ext);
   if (res2 != NULL) {
@@ -58,7 +51,6 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
     fprintf(stderr, "%s\n", res);
     exit(EXIT_FAILURE);
   }
-
 
   size_t bdr = prog_get_next_index(sl);
   prog_append_jmp(sl); // this is first builder instruction.
@@ -194,8 +186,10 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
     vec_append(&names, vn);
   }
   datum names_ = datum_make_list(names);
-  datum call_stmt = datum_make_list_of(names_, datum_make_symbol(":="), datum_make_list_of(
-      datum_make_symbol("call"), datum_make_list(call_sexp)));
+  datum call_stmt =
+      datum_make_list_of(names_, datum_make_symbol(":="),
+                         datum_make_list_of(datum_make_symbol("call"),
+                                            datum_make_list(call_sexp)));
   char *res = prog_compile_and_relocate(sl, &call_stmt, compdata, ext);
   if (res != NULL) {
     return res;
