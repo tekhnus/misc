@@ -124,6 +124,7 @@ fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 void prog_append_bytecode(vec *sl,vec *src_sl);
 ptrdiff_t *prog_append_put_prog(vec *sl,int capture,datum *compdata);
+ptrdiff_t *prog_define_routine(vec *sl,datum name,datum *compdata);
 ptrdiff_t *prog_append_jmp(vec *sl);
 ptrdiff_t *prog_get_jmp_delta(vec *sl,size_t offset);
 datum compdata_make();

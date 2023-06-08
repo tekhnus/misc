@@ -472,6 +472,16 @@ EXPORT ptrdiff_t *prog_append_put_prog(vec *sl, int capture, datum *compdata) {
   return delt;
 }
 
+EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata) {
+  datum target = compdata_put(compdata, datum_make_symbol(":anon"));
+  datum ins = prog_get_put_prog(&target, 100500, 0);
+  vec_append(sl, ins);
+  datum names = datum_make_list_of(name);
+  compdata_give_names(compdata, &names);
+  ptrdiff_t *delt = &list_at(&ins, 3)->integer_value;
+  return delt;
+}
+
 EXPORT ptrdiff_t *prog_append_jmp(vec *sl) {
   datum ins = prog_get_jmp(100500);
   size_t offset = prog_get_next_index(sl);
