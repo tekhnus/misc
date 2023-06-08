@@ -123,14 +123,12 @@ char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension 
 fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 void prog_append_bytecode(vec *sl,vec *src_sl);
-void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t count,size_t recieve_count,datum meta,datum *compdata);
 ptrdiff_t *prog_append_put_prog(vec *sl,int capture,datum *compdata);
 ptrdiff_t *prog_append_jmp(vec *sl);
 ptrdiff_t *prog_get_jmp_delta(vec *sl,size_t offset);
 datum compdata_make();
 datum *compdata_alloc_make();
 datum compdata_get_polyindex(datum *compdata,datum *var);
-datum compdata_get_next_polyindex(datum *compdata);
 void compdata_give_names(datum *compdata,datum *var);
 vec vec_create_slice();
 size_t prog_get_next_index(vec *sl);

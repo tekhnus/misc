@@ -427,7 +427,7 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
   compdata_del(compdata);
 }
 
-EXPORT void prog_append_yield(vec *sl, datum type, datum yield_val_index,
+LOCAL void prog_append_yield(vec *sl, datum type, datum yield_val_index,
                               size_t count, size_t recieve_count, datum meta,
                               datum *compdata) {
   for (size_t i = 0; i < count; ++i) {
@@ -546,7 +546,7 @@ LOCAL datum compdata_get_top_polyindex(datum *compdata) {
                             datum_make_int(indices - 1));
 }
 
-EXPORT datum compdata_get_next_polyindex(datum *compdata) {
+LOCAL datum compdata_get_next_polyindex(datum *compdata) {
   size_t frames = list_length(compdata);
   size_t indices = list_length(list_get_last(compdata));
   assert(frames > 0);
