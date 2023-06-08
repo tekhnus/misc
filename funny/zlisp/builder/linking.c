@@ -8,14 +8,36 @@
 EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                               datum *builder_compdata) {
   extension ext = null_extension_make();
-  datum nil = datum_make_nil();
-  prog_append_yield(sl, datum_make_symbol("halt"),
-                    compdata_get_next_polyindex(builder_compdata), 0, 0, nil,
-                    builder_compdata);
+  vec return_expr =
+      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
+                  datum_make_symbol("return"),
+                  datum_make_symbol("at"),
+                  datum_make_list_of(datum_make_symbol("halt")),
+                  datum_make_symbol("at"),
+                  datum_make_list_of(datum_make_int(0)),
+                  datum_make_symbol("flat"),
+                  datum_make_nil());
+  datum ret_exp = datum_make_list(return_expr);
+  char *res2 = prog_compile_and_relocate(sl, &ret_exp, builder_compdata, &ext);
+  if (res2 != NULL) {
+    fprintf(stderr, "%s\n", res2);
+    exit(EXIT_FAILURE);
+  }
   size_t bdr_put_prog = prog_get_next_index(sl);
   ptrdiff_t *bdr_put_prog_ = prog_append_put_prog(sl, 0, builder_compdata);
-  prog_append_yield(sl, datum_make_symbol("plain"),
-                    compdata_get_next_polyindex(compdata), 0, 0, nil, compdata);
+  return_expr =
+      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
+                  datum_make_symbol("return"),
+                  datum_make_symbol("at"),
+                  datum_make_list_of(datum_make_int(0)),
+                  datum_make_symbol("flat"),
+                  datum_make_nil());
+  ret_exp = datum_make_list(return_expr);
+  res2 = prog_compile_and_relocate(sl, &ret_exp, compdata, &ext);
+  if (res2 != NULL) {
+    fprintf(stderr, "%s\n", res2);
+    exit(EXIT_FAILURE);
+  }
   size_t jm = prog_get_next_index(sl);
   ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
   *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;

@@ -66,10 +66,22 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
     return res;
   }
   datum *input_meta = extract_meta(*sl, start_p);
-  datum idx = compdata_get_next_polyindex(compdata);
-  datum nil = datum_make_nil();
-  prog_append_yield(sl, datum_make_symbol("halt"), idx, 0, 0, nil,
-                    compdata);
+
+   vec return_expr =
+      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
+                  datum_make_symbol("return"),
+                  datum_make_symbol("at"),
+                  datum_make_list_of(datum_make_symbol("halt")),
+                  datum_make_symbol("at"),
+                  datum_make_list_of(datum_make_int(0)),
+                  datum_make_symbol("flat"),
+                  datum_make_nil());
+  datum ret_exp = datum_make_list(return_expr);
+  char *res2 = prog_compile_and_relocate(sl, &ret_exp, builder_compdata, ext);
+  if (res2 != NULL) {
+    fprintf(stderr, "%s\n", res2);
+    exit(EXIT_FAILURE);
+  }
   size_t p_end = prog_get_next_index(sl);
   ptrdiff_t *p_end_ = prog_append_jmp(sl); // filled below.
   assert(bp != NULL);
