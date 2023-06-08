@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+
+function catthenwait() {
+         cat $1 | jq -Rsc '{content: ., loc: [50, 10]}'
+         read -p 'press any key'
+}
+
+(catthenwait ~/arcadia/sdg/sdc/ros/planning/agents_processor/agents_processor.cpp) | ./open-nav

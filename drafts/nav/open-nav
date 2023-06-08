@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+tmpdir="$(mktemp -d)"
+trap 'rm -rf -- "$tmpdir"' EXIT
+ctl="$tmpdir/ctl"
+mkfifo "$ctl"
+out="$tmpdir/out"
+mkfifo "$out"
+err="$tmpdir/err"
+mkfifo "$err"
+kitty /bin/bash -c "TERM=xterm-1003 /home/zahaaar/local/nav/.venv/bin/nav $ctl $out 2>$err" >/dev/null 2>&1 &
+cat </dev/stdin >"$ctl" 2>/dev/null &
+cat <"$out" >/dev/stdout 2>/dev/null &
+cat <"$err" >/dev/stderr 2>/dev/null
