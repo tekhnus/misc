@@ -470,7 +470,7 @@ EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata) {
   vec_append(sl, ins);
   datum names = datum_make_list_of(name);
   compdata_give_names(compdata, &names);
-  ptrdiff_t *delt = &list_at(&ins, 3)->integer_value;
+  ptrdiff_t *delt = (ptrdiff_t *)&list_at(&ins, 3)->integer_value;
   return delt;
 }
 
@@ -487,7 +487,7 @@ LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
 }
 
 EXPORT ptrdiff_t *prog_get_jmp_delta(vec *sl, size_t offset) {
-  return &list_at(vec_at(sl, offset), 1)->integer_value;
+  return (ptrdiff_t *)&list_at(vec_at(sl, offset), 1)->integer_value;
 }
 
 LOCAL datum prog_get_jmp(ptrdiff_t delta) {

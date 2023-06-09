@@ -517,7 +517,7 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(array_length(f.state) == 1);
   datum *offset_datum = array_at(f.state, 0);
   assert(datum_is_integer(offset_datum));
-  return &offset_datum->integer_value;
+  return (ptrdiff_t *)&offset_datum->integer_value;
 }
 
 LOCAL routine get_routine_from_datum(datum *e) {
