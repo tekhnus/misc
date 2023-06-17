@@ -1,6 +1,5 @@
 req
 {{prelude "prelude"}
- {panic- "prelude" panic}
  {head- "prelude" head}
  {tail- "prelude" tail}
  {cons- "prelude" cons}
@@ -12,7 +11,7 @@ req
  {+- "prelude" +}}
 
 panic := fn {x}
-{(/prelude/panic- @0 x)
+{{} := return @panic x
  return ^{}}
 
 head := fn {x}

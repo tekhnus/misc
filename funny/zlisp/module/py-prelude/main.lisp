@@ -50,10 +50,6 @@ eq := fn {a0 a1}
   a1}
  return r}
 
-panic := fn {x}
-{{} := return @panic x
- return ^{}}
-
 annotate := fn {a0}
 {r := return @1
  @{host
@@ -99,7 +95,6 @@ repr := fn {a0}
 
 export
 {{print print}
- {panic panic}
  {head head}
  {tail tail}
  {cons cons}

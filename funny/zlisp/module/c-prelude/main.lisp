@@ -380,7 +380,6 @@ extern-pointer := fn {handle c-name signature}
 
 export
 {{call-extension-1 call-extension-1}
- {panic panic}
  {head head}
  {tail tail}
  {cons cons}
