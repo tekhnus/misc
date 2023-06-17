@@ -59,7 +59,8 @@ pointer-call := fn {x y z}
  return r}
 
 panic := fn {x}
-{{} := return @panic x
+{{} := return @panic
+ x
  return ^{}}
 
 head-pointer := return @1

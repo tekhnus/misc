@@ -357,7 +357,7 @@ print-all = fn {xs}
  item := 42
  while (/std/not (/std/eq i (/std/length xs)))
  ^{item = (/std/list-at xs i)
-   res = (/libc/print item)}
+  res = (/libc/print item)}
  return ^{}}
 
 if panics

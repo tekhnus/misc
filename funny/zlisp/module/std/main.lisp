@@ -11,7 +11,8 @@ req
  {+- "prelude" +}}
 
 panic := fn {x}
-{{} := return @panic x
+{{} := return @panic
+ x
  return ^{}}
 
 head := fn {x}
