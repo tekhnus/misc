@@ -120,6 +120,10 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
     print_backtrace(sl, &r);
   }
+  if (datum_is_the_symbol(&res.type, "interpreter-panic")) {
+    fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
+    print_backtrace(sl, &r);
+  }
   return res;
 }
 

@@ -213,7 +213,7 @@ first-good-value = fn {x}
   if (../eq :ok (../head first-arg))
   {return (../list-at first-arg 1)}
   {return (../first-good-value (../tail x))}}
- {(panic @0 "first-good-value: no good value")}}
+ {{} := (../panic @0 "first-good-value: no good value")}}
 
 export
 {{panic panic}
