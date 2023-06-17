@@ -10,7 +10,8 @@ req
  {list-at "std" list-at}
  {panic "std" panic}
  {fprintf "libc" fprintf}
- {fprintf-bytestring "libc" fprintf-bytestring}
+ {libc "libc"}
+ {print "libc" print}
  {stdout "libc" stdout}
  {stderr "libc" stderr}
  {stdin "libc" stdin}
@@ -57,19 +58,22 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
      switch (/zlisp/eval-new sl nsp)
      {{{:ok
         val}
-       ignored = (/prelude/fprintf-bytestring stdout "%s\n" (/zlisp/repr-pointer val))
+       ignored = (/libc/print (/zlisp/repr-pointer val))
        return (../repl sl nsp bpptr compdata bdrcompdata ex)}
       {{:err
         msga}
-       ignored = (/prelude/fprintf-bytestring stderr "eval error: %s\n" msga)
+       ignored = (/libc/print "eval error\n")
+       ignored = (/libc/print msga)
        return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
     {{:err
       msgb}
-     ignored = (/prelude/fprintf-bytestring stderr "compilation error at repl: %s\n" msgb)
+     ignored = (/libc/print "compilation error at repl\n")
+     ignored = (/libc/print msgb)
      return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
   {{:err
     msgc}
-   ignored = (/prelude/fprintf-bytestring stderr "read error: %s\n" msgc)
+   ignored = (/libc/print "read error\n")
+   ignored = (/libc/print msgc)
    return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
 
 sl := (/prelude/psm)

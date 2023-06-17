@@ -151,6 +151,8 @@ LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
     return "something wrong with the return type signature";
   }
   ffi_status status;
+  // TODO: for variadic functions, prep_cif_var must be used.
+  // Without it, linux works somehow and mac does not.
   if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, *ret_type,
                              arg_types)) != FFI_OK) {
     return "something went wrong during ffi_prep_cif";

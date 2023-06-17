@@ -35,11 +35,6 @@ fprintf := (/prelude/c-function libc "fprintf" {{'pointer
    'string}
   'sizet})
 
-fprintf-bytestring := (/prelude/c-function libc "fprintf" {{'pointer
-   'string
-   'string}
-  'sizet})
-
 printfptr := (/prelude/c-function libc "printf" {{'string
    'pointer}
   'sizet})
@@ -54,7 +49,7 @@ stderr := (/std/first-good-value {(/prelude/extern-pointer libc "stderr" 'pointe
   (/prelude/extern-pointer libc "__stderrp" 'pointer)})
 
 print := fn {val}
-{return (/prelude/fprintf-bytestring stdout "%s\n" (/std/repr val))}
+{return (/prelude/fprintf stdout (/std/repr val))}
 
 export
 {{malloc malloc}
@@ -62,7 +57,6 @@ export
  {fread fread}
  {feof feof}
  {fprintf fprintf}
- {fprintf-bytestring fprintf-bytestring}
  {printfptr printfptr}
  {stdin stdin}
  {stdout stdout}

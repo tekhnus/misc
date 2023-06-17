@@ -1,7 +1,6 @@
 req
 {{prelude "prelude"}
  {fprintf "libc" fprintf}
- {fprintf-bytestring "libc" fprintf-bytestring}
  {stderr "libc" stderr}
  {std "std"}
  {decons-pat "std" decons-pat}
@@ -209,11 +208,6 @@ fntest
 fntest
 {res := (/prelude/fprintf stderr (/std/repr "hello fprintf-repr\n"))
  return 42}
-42
-
-fntest
-{res := (/prelude/fprintf-bytestring stderr "%s\n" "hello-fprintf-bytestring")
-return 42}
 42
 
 fntest
