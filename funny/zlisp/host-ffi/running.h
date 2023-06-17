@@ -21,7 +21,6 @@ fdatum builtin_eq(datum *args);
 fdatum builtin_cons(datum *args);
 fdatum builtin_tail(datum *args);
 fdatum builtin_head(datum *args);
-fdatum builtin_panic(datum *args);
 LOCAL fdatum pointer_call(datum *argz);
 LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);

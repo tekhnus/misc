@@ -39,11 +39,6 @@ def eq(args):
     return []
 
 
-def panic(args):
-    (a1,) = args
-    raise RuntimeError("Panic! {}".format(repr(a1)))
-
-
 def annotate(args):
     (val,) = args
     if isinstance(val, list):
@@ -251,6 +246,8 @@ def main():
                 else:
                     raise RuntimeError(f"host not implemented: {instruction}")
                 ip += 1
+            elif target == sexpdata.Symbol("panic"):
+                raise RuntimeError("panic")
             elif (
                 isinstance(target, list)
                 and len(target) == 3

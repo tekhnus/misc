@@ -58,19 +58,8 @@ pointer-call := fn {x y z}
   z}
  return r}
 
-panic-pointer := return @1
-
-@{host
- "panic"}
-
-{}
-
 panic := fn {x}
-{ignored-result := return @1
- @{host
-  "call-extension"}
- ^{panic-pointer
-  x}
+{{} := return @panic x
  return ^{}}
 
 head-pointer := return @1

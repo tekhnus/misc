@@ -50,12 +50,8 @@ eq := fn {a0 a1}
   a1}
  return r}
 
-panic := fn {a0}
-{ignored-result := return @1
- @{host
-  "eval"
-  "panic(x)"}
- {a0}
+panic := fn {x}
+{{} := return @panic x
  return ^{}}
 
 annotate := fn {a0}

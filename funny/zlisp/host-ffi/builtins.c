@@ -45,11 +45,6 @@ fdatum builtin_is_constant(datum *args) {
   return fdatum_make_ok(datum_make_list_of(nil));
 }
 
-fdatum builtin_panic(datum *args) {
-  datum *arg_value = list_at(args, 0);
-  return fdatum_make_panic(datum_repr(arg_value));
-}
-
 fdatum builtin_repr(datum *args) {
   datum *v = list_at(args, 0);
   return fdatum_make_ok(

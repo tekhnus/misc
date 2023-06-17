@@ -45,8 +45,6 @@ EXPORT fdatum host_ffi(datum *type, datum *args) {
     res = datum_make_int((int64_t)datum_mkptr);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
     res = datum_make_int((int64_t)pointer_call);
-  } else if (!strcmp(name->bytestring_value, "panic")) {
-    res = datum_make_int((int64_t)builtin_panic);
   } else if (!strcmp(name->bytestring_value, "head")) {
     res = datum_make_int((int64_t)builtin_head);
   } else if (!strcmp(name->bytestring_value, "tail")) {

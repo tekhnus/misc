@@ -10,7 +10,6 @@ fdatum builtin_cons(datum *args);
 fdatum builtin_add(datum *args);
 fdatum builtin_concat_bytestrings(datum *args);
 fdatum builtin_repr(datum *args);
-fdatum builtin_panic(datum *args);
 fdatum builtin_is_constant(datum *args);
 fdatum builtin_annotate(datum *args);
 fdatum builtin_eq(datum *args);
