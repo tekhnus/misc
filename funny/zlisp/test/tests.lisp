@@ -353,11 +353,12 @@ print-all := 42
 
 print-all = fn {xs}
 {res := 42
- if xs
- {res = (/libc/print (/std/head xs))
-  {} := (../print-all @0 (/std/tail xs))
-  return ^{}}
- {{} := return ^{}}}
+ i := 0
+ item := 42
+ while (/std/not (/std/eq i (/std/length xs)))
+ ^{item = (/std/list-at xs i)
+   res = (/libc/print item)}
+ return ^{}}
 
 if panics
 
