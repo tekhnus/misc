@@ -163,7 +163,7 @@ decons-vars = fn {a0}
    {if a0
     {return (../concat (../decons-vars (../head a0)) (../decons-vars (../tail a0)))}
     {return {}}}
-   {{} := (panic @0 "decons-var met an unsupported type")}}}}
+   {{} := (../panic @0 "decons-var met an unsupported type")}}}}
 
 switch-defines := {'(/std/list-at args 0)
  '(/std/list-at args 1)
