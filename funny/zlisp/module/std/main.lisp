@@ -46,13 +46,6 @@ not := fn {x}
  {return {}}
  {return {{}}}}
 
-last := 42
-
-last = fn {a0}
-{if (../tail a0)
- {return (../last (../tail a0))}
- {return (../head a0)}}
-
 type := fn {x}
 {return (../head (../annotate x))}
 
