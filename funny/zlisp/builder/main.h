@@ -2,6 +2,7 @@
 #undef INTERFACE
 #include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
+char *prog_build_or_exit(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
 extension *standard_extension_alloc_make();
 #define EXPORT
 #include "zlisp/common.h"

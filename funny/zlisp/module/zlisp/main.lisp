@@ -29,7 +29,7 @@ make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_allo
 prog-slice-make := (/prelude/c-function selflib "vec_create_slice" {{}
   'progslice})
 
-prog-build-one-c-host := (/prelude/c-function buildlib "prog_build" {{'pointer
+prog-build-one-c-host := (/prelude/c-function buildlib "prog_build_or_exit" {{'pointer
    'pointer
    'pointer
    'pointer

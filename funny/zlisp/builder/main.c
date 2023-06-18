@@ -71,3 +71,10 @@ EXPORT extension *standard_extension_alloc_make() {
   }
   return &res->base;
 }
+
+EXPORT char *prog_build_or_exit(vec *sl, size_t *bp, datum *source, datum *compdata,
+                        datum *builder_compdata, datum *settings,
+                        extension *ext) {
+  // For Lisp.
+  return prog_build(sl, bp, source, compdata, builder_compdata, settings, ext);
+}

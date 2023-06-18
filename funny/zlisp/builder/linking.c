@@ -53,7 +53,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
 
   size_t bdr = prog_get_next_index(sl);
   prog_append_jmp(sl); // this is first builder instruction.
-  // filled by prog_build.
+  // filled by prog__build.
   *jm_ = prog_get_next_index(sl) - jm;
   return bdr;
 }
