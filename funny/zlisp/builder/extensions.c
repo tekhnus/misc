@@ -45,9 +45,9 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   }
   result init_res = routine_run_with_handler(*program, routine_, host_ffi);
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
-    fprintf(stderr, "while initializing extensions: %s\n",
+    abortf(ctxt, "while initializing extensions: %s\n",
             datum_repr(&init_res.value));
-    exit(EXIT_FAILURE);
+    return;
   }
   return;
 }
