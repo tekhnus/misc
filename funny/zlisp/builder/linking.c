@@ -117,13 +117,14 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
   strcat(res, sym);
 }
 
-LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
+LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *,
                                                      extension *),
                            datum *settings, datum *compdata, extension *ext, context *ctxt) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
-    return "req expects bytestrings";
+    abortf(ctxt, "req expects bytestrings");
+    return;
   }
   datum *dep = list_at(dep_and_sym, 0);
 
@@ -133,27 +134,31 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   datum idex = compdata_get_polyindex(compdata, &vn);
   bool already_built = !datum_is_nil(&idex);
   if (already_built) {
-    return NULL;
+    return;
   }
   fdatum stts = module_bytecode(dep->bytestring_value, settings, ext);
   if (fdatum_is_panic(stts)) {
-    return stts.panic_message;
+    abortf(ctxt, stts.panic_message);
+    return;
   }
   vec module_sl = list_to_vec(&stts.ok_value);
   datum *transitive_deps = extract_meta(module_sl, 0);
   if (transitive_deps == NULL) {
-    return "error: null extract_meta for reqs";
+    abortf(ctxt, "error: null extract_meta for reqs");
+    return;
   }
   assert(prog_get_next_index(&module_sl) >= 1);
   size_t last_instruction = prog_get_next_index(&module_sl) - 1;
   datum *syms = extract_meta(module_sl, last_instruction);
   if (syms == NULL) {
-    return "error: null extract_meta for exports";
+    abortf(ctxt, "error: null extract_meta for exports");
+    return;
   }
   prog_build_deps(sl, transitive_deps, module_bytecode, settings,
                               compdata, ext, ctxt);
   if (ctxt->aborted) {
-    return "aborted";
+    abortf(ctxt, "aborted");
+    return;
   } 
   size_t ppo = prog_get_next_index(sl);
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
@@ -191,9 +196,10 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
                                             datum_make_list(call_sexp)));
   prog_compile(sl, &call_stmt, compdata, ext, ctxt);
   if (ctxt->aborted) {
-    return "failure!";
+    abortf(ctxt, "failure!");
+    return;
   }
-  return NULL;
+  return;
 }
 
 EXPORT datum *extract_meta(vec sl, size_t run_main_off) {
