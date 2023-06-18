@@ -55,7 +55,7 @@ EXPORT fdatum compile_module(char *module, datum *settings,
   }
   datum compdata = compdata_make();
   vec sl = vec_create_slice();
-  char *err = prog_compile_and_relocate(&sl, &src.ok_value, &compdata, extension);
+  char *err = prog_compile(&sl, &src.ok_value, &compdata, extension);
   if (err != NULL) {
     return fdatum_make_panic(err);
   }
@@ -66,7 +66,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
                         datum *builder_compdata, datum *settings,
                         extension *ext) {
   size_t start_p = prog_get_next_index(sl);
-  char *res = prog_compile_and_relocate(sl, source, compdata, ext);
+  char *res = prog_compile(sl, source, compdata, ext);
   if (res != NULL) {
     return res;
   }
@@ -78,7 +78,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_nil());
   datum ret_exp = datum_make_list(return_expr);
-  char *res2 = prog_compile_and_relocate(sl, &ret_exp, builder_compdata, ext);
+  char *res2 = prog_compile(sl, &ret_exp, builder_compdata, ext);
   if (res2 != NULL) {
     fprintf(stderr, "%s\n", res2);
     exit(EXIT_FAILURE);

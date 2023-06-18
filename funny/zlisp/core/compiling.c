@@ -16,7 +16,7 @@ struct context {
   char error[1024];
 };
 
-EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
+EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
                                      extension *ext) {
   assert(datum_is_list(source));
   int i = 0;

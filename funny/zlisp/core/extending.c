@@ -89,7 +89,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   // fprintf(stderr, "macro: %s -> %s\n", datum_repr(&src),
   // datum_repr(list_at(&res.ok_value, 0))); datum exprs =
   // datum_make_list_of(*list_at(&res.ok_value, 0));
-  return prog_compile_and_relocate(sl, list_at(&res.ok_value, 0), compdata,
+  return prog_compile(sl, list_at(&res.ok_value, 0), compdata,
                                  self_);
 }
 
@@ -101,7 +101,7 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
 
   extension ext = null_extension_make();
   char *err =
-      prog_compile_and_relocate(&est->program, &mod, &est->compdata, &ext);
+      prog_compile(&est->program, &mod, &est->compdata, &ext);
   if (err != NULL) {
     char err2[256];
     err2[0] = 0;
@@ -154,7 +154,7 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
       datum_make_list_of(
           datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
-  return prog_compile_and_relocate(sl, &stmt, compdata, ext);
+  return prog_compile(sl, &stmt, compdata, ext);
 }
 
 LOCAL fdatum prog_read_usages(datum *spec) {
@@ -220,7 +220,7 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   vec_append(&return_expr, datum_make_symbol("flat"));
   vec_append(&return_expr, datum_make_list_of(datum_make_list(vals)));
   datum return_expr_ = datum_make_list(return_expr);
-  return prog_compile_and_relocate(sl, &return_expr_, compdata, ext);
+  return prog_compile(sl, &return_expr_, compdata, ext);
 }
 
 LOCAL fdatum prog_read_exports(datum *spec) {

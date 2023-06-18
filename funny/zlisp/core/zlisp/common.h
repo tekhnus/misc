@@ -119,7 +119,7 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
-char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
+char *prog_compile(vec *sl,datum *source,datum *compdata,extension *ext);
 void prog_append_bytecode(vec *sl,vec *src_sl);
 ptrdiff_t *prog_define_routine(vec *sl,datum name,datum *compdata);
 ptrdiff_t *prog_append_jmp(vec *sl);
