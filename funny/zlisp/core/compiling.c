@@ -17,26 +17,6 @@ struct context {
 };
 
 EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
-                                       extension *ext) {
-  fdatum bytecode = prog_compile(source, compdata, ext);
-  if (fdatum_is_panic(bytecode)) {
-    return bytecode.panic_message;
-  }
-  vec bc = list_to_vec(&bytecode.ok_value);
-  prog_append_bytecode(sl, &bc);
-  return NULL;
-}
-
-LOCAL fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
-  vec sl = vec_create_slice();
-  char *err = prog_append_expressions(&sl, source, compdata, ext);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
-  }
-  return fdatum_make_ok(datum_make_list(sl));
-}
-
-EXPORT char *prog_append_expressions(vec *sl, datum *source, datum *compdata,
                                      extension *ext) {
   assert(datum_is_list(source));
   int i = 0;
