@@ -39,7 +39,8 @@ LOCAL datum prog_read_usages(datum *spec,context *ctxt);
 typedef struct vec vec;
 typedef struct extension extension;
 struct extension {
-  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata,
+               context *ctxt);
 };
 LOCAL void prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
 LOCAL void prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);

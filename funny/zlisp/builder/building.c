@@ -91,7 +91,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   *builder_jmp = prog_get_next_index(sl) - *bp;
 
   char *res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
-                       settings, ext);
+                             settings, ext);
   if (res != NULL) {
     return res;
   }

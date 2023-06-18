@@ -30,15 +30,15 @@ EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source,
-                                int *i, datum *compdata, context *ctxt) {
+LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
+                               datum *compdata, context *ctxt) {
   extension nu = null_extension_make();
   int i_val = *i;
   null_extension_call(&nu, sl, source, i, compdata, ctxt);
 
-    if (ctxt->aborted) {
-      return;
-    }
+  if (ctxt->aborted) {
+    return;
+  }
   if (i_val != *i) {
     return;
   }
@@ -83,8 +83,7 @@ LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source,
   }
   assert(datum_is_list(&res));
   assert(list_length(&res) == 1);
-  prog_compile(sl, list_at(&res, 0), compdata,
-                                 self_, ctxt);
+  prog_compile(sl, list_at(&res, 0), compdata, self_, ctxt);
   if (ctxt->aborted) {
     return;
   }
@@ -100,9 +99,9 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   extension ext = null_extension_make();
   prog_compile(&est->program, &mod, &est->compdata, &ext, ctxt);
 
-    if (ctxt->aborted) {
-      return (datum){};
-    }
+  if (ctxt->aborted) {
+    return (datum){};
+  }
   result res = routine_run_with_handler(est->program, &est->routine_,
                                         est->yield_handler);
   if (!datum_is_the_symbol(&res.type, "halt")) {
@@ -113,7 +112,7 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
 }
 
 LOCAL void null_extension_call(extension *self, vec *sl, datum *source, int *i,
-                                datum *compdata, context *ctxt) {
+                               datum *compdata, context *ctxt) {
   datum *op = list_at(source, *i);
   datum stmt;
   if (datum_is_the_symbol(op, "req")) {
@@ -140,7 +139,7 @@ LOCAL void null_extension_call(extension *self, vec *sl, datum *source, int *i,
 }
 
 LOCAL void prog_append_usages(vec *sl, datum *spec, datum *compdata,
-                               extension *ext, context *ctxt) {
+                              extension *ext, context *ctxt) {
   datum re = prog_read_usages(spec, ctxt);
   if (ctxt->aborted) {
     return;
@@ -161,9 +160,9 @@ LOCAL void prog_append_usages(vec *sl, datum *spec, datum *compdata,
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
   prog_compile(sl, &stmt, compdata, ext, ctxt);
 
-    if (ctxt->aborted) {
-      return;
-    }
+  if (ctxt->aborted) {
+    return;
+  }
 }
 
 LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
@@ -208,7 +207,7 @@ LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
 }
 
 LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
-                                extension *ext, context *ctxt) {
+                               extension *ext, context *ctxt) {
   datum re = prog_read_exports(spec, ctxt);
   if (ctxt->aborted) {
     return;
@@ -234,9 +233,9 @@ LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum return_expr_ = datum_make_list(return_expr);
   prog_compile(sl, &return_expr_, compdata, ext, ctxt);
 
-    if (ctxt->aborted) {
-      return;
-    }
+  if (ctxt->aborted) {
+    return;
+  }
 }
 
 LOCAL datum prog_read_exports(datum *spec, context *ctxt) {
@@ -266,6 +265,6 @@ LOCAL datum prog_read_exports(datum *spec, context *ctxt) {
     vec_append(&names, datum_copy(item_name));
     vec_append(&expressions, datum_copy(item_expression));
   }
-  return 
-      datum_make_list_of(datum_make_list(names), datum_make_list(expressions));
+  return datum_make_list_of(datum_make_list(names),
+                            datum_make_list(expressions));
 }

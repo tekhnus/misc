@@ -60,7 +60,8 @@ struct context {
   char error[1024];
 };
 struct extension {
-  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata,
+               context *ctxt);
 };
 char *datum_repr_pretty(datum *e,extension *ext);
 typedef struct fdatum fdatum;

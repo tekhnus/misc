@@ -12,7 +12,8 @@ struct context {
 };
 typedef struct extension extension;
 struct extension {
-  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata,
+               context *ctxt);
 };
 #endif
 
@@ -24,7 +25,7 @@ EXPORT void abortf(context *ctxt, char *format, ...) {
 }
 
 EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
-                                     extension *ext, context *ctxt) {
+                         extension *ext, context *ctxt) {
   assert(datum_is_list(source));
   int i = 0;
   for (;;) {
@@ -49,7 +50,8 @@ EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
 }
 
 LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
-                                           datum *compdata, extension *ext, context *ctxt) {
+                                          datum *compdata, extension *ext,
+                                          context *ctxt) {
   int i_val = *i;
   ext->call(ext, sl, source, i, compdata, ctxt);
   if (ctxt->aborted) {
@@ -233,9 +235,9 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     while (j < list_length(vals)) {
       prog_append_consume_expression(sl, vals, &j, compdata, ext, ctxt);
 
-    if (ctxt->aborted) {
-      return;
-    }
+      if (ctxt->aborted) {
+        return;
+      }
     }
     return;
   }
@@ -265,9 +267,9 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     while (j < list_length(vals)) {
       prog_append_consume_expression(sl, vals, &j, compdata, ext, ctxt);
 
-    if (ctxt->aborted) {
-      return;
-    }
+      if (ctxt->aborted) {
+        return;
+      }
     }
     int after = compdata_get_length(compdata);
     prog_append_collect(sl, after - before, idx, compdata);
@@ -291,7 +293,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
 }
 
 LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
-                              extension *ext, context *ctxt) {
+                             extension *ext, context *ctxt) {
   datum *fn = list_at(s_expr, 0);
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;
@@ -366,9 +368,9 @@ LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
     } else {
       prog_append_consume_expression(sl, fns, &fn_index, compdata, ext, ctxt);
 
-    if (ctxt->aborted) {
-      return;
-    }
+      if (ctxt->aborted) {
+        return;
+      }
       datum idx = compdata_get_top_polyindex(compdata);
       vec_append(&indices, idx);
     }
