@@ -31,8 +31,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   ret_exp = datum_make_list(return_expr);
   prog_compile(sl, &ret_exp, compdata, &ext, ctxt);
   if (ctxt->aborted) {
-    fprintf(stderr, "build init fail");
-    exit(EXIT_FAILURE);
+    return 0;
   }
   size_t jm = prog_get_next_index(sl);
   ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
@@ -49,8 +48,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
       datum_make_symbol("call"), datum_make_list(call_sexp)));
   prog_compile(sl, &call_stmt, builder_compdata, &ext, ctxt);
   if (ctxt->aborted) {
-    fprintf(stderr, "build init fail");
-    exit(EXIT_FAILURE);
+    return 0;
   }
 
   size_t bdr = prog_get_next_index(sl);
