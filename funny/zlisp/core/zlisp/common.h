@@ -131,6 +131,11 @@ vec vec_create_slice();
 size_t prog_get_next_index(vec *sl);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
+typedef struct context context;
+struct context {
+  bool aborted;
+  char error[1024];
+};
 datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 typedef struct lisp_extension lisp_extension;
