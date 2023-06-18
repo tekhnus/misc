@@ -147,7 +147,7 @@ struct lisp_extension {
   vec program;
   datum routine_;
   datum compdata;
-  fdatum (*yield_handler)(datum *, datum *);
+  result (*runner)(vec, datum *, datum); 
 };
-lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,result(*runner)(vec,datum *,datum));
 extension null_extension_make();

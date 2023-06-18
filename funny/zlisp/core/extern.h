@@ -49,24 +49,23 @@ struct vec {
   array storage;
   size_t length;
 };
-typedef struct fdatum fdatum;
-struct fdatum {
-  int type;
-  struct datum ok_value;
-  char *panic_message;
+typedef struct result result;
+struct result {
+  datum type;
+  datum value;
 };
 struct lisp_extension {
   extension base;
   vec program;
   datum routine_;
   datum compdata;
-  fdatum (*yield_handler)(datum *, datum *);
+  result (*runner)(vec, datum *, datum); 
 };
 LOCAL datum lisp_extension_run(datum *e,lisp_extension *est,context *ctxt);
 LOCAL void null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 extension null_extension_make();
 LOCAL void lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
-lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
+lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,result(*runner)(vec,datum *,datum));
 LOCAL struct frame get_frame_from_datum(datum *d);
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
@@ -89,13 +88,14 @@ LOCAL datum *state_stack_at(routine *r,datum *offset);
 LOCAL routine routine_get_prefix(routine *r,size_t capture_count);
 LOCAL routine make_routine_from_indices(routine *r,size_t capture_count,datum *call_indices);
 LOCAL void print_backtrace(vec sl,routine *r);
-typedef struct result result;
-struct result {
-  datum type;
-  datum value;
-};
 LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
+typedef struct fdatum fdatum;
+struct fdatum {
+  int type;
+  struct datum ok_value;
+  char *panic_message;
+};
 result routine_run_with_handler(vec sl,datum *r0d,datum args,fdatum(*yield_handler)(datum *,datum *));
 vec vec_create_slice();
 LOCAL datum *compdata_get_top_section(datum *compdata);

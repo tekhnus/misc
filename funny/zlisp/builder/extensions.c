@@ -14,7 +14,7 @@ EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
   if (ctxt->aborted) {
     return (struct lisp_extension){};
   }
-  return lisp_extension_make(program, routine_, compdata, host_ffi);
+  return lisp_extension_make(program, routine_, compdata, host_ffi_run);
 }
 
 LOCAL void standard_extension_init(vec *program, datum *routine_,

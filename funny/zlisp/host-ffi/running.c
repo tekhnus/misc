@@ -8,8 +8,7 @@
 #include <zlisp/common.h>
 #endif
 
-EXPORT result host_ffi_run(vec sl, datum *r0d,
-                                       datum args) {
+EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
   return routine_run_with_handler(sl, r0d, args, host_ffi);
 }
 
