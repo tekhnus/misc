@@ -5,18 +5,18 @@
 #include <string.h>
 
 #if INTERFACE
-typedef struct extension extension;
-struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
-};
+typedef struct context context;
 struct context {
   bool aborted;
   char error[1024];
 };
-typedef struct context context;
+typedef struct extension extension;
+struct extension {
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+};
 #endif
 
-void abortf(context *ctxt, char *format, ...) {
+EXPORT void abortf(context *ctxt, char *format, ...) {
   va_list args;
   va_start(args, format);
   vsnprintf(ctxt->error, 1024, format, args);
@@ -52,7 +52,7 @@ EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
 LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
                                            datum *compdata, extension *ext, context *ctxt) {
   int i_val = *i;
-  char *err = ext->call(ext, sl, source, i, compdata);
+  char *err = ext->call(ext, sl, source, i, compdata, ctxt);
   if (err != NULL) {
     return err;
   }

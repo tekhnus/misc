@@ -31,10 +31,10 @@ EXPORT extension null_extension_make() {
 }
 
 LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
-                                int *i, datum *compdata) {
+                                int *i, datum *compdata, context *ctxt) {
   extension nu = null_extension_make();
   int i_val = *i;
-  char *err = null_extension_call(&nu, sl, source, i, compdata);
+  char *err = null_extension_call(&nu, sl, source, i, compdata, ctxt);
   if (err != NULL) {
     return err;
   }
@@ -118,26 +118,27 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
 }
 
 LOCAL char *null_extension_call(extension *self, vec *sl, datum *source, int *i,
-                                datum *compdata) {
+                                datum *compdata, context *ctxt) {
   datum *op = list_at(source, *i);
   datum stmt;
   if (datum_is_the_symbol(op, "req")) {
     *i += 2;
     stmt = list_copy(source, *i - 2, *i);
-    return prog_append_usages(sl, &stmt, compdata, self);
+    return prog_append_usages(sl, &stmt, compdata, self, ctxt);
   }
   if (datum_is_the_symbol(op, "export")) {
     *i += 2;
     stmt = list_copy(source, *i - 2, *i);
-    return prog_append_exports(sl, &stmt, compdata, self);
+    return prog_append_exports(sl, &stmt, compdata, self, ctxt);
   }
   return NULL;
 }
 
 LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
-                               extension *ext) {
+                               extension *ext, context *ctxt) {
   fdatum res = prog_read_usages(spec);
   if (fdatum_is_panic(res)) {
+    abortf(ctxt, "error");
     return res.panic_message;
   }
   datum re = res.ok_value;
@@ -196,9 +197,10 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 }
 
 LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
-                                extension *ext) {
+                                extension *ext, context *ctxt) {
   fdatum res = prog_read_exports(spec);
   if (fdatum_is_panic(res)) {
+    abortf(ctxt, "error");
     return res.panic_message;
   }
   datum re = res.ok_value;

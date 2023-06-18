@@ -54,8 +54,13 @@ datum datum_make_bytestring(char *text);
 datum datum_make_int(int64_t value);
 char *datum_repr(datum *e);
 typedef struct extension extension;
+typedef struct context context;
+struct context {
+  bool aborted;
+  char error[1024];
+};
 struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
 };
 char *datum_repr_pretty(datum *e,extension *ext);
 typedef struct fdatum fdatum;
@@ -119,6 +124,7 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
+void abortf(context *ctxt,char *format,...);
 char *prog_compile(vec *sl,datum *source,datum *compdata,extension *ext);
 void prog_append_bytecode(vec *sl,vec *src_sl);
 ptrdiff_t *prog_define_routine(vec *sl,datum name,datum *compdata);
@@ -131,11 +137,6 @@ vec vec_create_slice();
 size_t prog_get_next_index(vec *sl);
 result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
 typedef struct routine routine;
-typedef struct context context;
-struct context {
-  bool aborted;
-  char error[1024];
-};
 datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 typedef struct lisp_extension lisp_extension;

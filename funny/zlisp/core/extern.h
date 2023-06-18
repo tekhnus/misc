@@ -39,11 +39,16 @@ LOCAL fdatum prog_read_exports(datum *spec);
 LOCAL fdatum prog_read_usages(datum *spec);
 typedef struct vec vec;
 typedef struct extension extension;
-struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata);
+typedef struct context context;
+struct context {
+  bool aborted;
+  char error[1024];
 };
-LOCAL char *prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext);
-LOCAL char *prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext);
+struct extension {
+  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+};
+LOCAL char *prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
+LOCAL char *prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
 typedef struct lisp_extension lisp_extension;
 struct vec {
   array storage;
@@ -57,17 +62,12 @@ struct lisp_extension {
   fdatum (*yield_handler)(datum *, datum *);
 };
 LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
-LOCAL char *null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata);
+LOCAL char *null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 extension null_extension_make();
-LOCAL char *lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata);
+LOCAL char *lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 LOCAL struct frame get_frame_from_datum(datum *d);
 typedef struct routine routine;
-typedef struct context context;
-struct context {
-  bool aborted;
-  char error[1024];
-};
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 LOCAL datum datum_make_frame(vec state,int type_id,int parent_type_id);
 LOCAL bool get_child(vec sl,routine *r);
