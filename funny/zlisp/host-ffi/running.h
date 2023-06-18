@@ -28,5 +28,6 @@ LOCAL fdatum datum_deref(datum *args);
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
 LOCAL fdatum host_ffi(datum *type,datum *args);
 result host_ffi_run(vec sl,datum *r0d,datum args);
+result routine_run_with_handler(vec sl,datum *r0d,datum args,fdatum(*yield_handler)(datum *,datum *));
 #define EXPORT
 #define INTERFACE 0

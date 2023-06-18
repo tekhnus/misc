@@ -80,52 +80,6 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT result routine_run_with_handler(vec sl, datum *r0d,
-                                       datum args,
-                                       fdatum (*yield_handler)(datum *,
-                                                               datum *)) {
-  result res;
-  datum current_statement = datum_make_nil();
-  for (;;) {
-    res = routine_run_pub(sl, r0d, args);
-    datum *sec = &res.value;
-    datum *yield_type = &res.type;
-    fdatum handler_res = yield_handler(yield_type, sec);
-    if (fdatum_is_panic(handler_res) &&
-        strcmp(handler_res.panic_message, "<not implemented>")) {
-      res = (result){datum_make_symbol("panic"),
-                     datum_make_bytestring(handler_res.panic_message)};
-      break;
-    }
-    if (!fdatum_is_panic(handler_res)) {
-      args = handler_res.ok_value;
-      continue;
-    }
-    if (datum_is_list(yield_type) && list_length(yield_type) == 3 &&
-        datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
-      datum *cmd = list_at(yield_type, 1);
-      if (datum_is_the_symbol(cmd, "statement")) {
-        current_statement = *list_at(yield_type, 2);
-      } else {
-        fprintf(stderr, "unknown debugger cmd\n");
-        exit(EXIT_FAILURE);
-      }
-      args = datum_make_nil();
-      continue;
-    }
-    break;
-  }
-  if (datum_is_the_symbol(&res.type, "panic")) {
-    fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, r0d);
-  }
-  if (datum_is_the_symbol(&res.type, "interpreter-panic")) {
-    fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, r0d);
-  }
-  return res;
-}
-
 LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
                                         datum *call_indices) {
   routine rt = routine_get_prefix(r, capture_count + 1);
@@ -161,12 +115,12 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
   return vec_at(sl, index);
 }
 
-EXPORT result routine_run_pub(vec sl, datum *r, datum args) {
+EXPORT result routine_run(vec sl, datum *r, datum args) {
   routine rt = get_routine_from_datum(r);
-  return routine_run(sl, &rt, args);
+  return routine_run_impl(sl, &rt, args);
 }
 
-LOCAL result routine_run(vec sl, routine *r, datum args) {
+LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL) {
@@ -196,7 +150,7 @@ LOCAL result routine_run(vec sl, routine *r, datum args) {
         *routine_offset(r) = -*routine_offset(r);
         goto body;
       }
-      result err = routine_run(sl, &rt, args);
+      result err = routine_run_impl(sl, &rt, args);
       datum *yield_type = &err.type;
       if (!datum_eq(recieve_type, yield_type)) {
         return err;
@@ -385,7 +339,7 @@ LOCAL bool get_child(vec sl, routine *r) {
   return true;
 }
 
-LOCAL void print_backtrace(vec sl, datum *r0d) {
+EXPORT void print_backtrace(vec sl, datum *r0d) {
   routine r = get_routine_from_datum(r0d);
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");

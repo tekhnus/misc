@@ -14,6 +14,7 @@ fdatum builtin_tail(datum *args);
 #include <dlfcn.h>
 #include <ffi.h>
 #include <assert.h>
+result routine_run_with_handler(vec sl,datum *r0d,datum args,fdatum(*yield_handler)(datum *,datum *));
 result host_ffi_run(vec sl,datum *r0d,datum args);
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
 extern ffi_type ffi_type_fdatum;
