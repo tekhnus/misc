@@ -8,9 +8,14 @@
 #include <zlisp/common.h>
 #endif
 
+EXPORT result host_ffi_run(vec sl, datum *r0d,
+                                       datum args) {
+  return routine_run_with_handler(sl, r0d, args, host_ffi);
+}
+
 EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
   // This one is for lisp.
-  result r = routine_run_with_handler(sl, r0d, datum_make_nil(), host_ffi);
+  result r = host_ffi_run(sl, r0d, datum_make_nil());
   if (datum_is_the_symbol(&r.type, "halt")) {
     return fdatum_make_ok(r.value);
   }

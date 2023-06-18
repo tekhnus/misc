@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   assert(list_length(&rr.ok_value) == 1);
   vec sl = list_to_vec(list_at(&rr.ok_value, 0));
   datum s = routine_make(0, NULL); // running starts from the first instruction.
-  result res = routine_run_with_handler(sl, &s, datum_make_nil(), host_ffi);
+  result res = host_ffi_run(sl, &s, datum_make_nil());
   if (!datum_is_the_symbol(&res.type, "halt")) {
     fprintf(stderr, "runtime error: %s %s\n", datum_repr(&res.type),
             datum_repr(&res.value));
