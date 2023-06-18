@@ -57,7 +57,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   char aritynm[128] = {0};
   sprintf(aritynm, ".%s.arity", op->symbol_value);
   datum arity_statement = datum_make_symbol(aritynm);
-  fdatum arityc = lisp_extension_run(&arity_statement, self);
+  fdatum arityc = lisp_extension_run(&arity_statement, self, ctxt);
   if (fdatum_is_panic(arityc)) {
     return arityc.panic_message;
   }
@@ -77,7 +77,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
   datum call_statement = datum_make_list_of(
       datum_make_symbol("call"), datum_make_list(invokation_statement));
   // fprintf(stderr, "call: %s\n", datum_repr(&call_statement));
-  fdatum res = lisp_extension_run(&call_statement, self);
+  fdatum res = lisp_extension_run(&call_statement, self, ctxt);
   if (fdatum_is_panic(res)) {
     // fprintf(stderr, "call panic\n");
     return res.panic_message;
@@ -93,7 +93,7 @@ LOCAL char *lisp_extension_call(extension *self_, vec *sl, datum *source,
                                  self_);
 }
 
-LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
+LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   datum mod = datum_make_list_of(
       datum_make_symbol("return"), datum_make_symbol("at"),
       datum_make_list_of(datum_make_int(0)), datum_make_symbol("at"),
@@ -107,6 +107,7 @@ LOCAL fdatum lisp_extension_run(datum *e, lisp_extension *est) {
     err2[0] = 0;
     strcat(err2, "error while invoking an extension: ");
     strcat(err2, err);
+    abortf(ctxt, "error");
     return fdatum_make_panic(err2);
   }
   result res = routine_run_with_handler(est->program, &est->routine_,
@@ -136,7 +137,7 @@ LOCAL char *null_extension_call(extension *self, vec *sl, datum *source, int *i,
 
 LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
                                extension *ext, context *ctxt) {
-  fdatum res = prog_read_usages(spec);
+  fdatum res = prog_read_usages(spec, ctxt);
   if (fdatum_is_panic(res)) {
     abortf(ctxt, "error");
     return res.panic_message;
@@ -158,7 +159,7 @@ LOCAL char *prog_append_usages(vec *sl, datum *spec, datum *compdata,
   return prog_compile(sl, &stmt, compdata, ext);
 }
 
-LOCAL fdatum prog_read_usages(datum *spec) {
+LOCAL fdatum prog_read_usages(datum *spec, context *ctxt) {
   if (!datum_is_list(spec) || list_length(spec) == 0 ||
       !datum_is_the_symbol(list_at(spec, 0), "req")) {
     return fdatum_make_panic("wrong usage spec");
@@ -173,6 +174,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
     datum *item = &item_val;
     if (!datum_is_list(item) || list_length(item) < 2 ||
         list_length(item) > 3) {
+      abortf(ctxt, "error");
       return fdatum_make_panic("wrong usage spec: wrong length");
     }
     datum *item_var = list_at(item, 0);
@@ -198,7 +200,7 @@ LOCAL fdatum prog_read_usages(datum *spec) {
 
 LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
                                 extension *ext, context *ctxt) {
-  fdatum res = prog_read_exports(spec);
+  fdatum res = prog_read_exports(spec, ctxt);
   if (fdatum_is_panic(res)) {
     abortf(ctxt, "error");
     return res.panic_message;
@@ -225,9 +227,10 @@ LOCAL char *prog_append_exports(vec *sl, datum *spec, datum *compdata,
   return prog_compile(sl, &return_expr_, compdata, ext);
 }
 
-LOCAL fdatum prog_read_exports(datum *spec) {
+LOCAL fdatum prog_read_exports(datum *spec, context *ctxt) {
   if (!datum_is_list(spec) || list_length(spec) == 0 ||
       !datum_is_the_symbol(list_at(spec, 0), "export")) {
+    abortf(ctxt, "error");
     return fdatum_make_panic("wrong export spec");
   }
   int index = 0;

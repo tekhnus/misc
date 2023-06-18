@@ -35,15 +35,15 @@ struct fdatum {
   struct datum ok_value;
   char *panic_message;
 };
-LOCAL fdatum prog_read_exports(datum *spec);
-LOCAL fdatum prog_read_usages(datum *spec);
-typedef struct vec vec;
-typedef struct extension extension;
 typedef struct context context;
 struct context {
   bool aborted;
   char error[1024];
 };
+LOCAL fdatum prog_read_exports(datum *spec,context *ctxt);
+LOCAL fdatum prog_read_usages(datum *spec,context *ctxt);
+typedef struct vec vec;
+typedef struct extension extension;
 struct extension {
   char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
 };
@@ -61,7 +61,7 @@ struct lisp_extension {
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
 };
-LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est);
+LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est,context *ctxt);
 LOCAL char *null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 extension null_extension_make();
 LOCAL char *lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
