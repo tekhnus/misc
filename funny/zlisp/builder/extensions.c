@@ -31,7 +31,10 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   }
   struct extension lisp_extension_ext = null_extension_make();
   char fname[256] = {0};
-  module_to_filename(fname, "extensions");
+  module_to_filename(fname, "extensions", ctxt);
+  if (ctxt->aborted) {
+    return;
+  }
   datum initialization_statements = file_source(fname, ctxt);
   if (ctxt->aborted) {
     return;

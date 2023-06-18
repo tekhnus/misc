@@ -25,11 +25,11 @@ EXPORT datum file_source(char *fname, context *ctxt) {
   return (rr.ok_value);
 }
 
-EXPORT void module_to_filename(char *fname, char *module) {
+EXPORT void module_to_filename(char *fname, char *module, context *ctxt) {
   char *zlisp_home = getenv("ZLISP");
   if (zlisp_home == NULL) {
-    fprintf(stderr, "ZLISP variable not defined");
-    exit(EXIT_FAILURE);
+    abortf(ctxt, "ZLISP variable not defined");
+    return;
   }
   strcat(fname, zlisp_home);
   strcat(fname, "/");
@@ -47,7 +47,10 @@ EXPORT datum compile_module(char *module, datum *settings,
     module = settings->bytestring_value;
   }
   char fname[1024] = {'\0'};
-  module_to_filename(fname, module);
+  module_to_filename(fname, module, ctxt);
+  if (ctxt->aborted) {
+    return (datum_make_nil());
+  }
   datum src = file_source(fname, ctxt);
   if (ctxt->aborted) {
     return (datum_make_nil());
