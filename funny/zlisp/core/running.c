@@ -80,6 +80,11 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
+EXPORT result routine_run(vec sl, datum *r, datum args) {
+  routine rt = get_routine_from_datum(r);
+  return routine_run_impl(sl, &rt, args);
+}
+
 LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
                                         datum *call_indices) {
   routine rt = routine_get_prefix(r, capture_count + 1);
@@ -113,11 +118,6 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
     return &error_instruction;
   }
   return vec_at(sl, index);
-}
-
-EXPORT result routine_run(vec sl, datum *r, datum args) {
-  routine rt = get_routine_from_datum(r);
-  return routine_run_impl(sl, &rt, args);
 }
 
 LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
