@@ -6,7 +6,7 @@ char *prog_build_or_exit(vec *sl,size_t *bp,datum *source,datum *compdata,datum 
 extension *standard_extension_alloc_make();
 #define EXPORT
 #include "zlisp/common.h"
-char *prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext,context *ctxt);
+void prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext,context *ctxt);
 struct lisp_extension standard_extension_make(context *ctxt);
 size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata,context *ctxt);
 fdatum file_source(char *fname);
