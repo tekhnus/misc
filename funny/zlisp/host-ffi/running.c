@@ -9,29 +9,13 @@
 #endif
 
 EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
-  return routine_run_with_handler(sl, r0d, args, host_ffi);
-}
-
-EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
-  // This one is for lisp.
-  result r = host_ffi_run(sl, r0d, datum_make_nil());
-  if (datum_is_the_symbol(&r.type, "halt")) {
-    return fdatum_make_ok(r.value);
-  }
-  return fdatum_make_panic(datum_repr(&r.value));
-}
-
-LOCAL result routine_run_with_handler(vec sl, datum *r0d,
-                                       datum args,
-                                       fdatum (*yield_handler)(datum *,
-                                                               datum *)) {
   result res;
   datum current_statement = datum_make_nil();
   for (;;) {
     res = routine_run(sl, r0d, args);
     datum *sec = &res.value;
     datum *yield_type = &res.type;
-    fdatum handler_res = yield_handler(yield_type, sec);
+    fdatum handler_res = host_ffi(yield_type, sec);
     if (fdatum_is_panic(handler_res) &&
         strcmp(handler_res.panic_message, "<not implemented>")) {
       res = (result){datum_make_symbol("panic"),
@@ -65,6 +49,15 @@ LOCAL result routine_run_with_handler(vec sl, datum *r0d,
     print_backtrace(sl, r0d);
   }
   return res;
+}
+
+EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
+  // This one is for lisp.
+  result r = host_ffi_run(sl, r0d, datum_make_nil());
+  if (datum_is_the_symbol(&r.type, "halt")) {
+    return fdatum_make_ok(r.value);
+  }
+  return fdatum_make_panic(datum_repr(&r.value));
 }
 
 LOCAL fdatum host_ffi(datum *type, datum *args) {
