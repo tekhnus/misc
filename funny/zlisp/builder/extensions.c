@@ -17,18 +17,6 @@ EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
   return lisp_extension_make(program, routine_, compdata, host_ffi);
 }
 
-EXPORT extension *standard_extension_alloc_make() {
-  // For Lisp.
-  context ctxt = {};
-  lisp_extension *res = malloc(sizeof(lisp_extension));
-  *res = standard_extension_make(&ctxt);
-  if (ctxt.aborted) {
-    fprintf(stderr, "%s\n", "ext init fail");
-    exit(EXIT_FAILURE);
-  }
-  return &res->base;
-}
-
 LOCAL void standard_extension_init(vec *program, datum *routine_,
                                     datum *compdata, context *ctxt) {
   *program = vec_create_slice();
