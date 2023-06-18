@@ -301,7 +301,10 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     /*                                      datum_make_symbol("compdata"), */
     /*                                      debug_compdata), */
     /*                   0, 0, datum_make_nil(), compdata); */
-    prog_append_copy(sl, head, compdata);
+    prog_append_copy(sl, head, compdata, ctxt);
+    if (ctxt->aborted) {
+      return;
+    }
     return;
   }
   abortf(ctxt, "unexpected datum type in expression");
@@ -434,15 +437,15 @@ LOCAL void prog_append_call(vec *sl, size_t capture_size, datum indices,
   }
 }
 
-LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata) {
+LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata, context *ctxt) {
   if (!datum_is_symbol(val)) {
-    fprintf(stderr, "expected a symbol in put-var\n");
-    exit(1);
+    abortf(ctxt, "expected a symbol in put-var\n");
+    return (datum){};
   }
   datum polyindex = compdata_get_polyindex(compdata, val);
   if (datum_is_nil(&polyindex)) {
-    fprintf(stderr, "undefined variable: %s\n", val->symbol_value);
-    exit(1);
+    abortf(ctxt, "undefined variable: %s\n", val->symbol_value);
+    return (datum){};
   }
   compdata_put(compdata, datum_make_symbol(":anon"));
   datum target_polyindex = compdata_get_top_polyindex(compdata);
