@@ -119,7 +119,7 @@ LOCAL datum prog_get_put_prog(datum *target,ptrdiff_t delta,int capture);
 LOCAL datum compdata_put(datum *compdata,datum var);
 LOCAL void prog_append_put_const(vec *sl,datum *val,datum *compdata);
 LOCAL void compdata_start_new_section(datum *compdata);
-LOCAL void move_values_to_variables(vec *sl,datum *var,datum *compdata);
+LOCAL void move_values_to_variables(vec *sl,datum *var,datum *compdata,context *ctxt);
 LOCAL void compdata_give_names(datum *compdata,datum *var,context *ctxt);
 LOCAL datum prog_get_jmp(ptrdiff_t delta);
 size_t prog_get_next_index(vec *sl);

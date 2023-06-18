@@ -153,7 +153,10 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    move_values_to_variables(sl, &names, compdata);
+    move_values_to_variables(sl, &names, compdata, ctxt);
+    if (ctxt->aborted) {
+      return;
+    }
     return;
   }
   if (datum_is_the_symbol(head, "fn") ||
@@ -614,14 +617,14 @@ LOCAL void compdata_give_names(datum *compdata, datum *var, context *ctxt) {
   }
 }
 
-LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata) {
+LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata, context *ctxt) {
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
     if (datum_is_nil(&target)) {
-      fprintf(stderr, "error: assignment to undeclared variable %s\n",
+      abortf(ctxt, "error: assignment to undeclared variable %s\n",
               datum_repr(list_at(var, idx)));
-      exit(EXIT_FAILURE);
+      return;
     }
     datum source = compdata_get_top_polyindex(compdata);
     prog_append_move(sl, &target, &source, compdata);
