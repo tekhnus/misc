@@ -39,12 +39,11 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   }
   datum initialization_statements = src.ok_value;
   datum set = datum_make_bytestring("c-prelude");
-  char *res = prog_build(
+  prog_build(
       program, &lisp_extension_builder_prg, &initialization_statements,
-      compdata, &lisp_extension_builder_compdata, &set, &lisp_extension_ext);
-  if (res) {
-    fprintf(stderr, "while building extensions: %s\n", res);
-    exit(EXIT_FAILURE);
+      compdata, &lisp_extension_builder_compdata, &set, &lisp_extension_ext, ctxt);
+  if (ctxt->aborted) {
+    return;
   }
   result init_res = routine_run_with_handler(*program, routine_, host_ffi);
   if (!datum_is_the_symbol(&init_res.type, "halt")) {

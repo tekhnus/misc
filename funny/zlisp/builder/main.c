@@ -49,10 +49,10 @@ int main(int argc, char **argv) {
     fprintf(stderr, "ext make error");
     return EXIT_FAILURE;
   }
-  char *err = prog_build(&sl, &bp, &src.ok_value, &compdata, &builder_compdata,
-                         &set, &extension.base);
-  if (err != NULL) {
-    fprintf(stderr, "compilation error: %s\n", err);
+  prog_build(&sl, &bp, &src.ok_value, &compdata, &builder_compdata,
+                         &set, &extension.base, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "compilation error: %s\n", "error");
     return EXIT_FAILURE;
   }
   datum d = datum_make_list(sl);
@@ -76,5 +76,11 @@ EXPORT char *prog_build_or_exit(vec *sl, size_t *bp, datum *source, datum *compd
                         datum *builder_compdata, datum *settings,
                         extension *ext) {
   // For Lisp.
-  return prog_build(sl, bp, source, compdata, builder_compdata, settings, ext);
+  context ctxt = {};
+  prog_build(sl, bp, source, compdata, builder_compdata, settings, ext, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "%s\n", "build fail");
+    exit(EXIT_FAILURE);
+  }
+  return NULL;
 }

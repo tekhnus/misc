@@ -67,11 +67,10 @@ EXPORT datum compile_module(char *module, datum *settings,
 
 EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
                         datum *builder_compdata, datum *settings,
-                        extension *ext) {
-  context ctxt = {};
+                        extension *ext, context *ctxt) {
   size_t start_p = prog_get_next_index(sl);
-  prog_compile(sl, source, compdata, ext, &ctxt);
-  if (ctxt.aborted) {
+  prog_compile(sl, source, compdata, ext, ctxt);
+  if (ctxt->aborted) {
     return ("failure!");
   }
   datum *input_meta = extract_meta(*sl, start_p);
@@ -82,8 +81,8 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_nil());
   datum ret_exp = datum_make_list(return_expr);
-  prog_compile(sl, &ret_exp, builder_compdata, ext, &ctxt);
-  if (ctxt.aborted) {
+  prog_compile(sl, &ret_exp, builder_compdata, ext, ctxt);
+  if (ctxt->aborted) {
     return ("failure!");
   }
   size_t p_end = prog_get_next_index(sl);
@@ -93,8 +92,8 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   *builder_jmp = prog_get_next_index(sl) - *bp;
 
   prog_link_deps(sl, builder_compdata, input_meta, compile_module,
-                             settings, ext, &ctxt);
-  if (ctxt.aborted) {
+                             settings, ext, ctxt);
+  if (ctxt->aborted) {
     return "failure!!";
   }
   *bp = prog_get_next_index(sl);
