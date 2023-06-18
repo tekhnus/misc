@@ -4,5 +4,6 @@
 #include <ffi.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <zlisp/common.h>
 fdatum host_ffi(datum *type,datum *args);

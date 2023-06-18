@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   context ctxt = {};
   if (argc != 3) {
     printf("usage: %s <prelude> <script>\n", argv[0]);
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   char filename_copy[1024] = {0};
 

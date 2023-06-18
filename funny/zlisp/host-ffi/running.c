@@ -4,6 +4,7 @@
 #include <ffi.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <zlisp/common.h>
 #endif
 
@@ -265,6 +266,9 @@ LOCAL fdatum pointer_call(datum *argz) {
   datum *fpt = list_at(argz, 0);
   datum *sig = list_at(argz, 1);
   datum *args = list_at(argz, 2);
+  if (!datum_is_integer(fpt)) {
+    return fdatum_make_panic("not a function pointer");
+  }
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
   char *err = NULL;
@@ -289,9 +293,6 @@ LOCAL fdatum pointer_call(datum *argz) {
 }
 
 LOCAL void (*datum_to_function_pointer(datum *d))(void) {
-  if (!datum_is_integer(d)) {
-    fprintf(stderr, "Not a pointer!");
-    exit(1);
-  }
+  assert(datum_is_integer(d));
   return __extension__(void (*)(void)) d->integer_value;
 }

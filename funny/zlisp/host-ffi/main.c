@@ -5,7 +5,7 @@
 int main(int argc, char **argv) {
   if (argc != 2) {
     printf("usage: %s <file>\n", argv[0]);
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   char *filename = argv[1];
   FILE *f = fopen(filename, "r");

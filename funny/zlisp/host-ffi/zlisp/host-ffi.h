@@ -13,6 +13,7 @@ fdatum builtin_head(datum *args);
 fdatum builtin_tail(datum *args);
 #include <dlfcn.h>
 #include <ffi.h>
+#include <assert.h>
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
 fdatum host_ffi(datum *type,datum *args);
 extern ffi_type ffi_type_fdatum;

@@ -4,6 +4,7 @@
 #include <ffi.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <zlisp/common.h>
 #define LOCAL static
 LOCAL void(*datum_to_function_pointer(datum *d))(void);

@@ -10,7 +10,7 @@
 int main(int argc, char **argv) {
   if (argc != 2) {
     printf("usage: %s <file>\n", argv[0]);
-    exit(EXIT_FAILURE);
+    return (EXIT_FAILURE);
   }
   lisp_extension ext;
   char *filename = argv[1];
