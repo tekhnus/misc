@@ -2,7 +2,7 @@
 #undef INTERFACE
 #include "zlisp/common.h"
 void prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext,context *ctxt);
-fdatum file_source(char *fname);
+datum file_source(char *fname,context *ctxt);
 void module_to_filename(char *fname,char *module);
 size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata,context *ctxt);
 #define LOCAL static

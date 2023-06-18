@@ -27,9 +27,9 @@ int main(int argc, char **argv) {
     strcat(filename_copy, "/");
   }
   strcat(filename_copy, argv[2]);
-  fdatum src = file_source(filename_copy);
-  if (fdatum_is_panic(src)) {
-    fprintf(stderr, "file error: %s\n", src.panic_message);
+  datum src = file_source(filename_copy, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "build_init error");
     return EXIT_FAILURE;
   }
   vec sl = vec_create_slice();
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "ext make error");
     return EXIT_FAILURE;
   }
-  prog_build(&sl, &bp, &src.ok_value, &compdata, &builder_compdata,
+  prog_build(&sl, &bp, &src, &compdata, &builder_compdata,
                          &set, &extension.base, &ctxt);
   if (ctxt.aborted) {
     fprintf(stderr, "compilation error: %s\n", "error");

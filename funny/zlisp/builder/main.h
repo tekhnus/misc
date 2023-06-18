@@ -9,5 +9,5 @@ extension *standard_extension_alloc_make();
 void prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext,context *ctxt);
 struct lisp_extension standard_extension_make(context *ctxt);
 size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata,context *ctxt);
-fdatum file_source(char *fname);
+datum file_source(char *fname,context *ctxt);
 #define INTERFACE 0

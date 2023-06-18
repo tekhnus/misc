@@ -7,6 +7,6 @@ datum *extract_meta(vec sl,size_t run_main_off);
 void prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext,context *ctxt);
 datum compile_module(char *module,datum *settings,extension *extension,context *ctxt);
 void module_to_filename(char *fname,char *module);
-fdatum file_source(char *fname);
+datum file_source(char *fname,context *ctxt);
 #define EXPORT
 #define INTERFACE 0

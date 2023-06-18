@@ -32,12 +32,10 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   struct extension lisp_extension_ext = null_extension_make();
   char fname[256] = {0};
   module_to_filename(fname, "extensions");
-  fdatum src = file_source(fname);
-  if (fdatum_is_panic(src)) {
-    abortf(ctxt, "%s", src.panic_message);
+  datum initialization_statements = file_source(fname, ctxt);
+  if (ctxt->aborted) {
     return;
   }
-  datum initialization_statements = src.ok_value;
   datum set = datum_make_bytestring("c-prelude");
   prog_build(
       program, &lisp_extension_builder_prg, &initialization_statements,

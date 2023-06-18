@@ -8,23 +8,21 @@
 #include <stdio.h>
 #include <string.h>
 
-EXPORT fdatum file_source(char *fname) {
+EXPORT datum file_source(char *fname, context *ctxt) {
   FILE *stre = fopen(fname, "r");
   if (stre == NULL) {
     perror("file_source");
-    char err[1024];
-    err[0] = 0;
-    strcat(err, "Module not found: ");
-    strcat(err, fname);
-    return fdatum_make_panic(err);
+    abortf(ctxt, "Module not found: %s", fname);
+    return (datum){};
   }
 
   read_result rr = datum_read_all(stre);
   if (read_result_is_panic(rr)) {
-    return fdatum_make_panic(rr.panic_message);
+    abortf(ctxt, "%s", rr.panic_message);
+    return (datum){};
   }
   assert(read_result_is_ok(rr));
-  return fdatum_make_ok(rr.ok_value);
+  return (rr.ok_value);
 }
 
 EXPORT void module_to_filename(char *fname, char *module) {
@@ -50,16 +48,14 @@ EXPORT datum compile_module(char *module, datum *settings,
   }
   char fname[1024] = {'\0'};
   module_to_filename(fname, module);
-  fdatum src = file_source(fname);
-  if (fdatum_is_panic(src)) {
-    abortf(ctxt, src.panic_message);
-    return datum_make_nil();
+  datum src = file_source(fname, ctxt);
+  if (ctxt->aborted) {
+    return (datum_make_nil());
   }
   datum compdata = compdata_make();
   vec sl = vec_create_slice();
-  prog_compile(&sl, &src.ok_value, &compdata, extension, ctxt);
+  prog_compile(&sl, &src, &compdata, extension, ctxt);
   if (ctxt->aborted) {
-    abortf(ctxt, "failure!");
     return (datum_make_nil());
   }
   return (datum_make_list(sl));
