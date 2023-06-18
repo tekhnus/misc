@@ -5,10 +5,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #define LOCAL static
-typedef struct fdatum fdatum;
+typedef struct datum datum;
 #include <inttypes.h>
 #include <stdio.h>
-typedef struct datum datum;
 enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
@@ -30,29 +29,30 @@ struct datum {
     int64_t integer_value;
   };
 };
-struct fdatum {
-  int type;
-  struct datum ok_value;
-  char *panic_message;
-};
 typedef struct context context;
 struct context {
   bool aborted;
   char error[1024];
 };
-LOCAL fdatum prog_read_exports(datum *spec,context *ctxt);
-LOCAL fdatum prog_read_usages(datum *spec,context *ctxt);
+LOCAL datum prog_read_exports(datum *spec,context *ctxt);
+LOCAL datum prog_read_usages(datum *spec,context *ctxt);
 typedef struct vec vec;
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
 };
-LOCAL char *prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
-LOCAL char *prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
+LOCAL void prog_append_exports(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
+LOCAL void prog_append_usages(vec *sl,datum *spec,datum *compdata,extension *ext,context *ctxt);
 typedef struct lisp_extension lisp_extension;
 struct vec {
   array storage;
   size_t length;
+};
+typedef struct fdatum fdatum;
+struct fdatum {
+  int type;
+  struct datum ok_value;
+  char *panic_message;
 };
 struct lisp_extension {
   extension base;
@@ -61,10 +61,10 @@ struct lisp_extension {
   datum compdata;
   fdatum (*yield_handler)(datum *, datum *);
 };
-LOCAL fdatum lisp_extension_run(datum *e,lisp_extension *est,context *ctxt);
-LOCAL char *null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
+LOCAL datum lisp_extension_run(datum *e,lisp_extension *est,context *ctxt);
+LOCAL void null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 extension null_extension_make();
-LOCAL char *lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
+LOCAL void lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,fdatum(*yield_handler)(datum *,datum *));
 LOCAL struct frame get_frame_from_datum(datum *d);
 typedef struct routine routine;
@@ -112,7 +112,7 @@ datum compdata_get_polyindex(datum *compdata,datum *var);
 LOCAL size_t compdata_get_frame_count(datum *compdata);
 LOCAL datum prog_append_copy(vec *sl,datum *val,datum *compdata);
 LOCAL void prog_append_collect(vec *sl,size_t count,datum top_idx,datum *compdata);
-LOCAL char *prog_append_apply(vec *sl,datum *s_expr,datum *compdata,extension *ext,context *ctxt);
+LOCAL void prog_append_apply(vec *sl,datum *s_expr,datum *compdata,extension *ext,context *ctxt);
 LOCAL size_t compdata_get_length(datum *compdata);
 LOCAL datum prog_get_put_prog(datum *target,ptrdiff_t delta,int capture);
 LOCAL datum compdata_put(datum *compdata,datum var);
@@ -128,7 +128,7 @@ LOCAL size_t prog_append_something(vec *sl);
 LOCAL datum compdata_get_top_polyindex(datum *compdata);
 LOCAL datum compdata_get_next_polyindex(datum *compdata);
 LOCAL void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t count,size_t recieve_count,datum meta,datum *compdata);
-LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext,context *ctxt);
+LOCAL void prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext,context *ctxt);
 char *prog_compile(vec *sl,datum *source,datum *compdata,extension *ext);
 void abortf(context *ctxt,char *format,...);
 LOCAL struct token token_read(FILE *strm);

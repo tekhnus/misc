@@ -12,7 +12,7 @@ struct context {
 };
 typedef struct extension extension;
 struct extension {
-  char *(*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
+  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata, context *ctxt);
 };
 #endif
 
@@ -33,9 +33,9 @@ EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
       break;
     }
     int i_before = i;
-    char *err = prog_append_consume_expression(sl, source, &i, compdata, ext, &ctxt);
-    if (err != NULL) {
-      return err;
+    prog_append_consume_expression(sl, source, &i, compdata, ext, &ctxt);
+    if (ctxt.aborted) {
+      return strdup(ctxt.error);
     }
     if (i < list_length(source)) {
       prog_append_yield(sl,
@@ -49,72 +49,54 @@ EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
   return NULL;
 }
 
-LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
+LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
                                            datum *compdata, extension *ext, context *ctxt) {
   int i_val = *i;
-  char *err = ext->call(ext, sl, source, i, compdata, ctxt);
-  if (err != NULL) {
-    return err;
+  ext->call(ext, sl, source, i, compdata, ctxt);
+  if (ctxt->aborted) {
+    return;
   }
   if (i_val != *i) {
-    return NULL;
+    return;
   }
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
-    char *err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     datum idx = compdata_get_top_polyindex(compdata);
     size_t if_instruction = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     datum false_compdata = datum_copy(compdata);
-    err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
         prog_get_if(prog_get_next_index(sl) - if_instruction, idx);
-    err = prog_append_consume_expression(sl, source, i, &false_compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, &false_compdata, ext, ctxt);
     if (!datum_eq(compdata, &false_compdata)) {
-      return "different if branches";
+      abortf(ctxt, "different if branches");
+      return;
     }
     *vec_at(sl, true_end) = prog_get_jmp(prog_get_next_index(sl) - true_end);
-    return NULL;
+    return;
   }
   if (datum_is_the_symbol(head, "while")) {
-    char *err;
     size_t pre_condition_check = prog_get_next_index(sl);
     datum pre_condition_check_compdata = datum_copy(compdata);
-    err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     datum idx = compdata_get_top_polyindex(compdata);
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
-    err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     assert(datum_eq(&pre_condition_check_compdata, compdata));
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = prog_get_next_index(sl);
     *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check, idx);
-    return NULL;
+    return;
   }
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), ":=")) {
     (*i)++;
-    char *err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     datum names;
     if (datum_is_list(head)) {
       names = datum_copy(head);
@@ -122,15 +104,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       names = datum_make_list_of(datum_copy(head));
     }
     compdata_give_names(compdata, &names);
-    return NULL;
+    return;
   }
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
-    char *err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     datum names;
     if (datum_is_list(head)) {
       names = datum_copy(head);
@@ -138,7 +117,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
       names = datum_make_list_of(datum_copy(head));
     }
     move_values_to_variables(sl, &names, compdata);
-    return NULL;
+    return;
   }
   if (datum_is_the_symbol(head, "fn") ||
       datum_is_the_symbol(head, "magically_called_fn")) {
@@ -159,11 +138,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
                       compdata_get_next_polyindex(&routine_compdata), 0,
                       list_length(args), datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args);
-    char *err =
-        prog_append_consume_expression(sl, source, i, &routine_compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, &routine_compdata, ext, ctxt);
     datum errm = datum_make_bytestring("routine guard reached");
     prog_append_put_const(sl, &errm, &routine_compdata);
     prog_append_yield(sl, datum_make_symbol("panic"),
@@ -174,7 +149,7 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum pi = compdata_get_top_polyindex(compdata);
     *vec_at(sl, put_prog_off) =
         prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
-    return NULL;
+    return;
   }
   if (datum_is_the_symbol(head, "return")) {
     datum target = datum_make_symbol("plain");
@@ -201,32 +176,30 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
         target_defined = true;
         ++(*i);
       } else {
-        return "unknown return tag";
+        abortf(ctxt, "unknown return tag");
+        return;
       }
     }
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
     datum idx = compdata_get_next_polyindex(compdata);
-    char *err = prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
     size_t after = compdata_get_length(compdata);
     argcnt = after - before;
     prog_append_yield(sl, target, idx, argcnt, recieve_count, meta, compdata);
-    return NULL;
+    return;
   }
   if (datum_is_the_symbol(head, "flat")) {
     datum *vals = list_at(list_at(source, (*i)++), 0);
     if (!datum_is_list(vals)) {
-      fprintf(stderr, "bad: %s\n", datum_repr(vals));
-      return "bad";
+      abortf(ctxt, "bad: %s\n", datum_repr(vals));
+      return;
     }
     int j = 0;
     while (j < list_length(vals)) {
       prog_append_consume_expression(sl, vals, &j, compdata, ext, ctxt);
     }
-    return NULL;
+    return;
   }
   if (datum_is_the_symbol(head, "quote")) {
     datum *val = list_at(source, (*i)++);
@@ -234,13 +207,13 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     for (int j = 0; j < list_length(val); ++j) {
       prog_append_put_const(sl, list_at(val, j), compdata);
     }
-    return NULL;
+    return;
   }
   if (datum_is_list(head) && list_length(head) == 2 &&
       datum_is_the_symbol(list_at(head, 0), "call")) {
     datum *exp = list_at(head, 1);
-    return prog_append_apply(sl, exp, compdata, ext, ctxt);
-    return NULL;
+    prog_append_apply(sl, exp, compdata, ext, ctxt);
+    return;
   }
   if (datum_is_list(head)) {
     int before = compdata_get_length(compdata);
@@ -252,11 +225,11 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     int after = compdata_get_length(compdata);
     prog_append_collect(sl, after - before, idx, compdata);
-    return NULL;
+    return;
   }
   if (datum_is_constant(head)) {
     prog_append_put_const(sl, head, compdata);
-    return NULL;
+    return;
   }
   if (datum_is_symbol(head)) {
     /* datum debug_compdata = datum_copy(compdata); */
@@ -266,12 +239,12 @@ LOCAL char *prog_append_consume_expression(vec *sl, datum *source, int *i,
     /*                                      debug_compdata), */
     /*                   0, 0, datum_make_nil(), compdata); */
     prog_append_copy(sl, head, compdata);
-    return NULL;
+    return;
   }
-  return "unexpected datum type in expression";
+  abortf(ctxt, "unexpected datum type in expression");
 }
 
-LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
+LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
                               extension *ext, context *ctxt) {
   datum *fn = list_at(s_expr, 0);
   datum target = datum_make_symbol("plain");
@@ -306,7 +279,8 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       target_is_set = true;
       ++index;
     } else {
-      return "unknown tag";
+      abortf(ctxt, "unknown tag");
+      return;
     }
   }
   vec indices = vec_make(0);
@@ -332,22 +306,19 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
     if (borrow) {
       datum *component = list_at(fns, fn_index++);
       if (!datum_is_symbol(component)) {
-        return "expected an lvalue";
+        abortf(ctxt, "expected an lvalue");
+        return;
       }
       datum idx = compdata_get_polyindex(compdata, component);
       if (datum_is_nil(&idx)) {
         if (datum_is_nil(&idx)) {
-          fprintf(stderr, "function not found: %s\n", datum_repr(component));
-          return "function not found";
+          abortf(ctxt, "function not found: %s\n", datum_repr(component));
+          return;
         }
       }
       vec_append(&indices, idx);
     } else {
-      char *err =
-          prog_append_consume_expression(sl, fns, &fn_index, compdata, ext, ctxt);
-      if (err != NULL) {
-        return err;
-      }
+      prog_append_consume_expression(sl, fns, &fn_index, compdata, ext, ctxt);
       datum idx = compdata_get_top_polyindex(compdata);
       vec_append(&indices, idx);
     }
@@ -355,17 +326,13 @@ LOCAL char *prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   datum top_arg_poly = compdata_get_next_polyindex(compdata);
   int before = compdata_get_length(compdata);
   while (index < list_length(s_expr)) {
-    char *err =
-        prog_append_consume_expression(sl, s_expr, &index, compdata, ext, ctxt);
-    if (err != NULL) {
-      return err;
-    }
+    prog_append_consume_expression(sl, s_expr, &index, compdata, ext, ctxt);
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
   prog_append_call(sl, capture_size, datum_make_list(indices), !mut, target,
                    arg_count, ret_count, top_arg_poly, compdata);
-  return NULL;
+  return;
 }
 
 EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
