@@ -61,8 +61,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
 EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
-                            datum *settings, extension *ext) {
-  context ctxt = {};
+                            datum *settings, extension *ext, context *ctxt) {
   if (input_meta == NULL) {
     return NULL;
   }
@@ -84,8 +83,8 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   }
   datum call_stmt = datum_make_list_of(datum_make_list_of(
       datum_make_symbol("call"), datum_make_list(call_sexp)));
-  prog_compile(sl, &call_stmt, builder_compdata, ext, &ctxt);
-  if (ctxt.aborted) {
+  prog_compile(sl, &call_stmt, builder_compdata, ext, ctxt);
+  if (ctxt->aborted) {
     return "link_deps fail";
   }
   return NULL;
