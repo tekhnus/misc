@@ -90,10 +90,10 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   ptrdiff_t *builder_jmp = prog_get_jmp_delta(sl, *bp);
   *builder_jmp = prog_get_next_index(sl) - *bp;
 
-  char *res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
+  prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                              settings, ext, &ctxt);
-  if (res != NULL) {
-    return res;
+  if (ctxt.aborted) {
+    return "failure!!";
   }
   *bp = prog_get_next_index(sl);
   // filled in next build

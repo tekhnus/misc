@@ -58,17 +58,17 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   return bdr;
 }
 
-EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
+EXPORT void prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
                             datum *settings, extension *ext, context *ctxt) {
   if (input_meta == NULL) {
-    return NULL;
+    return;
   }
   prog_build_deps(sl, input_meta, module_bytecode, settings,
                               builder_compdata, ext, ctxt);
   if (ctxt->aborted) {
-    return "aborted";
+    return;
   }
   vec call_sexp = vec_make_of(datum_make_list_of(
       datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"),
@@ -84,9 +84,9 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
       datum_make_symbol("call"), datum_make_list(call_sexp)));
   prog_compile(sl, &call_stmt, builder_compdata, ext, ctxt);
   if (ctxt->aborted) {
-    return "link_deps fail";
+    return;
   }
-  return NULL;
+  return;
 }
 
 LOCAL void prog_build_deps(vec *sl, datum *deps,
