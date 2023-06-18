@@ -96,7 +96,7 @@ struct result {
 };
 LOCAL result routine_run(vec sl,routine *r,datum args);
 LOCAL routine get_routine_from_datum(datum *e);
-result routine_run_with_handler(vec sl,datum *r0d,fdatum(*yield_handler)(datum *,datum *));
+result routine_run_with_handler(vec sl,datum *r0d,datum args,fdatum(*yield_handler)(datum *,datum *));
 vec vec_create_slice();
 LOCAL datum *compdata_get_top_section(datum *compdata);
 LOCAL datum list_pop_slow(datum *list);

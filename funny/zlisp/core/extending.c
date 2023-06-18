@@ -103,6 +103,7 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
     return (datum){};
   }
   result res = routine_run_with_handler(est->program, &est->routine_,
+    datum_make_nil(),
                                         est->yield_handler);
   if (!datum_is_the_symbol(&res.type, "halt")) {
     abortf(ctxt, "%s", datum_repr(&res.value));

@@ -81,10 +81,10 @@ typedef struct routine routine;
 #endif
 
 EXPORT result routine_run_with_handler(vec sl, datum *r0d,
+                                       datum args,
                                        fdatum (*yield_handler)(datum *,
                                                                datum *)) {
   routine r = get_routine_from_datum(r0d);
-  datum args = datum_make_nil();
   result res;
   datum current_statement = datum_make_nil();
   for (;;) {
