@@ -44,7 +44,11 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   datum set = datum_make_bytestring(argv[1]);
-  struct lisp_extension extension = standard_extension_make();
+  struct lisp_extension extension = standard_extension_make(&ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "ext make error");
+    return EXIT_FAILURE;
+  }
   char *err = prog_build(&sl, &bp, &src.ok_value, &compdata, &builder_compdata,
                          &set, &extension.base);
   if (err != NULL) {

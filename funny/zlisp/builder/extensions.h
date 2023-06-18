@@ -10,6 +10,6 @@ size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata,context *
 #include <zlisp/host-ffi.h>
 extension *standard_extension_alloc_make();
 LOCAL void standard_extension_init(vec *program,datum *routine_,datum *compdata,context *ctxt);
-struct lisp_extension standard_extension_make();
+struct lisp_extension standard_extension_make(context *ctxt);
 #define EXPORT
 #define EXPORT_INTERFACE 0

@@ -13,7 +13,6 @@ int main(int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
   lisp_extension ext;
-  // ext = standard_extension_make();
   char *filename = argv[1];
   fprintf(stderr, "formatting %s\n", filename);
   FILE *f = fopen(filename, "r");

@@ -6,23 +6,26 @@
 #include <zlisp/host-ffi.h>
 #endif
 
-EXPORT struct lisp_extension standard_extension_make() {
-  context ctxt = {};
+EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
   vec program;
   datum routine_;
   datum compdata;
-  standard_extension_init(&program, &routine_, &compdata, &ctxt);
-  if (ctxt.aborted) {
-    fprintf(stderr, "%s\n", "ext init fail");
-    exit(EXIT_FAILURE);
+  standard_extension_init(&program, &routine_, &compdata, ctxt);
+  if (ctxt->aborted) {
+    return (struct lisp_extension){};
   }
   return lisp_extension_make(program, routine_, compdata, host_ffi);
 }
 
 EXPORT extension *standard_extension_alloc_make() {
   // For Lisp.
+  context ctxt = {};
   lisp_extension *res = malloc(sizeof(lisp_extension));
-  *res = standard_extension_make();
+  *res = standard_extension_make(&ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "%s\n", "ext init fail");
+    exit(EXIT_FAILURE);
+  }
   return &res->base;
 }
 
