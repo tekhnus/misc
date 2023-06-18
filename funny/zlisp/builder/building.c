@@ -39,11 +39,11 @@ EXPORT void module_to_filename(char *fname, char *module) {
   strcat(fname, "/main.lisp");
 }
 
-EXPORT fdatum compile_module(char *module, datum *settings,
-                             extension *extension) {
-  context ctxt = {};
+EXPORT datum compile_module(char *module, datum *settings,
+                             extension *extension, context *ctxt) {
   if (!datum_is_bytestring(settings)) {
-    return fdatum_make_panic("settings should be a string");
+    abortf(ctxt, "settings should be a string");
+    return (datum_make_nil());
   }
   if (!strcmp(module, "prelude")) {
     module = settings->bytestring_value;
@@ -52,15 +52,17 @@ EXPORT fdatum compile_module(char *module, datum *settings,
   module_to_filename(fname, module);
   fdatum src = file_source(fname);
   if (fdatum_is_panic(src)) {
-    return src;
+    abortf(ctxt, src.panic_message);
+    return datum_make_nil();
   }
   datum compdata = compdata_make();
   vec sl = vec_create_slice();
-  prog_compile(&sl, &src.ok_value, &compdata, extension, &ctxt);
-  if (ctxt.aborted) {
-    return fdatum_make_panic("failure!");
+  prog_compile(&sl, &src.ok_value, &compdata, extension, ctxt);
+  if (ctxt->aborted) {
+    abortf(ctxt, "failure!");
+    return (datum_make_nil());
   }
-  return fdatum_make_ok(datum_make_list(sl));
+  return (datum_make_list(sl));
 }
 
 EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,

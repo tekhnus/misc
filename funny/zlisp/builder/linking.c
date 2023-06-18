@@ -59,8 +59,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
 }
 
 EXPORT void prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
-                            fdatum (*module_bytecode)(char *, datum *,
-                                                      extension *),
+                            datum (*module_bytecode)(char *, datum *,
+                                                      extension *, context *ctxt),
                             datum *settings, extension *ext, context *ctxt) {
   if (input_meta == NULL) {
     return;
@@ -90,8 +90,8 @@ EXPORT void prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
 }
 
 LOCAL void prog_build_deps(vec *sl, datum *deps,
-                            fdatum (*module_bytecode)(char *, datum *,
-                                                      extension *),
+                            datum (*module_bytecode)(char *, datum *,
+                                                      extension *, context *ctxt),
                             datum *settings, datum *compdata, extension *ext, context *ctxt) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
@@ -118,8 +118,8 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
 }
 
 LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
-                           fdatum (*module_bytecode)(char *, datum *,
-                                                     extension *),
+                           datum (*module_bytecode)(char *, datum *,
+                                                     extension *, context *ctxt),
                            datum *settings, datum *compdata, extension *ext, context *ctxt) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
@@ -136,12 +136,11 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
   if (already_built) {
     return;
   }
-  fdatum stts = module_bytecode(dep->bytestring_value, settings, ext);
-  if (fdatum_is_panic(stts)) {
-    abortf(ctxt, stts.panic_message);
+  datum stts = module_bytecode(dep->bytestring_value, settings, ext, ctxt);
+  if (ctxt->aborted) {
     return;
   }
-  vec module_sl = list_to_vec(&stts.ok_value);
+  vec module_sl = list_to_vec(&stts);
   datum *transitive_deps = extract_meta(module_sl, 0);
   if (transitive_deps == NULL) {
     abortf(ctxt, "error: null extract_meta for reqs");
