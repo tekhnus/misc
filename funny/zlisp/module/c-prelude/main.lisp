@@ -1,7 +1,7 @@
 req
 {}
 
-call-extension-1 := fn {fnptr x}
+call-the-extension := fn {fnptr x}
 {r := return @1
  @{host
   "call-extension"}
@@ -73,7 +73,7 @@ head-pointer := return @1
 head := fn {x}
 {r := return @1
  @{host
-  "call-extension-1"}
+  "call-extension"}
  ^{head-pointer
   x}
  return r}
@@ -88,7 +88,7 @@ tail-pointer := return @1
 tail := fn {x}
 {r := return @1
  @{host
-  "call-extension-1"}
+  "call-extension"}
  ^{tail-pointer
   x}
  return r}
@@ -380,7 +380,7 @@ extern-pointer := fn {handle c-name signature}
    res}}}
 
 export
-{{call-extension-1 call-extension-1}
+{{call-the-extension call-the-extension}
  {head head}
  {tail tail}
  {cons cons}

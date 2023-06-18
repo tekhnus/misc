@@ -6,7 +6,7 @@ req
  {dlsym "prelude" dlsym}
  {dereference "prelude" dereference}
  {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
- {call-extension-1 "prelude" call-extension-1}
+ {call-the-extension "prelude" call-the-extension}
  {std "std"}
  {decons-pat "std" decons-pat}
  {first-good-value "std" first-good-value}
@@ -76,17 +76,17 @@ fdatum-is-panic := (/prelude/c-function selflib "fdatum_is_panic" {{'fdatum}
 fdatum-get-value-ptr := (/prelude/dlsym selflib "fdatum_get_value")
 
 fdatum-get-value := fn {x}
-{return (/prelude/call-extension-1 (/prelude/dereference fdatum-get-value-ptr 'int64) x)}
+{return (/prelude/call-the-extension (/prelude/dereference fdatum-get-value-ptr 'int64) x)}
 
 fdatum-get-panic-message-ptr := (/prelude/dlsym selflib "fdatum_get_panic_message")
 
 fdatum-get-panic-message := fn {x}
-{return (/prelude/call-extension-1 (/prelude/dereference fdatum-get-panic-message-ptr 'int64) x)}
+{return (/prelude/call-the-extension (/prelude/dereference fdatum-get-panic-message-ptr 'int64) x)}
 
 fdatum-repr-datum-pointer-ptr := (/prelude/dlsym selflib "fdatum_repr_datum_pointer")
 
 repr-pointer := fn {x}
-{return (/prelude/call-extension-1 (/prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)}
+{return (/prelude/call-the-extension (/prelude/dereference fdatum-repr-datum-pointer-ptr 'int64) x)}
 
 eval-new := fn {sl rt0}
 {res := (/prelude/routine-run-and-get-value-c-host-new sl rt0)

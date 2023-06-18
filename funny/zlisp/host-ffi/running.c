@@ -70,8 +70,7 @@ LOCAL fdatum host_ffi(datum *type, datum *args) {
     return fdatum_make_panic("host instruction should be a string");
   }
   datum res;
-  if (!strcmp(name->bytestring_value, "call-extension") ||
-      !strcmp(name->bytestring_value, "call-extension-1")) {
+  if (!strcmp(name->bytestring_value, "call-extension")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
       return fdatum_make_panic("call-extension expected at least a single arg");
     }
