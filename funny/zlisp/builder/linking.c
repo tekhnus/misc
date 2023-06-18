@@ -7,6 +7,7 @@
 
 EXPORT size_t prog_build_init(vec *sl, datum *compdata,
                               datum *builder_compdata) {
+  context ctxt = {};
   extension ext = null_extension_make();
   vec return_expr = vec_make_of(
       datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
@@ -14,9 +15,9 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_nil());
   datum ret_exp = datum_make_list(return_expr);
-  char *res2 = prog_compile(sl, &ret_exp, builder_compdata, &ext);
-  if (res2 != NULL) {
-    fprintf(stderr, "%s\n", res2);
+  prog_compile(sl, &ret_exp, builder_compdata, &ext, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "build init fail");
     exit(EXIT_FAILURE);
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
@@ -27,9 +28,9 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_nil());
   ret_exp = datum_make_list(return_expr);
-  res2 = prog_compile(sl, &ret_exp, compdata, &ext);
-  if (res2 != NULL) {
-    fprintf(stderr, "%s\n", res2);
+  prog_compile(sl, &ret_exp, compdata, &ext, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "build init fail");
     exit(EXIT_FAILURE);
   }
   size_t jm = prog_get_next_index(sl);
@@ -45,9 +46,9 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   vec_append(&call_sexp, datum_make_list_of(datum_make_int(0)));
   datum call_stmt = datum_make_list_of(datum_make_list_of(
       datum_make_symbol("call"), datum_make_list(call_sexp)));
-  char *res = prog_compile(sl, &call_stmt, builder_compdata, &ext);
-  if (res != NULL) {
-    fprintf(stderr, "%s\n", res);
+  prog_compile(sl, &call_stmt, builder_compdata, &ext, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "build init fail");
     exit(EXIT_FAILURE);
   }
 
@@ -62,6 +63,7 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
                             datum *settings, extension *ext) {
+  context ctxt = {};
   if (input_meta == NULL) {
     return NULL;
   }
@@ -83,8 +85,11 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   }
   datum call_stmt = datum_make_list_of(datum_make_list_of(
       datum_make_symbol("call"), datum_make_list(call_sexp)));
-  char *res = prog_compile(sl, &call_stmt, builder_compdata, ext);
-  return res;
+  prog_compile(sl, &call_stmt, builder_compdata, ext, &ctxt);
+  if (ctxt.aborted) {
+    return "link_deps fail";
+  }
+  return NULL;
 }
 
 LOCAL char *prog_build_deps(vec *sl, datum *deps,
@@ -120,6 +125,7 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *,
                                                      extension *),
                            datum *settings, datum *compdata, extension *ext) {
+  context ctxt = {};
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     return "req expects bytestrings";
@@ -188,9 +194,9 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
       datum_make_list_of(names_, datum_make_symbol(":="),
                          datum_make_list_of(datum_make_symbol("call"),
                                             datum_make_list(call_sexp)));
-  char *res = prog_compile(sl, &call_stmt, compdata, ext);
-  if (res != NULL) {
-    return res;
+  prog_compile(sl, &call_stmt, compdata, ext, &ctxt);
+  if (ctxt.aborted) {
+    return "failure!";
   }
   return NULL;
 }

@@ -79,12 +79,8 @@ LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source,
   }
   assert(datum_is_list(&res));
   assert(list_length(&res) == 1);
-  char *err = prog_compile(sl, list_at(&res, 0), compdata,
-                                 self_);
-  if (err != NULL) {
-    abortf(ctxt, "%s", err);
-    return;
-  }
+  prog_compile(sl, list_at(&res, 0), compdata,
+                                 self_, ctxt);
   return;
 }
 
@@ -95,17 +91,7 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
       datum_make_list_of(datum_make_symbol("halt")), datum_copy(e));
 
   extension ext = null_extension_make();
-  char *err =
-      prog_compile(&est->program, &mod, &est->compdata, &ext);
-  if (err != NULL) {
-    char err2[256];
-    err2[0] = 0;
-    strcat(err2, "error while invoking an extension: ");
-    strcat(err2, err);
-    abortf(ctxt, "error");
-    abortf(ctxt, err2);
-    return (datum){};
-  }
+  prog_compile(&est->program, &mod, &est->compdata, &ext, ctxt);
   result res = routine_run_with_handler(est->program, &est->routine_,
                                         est->yield_handler);
   if (!datum_is_the_symbol(&res.type, "halt")) {
@@ -154,11 +140,7 @@ LOCAL void prog_append_usages(vec *sl, datum *spec, datum *compdata,
       datum_make_list_of(
           datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
-  char *err = prog_compile(sl, &stmt, compdata, ext);
-  if (err != NULL) {
-    abortf(ctxt, err);
-    return;
-  }
+  prog_compile(sl, &stmt, compdata, ext, ctxt);
 }
 
 LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
@@ -227,11 +209,7 @@ LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
   vec_append(&return_expr, datum_make_symbol("flat"));
   vec_append(&return_expr, datum_make_list_of(datum_make_list(vals)));
   datum return_expr_ = datum_make_list(return_expr);
-  char *err = prog_compile(sl, &return_expr_, compdata, ext);
-  if (err != NULL) {
-    abortf(ctxt, "%s", err);
-    return;
-  }
+  prog_compile(sl, &return_expr_, compdata, ext, ctxt);
 }
 
 LOCAL datum prog_read_exports(datum *spec, context *ctxt) {

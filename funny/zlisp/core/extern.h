@@ -129,7 +129,7 @@ LOCAL datum compdata_get_top_polyindex(datum *compdata);
 LOCAL datum compdata_get_next_polyindex(datum *compdata);
 LOCAL void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t count,size_t recieve_count,datum meta,datum *compdata);
 LOCAL void prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext,context *ctxt);
-char *prog_compile(vec *sl,datum *source,datum *compdata,extension *ext);
+void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *ctxt);
 void abortf(context *ctxt,char *format,...);
 LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);

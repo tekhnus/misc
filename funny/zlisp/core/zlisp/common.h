@@ -125,7 +125,7 @@ fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
 void abortf(context *ctxt,char *format,...);
-char *prog_compile(vec *sl,datum *source,datum *compdata,extension *ext);
+void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *ctxt);
 void prog_append_bytecode(vec *sl,vec *src_sl);
 ptrdiff_t *prog_define_routine(vec *sl,datum name,datum *compdata);
 ptrdiff_t *prog_append_jmp(vec *sl);

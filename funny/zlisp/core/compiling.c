@@ -23,9 +23,8 @@ EXPORT void abortf(context *ctxt, char *format, ...) {
   ctxt->aborted = true;
 }
 
-EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
-                                     extension *ext) {
-  context ctxt = {};
+EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
+                                     extension *ext, context *ctxt) {
   assert(datum_is_list(source));
   int i = 0;
   for (;;) {
@@ -33,9 +32,9 @@ EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
       break;
     }
     int i_before = i;
-    prog_append_consume_expression(sl, source, &i, compdata, ext, &ctxt);
-    if (ctxt.aborted) {
-      return strdup(ctxt.error);
+    prog_append_consume_expression(sl, source, &i, compdata, ext, ctxt);
+    if (ctxt->aborted) {
+      return;
     }
     if (i < list_length(source)) {
       prog_append_yield(sl,
@@ -46,7 +45,7 @@ EXPORT char *prog_compile(vec *sl, datum *source, datum *compdata,
                         datum_make_nil(), compdata);
     }
   }
-  return NULL;
+  return;
 }
 
 LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,

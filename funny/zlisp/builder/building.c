@@ -41,6 +41,7 @@ EXPORT void module_to_filename(char *fname, char *module) {
 
 EXPORT fdatum compile_module(char *module, datum *settings,
                              extension *extension) {
+  context ctxt = {};
   if (!datum_is_bytestring(settings)) {
     return fdatum_make_panic("settings should be a string");
   }
@@ -55,9 +56,9 @@ EXPORT fdatum compile_module(char *module, datum *settings,
   }
   datum compdata = compdata_make();
   vec sl = vec_create_slice();
-  char *err = prog_compile(&sl, &src.ok_value, &compdata, extension);
-  if (err != NULL) {
-    return fdatum_make_panic(err);
+  prog_compile(&sl, &src.ok_value, &compdata, extension, &ctxt);
+  if (ctxt.aborted) {
+    return fdatum_make_panic("failure!");
   }
   return fdatum_make_ok(datum_make_list(sl));
 }
@@ -65,10 +66,11 @@ EXPORT fdatum compile_module(char *module, datum *settings,
 EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
                         datum *builder_compdata, datum *settings,
                         extension *ext) {
+  context ctxt = {};
   size_t start_p = prog_get_next_index(sl);
-  char *res = prog_compile(sl, source, compdata, ext);
-  if (res != NULL) {
-    return res;
+  prog_compile(sl, source, compdata, ext, &ctxt);
+  if (ctxt.aborted) {
+    return ("failure!");
   }
   datum *input_meta = extract_meta(*sl, start_p);
 
@@ -78,10 +80,9 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_nil());
   datum ret_exp = datum_make_list(return_expr);
-  char *res2 = prog_compile(sl, &ret_exp, builder_compdata, ext);
-  if (res2 != NULL) {
-    fprintf(stderr, "%s\n", res2);
-    exit(EXIT_FAILURE);
+  prog_compile(sl, &ret_exp, builder_compdata, ext, &ctxt);
+  if (ctxt.aborted) {
+    return ("failure!");
   }
   size_t p_end = prog_get_next_index(sl);
   ptrdiff_t *p_end_ = prog_append_jmp(sl); // filled below.
@@ -89,7 +90,7 @@ EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   ptrdiff_t *builder_jmp = prog_get_jmp_delta(sl, *bp);
   *builder_jmp = prog_get_next_index(sl) - *bp;
 
-  res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
+  char *res = prog_link_deps(sl, builder_compdata, input_meta, compile_module,
                        settings, ext);
   if (res != NULL) {
     return res;
