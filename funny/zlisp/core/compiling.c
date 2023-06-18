@@ -17,6 +17,12 @@ struct extension {
 };
 #endif
 
+EXPORT context *context_alloc_make() {
+  context *res = malloc(sizeof(context));
+  *res = (context){};
+  return res;
+}
+
 EXPORT void abortf(context *ctxt, char *format, ...) {
   va_list args;
   va_start(args, format);

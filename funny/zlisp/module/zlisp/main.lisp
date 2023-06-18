@@ -38,7 +38,11 @@ prog-build-one-c-host := (/prelude/c-function buildlib "prog_build" {{'pointer
    'pointer}
   'pointer})
 
+context-make := (/prelude/c-function selflib "context_alloc_make" {{}
+  'pointer})
+
 prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
+   'pointer
    'pointer
    'pointer}
   'sizet})
@@ -50,7 +54,8 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{}
   'pointer})
 
 init-prog := fn {sl compdata bdrcompdata}
-{nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata)
+{ctxt := (/prelude/context-make)
+ nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata (/prelude/wrap-pointer-into-pointer ctxt))
  return nothing}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}

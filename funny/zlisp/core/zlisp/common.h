@@ -125,6 +125,7 @@ read_result datum_read_all(FILE *stre);
 fdatum datum_read_one(FILE *stre);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
+context *context_alloc_make();
 void abortf(context *ctxt,char *format,...);
 void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *ctxt);
 void prog_append_bytecode(vec *sl,vec *src_sl);

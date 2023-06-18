@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+  context ctxt = {};
   if (argc != 3) {
     printf("usage: %s <prelude> <script>\n", argv[0]);
     exit(EXIT_FAILURE);
@@ -37,7 +38,11 @@ int main(int argc, char **argv) {
   size_t bp;
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
-  bp = prog_build_init(&sl, &compdata, &builder_compdata);
+  bp = prog_build_init(&sl, &compdata, &builder_compdata, &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "build_init error");
+    return EXIT_FAILURE;
+  }
   datum set = datum_make_bytestring(argv[1]);
   struct lisp_extension extension = standard_extension_make();
   char *err = prog_build(&sl, &bp, &src.ok_value, &compdata, &builder_compdata,

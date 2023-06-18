@@ -132,6 +132,7 @@ LOCAL void prog_append_yield(vec *sl,datum type,datum yield_val_index,size_t cou
 LOCAL void prog_append_consume_expression(vec *sl,datum *source,int *i,datum *compdata,extension *ext,context *ctxt);
 void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *ctxt);
 void abortf(context *ctxt,char *format,...);
+context *context_alloc_make();
 LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);
 LOCAL bool is_allowed_inside_symbol(char c);

@@ -4,7 +4,7 @@
 char *prog_build(vec *sl,size_t *bp,datum *source,datum *compdata,datum *builder_compdata,datum *settings,extension *ext);
 fdatum file_source(char *fname);
 void module_to_filename(char *fname,char *module);
-size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata);
+size_t prog_build_init(vec *sl,datum *compdata,datum *builder_compdata,context *ctxt);
 #define LOCAL static
 #include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
