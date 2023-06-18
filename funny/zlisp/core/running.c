@@ -84,11 +84,10 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
                                        datum args,
                                        fdatum (*yield_handler)(datum *,
                                                                datum *)) {
-  routine r = get_routine_from_datum(r0d);
   result res;
   datum current_statement = datum_make_nil();
   for (;;) {
-    res = routine_run(sl, &r, args);
+    res = routine_run_pub(sl, r0d, args);
     datum *sec = &res.value;
     datum *yield_type = &res.type;
     fdatum handler_res = yield_handler(yield_type, sec);
@@ -118,11 +117,11 @@ EXPORT result routine_run_with_handler(vec sl, datum *r0d,
   }
   if (datum_is_the_symbol(&res.type, "panic")) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, &r);
+    print_backtrace(sl, r0d);
   }
   if (datum_is_the_symbol(&res.type, "interpreter-panic")) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, &r);
+    print_backtrace(sl, r0d);
   }
   return res;
 }
@@ -160,6 +159,11 @@ LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
     return &error_instruction;
   }
   return vec_at(sl, index);
+}
+
+EXPORT result routine_run_pub(vec sl, datum *r, datum args) {
+  routine rt = get_routine_from_datum(r);
+  return routine_run(sl, &rt, args);
 }
 
 LOCAL result routine_run(vec sl, routine *r, datum args) {
@@ -381,11 +385,12 @@ LOCAL bool get_child(vec sl, routine *r) {
   return true;
 }
 
-LOCAL void print_backtrace(vec sl, routine *r) {
+LOCAL void print_backtrace(vec sl, datum *r0d) {
+  routine r = get_routine_from_datum(r0d);
   fprintf(stderr, "=========\n");
   fprintf(stderr, "BACKTRACE\n");
   int i = 0;
-  routine z = *r;
+  routine z = r;
   for (; i < 10; ++i) {
     ptrdiff_t offset = *routine_offset(&z);
     if (offset < 0) {
