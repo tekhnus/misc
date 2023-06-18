@@ -298,7 +298,7 @@ fntest
  interceptor := 42
  interceptor = fn {arg}
  {{ext-pointer arg-} := (../do-something @mut @{host
-    "call-extension-2"} @2 arg)
+    "this-test-is-broken"} @2 arg)
   res := (/libc/print "extension:")
   res = (/libc/print ext-pointer)
   res = (/libc/print "argument:")
