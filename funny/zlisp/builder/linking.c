@@ -65,12 +65,11 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   if (input_meta == NULL) {
     return NULL;
   }
-  char *err = prog_build_deps(sl, input_meta, module_bytecode, settings,
-                              builder_compdata, ext);
-  if (err != NULL) {
-    return err;
+  prog_build_deps(sl, input_meta, module_bytecode, settings,
+                              builder_compdata, ext, ctxt);
+  if (ctxt->aborted) {
+    return "aborted";
   }
-
   vec call_sexp = vec_make_of(datum_make_list_of(
       datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"),
       datum_make_symbol("__main__")));
@@ -90,19 +89,18 @@ EXPORT char *prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
   return NULL;
 }
 
-LOCAL char *prog_build_deps(vec *sl, datum *deps,
+LOCAL void prog_build_deps(vec *sl, datum *deps,
                             fdatum (*module_bytecode)(char *, datum *,
                                                       extension *),
-                            datum *settings, datum *compdata, extension *ext) {
+                            datum *settings, datum *compdata, extension *ext, context *ctxt) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
-    char *err =
-        prog_build_dep(sl, dep, module_bytecode, settings, compdata, ext);
-    if (err != NULL) {
-      return err;
+    prog_build_dep(sl, dep, module_bytecode, settings, compdata, ext, ctxt);
+    if (ctxt->aborted) {
+      return;
     }
   }
-  return NULL;
+  return;
 }
 
 LOCAL void get_varname(char *res, datum *dep_and_sym) {
@@ -122,8 +120,7 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
 LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
                            fdatum (*module_bytecode)(char *, datum *,
                                                      extension *),
-                           datum *settings, datum *compdata, extension *ext) {
-  context ctxt = {};
+                           datum *settings, datum *compdata, extension *ext, context *ctxt) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     return "req expects bytestrings";
@@ -153,11 +150,11 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
   if (syms == NULL) {
     return "error: null extract_meta for exports";
   }
-  char *err = prog_build_deps(sl, transitive_deps, module_bytecode, settings,
-                              compdata, ext);
-  if (err != NULL) {
-    return err;
-  }
+  prog_build_deps(sl, transitive_deps, module_bytecode, settings,
+                              compdata, ext, ctxt);
+  if (ctxt->aborted) {
+    return "aborted";
+  } 
   size_t ppo = prog_get_next_index(sl);
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
@@ -192,8 +189,8 @@ LOCAL char *prog_build_dep(vec *sl, datum *dep_and_sym,
       datum_make_list_of(names_, datum_make_symbol(":="),
                          datum_make_list_of(datum_make_symbol("call"),
                                             datum_make_list(call_sexp)));
-  prog_compile(sl, &call_stmt, compdata, ext, &ctxt);
-  if (ctxt.aborted) {
+  prog_compile(sl, &call_stmt, compdata, ext, ctxt);
+  if (ctxt->aborted) {
     return "failure!";
   }
   return NULL;
