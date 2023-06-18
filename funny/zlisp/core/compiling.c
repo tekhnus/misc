@@ -11,6 +11,11 @@ struct extension {
 };
 #endif
 
+struct context {
+  bool aborted;
+  char error[1024];
+};
+
 EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
                                        extension *ext) {
   fdatum bytecode = prog_compile(source, compdata, ext);
@@ -22,7 +27,7 @@ EXPORT char *prog_compile_and_relocate(vec *sl, datum *source, datum *compdata,
   return NULL;
 }
 
-EXPORT fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
+LOCAL fdatum prog_compile(datum *source, datum *compdata, extension *ext) {
   vec sl = vec_create_slice();
   char *err = prog_append_expressions(&sl, source, compdata, ext);
   if (err != NULL) {

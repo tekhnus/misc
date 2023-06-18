@@ -125,7 +125,7 @@ LOCAL char *prog_append_consume_expression(vec *sl,datum *source,int *i,datum *c
 char *prog_append_expressions(vec *sl,datum *source,datum *compdata,extension *ext);
 vec vec_create_slice();
 void prog_append_bytecode(vec *sl,vec *src_sl);
-fdatum prog_compile(datum *source,datum *compdata,extension *ext);
+LOCAL fdatum prog_compile(datum *source,datum *compdata,extension *ext);
 char *prog_compile_and_relocate(vec *sl,datum *source,datum *compdata,extension *ext);
 LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);

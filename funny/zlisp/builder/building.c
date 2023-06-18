@@ -54,7 +54,12 @@ EXPORT fdatum compile_module(char *module, datum *settings,
     return src;
   }
   datum compdata = compdata_make();
-  return prog_compile(&src.ok_value, &compdata, extension);
+  vec sl = vec_create_slice();
+  char *err = prog_compile_and_relocate(&sl, &src.ok_value, &compdata, extension);
+  if (err != NULL) {
+    return fdatum_make_panic(err);
+  }
+  return fdatum_make_ok(datum_make_list(sl));
 }
 
 EXPORT char *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,

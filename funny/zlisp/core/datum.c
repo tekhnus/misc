@@ -78,11 +78,6 @@ EXPORT char *datum_repr(datum *e) {
 
 EXPORT char *datum_repr_pretty(datum *e, extension *ext) {
   ext = ext ? ext : ext;
-  /* datum cd = compdata_make(); */
-  /* fdatum res = prog_compile(e, &cd, ext); */
-  /* if (fdatum_is_panic(res)) { */
-  /*   return res.panic_message; */
-  /* } */
   return datum_repr_impl(e, 128, 0, true, NON_FLAT, "\n\n");
 }
 
