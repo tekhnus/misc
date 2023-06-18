@@ -133,7 +133,10 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    compdata_give_names(compdata, &names);
+    compdata_give_names(compdata, &names, ctxt);
+    if (ctxt->aborted) {
+      return;
+    }
     return;
   }
   if (*i < list_length(source) &&
@@ -171,7 +174,10 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("plain"),
                       compdata_get_next_polyindex(&routine_compdata), 0,
                       list_length(args), datum_make_nil(), &routine_compdata);
-    compdata_give_names(&routine_compdata, args);
+    compdata_give_names(&routine_compdata, args, ctxt);
+    if (ctxt->aborted) {
+      return;
+    }
     prog_append_consume_expression(sl, source, i, &routine_compdata, ext, ctxt);
 
     if (ctxt->aborted) {
@@ -486,12 +492,15 @@ LOCAL void prog_append_collect(vec *sl, size_t count, datum top_idx,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata) {
+EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata, context *ctxt) {
   datum target = compdata_put(compdata, datum_make_symbol(":anon"));
   datum ins = prog_get_put_prog(&target, 100500, 0);
   vec_append(sl, ins);
   datum names = datum_make_list_of(name);
-  compdata_give_names(compdata, &names);
+  compdata_give_names(compdata, &names, ctxt);
+  if (ctxt->aborted) {
+    return NULL;
+  }
   ptrdiff_t *delt = (ptrdiff_t *)&list_at(&ins, 3)->integer_value;
   return delt;
 }
@@ -590,16 +599,16 @@ LOCAL datum *compdata_get_top_section(datum *compdata) {
   return list_get_last(compdata);
 }
 
-LOCAL void compdata_give_names(datum *compdata, datum *var) {
+LOCAL void compdata_give_names(datum *compdata, datum *var, context *ctxt) {
   for (int i = 0; i < list_length(var); ++i) {
     compdata_del(compdata);
   }
   for (int i = 0; i < list_length(var); ++i) {
     datum target = compdata_get_polyindex(compdata, list_at(var, i));
     if (!datum_is_nil(&target)) {
-      fprintf(stderr, "erorr: redefinition of %s\n",
+      abortf(ctxt, "erorr: redefinition of %s\n",
               datum_repr(list_at(var, i)));
-      exit(EXIT_FAILURE);
+      return;
     }
     compdata_put(compdata, datum_copy(list_at(var, i)));
   }

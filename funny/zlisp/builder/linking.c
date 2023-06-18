@@ -16,12 +16,14 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
   datum ret_exp = datum_make_list(return_expr);
   prog_compile(sl, &ret_exp, builder_compdata, &ext, ctxt);
   if (ctxt->aborted) {
-    fprintf(stderr, "build init fail");
-    exit(EXIT_FAILURE);
+    return 0;
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
   ptrdiff_t *bdr_put_prog_ =
-      prog_define_routine(sl, datum_make_symbol("__main__"), builder_compdata);
+      prog_define_routine(sl, datum_make_symbol("__main__"), builder_compdata, ctxt);
+  if (ctxt->aborted) {
+    return 0;
+  }
   return_expr = vec_make_of(
       datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
@@ -163,7 +165,10 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
   vn = datum_make_symbol(varname);
-  ptrdiff_t *put_prog_off_ = prog_define_routine(sl, vn, compdata);
+  ptrdiff_t *put_prog_off_ = prog_define_routine(sl, vn, compdata, ctxt);
+  if (ctxt->aborted) {
+    return;
+  }
 
   prog_append_bytecode(sl, &module_sl);
   *put_prog_off_ = prog_get_next_index(sl) - ppo;

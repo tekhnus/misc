@@ -129,7 +129,7 @@ context *context_alloc_make();
 void abortf(context *ctxt,char *format,...);
 void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *ctxt);
 void prog_append_bytecode(vec *sl,vec *src_sl);
-ptrdiff_t *prog_define_routine(vec *sl,datum name,datum *compdata);
+ptrdiff_t *prog_define_routine(vec *sl,datum name,datum *compdata,context *ctxt);
 ptrdiff_t *prog_append_jmp(vec *sl);
 ptrdiff_t *prog_get_jmp_delta(vec *sl,size_t offset);
 datum compdata_make();
