@@ -16,7 +16,6 @@ fdatum builtin_tail(datum *args);
 #include <assert.h>
 result host_ffi_run(vec sl,datum *r0d,datum args);
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
-fdatum host_ffi(datum *type,datum *args);
 extern ffi_type ffi_type_fdatum;
 extern ffi_type *ffi_type_fdatum_elements[4];
 extern ffi_type ffi_type_vec;

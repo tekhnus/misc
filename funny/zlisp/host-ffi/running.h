@@ -26,7 +26,7 @@ LOCAL fdatum pointer_call(datum *argz);
 LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
-fdatum host_ffi(datum *type,datum *args);
+LOCAL fdatum host_ffi(datum *type,datum *args);
 result host_ffi_run(vec sl,datum *r0d,datum args);
 #define EXPORT
 #define INTERFACE 0
