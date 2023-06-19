@@ -137,7 +137,7 @@ datum *compdata_alloc_make();
 datum compdata_get_polyindex(datum *compdata,datum *var);
 vec vec_create_slice();
 size_t prog_get_next_index(vec *sl);
-result routine_run(vec sl,datum *r,datum args);
+result routine_run(vec sl,datum *r,datum args,context *ctxt);
 void print_backtrace(vec sl,datum *r0d);
 typedef struct routine routine;
 datum routine_make(ptrdiff_t prg,routine *context);

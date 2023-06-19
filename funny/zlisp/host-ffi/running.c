@@ -18,10 +18,15 @@ EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
 }
 
 EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
+  context ctxt = {};
   result res;
   datum current_statement = datum_make_nil();
   for (;;) {
-    res = routine_run(sl, r0d, args);
+    res = routine_run(sl, r0d, args, &ctxt);
+    if (ctxt.aborted) {
+      res = (result){datum_make_symbol("interpreter-panic"), datum_make_symbol("some panic")};
+      break;
+    }
     datum *sec = &res.value;
     datum *yield_type = &res.type;
     fdatum handler_res = host_ffi(yield_type, sec);

@@ -80,9 +80,9 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT result routine_run(vec sl, datum *r, datum args) {
+EXPORT result routine_run(vec sl, datum *r, datum args, context *ctxt) {
   routine rt = get_routine_from_datum(r);
-  return routine_run_impl(sl, &rt, args);
+  return routine_run_impl(sl, &rt, args, ctxt);
 }
 
 LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
@@ -110,17 +110,10 @@ LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
 datum error_instruction;
 
 LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
-  if (index < 0) {
-    error_instruction = datum_make_list_of(
-        datum_make_symbol(":yield"), datum_make_symbol("interpreter-panic"),
-        datum_make_nil(), datum_make_int(0), datum_make_int(31415926),
-        datum_make_nil());
-    return &error_instruction;
-  }
   return vec_at(sl, index);
 }
 
-LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
+LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
   for (;;) {
     prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL) {
@@ -146,20 +139,21 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
                          array_length(rt.frames[j].state));
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
-        fprintf(stderr, "%s", bufbeg);
-        *routine_offset(r) = -*routine_offset(r);
-        goto body;
+        abortf(ctxt, "%s", bufbeg);
+        return (result){};
       }
-      result err = routine_run_impl(sl, &rt, args);
+      result err = routine_run_impl(sl, &rt, args, ctxt);
+      if (ctxt->aborted) {
+        return (result){};
+      }
       datum *yield_type = &err.type;
       if (!datum_eq(recieve_type, yield_type)) {
         return err;
       }
       datum *argz = &err.value;
       if (prg.call_return_count != (long unsigned int)list_length(argz)) {
-        fprintf(stderr, "call count and yield count are not equal\n");
-        *routine_offset(r) = -*routine_offset(r);
-        goto body;
+        abortf(ctxt, "call count and yield count are not equal\n");
+        return (result){};
       }
 
       datum fn_index = datum_copy(prg.call_arg_index);
@@ -172,11 +166,10 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
     }
     if (prg.type == PROG_YIELD) {
       if (list_length(&args) != (int)prg.yield_recieve_count) {
-        fprintf(stderr,
+        abortf(ctxt,
                 "recieved incorrect number of arguments: expected %zu, got %d",
                 prg.yield_recieve_count, list_length(&args));
-        *routine_offset(r) = -*routine_offset(r);
-        goto body;
+        return (result){};
       }
       state_stack_set_many(r, datum_copy(prg.yield_val_index), args);
       *routine_offset(r) += 1;
@@ -185,14 +178,11 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
   body:
     if (true) {
     }
-    ptrdiff_t prev_offset = *routine_offset(r);
     for (;;) {
       if (*routine_offset(r) >= (ptrdiff_t)vec_length(&sl)) {
-        fprintf(stderr, "jumped out of bounds\n");
-        *routine_offset(r) = -prev_offset;
-        continue;
+        abortf(ctxt, "jumped out of bounds\n");
+        return (result){};
       }
-      prev_offset = *routine_offset(r);
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
@@ -234,9 +224,8 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_COPY) {
         if (!state_stack_has(r, prg.copy_offset)) {
-          fprintf(stderr, "wrong copy offset\n");
-          *routine_offset(r) = -*routine_offset(r);
-          continue;
+          abortf(ctxt, "wrong copy offset\n");
+          return (result){};
         }
         datum *er = state_stack_at(r, prg.copy_offset);
         state_stack_set(r, prg.copy_target, datum_copy(er));
@@ -245,9 +234,8 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
       }
       if (prg.type == PROG_MOVE) {
         if (!state_stack_has(r, prg.move_offset)) {
-          fprintf(stderr, "wrong move offset\n");
-          *routine_offset(r) = -*routine_offset(r);
-          continue;
+          abortf(ctxt, "wrong move offset\n");
+          return (result){};
         }
         datum er = state_stack_invalidate(r, datum_copy(prg.move_offset));
         state_stack_set(r, prg.move_target, er);
@@ -262,12 +250,12 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args) {
         *routine_offset(r) += 1;
         continue;
       }
-      fprintf(stderr, "unhandled instruction type\n");
-      exit(EXIT_FAILURE);
+      abortf(ctxt, "unhandled instruction type\n");
+      return (result){};
     }
   }
-  fprintf(stderr, "unreachable\n");
-  exit(EXIT_FAILURE);
+  abortf(ctxt, "unreachable");
+  return (result){};
 }
 
 LOCAL prog datum_to_prog(datum *d) {
@@ -347,9 +335,6 @@ EXPORT void print_backtrace(vec sl, datum *r0d) {
   routine z = r;
   for (; i < 10; ++i) {
     ptrdiff_t offset = *routine_offset(&z);
-    if (offset < 0) {
-      offset = -offset;
-    }
     for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
       if (i < 0) {
         continue;
@@ -358,11 +343,7 @@ EXPORT void print_backtrace(vec sl, datum *r0d) {
         continue;
       }
       if (i == offset) {
-        if (*routine_offset(&z) < 0) {
-          fprintf(stderr, "! ");
-        } else {
-          fprintf(stderr, "> ");
-        }
+        fprintf(stderr, "> ");
       } else {
         fprintf(stderr, "  ");
       }
