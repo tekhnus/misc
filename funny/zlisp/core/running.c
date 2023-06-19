@@ -397,10 +397,7 @@ LOCAL void state_stack_set(routine *r, datum *target, datum value) {
 }
 
 LOCAL void state_stack_set_many(routine *r, datum idx, datum list) {
-  if (!datum_is_list(&list)) {
-    fprintf(stderr, "put_all expected a list\n");
-    exit(EXIT_FAILURE);
-  }
+  assert(datum_is_list(&list));
   for (int i = 0; i < list_length(&list); ++i) {
     state_stack_set(r, &idx, *list_at(&list, i));
     list_at(&idx, 1)->integer_value += 1;
@@ -465,11 +462,7 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 }
 
 LOCAL routine get_routine_from_datum(datum *e) {
-  if (!datum_is_list(e)) {
-    fprintf(stderr, "get_routine_from_datum: not a routine: %s\n",
-            datum_repr(e));
-    exit(EXIT_FAILURE);
-  }
+  assert(datum_is_list(e));
   routine rt;
   rt.cnt = 0;
   for (int i = 0; i < list_length(e); ++i) {
