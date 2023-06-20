@@ -4,6 +4,9 @@ parentpid=$1
 while true;
 do
   cmd="$(cat /tmp/crsh-command)"
+	if [ -z "$cmd" ]; then
+		break
+	fi
 	eval "$cmd"
 	kill -STOP $parentpid
 done
