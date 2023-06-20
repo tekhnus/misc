@@ -85,28 +85,6 @@ EXPORT result routine_run(vec sl, datum *r, datum args, context *ctxt) {
   return routine_run_impl(sl, &rt, args, ctxt);
 }
 
-LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
-                                        datum *call_indices) {
-  routine rt = routine_get_prefix(r, capture_count + 1);
-  for (int i = 0; i < list_length(call_indices); ++i) {
-    datum *x = state_stack_at(r, list_at(call_indices, i));
-    routine nr = get_routine_from_datum(x);
-    routine_merge(&rt, &nr);
-  }
-  return rt;
-}
-
-LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
-  routine rt;
-  rt.cnt = 0;
-  assert(capture_count <= r->cnt);
-  for (size_t i = 0; i < capture_count; ++i) {
-    rt.frames[i] = r->frames[i];
-  }
-  rt.cnt = capture_count;
-  return rt;
-}
-
 LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
   for (;;) {
     prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)), ctxt);
@@ -269,6 +247,39 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
   return (result){};
 }
 
+LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
+                                        datum *call_indices) {
+  routine rt = routine_get_prefix(r, capture_count + 1);
+  for (int i = 0; i < list_length(call_indices); ++i) {
+    datum *x = state_stack_at(r, list_at(call_indices, i));
+    routine nr = get_routine_from_datum(x);
+    routine_merge(&rt, &nr);
+  }
+  return rt;
+}
+
+LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
+  routine rt;
+  rt.cnt = 0;
+  assert(capture_count <= r->cnt);
+  for (size_t i = 0; i < capture_count; ++i) {
+    rt.frames[i] = r->frames[i];
+  }
+  rt.cnt = capture_count;
+  return rt;
+}
+
+LOCAL void routine_merge(routine *r, routine *rt_tail) {
+  assert(r->cnt > 0);
+  // We chop off the program counter.
+  --r->cnt;
+  for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
+    r->frames[r->cnt++] = rt_tail->frames[j];
+  }
+}
+
+LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
+
 LOCAL prog datum_to_prog(datum *d, context *ctxt) {
   prog res;
   if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(list_at(d, 0))) {
@@ -407,17 +418,6 @@ LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
     list_at(&top_polyindex, 1)->integer_value += 1;
   }
   return form;
-}
-
-LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
-
-LOCAL void routine_merge(routine *r, routine *rt_tail) {
-  assert(r->cnt > 0);
-  // We chop off the program counter.
-  --r->cnt;
-  for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
-    r->frames[r->cnt++] = rt_tail->frames[j];
-  }
 }
 
 EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
