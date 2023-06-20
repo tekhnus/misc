@@ -109,7 +109,11 @@ LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
 
 LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
   for (;;) {
-    prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
+    prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)), ctxt);
+    if (ctxt->aborted) {
+      print_frame(&sl, r);
+      return (result){};
+    }
     if (prg.type == PROG_CALL) {
       datum *recieve_type = prg.call_type;
       routine rt = make_routine_from_indices(r, prg.call_capture_count,
@@ -182,7 +186,11 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
         print_frame(&sl, r);
         return (result){};
       }
-      prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
+      prg = datum_to_prog(vec_at(&sl, *routine_offset(r)), ctxt);
+      if (ctxt->aborted) {
+        print_frame(&sl, r);
+        return (result){};
+      }
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
         datum res =
@@ -261,11 +269,11 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
   return (result){};
 }
 
-LOCAL prog datum_to_prog(datum *d) {
+LOCAL prog datum_to_prog(datum *d, context *ctxt) {
   prog res;
   if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(list_at(d, 0))) {
-    fprintf(stderr, "datum_to_prog panic\n");
-    exit(EXIT_FAILURE);
+    abortf(ctxt, "datum_to_prog panic\n");
+    return (prog){};
   }
   char *opsym = list_at(d, 0)->symbol_value;
   if (!strcmp(opsym, ":if")) {
@@ -313,8 +321,8 @@ LOCAL prog datum_to_prog(datum *d) {
     res.yield_recieve_count = list_at(d, 4)->integer_value;
     res.yield_meta = list_at(d, 5);
   } else {
-    fprintf(stderr, "unknown instruction: %s\n", datum_repr(d));
-    exit(EXIT_FAILURE);
+    abortf(ctxt, "unknown instruction: %s\n", datum_repr(d));
+    return (prog){};
   }
   return res;
 }
