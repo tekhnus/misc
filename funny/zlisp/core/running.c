@@ -107,15 +107,9 @@ LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
   return rt;
 }
 
-datum error_instruction;
-
-LOCAL datum *instruction_at(vec *sl, ptrdiff_t index) {
-  return vec_at(sl, index);
-}
-
 LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
   for (;;) {
-    prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
+    prog prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
     if (prg.type == PROG_CALL) {
       datum *recieve_type = prg.call_type;
       routine rt = make_routine_from_indices(r, prg.call_capture_count,
@@ -188,7 +182,7 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
         print_frame(&sl, r);
         return (result){};
       }
-      prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
+      prg = datum_to_prog(vec_at(&sl, *routine_offset(r)));
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
         datum res =
@@ -340,7 +334,7 @@ LOCAL void print_frame(vec *sl, routine *r) {
       fprintf(stderr, "  ");
     }
     fprintf(stderr, "%ld ", i);
-    datum *ins = instruction_at(sl, i);
+    datum *ins = vec_at(sl, i);
     fprintf(stderr, "%-40s\n", datum_repr(ins));
   }
   fprintf(stderr, "**********\n");
