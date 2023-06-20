@@ -1,12 +1,9 @@
 #!/bin/sh
 
-session=$1
-
-mkdir -p /tmp/crsh
-rm -rf /tmp/crsh/$session
-mkfifo /tmp/crsh/$session
-
-while IFS= read -r line
+parentpid=$1
+while true;
 do
-	eval "$line" </dev/tty >/dev/tty
-done </tmp/crsh/$session
+  cmd="$(cat /tmp/crsh-command)"
+	eval "$cmd"
+	kill -STOP $parentpid
+done

@@ -1,19 +1,13 @@
 #!/bin/bash
 set -m
 
-session=some-session
+function get_pid() {
+  exec sh -c 'echo "$PPID"'
+}
 
-sleep 1 && ./crsh-server $session &
-serverid=$!
-kill -STOP -- $serverid
+( while true; do read -p '> ' -r line; echo "$line" >/tmp/crsh-command; kill -STOP $(get_pid); done )
+( ./crsh-server "$(get_pid)" ) 
 
-sleep 1 && while true;
-do
-  input="$(bash -c 'read -e -p \>\  input && echo $input')"
-  echo "$input"
-done | ./crsh-controller $session &
-inputid=$!
-kill -STOP -- $inputid
-
-jobs -l
-fg $inputid
+while true; do
+  fg %- >/dev/null
+done
