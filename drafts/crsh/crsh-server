@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 parentpid=$1
 while true;
@@ -8,5 +8,5 @@ do
 		break
 	fi
 	eval "$cmd"
-	kill -STOP $parentpid
+	kill -STOP -- -$parentpid
 done
