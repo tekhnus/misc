@@ -140,10 +140,12 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
         }
         buf += sprintf(buf, "wrong call, frame types are wrong\n");
         abortf(ctxt, "%s", bufbeg);
+        print_frame(&sl, r);
         return (result){};
       }
       result err = routine_run_impl(sl, &rt, args, ctxt);
       if (ctxt->aborted) {
+        print_frame(&sl, r);
         return (result){};
       }
       datum *yield_type = &err.type;
@@ -153,6 +155,7 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
       datum *argz = &err.value;
       if (prg.call_return_count != (long unsigned int)list_length(argz)) {
         abortf(ctxt, "call count and yield count are not equal\n");
+        print_frame(&sl, r);
         return (result){};
       }
 
@@ -169,6 +172,7 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
         abortf(ctxt,
                 "recieved incorrect number of arguments: expected %zu, got %d",
                 prg.yield_recieve_count, list_length(&args));
+        print_frame(&sl, r);
         return (result){};
       }
       state_stack_set_many(r, datum_copy(prg.yield_val_index), args);
@@ -181,6 +185,7 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
     for (;;) {
       if (*routine_offset(r) >= (ptrdiff_t)vec_length(&sl)) {
         abortf(ctxt, "jumped out of bounds\n");
+        print_frame(&sl, r);
         return (result){};
       }
       prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
@@ -225,6 +230,7 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_COPY) {
         if (!state_stack_has(r, prg.copy_offset)) {
           abortf(ctxt, "wrong copy offset\n");
+          print_frame(&sl, r);
           return (result){};
         }
         datum *er = state_stack_at(r, prg.copy_offset);
@@ -235,6 +241,7 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_MOVE) {
         if (!state_stack_has(r, prg.move_offset)) {
           abortf(ctxt, "wrong move offset\n");
+          print_frame(&sl, r);
           return (result){};
         }
         datum er = state_stack_invalidate(r, datum_copy(prg.move_offset));
@@ -251,10 +258,12 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
         continue;
       }
       abortf(ctxt, "unhandled instruction type\n");
+      print_frame(&sl, r);
       return (result){};
     }
   }
   abortf(ctxt, "unreachable");
+  print_frame(&sl, r);
   return (result){};
 }
 
@@ -316,47 +325,25 @@ LOCAL prog datum_to_prog(datum *d) {
   return res;
 }
 
-LOCAL bool get_child(vec sl, routine *r) {
-  prog prg = datum_to_prog(instruction_at(&sl, *routine_offset(r)));
-  if (prg.type != PROG_CALL) {
-    return false;
-  }
-  routine child =
-      make_routine_from_indices(r, prg.call_capture_count, prg.call_indices);
-  *r = child;
-  return true;
-}
-
-EXPORT void print_backtrace(vec sl, datum *r0d) {
-  routine r = get_routine_from_datum(r0d);
-  fprintf(stderr, "=========\n");
-  fprintf(stderr, "BACKTRACE\n");
-  int i = 0;
-  routine z = r;
-  for (; i < 10; ++i) {
-    ptrdiff_t offset = *routine_offset(&z);
-    for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
-      if (i < 0) {
-        continue;
-      }
-      if (i >= (ptrdiff_t)vec_length(&sl)) {
-        continue;
-      }
-      if (i == offset) {
-        fprintf(stderr, "> ");
-      } else {
-        fprintf(stderr, "  ");
-      }
-      fprintf(stderr, "%ld ", i);
-      datum *ins = instruction_at(&sl, i);
-      fprintf(stderr, "%-40s\n", datum_repr(ins));
+LOCAL void print_frame(vec *sl, routine *r) {
+  ptrdiff_t offset = *routine_offset(r);
+  for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
+    if (i < 0) {
+      continue;
     }
-    fprintf(stderr, "**********\n");
-    if (!get_child(sl, &z)) {
-      break;
+    if (i >= (ptrdiff_t)vec_length(sl)) {
+      continue;
     }
+    if (i == offset) {
+      fprintf(stderr, "> ");
+    } else {
+      fprintf(stderr, "  ");
+    }
+    fprintf(stderr, "%ld ", i);
+    datum *ins = instruction_at(sl, i);
+    fprintf(stderr, "%-40s\n", datum_repr(ins));
   }
-  fprintf(stderr, "=========\n");
+  fprintf(stderr, "**********\n");
 }
 
 LOCAL bool state_stack_has(routine *r, datum *offset) {

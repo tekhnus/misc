@@ -56,11 +56,9 @@ EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
   }
   if (datum_is_the_symbol(&res.type, "panic")) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, r0d);
   }
   if (datum_is_the_symbol(&res.type, "interpreter-panic")) {
     fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
-    print_backtrace(sl, r0d);
   }
   return res;
 }
