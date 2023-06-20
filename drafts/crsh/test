@@ -1,6 +1,19 @@
-#!/bin/sh
+#!/bin/bash
 set -m
 
-sleep 10 && echo end &
-fg
-echo hello
+function get_pid() {
+  exec sh -c 'echo "$PPID"'
+}
+
+rm -rf /tmp/stopper
+mkfifo /tmp/stopper
+
+sleep 10000 >/tmp/stopper &
+( while true; do read -r pid; kill -STOP $pid; done ) </tmp/stopper &
+( while true; do read -p a: -r line; echo $(get_pid) >/tmp/stopper; done )
+( while true; do read -p b: -r line; echo $(get_pid) >/tmp/stopper; done ) 
+
+while true; do
+  fg %3
+  fg %4
+done
