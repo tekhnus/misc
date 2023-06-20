@@ -1,0 +1,12 @@
+#!/bin/sh
+
+session=$1
+
+mkdir -p /tmp/crsh
+rm -rf /tmp/crsh/$session
+mkfifo /tmp/crsh/$session
+
+while IFS= read -r line
+do
+	eval "$line"
+done </tmp/crsh/$session
