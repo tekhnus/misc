@@ -8,5 +8,5 @@ mkfifo /tmp/crsh/$session
 
 while IFS= read -r line
 do
-	eval "$line"
+	eval "$line" </dev/tty >/dev/tty
 done </tmp/crsh/$session

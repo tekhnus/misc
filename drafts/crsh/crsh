@@ -1,0 +1,19 @@
+#!/bin/bash
+set -m
+
+session=some-session
+
+sleep 1 && ./crsh-server $session &
+serverid=$!
+kill -STOP -- $serverid
+
+sleep 1 && while true;
+do
+  input="$(bash -c 'read -e -p \>\  input && echo $input')"
+  echo "$input"
+done | ./crsh-controller $session &
+inputid=$!
+kill -STOP -- $inputid
+
+jobs -l
+fg $inputid

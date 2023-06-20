@@ -1,0 +1,6 @@
+#!/bin/sh
+set -m
+
+sleep 10 && echo end &
+fg
+echo hello
