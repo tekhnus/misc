@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <zlisp/common.h>
 datum builtin_eq(datum *args,context *ctxt);
 datum builtin_annotate(datum *args,context *ctxt);
@@ -11,9 +12,11 @@ datum builtin_add(datum *args,context *ctxt);
 datum builtin_cons(datum *args,context *ctxt);
 datum builtin_head(datum *args,context *ctxt);
 datum builtin_tail(datum *args,context *ctxt);
+datum fdatum_get_value(datum *args,context *ctxt);
+datum fdatum_repr_datum_pointer(datum *args,context *ctxt);
+datum fdatum_get_panic_message(datum *args,context *ctxt);
 #include <dlfcn.h>
 #include <ffi.h>
-#include <assert.h>
 fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
 result host_ffi_run(vec sl,datum *r0d,datum args);
 extern ffi_type ffi_type_fdatum;
