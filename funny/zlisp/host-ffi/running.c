@@ -230,46 +230,54 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
   return NULL;
 }
 
-LOCAL fdatum datum_mkptr(datum *args) {
+LOCAL fdatum datum_mkptr(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
-    return fdatum_make_panic("mkptr expected a pair on stack");
+    abortf(ctxt, "mkptr expected a pair on stack");
+    return (fdatum){};
   }
   datum *d = list_at(form, 0);
   datum *desc = list_at(form, 1);
   if (!datum_is_symbol(desc)) {
-    return fdatum_make_panic("mkptr expected a symbol");
+    abortf(ctxt, "mkptr expected a symbol");
+    return (fdatum){};
   }
   char *des = desc->symbol_value;
   if (!strcmp(des, "string")) {
     if (!datum_is_bytestring(d)) {
-      return fdatum_make_panic("string expected, got something else");
+      abortf(ctxt, "string expected, got something else");
+      return (fdatum){};
     }
     return fdatum_make_ok(
         datum_make_list_of(datum_make_int((int64_t) & (d->bytestring_value))));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
-      return fdatum_make_panic("int expected, got something else");
+      abortf(ctxt, "int expected, got something else");
+      return (fdatum){};
     }
     return fdatum_make_ok(
         datum_make_list_of(datum_make_int((int64_t) & (d->integer_value))));
   } else {
-    return fdatum_make_panic("cannot load an argument");
+    abortf(ctxt, "cannot load an argument");
+    return (fdatum){};
   }
 }
 
-LOCAL fdatum datum_deref(datum *args) {
+LOCAL fdatum datum_deref(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
-    return fdatum_make_panic("deref expected a pair on stack");
+    abortf(ctxt, "deref expected a pair on stack");
+    return (fdatum){};
   }
   datum *what = list_at(form, 0);
   datum *how = list_at(form, 1);
   if (!datum_is_integer(what)) {
-    return fdatum_make_panic("deref expected a pointer");
+    abortf(ctxt, "deref expected a pointer");
+    return (fdatum){};
   }
   if (!datum_is_symbol(how)) {
-    return fdatum_make_panic("deref expected a symbol");
+    abortf(ctxt, "deref expected a symbol");
+    return (fdatum){};
   }
   char *rettype = how->symbol_value;
   void *wha = (void *)what->integer_value;
@@ -285,7 +293,8 @@ LOCAL fdatum datum_deref(datum *args) {
     return fdatum_make_ok(
         datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
-    return fdatum_make_panic("unknown return type for deref");
+    abortf(ctxt, "unknown return type for deref");
+    return (fdatum){};
   }
 }
 
@@ -312,16 +321,18 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
   return res;
 }
 
-LOCAL fdatum pointer_call(datum *argz) {
+LOCAL fdatum pointer_call(datum *argz, context *ctxt) {
   if (!datum_is_list(argz) || list_length(argz) != 3) {
-    return fdatum_make_panic("pointer-call expected a triple on stack");
+    abortf(ctxt, "pointer-call expected a triple on stack");
+    return (fdatum){};
   }
 
   datum *fpt = list_at(argz, 0);
   datum *sig = list_at(argz, 1);
   datum *args = list_at(argz, 2);
   if (!datum_is_integer(fpt)) {
-    return fdatum_make_panic("not a function pointer");
+    abortf(ctxt, "not a function pointer");
+    return (fdatum){};
   }
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
@@ -330,17 +341,20 @@ LOCAL fdatum pointer_call(datum *argz) {
   ffi_type *ret_type;
   err = pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type);
   if (err != NULL) {
-    return fdatum_make_panic(err);
+    abortf(ctxt, err);
+    return (fdatum){};
   }
   int nargs = list_length(list_at(sig, 0));
   void *cargs[32];
   err = pointer_ffi_serialize_args(args, cargs, nargs);
   if (err != NULL) {
-    return fdatum_make_panic(err);
+    abortf(ctxt, err);
+    return (fdatum){};
   }
   void *res = allocate_space_for_return_value(sig);
   if (res == NULL) {
-    return fdatum_make_panic("unknown return type for extern func");
+    abortf(ctxt, "unknown return type for extern func");
+    return (fdatum){};
   }
   ffi_call(&cif, fn_ptr, res, cargs);
   return fdatum_make_ok(datum_make_list_of(datum_make_int((int64_t)res)));
