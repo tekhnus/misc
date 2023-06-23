@@ -256,40 +256,45 @@ EXPORT fdatum fdatum_make_panic(char *message) {
   return result;
 }
 
-fdatum fdatum_get_value(datum *args) { // used in lisp
+datum fdatum_get_value(datum *args, context *ctxt) { // used in lisp
   datum *arg = list_at(args, 0);
   if (!datum_is_integer(arg)) {
-    return fdatum_make_panic("fdatum_get_value expected a pointer");
+    abortf(ctxt, "fdatum_get_value expected a pointer");
+    return (datum){};
   }
   fdatum *val = (fdatum *)arg->integer_value;
   if (fdatum_is_panic(*val)) {
-    return *val;
+    abortf(ctxt, "fdatum_get_value error");
+    return (datum){};
   }
-  return fdatum_make_ok(
+  return (
       datum_make_list_of(datum_make_int((int64_t)&val->ok_value)));
 }
 
-fdatum fdatum_repr_datum_pointer(datum *args) { // used in lisp
+datum fdatum_repr_datum_pointer(datum *args, context *ctxt) { // used in lisp
   datum *arg = list_at(args, 0);
   if (!datum_is_integer(arg)) {
-    return fdatum_make_panic("fdatum_get_value expected a pointer");
+    abortf(ctxt, "fdatum_get_value expected a pointer");
+    return (datum){};
   }
   datum *val = (datum *)arg->integer_value;
   assert(datum_is_list(val) && list_length(val) == 1);
   char *res = datum_repr(list_at(val, 0));
-  return fdatum_make_ok(datum_make_list_of(datum_make_bytestring(res)));
+  return (datum_make_list_of(datum_make_bytestring(res)));
 }
 
-fdatum fdatum_get_panic_message(datum *args) { // used in lisp
+datum fdatum_get_panic_message(datum *args, context *ctxt) { // used in lisp
   datum *arg = list_at(args, 0);
   if (!datum_is_integer(arg)) {
-    return fdatum_make_panic("fdatum_get_panic_message expected a pointer");
+    abortf(ctxt, "fdatum_get_panic_message expected a pointer");
+    return (datum){};
   }
   fdatum val = *(fdatum *)arg->integer_value;
   if (!fdatum_is_panic(val)) {
-    return fdatum_make_panic("fdatum_get_panic_message expected a panic");
+    abortf(ctxt, "fdatum_get_panic_message expected a panic");
+    return (datum){};
   }
-  return fdatum_make_ok(
+  return (
       datum_make_list_of(datum_make_bytestring(val.panic_message)));
 }
 

@@ -83,16 +83,12 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
       abortf(ctxt, "call-extension expected a pointer to function");
       return (datum){};
     }
-    fdatum (*fnptr)(datum *, context *) = (fdatum(*)(datum *, context *))fn->integer_value;
-    fdatum results = fnptr(&callargs, ctxt);
-    if (fdatum_is_panic(results)) {
-      abortf(ctxt, "call-extension function failed");
-      return (datum){};
-    }
+    datum (*fnptr)(datum *, context *) = (datum(*)(datum *, context *))fn->integer_value;
+    datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
-    return results.ok_value;
+    return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
     res = datum_make_int((int64_t)datum_deref);
   } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
@@ -230,71 +226,71 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
   return NULL;
 }
 
-LOCAL fdatum datum_mkptr(datum *args, context *ctxt) {
+LOCAL datum datum_mkptr(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     abortf(ctxt, "mkptr expected a pair on stack");
-    return (fdatum){};
+    return (datum){};
   }
   datum *d = list_at(form, 0);
   datum *desc = list_at(form, 1);
   if (!datum_is_symbol(desc)) {
     abortf(ctxt, "mkptr expected a symbol");
-    return (fdatum){};
+    return (datum){};
   }
   char *des = desc->symbol_value;
   if (!strcmp(des, "string")) {
     if (!datum_is_bytestring(d)) {
       abortf(ctxt, "string expected, got something else");
-      return (fdatum){};
+      return (datum){};
     }
-    return fdatum_make_ok(
+    return (
         datum_make_list_of(datum_make_int((int64_t) & (d->bytestring_value))));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
-      return (fdatum){};
+      return (datum){};
     }
-    return fdatum_make_ok(
+    return (
         datum_make_list_of(datum_make_int((int64_t) & (d->integer_value))));
   } else {
     abortf(ctxt, "cannot load an argument");
-    return (fdatum){};
+    return (datum){};
   }
 }
 
-LOCAL fdatum datum_deref(datum *args, context *ctxt) {
+LOCAL datum datum_deref(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     abortf(ctxt, "deref expected a pair on stack");
-    return (fdatum){};
+    return (datum){};
   }
   datum *what = list_at(form, 0);
   datum *how = list_at(form, 1);
   if (!datum_is_integer(what)) {
     abortf(ctxt, "deref expected a pointer");
-    return (fdatum){};
+    return (datum){};
   }
   if (!datum_is_symbol(how)) {
     abortf(ctxt, "deref expected a symbol");
-    return (fdatum){};
+    return (datum){};
   }
   char *rettype = how->symbol_value;
   void *wha = (void *)what->integer_value;
   if (!strcmp(rettype, "sizet")) {
-    return fdatum_make_ok(
+    return (
         datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
   } else if (!strcmp(rettype, "int")) {
-    return fdatum_make_ok(
+    return (
         datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
-    return fdatum_make_ok(datum_make_list_of(datum_make_int(*(int64_t *)wha)));
+    return (datum_make_list_of(datum_make_int(*(int64_t *)wha)));
   } else if (!strcmp(rettype, "string")) {
-    return fdatum_make_ok(
+    return (
         datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
     abortf(ctxt, "unknown return type for deref");
-    return (fdatum){};
+    return (datum){};
   }
 }
 
@@ -321,10 +317,10 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
   return res;
 }
 
-LOCAL fdatum pointer_call(datum *argz, context *ctxt) {
+LOCAL datum pointer_call(datum *argz, context *ctxt) {
   if (!datum_is_list(argz) || list_length(argz) != 3) {
     abortf(ctxt, "pointer-call expected a triple on stack");
-    return (fdatum){};
+    return (datum){};
   }
 
   datum *fpt = list_at(argz, 0);
@@ -332,7 +328,7 @@ LOCAL fdatum pointer_call(datum *argz, context *ctxt) {
   datum *args = list_at(argz, 2);
   if (!datum_is_integer(fpt)) {
     abortf(ctxt, "not a function pointer");
-    return (fdatum){};
+    return (datum){};
   }
   void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
   ffi_cif cif;
@@ -342,22 +338,22 @@ LOCAL fdatum pointer_call(datum *argz, context *ctxt) {
   err = pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type);
   if (err != NULL) {
     abortf(ctxt, err);
-    return (fdatum){};
+    return (datum){};
   }
   int nargs = list_length(list_at(sig, 0));
   void *cargs[32];
   err = pointer_ffi_serialize_args(args, cargs, nargs);
   if (err != NULL) {
     abortf(ctxt, err);
-    return (fdatum){};
+    return (datum){};
   }
   void *res = allocate_space_for_return_value(sig);
   if (res == NULL) {
     abortf(ctxt, "unknown return type for extern func");
-    return (fdatum){};
+    return (datum){};
   }
   ffi_call(&cif, fn_ptr, res, cargs);
-  return fdatum_make_ok(datum_make_list_of(datum_make_int((int64_t)res)));
+  return (datum_make_list_of(datum_make_int((int64_t)res)));
 }
 
 LOCAL void (*datum_to_function_pointer(datum *d))(void) {
