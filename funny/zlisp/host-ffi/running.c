@@ -29,15 +29,15 @@ EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
     }
     datum *sec = &res.value;
     datum *yield_type = &res.type;
-    fdatum handler_res = host_ffi(yield_type, sec);
-    if (fdatum_is_panic(handler_res) &&
-        strcmp(handler_res.panic_message, "<not implemented>")) {
-      res = (result){datum_make_symbol("panic"),
-                     datum_make_bytestring(handler_res.panic_message)};
-      break;
-    }
-    if (!fdatum_is_panic(handler_res)) {
-      args = handler_res.ok_value;
+    if (datum_is_list(yield_type) && list_length(yield_type) == 2 &&
+        datum_is_the_symbol(list_at(yield_type, 0), "host")) {
+      datum handler_res = host_ffi(yield_type, sec, &ctxt);
+      if (ctxt.aborted) {
+        res = (result){datum_make_symbol("panic"),
+                       datum_make_bytestring(ctxt.error)};
+        break;
+      }
+      args = handler_res;
       continue;
     }
     if (datum_is_list(yield_type) && list_length(yield_type) == 3 &&
@@ -63,28 +63,33 @@ EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
   return res;
 }
 
-LOCAL fdatum host_ffi(datum *type, datum *args) {
-  if (!datum_is_list(type) || list_length(type) != 2 ||
-      !datum_is_the_symbol(list_at(type, 0), "host")) {
-    return fdatum_make_panic("<not implemented>");
-  }
+LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
+  assert(datum_is_list(type) || list_length(type) == 2 ||
+      datum_is_the_symbol(list_at(type, 0), "host"));
   datum *name = list_at(type, 1);
   if (!datum_is_bytestring(name)) {
-    return fdatum_make_panic("host instruction should be a string");
+    abortf(ctxt, "host instruction should be a string");
+    return (datum){};
   }
   datum res;
   if (!strcmp(name->bytestring_value, "call-extension")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
-      return fdatum_make_panic("call-extension expected at least a single arg");
+      abortf(ctxt, "call-extension expected at least a single arg");
+      return (datum){};
     }
     datum *fn = list_at(args, 0);
     datum callargs = list_get_tail(args);
     if (!datum_is_integer(fn)) {
-      return fdatum_make_panic("call-extension expected a pointer to function");
+      abortf(ctxt, "call-extension expected a pointer to function");
+      return (datum){};
     }
     fdatum (*fnptr)(datum *) = (fdatum(*)(datum *))fn->integer_value;
     fdatum results = fnptr(&callargs);
-    return results;
+    if (fdatum_is_panic(results)) {
+      abortf(ctxt, "call-extension function failed");
+      return (datum){};
+    }
+    return results.ok_value;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
     res = datum_make_int((int64_t)datum_deref);
   } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
@@ -108,9 +113,10 @@ LOCAL fdatum host_ffi(datum *type, datum *args) {
   } else if (!strcmp(name->bytestring_value, "RTLD_LAZY")) {
     res = datum_make_int(RTLD_LAZY);
   } else {
-    return fdatum_make_panic("unknown host instruction");
+    abortf(ctxt, "unknown host instruction");
+    return (datum){};
   }
-  return fdatum_make_ok(datum_make_list_of(res));
+  return (datum_make_list_of(res));
 }
 
 ffi_type ffi_type_fdatum;
