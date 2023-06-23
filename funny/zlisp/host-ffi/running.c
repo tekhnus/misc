@@ -83,10 +83,13 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
       abortf(ctxt, "call-extension expected a pointer to function");
       return (datum){};
     }
-    fdatum (*fnptr)(datum *) = (fdatum(*)(datum *))fn->integer_value;
-    fdatum results = fnptr(&callargs);
+    fdatum (*fnptr)(datum *, context *) = (fdatum(*)(datum *, context *))fn->integer_value;
+    fdatum results = fnptr(&callargs, ctxt);
     if (fdatum_is_panic(results)) {
       abortf(ctxt, "call-extension function failed");
+      return (datum){};
+    }
+    if (ctxt->aborted) {
       return (datum){};
     }
     return results.ok_value;

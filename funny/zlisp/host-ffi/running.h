@@ -18,10 +18,10 @@ extern ffi_type ffi_type_vec;
 extern ffi_type *ffi_type_fdatum_elements[4];
 extern ffi_type ffi_type_fdatum;
 #include <stdint.h>
-fdatum builtin_eq(datum *args);
-fdatum builtin_cons(datum *args);
-fdatum builtin_tail(datum *args);
-fdatum builtin_head(datum *args);
+fdatum builtin_eq(datum *args,context *ctxt);
+fdatum builtin_cons(datum *args,context *ctxt);
+fdatum builtin_tail(datum *args,context *ctxt);
+fdatum builtin_head(datum *args,context *ctxt);
 LOCAL fdatum pointer_call(datum *argz);
 LOCAL fdatum datum_mkptr(datum *args);
 LOCAL fdatum datum_deref(datum *args);
