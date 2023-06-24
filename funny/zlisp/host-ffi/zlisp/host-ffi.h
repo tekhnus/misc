@@ -17,7 +17,7 @@ datum fdatum_repr_datum_pointer(datum *args,context *ctxt);
 datum fdatum_get_panic_message(datum *args,context *ctxt);
 #include <dlfcn.h>
 #include <ffi.h>
-fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
+datum *routine_run_in_ffi_host(vec sl,datum *r0d);
 result host_ffi_run(vec sl,datum *r0d,datum args);
 extern ffi_type ffi_type_fdatum;
 extern ffi_type *ffi_type_fdatum_elements[4];

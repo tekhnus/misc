@@ -8,13 +8,17 @@
 #include <zlisp/common.h>
 #endif
 
-EXPORT fdatum routine_run_in_ffi_host(vec sl, datum *r0d) {
+EXPORT datum *routine_run_in_ffi_host(vec sl, datum *r0d) {
   // This one is for lisp.
   result r = host_ffi_run(sl, r0d, datum_make_nil());
+  datum *res = malloc(sizeof(datum));
   if (datum_is_the_symbol(&r.type, "halt")) {
-    return fdatum_make_ok(r.value);
+    *res = (r.value);
+  } else {
+    fprintf(stderr, "panic while running");
+    exit(EXIT_FAILURE);
   }
-  return fdatum_make_panic(datum_repr(&r.value));
+  return res;
 }
 
 EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {

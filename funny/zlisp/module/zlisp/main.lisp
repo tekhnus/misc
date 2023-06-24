@@ -68,7 +68,7 @@ compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 
 routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'progslice
    'pointer}
-  'fdatum})
+  'pointer})
 
 fdatum-is-panic := (/prelude/c-function selflib "fdatum_is_panic" {{'fdatum}
   'int})
@@ -90,15 +90,7 @@ repr-pointer := fn {x}
 
 eval-new := fn {sl rt0}
 {res := (/prelude/routine-run-and-get-value-c-host-new sl rt0)
- msg := 42
- val := 42
- if (/std/eq (/prelude/fdatum-is-panic res) 1)
- {msg = (../fdatum-get-panic-message res)
-  return {:err
-   msg}}
- {val = (../fdatum-get-value res)
-  return {:ok
-   val}}}
+ return {:ok res}}
 
 read-one-ptr := (/prelude/dlsym selflib "datum_read_one")
 

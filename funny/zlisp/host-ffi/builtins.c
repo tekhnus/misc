@@ -131,14 +131,14 @@ datum fdatum_get_value(datum *args, context *ctxt) { // used in lisp
 }
 
 datum fdatum_repr_datum_pointer(datum *args, context *ctxt) { // used in lisp
+  assert(datum_is_list(args) && list_length(args) == 1);
   datum *arg = list_at(args, 0);
   if (!datum_is_integer(arg)) {
     abortf(ctxt, "fdatum_get_value expected a pointer");
     return (datum){};
   }
-  datum *val = (datum *)arg->integer_value;
-  assert(datum_is_list(val) && list_length(val) == 1);
-  char *res = datum_repr(list_at(val, 0));
+  datum *val = *(datum **)arg->integer_value;
+  char *res = datum_repr(val);
   return (datum_make_list_of(datum_make_bytestring(res)));
 }
 

@@ -27,6 +27,6 @@ LOCAL datum datum_mkptr(datum *args,context *ctxt);
 LOCAL datum datum_deref(datum *args,context *ctxt);
 LOCAL datum host_ffi(datum *type,datum *args,context *ctxt);
 result host_ffi_run(vec sl,datum *r0d,datum args);
-fdatum routine_run_in_ffi_host(vec sl,datum *r0d);
+datum *routine_run_in_ffi_host(vec sl,datum *r0d);
 #define EXPORT
 #define INTERFACE 0
