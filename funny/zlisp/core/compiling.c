@@ -241,7 +241,12 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     return;
   }
   if (datum_is_the_symbol(head, "flat")) {
-    datum *vals = list_at(list_at(source, (*i)++), 0);
+    datum *arg = list_at(source, (*i)++);
+    if (!datum_is_list(arg) || list_length(arg) != 1) {
+      abortf(ctxt, "bad: %s\n", datum_repr(arg));
+      return;
+    }
+    datum *vals = list_at(arg, 0);
     if (!datum_is_list(vals)) {
       abortf(ctxt, "bad: %s\n", datum_repr(vals));
       return;
