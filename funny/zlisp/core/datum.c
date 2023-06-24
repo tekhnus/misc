@@ -73,17 +73,21 @@ EXPORT datum datum_make_int(int64_t value) {
 }
 
 EXPORT char *datum_repr(datum *e) {
-  char *buf = malloc(1024 * 256 * sizeof(char));
-  FILE *mem = fmemopen(buf, 1024 * 256 * sizeof(char), "w");
+  char *buf;
+  size_t sz;
+  FILE *mem = open_memstream(&buf, &sz);
   datum_repr_impl(mem, e, 128, 0, false, FLAT, " ");
+  fclose(mem);
   return buf;
 }
 
 EXPORT char *datum_repr_pretty(datum *e, extension *ext) {
-  char *buf = malloc(1024 * 256 * sizeof(char));
-  FILE *mem = fmemopen(buf, 1024 * 256 * sizeof(char), "w");
+  char *buf;
+  size_t sz;
+  FILE *mem = open_memstream(&buf, &sz);
   ext = ext ? ext : ext;
   datum_repr_impl(mem, e, 128, 0, true, NON_FLAT, "\n\n");
+  fclose(mem);
   return buf;
 }
 
