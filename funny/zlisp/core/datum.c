@@ -99,7 +99,7 @@ LOCAL char *escape_string(char *s) {
 
 LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
                             int flat, char *spacing) {
-  char *buf = malloc(1024 * sizeof(char));
+  char *buf = malloc(1024 * 256 * sizeof(char));
   char *end = buf;
   if (depth == 0) {
     sprintf(buf, "<truncated>");
