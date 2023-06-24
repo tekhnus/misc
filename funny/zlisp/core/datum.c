@@ -101,13 +101,15 @@ LOCAL char *escape_string(char *s) {
   return quoted;
 }
 
+#define BUF_PLUS_OFFSET (buf + offset)
+
 LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bool pretty,
                             int flat, char *spacing) {
-  char *end = buf;
+  size_t offset = 0;
   if (depth == 0) {
-    end += sprintf(end, "<truncated>");
+    offset += sprintf(BUF_PLUS_OFFSET, "<truncated>");
   } else if (datum_is_integer(e)) {
-    end += sprintf(end, "%" PRId64, e->integer_value);
+    offset += sprintf(BUF_PLUS_OFFSET, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
@@ -124,7 +126,7 @@ LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bo
       sep = "/";
     }
     if (strlen(pair) > 0) {
-      end += sprintf(end, "%c", pair[0]);
+      offset += sprintf(BUF_PLUS_OFFSET, "%c", pair[0]);
     }
     int inhibit_newline = -100;
     int inhibit_double_newline = -100;
@@ -132,42 +134,42 @@ LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bo
     for (int i = first; i < list_length(e); ++i) {
       if (i > first) {
         if (sep[0] != '\n') {
-          end += sprintf(end, "%s", sep);
+          offset += sprintf(BUF_PLUS_OFFSET, "%s", sep);
         } else if (inhibit_newline >= 0 || flat == FLAT) {
-          end += sprintf(end, " ");
+          offset += sprintf(BUF_PLUS_OFFSET, " ");
         } else if (inhibit_double_newline >= 0) {
-          end += sprintf(end, "\n");
+          offset += sprintf(BUF_PLUS_OFFSET, "\n");
           for (size_t i = 0; i < start; ++i) {
-            end += sprintf(end, " ");
+            offset += sprintf(BUF_PLUS_OFFSET, " ");
           }
         } else {
-          end += sprintf(end, "%s", sep);
+          offset += sprintf(BUF_PLUS_OFFSET, "%s", sep);
           for (size_t i = 0; i < start; ++i) {
-            end += sprintf(end, " ");
+            offset += sprintf(BUF_PLUS_OFFSET, " ");
           }
         }
       }
       datum *item = list_at(e, i);
       if (datum_is_the_symbol(item, "backquote")) {
-        end += sprintf(end, "`");
+        offset += sprintf(BUF_PLUS_OFFSET, "`");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "tilde")) {
-        end += sprintf(end, "~");
+        offset += sprintf(BUF_PLUS_OFFSET, "~");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "flat")) {
-        end += sprintf(end, "^");
+        offset += sprintf(BUF_PLUS_OFFSET, "^");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "at")) {
-        end += sprintf(end, "@");
+        offset += sprintf(BUF_PLUS_OFFSET, "@");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "quote") && i + 1 < list_length(e) &&
           datum_is_list(list_at(e, i + 1)) &&
           list_length(list_at(e, i + 1)) == 1) {
-        end += sprintf(end, "'");
+        offset += sprintf(BUF_PLUS_OFFSET, "'");
         ++i;
         assert(i < list_length(e));
         if (!datum_is_list(list_at(e, i))) {
@@ -224,24 +226,24 @@ LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bo
       if (inhibit_child_newlines >= 0) {
         child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
       }
-      end += datum_repr_impl(end, item, depth - 1, start + 1, pretty,
+      offset += datum_repr_impl(BUF_PLUS_OFFSET, item, depth - 1, start + 1, pretty,
                                      child_flatness, child_sep);
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;
     }
     if (strlen(pair) > 0) {
-      end += sprintf(end, "%c", pair[1]);
+      offset += sprintf(BUF_PLUS_OFFSET, "%c", pair[1]);
     }
   } else if (pretty && datum_is_the_symbol(e, "empty-symbol")) {
   } else if (datum_is_symbol(e)) {
-    end += sprintf(end, "%s", e->symbol_value);
+    offset += sprintf(BUF_PLUS_OFFSET, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
-    end += sprintf(end, "\"%s\"", escape_string(e->bytestring_value));
+    offset += sprintf(BUF_PLUS_OFFSET, "\"%s\"", escape_string(e->bytestring_value));
   } else {
-    end += sprintf(end, "<fmt not implemented>");
+    offset += sprintf(BUF_PLUS_OFFSET, "<fmt not implemented>");
   }
-  return end - buf;
+  return offset;
 }
 
 EXPORT bool fdatum_is_panic(fdatum result) {
