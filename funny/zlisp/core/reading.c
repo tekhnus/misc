@@ -24,19 +24,27 @@ EXPORT read_result datum_read_all(FILE *stre) {
   return read_result_make_ok(datum_make_list(res));
 }
 
-EXPORT fdatum datum_read_one(FILE *stre) { // used in lisp
+EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
+  assert(datum_is_list(args));
+  assert(list_length(args) == 1);
+  assert(datum_is_integer(list_at(args, 0)));
+  FILE *stre = *(FILE **)list_at(args, 0)->integer_value;
   read_result rr = datum_read(stre);
   if (read_result_is_panic(rr)) {
-    return fdatum_make_panic(rr.panic_message);
+    abortf(ctxt, rr.panic_message);
+    return (datum){};
   }
   if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
       read_result_is_right_curly(rr)) {
-    return fdatum_make_panic("unmatched right paren");
+    abortf(ctxt, "unmatched right paren");
+    return (datum){};
   }
   if (read_result_is_eof(rr)) {
-    return fdatum_make_panic("eof");
+    return datum_make_list_of(datum_make_list_of(datum_make_symbol(":eof")));
   }
-  return fdatum_make_ok(rr.ok_value);
+  datum *d = malloc(sizeof(datum));
+  *d = rr.ok_value;
+  return datum_make_list_of(datum_make_list_of(datum_make_symbol(":ok"), datum_make_int((size_t)d)));
 }
 
 EXPORT bool read_result_is_ok(read_result x) {

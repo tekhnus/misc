@@ -46,12 +46,18 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
  msga := 42
  msgb := 42
  msgc := 42
- switch (/zlisp/rd stdin)
+ read-res := (/zlisp/rd stdin)
+ ignored = (/libc/print "\nhi\n")
+ ignored = (/libc/print read-res)
+ ignored = (/libc/print "\nhello\n")
+ switch read-res
  {{{:eof}
    return (/prelude/fprintf stdout "")}
   {{:ok
     datum}
+   ignored = (/libc/print "\ncompiling...\n")
    maybe-prog = (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
+   ignored = (/libc/print "\ncompiled...\n")
    switch maybe-prog
    {{{:ok
       progxxx}

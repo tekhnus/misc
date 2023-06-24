@@ -126,6 +126,9 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
       }
       datum *yield_type = &err.type;
       if (!datum_eq(recieve_type, yield_type)) {
+        if (datum_is_the_symbol(yield_type, "panic")) {
+          print_frame(&sl, r);
+        }
         return err;
       }
       datum *argz = &err.value;
@@ -173,6 +176,9 @@ LOCAL result routine_run_impl(vec sl, routine *r, datum args, context *ctxt) {
         datum first_index = datum_copy(prg.yield_val_index);
         datum res =
             state_stack_invalidate_many(r, prg.yield_count, first_index);
+        if (datum_is_the_symbol(prg.yield_type, "panic")) {
+          print_frame(&sl, r);
+        }
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
@@ -340,7 +346,7 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
 
 LOCAL void print_frame(vec *sl, routine *r) {
   ptrdiff_t offset = *routine_offset(r);
-  for (ptrdiff_t i = offset - 15; i <= offset + 3; ++i) {
+  for (ptrdiff_t i = offset - 15; i <= offset + 15; ++i) {
     if (i < 0) {
       continue;
     }

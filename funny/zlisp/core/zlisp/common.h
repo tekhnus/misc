@@ -122,7 +122,7 @@ struct read_result {
   };
 };
 read_result datum_read_all(FILE *stre);
-fdatum datum_read_one(FILE *stre);
+datum datum_read_one(datum *args,context *ctxt);
 bool read_result_is_ok(read_result x);
 bool read_result_is_panic(read_result x);
 context *context_alloc_make();

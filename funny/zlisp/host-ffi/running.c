@@ -24,7 +24,7 @@ EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
   for (;;) {
     res = routine_run(sl, r0d, args, &ctxt);
     if (ctxt.aborted) {
-      res = (result){datum_make_symbol("interpreter-panic"), datum_make_symbol("some panic")};
+      res = (result){datum_make_symbol("interpreter-panic"), datum_make_bytestring(ctxt.error)};
       break;
     }
     datum *sec = &res.value;

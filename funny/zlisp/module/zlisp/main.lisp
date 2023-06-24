@@ -100,22 +100,15 @@ eval-new := fn {sl rt0}
   return {:ok
    val}}}
 
-datum-read-one := (/prelude/c-function selflib "datum_read_one" {{'pointer}
-  'fdatum})
+read-one-ptr := (/prelude/dlsym selflib "datum_read_one")
+
+datum-read-one := fn {x}
+{return (/prelude/call-the-extension
+ (/prelude/dereference read-one-ptr 'int64) x)}
 
 read := fn {strm}
-{res := (/prelude/datum-read-one strm)
- msg := 42
- maybeval := 42
- if (/std/eq (/prelude/fdatum-is-panic res) 1)
- {msg = (../fdatum-get-panic-message res)
-  if (/std/eq msg "eof")
-  {return {':eof}}
-  {return {:err
-    msg}}}
- {maybeval = (../fdatum-get-value res)
-  return {:ok
-   maybeval}}}
+{res := (../datum-read-one strm)
+ return res}
 
 export
 {{compile-prog-new compile-prog-new}
