@@ -5,9 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include <zlisp/common.h>
-datum fdatum_get_panic_message(datum *args,context *ctxt);
-datum fdatum_repr_datum_pointer(datum *args,context *ctxt);
-datum fdatum_get_value(datum *args,context *ctxt);
+datum repr_datum_pointer(datum *args,context *ctxt);
 datum builtin_tail(datum *args,context *ctxt);
 datum builtin_head(datum *args,context *ctxt);
 datum builtin_cons(datum *args,context *ctxt);

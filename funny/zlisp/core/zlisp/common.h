@@ -64,20 +64,6 @@ struct extension {
                context *ctxt);
 };
 char *datum_repr_pretty(datum *e,extension *ext);
-typedef struct fdatum fdatum;
-struct fdatum {
-  int type;
-  struct datum ok_value;
-  char *panic_message;
-};
-typedef struct result result;
-struct result {
-  datum type;
-  datum value;
-};
-bool fdatum_is_panic(fdatum result);
-fdatum fdatum_make_ok(datum v);
-fdatum fdatum_make_panic(char *message);
 bool datum_eq(datum *x,datum *y);
 bool datum_is_constant(datum *d);
 bool datum_is_the_symbol(datum *d,char *val);
@@ -137,6 +123,11 @@ datum *compdata_alloc_make();
 datum compdata_get_polyindex(datum *compdata,datum *var);
 vec vec_create_slice();
 size_t prog_get_next_index(vec *sl);
+typedef struct result result;
+struct result {
+  datum type;
+  datum value;
+};
 result routine_run(vec sl,datum *r,datum args,context *ctxt);
 typedef struct routine routine;
 datum routine_make(ptrdiff_t prg,routine *context);

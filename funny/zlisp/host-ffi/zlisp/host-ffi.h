@@ -12,15 +12,11 @@ datum builtin_add(datum *args,context *ctxt);
 datum builtin_cons(datum *args,context *ctxt);
 datum builtin_head(datum *args,context *ctxt);
 datum builtin_tail(datum *args,context *ctxt);
-datum fdatum_get_value(datum *args,context *ctxt);
-datum fdatum_repr_datum_pointer(datum *args,context *ctxt);
-datum fdatum_get_panic_message(datum *args,context *ctxt);
+datum repr_datum_pointer(datum *args,context *ctxt);
 #include <dlfcn.h>
 #include <ffi.h>
 datum *routine_run_in_ffi_host(vec sl,datum *r0d);
 result host_ffi_run(vec sl,datum *r0d,datum args);
-extern ffi_type ffi_type_fdatum;
-extern ffi_type *ffi_type_fdatum_elements[4];
 extern ffi_type ffi_type_vec;
 extern ffi_type *ffi_type_vec_elements[4];
 #define INTERFACE 0

@@ -122,31 +122,17 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   return (datum_make_list_of(res));
 }
 
-ffi_type ffi_type_fdatum;
-ffi_type *ffi_type_fdatum_elements[4];
 ffi_type ffi_type_vec;
 ffi_type *ffi_type_vec_elements[4];
 
 LOCAL void init_standard_types() {
   // TODO: UPDATE THE FFI DEFINITIONS, THEY ARE OUTDATED.
-
-  ffi_type *type = &ffi_type_fdatum;
+  ffi_type *type = &ffi_type_vec;
   (type)->type = FFI_TYPE_STRUCT;
   (type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
                     // Mac before adding this line.
   (type)->alignment = 0;
-  ffi_type **elements = ffi_type_fdatum_elements;
-  elements[0] = &ffi_type_sint;
-  elements[1] = &ffi_type_pointer; // not a pointer!
-  elements[2] = &ffi_type_pointer;
-  elements[3] = NULL;
-  (type)->elements = elements;
-
-  type = &ffi_type_vec;
-  (type)->type = FFI_TYPE_STRUCT;
-  (type)->size = 0;
-  (type)->alignment = 0;
-  elements = ffi_type_vec_elements;
+  ffi_type **elements = ffi_type_vec_elements;
   elements[0] = &ffi_type_pointer;
   elements[1] = &ffi_type_uint64; // it's actually size_t, danger!
   elements[2] = &ffi_type_uint64; // it's size_t too!
@@ -172,12 +158,6 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   }
   if (!strcmp(definition->symbol_value, "int")) {
     *type = &ffi_type_sint;
-    return true;
-  }
-  if (!strcmp(definition->symbol_value, "val") ||
-      !strcmp(definition->symbol_value, "fdatum")) {
-    init_standard_types();
-    *type = &ffi_type_fdatum;
     return true;
   }
   if (!strcmp(definition->symbol_value, "progslice")) {
@@ -309,12 +289,8 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
     res = malloc(sizeof(int));
   } else if (!strcmp(rettype, "string")) {
     res = malloc(sizeof(char *));
-  } else if (!strcmp(rettype, "fdatum")) {
-    res = malloc(sizeof(fdatum));
   } else if (!strcmp(rettype, "progslice")) {
     res = malloc(sizeof(vec));
-  } else if (!strcmp(rettype, "val")) {
-    res = malloc(sizeof(fdatum));
   } else {
     res = NULL;
   }

@@ -184,15 +184,6 @@ vec vec_make(size_t capacity);
 array array_make_uninitialized(size_t length);
 bool datum_is_constant(datum *d);
 bool datum_eq(datum *x,datum *y);
-typedef struct fdatum fdatum;
-struct fdatum {
-  int type;
-  struct datum ok_value;
-  char *panic_message;
-};
-fdatum fdatum_make_panic(char *message);
-fdatum fdatum_make_ok(datum v);
-bool fdatum_is_panic(fdatum result);
 bool datum_is_nil(datum *e);
 datum *list_at(datum *list,unsigned index);
 bool datum_is_the_symbol(datum *d,char *val);

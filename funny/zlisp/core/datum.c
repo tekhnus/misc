@@ -30,11 +30,6 @@ const int NON_FLAT = 0;
 const int FLAT_CHILDREN = 1;
 const int FLAT = 2;
 
-enum fdatumype {
-  FDATUM_OK,
-  FDATUM_PANIC,
-};
-
 EXPORT bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
 
 EXPORT bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
@@ -248,20 +243,6 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start, bo
     offset += fprintf(buf, "<fmt not implemented>");
   }
   return offset;
-}
-
-EXPORT bool fdatum_is_panic(fdatum result) {
-  return result.type == FDATUM_PANIC;
-}
-
-EXPORT fdatum fdatum_make_ok(datum v) {
-  fdatum result = {.type = FDATUM_OK, .ok_value = v};
-  return result;
-}
-
-EXPORT fdatum fdatum_make_panic(char *message) {
-  fdatum result = {.type = FDATUM_PANIC, .panic_message = strdup(message)};
-  return result;
 }
 
 EXPORT bool datum_eq(datum *x, datum *y) {
