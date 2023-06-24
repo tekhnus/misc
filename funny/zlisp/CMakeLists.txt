@@ -7,7 +7,8 @@ find_package(Python COMPONENTS Interpreter)
 
 # Without this gdb doesn't skip function prologues
 # https://stackoverflow.com/questions/64697087/gdb-shows-incorrect-arguments-of-functions-for-stack-frames
-add_compile_options(-fcf-protection=none)
+add_compile_options(-fcf-protection=none -fsanitize=address)
+add_link_options(-fsanitize=address)
 
 add_subdirectory(core)
 add_subdirectory(host-ffi)

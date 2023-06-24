@@ -4,7 +4,7 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD 11
 				 C_STANDARD_REQUIRED YES
 				 C_EXTENSIONS YES)
-target_compile_options(zlisp-impl PRIVATE -Wall -Wextra -Wno-unused-function -Werror)
+target_compile_options(zlisp-impl PRIVATE -Wall -Wextra -Wno-unused-function)
 add_custom_target(codegen-zlisp-impl
                   COMMAND bash -c "cat datum.c reading.c compiling.c running.c extending.c >extern.c"
                   COMMAND makeheaders -v extern.c types.h
