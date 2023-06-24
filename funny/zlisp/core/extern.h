@@ -200,7 +200,7 @@ int list_length(datum *seq);
 bool datum_is_list(datum *e);
 LOCAL char *escape_string(char *s);
 char *datum_repr_pretty(datum *e,extension *ext);
-LOCAL char *datum_repr_impl(datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
+LOCAL size_t datum_repr_impl(char *buf,datum *e,size_t depth,size_t start,bool pretty,int flat,char *spacing);
 char *datum_repr(datum *e);
 datum datum_make_int(int64_t value);
 datum datum_make_bytestring(char *text);

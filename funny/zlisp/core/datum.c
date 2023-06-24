@@ -73,12 +73,16 @@ EXPORT datum datum_make_int(int64_t value) {
 }
 
 EXPORT char *datum_repr(datum *e) {
-  return datum_repr_impl(e, 128, 0, false, FLAT, " ");
+  char *buf = malloc(1024 * 256 * sizeof(char));
+  datum_repr_impl(buf, e, 128, 0, false, FLAT, " ");
+  return buf;
 }
 
 EXPORT char *datum_repr_pretty(datum *e, extension *ext) {
+  char *buf = malloc(1024 * 256 * sizeof(char));
   ext = ext ? ext : ext;
-  return datum_repr_impl(e, 128, 0, true, NON_FLAT, "\n\n");
+  datum_repr_impl(buf, e, 128, 0, true, NON_FLAT, "\n\n");
+  return buf;
 }
 
 LOCAL char *escape_string(char *s) {
@@ -97,14 +101,13 @@ LOCAL char *escape_string(char *s) {
   return quoted;
 }
 
-LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
+LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bool pretty,
                             int flat, char *spacing) {
-  char *buf = malloc(1024 * 256 * sizeof(char));
   char *end = buf;
   if (depth == 0) {
-    sprintf(buf, "<truncated>");
+    end += sprintf(end, "<truncated>");
   } else if (datum_is_integer(e)) {
-    sprintf(buf, "%" PRId64, e->integer_value);
+    end += sprintf(end, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
@@ -221,9 +224,8 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
       if (inhibit_child_newlines >= 0) {
         child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
       }
-      end += sprintf(end, "%s",
-                     datum_repr_impl(item, depth - 1, start + 1, pretty,
-                                     child_flatness, child_sep));
+      end += datum_repr_impl(end, item, depth - 1, start + 1, pretty,
+                                     child_flatness, child_sep);
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;
@@ -237,9 +239,9 @@ LOCAL char *datum_repr_impl(datum *e, size_t depth, size_t start, bool pretty,
   } else if (datum_is_bytestring(e)) {
     end += sprintf(end, "\"%s\"", escape_string(e->bytestring_value));
   } else {
-    sprintf(buf, "<fmt not implemented>");
+    end += sprintf(end, "<fmt not implemented>");
   }
-  return buf;
+  return end - buf;
 }
 
 EXPORT bool fdatum_is_panic(fdatum result) {
