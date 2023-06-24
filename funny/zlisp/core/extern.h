@@ -85,7 +85,7 @@ LOCAL void print_frame(vec *sl,routine *r);
 LOCAL ptrdiff_t *routine_offset(routine *r);
 typedef struct prog prog;
 LOCAL prog datum_to_prog(datum *d,context *ctxt);
-LOCAL result routine_run_impl(vec sl,routine *r,datum args,context *ctxt);
+LOCAL result routine_run_impl(vec *sl,routine *r,datum args,context *ctxt);
 LOCAL routine get_routine_from_datum(datum *e);
 result routine_run(vec sl,datum *r,datum args,context *ctxt);
 vec vec_create_slice();
