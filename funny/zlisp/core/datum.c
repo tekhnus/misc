@@ -74,14 +74,16 @@ EXPORT datum datum_make_int(int64_t value) {
 
 EXPORT char *datum_repr(datum *e) {
   char *buf = malloc(1024 * 256 * sizeof(char));
-  datum_repr_impl(buf, e, 128, 0, false, FLAT, " ");
+  FILE *mem = fmemopen(buf, 1024 * 256 * sizeof(char), "w");
+  datum_repr_impl(mem, e, 128, 0, false, FLAT, " ");
   return buf;
 }
 
 EXPORT char *datum_repr_pretty(datum *e, extension *ext) {
   char *buf = malloc(1024 * 256 * sizeof(char));
+  FILE *mem = fmemopen(buf, 1024 * 256 * sizeof(char), "w");
   ext = ext ? ext : ext;
-  datum_repr_impl(buf, e, 128, 0, true, NON_FLAT, "\n\n");
+  datum_repr_impl(mem, e, 128, 0, true, NON_FLAT, "\n\n");
   return buf;
 }
 
@@ -101,15 +103,13 @@ LOCAL char *escape_string(char *s) {
   return quoted;
 }
 
-#define BUF_PLUS_OFFSET (buf + offset)
-
-LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bool pretty,
+LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start, bool pretty,
                             int flat, char *spacing) {
   size_t offset = 0;
   if (depth == 0) {
-    offset += sprintf(BUF_PLUS_OFFSET, "<truncated>");
+    offset += fprintf(buf, "<truncated>");
   } else if (datum_is_integer(e)) {
-    offset += sprintf(BUF_PLUS_OFFSET, "%" PRId64, e->integer_value);
+    offset += fprintf(buf, "%" PRId64, e->integer_value);
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
@@ -126,7 +126,7 @@ LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bo
       sep = "/";
     }
     if (strlen(pair) > 0) {
-      offset += sprintf(BUF_PLUS_OFFSET, "%c", pair[0]);
+      offset += fprintf(buf, "%c", pair[0]);
     }
     int inhibit_newline = -100;
     int inhibit_double_newline = -100;
@@ -134,42 +134,42 @@ LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bo
     for (int i = first; i < list_length(e); ++i) {
       if (i > first) {
         if (sep[0] != '\n') {
-          offset += sprintf(BUF_PLUS_OFFSET, "%s", sep);
+          offset += fprintf(buf, "%s", sep);
         } else if (inhibit_newline >= 0 || flat == FLAT) {
-          offset += sprintf(BUF_PLUS_OFFSET, " ");
+          offset += fprintf(buf, " ");
         } else if (inhibit_double_newline >= 0) {
-          offset += sprintf(BUF_PLUS_OFFSET, "\n");
+          offset += fprintf(buf, "\n");
           for (size_t i = 0; i < start; ++i) {
-            offset += sprintf(BUF_PLUS_OFFSET, " ");
+            offset += fprintf(buf, " ");
           }
         } else {
-          offset += sprintf(BUF_PLUS_OFFSET, "%s", sep);
+          offset += fprintf(buf, "%s", sep);
           for (size_t i = 0; i < start; ++i) {
-            offset += sprintf(BUF_PLUS_OFFSET, " ");
+            offset += fprintf(buf, " ");
           }
         }
       }
       datum *item = list_at(e, i);
       if (datum_is_the_symbol(item, "backquote")) {
-        offset += sprintf(BUF_PLUS_OFFSET, "`");
+        offset += fprintf(buf, "`");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "tilde")) {
-        offset += sprintf(BUF_PLUS_OFFSET, "~");
+        offset += fprintf(buf, "~");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "flat")) {
-        offset += sprintf(BUF_PLUS_OFFSET, "^");
+        offset += fprintf(buf, "^");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "at")) {
-        offset += sprintf(BUF_PLUS_OFFSET, "@");
+        offset += fprintf(buf, "@");
         item = list_at(list_at(e, ++i), 0);
       }
       if (datum_is_the_symbol(item, "quote") && i + 1 < list_length(e) &&
           datum_is_list(list_at(e, i + 1)) &&
           list_length(list_at(e, i + 1)) == 1) {
-        offset += sprintf(BUF_PLUS_OFFSET, "'");
+        offset += fprintf(buf, "'");
         ++i;
         assert(i < list_length(e));
         if (!datum_is_list(list_at(e, i))) {
@@ -226,22 +226,22 @@ LOCAL size_t datum_repr_impl(char *buf, datum *e, size_t depth, size_t start, bo
       if (inhibit_child_newlines >= 0) {
         child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
       }
-      offset += datum_repr_impl(BUF_PLUS_OFFSET, item, depth - 1, start + 1, pretty,
+      offset += datum_repr_impl(buf, item, depth - 1, start + 1, pretty,
                                      child_flatness, child_sep);
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;
     }
     if (strlen(pair) > 0) {
-      offset += sprintf(BUF_PLUS_OFFSET, "%c", pair[1]);
+      offset += fprintf(buf, "%c", pair[1]);
     }
   } else if (pretty && datum_is_the_symbol(e, "empty-symbol")) {
   } else if (datum_is_symbol(e)) {
-    offset += sprintf(BUF_PLUS_OFFSET, "%s", e->symbol_value);
+    offset += fprintf(buf, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
-    offset += sprintf(BUF_PLUS_OFFSET, "\"%s\"", escape_string(e->bytestring_value));
+    offset += fprintf(buf, "\"%s\"", escape_string(e->bytestring_value));
   } else {
-    offset += sprintf(BUF_PLUS_OFFSET, "<fmt not implemented>");
+    offset += fprintf(buf, "<fmt not implemented>");
   }
   return offset;
 }
