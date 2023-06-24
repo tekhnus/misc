@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
   strcat(filename_copy, argv[2]);
   datum src = file_source(filename_copy, &ctxt);
   if (ctxt.aborted) {
-    fprintf(stderr, "build_init error");
+    fprintf(stderr, "while obtaining source: %s", ctxt.error);
     return EXIT_FAILURE;
   }
   vec sl = vec_create_slice();
@@ -40,19 +40,19 @@ int main(int argc, char **argv) {
   datum builder_compdata = compdata_make();
   bp = prog_build_init(&sl, &compdata, &builder_compdata, &ctxt);
   if (ctxt.aborted) {
-    fprintf(stderr, "build_init error");
+    fprintf(stderr, "while build_init: %s", ctxt.error);
     return EXIT_FAILURE;
   }
   datum set = datum_make_bytestring(argv[1]);
   struct lisp_extension extension = standard_extension_make(&ctxt);
   if (ctxt.aborted) {
-    fprintf(stderr, "ext make error");
+    fprintf(stderr, "while initializing extension: %s", ctxt.error);
     return EXIT_FAILURE;
   }
   prog_build(&sl, &bp, &src, &compdata, &builder_compdata,
                          &set, &extension.base, &ctxt);
   if (ctxt.aborted) {
-    fprintf(stderr, "compilation error: %s\n", "error");
+    fprintf(stderr, "while building: %s", ctxt.error);
     return EXIT_FAILURE;
   }
   datum d = datum_make_list(sl);
