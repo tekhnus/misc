@@ -9,7 +9,7 @@ req
 
 hostsfile := (/prelude/fopen "/etc/hosts" "r")
 
-buffer := (/prelude/malloc 2048)
+buffer := (/prelude/malloc 1024000)
 
 xxx := (/prelude/fread buffer 1 1024 hostsfile)
 
