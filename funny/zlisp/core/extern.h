@@ -59,13 +59,13 @@ struct lisp_extension {
   vec program;
   datum routine_;
   datum compdata;
-  result (*runner)(vec *, datum *, datum); 
+  result (*runner)(vec *, datum *, datum, context *); 
 };
 LOCAL datum lisp_extension_run(datum *e,lisp_extension *est,context *ctxt);
 LOCAL void null_extension_call(extension *self,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
 extension null_extension_make();
 LOCAL void lisp_extension_call(extension *self_,vec *sl,datum *source,int *i,datum *compdata,context *ctxt);
-lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,result(*runner)(vec *,datum *,datum));
+lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,result(*runner)(vec *,datum *,datum,context *));
 LOCAL struct frame get_frame_from_datum(datum *d);
 typedef struct routine routine;
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);

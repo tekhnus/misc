@@ -10,7 +10,12 @@
 
 EXPORT datum *routine_run_in_ffi_host(vec *sl, datum *r0d) {
   // This one is for lisp.
-  result r = host_ffi_run(sl, r0d, datum_make_nil());
+  context ctxt = {};
+  result r = host_ffi_run(sl, r0d, datum_make_nil(), &ctxt);
+  if (ctxt.aborted) {
+    fprintf(stderr, "panic while running");
+    exit(EXIT_FAILURE);
+  }
   datum *res = malloc(sizeof(datum));
   if (datum_is_the_symbol(&r.type, "halt")) {
     *res = (r.value);
@@ -21,24 +26,23 @@ EXPORT datum *routine_run_in_ffi_host(vec *sl, datum *r0d) {
   return res;
 }
 
-EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args) {
-  context ctxt = {};
+EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
   result res;
   datum current_statement = datum_make_nil();
   for (;;) {
-    res = routine_run(sl, r0d, args, &ctxt);
-    if (ctxt.aborted) {
-      res = (result){datum_make_symbol("interpreter-panic"), datum_make_bytestring(ctxt.error)};
+    res = routine_run(sl, r0d, args, ctxt);
+    if (ctxt->aborted) {
+      res = (result){datum_make_symbol("interpreter-panic"), datum_make_bytestring(ctxt->error)};
       break;
     }
     datum *sec = &res.value;
     datum *yield_type = &res.type;
     if (datum_is_list(yield_type) && list_length(yield_type) == 2 &&
         datum_is_the_symbol(list_at(yield_type, 0), "host")) {
-      datum handler_res = host_ffi(yield_type, sec, &ctxt);
-      if (ctxt.aborted) {
+      datum handler_res = host_ffi(yield_type, sec, ctxt);
+      if (ctxt->aborted) {
         res = (result){datum_make_symbol("panic"),
-                       datum_make_bytestring(ctxt.error)};
+                       datum_make_bytestring(ctxt->error)};
         break;
       }
       args = handler_res;
