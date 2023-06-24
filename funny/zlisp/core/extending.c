@@ -48,14 +48,14 @@ LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
     return;
   }
   char nm[128] = {0};
-  sprintf(nm, ".%s", op->symbol_value);
+  snprintf(nm, 128, ".%s", op->symbol_value);
   datum name = datum_make_symbol(nm);
   datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (datum_is_nil(&pi)) {
     return;
   }
   char aritynm[128] = {0};
-  sprintf(aritynm, ".%s.arity", op->symbol_value);
+  snprintf(aritynm, 128, ".%s.arity", op->symbol_value);
   datum arity_statement = datum_make_symbol(aritynm);
   datum arityc = lisp_extension_run(&arity_statement, self, ctxt);
   if (ctxt->aborted) {

@@ -106,16 +106,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         }
       }
       if (!good) {
-        char bufbeg[2048];
-        char *buf = bufbeg;
-        buf[0] = '\0';
-        for (size_t j = 0; j < routine_get_count(&rt); ++j) {
-          buf += sprintf(buf, "frame %zu parent %d self %d vars %zu\n", j,
-                         (rt.frames[j].parent_type_id), (rt.frames[j].type_id),
-                         array_length(rt.frames[j].state));
-        }
-        buf += sprintf(buf, "wrong call, frame types are wrong\n");
-        abortf(ctxt, "%s", bufbeg);
+        abortf(ctxt, "wrong call, frame types are wrong\n");
         print_frame(sl, r);
         return (result){};
       }
