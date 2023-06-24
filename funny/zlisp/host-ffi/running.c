@@ -10,7 +10,7 @@
 
 EXPORT datum *routine_run_in_ffi_host(vec sl, datum *r0d) {
   // This one is for lisp.
-  result r = host_ffi_run(sl, r0d, datum_make_nil());
+  result r = host_ffi_run(&sl, r0d, datum_make_nil());
   datum *res = malloc(sizeof(datum));
   if (datum_is_the_symbol(&r.type, "halt")) {
     *res = (r.value);
@@ -21,7 +21,7 @@ EXPORT datum *routine_run_in_ffi_host(vec sl, datum *r0d) {
   return res;
 }
 
-EXPORT result host_ffi_run(vec sl, datum *r0d, datum args) {
+EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args) {
   context ctxt = {};
   result res;
   datum current_statement = datum_make_nil();

@@ -80,9 +80,9 @@ typedef struct prog prog;
 typedef struct routine routine;
 #endif
 
-EXPORT result routine_run(vec sl, datum *r, datum args, context *ctxt) {
+EXPORT result routine_run(vec *sl, datum *r, datum args, context *ctxt) {
   routine rt = get_routine_from_datum(r);
-  return routine_run_impl(&sl, &rt, args, ctxt);
+  return routine_run_impl(sl, &rt, args, ctxt);
 }
 
 LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {

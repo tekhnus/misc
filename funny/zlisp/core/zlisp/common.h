@@ -128,7 +128,7 @@ struct result {
   datum type;
   datum value;
 };
-result routine_run(vec sl,datum *r,datum args,context *ctxt);
+result routine_run(vec *sl,datum *r,datum args,context *ctxt);
 typedef struct routine routine;
 datum routine_make(ptrdiff_t prg,routine *context);
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
@@ -138,7 +138,7 @@ struct lisp_extension {
   vec program;
   datum routine_;
   datum compdata;
-  result (*runner)(vec, datum *, datum); 
+  result (*runner)(vec *, datum *, datum); 
 };
-lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,result(*runner)(vec,datum *,datum));
+lisp_extension lisp_extension_make(vec program,datum routine_,datum compdata,result(*runner)(vec *,datum *,datum));
 extension null_extension_make();

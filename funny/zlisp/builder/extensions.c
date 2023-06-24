@@ -46,7 +46,7 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   if (ctxt->aborted) {
     return;
   }
-  result init_res = host_ffi_run(*program, routine_, datum_make_nil());
+  result init_res = host_ffi_run(program, routine_, datum_make_nil());
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
     abortf(ctxt, "while initializing extensions: %s\n",
             datum_repr(&init_res.value));

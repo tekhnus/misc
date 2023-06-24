@@ -10,13 +10,13 @@ struct lisp_extension {
   vec program;
   datum routine_;
   datum compdata;
-  result (*runner)(vec, datum *, datum); 
+  result (*runner)(vec *, datum *, datum); 
 };
 #endif
 
 EXPORT lisp_extension lisp_extension_make(vec program, datum routine_,
                                           datum compdata,
-                                          result (*runner)(vec, datum *, datum)) {
+                                          result (*runner)(vec *, datum *, datum)) {
   lisp_extension e = {{.call = lisp_extension_call},
                       program,
                       routine_,
@@ -101,7 +101,7 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  result res = est->runner(est->program, &est->routine_,
+  result res = est->runner(&est->program, &est->routine_,
     datum_make_nil());
   if (!datum_is_the_symbol(&res.type, "halt")) {
     abortf(ctxt, "%s", datum_repr(&res.value));

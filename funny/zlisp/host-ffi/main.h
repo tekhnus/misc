@@ -6,4 +6,4 @@
 #include <string.h>
 #include <assert.h>
 #include <zlisp/common.h>
-result host_ffi_run(vec sl,datum *r0d,datum args);
+result host_ffi_run(vec *sl,datum *r0d,datum args);
