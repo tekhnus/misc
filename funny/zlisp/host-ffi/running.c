@@ -54,8 +54,8 @@ EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
       if (datum_is_the_symbol(cmd, "statement")) {
         current_statement = *list_at(yield_type, 2);
       } else {
-        fprintf(stderr, "unknown debugger cmd\n");
-        exit(EXIT_FAILURE);
+        abortf(ctxt, "unknown debugger cmd\n");
+        return (result){};
       }
       args = datum_make_nil();
       continue;
