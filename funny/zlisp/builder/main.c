@@ -60,14 +60,12 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-EXPORT extension *standard_extension_alloc_make() {
+EXPORT extension *standard_extension_alloc_make(context *ctxt) {
   // For Lisp.
-  context ctxt = {};
   lisp_extension *res = malloc(sizeof(lisp_extension));
-  *res = standard_extension_make(&ctxt);
-  if (ctxt.aborted) {
-    fprintf(stderr, "%s\n", "ext init fail");
-    exit(EXIT_FAILURE);
+  *res = standard_extension_make(ctxt);
+  if (ctxt->aborted) {
+    return NULL;
   }
   return &res->base;
 }

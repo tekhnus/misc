@@ -54,7 +54,7 @@ prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
 get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {{}
   'pointer})
 
-ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{}
+ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'pointer}
   'pointer})
 
 init-prog := fn {sl compdata bdrcompdata}
@@ -102,4 +102,6 @@ export
  {make-routine-with-empty-state make-routine-with-empty-state}
  {prog-slice-make prog-slice-make}
  {compdata-make compdata-make}
+ {context-make context-make}
+ {exit-if-aborted exit-if-aborted}
  {ext-make ext-make}}

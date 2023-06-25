@@ -24,6 +24,8 @@ req
  {mres "zlisp" make-routine-with-empty-state}
  {psm "zlisp" prog-slice-make}
  {cdm "zlisp" compdata-make}
+ {cm "zlisp" context-make}
+ {exit-if-aborted "zlisp" exit-if-aborted}
  {em "zlisp" ext-make}}
 
 args := 0
@@ -92,7 +94,11 @@ compdata := (/prelude/cdm)
 
 bdrcompdata := (/prelude/cdm)
 
-ex := (/prelude/em)
+ctxt := (/prelude/cm)
+
+ex := (/prelude/em ctxt)
+
+nothin := (/prelude/exit-if-aborted ctxt)
 
 bpval := (/zlisp/iprog sl compdata bdrcompdata)
 
