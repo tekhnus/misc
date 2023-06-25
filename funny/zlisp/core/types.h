@@ -23,7 +23,6 @@ struct datum {
 
 enum read_result_type {
   READ_RESULT_OK,
-  READ_RESULT_EOF,
 };
 
 struct read_result {

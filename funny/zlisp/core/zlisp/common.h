@@ -108,7 +108,6 @@ datum datum_read_one(datum *args,context *ctxt);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,
-  READ_RESULT_EOF,
 };
 typedef enum read_result_type read_result_type;
 struct read_result {

@@ -55,11 +55,11 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
 }
 
 EXPORT bool read_result_is_ok(read_result x) {
-  return x.type == READ_RESULT_OK;
+  return x.type == READ_RESULT_OK && !datum_is_nil(&x.ok_value);
 }
 
 LOCAL bool read_result_is_eof(read_result x) {
-  return x.type == READ_RESULT_EOF;
+  return x.type == READ_RESULT_OK && datum_is_nil(&x.ok_value);
 }
 
 LOCAL read_result read_result_make_ok(datum e) {
@@ -71,8 +71,7 @@ LOCAL read_result read_result_make_ok(datum e) {
   read_result_make_ok(datum_make_list_of(__VA_ARGS__))
 
 LOCAL read_result read_result_make_eof(void) {
-  read_result result = {.type = READ_RESULT_EOF};
-  return result;
+  return read_result_make_ok_of();
 }
 
 LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
@@ -245,9 +244,6 @@ LOCAL read_result datum_read(FILE *strm, context *ctxt, enum token_type terminat
     return (read_result){};
   }
   if (tok.type == terminator) {
-    return read_result_make_eof();
-  }
-  if (tok.type == TOKEN_EOF) {
     return read_result_make_eof();
   }
   if (tok.type == TOKEN_DATUM) {
