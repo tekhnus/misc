@@ -23,7 +23,6 @@ struct datum {
 
 enum read_result_type {
   READ_RESULT_OK,
-  READ_RESULT_PANIC,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
   READ_RESULT_RIGHT_SQUARE,
@@ -32,10 +31,7 @@ enum read_result_type {
 
 struct read_result {
   enum read_result_type type;
-  union {
-    struct datum ok_value;
-    char *panic_message;
-  };
+  struct datum ok_value;
 };
 
 struct result {

@@ -131,7 +131,6 @@ LOCAL bool is_whitespace(char c);
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,
-  READ_RESULT_PANIC,
   READ_RESULT_EOF,
   READ_RESULT_RIGHT_PAREN,
   READ_RESULT_RIGHT_SQUARE,
@@ -140,27 +139,22 @@ enum read_result_type {
 typedef enum read_result_type read_result_type;
 struct read_result {
   enum read_result_type type;
-  union {
-    struct datum ok_value;
-    char *panic_message;
-  };
+  struct datum ok_value;
 };
 LOCAL read_result read_result_make_right_curly(void);
 LOCAL read_result read_result_make_right_square(void);
 LOCAL read_result read_result_make_right_paren(void);
 LOCAL read_result read_result_make_eof(void);
 LOCAL bool read_result_is_eof(read_result x);
-void abortf(context *ctxt,char *format,...);
 datum datum_read_one(datum *args,context *ctxt);
 LOCAL read_result read_result_make_ok(datum e);
+void abortf(context *ctxt,char *format,...);
 LOCAL bool read_result_is_right_curly(read_result x);
 LOCAL bool read_result_is_right_square(read_result x);
 LOCAL bool read_result_is_right_paren(read_result x);
-LOCAL read_result read_result_make_panic(char *message);
-bool read_result_is_panic(read_result x);
-LOCAL read_result datum_read(FILE *strm);
+LOCAL read_result datum_read(FILE *strm,context *ctxt);
 bool read_result_is_ok(read_result x);
-read_result datum_read_all(FILE *stre);
+read_result datum_read_all(FILE *stre,context *ctxt);
 vec list_to_vec(datum *val);
 LOCAL array array_copy(array *arr);
 LOCAL vec array_to_vec(array arr);

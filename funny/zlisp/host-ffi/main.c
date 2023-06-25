@@ -14,11 +14,10 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  read_result rr = datum_read_all(f);
+  read_result rr = datum_read_all(f, &ctxt);
   fclose(f);
-  if (read_result_is_panic(rr)) {
-    fprintf(stderr, "zlisp-run couldn't parse bytecode: %s\n",
-            rr.panic_message);
+  if (ctxt.aborted) {
+    fprintf(stderr, "%s", ctxt.error);
     return EXIT_FAILURE;
   }
   assert(read_result_is_ok(rr));

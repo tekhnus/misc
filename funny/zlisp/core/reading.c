@@ -8,18 +8,19 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-EXPORT read_result datum_read_all(FILE *stre) {
+EXPORT read_result datum_read_all(FILE *stre, context *ctxt) {
   read_result rr;
   vec res = vec_make(0);
-  for (; read_result_is_ok(rr = datum_read(stre));) {
+  for (; read_result_is_ok(rr = datum_read(stre, ctxt)) && !ctxt->aborted;) {
     vec_extend(&res, &rr.ok_value);
   }
-  if (read_result_is_panic(rr)) {
-    return read_result_make_panic(rr.panic_message);
+  if (ctxt->aborted) {
+    return (read_result){};
   }
   if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
       read_result_is_right_curly(rr)) {
-    return read_result_make_panic("unmatched right paren");
+    abortf(ctxt, "unmatched right paren");
+    return (read_result){};
   }
   return read_result_make_ok(datum_make_list(res));
 }
@@ -29,9 +30,8 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
   assert(list_length(args) == 1);
   assert(datum_is_integer(list_at(args, 0)));
   FILE *stre = *(FILE **)list_at(args, 0)->integer_value;
-  read_result rr = datum_read(stre);
-  if (read_result_is_panic(rr)) {
-    abortf(ctxt, rr.panic_message);
+  read_result rr = datum_read(stre, ctxt);
+  if (ctxt->aborted) {
     return (datum){};
   }
   if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
@@ -49,10 +49,6 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
 
 EXPORT bool read_result_is_ok(read_result x) {
   return x.type == READ_RESULT_OK;
-}
-
-EXPORT bool read_result_is_panic(read_result x) {
-  return x.type == READ_RESULT_PANIC;
 }
 
 LOCAL bool read_result_is_eof(read_result x) {
@@ -78,11 +74,6 @@ LOCAL read_result read_result_make_ok(datum e) {
 
 #define read_result_make_ok_of(...)                                            \
   read_result_make_ok(datum_make_list_of(__VA_ARGS__))
-
-LOCAL read_result read_result_make_panic(char *message) {
-  read_result result = {.type = READ_RESULT_PANIC, .panic_message = message};
-  return result;
-}
 
 LOCAL read_result read_result_make_eof(void) {
   read_result result = {.type = READ_RESULT_EOF};
@@ -279,10 +270,11 @@ LOCAL struct token token_read(FILE *strm) {
                         .error_message = "unexpected symbol"};
 }
 
-LOCAL read_result datum_read(FILE *strm) {
+LOCAL read_result datum_read(FILE *strm, context *ctxt) {
   struct token tok = token_read(strm);
   if (tok.type == TOKEN_ERROR) {
-    return read_result_make_panic(tok.error_message);
+    abortf(ctxt, "%s", tok.error_message);
+    return (read_result){};
   }
   if (tok.type == TOKEN_EOF) {
     return read_result_make_eof();
@@ -304,8 +296,11 @@ LOCAL read_result datum_read(FILE *strm) {
       tok.type == TOKEN_LEFT_CURLY) {
     read_result elem;
     vec list = vec_make(0);
-    while (read_result_is_ok(elem = datum_read(strm))) {
+    while (read_result_is_ok(elem = datum_read(strm, ctxt)) && !ctxt->aborted) {
       vec_extend(&list, &elem.ok_value);
+    }
+    if (ctxt->aborted) {
+      return (read_result){};
     }
     if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
       return read_result_make_ok_of(
@@ -318,20 +313,23 @@ LOCAL read_result datum_read(FILE *strm) {
       return read_result_make_ok_of(datum_make_list(list));
     }
     if (read_result_is_eof(elem)) {
-      return read_result_make_panic("expected ')', got EOS");
+      abortf(ctxt, "expected ')', got EOS");
+      return (read_result){};
     }
     return elem;
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
-    read_result v = datum_read(strm);
-    if (read_result_is_panic(v)) {
-      return v;
+    read_result v = datum_read(strm, ctxt);
+    if (ctxt->aborted) {
+      return (read_result){};
     }
     if (!read_result_is_ok(v)) {
-      return read_result_make_panic(
+      abortf(ctxt, 
           "expected an expression after a control character");
+      return (read_result){};
     }
     return read_result_make_ok_of(tok.control_sequence_symbol, v.ok_value);
   }
-  return read_result_make_panic("unhandled token type");
+  abortf(ctxt, "unhandled token type");
+  return (read_result){};
 }

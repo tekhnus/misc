@@ -16,9 +16,8 @@ EXPORT datum file_source(char *fname, context *ctxt) {
     return (datum){};
   }
 
-  read_result rr = datum_read_all(stre);
-  if (read_result_is_panic(rr)) {
-    abortf(ctxt, "%s", rr.panic_message);
+  read_result rr = datum_read_all(stre, ctxt);
+  if (ctxt->aborted) {
     return (datum){};
   }
   assert(read_result_is_ok(rr));

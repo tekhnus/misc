@@ -8,6 +8,7 @@
 #include <string.h>
 
 int main(int argc, char **argv) {
+  context ctxt = {};
   if (argc != 2) {
     printf("usage: %s <file>\n", argv[0]);
     return (EXIT_FAILURE);
@@ -20,10 +21,10 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  read_result rr = datum_read_all(f);
+  read_result rr = datum_read_all(f, &ctxt);
   fclose(f);
-  if (read_result_is_panic(rr)) {
-    fprintf(stderr, "fmt couldn't parse source: %s\n", rr.panic_message);
+  if (ctxt.aborted) {
+    fprintf(stderr, "%s", ctxt.error);
     return EXIT_FAILURE;
   }
   assert(read_result_is_ok(rr));
