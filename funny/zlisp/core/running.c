@@ -81,7 +81,10 @@ typedef struct routine routine;
 #endif
 
 EXPORT result routine_run(vec *sl, datum *r, datum args, context *ctxt) {
-  routine rt = get_routine_from_datum(r);
+  routine rt = get_routine_from_datum(r, ctxt);
+  if (ctxt->aborted) {
+    return (result){};
+  }
   return routine_run_impl(sl, &rt, args, ctxt);
 }
 
@@ -95,7 +98,11 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
     if (prg.type == PROG_CALL) {
       datum *recieve_type = prg.call_type;
       routine rt = make_routine_from_indices(r, prg.call_capture_count,
-                                             prg.call_indices);
+                                             prg.call_indices, ctxt);
+      if (ctxt->aborted) {
+        print_frame(sl, r);
+        return (result){};
+      }
       bool good = true;
       for (size_t i = 0; i < routine_get_count(&rt); ++i) {
         if ((i == 0 && -1 != (rt.frames[0].parent_type_id)) ||
@@ -245,11 +252,14 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
 }
 
 LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
-                                        datum *call_indices) {
+                                        datum *call_indices, context *ctxt) {
   routine rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i));
-    routine nr = get_routine_from_datum(x);
+    routine nr = get_routine_from_datum(x, ctxt);
+    if (ctxt->aborted) {
+      return (routine){};
+    }
     routine_merge(&rt, &nr);
   }
   return rt;
@@ -447,8 +457,11 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   return (ptrdiff_t *)&offset_datum->integer_value;
 }
 
-LOCAL routine get_routine_from_datum(datum *e) {
-  assert(datum_is_list(e));
+LOCAL routine get_routine_from_datum(datum *e, context *ctxt) {
+  if(!datum_is_list(e)) {
+    abortf(ctxt, "datum is not callable: %s", datum_repr(e));
+    return (routine){};
+  }
   routine rt;
   rt.cnt = 0;
   for (int i = 0; i < list_length(e); ++i) {
