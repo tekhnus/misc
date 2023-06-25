@@ -90,6 +90,19 @@ int list_index_of(datum *xs,datum *x);
 datum datum_copy(datum *d);
 vec vec_copy(vec *src);
 vec list_to_vec(datum *val);
+enum token_type {
+  TOKEN_DATUM,
+  TOKEN_RIGHT_PAREN,
+  TOKEN_LEFT_PAREN,
+  TOKEN_RIGHT_SQUARE,
+  TOKEN_LEFT_SQUARE,
+  TOKEN_RIGHT_CURLY,
+  TOKEN_LEFT_CURLY,
+  TOKEN_CONTROL_SEQUENCE,
+  TOKEN_ERROR,
+  TOKEN_EOF,
+};
+typedef enum token_type token_type;
 typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,

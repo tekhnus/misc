@@ -8,10 +8,25 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#if EXPORT_INTERFACE
+enum token_type {
+  TOKEN_DATUM,
+  TOKEN_RIGHT_PAREN,
+  TOKEN_LEFT_PAREN,
+  TOKEN_RIGHT_SQUARE,
+  TOKEN_LEFT_SQUARE,
+  TOKEN_RIGHT_CURLY,
+  TOKEN_LEFT_CURLY,
+  TOKEN_CONTROL_SEQUENCE,
+  TOKEN_ERROR,
+  TOKEN_EOF,
+};
+#endif
+
 EXPORT read_result datum_read_all(FILE *stre, context *ctxt) {
   read_result rr;
   vec res = vec_make(0);
-  for (; read_result_is_ok(rr = datum_read(stre, ctxt)) && !ctxt->aborted;) {
+  for (; read_result_is_ok(rr = datum_read(stre, ctxt, TOKEN_EOF)) && !ctxt->aborted;) {
     vec_extend(&res, &rr.ok_value);
   }
   if (ctxt->aborted) {
@@ -30,7 +45,7 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
   assert(list_length(args) == 1);
   assert(datum_is_integer(list_at(args, 0)));
   FILE *stre = *(FILE **)list_at(args, 0)->integer_value;
-  read_result rr = datum_read(stre, ctxt);
+  read_result rr = datum_read(stre, ctxt, TOKEN_EOF);
   if (ctxt->aborted) {
     return (datum){};
   }
@@ -80,21 +95,6 @@ LOCAL read_result read_result_make_eof(void) {
   return result;
 }
 
-LOCAL read_result read_result_make_right_paren(void) {
-  read_result result = {.type = READ_RESULT_RIGHT_PAREN};
-  return result;
-}
-
-LOCAL read_result read_result_make_right_square(void) {
-  read_result result = {.type = READ_RESULT_RIGHT_SQUARE};
-  return result;
-}
-
-LOCAL read_result read_result_make_right_curly(void) {
-  read_result result = {.type = READ_RESULT_RIGHT_CURLY};
-  return result;
-}
-
 LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
 
 LOCAL bool is_allowed_inside_symbol(char c) {
@@ -133,19 +133,6 @@ LOCAL bool consume_control_sequence(char c, datum *form) {
   }
   return false;
 }
-
-enum token_type {
-  TOKEN_DATUM,
-  TOKEN_RIGHT_PAREN,
-  TOKEN_LEFT_PAREN,
-  TOKEN_RIGHT_SQUARE,
-  TOKEN_LEFT_SQUARE,
-  TOKEN_RIGHT_CURLY,
-  TOKEN_LEFT_CURLY,
-  TOKEN_CONTROL_SEQUENCE,
-  TOKEN_ERROR,
-  TOKEN_EOF,
-};
 
 struct token {
   enum token_type type;
@@ -270,11 +257,15 @@ LOCAL struct token token_read(FILE *strm) {
                         .error_message = "unexpected symbol"};
 }
 
-LOCAL read_result datum_read(FILE *strm, context *ctxt) {
+LOCAL read_result datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
+  if (&terminator == &terminator + 1) {}
   struct token tok = token_read(strm);
   if (tok.type == TOKEN_ERROR) {
     abortf(ctxt, "%s", tok.error_message);
     return (read_result){};
+  }
+  if (tok.type == terminator) {
+    return read_result_make_eof();
   }
   if (tok.type == TOKEN_EOF) {
     return read_result_make_eof();
@@ -283,33 +274,34 @@ LOCAL read_result datum_read(FILE *strm, context *ctxt) {
     datum val = tok.datum_value;
     return read_result_make_ok_of(val);
   }
-  if (tok.type == TOKEN_RIGHT_PAREN) {
-    return read_result_make_right_paren();
-  }
-  if (tok.type == TOKEN_RIGHT_SQUARE) {
-    return read_result_make_right_square();
-  }
-  if (tok.type == TOKEN_RIGHT_CURLY) {
-    return read_result_make_right_curly();
-  }
   if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE ||
       tok.type == TOKEN_LEFT_CURLY) {
     read_result elem;
     vec list = vec_make(0);
-    while (read_result_is_ok(elem = datum_read(strm, ctxt)) && !ctxt->aborted) {
+    enum token_type list_terminator;
+    if (tok.type == TOKEN_LEFT_PAREN) {
+      list_terminator = TOKEN_RIGHT_PAREN;
+    } else if (tok.type == TOKEN_LEFT_SQUARE) {
+      list_terminator = TOKEN_RIGHT_SQUARE;
+    } else if (tok.type == TOKEN_LEFT_CURLY) {
+      list_terminator = TOKEN_RIGHT_CURLY;
+    } else {
+      assert(false);
+    }
+    while (read_result_is_ok(elem = datum_read(strm, ctxt, list_terminator)) && !ctxt->aborted) {
       vec_extend(&list, &elem.ok_value);
     }
     if (ctxt->aborted) {
       return (read_result){};
     }
-    if (tok.type == TOKEN_LEFT_PAREN && read_result_is_right_paren(elem)) {
+    if (tok.type == TOKEN_LEFT_PAREN && read_result_is_eof(elem)) {
       return read_result_make_ok_of(
           datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
     }
-    if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_right_square(elem)) {
+    if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_eof(elem)) {
       return read_result_make_ok_of(datum_make_list(list));
     }
-    if (tok.type == TOKEN_LEFT_CURLY && read_result_is_right_curly(elem)) {
+    if (tok.type == TOKEN_LEFT_CURLY && read_result_is_eof(elem)) {
       return read_result_make_ok_of(datum_make_list(list));
     }
     if (read_result_is_eof(elem)) {
@@ -319,7 +311,7 @@ LOCAL read_result datum_read(FILE *strm, context *ctxt) {
     return elem;
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
-    read_result v = datum_read(strm, ctxt);
+    read_result v = datum_read(strm, ctxt, terminator);
     if (ctxt->aborted) {
       return (read_result){};
     }

@@ -141,9 +141,6 @@ struct read_result {
   enum read_result_type type;
   struct datum ok_value;
 };
-LOCAL read_result read_result_make_right_curly(void);
-LOCAL read_result read_result_make_right_square(void);
-LOCAL read_result read_result_make_right_paren(void);
 LOCAL read_result read_result_make_eof(void);
 LOCAL bool read_result_is_eof(read_result x);
 datum datum_read_one(datum *args,context *ctxt);
@@ -152,7 +149,20 @@ void abortf(context *ctxt,char *format,...);
 LOCAL bool read_result_is_right_curly(read_result x);
 LOCAL bool read_result_is_right_square(read_result x);
 LOCAL bool read_result_is_right_paren(read_result x);
-LOCAL read_result datum_read(FILE *strm,context *ctxt);
+enum token_type {
+  TOKEN_DATUM,
+  TOKEN_RIGHT_PAREN,
+  TOKEN_LEFT_PAREN,
+  TOKEN_RIGHT_SQUARE,
+  TOKEN_LEFT_SQUARE,
+  TOKEN_RIGHT_CURLY,
+  TOKEN_LEFT_CURLY,
+  TOKEN_CONTROL_SEQUENCE,
+  TOKEN_ERROR,
+  TOKEN_EOF,
+};
+typedef enum token_type token_type;
+LOCAL read_result datum_read(FILE *strm,context *ctxt,enum token_type terminator);
 bool read_result_is_ok(read_result x);
 read_result datum_read_all(FILE *stre,context *ctxt);
 vec list_to_vec(datum *val);
