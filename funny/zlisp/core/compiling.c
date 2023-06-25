@@ -23,12 +23,11 @@ EXPORT context *context_alloc_make() {  // For lisp.
   return res;
 }
 
-EXPORT size_t exit_if_aborted(context *ctxt) {  // For lisp.
-  if (ctxt->aborted) {
-    fprintf(stderr, "fatal failure: %s", ctxt->error);
-    exit(EXIT_FAILURE);
+EXPORT char *context_abort_reason(context *ctxt) {  // For lisp.
+  if (!ctxt->aborted) {
+    return "";
   }
-  return 0;
+  return ctxt->error;
 }
 
 EXPORT void abortf(context *ctxt, char *format, ...) {

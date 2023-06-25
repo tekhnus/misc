@@ -10,6 +10,7 @@ req
  {std "std"}
  {decons-pat "std" decons-pat}
  {first-good-value "std" first-good-value}
+ {not "std" not}
  {eq "std" eq}
  {head "std" head}
  {cons "std" cons}
@@ -42,8 +43,15 @@ prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
 context-make := (/prelude/c-function selflib "context_alloc_make" {{}
   'pointer})
 
-exit-if-aborted := (/prelude/c-function selflib "exit_if_aborted" {{'pointer}
-  'sizet})
+context-abort-reason := (/prelude/c-function selflib "context_abort_reason" {{'pointer}
+  'string})
+
+panic-if-aborted := fn {ctxt}
+{reason := (/prelude/context-abort-reason ctxt)
+ if (/std/not (/std/eq reason "")) {
+  {} := (/std/panic @0 reason)
+ } {}
+ return ^{}}
 
 prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
    'pointer
@@ -60,13 +68,13 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'poi
 init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (/prelude/context-make)
  nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata ctxt)
- foo := (/prelude/exit-if-aborted ctxt)
+ {} := (../panic-if-aborted @0 ctxt)
  return nothing}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {ctxt := (/prelude/context-make)
  e := (/prelude/prog-build-one-c-host-2 (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
- foo := (/prelude/exit-if-aborted ctxt)
+ {} := (../panic-if-aborted @0 ctxt)
  return {:ok
    :nothing}}
 
@@ -82,7 +90,7 @@ repr-pointer := fn {x}
 eval-new := fn {sl rt0}
 {ctxt := (/prelude/context-make)
  res := (/prelude/routine-run-and-get-value-c-host-new (/prelude/wrap-pointer-into-pointer sl) rt0 ctxt)
- foo := (/prelude/exit-if-aborted ctxt)
+ {} := (../panic-if-aborted @0 ctxt)
  return {:ok res}}
 
 read-one-ptr := (/prelude/dlsym selflib "datum_read_one")
@@ -105,5 +113,5 @@ export
  {prog-slice-make prog-slice-make}
  {compdata-make compdata-make}
  {context-make context-make}
- {exit-if-aborted exit-if-aborted}
+ {panic-if-aborted panic-if-aborted}
  {ext-make ext-make}}
