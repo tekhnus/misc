@@ -21,20 +21,19 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  read_result rr = datum_read_all(f, &ctxt);
+  vec rr = datum_read_all(f, &ctxt);
   fclose(f);
   if (ctxt.aborted) {
     fprintf(stderr, "%s", ctxt.error);
     return EXIT_FAILURE;
   }
-  assert(read_result_is_ok(rr));
-  assert(datum_is_list(&rr.ok_value));
   f = fopen(filename, "w");
   if (f == NULL) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  datum source = rewrite(&rr.ok_value);
+  datum src = datum_make_list(rr);
+  datum source = rewrite(&src);
   char *res = datum_repr_pretty(&source, &ext.base);
   res[strlen(res) - 1] = 0;
   res += 1;

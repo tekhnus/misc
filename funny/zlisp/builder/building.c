@@ -16,12 +16,11 @@ EXPORT datum file_source(char *fname, context *ctxt) {
     return (datum){};
   }
 
-  read_result rr = datum_read_all(stre, ctxt);
+  vec rr = datum_read_all(stre, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
-  assert(read_result_is_ok(rr));
-  return (rr.ok_value);
+  return datum_make_list(rr);
 }
 
 EXPORT void module_to_filename(char *fname, char *module, context *ctxt) {

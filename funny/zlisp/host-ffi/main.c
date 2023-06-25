@@ -14,16 +14,14 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  read_result rr = datum_read_all(f, &ctxt);
+  vec rr = datum_read_all(f, &ctxt);
   fclose(f);
   if (ctxt.aborted) {
     fprintf(stderr, "%s", ctxt.error);
     return EXIT_FAILURE;
   }
-  assert(read_result_is_ok(rr));
-  assert(datum_is_list(&rr.ok_value));
-  assert(list_length(&rr.ok_value) == 1);
-  vec sl = list_to_vec(list_at(&rr.ok_value, 0));
+  assert(vec_length(&rr) == 1);
+  vec sl = list_to_vec(vec_at(&rr, 0));
   datum s = routine_make(0, NULL); // running starts from the first instruction.
   result res = host_ffi_run(&sl, &s, datum_make_nil(), &ctxt);
   if (ctxt.aborted) {

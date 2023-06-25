@@ -140,8 +140,8 @@ struct read_result {
   struct datum ok_value;
 };
 LOCAL read_result read_result_make_eof(void);
-datum datum_read_one(datum *args,context *ctxt);
 LOCAL read_result read_result_make_ok(datum e);
+datum datum_read_one(datum *args,context *ctxt);
 LOCAL bool read_result_is_eof(read_result x);
 enum token_type {
   TOKEN_DATUM,
@@ -158,7 +158,7 @@ enum token_type {
 typedef enum token_type token_type;
 LOCAL read_result datum_read(FILE *strm,context *ctxt,enum token_type terminator);
 bool read_result_is_ok(read_result x);
-read_result datum_read_all(FILE *stre,context *ctxt);
+vec datum_read_all(FILE *stre,context *ctxt);
 vec list_to_vec(datum *val);
 LOCAL array array_copy(array *arr);
 LOCAL vec array_to_vec(array arr);

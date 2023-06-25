@@ -23,17 +23,17 @@ enum token_type {
 };
 #endif
 
-EXPORT read_result datum_read_all(FILE *stre, context *ctxt) {
+EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
   read_result rr;
   vec res = vec_make(0);
   for (; read_result_is_ok(rr = datum_read(stre, ctxt, TOKEN_EOF)) && !ctxt->aborted;) {
     vec_extend(&res, &rr.ok_value);
   }
   if (ctxt->aborted) {
-    return (read_result){};
+    return (vec){};
   }
   assert(read_result_is_eof(rr));
-  return read_result_make_ok(datum_make_list(res));
+  return res;
 }
 
 EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
