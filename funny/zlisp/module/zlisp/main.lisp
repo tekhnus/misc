@@ -71,7 +71,7 @@ compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
    :nothing}}
 
 routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'pointer
-   'pointer}
+   'pointer 'pointer}
   'pointer})
 
 repr-datum-pointer-ptr := (/prelude/dlsym selflib "repr_datum_pointer")
@@ -80,7 +80,9 @@ repr-pointer := fn {x}
 {return (/prelude/call-the-extension (/prelude/dereference repr-datum-pointer-ptr 'int64) x)}
 
 eval-new := fn {sl rt0}
-{res := (/prelude/routine-run-and-get-value-c-host-new (/prelude/wrap-pointer-into-pointer sl) rt0)
+{ctxt := (/prelude/context-make)
+ res := (/prelude/routine-run-and-get-value-c-host-new (/prelude/wrap-pointer-into-pointer sl) rt0 ctxt)
+ foo := (/prelude/exit-if-aborted ctxt)
  return {:ok res}}
 
 read-one-ptr := (/prelude/dlsym selflib "datum_read_one")

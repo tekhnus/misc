@@ -15,7 +15,7 @@ datum builtin_tail(datum *args,context *ctxt);
 datum repr_datum_pointer(datum *args,context *ctxt);
 #include <dlfcn.h>
 #include <ffi.h>
-datum *routine_run_in_ffi_host(vec *sl,datum *r0d);
+datum *routine_run_in_ffi_host(vec *sl,datum *r0d,context *ctxt);
 result host_ffi_run(vec *sl,datum *r0d,datum args,context *ctxt);
 extern ffi_type ffi_type_vec;
 extern ffi_type *ffi_type_vec_elements[4];
