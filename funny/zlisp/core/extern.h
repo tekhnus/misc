@@ -129,19 +129,7 @@ LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);
 LOCAL bool is_allowed_inside_symbol(char c);
 LOCAL bool is_whitespace(char c);
-typedef struct read_result read_result;
-enum read_result_type {
-  READ_RESULT_OK,
-};
-typedef enum read_result_type read_result_type;
-struct read_result {
-  enum read_result_type type;
-  struct datum ok_value;
-};
-LOCAL read_result read_result_make_eof(void);
-LOCAL read_result read_result_make_ok(datum e);
 datum datum_read_one(datum *args,context *ctxt);
-LOCAL bool read_result_is_eof(read_result x);
 enum token_type {
   TOKEN_DATUM,
   TOKEN_RIGHT_PAREN,
@@ -155,8 +143,7 @@ enum token_type {
   TOKEN_EOF,
 };
 typedef enum token_type token_type;
-LOCAL read_result datum_read(FILE *strm,context *ctxt,enum token_type terminator);
-bool read_result_is_ok(read_result x);
+LOCAL datum datum_read(FILE *strm,context *ctxt,enum token_type terminator);
 vec datum_read_all(FILE *stre,context *ctxt);
 vec list_to_vec(datum *val);
 LOCAL array array_copy(array *arr);

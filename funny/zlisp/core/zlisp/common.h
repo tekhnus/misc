@@ -105,16 +105,6 @@ enum token_type {
 typedef enum token_type token_type;
 vec datum_read_all(FILE *stre,context *ctxt);
 datum datum_read_one(datum *args,context *ctxt);
-typedef struct read_result read_result;
-enum read_result_type {
-  READ_RESULT_OK,
-};
-typedef enum read_result_type read_result_type;
-struct read_result {
-  enum read_result_type type;
-  struct datum ok_value;
-};
-bool read_result_is_ok(read_result x);
 context *context_alloc_make();
 char *context_abort_reason(context *ctxt);
 void abortf(context *ctxt,char *format,...);

@@ -24,15 +24,18 @@ enum token_type {
 #endif
 
 EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
-  read_result rr;
+  datum rr;
   vec res = vec_make(0);
-  for (; read_result_is_ok(rr = datum_read(stre, ctxt, TOKEN_EOF)) && !ctxt->aborted;) {
-    vec_extend(&res, &rr.ok_value);
+  while (true) {
+    rr = datum_read(stre, ctxt, TOKEN_EOF);
+    if (ctxt->aborted) {
+      return (vec){};
+    }
+    if (datum_is_nil(&rr)) {
+      break;
+    }
+    vec_extend(&res, &rr);
   }
-  if (ctxt->aborted) {
-    return (vec){};
-  }
-  assert(read_result_is_eof(rr));
   return res;
 }
 
@@ -41,37 +44,17 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
   assert(list_length(args) == 1);
   assert(datum_is_integer(list_at(args, 0)));
   FILE *stre = *(FILE **)list_at(args, 0)->integer_value;
-  read_result rr = datum_read(stre, ctxt, TOKEN_EOF);
+  datum rr = datum_read(stre, ctxt, TOKEN_EOF);
   if (ctxt->aborted) {
     return (datum){};
   }
-  if (read_result_is_eof(rr)) {
+  if (datum_is_nil(&rr)) {
     return datum_make_list_of(datum_make_list_of(datum_make_symbol(":eof")));
   }
-  assert(read_result_is_ok(rr));
+  assert(!datum_is_nil(&rr));
   datum *d = malloc(sizeof(datum));
-  *d = rr.ok_value;
+  *d = rr;
   return datum_make_list_of(datum_make_list_of(datum_make_symbol(":ok"), datum_make_int((size_t)d)));
-}
-
-EXPORT bool read_result_is_ok(read_result x) {
-  return x.type == READ_RESULT_OK && !datum_is_nil(&x.ok_value);
-}
-
-LOCAL bool read_result_is_eof(read_result x) {
-  return x.type == READ_RESULT_OK && datum_is_nil(&x.ok_value);
-}
-
-LOCAL read_result read_result_make_ok(datum e) {
-  read_result result = {.type = READ_RESULT_OK, .ok_value = e};
-  return result;
-}
-
-#define read_result_make_ok_of(...)                                            \
-  read_result_make_ok(datum_make_list_of(__VA_ARGS__))
-
-LOCAL read_result read_result_make_eof(void) {
-  return read_result_make_ok_of();
 }
 
 LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
@@ -236,23 +219,23 @@ LOCAL struct token token_read(FILE *strm) {
                         .error_message = "unexpected symbol"};
 }
 
-LOCAL read_result datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
+LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
   if (&terminator == &terminator + 1) {}
   struct token tok = token_read(strm);
   if (tok.type == TOKEN_ERROR) {
     abortf(ctxt, "%s", tok.error_message);
-    return (read_result){};
+    return (datum){};
   }
   if (tok.type == terminator) {
-    return read_result_make_eof();
+    return datum_make_list_of();
   }
   if (tok.type == TOKEN_DATUM) {
     datum val = tok.datum_value;
-    return read_result_make_ok_of(val);
+    return datum_make_list_of(val);
   }
   if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE ||
       tok.type == TOKEN_LEFT_CURLY) {
-    read_result elem;
+    datum elem;
     vec list = vec_make(0);
     enum token_type list_terminator;
     if (tok.type == TOKEN_LEFT_PAREN) {
@@ -264,40 +247,44 @@ LOCAL read_result datum_read(FILE *strm, context *ctxt, enum token_type terminat
     } else {
       assert(false);
     }
-    while (read_result_is_ok(elem = datum_read(strm, ctxt, list_terminator)) && !ctxt->aborted) {
-      vec_extend(&list, &elem.ok_value);
+    while (true) {
+      elem = datum_read(strm, ctxt, list_terminator);
+      if (ctxt->aborted) {
+        return (datum){};
+      }
+      if (datum_is_nil(&elem)) {
+        break;
+      }
+      vec_extend(&list, &elem);
     }
-    if (ctxt->aborted) {
-      return (read_result){};
-    }
-    if (tok.type == TOKEN_LEFT_PAREN && read_result_is_eof(elem)) {
-      return read_result_make_ok_of(
+    if (tok.type == TOKEN_LEFT_PAREN && datum_is_nil(&elem)) {
+      return datum_make_list_of(
           datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
     }
-    if (tok.type == TOKEN_LEFT_SQUARE && read_result_is_eof(elem)) {
-      return read_result_make_ok_of(datum_make_list(list));
+    if (tok.type == TOKEN_LEFT_SQUARE && datum_is_nil(&elem)) {
+      return datum_make_list_of(datum_make_list(list));
     }
-    if (tok.type == TOKEN_LEFT_CURLY && read_result_is_eof(elem)) {
-      return read_result_make_ok_of(datum_make_list(list));
+    if (tok.type == TOKEN_LEFT_CURLY && datum_is_nil(&elem)) {
+      return datum_make_list_of(datum_make_list(list));
     }
-    if (read_result_is_eof(elem)) {
+    if (datum_is_nil(&elem)) {
       abortf(ctxt, "expected ')', got EOS");
-      return (read_result){};
+      return (datum){};
     }
     return elem;
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
-    read_result v = datum_read(strm, ctxt, terminator);
+    datum v = datum_read(strm, ctxt, terminator);
     if (ctxt->aborted) {
-      return (read_result){};
+      return (datum){};
     }
-    if (!read_result_is_ok(v)) {
+    if (!!datum_is_nil(&v)) {
       abortf(ctxt, 
           "expected an expression after a control character");
-      return (read_result){};
+      return (datum){};
     }
-    return read_result_make_ok_of(tok.control_sequence_symbol, v.ok_value);
+    return datum_make_list_of(tok.control_sequence_symbol, v);
   }
   abortf(ctxt, "unhandled token type");
-  return (read_result){};
+  return (datum){};
 }

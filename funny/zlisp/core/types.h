@@ -21,15 +21,6 @@ struct datum {
   };
 };
 
-enum read_result_type {
-  READ_RESULT_OK,
-};
-
-struct read_result {
-  enum read_result_type type;
-  struct datum ok_value;
-};
-
 struct result {
   datum type;
   datum value;
