@@ -124,6 +124,7 @@ LOCAL void prog_append_consume_expression(vec *sl,datum *source,int *i,datum *co
 void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *ctxt);
 char *context_abort_reason(context *ctxt);
 context *context_alloc_make();
+void abortf(context *ctxt,char *format,...);
 LOCAL struct token token_read(FILE *strm);
 LOCAL bool consume_control_sequence(char c,datum *form);
 LOCAL bool is_allowed_inside_symbol(char c);
@@ -132,9 +133,6 @@ typedef struct read_result read_result;
 enum read_result_type {
   READ_RESULT_OK,
   READ_RESULT_EOF,
-  READ_RESULT_RIGHT_PAREN,
-  READ_RESULT_RIGHT_SQUARE,
-  READ_RESULT_RIGHT_CURLY,
 };
 typedef enum read_result_type read_result_type;
 struct read_result {
@@ -142,13 +140,9 @@ struct read_result {
   struct datum ok_value;
 };
 LOCAL read_result read_result_make_eof(void);
-LOCAL bool read_result_is_eof(read_result x);
 datum datum_read_one(datum *args,context *ctxt);
 LOCAL read_result read_result_make_ok(datum e);
-void abortf(context *ctxt,char *format,...);
-LOCAL bool read_result_is_right_curly(read_result x);
-LOCAL bool read_result_is_right_square(read_result x);
-LOCAL bool read_result_is_right_paren(read_result x);
+LOCAL bool read_result_is_eof(read_result x);
 enum token_type {
   TOKEN_DATUM,
   TOKEN_RIGHT_PAREN,

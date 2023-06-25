@@ -32,11 +32,7 @@ EXPORT read_result datum_read_all(FILE *stre, context *ctxt) {
   if (ctxt->aborted) {
     return (read_result){};
   }
-  if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
-      read_result_is_right_curly(rr)) {
-    abortf(ctxt, "unmatched right paren");
-    return (read_result){};
-  }
+  assert(read_result_is_eof(rr));
   return read_result_make_ok(datum_make_list(res));
 }
 
@@ -49,14 +45,10 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
   if (ctxt->aborted) {
     return (datum){};
   }
-  if (read_result_is_right_paren(rr) || read_result_is_right_square(rr) ||
-      read_result_is_right_curly(rr)) {
-    abortf(ctxt, "unmatched right paren");
-    return (datum){};
-  }
   if (read_result_is_eof(rr)) {
     return datum_make_list_of(datum_make_list_of(datum_make_symbol(":eof")));
   }
+  assert(read_result_is_ok(rr));
   datum *d = malloc(sizeof(datum));
   *d = rr.ok_value;
   return datum_make_list_of(datum_make_list_of(datum_make_symbol(":ok"), datum_make_int((size_t)d)));
@@ -68,18 +60,6 @@ EXPORT bool read_result_is_ok(read_result x) {
 
 LOCAL bool read_result_is_eof(read_result x) {
   return x.type == READ_RESULT_EOF;
-}
-
-LOCAL bool read_result_is_right_paren(read_result x) {
-  return x.type == READ_RESULT_RIGHT_PAREN;
-}
-
-LOCAL bool read_result_is_right_square(read_result x) {
-  return x.type == READ_RESULT_RIGHT_SQUARE;
-}
-
-LOCAL bool read_result_is_right_curly(read_result x) {
-  return x.type == READ_RESULT_RIGHT_CURLY;
 }
 
 LOCAL read_result read_result_make_ok(datum e) {

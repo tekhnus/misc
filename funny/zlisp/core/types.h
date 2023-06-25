@@ -24,9 +24,6 @@ struct datum {
 enum read_result_type {
   READ_RESULT_OK,
   READ_RESULT_EOF,
-  READ_RESULT_RIGHT_PAREN,
-  READ_RESULT_RIGHT_SQUARE,
-  READ_RESULT_RIGHT_CURLY,
 };
 
 struct read_result {
