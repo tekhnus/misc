@@ -62,7 +62,7 @@ and two implementations:
 
 **To run the repl:**
 ```
-LD_LIBRARY_PATH=./build/builder ./build/host-ffi/zlisp-run <(ZLISP=./module ./build/builder/zlisp-build c-prelude module/cli/main.lisp)
+LD_LIBRARY_PATH=./build/builder DYLD_LIBRARY_PATH=./build/builder ./build/host-ffi/zlisp-run <(ZLISP=./module ./build/builder/zlisp-build c-prelude module/cli/main.lisp)
 ```
 
 ### Project structure

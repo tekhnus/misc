@@ -29,17 +29,21 @@ make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_allo
 prog-slice-make := (/prelude/c-function selflib "vec_create_slice" {{}
   'progslice})
 
-prog-build-one-c-host := (/prelude/c-function buildlib "prog_build_or_exit" {{'pointer
+prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
+   'pointer
    'pointer
    'pointer
    'pointer
    'pointer
    'pointer
    'pointer}
-  'pointer})
+  'sizet})
 
 context-make := (/prelude/c-function selflib "context_alloc_make" {{}
   'pointer})
+
+exit-if-aborted := (/prelude/c-function selflib "exit_if_aborted" {{'pointer}
+  'sizet})
 
 prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
    'pointer
@@ -55,16 +59,16 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{}
 
 init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (/prelude/context-make)
- nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata (/prelude/wrap-pointer-into-pointer ctxt))
+ nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata ctxt)
+ foo := (/prelude/exit-if-aborted ctxt)
  return nothing}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
-{e := (/prelude/prog-build-one-c-host (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex)
- if (/std/eq 0 (/prelude/dereference e 'int64))
- {return {:ok
+{ctxt := (/prelude/context-make)
+ e := (/prelude/prog-build-one-c-host-2 (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
+ foo := (/prelude/exit-if-aborted ctxt)
+ return {:ok
    :nothing}}
- {return {:err
-   (/prelude/dereference e 'string)}}}
 
 routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'pointer
    'pointer}

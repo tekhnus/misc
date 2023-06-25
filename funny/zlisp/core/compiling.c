@@ -17,10 +17,18 @@ struct extension {
 };
 #endif
 
-EXPORT context *context_alloc_make() {
+EXPORT context *context_alloc_make() {  // For lisp.
   context *res = malloc(sizeof(context));
   *res = (context){};
   return res;
+}
+
+EXPORT size_t exit_if_aborted(context *ctxt) {  // For lisp.
+  if (ctxt->aborted) {
+    fprintf(stderr, "fatal failure: %s", ctxt->error);
+    exit(EXIT_FAILURE);
+  }
+  return 0;
 }
 
 EXPORT void abortf(context *ctxt, char *format, ...) {
