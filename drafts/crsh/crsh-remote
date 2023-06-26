@@ -2,7 +2,11 @@
 
 scp crsh-server ma:/home/zahaaar/.local/bin
 ssh ma 'rm -rf /tmp/crsh-command && mkfifo /tmp/crsh-command'
+ssh ma 'rm -rf /tmp/crsh-result && mkfifo /tmp/crsh-result'
 {
 	cat /tmp/crsh-command | ssh ma 'cat >/tmp/crsh-command'
+}&
+{
+	ssh ma 'cat /tmp/crsh-result' >/tmp/crsh-result
 }&
 ssh ma crsh-server
