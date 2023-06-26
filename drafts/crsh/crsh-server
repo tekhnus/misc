@@ -3,10 +3,15 @@
 parentpid=$1
 while true;
 do
-  cmd="$(cat /tmp/crsh-command)"
+	IFS= read -r cmd
 	if [ -z "$cmd" ]; then
 		break
 	fi
-	eval "$cmd"
+  # We do a zero-byte read from tty
+  # to create a synchronization point.
+  # This command will return only when the process
+  # is foregrounded.
+  dd bs=1 count=0 </dev/tty 2>/dev/null
+	eval "$cmd" </dev/tty
 	kill -STOP -- -$parentpid
-done
+done </tmp/crsh-command
