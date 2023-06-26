@@ -27,7 +27,7 @@ IFS= read -r reader_pid </tmp/crsh-pids
 
 (
   echo "$(get_pid)" >/tmp/crsh-pids
-  ./crsh-server "$(get_pid)"
+  ./crsh-server
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
