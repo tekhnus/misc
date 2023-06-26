@@ -39,7 +39,7 @@ IFS= read -r reader_pid </tmp/crsh-pids
 (
   echo "$(get_pid)" >/tmp/crsh-pids
   echo 'server did send pid' >>/tmp/crsh-log
-  ./crsh-server
+  ./crsh-remote
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
@@ -48,8 +48,12 @@ echo 'master did recieve server pid' >>/tmp/crsh-log
 
 (
   while true; do
-    read -r res
-    echo 'master did recieve server result' >>/tmp/crsh-log
+    IFS= read -r res
+    if [ -z "$res" ]; then
+      echo 'master did finish server result' >>/tmp/crsh-log
+      exit
+    fi
+    echo "master did recieve server result x${res}x" >>/tmp/crsh-log
     kill -STOP -- "-$server_pid" 2>/dev/null || break
   done </tmp/crsh-result
 )&
