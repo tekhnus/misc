@@ -51,7 +51,6 @@ EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
   if (datum_is_nil(&rr)) {
     return datum_make_list_of(datum_make_list_of(datum_make_symbol(":eof")));
   }
-  assert(!datum_is_nil(&rr));
   datum *d = malloc(sizeof(datum));
   *d = rr;
   return datum_make_list_of(datum_make_list_of(datum_make_symbol(":ok"), datum_make_int((size_t)d)));
@@ -118,12 +117,12 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
   if (c == '(') {
     return (struct token){.type = TOKEN_LEFT_PAREN};
   }
-  /* if (c == ']') { */
-  /*   return (struct token){.type = TOKEN_RIGHT_SQUARE}; */
-  /* } */
-  /* if (c == '[') { */
-  /*   return (struct token){.type = TOKEN_LEFT_SQUARE}; */
-  /* } */
+  if (c == ']') {
+    return (struct token){.type = TOKEN_RIGHT_SQUARE};
+  }
+  if (c == '[') {
+    return (struct token){.type = TOKEN_LEFT_SQUARE};
+  }
   if (c == '}') {
     return (struct token){.type = TOKEN_RIGHT_CURLY};
   }
@@ -218,7 +217,6 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
 }
 
 LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
-  if (&terminator == &terminator + 1) {}
   struct token tok = token_read(strm, ctxt);
   if (ctxt->aborted) {
     return (datum){};
@@ -254,28 +252,24 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
       }
       vec_extend(&list, &elem);
     }
-    if (tok.type == TOKEN_LEFT_PAREN && datum_is_nil(&elem)) {
+    if (tok.type == TOKEN_LEFT_PAREN) {
       return datum_make_list_of(
           datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
     }
-    if (tok.type == TOKEN_LEFT_SQUARE && datum_is_nil(&elem)) {
+    if (tok.type == TOKEN_LEFT_SQUARE) {
       return datum_make_list_of(datum_make_list(list));
     }
-    if (tok.type == TOKEN_LEFT_CURLY && datum_is_nil(&elem)) {
+    if (tok.type == TOKEN_LEFT_CURLY) {
       return datum_make_list_of(datum_make_list(list));
     }
-    if (datum_is_nil(&elem)) {
-      abortf(ctxt, "expected ')', got EOS");
-      return (datum){};
-    }
-    return elem;
+    assert(false);
   }
   if (tok.type == TOKEN_CONTROL_SEQUENCE) {
     datum v = datum_read(strm, ctxt, terminator);
     if (ctxt->aborted) {
       return (datum){};
     }
-    if (!!datum_is_nil(&v)) {
+    if (datum_is_nil(&v)) {
       abortf(ctxt, 
           "expected an expression after a control character");
       return (datum){};
