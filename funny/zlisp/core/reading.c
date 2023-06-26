@@ -105,7 +105,7 @@ struct token {
   };
 };
 
-LOCAL struct token token_read(FILE *strm) {
+LOCAL struct token token_read(FILE *strm, context *ctxt) {
   char c = 0; // = 0 is for the compiler.
   for (; !feof(strm) && is_whitespace(c = getc(strm));) {
   }
@@ -137,9 +137,8 @@ LOCAL struct token token_read(FILE *strm) {
       sign = -1;
       c = getc(strm);
       if (!isdigit(c)) {
-        return (struct token){.type = TOKEN_ERROR,
-                              .error_message =
-                                  "expected a number after unary minus"};
+        abortf(ctxt, "expected a number after unary minus");
+        return (struct token){};
       }
     }
     int val = c - '0';
@@ -200,8 +199,8 @@ LOCAL struct token token_read(FILE *strm) {
           literal[i] = '\n';
           continue;
         }
-        return (struct token){.type = TOKEN_ERROR,
-                              .error_message = "unknown escape code"};
+        abortf(ctxt, "unknown escape code");
+        return (struct token){};
       }
       literal[i] = x;
     }
@@ -214,16 +213,14 @@ LOCAL struct token token_read(FILE *strm) {
     return (struct token){.type = TOKEN_CONTROL_SEQUENCE,
                           .control_sequence_symbol = form};
   }
-  fprintf(stderr, "unexpected symbol: 0x%x\n", c);
-  return (struct token){.type = TOKEN_ERROR,
-                        .error_message = "unexpected symbol"};
+  abortf(ctxt, "unexpected symbol: 0x%x\n", c);
+  return (struct token){};
 }
 
 LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
   if (&terminator == &terminator + 1) {}
-  struct token tok = token_read(strm);
-  if (tok.type == TOKEN_ERROR) {
-    abortf(ctxt, "%s", tok.error_message);
+  struct token tok = token_read(strm, ctxt);
+  if (ctxt->aborted) {
     return (datum){};
   }
   if (tok.type == terminator) {

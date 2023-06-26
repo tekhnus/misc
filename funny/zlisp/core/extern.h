@@ -125,7 +125,7 @@ void prog_compile(vec *sl,datum *source,datum *compdata,extension *ext,context *
 char *context_abort_reason(context *ctxt);
 context *context_alloc_make();
 void abortf(context *ctxt,char *format,...);
-LOCAL struct token token_read(FILE *strm);
+LOCAL struct token token_read(FILE *strm,context *ctxt);
 LOCAL bool consume_control_sequence(char c,datum *form);
 LOCAL bool is_allowed_inside_symbol(char c);
 LOCAL bool is_whitespace(char c);
