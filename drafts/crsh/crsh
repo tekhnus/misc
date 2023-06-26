@@ -5,11 +5,28 @@ function get_pid() {
   exec sh -c 'echo "$PPID"'
 }
 
-( echo "$(get_pid)" >/tmp/crsh-reader-pid; while true; do read -p '> ' -r line; echo "$line" >/tmp/crsh-command; if [ -z "$line" ]; then exit; fi; kill -STOP -- "$(get_pid)"; done )
-( echo "$(get_pid)" >/tmp/crsh-server-pid; ./crsh-server "$(get_pid)" ) 
+(
+  echo "$(get_pid)" >/tmp/crsh-reader-pid;
+  while true; do
+    read -p '> ' -r line
+    echo "$line" >/tmp/crsh-command
+    if [ -z "$line" ]; then
+      exit
+    fi
+    kill -STOP -- "$(get_pid)"
+  done
+)
+
+(
+  echo "$(get_pid)" >/tmp/crsh-server-pid
+  ./crsh-server "$(get_pid)"
+)
 
 function on_sigchld () {
-  { kill -0 $(cat /tmp/crsh-reader-pid) 2>/dev/null && kill -0 $(cat /tmp/crsh-server-pid) 2>/dev/null; } || exit
+  {
+    kill -0 $(cat /tmp/crsh-reader-pid) 2>/dev/null &&
+    kill -0 $(cat /tmp/crsh-server-pid) 2>/dev/null
+  } || exit
 }
 
 trap on_sigchld SIGCHLD
