@@ -1,9 +1,8 @@
 #!/bin/bash
 
+scp crsh-server ma:/home/zahaaar/.local/bin
 ssh ma 'rm -rf /tmp/crsh-command && mkfifo /tmp/crsh-command'
-echo 'init socket'
 {
 	cat /tmp/crsh-command | ssh ma 'cat >/tmp/crsh-command'
 }&
-echo 'forward local crsh-command'
 ssh ma crsh-server

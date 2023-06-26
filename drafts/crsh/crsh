@@ -11,6 +11,9 @@ mkfifo /tmp/crsh-pids
 rm -rf /tmp/crsh-command
 mkfifo /tmp/crsh-command
 
+rm -rf /tmp/crsh-result
+mkfifo /tmp/crsh-result
+
 (
   echo "$(get_pid)" >/tmp/crsh-pids
   while true; do
@@ -31,6 +34,14 @@ IFS= read -r reader_pid </tmp/crsh-pids
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
+
+(
+  while true; do
+    read -r res
+    kill -STOP -- "-$server_pid" 2>/dev/null || break
+  done </tmp/crsh-result
+)&
+disown
 
 function on_sigchld () {
   if {

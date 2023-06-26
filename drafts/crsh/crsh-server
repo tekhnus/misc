@@ -11,6 +11,6 @@ do
   # This command will return only when the process
   # is foregrounded.
   dd bs=1 count=0 </dev/tty 2>/dev/null
-	eval "$cmd" </dev/tty
-	kill -STOP -- "-$PPID"
-done </tmp/crsh-command
+	eval "$cmd" </dev/tty >/dev/tty
+	echo 0
+done </tmp/crsh-command >/tmp/crsh-result
