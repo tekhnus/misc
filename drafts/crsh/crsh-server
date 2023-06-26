@@ -15,7 +15,6 @@ do
   echo 'server will eval' >>/tmp/crsh-log
 	eval "$cmd" </dev/tty >/dev/tty
   echo 'server did eval' >>/tmp/crsh-log
-	sleep 1
 	echo 0
   echo 'server did send status' >>/tmp/crsh-log
 done </tmp/crsh-command >/tmp/crsh-result
