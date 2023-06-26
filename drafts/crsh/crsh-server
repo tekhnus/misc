@@ -3,6 +3,7 @@
 while true;
 do
 	IFS= read -r cmd
+  echo 'server did read a command' >>/tmp/crsh-log
 	if [ -z "$cmd" ]; then
 		break
 	fi
@@ -11,6 +12,9 @@ do
   # This command will return only when the process
   # is foregrounded.
   dd bs=1 count=0 </dev/tty 2>/dev/null
+  echo 'server will eval' >>/tmp/crsh-log
 	eval "$cmd" </dev/tty >/dev/tty
+  echo 'server did eval' >>/tmp/crsh-log
 	echo 0
+  echo 'server did send status' >>/tmp/crsh-log
 done </tmp/crsh-command >/tmp/crsh-result

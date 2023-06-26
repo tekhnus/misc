@@ -1,9 +1,8 @@
 #!/bin/bash
 set -m
 
-function get_pid() {
-  exec sh -c 'echo "$PPID"'
-}
+rm -rf /tmp/crsh-log
+touch /tmp/crsh-log
 
 rm -rf /tmp/crsh-pids
 mkfifo /tmp/crsh-pids
@@ -14,15 +13,24 @@ mkfifo /tmp/crsh-command
 rm -rf /tmp/crsh-result
 mkfifo /tmp/crsh-result
 
+function get_pid() {
+  exec sh -c 'echo "$PPID"'
+}
+
 (
   echo "$(get_pid)" >/tmp/crsh-pids
+  echo 'client did send pid' >>/tmp/crsh-log
   while true; do
+    echo 'client will read' >>/tmp/crsh-log
     read -p '> ' -r line >/dev/tty
+    echo 'client did read' >>/tmp/crsh-log
     echo "$line"
     if [ -z "$line" ]; then
       exit
     fi
+    echo 'client will sleep' >>/tmp/crsh-log
     kill -STOP -- "$(get_pid)"
+    echo 'client did sleep' >>/tmp/crsh-log
   done >/tmp/crsh-command
 )&
 
@@ -30,14 +38,18 @@ IFS= read -r reader_pid </tmp/crsh-pids
 
 (
   echo "$(get_pid)" >/tmp/crsh-pids
+  echo 'server did send pid' >>/tmp/crsh-log
   ./crsh-server
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
 
+echo 'master did recieve server pid' >>/tmp/crsh-log
+
 (
   while true; do
     read -r res
+    echo 'master did recieve server result' >>/tmp/crsh-log
     kill -STOP -- "-$server_pid" 2>/dev/null || break
   done </tmp/crsh-result
 )&
@@ -50,12 +62,16 @@ function on_sigchld () {
   }; then
     return
   fi
+  echo 'master will exit' >>/tmp/crsh-log
   exit
 }
 
 trap on_sigchld SIGCHLD
 
+echo 'master will switch to client' >>/tmp/crsh-log
 fg %1 >/dev/null
+echo 'master did switch to client' >>/tmp/crsh-log
 while true; do
+  echo 'master did swap' >>/tmp/crsh-log
   fg %- >/dev/null
 done
