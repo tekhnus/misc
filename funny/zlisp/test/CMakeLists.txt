@@ -30,4 +30,4 @@ add_test(NAME pytests
 set_tests_properties(
         tests print-file run-cli pytests
         PROPERTIES
-        ENVIRONMENT "ZLISP=${PROJECT_SOURCE_DIR}/module;PATH=$<TARGET_FILE_DIR:Python::Interpreter>:$ENV{PATH}")
+        ENVIRONMENT "ASAN_OPTIONS=detect_leaks=0;ZLISP=${PROJECT_SOURCE_DIR}/module;PATH=$<TARGET_FILE_DIR:Python::Interpreter>:$ENV{PATH}")

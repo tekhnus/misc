@@ -4,7 +4,11 @@ if [ ! -d .venv ]; then
     .venv/bin/pip install -r requirements.txt
 fi
 
-cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -DPython_ROOT_DIR=$PWD/.venv \
+cmake -B build \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
+      -DCMAKE_BUILD_TYPE=Debug \
+      -DPython_ROOT_DIR=$PWD/.venv \
+      -DCMAKE_C_COMPILER=clang \
       && cmake --build build --target codegen \
       && cmake --build build \
       && cmake --build build --target test ARGS=-V
