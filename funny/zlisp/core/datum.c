@@ -15,24 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if EXPORT_INTERFACE
-extern const int NON_FLAT;
-extern const int FLAT_CHILDREN;
-extern const int FLAT;
-
-#define datum_make_list_of(...)                                                \
-  datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
-                          (datum[]){__VA_ARGS__})
-
-#define vec_make_of(...)                                                       \
-  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
-                   (datum[]){__VA_ARGS__})
-
-#endif
-
-const int NON_FLAT = 0;
-const int FLAT_CHILDREN = 1;
-const int FLAT = 2;
+static const int NON_FLAT = 0;
+static const int FLAT_CHILDREN = 1;
+static const int FLAT = 2;
 
 EXPORT bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
 

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <types.h>
 #include <compiling.h>
+#include <zlisp/common.h>
 #if INTERFACE
 #include <types.h>
 #include <stdbool.h>
@@ -8,19 +9,6 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
-
-#if INTERFACE
-typedef struct context context;
-struct context {
-  bool aborted;
-  char error[1024];
-};
-typedef struct extension extension;
-struct extension {
-  void (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata,
-               context *ctxt);
-};
-#endif
 
 EXPORT context *context_alloc_make() {  // For lisp.
   context *res = malloc(sizeof(context));

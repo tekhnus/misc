@@ -1,3 +1,6 @@
+typedef struct prog prog;
+typedef struct routine routine;
+
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -6,6 +9,7 @@
 #include <stdbool.h>
 #include <types.h>
 #include <running.h>
+#include <zlisp/common.h>
 
 enum prog_type {
   PROG_IF,
@@ -77,11 +81,6 @@ struct routine {
   struct frame frames[10];
   size_t cnt;
 };
-
-#if INTERFACE
-typedef struct prog prog;
-typedef struct routine routine;
-#endif
 
 EXPORT result routine_run(vec *sl, datum *r, datum args, context *ctxt) {
   routine rt = get_routine_from_datum(r, ctxt);
@@ -473,7 +472,7 @@ LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
       ctxt);
 }
 
-EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
+EXPORT datum routine_make(ptrdiff_t prg, struct routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
   int parent_type_id =
       context != NULL
@@ -487,7 +486,7 @@ EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
   return res;
 }
 
-EXPORT datum *routine_make_alloc(ptrdiff_t prg, routine *context) {
+EXPORT datum *routine_make_alloc(ptrdiff_t prg, struct routine *context) {
   // This one is for using from lisp.
   datum *res = malloc(sizeof(datum));
   *res = routine_make(prg, context);

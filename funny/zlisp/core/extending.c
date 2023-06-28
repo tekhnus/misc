@@ -2,18 +2,7 @@
 #include <types.h>
 #include <extending.h>
 #include <string.h>
-
-#if EXPORT_INTERFACE
-typedef struct lisp_extension lisp_extension;
-
-struct lisp_extension {
-  extension base;
-  vec program;
-  datum routine_;
-  datum compdata;
-  result (*runner)(vec *, datum *, datum, context *); 
-};
-#endif
+#include <zlisp/common.h>
 
 EXPORT lisp_extension lisp_extension_make(vec program, datum routine_,
                                           datum compdata,

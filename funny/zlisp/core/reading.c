@@ -1,15 +1,3 @@
-// zlisp interpreter.
-#include <types.h>
-#include <reading.h>
-#include <string.h>
-#if INTERFACE
-#include <stdbool.h>
-#endif
-#include <assert.h>
-#include <ctype.h>
-#include <stdlib.h>
-
-#if EXPORT_INTERFACE
 enum token_type {
   TOKEN_DATUM,
   TOKEN_RIGHT_PAREN,
@@ -22,7 +10,19 @@ enum token_type {
   TOKEN_ERROR,
   TOKEN_EOF,
 };
+
+// zlisp interpreter.
+#include <types.h>
+#include <reading.h>
+#include <zlisp/common.h>
+#include <string.h>
+#if INTERFACE
+#include <stdbool.h>
 #endif
+#include <assert.h>
+#include <ctype.h>
+#include <stdlib.h>
+
 
 EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
   datum rr;

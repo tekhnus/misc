@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <extensions.h>
 #include <stdlib.h>
-#if EXPORT_INTERFACE
+#if INTERFACE
 #include <zlisp/common.h>
 #include <zlisp/host-ffi.h>
 #endif
