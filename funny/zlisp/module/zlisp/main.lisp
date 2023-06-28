@@ -48,9 +48,9 @@ context-abort-reason := (/prelude/c-function selflib "context_abort_reason" {{'p
 
 panic-if-aborted := fn {ctxt}
 {reason := (/prelude/context-abort-reason ctxt)
- if (/std/not (/std/eq reason "")) {
-  {} := (/std/panic @0 reason)
- } {}
+ if (/std/not (/std/eq reason ""))
+ {{} := (/std/panic @0 reason)}
+ {}
  return ^{}}
 
 prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
@@ -76,10 +76,11 @@ compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
  e := (/prelude/prog-build-one-c-host-2 (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
-   :nothing}}
+  :nothing}}
 
 routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'pointer
-   'pointer 'pointer}
+   'pointer
+   'pointer}
   'pointer})
 
 repr-datum-pointer-ptr := (/prelude/dlsym selflib "repr_datum_pointer")
@@ -91,13 +92,13 @@ eval-new := fn {sl rt0}
 {ctxt := (/prelude/context-make)
  res := (/prelude/routine-run-and-get-value-c-host-new (/prelude/wrap-pointer-into-pointer sl) rt0 ctxt)
  {} := (../panic-if-aborted @0 ctxt)
- return {:ok res}}
+ return {:ok
+  res}}
 
 read-one-ptr := (/prelude/dlsym selflib "datum_read_one")
 
 datum-read-one := fn {x}
-{return (/prelude/call-the-extension
- (/prelude/dereference read-one-ptr 'int64) x)}
+{return (/prelude/call-the-extension (/prelude/dereference read-one-ptr 'int64) x)}
 
 read := fn {strm}
 {res := (../datum-read-one strm)

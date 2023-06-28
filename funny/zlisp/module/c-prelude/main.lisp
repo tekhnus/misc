@@ -128,9 +128,9 @@ eq := fn {x y}
 serialize-param := fn {param signature}
 {if (../eq signature 'pointer)
  {return param}
-  {if (../eq signature 'progslice)
-   {return param}
-   {return (../mkptr param signature)}}}
+ {if (../eq signature 'progslice)
+  {return param}
+  {return (../mkptr param signature)}}}
 
 serialize-params := 42
 
@@ -142,9 +142,9 @@ serialize-params = fn {params signature}
 dereference := fn {what how}
 {if (../eq how 'pointer)
  {return what}
-  {if (../eq how 'progslice)
-   {return what}
-   {return (../deref what how)}}}
+ {if (../eq how 'progslice)
+  {return what}
+  {return (../deref what how)}}}
 
 pointer-call-and-deserialize := fn {fn-ptr signature params}
 {fnparamst := (../head signature)
