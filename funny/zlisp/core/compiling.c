@@ -613,10 +613,6 @@ LOCAL size_t compdata_get_frame_count(datum *compdata) {
   return list_length(compdata);
 }
 
-LOCAL datum *compdata_get_top_section(datum *compdata) {
-  return list_get_last(compdata);
-}
-
 LOCAL void compdata_give_names(datum *compdata, datum *var, context *ctxt) {
   for (int i = 0; i < list_length(var); ++i) {
     compdata_del(compdata);

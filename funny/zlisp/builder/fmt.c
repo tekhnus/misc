@@ -1,7 +1,6 @@
 #ifndef THIS_IS_JUST_A_WORKAROUND
 #include <zlisp/common.h>
 #endif
-#include "extensions.h"
 #include <assert.h>
 #include <fmt.h>
 #include <stdlib.h>

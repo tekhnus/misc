@@ -36,9 +36,8 @@ struct vec {
   size_t length;
 };
 vec vec_create_slice();
-#define LOCAL static
-LOCAL datum *compdata_get_top_section(datum *compdata);
 int list_index_of(datum *xs,datum *x);
+#define LOCAL static
 LOCAL datum list_pop_slow(datum *list);
 LOCAL void list_append_slow(datum *list,datum value);
 datum *list_get_last(datum *list);
