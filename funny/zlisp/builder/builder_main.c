@@ -4,7 +4,7 @@
 #include <zlisp/host-ffi.h>
 #endif
 #include <assert.h>
-#include <main.h>
+#include <builder_main.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
