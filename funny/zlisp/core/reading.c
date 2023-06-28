@@ -1,5 +1,5 @@
 // zlisp interpreter.
-#include <extern.h>
+#include <reading.h>
 #include <string.h>
 #if INTERFACE
 #include <stdbool.h>

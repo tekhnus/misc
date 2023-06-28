@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <extern.h>
+#include <zlisp/common.h>
 #include <linking.h>
 #include <stdbool.h>
 #include <stdlib.h>

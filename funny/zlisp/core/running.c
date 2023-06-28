@@ -1,8 +1,10 @@
 #include <assert.h>
-#include <extern.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <running.h>
 
 enum prog_type {
   PROG_IF,

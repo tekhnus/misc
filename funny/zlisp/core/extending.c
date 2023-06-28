@@ -1,5 +1,5 @@
 #include <assert.h>
-#include <extern.h>
+#include <extending.h>
 #include <string.h>
 
 #if EXPORT_INTERFACE

@@ -5,11 +5,12 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_STANDARD_REQUIRED YES
 				 C_EXTENSIONS YES)
 add_custom_target(codegen-zlisp-impl
-                  COMMAND bash -c "cat datum.c reading.c compiling.c running.c extending.c >extern.c"
-                  COMMAND makeheaders -v extern.c types.h
-                  COMMAND rm extern.c
                   COMMAND bash -c "$<TARGET_FILE:makeheaders> -H datum.c reading.c compiling.c running.c extending.c types.h >export.h"
                   COMMAND bash -c "echo '#pragma' once | cat - export.h >zlisp/common.h"
                   COMMAND rm export.h
                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                   VERBATIM)
+
+add_custom_target(codegen-core
+                  COMMAND makeheaders -v *.c types.h
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

@@ -1,6 +1,6 @@
 // zlisp interpreter.
 #include <assert.h>
-#include <extern.h>
+#include <datum.h>
 #if INTERFACE
 #include <stdarg.h>
 #include <stdbool.h>
