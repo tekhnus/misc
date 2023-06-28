@@ -7,14 +7,14 @@ set_target_properties(zlisp-impl PROPERTIES
 				 C_EXTENSIONS YES)
 
 add_custom_target(codegen-zlisp-impl
-                  COMMAND bash -c "cp ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/types.h ."
+                  COMMAND bash -c "cp ${CMAKE_CURRENT_SOURCE_DIR}/*.c ."
 									COMMAND mkdir -p zlisp
-                  COMMAND bash -c "$<TARGET_FILE:makeheaders> -H *.c types.h >export.h"
+                  COMMAND bash -c "$<TARGET_FILE:makeheaders> -H *.c >export.h"
                   COMMAND bash -c "echo '#pragma' once | cat - export.h >zlisp/common.h"
                   COMMAND rm export.h
                   VERBATIM)
 
 add_custom_target(codegen-core
-                  COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/*.c ${CMAKE_CURRENT_SOURCE_DIR}/types.h .
-                  COMMAND makeheaders -v *.c types.h
+                  COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/*.c .
+                  COMMAND makeheaders -v *.c
                   )

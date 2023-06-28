@@ -1,8 +1,8 @@
+#pragma once
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
-
-#if EXPORT_INTERFACE
 
 enum datum_type {
   DATUM_LIST,
@@ -10,6 +10,15 @@ enum datum_type {
   DATUM_BYTESTRING,
   DATUM_INTEGER,
 };
+
+typedef struct datum datum;
+
+struct array {
+  datum *begin;
+  size_t length;
+};
+
+typedef struct array array;
 
 struct datum {
   enum datum_type type;
@@ -26,14 +35,10 @@ struct result {
   datum value;
 };
 
-struct array {
-  datum *begin;
-  size_t length;
-};
-
 struct vec {
   array storage;
   size_t length;
 };
 
-#endif
+typedef struct vec vec;
+typedef struct result result;

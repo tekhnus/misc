@@ -1,6 +1,8 @@
 #include <assert.h>
+#include <types.h>
 #include <compiling.h>
 #if INTERFACE
+#include <types.h>
 #include <stdbool.h>
 #include <stddef.h>
 #endif

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <types.h>
 #include <extending.h>
 #include <string.h>
 

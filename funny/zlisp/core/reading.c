@@ -1,4 +1,5 @@
 // zlisp interpreter.
+#include <types.h>
 #include <reading.h>
 #include <string.h>
 #if INTERFACE

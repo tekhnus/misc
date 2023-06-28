@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <types.h>
 #include <running.h>
 
 enum prog_type {

@@ -1,5 +1,9 @@
 // zlisp interpreter.
 #include <assert.h>
+#include <types.h>
+#if INTERFACE
+#include <types.h>
+#endif
 #include <datum.h>
 #if INTERFACE
 #include <stdarg.h>
