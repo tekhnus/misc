@@ -432,52 +432,42 @@ LOCAL datum *state_stack_at(routine *r, datum *offset, context *ctxt) {
   return array_at(vars, idx->integer_value);
 }
 
-LOCAL void state_stack_set(routine *r, datum *target, datum value,
-                           context *ctxt) {
+LOCAL datum state_stack_set(routine *r, datum *target, datum value,
+                            context *ctxt) {
   datum *loc = state_stack_at(r, target, ctxt);
   if (ctxt->aborted) {
-    return;
+    return (datum){};
   }
+  datum res = *loc;
   *loc = value;
-  return;
+  return res;
 }
 
-LOCAL void state_stack_set_many(routine *r, datum idx, datum list,
-                                context *ctxt) {
+LOCAL datum state_stack_set_many(routine *r, datum idx, datum list,
+                                 context *ctxt) {
+  datum form =
+      datum_make_list(vec_make_copies(list_length(&list), datum_make_nil()));
   assert(datum_is_list(&list));
   for (int i = 0; i < list_length(&list); ++i) {
-    state_stack_set(r, &idx, *list_at(&list, i), ctxt);
+    *list_at(&form, i) = state_stack_set(r, &idx, *list_at(&list, i), ctxt);
     if (ctxt->aborted) {
-      return;
+      return (datum){};
     }
     list_at(&idx, 1)->integer_value += 1;
   }
+  return form;
 }
 
 LOCAL datum state_stack_invalidate(routine *r, datum polyindex, context *ctxt) {
-  datum res = *state_stack_at(r, &polyindex, ctxt);
-  if (ctxt->aborted) {
-    return (datum){};
-  }
-  datum *dst = state_stack_at(r, &polyindex, ctxt);
-  if (ctxt->aborted) {
-    return (datum){};
-  }
-  *dst = datum_make_symbol(":invalid");
-  return res;
+  return state_stack_set(r, &polyindex, datum_make_symbol(":invalid"), ctxt);
 }
 
 LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
                                         datum top_polyindex, context *ctxt) {
-  datum form = datum_make_list(vec_make_copies(count, datum_make_nil()));
-  for (size_t i = 0; i < count; ++i) {
-    *list_at(&form, i) = state_stack_invalidate(r, top_polyindex, ctxt);
-    if (ctxt->aborted) {
-      return (datum){};
-    }
-    list_at(&top_polyindex, 1)->integer_value += 1;
-  }
-  return form;
+  return state_stack_set_many(
+      r, top_polyindex,
+      datum_make_list(vec_make_copies(count, datum_make_symbol(":invalid"))),
+      ctxt);
 }
 
 EXPORT datum routine_make(ptrdiff_t prg, routine *context) {
