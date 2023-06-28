@@ -472,7 +472,11 @@ LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
       ctxt);
 }
 
-EXPORT datum routine_make(ptrdiff_t prg, struct routine *context) {
+EXPORT datum routine_make_topmost(ptrdiff_t prg) {
+  return routine_make(prg, NULL);
+}
+
+LOCAL datum routine_make(ptrdiff_t prg, struct routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
   int parent_type_id =
       context != NULL

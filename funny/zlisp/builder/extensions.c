@@ -21,7 +21,7 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
                                     datum *compdata, context *ctxt) {
   *program = vec_create_slice();
   size_t lisp_extension_builder_prg = 0;
-  *routine_ = routine_make(lisp_extension_builder_prg, NULL);
+  *routine_ = routine_make_topmost(lisp_extension_builder_prg);
   *compdata = compdata_make();
   datum lisp_extension_builder_compdata = compdata_make();
   lisp_extension_builder_prg =
