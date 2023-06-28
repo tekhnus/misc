@@ -1,6 +1,9 @@
 #include <assert.h>
 #include <compiling.h>
+#if INTERFACE
 #include <stdbool.h>
+#include <stddef.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 

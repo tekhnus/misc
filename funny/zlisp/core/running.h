@@ -5,14 +5,14 @@ typedef struct datum datum;
 LOCAL struct frame get_frame_from_datum(datum *d);
 typedef struct routine routine;
 typedef struct context context;
+#include <stdbool.h>
+#include <stddef.h>
 struct context {
   bool aborted;
   char error[1024];
 };
 datum *routine_make_alloc(ptrdiff_t prg,routine *context);
 #include <stdarg.h>
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdio.h>
