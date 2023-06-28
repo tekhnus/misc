@@ -46,7 +46,7 @@ EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
       break;
     }
     int i_before = i;
-    prog_append_consume_expression(sl, source, &i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, &i, compdata, ext, ctxt);
     if (ctxt->aborted) {
       return;
     }
@@ -62,7 +62,7 @@ EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
   return;
 }
 
-LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
+LOCAL void prog_append_expression(vec *sl, datum *source, int *i,
                                           datum *compdata, extension *ext,
                                           context *ctxt) {
   int i_val = *i;
@@ -75,7 +75,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
   }
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -84,14 +84,14 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     size_t if_instruction = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     datum false_compdata = datum_copy(compdata);
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
     if (ctxt->aborted) {
       return;
     }
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
         prog_get_if(prog_get_next_index(sl) - if_instruction, idx);
-    prog_append_consume_expression(sl, source, i, &false_compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, &false_compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -106,7 +106,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (datum_is_the_symbol(head, "while")) {
     size_t pre_condition_check = prog_get_next_index(sl);
     datum pre_condition_check_compdata = datum_copy(compdata);
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -114,7 +114,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     datum idx = compdata_get_top_polyindex(compdata);
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -129,7 +129,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), ":=")) {
     (*i)++;
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -149,7 +149,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -188,7 +188,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     if (ctxt->aborted) {
       return;
     }
-    prog_append_consume_expression(sl, source, i, &routine_compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, &routine_compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -237,7 +237,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
     datum idx = compdata_get_next_polyindex(compdata);
-    prog_append_consume_expression(sl, source, i, compdata, ext, ctxt);
+    prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
@@ -260,7 +260,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     }
     int j = 0;
     while (j < list_length(vals)) {
-      prog_append_consume_expression(sl, vals, &j, compdata, ext, ctxt);
+      prog_append_expression(sl, vals, &j, compdata, ext, ctxt);
 
       if (ctxt->aborted) {
         return;
@@ -292,7 +292,7 @@ LOCAL void prog_append_consume_expression(vec *sl, datum *source, int *i,
     int j = 0;
     datum idx = compdata_get_next_polyindex(compdata);
     while (j < list_length(vals)) {
-      prog_append_consume_expression(sl, vals, &j, compdata, ext, ctxt);
+      prog_append_expression(sl, vals, &j, compdata, ext, ctxt);
 
       if (ctxt->aborted) {
         return;
@@ -396,7 +396,7 @@ LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       }
       vec_append(&indices, idx);
     } else {
-      prog_append_consume_expression(sl, fns, &fn_index, compdata, ext, ctxt);
+      prog_append_expression(sl, fns, &fn_index, compdata, ext, ctxt);
 
       if (ctxt->aborted) {
         return;
@@ -408,7 +408,7 @@ LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   datum top_arg_poly = compdata_get_next_polyindex(compdata);
   int before = compdata_get_length(compdata);
   while (index < list_length(s_expr)) {
-    prog_append_consume_expression(sl, s_expr, &index, compdata, ext, ctxt);
+    prog_append_expression(sl, s_expr, &index, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return;
