@@ -140,19 +140,27 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.call_invalidate_function) {
         list_at(&fn_index, 1)->integer_value -= 1;
       }
-      state_stack_set_many(r, fn_index, *argz);
+      state_stack_set_many(r, fn_index, *argz, ctxt);
+      if (ctxt->aborted) {
+        print_frame(sl, r);
+        return (result){};
+      }
       *routine_offset(r) += 1;
       goto body;
     }
     if (prg.type == PROG_YIELD) {
       if (list_length(&args) != (int)prg.yield_recieve_count) {
         abortf(ctxt,
-                "recieved incorrect number of arguments: expected %zu, got %d",
-                prg.yield_recieve_count, list_length(&args));
+               "recieved incorrect number of arguments: expected %zu, got %d",
+               prg.yield_recieve_count, list_length(&args));
         print_frame(sl, r);
         return (result){};
       }
-      state_stack_set_many(r, datum_copy(prg.yield_val_index), args);
+      state_stack_set_many(r, datum_copy(prg.yield_val_index), args, ctxt);
+      if (ctxt->aborted) {
+        print_frame(sl, r);
+        return (result){};
+      }
       *routine_offset(r) += 1;
       goto body;
     }
@@ -173,7 +181,11 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
         datum res =
-            state_stack_invalidate_many(r, prg.yield_count, first_index);
+            state_stack_invalidate_many(r, prg.yield_count, first_index, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         if (datum_is_the_symbol(prg.yield_type, "panic")) {
           print_frame(sl, r);
         }
@@ -181,14 +193,23 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
       if (prg.type == PROG_CALL) {
         datum arg_index = datum_copy(prg.call_arg_index);
-        args = state_stack_invalidate_many(r, prg.call_arg_count, arg_index);
+        args =
+            state_stack_invalidate_many(r, prg.call_arg_count, arg_index, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         break;
       }
       if (prg.type == PROG_PUT_PROG) {
         size_t put_prog_value = *routine_offset(r) + 1;
         datum prog_ptr =
             routine_make(put_prog_value, prg.put_prog_capture ? r : NULL);
-        state_stack_set(r, prg.put_prog_target, prog_ptr);
+        state_stack_set(r, prg.put_prog_target, prog_ptr, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         *routine_offset(r) += prg.put_prog_next;
         continue;
       }
@@ -197,7 +218,11 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         continue;
       }
       if (prg.type == PROG_IF) {
-        datum v = state_stack_invalidate(r, *prg.if_index);
+        datum v = state_stack_invalidate(r, *prg.if_index, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         if (!datum_is_nil(&v)) {
           *routine_offset(r) += 1;
         } else {
@@ -207,37 +232,55 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
       if (prg.type == PROG_PUT_CONST) {
         state_stack_set(r, prg.put_const_target,
-                        datum_copy(prg.put_const_value));
+                        datum_copy(prg.put_const_value), ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_COPY) {
-        if (!state_stack_has(r, prg.copy_offset)) {
-          abortf(ctxt, "wrong copy offset\n");
+        datum *er = state_stack_at(r, prg.copy_offset, ctxt);
+        if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
         }
-        datum *er = state_stack_at(r, prg.copy_offset);
-        state_stack_set(r, prg.copy_target, datum_copy(er));
+        state_stack_set(r, prg.copy_target, datum_copy(er), ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_MOVE) {
-        if (!state_stack_has(r, prg.move_offset)) {
-          abortf(ctxt, "wrong move offset\n");
+        datum er = state_stack_invalidate(r, datum_copy(prg.move_offset), ctxt);
+        if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
         }
-        datum er = state_stack_invalidate(r, datum_copy(prg.move_offset));
-        state_stack_set(r, prg.move_target, er);
+        state_stack_set(r, prg.move_target, er, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         *routine_offset(r) += 1;
         continue;
       }
       if (prg.type == PROG_COLLECT) {
         datum first_index = datum_copy(prg.collect_top_index);
-        datum form =
-            state_stack_invalidate_many(r, prg.collect_count, first_index);
-        state_stack_set(r, prg.collect_top_index, form);
+        datum form = state_stack_invalidate_many(r, prg.collect_count,
+                                                 first_index, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
+        state_stack_set(r, prg.collect_top_index, form, ctxt);
+        if (ctxt->aborted) {
+          print_frame(sl, r);
+          return (result){};
+        }
         *routine_offset(r) += 1;
         continue;
       }
@@ -255,7 +298,10 @@ LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
                                         datum *call_indices, context *ctxt) {
   routine rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
-    datum *x = state_stack_at(r, list_at(call_indices, i));
+    datum *x = state_stack_at(r, list_at(call_indices, i), ctxt);
+    if (ctxt->aborted) {
+      return (routine){};
+    }
     routine nr = get_routine_from_datum(x, ctxt);
     if (ctxt->aborted) {
       return (routine){};
@@ -366,12 +412,13 @@ LOCAL void print_frame(vec *sl, routine *r) {
   fprintf(stderr, "**********\n");
 }
 
-LOCAL bool state_stack_has(routine *r, datum *offset) {
+LOCAL datum *state_stack_at(routine *r, datum *offset, context *ctxt) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
   if (frame->integer_value >= (int)routine_get_count(r)) {
-    return false;
+    abortf(ctxt, "wrong frame index");
+    return NULL;
   }
   struct frame f = r->frames[frame->integer_value];
   assert(list_length(offset) == 2);
@@ -379,49 +426,55 @@ LOCAL bool state_stack_has(routine *r, datum *offset) {
   assert(datum_is_integer(idx));
   array *vars = f.state;
   if ((size_t)idx->integer_value >= array_length(vars)) {
-    return false;
+    abortf(ctxt, "wrong variable index");
+    return NULL;
   }
-  return true;
-}
-
-LOCAL datum *state_stack_at(routine *r, datum *offset) {
-  assert(datum_is_list(offset) && list_length(offset) > 0);
-  datum *frame = list_at(offset, 0);
-  assert(datum_is_integer(frame));
-  assert(frame->integer_value < (int)routine_get_count(r));
-  struct frame f = r->frames[frame->integer_value];
-  assert(list_length(offset) == 2);
-  datum *idx = list_at(offset, 1);
-  assert(datum_is_integer(idx));
-  array *vars = f.state;
-  assert((size_t)idx->integer_value < array_length(vars));
   return array_at(vars, idx->integer_value);
 }
 
-LOCAL void state_stack_set(routine *r, datum *target, datum value) {
-  *state_stack_at(r, target) = value;
+LOCAL void state_stack_set(routine *r, datum *target, datum value,
+                           context *ctxt) {
+  datum *loc = state_stack_at(r, target, ctxt);
+  if (ctxt->aborted) {
+    return;
+  }
+  *loc = value;
   return;
 }
 
-LOCAL void state_stack_set_many(routine *r, datum idx, datum list) {
+LOCAL void state_stack_set_many(routine *r, datum idx, datum list,
+                                context *ctxt) {
   assert(datum_is_list(&list));
   for (int i = 0; i < list_length(&list); ++i) {
-    state_stack_set(r, &idx, *list_at(&list, i));
+    state_stack_set(r, &idx, *list_at(&list, i), ctxt);
+    if (ctxt->aborted) {
+      return;
+    }
     list_at(&idx, 1)->integer_value += 1;
   }
 }
 
-LOCAL datum state_stack_invalidate(routine *r, datum polyindex) {
-  datum res = *state_stack_at(r, &polyindex);
-  *state_stack_at(r, &polyindex) = datum_make_symbol(":invalid");
+LOCAL datum state_stack_invalidate(routine *r, datum polyindex, context *ctxt) {
+  datum res = *state_stack_at(r, &polyindex, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
+  datum *dst = state_stack_at(r, &polyindex, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
+  *dst = datum_make_symbol(":invalid");
   return res;
 }
 
 LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
-                                        datum top_polyindex) {
+                                        datum top_polyindex, context *ctxt) {
   datum form = datum_make_list(vec_make_copies(count, datum_make_nil()));
   for (size_t i = 0; i < count; ++i) {
-    *list_at(&form, i) = state_stack_invalidate(r, top_polyindex);
+    *list_at(&form, i) = state_stack_invalidate(r, top_polyindex, ctxt);
+    if (ctxt->aborted) {
+      return (datum){};
+    }
     list_at(&top_polyindex, 1)->integer_value += 1;
   }
   return form;
@@ -458,7 +511,7 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
 }
 
 LOCAL routine get_routine_from_datum(datum *e, context *ctxt) {
-  if(!datum_is_list(e)) {
+  if (!datum_is_list(e)) {
     abortf(ctxt, "datum is not callable: %s", datum_repr(e));
     return (routine){};
   }
