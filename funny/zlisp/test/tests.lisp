@@ -292,28 +292,6 @@ fntest
 33
 
 fntest
-{do-something := fn {x}
- {res := (/libc/print x)
-  return 123}
- interceptor := 42
- interceptor = fn {arg}
- {{ext-pointer arg-} := (../do-something @mut @{host
-    "this-test-is-broken"} @2 arg)
-  res := (/libc/print "extension:")
-  res = (/libc/print ext-pointer)
-  res = (/libc/print "argument:")
-  res = (/libc/print arg-)
-  host-res := return @1
-  @{host
-   "call-extension"}
-  ^{ext-pointer
-   arg-}
-  {} := (../interceptor @0 @something host-res)}
- res := (interceptor 'arg)
- return res}
-123
-
-fntest
 {wrapper := fn {}
  {mco := magically_called_fn
   {x}

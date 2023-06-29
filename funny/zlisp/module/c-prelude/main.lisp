@@ -1,14 +1,6 @@
 req
 {}
 
-call-the-extension := fn {fnptr x}
-{r := return @1
- @{host
-  "call-extension"}
- ^{fnptr
-  x}
- return r}
-
 deref-pointer := return @1
 
 @{host
