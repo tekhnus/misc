@@ -303,7 +303,7 @@ c-function := fn {handle c-name signature}
 
 selflib := (dlopen-null)
 
-annotate-pointer := (dereference (dlsym selflib "builtin_annotate") 'int64)
+annotate-pointer := (dlsym-or-panic selflib "builtin_annotate")
 
 annotate := fn {x}
 {r := return @1
@@ -313,7 +313,7 @@ annotate := fn {x}
   x}
  return r}
 
-is-constant-pointer := (dereference (dlsym selflib "builtin_is_constant") 'int64)
+is-constant-pointer := (dlsym-or-panic selflib "builtin_is_constant")
 
 is-constant := fn {x}
 {r := return @1
@@ -323,7 +323,7 @@ is-constant := fn {x}
   x}
  return r}
 
-repr-pointer := (dereference (dlsym selflib "builtin_repr") 'int64)
+repr-pointer := (dlsym-or-panic selflib "builtin_repr")
 
 repr := fn {x}
 {r := return @1
@@ -333,7 +333,7 @@ repr := fn {x}
   x}
  return r}
 
-concat-bytestrings-pointer := (dereference (dlsym selflib "builtin_concat_bytestrings") 'int64)
+concat-bytestrings-pointer := (dlsym-or-panic selflib "builtin_concat_bytestrings")
 
 concat-bytestrings := fn {x y}
 {r := return @1
@@ -344,7 +344,7 @@ concat-bytestrings := fn {x y}
   y}
  return r}
 
-+-pointer := (dereference (dlsym selflib "builtin_add") 'int64)
++-pointer := (dlsym-or-panic selflib "builtin_add")
 
 + := fn {x y}
 {r := return @1
@@ -371,13 +371,13 @@ export
  {tail tail}
  {cons cons}
  {eq eq}
- {c-function c-function}
  {annotate annotate}
  {is-constant is-constant}
  {repr repr}
  {concat-bytestrings concat-bytestrings}
  {+ +}
- {wrap-pointer-into-pointer wrap-pointer-into-pointer}
  {shared-library shared-library}
  {dlsym-or-error dlsym-or-error}
+ {c-function c-function}
+ {wrap-pointer-into-pointer wrap-pointer-into-pointer}
  {selflib selflib}}
