@@ -117,6 +117,15 @@ eq := fn {x y}
   y}
  return r}
 
+nth := 42
+
+nth = fn {n xs}
+{if xs
+ {if n
+  {return (../nth (../tail n) (../tail xs))}
+  {return (../head xs)}}
+ {{} := (../panic @0 "nth fail")}}
+
 serialize-param := fn {param signature}
 {if (../eq signature 'pointer)
  {return param}
@@ -185,26 +194,24 @@ dlsym := fn {x y}
    'pointer} {x
    y})}
 
-c-data-pointer := fn {handle c-name signature}
-{fn-pointer-pointer := (../dlsym handle c-name)
- fn-pointer := (../dereference fn-pointer-pointer 'int64)
- return fn-pointer}
+dlsym-or-error := fn {handle c-name}
+{res-pointer-pointer := (../dlsym handle c-name)
+ res := (../dereference res-pointer-pointer 'int64)
+ if (../eq 0 res)
+ {return {:err
+   "dlsym-or-error failed"}}
+ {return {:ok
+   res}}}
 
-nth := 42
-
-nth = fn {n xs}
-{if xs
- {if n
-  {return (../nth (../tail n) (../tail xs))}
-  {return (../head xs)}}
- {{} := (../panic @0 "nth fail")}}
-
-get-fn-ptr := fn {handle c-name}
-{fn-pointer-pointer := (../dlsym handle c-name)
- fn-ptr := (../dereference fn-pointer-pointer 'int64)
- if (../eq fn-ptr 0)
- {{} := (../panic @0 "couldn't load C function")}
- {return fn-ptr}}
+dlsym-or-panic := fn {handle c-name}
+{
+ res := (../dlsym-or-error handle c-name)
+ if (../eq (../head res) :err) {
+ {} := (../panic @0 "couldn't load C function")
+ } {
+  return (../head (../tail res))
+ }
+}
 
 c-function-0 := fn {fn-ptr signature}
 {return ^{}
@@ -290,7 +297,7 @@ c-function := fn {handle c-name signature}
   c-function-7
   c-function-8}
  obj := (../nth argssig objs)
- fn-ptr := (../get-fn-ptr handle c-name)
+ fn-ptr := (../dlsym-or-panic handle c-name)
  {} := (../obj @0 @mut fn-ptr signature)
  return obj}
 
@@ -359,20 +366,11 @@ shared-library := fn {path}
  {return {:ok
    r}}}
 
-extern-pointer := fn {handle c-name signature}
-{res := (../c-data-pointer handle c-name signature)
- if (../eq 0 res)
- {return {:err
-   "extern-pointer failed"}}
- {return {:ok
-   res}}}
-
 export
 {{head head}
  {tail tail}
  {cons cons}
  {eq eq}
- {dlsym dlsym}
  {c-function c-function}
  {annotate annotate}
  {is-constant is-constant}
@@ -381,5 +379,5 @@ export
  {+ +}
  {wrap-pointer-into-pointer wrap-pointer-into-pointer}
  {shared-library shared-library}
- {extern-pointer extern-pointer}
+ {dlsym-or-error dlsym-or-error}
  {selflib selflib}}

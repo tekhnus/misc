@@ -3,7 +3,6 @@ req
  {shared-library "prelude" shared-library}
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
- {dlsym "prelude" dlsym}
  {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
  {std "std"}
  {decons-pat "std" decons-pat}

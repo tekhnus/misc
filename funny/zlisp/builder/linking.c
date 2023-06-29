@@ -156,7 +156,6 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
   prog_build_deps(sl, transitive_deps, module_bytecode, settings,
                               compdata, ext, ctxt);
   if (ctxt->aborted) {
-    abortf(ctxt, "aborted");
     return;
   } 
   size_t ppo = prog_get_next_index(sl);
