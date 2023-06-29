@@ -83,10 +83,11 @@ routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_ru
    'pointer}
   'pointer})
 
-repr-datum-pointer-ptr := (/prelude/dlsym selflib "repr_datum_pointer")
+repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'pointer
+   }
+  'string})
 
-repr-pointer := fn {x}
-{return (/prelude/call-the-extension (/prelude/dereference repr-datum-pointer-ptr 'int64) x)}
+repr-pointer := fn {x} {return (/prelude/repr-pointer-impl x)}
 
 eval-new := fn {sl rt0}
 {ctxt := (/prelude/context-make)

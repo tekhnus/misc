@@ -115,15 +115,3 @@ datum builtin_tail(datum *args, context *ctxt) {
   datum tail = list_get_tail(list);
   return (datum_make_list_of(tail));
 }
-
-datum repr_datum_pointer(datum *args, context *ctxt) { // used in lisp
-  assert(datum_is_list(args) && list_length(args) == 1);
-  datum *arg = list_at(args, 0);
-  if (!datum_is_integer(arg)) {
-    abortf(ctxt, "repr_datum_pointer expected a pointer");
-    return (datum){};
-  }
-  datum *val = *(datum **)arg->integer_value;
-  char *res = datum_repr(val);
-  return (datum_make_list_of(datum_make_bytestring(res)));
-}
