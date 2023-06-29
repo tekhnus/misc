@@ -35,6 +35,10 @@ fprintf := (/prelude/c-function libc "fprintf" {{'pointer
    'string}
   'sizet})
 
+fprintf-pointer := (/prelude/c-function libc "fprintf" {{'pointer
+   'pointer}
+  'sizet})
+
 stdin := (/std/first-good-value {(/prelude/extern-pointer libc "stdin" 'pointer)
   (/prelude/extern-pointer libc "__stdinp" 'pointer)})
 
@@ -53,6 +57,7 @@ export
  {fread fread}
  {feof feof}
  {fprintf fprintf}
+ {fprintf-pointer fprintf-pointer}
  {stdin stdin}
  {stdout stdout}
  {stderr stderr}
