@@ -32,7 +32,10 @@ EXPORT void abortf(context *ctxt, char *format, ...) {
 
 EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
                          extension *ext, context *ctxt) {
-  assert(datum_is_list(source));
+  if(!datum_is_list(source)) {
+    abortf(ctxt, "source should be a list, got %s", datum_repr(source));
+    return;
+  }
   int i = 0;
   for (;;) {
     if (i >= list_length(source)) {

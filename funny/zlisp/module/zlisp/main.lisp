@@ -6,7 +6,6 @@ req
  {dlsym "prelude" dlsym}
  {dereference "prelude" dereference}
  {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
- {call-the-extension "prelude" call-the-extension}
  {std "std"}
  {decons-pat "std" decons-pat}
  {first-good-value "std" first-good-value}
@@ -23,8 +22,7 @@ buildlib := (/std/first-good-value {(/prelude/shared-library "libzlisp-build-lib
 compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
   'pointer})
 
-make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {{'sizet
-   }
+make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {{'sizet}
   'pointer})
 
 prog-slice-make := (/prelude/c-function selflib "vec_create_slice" {{}
@@ -73,7 +71,7 @@ init-prog := fn {sl compdata bdrcompdata}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {ctxt := (/prelude/context-make)
- e := (/prelude/prog-build-one-c-host-2 (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) (/prelude/wrap-pointer-into-pointer src) compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
+ e := (/prelude/prog-build-one-c-host-2 (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) src compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
   :nothing}}
@@ -83,11 +81,11 @@ routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_ru
    'pointer}
   'pointer})
 
-repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'pointer
-   }
+repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'pointer}
   'string})
 
-repr-pointer := fn {x} {return (/prelude/repr-pointer-impl x)}
+repr-pointer := fn {x}
+{return (/prelude/repr-pointer-impl x)}
 
 eval-new := fn {sl rt0}
 {ctxt := (/prelude/context-make)
@@ -96,20 +94,28 @@ eval-new := fn {sl rt0}
  return {:ok
   res}}
 
-read-one-ptr := (/prelude/dlsym selflib "datum_read_one")
+read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'pointer
+   'pointer}
+  'pointer})
 
-datum-read-one := fn {x}
-{return (/prelude/call-the-extension (/prelude/dereference read-one-ptr 'int64) x)}
+datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'pointer}
+  'sizet})
 
-read := fn {strm}
-{res := (../datum-read-one strm)
- return res}
+read-new := fn {strm}
+{ctxt := (/prelude/context-make)
+ res := (/prelude/read-all-alloc strm ctxt)
+ {} := (../panic-if-aborted @0 ctxt)
+ is-eof := (/prelude/datum-is-nil res)
+ if (/std/eq is-eof 0)
+ {return {:ok
+   res}}
+ {return {:eof}}}
 
 export
 {{compile-prog-new compile-prog-new}
  {init-prog init-prog}
  {eval-new eval-new}
- {read read}
+ {read read-new}
  {repr-pointer repr-pointer}
  {make-routine-with-empty-state make-routine-with-empty-state}
  {prog-slice-make prog-slice-make}

@@ -376,8 +376,7 @@ extern-pointer := fn {handle c-name signature}
    res}}}
 
 export
-{{call-the-extension call-the-extension}
- {head head}
+{{head head}
  {tail tail}
  {cons cons}
  {eq eq}

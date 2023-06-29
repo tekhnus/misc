@@ -362,7 +362,7 @@ EXPORT datum datum_make_nil() {
 
 EXPORT bool datum_is_list(datum *e) { return e->type == DATUM_LIST; }
 
-EXPORT bool datum_is_nil(datum *e) {
+EXPORT size_t datum_is_nil(datum *e) {
   return datum_is_list(e) && list_length(e) == 0;
 }
 

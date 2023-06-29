@@ -24,6 +24,16 @@ enum token_type {
 #include <stdlib.h>
 
 
+EXPORT datum *datum_alloc_read_all(FILE *stre, context *ctxt) {  // used in lisp.
+  vec v = datum_read_all(stre, ctxt);
+  if (ctxt->aborted) {
+    return NULL;
+  }
+  datum *res = malloc(sizeof(datum));
+  *res = datum_make_list(v);
+  return res;
+}
+
 EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
   datum rr;
   vec res = vec_make(0);
@@ -38,23 +48,6 @@ EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
     vec_extend(&res, &rr);
   }
   return res;
-}
-
-EXPORT datum datum_read_one(datum *args, context *ctxt) { // used in lisp
-  assert(datum_is_list(args));
-  assert(list_length(args) == 1);
-  assert(datum_is_integer(list_at(args, 0)));
-  FILE *stre = *(FILE **)list_at(args, 0)->integer_value;
-  datum rr = datum_read(stre, ctxt, TOKEN_EOF);
-  if (ctxt->aborted) {
-    return (datum){};
-  }
-  if (datum_is_nil(&rr)) {
-    return datum_make_list_of(datum_make_list_of(datum_make_symbol(":eof")));
-  }
-  datum *d = malloc(sizeof(datum));
-  *d = rr;
-  return datum_make_list_of(datum_make_list_of(datum_make_symbol(":ok"), datum_make_int((size_t)d)));
 }
 
 LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }

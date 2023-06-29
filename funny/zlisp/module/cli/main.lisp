@@ -83,7 +83,7 @@ sl := (/prelude/psm)
 
 bpptr := (/prelude/wrap-pointer-into-pointer 0)
 
-rt := (/prelude/mres (/prelude/dereference bpptr 'int64) )
+rt := (/prelude/mres (/prelude/dereference bpptr 'int64))
 
 compdata := (/prelude/cdm)
 
