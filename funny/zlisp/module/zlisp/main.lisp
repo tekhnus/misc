@@ -1,6 +1,6 @@
 req
 {{prelude "prelude"}
- {shared-library "prelude" shared-library}
+ {dlopen-or-error "prelude" dlopen-or-error}
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
  {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
@@ -14,8 +14,8 @@ req
  {tail "std" tail}
  {panic "std" panic}}
 
-buildlib := (/std/first-good-value {(/prelude/shared-library "libzlisp-build-lib.so")
-  (/prelude/shared-library "libzlisp-build-lib.dylib")})
+buildlib := (/std/first-good-value {(/prelude/dlopen-or-error "libzlisp-build-lib.so")
+  (/prelude/dlopen-or-error "libzlisp-build-lib.dylib")})
 
 compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
   'pointer})

@@ -1,6 +1,6 @@
 req
 {{prelude "prelude"}
- {shared-library "prelude" shared-library}
+ {dlopen-or-error "prelude" dlopen-or-error}
  {c-function "prelude" c-function}
  {dlsym-or-error "prelude" dlsym-or-error}
  {std "std"}
@@ -12,8 +12,8 @@ req
  {panic "std" panic}
  {first-good-value "std" first-good-value}}
 
-libc := (/std/first-good-value {(/prelude/shared-library "libc.so.6")
-  (/prelude/shared-library "libSystem.B.dylib")})
+libc := (/std/first-good-value {(/prelude/dlopen-or-error "libc.so.6")
+  (/prelude/dlopen-or-error "libSystem.B.dylib")})
 
 malloc := (/prelude/c-function libc "malloc" {{'sizet}
   'pointer})

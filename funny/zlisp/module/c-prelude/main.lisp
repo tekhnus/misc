@@ -175,6 +175,14 @@ dlopen := fn {x}
    'pointer} {x
    rtld-lazy})}
 
+dlopen-or-error := fn {path}
+{r := (../dlopen path)
+ if (../eq 0 (../dereference r 'int64))
+ {return {:err
+   "dlopen-or-error failed"}}
+ {return {:ok
+   r}}}
+
 dlopen-null := fn {}
 {return (../pointer-call-and-deserialize dlopen-pointer {{'pointer
     'sizet}
@@ -358,14 +366,6 @@ concat-bytestrings := fn {x y}
 wrap-pointer-into-pointer := fn {p}
 {return (../mkptr p 'sizet)}
 
-shared-library := fn {path}
-{r := (../dlopen path)
- if (../eq 0 (../dereference r 'int64))
- {return {:err
-   "shared-library failed"}}
- {return {:ok
-   r}}}
-
 export
 {{head head}
  {tail tail}
@@ -376,7 +376,7 @@ export
  {repr repr}
  {concat-bytestrings concat-bytestrings}
  {+ +}
- {shared-library shared-library}
+ {dlopen-or-error dlopen-or-error}
  {dlsym-or-error dlsym-or-error}
  {c-function c-function}
  {wrap-pointer-into-pointer wrap-pointer-into-pointer}
