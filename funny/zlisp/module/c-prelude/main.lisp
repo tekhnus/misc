@@ -372,7 +372,6 @@ export
  {tail tail}
  {cons cons}
  {eq eq}
- {dereference dereference}
  {dlsym dlsym}
  {c-function c-function}
  {annotate annotate}

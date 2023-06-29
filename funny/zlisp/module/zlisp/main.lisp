@@ -4,7 +4,6 @@ req
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
  {dlsym "prelude" dlsym}
- {dereference "prelude" dereference}
  {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
  {std "std"}
  {decons-pat "std" decons-pat}

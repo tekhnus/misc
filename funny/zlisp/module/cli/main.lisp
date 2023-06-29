@@ -1,7 +1,6 @@
 req
 {{prelude "prelude"}
  {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
- {dereference "prelude" dereference}
  {std "std"}
  {decons-pat "std" decons-pat}
  {eq "std" eq}
@@ -83,7 +82,7 @@ sl := (/prelude/psm)
 
 bpptr := (/prelude/wrap-pointer-into-pointer 0)
 
-rt := (/prelude/mres (/prelude/dereference bpptr 'int64))
+rt := (/prelude/mres 0)
 
 compdata := (/prelude/cdm)
 
