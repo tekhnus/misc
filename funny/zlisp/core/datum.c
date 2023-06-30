@@ -27,6 +27,10 @@ EXPORT bool datum_is_bytestring(datum *e) {
   return e->type == DATUM_BYTESTRING;
 }
 
+EXPORT bool datum_is_blob(datum *e) {
+  return e->type == DATUM_BLOB;
+}
+
 EXPORT datum datum_make_symbol(char *name) {
   datum e;
   e.type = DATUM_SYMBOL;
@@ -47,6 +51,40 @@ EXPORT datum datum_make_bytestring(char *text) {
     e.bytestring_value[i] = text[i];
   }
   return e;
+}
+
+EXPORT datum datum_make_blob(blob b) {
+  datum e;
+  e.type = DATUM_BLOB;
+  e.blob_value = b;
+  return e;
+}
+
+EXPORT blob *datum_get_blob(datum *d) {
+  assert(datum_is_blob(d));
+  return &d->blob_value;
+}
+
+EXPORT void *datum_get_pointer(datum *d, context *ctxt) {
+  blob *b = datum_get_blob(d);
+  if (b->length != sizeof(void *)) {
+    abortf(ctxt, "expected a pointer");
+    return NULL;
+  }
+  return *(void **)b->begin;
+}
+
+EXPORT blob blob_make(void *data, size_t length) {
+  blob b;
+  b.length = length;
+  b.begin = malloc(length);
+  memcpy(b.begin, data, length);
+  return b;
+}
+
+EXPORT datum datum_make_pointer(void *ptr) {
+  blob b = blob_make(&ptr, sizeof(void *));
+  return datum_make_blob(b);
 }
 
 EXPORT datum datum_make_int(int64_t value) {

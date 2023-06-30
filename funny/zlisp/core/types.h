@@ -8,10 +8,18 @@ enum datum_type {
   DATUM_LIST,
   DATUM_SYMBOL,
   DATUM_BYTESTRING,
+  DATUM_BLOB,
   DATUM_INTEGER,
 };
 
 typedef struct datum datum;
+
+struct blob {
+  void *begin;
+  size_t length;
+};
+
+typedef struct blob blob;
 
 struct array {
   datum *begin;
@@ -26,6 +34,7 @@ struct datum {
     array list_value;
     char *symbol_value;
     char *bytestring_value;
+    blob blob_value;
     int64_t integer_value;
   };
 };
