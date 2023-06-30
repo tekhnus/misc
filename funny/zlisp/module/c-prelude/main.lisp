@@ -199,12 +199,11 @@ dlsym-pointer := return @1
 dlsym := fn {x y}
 {return (../pointer-call-and-deserialize dlsym-pointer {{'int64
     'string}
-   'pointer} {x
+   'int64} {x
    y})}
 
 dlsym-or-error := fn {handle c-name}
-{res := (../dlsym handle c-name)
- resval := (../deref res 'int64)
+{resval := (../dlsym handle c-name)
  if (../eq 0 resval)
  {return {:err
    "dlsym-or-error failed"}}
