@@ -158,6 +158,10 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
     *type = &ffi_type_uint64; // danger!
     return true;
   }
+  if (!strcmp(definition->symbol_value, "int64")) {
+    *type = &ffi_type_pointer;
+    return true;
+  }
   if (!strcmp(definition->symbol_value, "int")) {
     *type = &ffi_type_sint;
     return true;
@@ -239,6 +243,13 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     }
     return (
         datum_make_list_of(datum_make_int((int64_t) & (d->integer_value))));
+  } else if (!strcmp(des, "int64")) {
+    if (!datum_is_integer(d)) {
+      abortf(ctxt, "int expected, got something else");
+      return (datum){};
+    }
+    return (
+        datum_make_list_of(datum_make_int((int64_t) & (d->integer_value))));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
@@ -287,6 +298,8 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
     res = malloc(sizeof(void *));
   } else if (!strcmp(rettype, "sizet")) {
     res = malloc(sizeof(size_t));
+  } else if (!strcmp(rettype, "int64")) {
+    res = malloc(sizeof(void *));
   } else if (!strcmp(rettype, "int")) {
     res = malloc(sizeof(int));
   } else if (!strcmp(rettype, "string")) {
