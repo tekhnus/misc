@@ -90,6 +90,7 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
       return (datum){};
     }
     datum (*fnptr)(datum *, context *) = (datum(*)(datum *, context *))fn->integer_value;
+  // fprintf(stderr, "!!! %s %s %p\n", datum_repr(type), datum_repr(args), fnptr);
     datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
       return (datum){};
@@ -313,6 +314,7 @@ LOCAL void *allocate_space_for_return_value(datum *sig) {
 }
 
 LOCAL datum pointer_call(datum *argz, context *ctxt) {
+  // fprintf(stderr, "??? pointer-call\n");
   if (!datum_is_list(argz) || list_length(argz) != 3) {
     abortf(ctxt, "pointer-call expected a triple on stack");
     return (datum){};

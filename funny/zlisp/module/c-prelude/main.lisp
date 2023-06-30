@@ -172,12 +172,12 @@ dlopen-pointer := return @1
 dlopen := fn {x}
 {return (../pointer-call-and-deserialize dlopen-pointer {{'string
     'sizet}
-   'pointer} {x
+   'int64} {x
    rtld-lazy})}
 
 dlopen-or-error := fn {path}
 {r := (../dlopen path)
- if (../eq 0 (../dereference r 'int64))
+ if (../eq 0 r)
  {return {:err
    "dlopen-or-error failed"}}
  {return {:ok
@@ -186,7 +186,7 @@ dlopen-or-error := fn {path}
 dlopen-null := fn {}
 {return (../pointer-call-and-deserialize dlopen-pointer {{'pointer
     'sizet}
-   'pointer} {(../mkptr 0 'sizet)
+   'int64} {(../mkptr 0 'sizet)
    rtld-lazy})}
 
 dlsym-pointer := return @1
@@ -197,19 +197,29 @@ dlsym-pointer := return @1
 {}
 
 dlsym := fn {x y}
-{return (../pointer-call-and-deserialize dlsym-pointer {{'pointer
+{return (../pointer-call-and-deserialize dlsym-pointer {{'int64
     'string}
    'pointer} {x
    y})}
 
 dlsym-or-error := fn {handle c-name}
-{res-pointer-pointer := (../dlsym handle c-name)
- res := (../dereference res-pointer-pointer 'int64)
- if (../eq 0 res)
+{res := (../dlsym handle c-name)
+ resval := (../deref res 'int64)
+ if (../eq 0 resval)
  {return {:err
    "dlsym-or-error failed"}}
  {return {:ok
    res}}}
+
+dlsym-or-error2 := fn {handle c-name}
+{res := (../dlsym handle c-name)
+ resval := (../deref res 'int64)
+ if (../eq 0 resval)
+ {return {:err
+   "dlsym-or-error failed"}}
+ {return {:ok
+   resval}}}
+
 
 dlsym-or-panic := fn {handle c-name}
 {
@@ -306,7 +316,8 @@ c-function := fn {handle c-name signature}
   c-function-8}
  obj := (../nth argssig objs)
  fn-ptr := (../dlsym-or-panic handle c-name)
- {} := (../obj @0 @mut fn-ptr signature)
+ fn-ptr-val := (../dereference fn-ptr 'int64)
+ {} := (../obj @0 @mut fn-ptr-val signature)
  return obj}
 
 selflib := (dlopen-null)
@@ -317,7 +328,7 @@ annotate := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{annotate-pointer
+ ^{(../dereference annotate-pointer 'int64)
   x}
  return r}
 
@@ -327,7 +338,7 @@ is-constant := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{is-constant-pointer
+ ^{(../dereference is-constant-pointer 'int64)
   x}
  return r}
 
@@ -337,7 +348,7 @@ repr := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{repr-pointer
+ ^{(../dereference repr-pointer 'int64)
   x}
  return r}
 
@@ -347,7 +358,7 @@ concat-bytestrings := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{concat-bytestrings-pointer
+ ^{(../dereference concat-bytestrings-pointer 'int64)
   x
   y}
  return r}
@@ -358,7 +369,7 @@ concat-bytestrings := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{+-pointer
+ ^{(../dereference +-pointer 'int64)
   x
   y}
  return r}
@@ -378,6 +389,7 @@ export
  {+ +}
  {dlopen-or-error dlopen-or-error}
  {dlsym-or-error dlsym-or-error}
+ {dlsym-or-error2 dlsym-or-error2}
  {c-function c-function}
  {wrap-pointer-into-pointer wrap-pointer-into-pointer}
  {selflib selflib}}
