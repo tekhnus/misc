@@ -209,15 +209,6 @@ dlsym-or-error := fn {handle c-name}
  {return {:err
    "dlsym-or-error failed"}}
  {return {:ok
-   res}}}
-
-dlsym-or-error2 := fn {handle c-name}
-{res := (../dlsym handle c-name)
- resval := (../deref res 'int64)
- if (../eq 0 resval)
- {return {:err
-   "dlsym-or-error failed"}}
- {return {:ok
    resval}}}
 
 
@@ -315,8 +306,7 @@ c-function := fn {handle c-name signature}
   c-function-7
   c-function-8}
  obj := (../nth argssig objs)
- fn-ptr := (../dlsym-or-panic handle c-name)
- fn-ptr-val := (../dereference fn-ptr 'int64)
+ fn-ptr-val := (../dlsym-or-panic handle c-name)
  {} := (../obj @0 @mut fn-ptr-val signature)
  return obj}
 
@@ -328,7 +318,7 @@ annotate := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{(../dereference annotate-pointer 'int64)
+ ^{annotate-pointer 
   x}
  return r}
 
@@ -338,7 +328,7 @@ is-constant := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{(../dereference is-constant-pointer 'int64)
+ ^{is-constant-pointer 
   x}
  return r}
 
@@ -348,7 +338,7 @@ repr := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{(../dereference repr-pointer 'int64)
+ ^{repr-pointer 
   x}
  return r}
 
@@ -358,7 +348,7 @@ concat-bytestrings := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{(../dereference concat-bytestrings-pointer 'int64)
+ ^{concat-bytestrings-pointer 
   x
   y}
  return r}
@@ -369,7 +359,7 @@ concat-bytestrings := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{(../dereference +-pointer 'int64)
+ ^{+-pointer 
   x
   y}
  return r}
@@ -389,7 +379,6 @@ export
  {+ +}
  {dlopen-or-error dlopen-or-error}
  {dlsym-or-error dlsym-or-error}
- {dlsym-or-error2 dlsym-or-error2}
  {c-function c-function}
  {wrap-pointer-into-pointer wrap-pointer-into-pointer}
  {selflib selflib}}

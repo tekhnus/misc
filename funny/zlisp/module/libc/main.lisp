@@ -3,7 +3,6 @@ req
  {dlopen-or-error "prelude" dlopen-or-error}
  {c-function "prelude" c-function}
  {dlsym-or-error "prelude" dlsym-or-error}
- {dlsym-or-error2 "prelude" dlsym-or-error2}
  {std "std"}
  {decons-pat "std" decons-pat}
  {eq "std" eq}
@@ -40,14 +39,14 @@ fprintf-pointer := (/prelude/c-function libc "fprintf" {{'pointer
    'pointer}
   'sizet})
 
-stdin := (/std/first-good-value {(/prelude/dlsym-or-error2 libc "stdin" )
-  (/prelude/dlsym-or-error2 libc "__stdinp" )})
+stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin" )
+  (/prelude/dlsym-or-error libc "__stdinp" )})
 
-stdout := (/std/first-good-value {(/prelude/dlsym-or-error2 libc "stdout")
-  (/prelude/dlsym-or-error2 libc "__stdoutp")})
+stdout := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdout")
+  (/prelude/dlsym-or-error libc "__stdoutp")})
 
-stderr := (/std/first-good-value {(/prelude/dlsym-or-error2 libc "stderr")
-  (/prelude/dlsym-or-error2 libc "__stderrp")})
+stderr := (/std/first-good-value {(/prelude/dlsym-or-error libc "stderr")
+  (/prelude/dlsym-or-error libc "__stderrp")})
 
 print := fn {val}
 {return (/prelude/fprintf stdout (/std/repr val))}
