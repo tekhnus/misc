@@ -142,7 +142,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start, bo
         offset += fprintf(buf, "`");
         item = list_at(list_at(e, ++i), 0);
       }
-      if (datum_is_the_symbol(item, "tilde")) {
+      if (datum_is_the_symbol(item, "tilde") && i + 1 < list_length(e)) {
         offset += fprintf(buf, "~");
         item = list_at(list_at(e, ++i), 0);
       }
@@ -303,6 +303,7 @@ EXPORT vec vec_make_copies(size_t length, datum val) {
 }
 
 EXPORT datum *vec_append(vec *s, datum x) {
+  assert(s->length <= s->storage.length);
   if (s->length == s->storage.length) {
     size_t new_capacity = (s->storage.length + 1) * 2;
     datum *new_begin = malloc(sizeof(datum) * new_capacity);
@@ -377,7 +378,9 @@ EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
 
 EXPORT size_t array_length(array *arr) { return arr->length; }
 
-EXPORT datum *array_at(array *arr, size_t i) { return arr->begin + i; }
+EXPORT datum *array_at(array *arr, size_t i) {
+  assert(i < arr->length);
+  return arr->begin + i; }
 
 EXPORT int list_length(datum *seq) {
   assert(datum_is_list(seq));
