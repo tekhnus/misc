@@ -371,9 +371,17 @@ LOCAL void **datum_get_ptr(datum *d, context *ctxt) {
 }
 
 LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
-  return __extension__(void (*)(void))*datum_get_ptr(d, ctxt);
+  void **ptr = datum_get_ptr(d, ctxt);
+  if (ctxt->aborted) {
+    return NULL;
+  }
+  return __extension__(void (*)(void))*ptr;
 }
 
 LOCAL datum(*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *, context *) {
-  return (datum(*)(datum *, context *))*datum_get_fn_ptr(d, ctxt);
+  void **ptr = datum_get_ptr(d, ctxt);
+  if (ctxt->aborted) {
+    return NULL;
+  }
+  return (datum(*)(datum *, context *))*ptr;
 }
