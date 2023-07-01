@@ -1,4 +1,4 @@
-#include <running.h>
+#include <running_.h>
 #if INTERFACE
 #include <assert.h>
 #include <dlfcn.h>

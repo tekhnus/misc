@@ -1,4 +1,4 @@
-add_library(zlisp-c SHARED builtins_.c running.c)
+add_library(zlisp-c SHARED builtins_.c running_.c)
 target_link_libraries(zlisp-c PUBLIC zlisp-impl ffi dl)
 
 add_executable(zlisp-run main.c)

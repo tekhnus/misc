@@ -1,8 +1,8 @@
 #include <assert.h>
-#include <extending.h>
 #include <string.h>
 #include <types.h>
 #include <zlisp/common.h>
+#include <extending.h>
 
 EXPORT lisp_extension lisp_extension_make(vec program, datum routine_,
                                           datum compdata,

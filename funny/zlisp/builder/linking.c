@@ -1,9 +1,9 @@
 #include <assert.h>
-#include <linking.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <zlisp/common.h>
+#include <linking.h>
 
 EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
                               context *ctxt) {

@@ -2,7 +2,6 @@ typedef struct prog prog;
 typedef struct routine routine;
 
 #include <assert.h>
-#include <running.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -10,6 +9,7 @@ typedef struct routine routine;
 #include <string.h>
 #include <types.h>
 #include <zlisp/common.h>
+#include <running.h>
 
 enum prog_type {
   PROG_IF,
