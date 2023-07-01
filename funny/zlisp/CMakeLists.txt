@@ -20,6 +20,3 @@ add_subdirectory(builder)
 add_subdirectory(host-python)
 add_subdirectory(tools)
 add_subdirectory(test)
-
-add_custom_target(codegen
-                  DEPENDS codegen-zlisp-impl codegen-core codegen-host-ffi codegen-builder)
