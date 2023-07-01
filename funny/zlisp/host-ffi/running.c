@@ -249,12 +249,12 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     return (
         datum_make_list_of(datum_make_ptr(& (d->integer_value))));
   } else if (!strcmp(des, "int64")) {
-    if (!datum_is_integer(d)) {
-      abortf(ctxt, "int expected, got something else");
+    void **ptr = datum_get_ptr(d, ctxt);
+    if (ctxt->aborted) {
       return (datum){};
     }
     return (
-        datum_make_list_of(datum_make_ptr(& (d->integer_value))));
+        datum_make_list_of(datum_make_ptr(ptr)));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
@@ -285,7 +285,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (
         datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
-    return (datum_make_list_of(datum_make_int(*(int64_t *)wha)));
+    return datum_make_list_of(datum_make_ptr(*(void **)wha));
   } else if (!strcmp(rettype, "string")) {
     return (
         datum_make_list_of(datum_make_bytestring(*(char **)wha)));
