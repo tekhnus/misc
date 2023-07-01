@@ -169,12 +169,6 @@ dlopen-or-error := fn {path}
  {return {:ok
    r}}}
 
-dlopen-null := fn {}
-{return (../pointer-call-and-deserialize dlopen-pointer {{'pointer
-    'int}
-   'int64} {(../mkptr 0 'sizet)
-   rtld-lazy})}
-
 dlsym-pointer := return @1
 
 @{host
@@ -295,7 +289,7 @@ c-function := fn {handle c-name signature}
  {} := (../obj @0 @mut fn-ptr-val signature)
  return obj}
 
-selflib := (dlopen-null)
+selflib := (dlopen "__magic_null_string__")
 
 annotate-pointer := (dlsym-or-panic selflib "builtin_annotate")
 

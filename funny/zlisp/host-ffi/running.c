@@ -193,6 +193,8 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, cont
   }
 }
 
+void *null_pointer = NULL;
+
 LOCAL datum datum_mkptr(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
@@ -211,8 +213,14 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
       abortf(ctxt, "string expected, got something else");
       return (datum){};
     }
+    void *addr;
+    if (!strcmp(d->bytestring_value, "__magic_null_string__")) {
+      addr = &null_pointer;
+    } else {
+      addr = &d->bytestring_value;
+    }
     return (
-        datum_make_list_of(datum_make_ptr(& (d->bytestring_value))));
+        datum_make_list_of(datum_make_ptr(addr)));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
