@@ -173,34 +173,38 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   return false;
 }
 
-LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
-                                 ffi_type **ret_type) {
+LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
+                                 ffi_type **ret_type, context *ctxt) {
   if (list_length(sig) != 2) {
-    return "the signature should be a two-item list";
+    abortf(ctxt, "the signature should be a two-item list");
+    return;
   }
   datum *arg_defs = list_at(sig, 0);
   int arg_count;
   for (arg_count = 0; arg_count < list_length(arg_defs); ++arg_count) {
     if (!ffi_type_init(arg_types + arg_count, list_at(arg_defs, arg_count))) {
-      return "something wrong with the argument type signature";
+      abortf(ctxt, "something wrong with the argument type signature");
+      return;
     }
   }
   if (!ffi_type_init(ret_type, list_at(sig, 1))) {
-    return "something wrong with the return type signature";
+    abortf(ctxt, "something wrong with the ret type signature");
+    return;
   }
   ffi_status status;
   // TODO(): for variadic functions, prep_cif_var must be used.
   // Without it, linux works somehow and mac does not.
   if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, *ret_type,
                              arg_types)) != FFI_OK) {
-    return "something went wrong during ffi_prep_cif";
+    abortf(ctxt, "something went wrong during ffi_prep_cif");
+    return;
   }
-  return NULL;
 }
 
-LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, context *ctxt) {
+LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, context *ctxt) {
   if (list_length(args) != nargs) {
-    return "incorrect number of args for FFI call";
+    abortf(ctxt, "incorrect number of args for FFI call");
+    return;
   }
   int arg_cnt = 0;
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
@@ -208,11 +212,10 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, con
 
     void **ptr = datum_get_ptr(a, ctxt);
     if (ctxt->aborted) {
-      return NULL;
+      return;
     }
     cargs[arg_cnt] = *ptr;
   }
-  return NULL;
 }
 
 LOCAL datum datum_mkptr(datum *args, context *ctxt) {
@@ -330,22 +333,16 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
     return (datum){};
   }
   ffi_cif cif;
-  char *err = NULL;
   ffi_type *arg_types[32];
   ffi_type *ret_type;
-  err = pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type);
-  if (err != NULL) {
-    abortf(ctxt, err);
+  pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type, ctxt);
+  if (ctxt->aborted) {
     return (datum){};
   }
   int nargs = list_length(list_at(sig, 0));
   void *cargs[32];
-  err = pointer_ffi_serialize_args(args, cargs, nargs, ctxt);
+  pointer_ffi_serialize_args(args, cargs, nargs, ctxt);
   if (ctxt->aborted) {
-    return (datum){};
-  }
-  if (err != NULL) {
-    abortf(ctxt, err);
     return (datum){};
   }
   size_t sz = get_sizeof(sig);
