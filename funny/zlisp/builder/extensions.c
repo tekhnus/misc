@@ -6,6 +6,16 @@
 #include <zlisp/host-ffi.h>
 #endif
 
+EXPORT extension *standard_extension_alloc_make(context *ctxt) {
+  // For Lisp.
+  lisp_extension *res = malloc(sizeof(lisp_extension));
+  *res = standard_extension_make(ctxt);
+  if (ctxt->aborted) {
+    return NULL;
+  }
+  return &res->base;
+}
+
 EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
   vec program;
   datum routine_;

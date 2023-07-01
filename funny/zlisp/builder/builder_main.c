@@ -59,13 +59,3 @@ int main(int argc, char **argv) {
   printf("%s\n", datum_repr(&d));
   return EXIT_SUCCESS;
 }
-
-EXPORT extension *standard_extension_alloc_make(context *ctxt) {
-  // For Lisp.
-  lisp_extension *res = malloc(sizeof(lisp_extension));
-  *res = standard_extension_make(ctxt);
-  if (ctxt->aborted) {
-    return NULL;
-  }
-  return &res->base;
-}

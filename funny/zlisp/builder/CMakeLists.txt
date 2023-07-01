@@ -1,6 +1,6 @@
 add_library(zlisp-build-lib SHARED
-  builder_main.c linking.c extensions.c building.c
-  builder_main.h linking.h extensions.h building.h
+  linking.c extensions.c building.c
+  linking.h extensions.h building.h
 )
 target_link_libraries(zlisp-build-lib PUBLIC zlisp-c)
 target_include_directories(zlisp-build-lib PUBLIC .)
