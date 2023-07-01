@@ -234,6 +234,12 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     }
     return (
         datum_make_list_of(datum_make_ptr(ptr)));
+  } else if (!strcmp(des, "pointer")) {
+    if (ctxt->aborted) {
+      return (datum){};
+    }
+    return (
+        datum_make_list_of(datum_copy(d)));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};

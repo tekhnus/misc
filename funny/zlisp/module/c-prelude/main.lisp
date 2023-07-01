@@ -126,16 +126,11 @@ nth = fn {n xs}
   {return (../head xs)}}
  {{} := (../panic @0 "nth fail")}}
 
-serialize-param := fn {param signature}
-{if (../eq signature 'pointer)
- {return param}
-  {return (../mkptr param signature)}}
-
 serialize-params := 42
 
 serialize-params = fn {params signature}
 {if params
- {return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
+ {return (../cons (../mkptr (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
  {return {}}}
 
 pointer-call-and-deserialize := fn {fn-ptr signature params}
