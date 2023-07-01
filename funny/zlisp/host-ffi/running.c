@@ -206,7 +206,7 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, con
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
     datum *a = list_at(args, arg_cnt);
 
-    cargs[arg_cnt] = datum_get_ptr(a, ctxt);
+    cargs[arg_cnt] = *datum_get_ptr(a, ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
@@ -274,7 +274,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum){};
   }
   char *rettype = how->symbol_value;
-  void *wha = datum_get_ptr(what, ctxt);
+  void *wha = *datum_get_ptr(what, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
@@ -363,19 +363,19 @@ LOCAL datum datum_make_ptr(void *ptr) {
   return datum_make_int((int64_t) ptr);
 }
 
-LOCAL void *datum_get_ptr(datum *d, context *ctxt) {
+LOCAL void **datum_get_ptr(datum *d, context *ctxt) {
   // return datum_get_pointer(d, ctxt);
   if(!datum_is_integer(d)) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
-  return (void *)d->integer_value;  
+  return (void **)&d->integer_value;  
 }
 
 LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
-  return __extension__(void (*)(void))datum_get_ptr(d, ctxt);
+  return __extension__(void (*)(void))*datum_get_ptr(d, ctxt);
 }
 
 LOCAL datum(*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *, context *) {
-  return (datum(*)(datum *, context *))datum_get_fn_ptr(d, ctxt);
+  return (datum(*)(datum *, context *))*datum_get_fn_ptr(d, ctxt);
 }
