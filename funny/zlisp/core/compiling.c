@@ -643,6 +643,12 @@ EXPORT vec vec_create_slice() {
   return sl;
 }
 
+EXPORT vec *vec_alloc_slice() {  // Used in lisp.
+  vec *sl = malloc(sizeof(vec));
+  *sl = vec_make(16 * 1024);
+  return sl;
+}
+
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
 
 LOCAL void list_append_slow(datum *list, datum value) {
