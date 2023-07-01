@@ -23,8 +23,8 @@ compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
 make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {{'sizet}
   'pointer})
 
-prog-slice-make := (/prelude/c-function selflib "vec_create_slice" {{}
-  'progslice})
+prog-slice-make := (/prelude/c-function selflib "vec_alloc_slice" {{}
+  'pointer})
 
 prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
    'pointer
@@ -63,13 +63,13 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'poi
 
 init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (/prelude/context-make)
- nothing := (/prelude/prog-build-init (/prelude/wrap-pointer-into-pointer sl) compdata bdrcompdata ctxt)
+ nothing := (/prelude/prog-build-init sl compdata bdrcompdata ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return nothing}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {ctxt := (/prelude/context-make)
- e := (/prelude/prog-build-one-c-host-2 (/prelude/wrap-pointer-into-pointer sl) (/prelude/wrap-pointer-into-pointer bpptr) src compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
+ e := (/prelude/prog-build-one-c-host-2 sl (/prelude/wrap-pointer-into-pointer bpptr) src compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
   :nothing}}
@@ -87,7 +87,7 @@ repr-pointer := fn {x}
 
 eval-new := fn {sl rt0}
 {ctxt := (/prelude/context-make)
- res := (/prelude/routine-run-and-get-value-c-host-new (/prelude/wrap-pointer-into-pointer sl) rt0 ctxt)
+ res := (/prelude/routine-run-and-get-value-c-host-new sl rt0 ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
   res}}

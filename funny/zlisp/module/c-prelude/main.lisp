@@ -129,9 +129,7 @@ nth = fn {n xs}
 serialize-param := fn {param signature}
 {if (../eq signature 'pointer)
  {return param}
- {if (../eq signature 'progslice)
-  {return param}
-  {return (../mkptr param signature)}}}
+  {return (../mkptr param signature)}}
 
 serialize-params := 42
 

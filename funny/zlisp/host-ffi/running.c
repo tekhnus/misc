@@ -121,24 +121,6 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   return (datum_make_list_of(res));
 }
 
-ffi_type ffi_type_vec;
-ffi_type *ffi_type_vec_elements[4];
-
-LOCAL void init_standard_types() {
-  // TODO(): UPDATE THE FFI DEFINITIONS, THEY ARE OUTDATED.
-  ffi_type *type = &ffi_type_vec;
-  (type)->type = FFI_TYPE_STRUCT;
-  (type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
-                    // Mac before adding this line.
-  (type)->alignment = 0;
-  ffi_type **elements = ffi_type_vec_elements;
-  elements[0] = &ffi_type_pointer;
-  elements[1] = &ffi_type_uint64; // it's actually size_t, danger!
-  elements[2] = &ffi_type_uint64; // it's size_t too!
-  elements[3] = NULL;
-  (type)->elements = elements;
-}
-
 LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   if (!datum_is_symbol(definition)) {
     return false;
@@ -161,11 +143,6 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
   }
   if (!strcmp(definition->symbol_value, "int")) {
     *type = &ffi_type_sint;
-    return true;
-  }
-  if (!strcmp(definition->symbol_value, "progslice")) {
-    init_standard_types();
-    *type = &ffi_type_vec;
     return true;
   }
   return false;
@@ -287,8 +264,6 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return datum_make_list_of(datum_make_ptr(*(void **)wha));
   } else if (!strcmp(rettype, "pointer")) {
     return datum_make_list_of(datum_make_ptr(wha));
-  } else if (!strcmp(rettype, "progslice")) {
-    return datum_make_list_of(datum_make_ptr(wha));
   } else if (!strcmp(rettype, "string")) {
     return (
         datum_make_list_of(datum_make_bytestring(*(char **)wha)));
@@ -310,8 +285,6 @@ LOCAL size_t get_sizeof(datum *sig) {
     return (sizeof(int));
   } else if (!strcmp(rettype, "string")) {
     return (sizeof(char *));
-  } else if (!strcmp(rettype, "progslice")) {
-    return (sizeof(vec));
   }
   return 0;
 }
