@@ -65,13 +65,13 @@ EXPORT blob *datum_get_blob(datum *d) {
   return &d->blob_value;
 }
 
-EXPORT void *datum_get_pointer(datum *d, context *ctxt) {
+EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
   blob *b = datum_get_blob(d);
   if (b->length != sizeof(void *)) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
-  return *(void **)b->begin;
+  return (void **)b->begin;
 }
 
 EXPORT blob blob_make(void *data, size_t length) {
