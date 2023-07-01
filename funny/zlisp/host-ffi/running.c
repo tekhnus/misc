@@ -206,10 +206,11 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, con
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
     datum *a = list_at(args, arg_cnt);
 
-    cargs[arg_cnt] = *datum_get_ptr(a, ctxt);
+    void **ptr = datum_get_ptr(a, ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
+    cargs[arg_cnt] = *ptr;
   }
   return NULL;
 }
@@ -275,9 +276,6 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   }
   char *rettype = how->symbol_value;
   void *wha = datum_get_blob(what)->begin;
-  if (ctxt->aborted) {
-    return (datum){};
-  }
   if (!strcmp(rettype, "sizet")) {
     return (
         datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
