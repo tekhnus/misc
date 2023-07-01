@@ -205,16 +205,11 @@ dlsym-or-error := fn {handle c-name}
  {return {:ok
    resval}}}
 
-
 dlsym-or-panic := fn {handle c-name}
-{
- res := (../dlsym-or-error handle c-name)
- if (../eq (../head res) :err) {
- {} := (../panic @0 "couldn't load C function")
- } {
-  return (../head (../tail res))
- }
-}
+{res := (../dlsym-or-error handle c-name)
+ if (../eq (../head res) :err)
+ {{} := (../panic @0 "couldn't load C function")}
+ {return (../head (../tail res))}}
 
 c-function-0 := fn {fn-ptr signature}
 {return ^{}
@@ -312,7 +307,7 @@ annotate := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{annotate-pointer 
+ ^{annotate-pointer
   x}
  return r}
 
@@ -322,7 +317,7 @@ is-constant := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{is-constant-pointer 
+ ^{is-constant-pointer
   x}
  return r}
 
@@ -332,7 +327,7 @@ repr := fn {x}
 {r := return @1
  @{host
   "call-extension"}
- ^{repr-pointer 
+ ^{repr-pointer
   x}
  return r}
 
@@ -342,7 +337,7 @@ concat-bytestrings := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{concat-bytestrings-pointer 
+ ^{concat-bytestrings-pointer
   x
   y}
  return r}
@@ -353,7 +348,7 @@ concat-bytestrings := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{+-pointer 
+ ^{+-pointer
   x
   y}
  return r}

@@ -39,8 +39,8 @@ fprintf-pointer := (/prelude/c-function libc "fprintf" {{'pointer
    'pointer}
   'sizet})
 
-stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin" )
-  (/prelude/dlsym-or-error libc "__stdinp" )})
+stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")
+  (/prelude/dlsym-or-error libc "__stdinp")})
 
 stdout := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdout")
   (/prelude/dlsym-or-error libc "__stdoutp")})
