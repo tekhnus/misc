@@ -1,12 +1,12 @@
 #include <assert.h>
-#include <zlisp/common.h>
 #include <linking.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlisp/common.h>
 
-EXPORT size_t prog_build_init(vec *sl, datum *compdata,
-                              datum *builder_compdata, context *ctxt) {
+EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
+                              context *ctxt) {
   extension ext = null_extension_make();
   vec return_expr = vec_make_of(
       datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
@@ -19,8 +19,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
     return 0;
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
-  ptrdiff_t *bdr_put_prog_ =
-      prog_define_routine(sl, datum_make_symbol("__main__"), builder_compdata, ctxt);
+  ptrdiff_t *bdr_put_prog_ = prog_define_routine(
+      sl, datum_make_symbol("__main__"), builder_compdata, ctxt);
   if (ctxt->aborted) {
     return 0;
   }
@@ -59,14 +59,14 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata,
 }
 
 EXPORT void prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
-                            datum (*module_bytecode)(char *, datum *,
-                                                      extension *, context *ctxt),
-                            datum *settings, extension *ext, context *ctxt) {
+                           datum (*module_bytecode)(char *, datum *,
+                                                    extension *, context *ctxt),
+                           datum *settings, extension *ext, context *ctxt) {
   if (input_meta == NULL) {
     return;
   }
-  prog_build_deps(sl, input_meta, module_bytecode, settings,
-                              builder_compdata, ext, ctxt);
+  prog_build_deps(sl, input_meta, module_bytecode, settings, builder_compdata,
+                  ext, ctxt);
   if (ctxt->aborted) {
     return;
   }
@@ -90,9 +90,10 @@ EXPORT void prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
 }
 
 LOCAL void prog_build_deps(vec *sl, datum *deps,
-                            datum (*module_bytecode)(char *, datum *,
-                                                      extension *, context *ctxt),
-                            datum *settings, datum *compdata, extension *ext, context *ctxt) {
+                           datum (*module_bytecode)(char *, datum *,
+                                                    extension *, context *ctxt),
+                           datum *settings, datum *compdata, extension *ext,
+                           context *ctxt) {
   for (int i = 0; i < list_length(deps); ++i) {
     datum *dep = list_at(deps, i);
     prog_build_dep(sl, dep, module_bytecode, settings, compdata, ext, ctxt);
@@ -118,9 +119,10 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
 }
 
 LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
-                           datum (*module_bytecode)(char *, datum *,
-                                                     extension *, context *ctxt),
-                           datum *settings, datum *compdata, extension *ext, context *ctxt) {
+                          datum (*module_bytecode)(char *, datum *, extension *,
+                                                   context *ctxt),
+                          datum *settings, datum *compdata, extension *ext,
+                          context *ctxt) {
   if (!datum_is_list(dep_and_sym) || datum_is_nil(dep_and_sym) ||
       !datum_is_bytestring(list_at(dep_and_sym, 0))) {
     abortf(ctxt, "req expects bytestrings");
@@ -153,11 +155,11 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
     abortf(ctxt, "error: null extract_meta for exports");
     return;
   }
-  prog_build_deps(sl, transitive_deps, module_bytecode, settings,
-                              compdata, ext, ctxt);
+  prog_build_deps(sl, transitive_deps, module_bytecode, settings, compdata, ext,
+                  ctxt);
   if (ctxt->aborted) {
     return;
-  } 
+  }
   size_t ppo = prog_get_next_index(sl);
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);

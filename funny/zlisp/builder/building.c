@@ -35,8 +35,8 @@ EXPORT void module_to_filename(char *fname, char *module, context *ctxt) {
   strcat(fname, "/main.lisp");
 }
 
-EXPORT datum compile_module(char *module, datum *settings,
-                             extension *extension, context *ctxt) {
+EXPORT datum compile_module(char *module, datum *settings, extension *extension,
+                            context *ctxt) {
   if (!datum_is_bytestring(settings)) {
     abortf(ctxt, "settings should be a string");
     return (datum_make_nil());
@@ -63,8 +63,8 @@ EXPORT datum compile_module(char *module, datum *settings,
 }
 
 EXPORT size_t prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
-                        datum *builder_compdata, datum *settings,
-                        extension *ext, context *ctxt) {
+                         datum *builder_compdata, datum *settings,
+                         extension *ext, context *ctxt) {
   size_t start_p = prog_get_next_index(sl);
   prog_compile(sl, source, compdata, ext, ctxt);
   if (ctxt->aborted) {
@@ -88,8 +88,8 @@ EXPORT size_t prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   ptrdiff_t *builder_jmp = prog_get_jmp_delta(sl, *bp);
   *builder_jmp = prog_get_next_index(sl) - *bp;
 
-  prog_link_deps(sl, builder_compdata, input_meta, compile_module,
-                             settings, ext, ctxt);
+  prog_link_deps(sl, builder_compdata, input_meta, compile_module, settings,
+                 ext, ctxt);
   if (ctxt->aborted) {
     return 0;
   }

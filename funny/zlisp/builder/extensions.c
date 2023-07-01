@@ -18,14 +18,14 @@ EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
 }
 
 LOCAL void standard_extension_init(vec *program, datum *routine_,
-                                    datum *compdata, context *ctxt) {
+                                   datum *compdata, context *ctxt) {
   *program = vec_create_slice();
   size_t lisp_extension_builder_prg = 0;
   *routine_ = routine_make_topmost(lisp_extension_builder_prg);
   *compdata = compdata_make();
   datum lisp_extension_builder_compdata = compdata_make();
-  lisp_extension_builder_prg =
-      prog_build_init(program, compdata, &lisp_extension_builder_compdata, ctxt);
+  lisp_extension_builder_prg = prog_build_init(
+      program, compdata, &lisp_extension_builder_compdata, ctxt);
   if (ctxt->aborted) {
     return;
   }
@@ -40,9 +40,9 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
     return;
   }
   datum set = datum_make_bytestring("c-prelude");
-  prog_build(
-      program, &lisp_extension_builder_prg, &initialization_statements,
-      compdata, &lisp_extension_builder_compdata, &set, &lisp_extension_ext, ctxt);
+  prog_build(program, &lisp_extension_builder_prg, &initialization_statements,
+             compdata, &lisp_extension_builder_compdata, &set,
+             &lisp_extension_ext, ctxt);
   if (ctxt->aborted) {
     return;
   }
@@ -52,7 +52,7 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   }
   if (!datum_is_the_symbol(&init_res.type, "halt")) {
     abortf(ctxt, "while initializing extensions: %s\n",
-            datum_repr(&init_res.value));
+           datum_repr(&init_res.value));
     return;
   }
   return;

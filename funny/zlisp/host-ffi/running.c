@@ -1,10 +1,10 @@
 #include <running.h>
 #if INTERFACE
+#include <assert.h>
 #include <dlfcn.h>
 #include <ffi.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <zlisp/common.h>
 #endif
 
@@ -30,7 +30,8 @@ EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
   for (;;) {
     res = routine_run(sl, r0d, args, ctxt);
     if (ctxt->aborted) {
-      res = (result){datum_make_symbol("interpreter-panic"), datum_make_bytestring(ctxt->error)};
+      res = (result){datum_make_symbol("interpreter-panic"),
+                     datum_make_bytestring(ctxt->error)};
       break;
     }
     datum *sec = &res.value;
@@ -71,7 +72,7 @@ EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
 
 LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   assert(datum_is_list(type) || list_length(type) == 2 ||
-      datum_is_the_symbol(list_at(type, 0), "host"));
+         datum_is_the_symbol(list_at(type, 0), "host"));
   datum *name = list_at(type, 1);
   if (!datum_is_bytestring(name)) {
     abortf(ctxt, "host instruction should be a string");
@@ -151,7 +152,7 @@ LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
 }
 
 LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
-                                 ffi_type **ret_type, context *ctxt) {
+                                ffi_type **ret_type, context *ctxt) {
   if (list_length(sig) != 2) {
     abortf(ctxt, "the signature should be a two-item list");
     return;
@@ -178,7 +179,8 @@ LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
   }
 }
 
-LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, context *ctxt) {
+LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
+                                      context *ctxt) {
   if (list_length(args) != nargs) {
     abortf(ctxt, "incorrect number of args for FFI call");
     return;
@@ -221,35 +223,30 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     } else {
       addr = &d->bytestring_value;
     }
-    return (
-        datum_make_list_of(datum_make_ptr(addr)));
+    return (datum_make_list_of(datum_make_ptr(addr)));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
       return (datum){};
     }
-    return (
-        datum_make_list_of(datum_make_ptr(& (d->integer_value))));
+    return (datum_make_list_of(datum_make_ptr(&(d->integer_value))));
   } else if (!strcmp(des, "int")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
       return (datum){};
     }
-    return (
-        datum_make_list_of(datum_make_ptr(& (d->integer_value))));
+    return (datum_make_list_of(datum_make_ptr(&(d->integer_value))));
   } else if (!strcmp(des, "int64")) {
     void **ptr = datum_get_ptr(d, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
-    return (
-        datum_make_list_of(datum_make_ptr(ptr)));
+    return (datum_make_list_of(datum_make_ptr(ptr)));
   } else if (!strcmp(des, "pointer")) {
     if (ctxt->aborted) {
       return (datum){};
     }
-    return (
-        datum_make_list_of(datum_copy(d)));
+    return (datum_make_list_of(datum_copy(d)));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
@@ -267,8 +264,7 @@ LOCAL datum datum_makeptr(datum *args, context *ctxt) {
     abortf(ctxt, "int expected, got something else");
     return (datum){};
   }
-  return (
-      datum_make_list_of(datum_make_ptr(& (d->integer_value))));
+  return (datum_make_list_of(datum_make_ptr(&(d->integer_value))));
 }
 
 LOCAL datum datum_deref(datum *args, context *ctxt) {
@@ -286,18 +282,15 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   char *rettype = how->symbol_value;
   void *wha = datum_get_blob(what)->begin;
   if (!strcmp(rettype, "sizet")) {
-    return (
-        datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
+    return (datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
   } else if (!strcmp(rettype, "int")) {
-    return (
-        datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
+    return (datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
     return datum_make_list_of(datum_make_ptr(*(void **)wha));
   } else if (!strcmp(rettype, "pointer")) {
     return datum_make_list_of(datum_make_ptr(wha));
   } else if (!strcmp(rettype, "string")) {
-    return (
-        datum_make_list_of(datum_make_bytestring(*(char **)wha)));
+    return (datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
     abortf(ctxt, "unknown return type for deref");
     return (datum){};
@@ -360,16 +353,16 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
 
 LOCAL datum datum_make_ptr(void *ptr) {
   // return datum_make_pointer(ptr);
-  return datum_make_int((int64_t) ptr);
+  return datum_make_int((int64_t)ptr);
 }
 
 LOCAL void **datum_get_ptr(datum *d, context *ctxt) {
   // return datum_get_pointer(d, ctxt);
-  if(!datum_is_integer(d)) {
+  if (!datum_is_integer(d)) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
-  return (void **)&d->integer_value;  
+  return (void **)&d->integer_value;
 }
 
 LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
@@ -377,13 +370,14 @@ LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
   if (ctxt->aborted) {
     return NULL;
   }
-  return __extension__(void (*)(void))*ptr;
+  return __extension__(void (*)(void)) * ptr;
 }
 
-LOCAL datum(*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *, context *) {
+LOCAL datum (*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *,
+                                                              context *) {
   void **ptr = datum_get_ptr(d, ctxt);
   if (ctxt->aborted) {
     return NULL;
   }
-  return (datum(*)(datum *, context *))*ptr;
+  return (datum(*)(datum *, context *)) * ptr;
 }

@@ -12,10 +12,10 @@ enum token_type {
 };
 
 // zlisp interpreter.
-#include <types.h>
 #include <reading.h>
-#include <zlisp/common.h>
 #include <string.h>
+#include <types.h>
+#include <zlisp/common.h>
 #if INTERFACE
 #include <stdbool.h>
 #endif
@@ -23,8 +23,7 @@ enum token_type {
 #include <ctype.h>
 #include <stdlib.h>
 
-
-EXPORT datum *datum_alloc_read_all(FILE *stre, context *ctxt) {  // used in lisp.
+EXPORT datum *datum_alloc_read_all(FILE *stre, context *ctxt) { // used in lisp.
   vec v = datum_read_all(stre, ctxt);
   if (ctxt->aborted) {
     return NULL;
@@ -264,8 +263,7 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
       return (datum){};
     }
     if (datum_is_nil(&v)) {
-      abortf(ctxt, 
-          "expected an expression after a control character");
+      abortf(ctxt, "expected an expression after a control character");
       return (datum){};
     }
     return datum_make_list_of(tok.control_sequence_symbol, v);

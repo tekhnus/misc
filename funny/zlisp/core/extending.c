@@ -1,17 +1,15 @@
 #include <assert.h>
-#include <types.h>
 #include <extending.h>
 #include <string.h>
+#include <types.h>
 #include <zlisp/common.h>
 
 EXPORT lisp_extension lisp_extension_make(vec program, datum routine_,
                                           datum compdata,
-                                          result (*runner)(vec *, datum *, datum, context *)) {
-  lisp_extension e = {{.call = lisp_extension_call},
-                      program,
-                      routine_,
-                      compdata,
-                      runner};
+                                          result (*runner)(vec *, datum *,
+                                                           datum, context *)) {
+  lisp_extension e = {
+      {.call = lisp_extension_call}, program, routine_, compdata, runner};
   return e;
 }
 
@@ -91,8 +89,8 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  result res = est->runner(&est->program, &est->routine_,
-    datum_make_nil(), ctxt);
+  result res =
+      est->runner(&est->program, &est->routine_, datum_make_nil(), ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }

@@ -27,9 +27,7 @@ EXPORT bool datum_is_bytestring(datum *e) {
   return e->type == DATUM_BYTESTRING;
 }
 
-EXPORT bool datum_is_blob(datum *e) {
-  return e->type == DATUM_BLOB;
-}
+EXPORT bool datum_is_blob(datum *e) { return e->type == DATUM_BLOB; }
 
 EXPORT datum datum_make_symbol(char *name) {
   datum e;
@@ -136,8 +134,8 @@ LOCAL char *escape_string(char *s) {
   return quoted;
 }
 
-LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start, bool pretty,
-                            int flat, char *spacing) {
+LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
+                             bool pretty, int flat, char *spacing) {
   size_t offset = 0;
   if (depth == 0) {
     offset += fprintf(buf, "<truncated>");
@@ -260,7 +258,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start, bo
         child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
       }
       offset += datum_repr_impl(buf, item, depth - 1, start + 1, pretty,
-                                     child_flatness, child_sep);
+                                child_flatness, child_sep);
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;
@@ -425,7 +423,8 @@ EXPORT size_t array_length(array *arr) { return arr->length; }
 
 EXPORT datum *array_at(array *arr, size_t i) {
   assert(i < arr->length);
-  return arr->begin + i; }
+  return arr->begin + i;
+}
 
 EXPORT int list_length(datum *seq) {
   assert(datum_is_list(seq));

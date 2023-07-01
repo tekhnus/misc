@@ -1,22 +1,22 @@
 #include <assert.h>
-#include <types.h>
 #include <compiling.h>
+#include <types.h>
 #include <zlisp/common.h>
 #if INTERFACE
-#include <types.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <types.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT context *context_alloc_make() {  // For lisp.
+EXPORT context *context_alloc_make() { // For lisp.
   context *res = malloc(sizeof(context));
   *res = (context){};
   return res;
 }
 
-EXPORT char *context_abort_reason(context *ctxt) {  // For lisp.
+EXPORT char *context_abort_reason(context *ctxt) { // For lisp.
   if (!ctxt->aborted) {
     return "";
   }
@@ -32,7 +32,7 @@ EXPORT void abortf(context *ctxt, char *format, ...) {
 
 EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
                          extension *ext, context *ctxt) {
-  if(!datum_is_list(source)) {
+  if (!datum_is_list(source)) {
     abortf(ctxt, "source should be a list, got %s", datum_repr(source));
     return;
   }
@@ -59,8 +59,8 @@ EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
 }
 
 LOCAL void prog_append_expression(vec *sl, datum *source, int *i,
-                                          datum *compdata, extension *ext,
-                                          context *ctxt) {
+                                  datum *compdata, extension *ext,
+                                  context *ctxt) {
   int i_val = *i;
   ext->call(ext, sl, source, i, compdata, ctxt);
   if (ctxt->aborted) {
@@ -445,7 +445,8 @@ LOCAL void prog_append_call(vec *sl, size_t capture_size, datum indices,
   }
 }
 
-LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata, context *ctxt) {
+LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata,
+                             context *ctxt) {
   if (!datum_is_symbol(val)) {
     abortf(ctxt, "expected a symbol in put-var\n");
     return (datum){};
@@ -506,7 +507,8 @@ LOCAL void prog_append_collect(vec *sl, size_t count, datum top_idx,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata, context *ctxt) {
+EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata,
+                                      context *ctxt) {
   datum target = compdata_put(compdata, datum_make_symbol(":anon"));
   datum ins = prog_get_put_prog(&target, 100500, 0);
   vec_append(sl, ins);
@@ -616,21 +618,21 @@ LOCAL void compdata_give_names(datum *compdata, datum *var, context *ctxt) {
   for (int i = 0; i < list_length(var); ++i) {
     datum target = compdata_get_polyindex(compdata, list_at(var, i));
     if (!datum_is_nil(&target)) {
-      abortf(ctxt, "erorr: redefinition of %s\n",
-              datum_repr(list_at(var, i)));
+      abortf(ctxt, "erorr: redefinition of %s\n", datum_repr(list_at(var, i)));
       return;
     }
     compdata_put(compdata, datum_copy(list_at(var, i)));
   }
 }
 
-LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata, context *ctxt) {
+LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata,
+                                    context *ctxt) {
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
     if (datum_is_nil(&target)) {
       abortf(ctxt, "error: assignment to undeclared variable %s\n",
-              datum_repr(list_at(var, idx)));
+             datum_repr(list_at(var, idx)));
       return;
     }
     datum source = compdata_get_top_polyindex(compdata);
@@ -643,7 +645,7 @@ EXPORT vec vec_create_slice() {
   return sl;
 }
 
-EXPORT vec *vec_alloc_slice() {  // Used in lisp.
+EXPORT vec *vec_alloc_slice() { // Used in lisp.
   vec *sl = malloc(sizeof(vec));
   *sl = vec_make(16 * 1024);
   return sl;

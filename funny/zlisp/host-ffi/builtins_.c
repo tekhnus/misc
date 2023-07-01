@@ -1,15 +1,16 @@
-#include <types.h>
 #include <builtins_.h>
+#include <types.h>
 #if INTERFACE
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include <zlisp/common.h>
 #endif
 
 datum builtin_eq(datum *args, context *ctxt) {
-  if (ctxt == ctxt + 1) {}
+  if (ctxt == ctxt + 1) {
+  }
   datum *x = list_at(args, 0);
   datum *y = list_at(args, 1);
   datum nil = datum_make_nil();
@@ -41,7 +42,8 @@ datum builtin_annotate(datum *args, context *ctxt) {
 }
 
 datum builtin_is_constant(datum *args, context *ctxt) {
-  if (ctxt == ctxt + 1) {}
+  if (ctxt == ctxt + 1) {
+  }
   datum nil = datum_make_nil();
   datum *arg_value = list_at(args, 0);
   if (datum_is_constant(arg_value)) {
@@ -51,10 +53,10 @@ datum builtin_is_constant(datum *args, context *ctxt) {
 }
 
 datum builtin_repr(datum *args, context *ctxt) {
-  if (ctxt == ctxt + 1) {}
+  if (ctxt == ctxt + 1) {
+  }
   datum *v = list_at(args, 0);
-  return (
-      datum_make_list_of(datum_make_bytestring(datum_repr(v))));
+  return (datum_make_list_of(datum_make_bytestring(datum_repr(v))));
 }
 
 datum builtin_concat_bytestrings(datum *args, context *ctxt) {

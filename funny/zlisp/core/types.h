@@ -69,7 +69,7 @@ struct lisp_extension {
   vec program;
   datum routine_;
   datum compdata;
-  result (*runner)(vec *, datum *, datum, context *); 
+  result (*runner)(vec *, datum *, datum, context *);
 };
 
 #define datum_make_list_of(...)                                                \
