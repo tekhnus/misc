@@ -286,6 +286,10 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
         datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
     return datum_make_list_of(datum_make_ptr(*(void **)wha));
+  } else if (!strcmp(rettype, "pointer")) {
+    return datum_make_list_of(datum_copy(what));
+  } else if (!strcmp(rettype, "progslice")) {
+    return datum_make_list_of(datum_copy(what));
   } else if (!strcmp(rettype, "string")) {
     return (
         datum_make_list_of(datum_make_bytestring(*(char **)wha)));

@@ -140,20 +140,13 @@ serialize-params = fn {params signature}
  {return (../cons (../serialize-param (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
  {return {}}}
 
-dereference := fn {what how}
-{if (../eq how 'pointer)
- {return what}
- {if (../eq how 'progslice)
-  {return what}
-  {return (../deref what how)}}}
-
 pointer-call-and-deserialize := fn {fn-ptr signature params}
 {fnparamst := (../head signature)
  rettype := (../head (../tail signature))
  s := (../serialize-params params fnparamst)
  rawres := (../pointer-call fn-ptr {fnparamst
    rettype} s)
- return (../dereference rawres rettype)}
+ return (../deref rawres rettype)}
 
 rtld-lazy := return @1
 
