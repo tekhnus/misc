@@ -89,33 +89,32 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
       abortf(ctxt, "call-extension expected a pointer to function");
       return (datum){};
     }
-    datum (*fnptr)(datum *, context *) = (datum(*)(datum *, context *))fn->integer_value;
-  // fprintf(stderr, "!!! %s %s %p\n", datum_repr(type), datum_repr(args), fnptr);
+    datum (*fnptr)(datum *, context *) = datum_get_builtin_ptr(fn);
     datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
     return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
-    res = datum_make_int((int64_t)datum_deref);
+    res = datum_make_ptr(datum_deref);
   } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
-    res = datum_make_int((int64_t)datum_mkptr);
+    res = datum_make_ptr(datum_mkptr);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
-    res = datum_make_int((int64_t)pointer_call);
+    res = datum_make_ptr(pointer_call);
   } else if (!strcmp(name->bytestring_value, "head")) {
-    res = datum_make_int((int64_t)builtin_head);
+    res = datum_make_ptr(builtin_head);
   } else if (!strcmp(name->bytestring_value, "tail")) {
-    res = datum_make_int((int64_t)builtin_tail);
+    res = datum_make_ptr(builtin_tail);
   } else if (!strcmp(name->bytestring_value, "cons")) {
-    res = datum_make_int((int64_t)builtin_cons);
+    res = datum_make_ptr(builtin_cons);
   } else if (!strcmp(name->bytestring_value, "eq")) {
-    res = datum_make_int((int64_t)builtin_eq);
+    res = datum_make_ptr(builtin_eq);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     // TODO(): repair its usage in lisp.
     // dlopen actually has an int argument, not a size_t.
-    res = datum_make_int((int64_t)dlopen);
+    res = datum_make_ptr(dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
-    res = datum_make_int((int64_t)dlsym);
+    res = datum_make_ptr(dlsym);
   } else if (!strcmp(name->bytestring_value, "RTLD_LAZY")) {
     res = datum_make_int(RTLD_LAZY);
   } else {
@@ -208,11 +207,7 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
     datum *a = list_at(args, arg_cnt);
 
-    if (!datum_is_integer(a)) {
-      // fprintf(stderr, "!!! %s\n", datum_repr(a));
-      return "int pointer expected, got something else";
-    }
-    cargs[arg_cnt] = (void *)a->integer_value;
+    cargs[arg_cnt] = datum_get_ptr(a);
   }
   return NULL;
 }
@@ -236,21 +231,28 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
       return (datum){};
     }
     return (
-        datum_make_list_of(datum_make_int((int64_t) & (d->bytestring_value))));
+        datum_make_list_of(datum_make_ptr(& (d->bytestring_value))));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
       return (datum){};
     }
     return (
-        datum_make_list_of(datum_make_int((int64_t) & (d->integer_value))));
+        datum_make_list_of(datum_make_ptr(& (d->integer_value))));
+  } else if (!strcmp(des, "int")) {
+    if (!datum_is_integer(d)) {
+      abortf(ctxt, "int expected, got something else");
+      return (datum){};
+    }
+    return (
+        datum_make_list_of(datum_make_ptr(& (d->integer_value))));
   } else if (!strcmp(des, "int64")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
       return (datum){};
     }
     return (
-        datum_make_list_of(datum_make_int((int64_t) & (d->integer_value))));
+        datum_make_list_of(datum_make_ptr(& (d->integer_value))));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
@@ -265,16 +267,12 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   }
   datum *what = list_at(form, 0);
   datum *how = list_at(form, 1);
-  if (!datum_is_integer(what)) {
-    abortf(ctxt, "deref expected a pointer");
-    return (datum){};
-  }
   if (!datum_is_symbol(how)) {
     abortf(ctxt, "deref expected a symbol");
     return (datum){};
   }
   char *rettype = how->symbol_value;
-  void *wha = (void *)what->integer_value;
+  void *wha = datum_get_ptr(what);
   if (!strcmp(rettype, "sizet")) {
     return (
         datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
@@ -327,7 +325,7 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
     abortf(ctxt, "not a function pointer");
     return (datum){};
   }
-  void (*fn_ptr)(void) = datum_to_function_pointer(fpt);
+  void (*fn_ptr)(void) = datum_get_fn_ptr(fpt);
   ffi_cif cif;
   char *err = NULL;
   ffi_type *arg_types[32];
@@ -350,10 +348,25 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
     return (datum){};
   }
   ffi_call(&cif, fn_ptr, res, cargs);
-  return (datum_make_list_of(datum_make_int((int64_t)res)));
+  return (datum_make_list_of(datum_make_ptr(res)));
 }
 
-LOCAL void (*datum_to_function_pointer(datum *d))(void) {
+LOCAL datum datum_make_ptr(void *ptr) {
+  return datum_make_int((int64_t) ptr);
+}
+
+LOCAL void *datum_get_ptr(datum *d) {
+  assert(datum_is_integer(d));
+  return (void *)d->integer_value;  
+}
+
+LOCAL void (*datum_get_fn_ptr(datum *d))(void) {
   assert(datum_is_integer(d));
   return __extension__(void (*)(void)) d->integer_value;
+}
+
+LOCAL datum(*datum_get_builtin_ptr(datum *d))(datum *, context *) {
+  assert(datum_is_integer(d));
+
+  return __extension__(datum(*)(datum *, context *))d->integer_value;
 }

@@ -171,7 +171,7 @@ dlopen-pointer := return @1
 
 dlopen := fn {x}
 {return (../pointer-call-and-deserialize dlopen-pointer {{'string
-    'sizet}
+    'int}
    'int64} {x
    rtld-lazy})}
 
@@ -185,7 +185,7 @@ dlopen-or-error := fn {path}
 
 dlopen-null := fn {}
 {return (../pointer-call-and-deserialize dlopen-pointer {{'pointer
-    'sizet}
+    'int}
    'int64} {(../mkptr 0 'sizet)
    rtld-lazy})}
 
