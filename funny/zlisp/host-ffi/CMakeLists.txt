@@ -16,10 +16,14 @@ add_custom_command(
 									OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/running_.h"
 									OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/main.h"
 									OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/zlisp/host-ffi.h"
+									COMMAND rm -rf "${CMAKE_CURRENT_BINARY_DIR}/*.h"
+									COMMAND rm -rf "${CMAKE_CURRENT_BINARY_DIR}/zlisp/*.h"
                   COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/*.[ch] .
                   COMMAND makeheaders -v *.[ch]
                   COMMAND mkdir -p zlisp
                   COMMAND makeheaders -h -v *.[ch] >zlisp/host-ffi.h
+  DEPENDS
+  builtins_.c running_.c main.c
                   )
 
 

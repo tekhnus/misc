@@ -22,5 +22,9 @@ add_custom_command(
 									OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/extensions.h"
 									OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/building.h"
 									OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/fmt.h"
+									COMMAND rm -rf "${CMAKE_CURRENT_BINARY_DIR}/*.h"
+									COMMAND rm -rf "${CMAKE_CURRENT_BINARY_DIR}/zlisp/*.h"
                   COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/*.[ch] .
-                  COMMAND makeheaders -v *.[ch])
+                  COMMAND makeheaders -v *.[ch]
+   linking.c extensions.c building.c builder_main.c fmt.c
+                  DEPENDS )
