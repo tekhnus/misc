@@ -274,7 +274,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum){};
   }
   char *rettype = how->symbol_value;
-  void *wha = *datum_get_ptr(what, ctxt);
+  void *wha = datum_get_blob(what)->begin;
   if (ctxt->aborted) {
     return (datum){};
   }
@@ -358,7 +358,7 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   blob blb = blob_make_uninitialized(sz);
   datum b = datum_make_blob(blb);
   ffi_call(&cif, fn_ptr, datum_get_blob(&b)->begin, cargs);
-  return (datum_make_list_of(datum_make_ptr(datum_get_blob(&b)->begin)));
+  return (datum_make_list_of(b));
 }
 
 LOCAL datum datum_make_ptr(void *ptr) {
