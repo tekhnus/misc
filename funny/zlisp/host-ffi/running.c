@@ -85,10 +85,6 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     }
     datum *fn = list_at(args, 0);
     datum callargs = list_get_tail(args);
-    if (!datum_is_integer(fn)) {
-      abortf(ctxt, "call-extension expected a pointer to function");
-      return (datum){};
-    }
     datum (*fnptr)(datum *, context *) = datum_get_builtin_ptr(fn);
     datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
@@ -321,10 +317,6 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   datum *fpt = list_at(argz, 0);
   datum *sig = list_at(argz, 1);
   datum *args = list_at(argz, 2);
-  if (!datum_is_integer(fpt)) {
-    abortf(ctxt, "not a function pointer");
-    return (datum){};
-  }
   void (*fn_ptr)(void) = datum_get_fn_ptr(fpt);
   ffi_cif cif;
   char *err = NULL;
@@ -362,11 +354,11 @@ LOCAL void *datum_get_ptr(datum *d) {
 
 LOCAL void (*datum_get_fn_ptr(datum *d))(void) {
   assert(datum_is_integer(d));
-  return __extension__(void (*)(void)) d->integer_value;
+  return __extension__(void (*)(void))datum_get_ptr(d);
 }
 
 LOCAL datum(*datum_get_builtin_ptr(datum *d))(datum *, context *) {
   assert(datum_is_integer(d));
 
-  return __extension__(datum(*)(datum *, context *))d->integer_value;
+  return (datum(*)(datum *, context *))datum_get_fn_ptr(d);
 }
