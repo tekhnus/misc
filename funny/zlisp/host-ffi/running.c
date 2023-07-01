@@ -299,25 +299,22 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   }
 }
 
-LOCAL void *allocate_space_for_return_value(datum *sig) {
+LOCAL size_t get_sizeof(datum *sig) {
   char *rettype = list_at(sig, 1)->symbol_value;
-  void *res;
   if (!strcmp(rettype, "pointer")) {
-    res = malloc(sizeof(void *));
+    return (sizeof(void *));
   } else if (!strcmp(rettype, "sizet")) {
-    res = malloc(sizeof(size_t));
+    return (sizeof(size_t));
   } else if (!strcmp(rettype, "int64")) {
-    res = malloc(sizeof(void *));
+    return (sizeof(void *));
   } else if (!strcmp(rettype, "int")) {
-    res = malloc(sizeof(int));
+    return (sizeof(int));
   } else if (!strcmp(rettype, "string")) {
-    res = malloc(sizeof(char *));
+    return (sizeof(char *));
   } else if (!strcmp(rettype, "progslice")) {
-    res = malloc(sizeof(vec));
-  } else {
-    res = NULL;
+    return (sizeof(vec));
   }
-  return res;
+  return 0;
 }
 
 LOCAL datum pointer_call(datum *argz, context *ctxt) {
@@ -353,11 +350,12 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
     abortf(ctxt, err);
     return (datum){};
   }
-  void *res = allocate_space_for_return_value(sig);
-  if (res == NULL) {
+  size_t sz = get_sizeof(sig);
+  if (sz == 0) {
     abortf(ctxt, "unknown return type for extern func");
     return (datum){};
   }
+  void *res = malloc(sz);
   ffi_call(&cif, fn_ptr, res, cargs);
   return (datum_make_list_of(datum_make_ptr(res)));
 }
