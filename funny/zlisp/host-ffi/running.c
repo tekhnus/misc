@@ -85,7 +85,10 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     }
     datum *fn = list_at(args, 0);
     datum callargs = list_get_tail(args);
-    datum (*fnptr)(datum *, context *) = datum_get_builtin_ptr(fn);
+    datum (*fnptr)(datum *, context *) = datum_get_builtin_ptr(fn, ctxt);
+    if (ctxt->aborted) {
+      return (datum){};
+    }
     datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
       return (datum){};
@@ -124,7 +127,7 @@ ffi_type ffi_type_vec;
 ffi_type *ffi_type_vec_elements[4];
 
 LOCAL void init_standard_types() {
-  // TODO: UPDATE THE FFI DEFINITIONS, THEY ARE OUTDATED.
+  // TODO(): UPDATE THE FFI DEFINITIONS, THEY ARE OUTDATED.
   ffi_type *type = &ffi_type_vec;
   (type)->type = FFI_TYPE_STRUCT;
   (type)->size = 0; // Lost 5 hours debugging non-deterministic failures on
@@ -186,7 +189,7 @@ LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
     return "something wrong with the return type signature";
   }
   ffi_status status;
-  // TODO: for variadic functions, prep_cif_var must be used.
+  // TODO(): for variadic functions, prep_cif_var must be used.
   // Without it, linux works somehow and mac does not.
   if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, *ret_type,
                              arg_types)) != FFI_OK) {
@@ -195,7 +198,7 @@ LOCAL char *pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
   return NULL;
 }
 
-LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
+LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs, context *ctxt) {
   if (list_length(args) != nargs) {
     return "incorrect number of args for FFI call";
   }
@@ -203,7 +206,10 @@ LOCAL char *pointer_ffi_serialize_args(datum *args, void **cargs, int nargs) {
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
     datum *a = list_at(args, arg_cnt);
 
-    cargs[arg_cnt] = datum_get_ptr(a);
+    cargs[arg_cnt] = datum_get_ptr(a, ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
   }
   return NULL;
 }
@@ -268,7 +274,10 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum){};
   }
   char *rettype = how->symbol_value;
-  void *wha = datum_get_ptr(what);
+  void *wha = datum_get_ptr(what, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
   if (!strcmp(rettype, "sizet")) {
     return (
         datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
@@ -317,7 +326,10 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   datum *fpt = list_at(argz, 0);
   datum *sig = list_at(argz, 1);
   datum *args = list_at(argz, 2);
-  void (*fn_ptr)(void) = datum_get_fn_ptr(fpt);
+  void (*fn_ptr)(void) = datum_get_fn_ptr(fpt, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
   ffi_cif cif;
   char *err = NULL;
   ffi_type *arg_types[32];
@@ -329,7 +341,10 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   }
   int nargs = list_length(list_at(sig, 0));
   void *cargs[32];
-  err = pointer_ffi_serialize_args(args, cargs, nargs);
+  err = pointer_ffi_serialize_args(args, cargs, nargs, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
   if (err != NULL) {
     abortf(ctxt, err);
     return (datum){};
@@ -344,21 +359,23 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
 }
 
 LOCAL datum datum_make_ptr(void *ptr) {
+  // return datum_make_pointer(ptr);
   return datum_make_int((int64_t) ptr);
 }
 
-LOCAL void *datum_get_ptr(datum *d) {
-  assert(datum_is_integer(d));
+LOCAL void *datum_get_ptr(datum *d, context *ctxt) {
+  // return datum_get_pointer(d, ctxt);
+  if(!datum_is_integer(d)) {
+    abortf(ctxt, "expected a pointer");
+    return NULL;
+  }
   return (void *)d->integer_value;  
 }
 
-LOCAL void (*datum_get_fn_ptr(datum *d))(void) {
-  assert(datum_is_integer(d));
-  return __extension__(void (*)(void))datum_get_ptr(d);
+LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
+  return __extension__(void (*)(void))datum_get_ptr(d, ctxt);
 }
 
-LOCAL datum(*datum_get_builtin_ptr(datum *d))(datum *, context *) {
-  assert(datum_is_integer(d));
-
-  return (datum(*)(datum *, context *))datum_get_fn_ptr(d);
+LOCAL datum(*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *, context *) {
+  return (datum(*)(datum *, context *))datum_get_fn_ptr(d, ctxt);
 }
