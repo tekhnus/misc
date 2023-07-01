@@ -82,6 +82,13 @@ EXPORT blob blob_make(void *data, size_t length) {
   return b;
 }
 
+EXPORT blob blob_make_uninitialized(size_t length) {
+  blob b;
+  b.length = length;
+  b.begin = malloc(length);
+  return b;
+}
+
 EXPORT datum datum_make_pointer(void *ptr) {
   blob b = blob_make(&ptr, sizeof(void *));
   return datum_make_blob(b);

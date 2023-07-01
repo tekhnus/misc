@@ -355,9 +355,10 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
     abortf(ctxt, "unknown return type for extern func");
     return (datum){};
   }
-  void *res = malloc(sz);
-  ffi_call(&cif, fn_ptr, res, cargs);
-  return (datum_make_list_of(datum_make_ptr(res)));
+  blob blb = blob_make_uninitialized(sz);
+  datum b = datum_make_blob(blb);
+  ffi_call(&cif, fn_ptr, datum_get_blob(&b)->begin, cargs);
+  return (datum_make_list_of(datum_make_ptr(datum_get_blob(&b)->begin)));
 }
 
 LOCAL datum datum_make_ptr(void *ptr) {
