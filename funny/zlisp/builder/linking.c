@@ -129,11 +129,15 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
     return;
   }
   datum *dep = list_at(dep_and_sym, 0);
+  datum just_dep = datum_make_list_of(datum_copy(dep));
+  char modname[1024];
+  get_varname(modname, &just_dep);
+  datum mn = datum_make_symbol(modname);
 
   char varname[1024];
   get_varname(varname, dep_and_sym);
   datum vn = datum_make_symbol(varname);
-  datum idex = compdata_get_polyindex(compdata, &vn);
+  datum idex = compdata_get_polyindex(compdata, &mn);
   bool already_built = !datum_is_nil(&idex);
   if (already_built) {
     return;
