@@ -329,6 +329,14 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     }
     return true;
   }
+  if (datum_is_blob(x) && datum_is_blob(y)) {
+    blob *xb = datum_get_blob(x);
+    blob *yb = datum_get_blob(y);
+    if (xb->length != yb->length) {
+      return false;
+    }
+    return !memcmp(xb->begin, yb->begin, xb->length);
+  }
   return false;
 }
 
