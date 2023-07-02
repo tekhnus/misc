@@ -18,7 +18,7 @@ EXPORT context *context_alloc_make() { // For lisp.
 
 EXPORT char *context_abort_reason(context *ctxt) { // For lisp.
   if (!ctxt->aborted) {
-    return "";
+    return NULL;
   }
   return ctxt->error;
 }

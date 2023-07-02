@@ -4,10 +4,10 @@ req
  {decons-pat "std" decons-pat}
  {eq "std" eq}
  {head "std" head}
- {repr "std" repr}
  {list-at "std" list-at}
  {panic "std" panic}
  {fprintf-new "libc" fprintf-new}
+ {fprintf-pointer-new "libc" fprintf-pointer-new}
  {libc "libc"}
  {print "libc" print}
  {stdin-val "libc" stdin-val}
@@ -58,7 +58,7 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
      switch (/zlisp/eval-new sl nsp)
      {{{:ok
         val}
-       ignored = (/libc/print (/zlisp/repr-pointer val))
+       ignored = (/prelude/fprintf-pointer-new stdout-val (/zlisp/repr-pointer val))
        return (../repl sl nsp bpptr compdata bdrcompdata ex)}
       {{:err
         msga}

@@ -3,6 +3,7 @@ req
  {dlopen-or-error "prelude" dlopen-or-error}
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
+ {null-pointer "prelude" null-pointer}
  {std "std"}
  {decons-pat "std" decons-pat}
  {first-good-value "std" first-good-value}
@@ -39,11 +40,11 @@ context-make := (/prelude/c-function selflib "context_alloc_make" {{}
   'int64})
 
 context-abort-reason := (/prelude/c-function selflib "context_abort_reason" {{'int64}
-  'string})
+  'int64})
 
 panic-if-aborted := fn {ctxt}
 {reason := (/prelude/context-abort-reason ctxt)
- if (/std/not (/std/eq reason ""))
+ if (/std/not (/std/eq reason null-pointer))
  {{} := (/std/panic @0 reason)}
  {}
  return ^{}}
@@ -79,7 +80,7 @@ routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_ru
   'int64})
 
 repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'int64}
-  'string})
+  'int64})
 
 repr-pointer := fn {x}
 {return (/prelude/repr-pointer-impl x)}

@@ -358,6 +358,7 @@ export
  {+ +}
  {dlopen-or-error dlopen-or-error}
  {dlsym-or-error dlsym-or-error}
+ {null-pointer null-pointer}
  {c-function c-function}
  {deref deref}
  {selflib selflib}}

@@ -269,8 +269,6 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return datum_make_list_of(datum_make_pointer(*(void **)wha));
   } else if (!strcmp(rettype, "intx64")) {
     return datum_make_list_of(datum_make_pointer(**(void ***)wha));
-  } else if (!strcmp(rettype, "string")) {
-    return (datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
     abortf(ctxt, "unknown return type for deref");
     return (datum){};
