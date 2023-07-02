@@ -79,7 +79,7 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
 
 sl := (/prelude/psm)
 
-bpptr := (/prelude/wrap-pointer-into-pointer 0)
+bpptr := 0
 
 rt := (/prelude/mres 0)
 
@@ -95,6 +95,6 @@ ex := (/prelude/em ctxt)
 
 bpval := (/zlisp/iprog sl compdata bdrcompdata)
 
-bpptr = (/prelude/wrap-pointer-into-pointer bpval)
+bpptr = bpval
 
 ignored := (repl sl rt bpptr compdata bdrcompdata ex)
