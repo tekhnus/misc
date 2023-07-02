@@ -314,7 +314,6 @@ LOCAL size_t get_sizeof(datum *sig) {
 }
 
 LOCAL datum pointer_call(datum *argz, context *ctxt) {
-  // fprintf(stderr, "??? pointer-call\n");
   if (!datum_is_list(argz) || list_length(argz) != 3) {
     abortf(ctxt, "pointer-call expected a triple on stack");
     return (datum){};
@@ -346,9 +345,8 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
     return (datum){};
   }
   blob blb = blob_make_uninitialized(sz);
-  datum b = datum_make_blob(blb);
-  ffi_call(&cif, fn_ptr, datum_get_blob(&b)->begin, cargs);
-  return (datum_make_list_of(b));
+  ffi_call(&cif, fn_ptr, blb.begin, cargs);
+  return (datum_make_list_of(datum_make_blob(blb)));
 }
 
 LOCAL datum datum_make_ptr(void *ptr) {
