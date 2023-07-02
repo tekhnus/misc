@@ -497,7 +497,14 @@ EXPORT datum datum_copy(datum *d) {
   if (datum_is_list(d)) {
     return list_copy(d, 0, list_length(d));
   }
+  if (datum_is_blob(d)) {
+    return datum_make_blob(blob_copy(datum_get_blob(d)));
+  }
   return *d;
+}
+
+EXPORT blob blob_copy(blob *b) {
+  return blob_make(b->begin, b->length);
 }
 
 EXPORT vec vec_copy(vec *src) {
