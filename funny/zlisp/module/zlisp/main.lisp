@@ -97,14 +97,14 @@ read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'int64
   'int64})
 
 datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'int64}
-  'sizet})
+  'int64})
 
 read-new := fn {strm}
 {ctxt := (/prelude/context-make)
  res := (/prelude/read-all-alloc strm ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  is-eof := (/prelude/datum-is-nil res)
- if (/std/eq is-eof 0)
+ if (/std/eq is-eof null-pointer)
  {return {:ok
    res}}
  {return {:eof}}}
