@@ -367,4 +367,5 @@ export
  {dlsym-or-error dlsym-or-error}
  {c-function c-function}
  {wrap-pointer-into-pointer makeptr}
+ {deref deref}
  {selflib selflib}}
