@@ -98,23 +98,23 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     }
     return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
-    res = datum_make_ptr(datum_deref);
+    res = datum_make_pointer(datum_deref);
   } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
-    res = datum_make_ptr(datum_mkptr);
+    res = datum_make_pointer(datum_mkptr);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
-    res = datum_make_ptr(pointer_call);
+    res = datum_make_pointer(pointer_call);
   } else if (!strcmp(name->bytestring_value, "head")) {
-    res = datum_make_ptr(builtin_head);
+    res = datum_make_pointer(builtin_head);
   } else if (!strcmp(name->bytestring_value, "tail")) {
-    res = datum_make_ptr(builtin_tail);
+    res = datum_make_pointer(builtin_tail);
   } else if (!strcmp(name->bytestring_value, "cons")) {
-    res = datum_make_ptr(builtin_cons);
+    res = datum_make_pointer(builtin_cons);
   } else if (!strcmp(name->bytestring_value, "eq")) {
-    res = datum_make_ptr(builtin_eq);
+    res = datum_make_pointer(builtin_eq);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
-    res = datum_make_ptr(dlopen);
+    res = datum_make_pointer(dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
-    res = datum_make_ptr(dlsym);
+    res = datum_make_pointer(dlsym);
   } else if (!strcmp(name->bytestring_value, "RTLD_LAZY")) {
     res = datum_make_int(RTLD_LAZY);
   } else {
@@ -234,7 +234,7 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     }
     return (datum_make_list_of(datum_make_blob_int(d->integer_value)));
   } else if (!strcmp(des, "int64")) {
-    void **ptr = datum_get_ptr(d, ctxt);
+    void **ptr = datum_get_pointer(d, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -258,21 +258,15 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum){};
   }
   char *rettype = how->symbol_value;
-  void *wha;
-  if (datum_is_integer(what)) {
-    // TODO(): remove this.
-    wha = (void *)what->integer_value;
-  } else {
-    wha = datum_get_blob(what)->begin;
-  }
+  void *wha = datum_get_blob(what)->begin;
   if (!strcmp(rettype, "sizet")) {
     return (datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
   } else if (!strcmp(rettype, "int")) {
     return (datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
-    return datum_make_list_of(datum_make_ptr(*(void **)wha));
+    return datum_make_list_of(datum_make_pointer(*(void **)wha));
   } else if (!strcmp(rettype, "intx64")) {
-    return datum_make_list_of(datum_make_ptr(**(void ***)wha));
+    return datum_make_list_of(datum_make_pointer(**(void ***)wha));
   } else if (!strcmp(rettype, "string")) {
     return (datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
@@ -331,22 +325,8 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   return (datum_make_list_of(datum_make_blob(blb)));
 }
 
-LOCAL datum datum_make_ptr(void *ptr) {
-  return datum_make_pointer(ptr);
-  return datum_make_int((int64_t)ptr);
-}
-
-LOCAL void **datum_get_ptr(datum *d, context *ctxt) {
-  return datum_get_pointer(d, ctxt);
-  if (!datum_is_integer(d)) {
-    abortf(ctxt, "expected a pointer");
-    return NULL;
-  }
-  return (void **)&d->integer_value;
-}
-
 LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
-  void **ptr = datum_get_ptr(d, ctxt);
+  void **ptr = datum_get_pointer(d, ctxt);
   if (ctxt->aborted) {
     return NULL;
   }
@@ -355,7 +335,7 @@ LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
 
 LOCAL datum (*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *,
                                                               context *) {
-  void **ptr = datum_get_ptr(d, ctxt);
+  void **ptr = datum_get_pointer(d, ctxt);
   if (ctxt->aborted) {
     return NULL;
   }
