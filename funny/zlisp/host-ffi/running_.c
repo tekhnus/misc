@@ -297,7 +297,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   }
 }
 
-LOCAL size_t get_sizeof(datum *sig) {
+LOCAL size_t get_sizeof(datum *sig, context *ctxt) {
   char *rettype = list_at(sig, 1)->symbol_value;
   if (!strcmp(rettype, "pointer")) {
     return (sizeof(void *));
@@ -310,6 +310,7 @@ LOCAL size_t get_sizeof(datum *sig) {
   } else if (!strcmp(rettype, "string")) {
     return (sizeof(char *));
   }
+  abortf(ctxt, "uknown type: %s", datum_repr(sig));
   return 0;
 }
 
@@ -339,9 +340,8 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  size_t sz = get_sizeof(sig);
-  if (sz == 0) {
-    abortf(ctxt, "unknown return type for extern func");
+  size_t sz = get_sizeof(sig, ctxt);
+  if (ctxt->aborted) {
     return (datum){};
   }
   blob blb = blob_make_uninitialized(sz);
