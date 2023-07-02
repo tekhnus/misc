@@ -46,15 +46,15 @@ fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'int64
 
 stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")
   (/prelude/dlsym-or-error libc "__stdinp")})
-stdin-val := (/prelude/deref stdin 'int64)
+stdin-val := (/prelude/deref stdin 'intx64)
 
 stdout := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdout")
   (/prelude/dlsym-or-error libc "__stdoutp")})
-stdout-val := (/prelude/deref stdout 'int64)
+stdout-val := (/prelude/deref stdout 'intx64)
 
 stderr := (/std/first-good-value {(/prelude/dlsym-or-error libc "stderr")
   (/prelude/dlsym-or-error libc "__stderrp")})
-stderr-val := (/prelude/deref stderr 'int64)
+stderr-val := (/prelude/deref stderr 'intx64)
 
 print := fn {val}
 {return (/prelude/fprintf-new stdout-val (/std/repr val))}

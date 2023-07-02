@@ -78,6 +78,7 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     abortf(ctxt, "host instruction should be a string");
     return (datum){};
   }
+  // fprintf(stderr, "host ffi %s\n", datum_repr(name));
   datum res;
   if (!strcmp(name->bytestring_value, "call-extension")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
@@ -90,6 +91,7 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     if (ctxt->aborted) {
       return (datum){};
     }
+    // fprintf(stderr, "call extension %p %s\n", fnptr, datum_repr(args));
     datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
       return (datum){};
@@ -269,6 +271,8 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
     return datum_make_list_of(datum_make_ptr(*(void **)wha));
+  } else if (!strcmp(rettype, "intx64")) {
+    return datum_make_list_of(datum_make_ptr(**(void ***)wha));
   } else if (!strcmp(rettype, "string")) {
     return (datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
@@ -328,12 +332,12 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
 }
 
 LOCAL datum datum_make_ptr(void *ptr) {
-  // return datum_make_pointer(ptr);
+  return datum_make_pointer(ptr);
   return datum_make_int((int64_t)ptr);
 }
 
 LOCAL void **datum_get_ptr(datum *d, context *ctxt) {
-  // return datum_get_pointer(d, ctxt);
+  return datum_get_pointer(d, ctxt);
   if (!datum_is_integer(d)) {
     abortf(ctxt, "expected a pointer");
     return NULL;

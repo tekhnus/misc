@@ -164,7 +164,7 @@ dlopen := fn {x}
 
 dlopen-or-error := fn {path}
 {r := (../dlopen path)
- if (../eq 0 r)
+ if (../eq (../mkptr 0 'sizet) r)
  {return {:err
    "dlopen-or-error failed"}}
  {return {:ok
@@ -185,7 +185,7 @@ dlsym := fn {x y}
 
 dlsym-or-error := fn {handle c-name}
 {resval := (../dlsym handle c-name)
- if (../eq 0 resval)
+ if (../eq (../mkptr 0 'sizet) resval)
  {return {:err
    "dlsym-or-error failed"}}
  {return {:ok
