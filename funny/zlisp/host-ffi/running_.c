@@ -263,8 +263,6 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   void *wha = datum_get_blob(what)->begin;
   if (!strcmp(rettype, "sizet")) {
     return (datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
-  } else if (!strcmp(rettype, "int")) {
-    return (datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
     return datum_make_list_of(datum_make_pointer(*(void **)wha));
   } else if (!strcmp(rettype, "intx64")) {

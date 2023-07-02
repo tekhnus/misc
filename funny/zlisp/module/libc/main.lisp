@@ -29,9 +29,6 @@ fread := (/prelude/c-function libc "fread" {{'int64
    'int64}
   'sizet})
 
-feof := (/prelude/c-function libc "feof" {{'int64}
-  'int})
-
 fprintf := (/prelude/c-function libc "fprintf" {{'int64
    'string}
   'sizet})
