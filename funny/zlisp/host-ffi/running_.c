@@ -261,11 +261,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   }
   char *rettype = how->symbol_value;
   void *wha = datum_get_blob(what)->begin;
-  if (!strcmp(rettype, "sizet")) {
-    return (datum_make_list_of(datum_make_blob_size_t((int64_t) * (size_t *)wha)));
-  } else if (!strcmp(rettype, "int64")) {
-    return datum_make_list_of(datum_make_pointer(*(void **)wha));
-  } else if (!strcmp(rettype, "intx64")) {
+  if (!strcmp(rettype, "intx64")) {
     return datum_make_list_of(datum_make_pointer(**(void ***)wha));
   } else {
     abortf(ctxt, "unknown return type for deref");

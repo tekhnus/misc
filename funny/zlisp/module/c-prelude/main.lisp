@@ -140,7 +140,7 @@ pointer-call-and-deserialize := fn {fn-ptr signature params}
  s := (../serialize-params params fnparamst)
  rawres := (../pointer-call fn-ptr {fnparamst
    rettype} s)
- return (../deref rawres rettype)}
+ return rawres}
 
 rtld-lazy := return @1
 
