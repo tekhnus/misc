@@ -124,31 +124,33 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   return (datum_make_list_of(res));
 }
 
-LOCAL bool ffi_type_init(ffi_type **type, datum *definition) {
+LOCAL void ffi_type_init(ffi_type **type, datum *definition, context *ctxt) {
   if (!datum_is_symbol(definition)) {
-    return false;
+    abortf(ctxt, "type should be a symbol");
+    return;
   }
   if (!strcmp(definition->symbol_value, "string")) {
     *type = &ffi_type_pointer;
-    return true;
+    return;
   }
   if (!strcmp(definition->symbol_value, "pointer")) {
     *type = &ffi_type_pointer;
-    return true;
+    return;
   }
   if (!strcmp(definition->symbol_value, "sizet")) {
     *type = &ffi_type_uint64; // danger!
-    return true;
+    return;
   }
   if (!strcmp(definition->symbol_value, "int64")) {
     *type = &ffi_type_pointer;
-    return true;
+    return;
   }
   if (!strcmp(definition->symbol_value, "int")) {
     *type = &ffi_type_sint;
-    return true;
+    return;
   }
-  return false;
+  abortf(ctxt, "unknown type: %s", datum_repr(definition));
+  return;
 }
 
 LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
@@ -160,13 +162,13 @@ LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
   datum *arg_defs = list_at(sig, 0);
   int arg_count;
   for (arg_count = 0; arg_count < list_length(arg_defs); ++arg_count) {
-    if (!ffi_type_init(arg_types + arg_count, list_at(arg_defs, arg_count))) {
-      abortf(ctxt, "something wrong with the argument type signature");
+    ffi_type_init(arg_types + arg_count, list_at(arg_defs, arg_count), ctxt);
+    if (ctxt->aborted) {
       return;
     }
   }
-  if (!ffi_type_init(ret_type, list_at(sig, 1))) {
-    abortf(ctxt, "something wrong with the ret type signature");
+  ffi_type_init(ret_type, list_at(sig, 1), ctxt);
+  if (ctxt->aborted) {
     return;
   }
   ffi_status status;
