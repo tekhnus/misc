@@ -1,6 +1,5 @@
 req
 {{prelude "prelude"}
- {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
  {std "std"}
  {decons-pat "std" decons-pat}
  {eq "std" eq}
@@ -81,7 +80,7 @@ sl := (/prelude/psm)
 
 bpptr := 0
 
-rt := (/prelude/mres 0)
+rt := (/prelude/mres bpptr)
 
 compdata := (/prelude/cdm)
 
@@ -93,8 +92,6 @@ ex := (/prelude/em ctxt)
 
 {} := (/zlisp/panic-if-aborted @0 ctxt)
 
-bpval := (/zlisp/iprog sl compdata bdrcompdata)
-
-bpptr = bpval
+bpptr = (/zlisp/iprog sl compdata bdrcompdata)
 
 ignored := (repl sl rt bpptr compdata bdrcompdata ex)

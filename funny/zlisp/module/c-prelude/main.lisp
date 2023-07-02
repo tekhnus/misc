@@ -33,21 +33,6 @@ mkptr := fn {x y}
   y}
  return r}
 
-makeptr-pointer := return @1
-
-@{host
- "makeptr-pointer"}
-
-{}
-
-makeptr := fn {x}
-{r := return @1
- @{host
-  "call-extension"}
- ^{makeptr-pointer
-  x}
- return r}
-
 pointer-call-pointer := return @1
 
 @{host
@@ -366,6 +351,5 @@ export
  {dlopen-or-error dlopen-or-error}
  {dlsym-or-error dlsym-or-error}
  {c-function c-function}
- {wrap-pointer-into-pointer makeptr}
  {deref deref}
  {selflib selflib}}

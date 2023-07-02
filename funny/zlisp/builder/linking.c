@@ -5,6 +5,13 @@
 #include <zlisp/common.h>
 #include <linking.h>
 
+EXPORT size_t *prog_build_init_alloc(vec *sl, datum *compdata, datum *builder_compdata,
+                              context *ctxt) {  // For lisp.
+  size_t *res = malloc(sizeof(size_t));
+  *res = prog_build_init(sl, compdata, builder_compdata, ctxt);
+  return res;
+}
+
 EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
                               context *ctxt) {
   extension ext = null_extension_make();

@@ -99,8 +99,6 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     res = datum_make_ptr(datum_deref);
   } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
     res = datum_make_ptr(datum_mkptr);
-  } else if (!strcmp(name->bytestring_value, "makeptr-pointer")) {
-    res = datum_make_ptr(datum_makeptr);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
     res = datum_make_ptr(pointer_call);
   } else if (!strcmp(name->bytestring_value, "head")) {
@@ -243,20 +241,6 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
   }
-}
-
-LOCAL datum datum_makeptr(datum *args, context *ctxt) {
-  datum *form = args;
-  if (!datum_is_list(form) || list_length(form) != 1) {
-    abortf(ctxt, "makeptr expected a single argument");
-    return (datum){};
-  }
-  datum *d = list_at(form, 0);
-  if (!datum_is_integer(d)) {
-    abortf(ctxt, "int expected, got something else");
-    return (datum){};
-  }
-  return (datum_make_list_of(datum_make_ptr(&(d->integer_value))));
 }
 
 LOCAL datum datum_deref(datum *args, context *ctxt) {

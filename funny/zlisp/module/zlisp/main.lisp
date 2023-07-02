@@ -3,7 +3,6 @@ req
  {dlopen-or-error "prelude" dlopen-or-error}
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
- {wrap-pointer-into-pointer "prelude" wrap-pointer-into-pointer}
  {std "std"}
  {decons-pat "std" decons-pat}
  {first-good-value "std" first-good-value}
@@ -49,11 +48,11 @@ panic-if-aborted := fn {ctxt}
  {}
  return ^{}}
 
-prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'int64
+prog-build-init := (/prelude/c-function buildlib "prog_build_init_alloc" {{'int64
    'int64
    'int64
    'int64}
-  'sizet})
+  'int64})
 
 get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {{}
   'int64})
@@ -63,13 +62,13 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'int
 
 init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (/prelude/context-make)
- nothing := (/prelude/prog-build-init sl compdata bdrcompdata ctxt)
+ bprog := (/prelude/prog-build-init sl compdata bdrcompdata ctxt)
  {} := (../panic-if-aborted @0 ctxt)
- return nothing}
+ return bprog}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {ctxt := (/prelude/context-make)
- e := (/prelude/prog-build-one-c-host-2 sl (/prelude/wrap-pointer-into-pointer bpptr) src compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
+ e := (/prelude/prog-build-one-c-host-2 sl bpptr src compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
   :nothing}}
