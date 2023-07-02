@@ -101,6 +101,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     res = datum_make_pointer(datum_deref);
   } else if (!strcmp(name->bytestring_value, "serialize-pointer")) {
     res = datum_make_pointer(datum_serialize);
+  } else if (!strcmp(name->bytestring_value, "ser-pointer")) {
+    res = datum_make_pointer(datum_ser);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
     res = datum_make_pointer(pointer_call);
   } else if (!strcmp(name->bytestring_value, "head")) {
@@ -196,6 +198,36 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
     blob *b = datum_get_blob(a);
     cargs[arg_cnt] = b->begin;
   }
+}
+
+LOCAL datum datum_ser(datum *args, context *ctxt) {
+  datum *form = args;
+  if (!datum_is_list(form) || list_length(form) != 3) {
+    abortf(ctxt, "ser expected a triple on stack");
+    return (datum){};
+  }
+  datum *dst = list_at(form, 0);
+  datum *d = list_at(form, 1);
+  datum *desc = list_at(form, 2);
+  void *dstp = *datum_get_pointer(dst, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
+  if (!datum_is_symbol(desc)) {
+    abortf(ctxt, "serialize expected a symbol");
+    return (datum){};
+  }
+  char *des = desc->symbol_value;
+  if (!strcmp(des, "string")) {
+    if (!datum_is_bytestring(d)) {
+      abortf(ctxt, "string expected, got something else");
+      return (datum){};
+    }
+    strncpy(dstp, d->bytestring_value, strlen(d->bytestring_value));
+    return datum_make_list_of(datum_make_nil());
+  }
+  abortf(ctxt, "cannot load an argument");
+  return (datum){};
 }
 
 LOCAL datum datum_serialize(datum *args, context *ctxt) {
