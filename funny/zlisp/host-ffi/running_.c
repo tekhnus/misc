@@ -139,7 +139,7 @@ LOCAL void ffi_type_init(ffi_type **type, datum *definition, context *ctxt) {
     *type = &ffi_type_uint64; // danger!
     return;
   }
-  if (!strcmp(definition->symbol_value, "int64")) {
+  if (!strcmp(definition->symbol_value, "pointer")) {
     *type = &ffi_type_pointer;
     return;
   }
@@ -235,7 +235,7 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
       return (datum){};
     }
     return (datum_make_list_of(datum_make_blob_int(d->integer_value)));
-  } else if (!strcmp(des, "int64")) {
+  } else if (!strcmp(des, "pointer")) {
     void **ptr = datum_get_pointer(d, ctxt);
     if (ctxt->aborted) {
       return (datum){};
@@ -275,8 +275,6 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
   char *rettype = rett->symbol_value;
   if (!strcmp(rettype, "sizet")) {
     return (sizeof(size_t));
-  } else if (!strcmp(rettype, "int64")) {
-    return (sizeof(void *));
   } else if (!strcmp(rettype, "pointer")) {
     return (sizeof(void *));
   } else if (!strcmp(rettype, "int")) {

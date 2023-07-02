@@ -159,7 +159,7 @@ dlopen-pointer := return @1
 dlopen := fn {x}
 {return (../pointer-call-and-deserialize dlopen-pointer {{'string
     'int}
-   'int64} {x
+   'pointer} {x
    rtld-lazy})}
 
 null-pointer := return @1
@@ -185,9 +185,9 @@ dlsym-pointer := return @1
 {}
 
 dlsym := fn {x y}
-{return (../pointer-call-and-deserialize dlsym-pointer {{'int64
+{return (../pointer-call-and-deserialize dlsym-pointer {{'pointer
     'string}
-   'int64} {x
+   'pointer} {x
    y})}
 
 dlsym-or-error := fn {handle c-name}

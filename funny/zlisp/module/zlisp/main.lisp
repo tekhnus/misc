@@ -18,29 +18,29 @@ buildlib := (/std/first-good-value {(/prelude/dlopen-or-error "libzlisp-build-li
   (/prelude/dlopen-or-error "libzlisp-build-lib.dylib")})
 
 compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
-  'int64})
+  'pointer})
 
 make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {{'sizet}
-  'int64})
+  'pointer})
 
 prog-slice-make := (/prelude/c-function selflib "vec_alloc_slice" {{}
-  'int64})
+  'pointer})
 
-prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'int64
-   'int64
-   'int64
-   'int64
-   'int64
-   'int64
-   'int64
-   'int64}
-  'int64})
+prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer
+   'pointer}
+  'pointer})
 
 context-make := (/prelude/c-function selflib "context_alloc_make" {{}
-  'int64})
+  'pointer})
 
-context-abort-reason := (/prelude/c-function selflib "context_abort_reason" {{'int64}
-  'int64})
+context-abort-reason := (/prelude/c-function selflib "context_abort_reason" {{'pointer}
+  'pointer})
 
 panic-if-aborted := fn {ctxt}
 {reason := (/prelude/context-abort-reason ctxt)
@@ -49,17 +49,17 @@ panic-if-aborted := fn {ctxt}
  {}
  return ^{}}
 
-prog-build-init := (/prelude/c-function buildlib "prog_build_init_alloc" {{'int64
-   'int64
-   'int64
-   'int64}
-  'int64})
+prog-build-init := (/prelude/c-function buildlib "prog_build_init_alloc" {{'pointer
+   'pointer
+   'pointer
+   'pointer}
+  'pointer})
 
 get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {{}
-  'int64})
+  'pointer})
 
-ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'int64}
-  'int64})
+ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'pointer}
+  'pointer})
 
 init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (/prelude/context-make)
@@ -74,13 +74,13 @@ compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
  return {:ok
   :nothing}}
 
-routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'int64
-   'int64
-   'int64}
-  'int64})
+routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'pointer
+   'pointer
+   'pointer}
+  'pointer})
 
-repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'int64}
-  'int64})
+repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'pointer}
+  'pointer})
 
 repr-pointer := fn {x}
 {return (/prelude/repr-pointer-impl x)}
@@ -92,12 +92,12 @@ eval-new := fn {sl rt0}
  return {:ok
   res}}
 
-read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'int64
-   'int64}
-  'int64})
+read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'pointer
+   'pointer}
+  'pointer})
 
-datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'int64}
-  'int64})
+datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'pointer}
+  'pointer})
 
 read-new := fn {strm}
 {ctxt := (/prelude/context-make)

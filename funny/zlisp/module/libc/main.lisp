@@ -17,28 +17,28 @@ libc := (/std/first-good-value {(/prelude/dlopen-or-error "libc.so.6")
   (/prelude/dlopen-or-error "libSystem.B.dylib")})
 
 malloc := (/prelude/c-function libc "malloc" {{'sizet}
-  'int64})
+  'pointer})
 
 fopen := (/prelude/c-function libc "fopen" {{'string
    'string}
-  'int64})
+  'pointer})
 
-fread := (/prelude/c-function libc "fread" {{'int64
+fread := (/prelude/c-function libc "fread" {{'pointer
    'sizet
    'sizet
-   'int64}
+   'pointer}
   'sizet})
 
-fprintf := (/prelude/c-function libc "fprintf" {{'int64
+fprintf := (/prelude/c-function libc "fprintf" {{'pointer
    'string}
   'sizet})
 
-fprintf-new := (/prelude/c-function libc "fprintf" {{'int64
+fprintf-new := (/prelude/c-function libc "fprintf" {{'pointer
    'string}
   'sizet})
 
-fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'int64
-   'int64}
+fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'pointer
+   'pointer}
   'sizet})
 
 stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")
