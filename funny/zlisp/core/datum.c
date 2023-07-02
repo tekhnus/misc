@@ -92,6 +92,21 @@ EXPORT datum datum_make_pointer(void *ptr) {
   return datum_make_blob(b);
 }
 
+EXPORT datum datum_make_blob_int(int x) {
+  blob b = blob_make(&x, sizeof(int));
+  return datum_make_blob(b);
+}
+
+EXPORT datum datum_make_blob_int64_t(int64_t x) {
+  blob b = blob_make(&x, sizeof(int64_t));
+  return datum_make_blob(b);
+}
+
+EXPORT datum datum_make_blob_size_t(size_t x) {
+  blob b = blob_make(&x, sizeof(size_t));
+  return datum_make_blob(b);
+}
+
 EXPORT datum datum_make_int(int64_t value) {
   datum e;
   e.type = DATUM_INTEGER;

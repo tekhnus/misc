@@ -201,7 +201,7 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
 
 void *null_pointer = NULL;
 
-LOCAL datum datum_mkptr(datum *args, context *ctxt) {
+LOCAL datum to_blob(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     abortf(ctxt, "mkptr expected a pair on stack");
@@ -221,38 +221,49 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
     }
     void *addr;
     if (!strcmp(d->bytestring_value, "__magic_null_string__")) {
-      addr = &null_pointer;
+      addr = null_pointer;
     } else {
-      addr = &d->bytestring_value;
+      addr = d->bytestring_value;
     }
-    return (datum_make_list_of(datum_make_ptr(addr)));
+    return (datum_make_list_of(datum_make_pointer(addr)));
   } else if (!strcmp(des, "sizet")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
       return (datum){};
     }
-    return (datum_make_list_of(datum_make_ptr(&(d->integer_value))));
+    return (datum_make_list_of(datum_make_blob_size_t(d->integer_value)));
   } else if (!strcmp(des, "int")) {
     if (!datum_is_integer(d)) {
       abortf(ctxt, "int expected, got something else");
       return (datum){};
     }
-    return (datum_make_list_of(datum_make_ptr(&(d->integer_value))));
+    return (datum_make_list_of(datum_make_blob_int(d->integer_value)));
   } else if (!strcmp(des, "int64")) {
     void **ptr = datum_get_ptr(d, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
-    return (datum_make_list_of(datum_make_ptr(ptr)));
+    return (datum_make_list_of(datum_make_pointer(*ptr)));
   } else if (!strcmp(des, "pointer")) {
+    void ***ptr = (void ***)datum_get_ptr(d, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
-    return (datum_make_list_of(datum_copy(d)));
+    return (datum_make_list_of(datum_make_pointer(**ptr)));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
   }
+}
+
+LOCAL datum datum_mkptr(datum *args, context *ctxt) {
+  datum bl = to_blob(args, ctxt);
+  if (ctxt->aborted) {
+    return(datum){};
+  }
+  assert(datum_is_list(&bl) && list_length(&bl) == 1);
+  datum *bb = list_at(&bl, 0);
+  return datum_make_list_of(datum_make_ptr(datum_get_blob(bb)->begin));
 }
 
 LOCAL datum datum_makeptr(datum *args, context *ctxt) {
