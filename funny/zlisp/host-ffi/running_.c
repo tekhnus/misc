@@ -255,35 +255,36 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   }
   datum *what = list_at(form, 0);
   datum *how = list_at(form, 1);
-  if (!datum_is_symbol(how)) {
-    abortf(ctxt, "deref expected a symbol");
-    return (datum){};
-  }
-  char *rettype = how->symbol_value;
-  void **ptr = datum_get_pointer(what, ctxt);
+  size_t sz = get_sizeof(how, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
-  if (!strcmp(rettype, "intx64")) {
-    return datum_make_list_of(datum_make_pointer(*(void **)*ptr));
-  } else {
-    abortf(ctxt, "unknown return type for deref");
+  void *ptr = *datum_get_pointer(what, ctxt);
+  if (ctxt->aborted) {
     return (datum){};
   }
+  blob dereferenced = blob_make(ptr, sz);
+  return datum_make_list_of(datum_make_blob(dereferenced));
 }
 
-LOCAL size_t get_sizeof(datum *sig, context *ctxt) {
-  char *rettype = list_at(sig, 1)->symbol_value;
+LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
+  if (!datum_is_symbol(rett)) {
+    abortf(ctxt, "bad type: %s", datum_repr(rett));
+    return 0;
+  }
+  char *rettype = rett->symbol_value;
   if (!strcmp(rettype, "sizet")) {
     return (sizeof(size_t));
   } else if (!strcmp(rettype, "int64")) {
+    return (sizeof(void *));
+  } else if (!strcmp(rettype, "pointer")) {
     return (sizeof(void *));
   } else if (!strcmp(rettype, "int")) {
     return (sizeof(int));
   } else if (!strcmp(rettype, "string")) {
     return (sizeof(char *));
   }
-  abortf(ctxt, "uknown type: %s", datum_repr(sig));
+  abortf(ctxt, "uknown type: %s", datum_repr(rett));
   return 0;
 }
 
@@ -313,7 +314,8 @@ LOCAL datum pointer_call(datum *argz, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  size_t sz = get_sizeof(sig, ctxt);
+  datum *rettype = list_at(sig, 1);
+  size_t sz = get_sizeof(rettype, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
