@@ -191,17 +191,16 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
   for (arg_cnt = 0; arg_cnt < nargs; ++arg_cnt) {
     datum *a = list_at(args, arg_cnt);
 
-    void **ptr = datum_get_ptr(a, ctxt);
-    if (ctxt->aborted) {
+    if (!datum_is_blob(a)) {
+      abortf(ctxt, "pointer-call expects blobs");
       return;
     }
-    cargs[arg_cnt] = *ptr;
+    blob *b = datum_get_blob(a);
+    cargs[arg_cnt] = b->begin;
   }
 }
 
-void *null_pointer = NULL;
-
-LOCAL datum to_blob(datum *args, context *ctxt) {
+LOCAL datum datum_mkptr(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     abortf(ctxt, "mkptr expected a pair on stack");
@@ -221,7 +220,7 @@ LOCAL datum to_blob(datum *args, context *ctxt) {
     }
     void *addr;
     if (!strcmp(d->bytestring_value, "__magic_null_string__")) {
-      addr = null_pointer;
+      addr = NULL;
     } else {
       addr = d->bytestring_value;
     }
@@ -254,16 +253,6 @@ LOCAL datum to_blob(datum *args, context *ctxt) {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
   }
-}
-
-LOCAL datum datum_mkptr(datum *args, context *ctxt) {
-  datum bl = to_blob(args, ctxt);
-  if (ctxt->aborted) {
-    return(datum){};
-  }
-  assert(datum_is_list(&bl) && list_length(&bl) == 1);
-  datum *bb = list_at(&bl, 0);
-  return datum_make_list_of(datum_make_ptr(datum_get_blob(bb)->begin));
 }
 
 LOCAL datum datum_makeptr(datum *args, context *ctxt) {
