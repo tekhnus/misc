@@ -69,7 +69,7 @@ EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
-  return (void **)b->begin;
+  return &b->begin;
 }
 
 EXPORT blob blob_make(void *data, size_t length) {
