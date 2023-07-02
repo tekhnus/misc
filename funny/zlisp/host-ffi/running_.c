@@ -285,7 +285,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
   void *wha;
   if (datum_is_integer(what)) {
     // TODO(): remove this.
-    wha = &what->integer_value;
+    wha = (void *)what->integer_value;
   } else {
     wha = datum_get_blob(what)->begin;
   }

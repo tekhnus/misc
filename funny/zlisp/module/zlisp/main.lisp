@@ -92,7 +92,7 @@ eval-new := fn {sl rt0}
  return {:ok
   res}}
 
-read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'pointer
+read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'int64
    'pointer}
   'pointer})
 

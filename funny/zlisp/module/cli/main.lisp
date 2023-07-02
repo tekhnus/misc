@@ -9,11 +9,11 @@ req
  {list-at "std" list-at}
  {panic "std" panic}
  {fprintf "libc" fprintf}
+ {fprintf-new "libc" fprintf-new}
  {libc "libc"}
  {print "libc" print}
- {stdout "libc" stdout}
- {stderr "libc" stderr}
- {stdin "libc" stdin}
+ {stdin-val "libc" stdin-val}
+ {stdout-val "libc" stdout-val}
  {zlisp "zlisp"}
  {comp-prg-new "zlisp" compile-prog-new}
  {iprog "zlisp" init-prog}
@@ -38,7 +38,7 @@ readme := "A basic REPL for zlisp."
 repl := 42
 
 repl = fn {sl nsp bpptr compdata bdrcompdata ex}
-{tmp := (/prelude/fprintf stdout "> ")
+{tmp := (/prelude/fprintf-new stdout-val "> ")
  ignored := 0
  maybe-prog := 42
  datum := 42
@@ -47,10 +47,10 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
  msga := 42
  msgb := 42
  msgc := 42
- read-res := (/zlisp/rd stdin)
+ read-res := (/zlisp/rd stdin-val)
  switch read-res
  {{{:eof}
-   return (/prelude/fprintf stdout "")}
+   return (/prelude/fprintf-new stdout-val "")}
   {{:ok
     datum}
    maybe-prog = (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)
