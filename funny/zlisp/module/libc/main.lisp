@@ -21,18 +21,18 @@ malloc := (/prelude/c-function libc "malloc" {{'sizet}
 
 fopen := (/prelude/c-function libc "fopen" {{'string
    'string}
-  'pointer})
+  'int64})
 
 fread := (/prelude/c-function libc "fread" {{'pointer
    'sizet
    'sizet
-   'pointer}
+   'int64}
   'sizet})
 
-feof := (/prelude/c-function libc "feof" {{'pointer}
+feof := (/prelude/c-function libc "feof" {{'int64}
   'int})
 
-fprintf := (/prelude/c-function libc "fprintf" {{'pointer
+fprintf := (/prelude/c-function libc "fprintf" {{'int64
    'string}
   'sizet})
 
@@ -40,7 +40,7 @@ fprintf-new := (/prelude/c-function libc "fprintf" {{'int64
    'string}
   'sizet})
 
-fprintf-pointer := (/prelude/c-function libc "fprintf" {{'pointer
+fprintf-pointer := (/prelude/c-function libc "fprintf" {{'int64
    'pointer}
   'sizet})
 fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'int64
