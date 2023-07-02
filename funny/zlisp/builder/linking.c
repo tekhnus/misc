@@ -210,7 +210,6 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
                                             datum_make_list(call_sexp)));
   prog_compile(sl, &call_stmt, compdata, ext, ctxt);
   if (ctxt->aborted) {
-    abortf(ctxt, "failure!");
     return;
   }
   return;

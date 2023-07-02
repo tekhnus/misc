@@ -162,9 +162,16 @@ dlopen := fn {x}
    'int64} {x
    rtld-lazy})}
 
+null-pointer := return @1
+
+@{host
+ "null"}
+
+{}
+
 dlopen-or-error := fn {path}
 {r := (../dlopen path)
- if (../eq (../mkptr 0 'sizet) r)
+ if (../eq null-pointer r)
  {return {:err
    "dlopen-or-error failed"}}
  {return {:ok
@@ -185,7 +192,7 @@ dlsym := fn {x y}
 
 dlsym-or-error := fn {handle c-name}
 {resval := (../dlsym handle c-name)
- if (../eq (../mkptr 0 'sizet) resval)
+ if (../eq null-pointer resval)
  {return {:err
    "dlsym-or-error failed"}}
  {return {:ok
