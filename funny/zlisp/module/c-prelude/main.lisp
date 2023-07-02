@@ -17,18 +17,18 @@ deref := fn {x y}
   y}
  return r}
 
-mkptr-pointer := return @1
+serialize-pointer := return @1
 
 @{host
- "mkptr-pointer"}
+ "serialize-pointer"}
 
 {}
 
-mkptr := fn {x y}
+serialize := fn {x y}
 {r := return @1
  @{host
   "call-extension"}
- ^{mkptr-pointer
+ ^{serialize-pointer
   x
   y}
  return r}
@@ -131,7 +131,7 @@ serialize-params := 42
 
 serialize-params = fn {params signature}
 {if params
- {return (../cons (../mkptr (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
+ {return (../cons (../serialize (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
  {return {}}}
 
 pointer-call-and-deserialize := fn {fn-ptr signature params}

@@ -99,8 +99,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
     res = datum_make_pointer(datum_deref);
-  } else if (!strcmp(name->bytestring_value, "mkptr-pointer")) {
-    res = datum_make_pointer(datum_mkptr);
+  } else if (!strcmp(name->bytestring_value, "serialize-pointer")) {
+    res = datum_make_pointer(datum_serialize);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
     res = datum_make_pointer(pointer_call);
   } else if (!strcmp(name->bytestring_value, "head")) {
@@ -198,16 +198,16 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
   }
 }
 
-LOCAL datum datum_mkptr(datum *args, context *ctxt) {
+LOCAL datum datum_serialize(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
-    abortf(ctxt, "mkptr expected a pair on stack");
+    abortf(ctxt, "serialize expected a pair on stack");
     return (datum){};
   }
   datum *d = list_at(form, 0);
   datum *desc = list_at(form, 1);
   if (!datum_is_symbol(desc)) {
-    abortf(ctxt, "mkptr expected a symbol");
+    abortf(ctxt, "serialize expected a symbol");
     return (datum){};
   }
   char *des = desc->symbol_value;
