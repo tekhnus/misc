@@ -111,6 +111,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     res = datum_make_pointer(builtin_cons);
   } else if (!strcmp(name->bytestring_value, "eq")) {
     res = datum_make_pointer(builtin_eq);
+  } else if (!strcmp(name->bytestring_value, "null")) {
+    res = datum_make_pointer(NULL);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     res = datum_make_pointer(dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
