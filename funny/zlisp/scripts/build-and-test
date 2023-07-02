@@ -11,5 +11,5 @@ if [ ! -d build ]; then
       -DPython_ROOT_DIR=$PWD/.venv \
       -DCMAKE_C_COMPILER=clang
 fi
-cmake --build build \
+cmake --build build --parallel 7 \
       && cmake --build build --target test ARGS=-V
