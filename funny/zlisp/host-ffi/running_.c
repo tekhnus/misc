@@ -282,7 +282,13 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum){};
   }
   char *rettype = how->symbol_value;
-  void *wha = datum_get_blob(what)->begin;
+  void *wha;
+  if (datum_is_integer(what)) {
+    // TODO(): remove this.
+    wha = &what->integer_value;
+  } else {
+    wha = datum_get_blob(what)->begin;
+  }
   if (!strcmp(rettype, "sizet")) {
     return (datum_make_list_of(datum_make_int((int64_t) * (size_t *)wha)));
   } else if (!strcmp(rettype, "int")) {
