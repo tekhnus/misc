@@ -56,7 +56,7 @@ stderr := (/std/first-good-value {(/prelude/dlsym-or-error libc "stderr")
   (/prelude/dlsym-or-error libc "__stderrp")})
 
 print := fn {val}
-{return (/prelude/fprintf stdout (/std/repr val))}
+{return (/prelude/fprintf-new stdout-val (/std/repr val))}
 
 export
 {{malloc malloc}
