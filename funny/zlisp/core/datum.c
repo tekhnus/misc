@@ -69,7 +69,7 @@ EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
-  return &b->begin;
+  return b->begin;
 }
 
 EXPORT blob blob_make(void *data, size_t length) {
@@ -286,6 +286,13 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
     offset += fprintf(buf, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
     offset += fprintf(buf, "\"%s\"", escape_string(e->bytestring_value));
+  } else if (datum_is_blob(e)) {
+    blob *blb = datum_get_blob(e);
+    offset += fprintf(buf, "`");
+    for (size_t i = 0; i < blb->length; ++i) {
+      offset += fprintf(buf, "%.2hhx", ((char *)(blb->begin))[i]);
+    }
+    offset += fprintf(buf, "`");
   } else {
     offset += fprintf(buf, "<fmt not implemented>");
   }

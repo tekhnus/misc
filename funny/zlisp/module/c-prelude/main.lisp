@@ -63,7 +63,8 @@ head-pointer := return @1
 {}
 
 head := fn {x}
-{r := return @1
+{
+ r := return @1
  @{host
   "call-extension"}
  ^{head-pointer
