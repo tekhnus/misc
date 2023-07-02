@@ -1,7 +1,7 @@
 req
 {{prelude "prelude"}
- {fprintf "libc" fprintf}
- {stderr "libc" stderr}
+ {fprintf-new "libc" fprintf-new}
+ {stderr-val "libc" stderr-val}
  {std "std"}
  {decons-pat "std" decons-pat}
  {eq "std" eq}
@@ -201,12 +201,12 @@ fntest
  '13}
 
 fntest
-{res := (/prelude/fprintf stderr "hello-fprintf\n")
+{res := (/prelude/fprintf-new stderr-val "hello-fprintf\n")
  return 42}
 42
 
 fntest
-{res := (/prelude/fprintf stderr (/std/repr "hello fprintf-repr\n"))
+{res := (/prelude/fprintf-new stderr-val (/std/repr "hello fprintf-repr\n"))
  return 42}
 42
 

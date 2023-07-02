@@ -43,6 +43,9 @@ fprintf-new := (/prelude/c-function libc "fprintf" {{'int64
 fprintf-pointer := (/prelude/c-function libc "fprintf" {{'pointer
    'pointer}
   'sizet})
+fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'int64
+   'pointer}
+  'sizet})
 
 stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")
   (/prelude/dlsym-or-error libc "__stdinp")})
@@ -54,6 +57,7 @@ stdout-val := (/prelude/deref stdout 'int64)
 
 stderr := (/std/first-good-value {(/prelude/dlsym-or-error libc "stderr")
   (/prelude/dlsym-or-error libc "__stderrp")})
+stderr-val := (/prelude/deref stderr 'int64)
 
 print := fn {val}
 {return (/prelude/fprintf-new stdout-val (/std/repr val))}
@@ -62,13 +66,9 @@ export
 {{malloc malloc}
  {fopen fopen}
  {fread fread}
- {feof feof}
- {fprintf fprintf}
  {fprintf-new fprintf-new}
- {fprintf-pointer fprintf-pointer}
- {stdin stdin}
- {stdout stdout}
- {stderr stderr}
+ {fprintf-pointer-new fprintf-pointer-new}
  {stdin-val stdin-val}
  {stdout-val stdout-val}
+ {stderr-val stderr-val}
  {print print}}

@@ -8,7 +8,6 @@ req
  {repr "std" repr}
  {list-at "std" list-at}
  {panic "std" panic}
- {fprintf "libc" fprintf}
  {fprintf-new "libc" fprintf-new}
  {libc "libc"}
  {print "libc" print}
