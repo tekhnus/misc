@@ -34,7 +34,7 @@ prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'int64
    'int64
    'int64
    'int64}
-  'sizet})
+  'int64})
 
 context-make := (/prelude/c-function selflib "context_alloc_make" {{}
   'int64})

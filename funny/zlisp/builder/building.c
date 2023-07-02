@@ -62,7 +62,7 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
   return (datum_make_list(sl));
 }
 
-EXPORT size_t prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
+EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
                          datum *builder_compdata, datum *settings,
                          extension *ext, context *ctxt) {
   size_t start_p = prog_get_next_index(sl);

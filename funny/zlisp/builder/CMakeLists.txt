@@ -26,5 +26,6 @@ add_custom_command(
 									COMMAND rm -rf "${CMAKE_CURRENT_BINARY_DIR}/zlisp/*.h"
                   COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/*.[ch] .
                   COMMAND makeheaders -v *.[ch]
+                  DEPENDS
    linking.c extensions.c building.c builder_main.c fmt.c
-                  DEPENDS )
+)
