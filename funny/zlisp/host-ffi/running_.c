@@ -133,10 +133,6 @@ LOCAL void ffi_type_init(ffi_type **type, datum *definition, context *ctxt) {
     *type = &ffi_type_pointer;
     return;
   }
-  if (!strcmp(definition->symbol_value, "pointer")) {
-    *type = &ffi_type_pointer;
-    return;
-  }
   if (!strcmp(definition->symbol_value, "sizet")) {
     *type = &ffi_type_uint64; // danger!
     return;
@@ -243,12 +239,6 @@ LOCAL datum datum_mkptr(datum *args, context *ctxt) {
       return (datum){};
     }
     return (datum_make_list_of(datum_make_pointer(*ptr)));
-  } else if (!strcmp(des, "pointer")) {
-    void ***ptr = (void ***)datum_get_ptr(d, ctxt);
-    if (ctxt->aborted) {
-      return (datum){};
-    }
-    return (datum_make_list_of(datum_make_pointer(**ptr)));
   } else {
     abortf(ctxt, "cannot load an argument");
     return (datum){};
@@ -295,8 +285,6 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
     return (datum_make_list_of(datum_make_int((int64_t) * (int *)wha)));
   } else if (!strcmp(rettype, "int64")) {
     return datum_make_list_of(datum_make_ptr(*(void **)wha));
-  } else if (!strcmp(rettype, "pointer")) {
-    return datum_make_list_of(datum_make_ptr(wha));
   } else if (!strcmp(rettype, "string")) {
     return (datum_make_list_of(datum_make_bytestring(*(char **)wha)));
   } else {
@@ -307,9 +295,7 @@ LOCAL datum datum_deref(datum *args, context *ctxt) {
 
 LOCAL size_t get_sizeof(datum *sig, context *ctxt) {
   char *rettype = list_at(sig, 1)->symbol_value;
-  if (!strcmp(rettype, "pointer")) {
-    return (sizeof(void *));
-  } else if (!strcmp(rettype, "sizet")) {
+  if (!strcmp(rettype, "sizet")) {
     return (sizeof(size_t));
   } else if (!strcmp(rettype, "int64")) {
     return (sizeof(void *));
