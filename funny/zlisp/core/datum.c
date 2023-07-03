@@ -19,6 +19,12 @@ static const int NON_FLAT = 0;
 static const int FLAT_CHILDREN = 1;
 static const int FLAT = 2;
 
+static const datum_type DATUM_LIST = 0;
+static const datum_type DATUM_SYMBOL = 1;
+static const datum_type DATUM_BYTESTRING = 2;
+static const datum_type DATUM_BLOB = 3;
+static const datum_type DATUM_INTEGER = 4;
+
 EXPORT bool datum_is_symbol(datum *e) { return e->_type == DATUM_SYMBOL; }
 
 EXPORT bool datum_is_integer(datum *e) { return e->_type == DATUM_INTEGER; }

@@ -4,13 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-enum datum_type {
-  DATUM_LIST,
-  DATUM_SYMBOL,
-  DATUM_BYTESTRING,
-  DATUM_BLOB,
-  DATUM_INTEGER,
-};
+typedef uint8_t datum_type;
 
 typedef struct datum datum;
 
@@ -29,14 +23,12 @@ struct array {
 typedef struct array array;
 
 struct datum {
-  enum datum_type _type;
-  union {
-    array _list_value;
-    char *symbol_value;
-    char *bytestring_value;
-    blob _blob_value;
-    int64_t integer_value;
-  };
+  datum_type _type;
+  array _list_value;
+  char *symbol_value;
+  char *bytestring_value;
+  blob _blob_value;
+  int64_t integer_value;
 };
 
 struct result {
