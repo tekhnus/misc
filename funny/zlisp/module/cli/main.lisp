@@ -78,9 +78,7 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
 
 sl := (/prelude/psm)
 
-bpptr := 0
-
-rt := (/prelude/mres bpptr)
+rt := (/prelude/mres)
 
 compdata := (/prelude/cdm)
 
@@ -92,6 +90,6 @@ ex := (/prelude/em ctxt)
 
 {} := (/zlisp/panic-if-aborted @0 ctxt)
 
-bpptr = (/zlisp/iprog sl compdata bdrcompdata)
+bpptr := (/zlisp/iprog sl compdata bdrcompdata)
 
 ignored := (repl sl rt bpptr compdata bdrcompdata ex)

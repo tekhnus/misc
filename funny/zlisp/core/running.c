@@ -490,10 +490,10 @@ LOCAL datum routine_make(ptrdiff_t prg, struct routine *context) {
   return res;
 }
 
-EXPORT datum *routine_make_alloc(ptrdiff_t prg) {
+EXPORT datum *routine_make_alloc() {
   // This one is for using from lisp.
   datum *res = malloc(sizeof(datum));
-  *res = routine_make(prg, NULL);
+  *res = routine_make(0, NULL);
   return res;
 }
 
