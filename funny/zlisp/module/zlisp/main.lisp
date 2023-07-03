@@ -3,6 +3,7 @@ req
  {dlopen-or-error "prelude" dlopen-or-error}
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
+ {ser "prelude" ser}
  {null-pointer "prelude" null-pointer}
  {malloc-and-copy "prelude" malloc-and-copy}
  {std "std"}
@@ -21,8 +22,11 @@ buildlib := (/std/first-good-value {(/prelude/dlopen-or-error "libzlisp-build-li
 compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
   'pointer})
 
-make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {{}
-  'pointer})
+make-routine-with-empty-state-impl := (/prelude/c-function selflib "routine_make_topmost" {{'int64_t}
+  'datum})
+make-routine-with-empty-state := fn {} {
+r := (/prelude/make-routine-with-empty-state-impl (/prelude/ser 0))
+return (/prelude/malloc-and-copy r)}
 
 prog-slice-make-impl := (/prelude/c-function selflib "vec_create_slice" {{}
   'vec})

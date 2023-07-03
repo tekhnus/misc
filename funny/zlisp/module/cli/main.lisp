@@ -78,7 +78,7 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
 
 sl := (/zlisp/psm)
 
-rt := (/prelude/mres)
+rt := (/zlisp/mres)
 
 compdata := (/prelude/cdm)
 

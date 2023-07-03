@@ -472,7 +472,7 @@ LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
       ctxt);
 }
 
-EXPORT datum routine_make_topmost(ptrdiff_t prg) {
+EXPORT datum routine_make_topmost(int64_t prg) {
   return routine_make(prg, NULL);
 }
 
@@ -487,13 +487,6 @@ LOCAL datum routine_make(ptrdiff_t prg, struct routine *context) {
   datum pc_frame_datum =
       datum_make_frame(vec_make_of(datum_make_int(prg)), -1, prg);
   datum res = datum_make_list_of(vars_datum, pc_frame_datum);
-  return res;
-}
-
-EXPORT datum *routine_make_alloc() {
-  // This one is for using from lisp.
-  datum *res = malloc(sizeof(datum));
-  *res = routine_make(0, NULL);
   return res;
 }
 
