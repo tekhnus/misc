@@ -10,7 +10,7 @@
 struct cif_and_data {
   ffi_cif cif;
   ffi_type types[1024];
-  ffi_type *(pointers[1024]);
+  ffi_type *(pointers[1024 * 256]);
   size_t ntypes;
   size_t npointers;
 };
@@ -154,19 +154,57 @@ LOCAL ffi_type *cifd_alloc_type(struct cif_and_data *cifd) {
 }
 
 LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, context *ctxt) {
-  if (!datum_is_symbol(definition)) {
+  ffi_type *result = cifd_alloc_type(cifd);
+  if (datum_is_list(definition) && list_length(definition) == 2) {
+    datum *sz = list_at(definition, 0);
+    assert(datum_is_integer(sz));
+    size_t siz = sz->integer_value;
+    datum *elem = list_at(definition, 1);
+    ffi_type *elem_t = ffi_type_init(cifd, elem, ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+    result->type = FFI_TYPE_STRUCT;
+    result->size = 0;
+    result->alignment = 0;
+    result->elements = cifd_alloc_pointers(cifd, siz + 1);
+    for (size_t i = 0; i < siz; ++i) {
+      result->elements[i] = elem_t;
+    }
+    result->elements[siz] = NULL;
+  } else if (!datum_is_symbol(definition)) {
     abortf(ctxt, "type should be a symbol");
     return NULL;
-  }
-  ffi_type *result = cifd_alloc_type(cifd);
-  if (!strcmp(definition->symbol_value, "sizet")) {
+  } else if (!strcmp(definition->symbol_value, "sizet")) {
     *result = ffi_type_uint64; // danger!
   }
   else if (!strcmp(definition->symbol_value, "pointer")) {
     *result = ffi_type_pointer;
   }
+  else if (!strcmp(definition->symbol_value, "uint8_t")) {
+    *result = ffi_type_uint8;
+  }
+  else if (!strcmp(definition->symbol_value, "char")) {
+    *result = ffi_type_schar;  // danger!
+  }
   else if (!strcmp(definition->symbol_value, "int")) {
     *result = ffi_type_sint;
+  } else if (!strcmp(definition->symbol_value, "context")) {
+    result->type = FFI_TYPE_STRUCT;  
+    result->size = 0;
+    result->alignment = 0;
+    result->elements = cifd_alloc_pointers(cifd, 3);
+    datum def = datum_make_symbol("uint8_t");
+    result->elements[0] = ffi_type_init(cifd, &def, ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+    def = datum_make_list_of(datum_make_int(1024), datum_make_symbol("char"));
+    result->elements[1] = ffi_type_init(cifd, &def, ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+    result->elements[2] = NULL;
   } else {
     abortf(ctxt, "unknown type: %s", datum_repr(definition));
     return NULL;
@@ -293,8 +331,10 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     return (sizeof(void *));
   } else if (!strcmp(rettype, "int")) {
     return (sizeof(int));
+  } else if (!strcmp(rettype, "context")) {
+    return (sizeof(context));
   }
-  abortf(ctxt, "uknown type: %s", datum_repr(rett));
+  abortf(ctxt, "sizeof type not known: %s", datum_repr(rett));
   return 0;
 }
 

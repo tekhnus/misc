@@ -54,7 +54,7 @@ typedef struct result result;
 
 typedef struct context context;
 struct context {
-  bool aborted;
+  uint8_t aborted;
   char error[1024];
 };
 typedef struct extension extension;

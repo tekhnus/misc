@@ -10,13 +10,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT context *context_alloc_make() { // For lisp.
-  context *res = malloc(sizeof(context));
-  *res = (context){};
-  return res;
+EXPORT context context_make() {
+  return (context){};
 }
 
-EXPORT char *context_abort_reason(context *ctxt) { // For lisp.
+EXPORT char *context_abort_reason(context *ctxt) {
   if (!ctxt->aborted) {
     return NULL;
   }

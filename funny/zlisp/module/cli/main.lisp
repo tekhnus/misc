@@ -84,7 +84,7 @@ compdata := (/prelude/cdm)
 
 bdrcompdata := (/prelude/cdm)
 
-ctxt := (/prelude/cm)
+ctxt := (/zlisp/cm)
 
 ex := (/prelude/em ctxt)
 

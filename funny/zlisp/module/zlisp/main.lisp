@@ -4,6 +4,7 @@ req
  {c-function "prelude" c-function}
  {selflib "prelude" selflib}
  {null-pointer "prelude" null-pointer}
+ {malloc-and-copy "prelude" malloc-and-copy}
  {std "std"}
  {decons-pat "std" decons-pat}
  {first-good-value "std" first-good-value}
@@ -36,8 +37,12 @@ prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
    'pointer}
   'pointer})
 
-context-make := (/prelude/c-function selflib "context_alloc_make" {{}
-  'pointer})
+context-make-impl-2 := (/prelude/c-function selflib "context_make" {{}
+  'context})
+context-make := fn {} {
+ctxt := (/prelude/context-make-impl-2)
+ptr := (/prelude/malloc-and-copy ctxt)
+return ptr}
 
 context-abort-reason := (/prelude/c-function selflib "context_abort_reason" {{'pointer}
   'pointer})
@@ -62,13 +67,13 @@ ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'poi
   'pointer})
 
 init-prog := fn {sl compdata bdrcompdata}
-{ctxt := (/prelude/context-make)
+{ctxt := (../context-make)
  bprog := (/prelude/prog-build-init sl compdata bdrcompdata ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return bprog}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
-{ctxt := (/prelude/context-make)
+{ctxt := (../context-make)
  e := (/prelude/prog-build-one-c-host-2 sl bpptr src compdata bdrcompdata (/prelude/get-host-ffi-settings) ex ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
@@ -86,7 +91,7 @@ repr-pointer := fn {x}
 {return (/prelude/repr-pointer-impl x)}
 
 eval-new := fn {sl rt0}
-{ctxt := (/prelude/context-make)
+{ctxt := (../context-make)
  res := (/prelude/routine-run-and-get-value-c-host-new sl rt0 ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
@@ -100,7 +105,7 @@ datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'pointer}
   'pointer})
 
 read-new := fn {strm}
-{ctxt := (/prelude/context-make)
+{ctxt := (../context-make)
  res := (/prelude/read-all-alloc strm ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  is-eof := (/prelude/datum-is-nil res)
