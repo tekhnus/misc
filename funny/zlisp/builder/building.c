@@ -63,7 +63,7 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
 }
 
 EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
-                         datum *builder_compdata, datum *settings,
+                         datum *builder_compdata, datum settings,
                          extension *ext, context *ctxt) {
   size_t start_p = prog_get_next_index(sl);
   prog_compile(sl, source, compdata, ext, ctxt);
@@ -88,7 +88,7 @@ EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   ptrdiff_t *builder_jmp = prog_get_jmp_delta(sl, *bp);
   *builder_jmp = prog_get_next_index(sl) - *bp;
 
-  prog_link_deps(sl, builder_compdata, input_meta, compile_module, settings,
+  prog_link_deps(sl, builder_compdata, input_meta, compile_module, &settings,
                  ext, ctxt);
   if (ctxt->aborted) {
     return 0;
@@ -101,8 +101,6 @@ EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   return 0;
 }
 
-EXPORT datum *get_host_ffi_settings() { // used in lisp
-  datum *res = malloc(sizeof(datum));
-  *res = datum_make_bytestring("c-prelude");
-  return res;
+EXPORT datum get_host_ffi_settings() {
+  return datum_make_bytestring("c-prelude");
 }

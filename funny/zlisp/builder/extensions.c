@@ -41,7 +41,7 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
   }
   datum set = datum_make_bytestring("c-prelude");
   prog_build(program, &lisp_extension_builder_prg, &initialization_statements,
-             compdata, &lisp_extension_builder_compdata, &set,
+             compdata, &lisp_extension_builder_compdata, set,
              &lisp_extension_ext, ctxt);
   if (ctxt->aborted) {
     return;

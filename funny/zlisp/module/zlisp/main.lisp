@@ -39,7 +39,7 @@ prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
    'pointer
    'pointer
    'pointer
-   'pointer
+   'datum
    'pointer
    'pointer}
   'pointer})
@@ -68,7 +68,7 @@ prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
   'sizet})
 
 get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {{}
-  'pointer})
+  'datum})
 
 ext-make-impl := (/prelude/c-function buildlib "standard_extension_make" {{'pointer}
   'lisp_extension})

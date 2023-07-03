@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "while initializing extension: %s", ctxt.error);
     return EXIT_FAILURE;
   }
-  prog_build(&sl, &bp, &src, &compdata, &builder_compdata, &set,
+  prog_build(&sl, &bp, &src, &compdata, &builder_compdata, set,
              &extension.base, &ctxt);
   if (ctxt.aborted) {
     fprintf(stderr, "while building: %s", ctxt.error);
