@@ -101,6 +101,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     res = datum_make_pointer(datum_deref);
   } else if (!strcmp(name->bytestring_value, "serialize-pointer")) {
     res = datum_make_pointer(datum_serialize);
+  } else if (!strcmp(name->bytestring_value, "copy-to-heap-pointer")) {
+    res = datum_make_pointer(datum_copy_to_heap);
   } else if (!strcmp(name->bytestring_value, "ser-pointer")) {
     res = datum_make_pointer(datum_ser);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
@@ -200,33 +202,38 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
   }
 }
 
+LOCAL datum datum_copy_to_heap(datum *args, context *ctxt) {
+  datum *form = args;
+  if (!datum_is_list(form) || list_length(form) != 1) {
+    abortf(ctxt, "copy-to-heap expected a single argument");
+    return (datum){};
+  }
+  datum *d = list_at(form, 0);
+  if (!datum_is_blob(d)) {
+    abortf(ctxt, "blob expected, got something else");
+    return (datum){};
+  }
+  blob *b = datum_get_blob(d);
+  void *cpy = malloc(b->length);
+  memcpy(cpy, b->begin, b->length);
+  return datum_make_list_of(datum_make_pointer(cpy));
+}
+
 LOCAL datum datum_ser(datum *args, context *ctxt) {
   datum *form = args;
-  if (!datum_is_list(form) || list_length(form) != 3) {
-    abortf(ctxt, "ser expected a triple on stack");
+  if (!datum_is_list(form) || list_length(form) != 1) {
+    abortf(ctxt, "ser expected a single argument");
     return (datum){};
   }
-  datum *dst = list_at(form, 0);
-  datum *d = list_at(form, 1);
-  datum *desc = list_at(form, 2);
-  void *dstp = *datum_get_pointer(dst, ctxt);
-  if (ctxt->aborted) {
-    return (datum){};
+  datum *d = list_at(form, 0);
+  if (datum_is_bytestring(d)) {
+    blob b = blob_make(d->bytestring_value, 1 + strlen(d->bytestring_value));
+    return datum_make_list_of(datum_make_blob(b));
   }
-  if (!datum_is_symbol(desc)) {
-    abortf(ctxt, "serialize expected a symbol");
-    return (datum){};
+  if (datum_is_integer(d)) {
+    return datum_make_blob_int64_t(d->integer_value);
   }
-  char *des = desc->symbol_value;
-  if (!strcmp(des, "string")) {
-    if (!datum_is_bytestring(d)) {
-      abortf(ctxt, "string expected, got something else");
-      return (datum){};
-    }
-    strncpy(dstp, d->bytestring_value, strlen(d->bytestring_value));
-    return datum_make_list_of(datum_make_nil());
-  }
-  abortf(ctxt, "cannot load an argument");
+  abortf(ctxt, "serialization not supported for %s", datum_repr(d));
   return (datum){};
 }
 
