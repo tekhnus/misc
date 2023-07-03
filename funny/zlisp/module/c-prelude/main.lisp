@@ -17,22 +17,6 @@ deref := fn {x y}
   y}
  return r}
 
-serialize-pointer := return @1
-
-@{host
- "serialize-pointer"}
-
-{}
-
-serialize := fn {x y}
-{r := return @1
- @{host
-  "call-extension"}
- ^{serialize-pointer
-  x
-  y}
- return r}
-
 ser-pointer := return @1
 
 @{host
@@ -157,19 +141,11 @@ nth = fn {n xs}
   {return (../head xs)}}
  {{} := (../panic @0 "nth fail")}}
 
-serialize-params := 42
-
-serialize-params = fn {params signature}
-{if params
- {return (../cons (../serialize (../head params) (../head signature)) (../serialize-params (../tail params) (../tail signature)))}
- {return {}}}
-
 pointer-call-and-deserialize := fn {fn-ptr signature params}
 {fnparamst := (../head signature)
  rettype := (../head (../tail signature))
- s := (../serialize-params params fnparamst)
  rawres := (../pointer-call fn-ptr {fnparamst
-   rettype} s)
+   rettype} params)
  return rawres}
 
 null-pointer := return @1

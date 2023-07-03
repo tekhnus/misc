@@ -99,8 +99,6 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
     res = datum_make_pointer(datum_deref);
-  } else if (!strcmp(name->bytestring_value, "serialize-pointer")) {
-    res = datum_make_pointer(datum_serialize);
   } else if (!strcmp(name->bytestring_value, "copy-to-heap-pointer")) {
     res = datum_make_pointer(datum_copy_to_heap);
   } else if (!strcmp(name->bytestring_value, "ser-pointer")) {
@@ -231,31 +229,6 @@ LOCAL datum datum_ser(datum *args, context *ctxt) {
   }
   abortf(ctxt, "serialization not supported for %s", datum_repr(d));
   return (datum){};
-}
-
-LOCAL datum datum_serialize(datum *args, context *ctxt) {
-  datum *form = args;
-  if (!datum_is_list(form) || list_length(form) != 2) {
-    abortf(ctxt, "serialize expected a pair on stack");
-    return (datum){};
-  }
-  datum *d = list_at(form, 0);
-  datum *desc = list_at(form, 1);
-  if (!datum_is_symbol(desc)) {
-    abortf(ctxt, "serialize expected a symbol");
-    return (datum){};
-  }
-  char *des = desc->symbol_value;
-  if (!strcmp(des, "sizet")) {
-    return datum_make_list_of(datum_copy(d));
-  } else if (!strcmp(des, "int")) {
-    return datum_make_list_of(datum_copy(d));
-  } else if (!strcmp(des, "pointer")) {
-    return datum_make_list_of(datum_copy(d));
-  } else {
-    abortf(ctxt, "cannot load an argument");
-    return (datum){};
-  }
 }
 
 LOCAL datum datum_deref(datum *args, context *ctxt) {
