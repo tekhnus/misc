@@ -54,11 +54,11 @@ panic-if-aborted := fn {ctxt}
  {}
  return ^{}}
 
-prog-build-init := (/prelude/c-function buildlib "prog_build_init_alloc" {{'pointer
+prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
    'pointer
    'pointer
    'pointer}
-  'pointer})
+  'sizet})
 
 get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {{}
   'pointer})
@@ -70,7 +70,7 @@ init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (../context-make)
  bprog := (/prelude/prog-build-init sl compdata bdrcompdata ctxt)
  {} := (../panic-if-aborted @0 ctxt)
- return bprog}
+ return (/prelude/malloc-and-copy bprog)}
 
 compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
 {ctxt := (../context-make)
