@@ -141,13 +141,6 @@ nth = fn {n xs}
   {return (../head xs)}}
  {{} := (../panic @0 "nth fail")}}
 
-pointer-call-and-deserialize := fn {fn-ptr signature params}
-{fnparamst := (../head signature)
- rettype := (../head (../tail signature))
- rawres := (../pointer-call fn-ptr {fnparamst
-   rettype} params)
- return rawres}
-
 null-pointer := return @1
 
 @{host
@@ -175,7 +168,7 @@ dlopen := fn {x}
  if (../eq x "__magic_null_string__") {
   x-on-heap = null-pointer
  } {}
- return (../pointer-call-and-deserialize dlopen-pointer {{'pointer
+ return (../pointer-call dlopen-pointer {{'pointer
     'int}
    'pointer} {x-on-heap
    rtld-lazy})}
@@ -199,7 +192,7 @@ dlsym := fn {x y}
 {
 y-ser := (../ser y)
 y-on-heap := (../copy-to-heap y-ser)
-return (../pointer-call-and-deserialize dlsym-pointer {{'pointer
+return (../pointer-call dlsym-pointer {{'pointer
     'pointer}
    'pointer} {x
    y-on-heap})}
@@ -220,30 +213,30 @@ dlsym-or-panic := fn {handle c-name}
 
 c-function-0 := fn {fn-ptr signature}
 {return ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {})}
+ return (../pointer-call fn-ptr signature {})}
 
 c-function-1 := fn {fn-ptr signature}
 {a1 := return @1
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1})}
+ return (../pointer-call fn-ptr signature {a1})}
 
 c-function-2 := fn {fn-ptr signature}
 {{a1 a2} := return @2
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2})}
 
 c-function-3 := fn {fn-ptr signature}
 {{a1 a2 a3} := return @3
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2
    a3})}
 
 c-function-4 := fn {fn-ptr signature}
 {{a1 a2 a3 a4} := return @4
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2
    a3
    a4})}
@@ -251,7 +244,7 @@ c-function-4 := fn {fn-ptr signature}
 c-function-5 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5} := return @5
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2
    a3
    a4
@@ -260,7 +253,7 @@ c-function-5 := fn {fn-ptr signature}
 c-function-6 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6} := return @6
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2
    a3
    a4
@@ -270,7 +263,7 @@ c-function-6 := fn {fn-ptr signature}
 c-function-7 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6 a7} := return @7
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2
    a3
    a4
@@ -281,7 +274,7 @@ c-function-7 := fn {fn-ptr signature}
 c-function-8 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6 a7 a8} := return @8
  ^{}
- return (../pointer-call-and-deserialize fn-ptr signature {a1
+ return (../pointer-call fn-ptr signature {a1
    a2
    a3
    a4
