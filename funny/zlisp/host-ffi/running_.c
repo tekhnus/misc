@@ -231,7 +231,7 @@ LOCAL datum datum_ser(datum *args, context *ctxt) {
     return datum_make_list_of(datum_make_blob(b));
   }
   if (datum_is_integer(d)) {
-    return datum_make_blob_int64_t(d->integer_value);
+    return datum_make_list_of(datum_make_blob_int64_t(d->integer_value));
   }
   abortf(ctxt, "serialization not supported for %s", datum_repr(d));
   return (datum){};
@@ -263,11 +263,7 @@ LOCAL datum datum_serialize(datum *args, context *ctxt) {
     }
     return (datum_make_list_of(datum_make_pointer(addr)));
   } else if (!strcmp(des, "sizet")) {
-    if (!datum_is_integer(d)) {
-      abortf(ctxt, "int expected, got something else");
-      return (datum){};
-    }
-    return (datum_make_list_of(datum_make_blob_size_t(d->integer_value)));
+    return datum_make_list_of(datum_copy(d));
   } else if (!strcmp(des, "int")) {
     return datum_make_list_of(datum_copy(d));
   } else if (!strcmp(des, "pointer")) {

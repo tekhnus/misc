@@ -33,6 +33,21 @@ serialize := fn {x y}
   y}
  return r}
 
+ser-pointer := return @1
+
+@{host
+ "ser-pointer"}
+
+{}
+
+ser := fn {x}
+{r := return @1
+ @{host
+  "call-extension"}
+ ^{ser-pointer
+  x}
+ return r}
+
 pointer-call-pointer := return @1
 
 @{host
@@ -361,4 +376,5 @@ export
  {null-pointer null-pointer}
  {c-function c-function}
  {deref deref}
+ {ser ser}
  {selflib selflib}}

@@ -1,5 +1,6 @@
 req
 {{prelude "prelude"}
+ {ser "prelude" ser}
  {fopen "libc" fopen}
  {libc "libc"}
  {stdout-val "libc" stdout-val}
@@ -9,8 +10,13 @@ req
 
 hostsfile := (/prelude/fopen "/etc/hosts" "r")
 
-buffer := (/prelude/malloc 1024000)
+sz := (/prelude/ser 1024000)
+one := (/prelude/ser 1)
+len := (/prelude/ser 1024)
+warning := "TODO: convert those from int64_t to size_t"
 
-xxx := (/prelude/fread buffer 1 1024 hostsfile)
+buffer := (/prelude/malloc sz)
+
+xxx := (/prelude/fread buffer one len hostsfile)
 
 yyy := (/prelude/fprintf-pointer-new stdout-val buffer)
