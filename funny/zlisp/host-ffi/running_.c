@@ -162,30 +162,27 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, cont
   return result;
 }
 
-LOCAL ffi_type **cifd_extend_pointers(struct cif_and_data *cifd, ffi_type **ptrs, size_t count) {
+LOCAL ffi_type **cifd_alloc_pointers(struct cif_and_data *cifd, size_t count) {
   ffi_type **result = cifd->pointers + cifd->npointers;
-  for (size_t i = 0; i < count; ++i) {
-    cifd->pointers[cifd->npointers++] = ptrs[i];
-  }
+  cifd->npointers += count;
   return result;
 }
 
 LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd, context *ctxt) {
   ffi_type *ret_type;
-  ffi_type *(args[32]);
+  datum *arg_defs = list_at(sig, 0);
+  int arg_count = list_length(arg_defs);
+  ffi_type **args2 = cifd_alloc_pointers(cifd, arg_count);
   if (list_length(sig) != 2) {
     abortf(ctxt, "the signature should be a two-item list");
     return;
   }
-  datum *arg_defs = list_at(sig, 0);
-  int arg_count;
-  for (arg_count = 0; arg_count < list_length(arg_defs); ++arg_count) {
-    args[arg_count] = ffi_type_init(cifd, list_at(arg_defs, arg_count), ctxt);
+  for (int i = 0; i < list_length(arg_defs); ++i) {
+    args2[i] = ffi_type_init(cifd, list_at(arg_defs, i), ctxt);
     if (ctxt->aborted) {
       return;
     }
   }
-  ffi_type **args2 = cifd_extend_pointers(cifd, args, arg_count);
   ret_type = ffi_type_init(cifd, list_at(sig, 1), ctxt);
   if (ctxt->aborted) {
     return;
