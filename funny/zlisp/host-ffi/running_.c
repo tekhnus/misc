@@ -122,7 +122,7 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
     res = datum_make_pointer(dlsym);
   } else if (!strcmp(name->bytestring_value, "RTLD_LAZY")) {
-    res = datum_make_int(RTLD_LAZY);
+    res = datum_make_blob_int(RTLD_LAZY);
   } else {
     abortf(ctxt, "unknown host instruction");
     return (datum){};
@@ -269,11 +269,7 @@ LOCAL datum datum_serialize(datum *args, context *ctxt) {
     }
     return (datum_make_list_of(datum_make_blob_size_t(d->integer_value)));
   } else if (!strcmp(des, "int")) {
-    if (!datum_is_integer(d)) {
-      abortf(ctxt, "int expected, got something else");
-      return (datum){};
-    }
-    return (datum_make_list_of(datum_make_blob_int(d->integer_value)));
+    return datum_make_list_of(datum_copy(d));
   } else if (!strcmp(des, "pointer")) {
     return datum_make_list_of(datum_copy(d));
   } else {
