@@ -1,4 +1,3 @@
-#include <running_.h>
 #if INTERFACE
 #include <assert.h>
 #include <dlfcn.h>
@@ -7,6 +6,16 @@
 #include <string.h>
 #include <zlisp/common.h>
 #endif
+#include <ffi.h>
+struct cif_and_data {
+  ffi_cif cif;
+  ffi_type types[1024];
+  ffi_type *(pointers[1024]);
+  size_t ntypes;
+  size_t npointers;
+};
+#include <running_.h>
+
 
 EXPORT datum *routine_run_in_ffi_host(vec *sl, datum *r0d, context *ctxt) {
   // This one is for lisp.
@@ -132,29 +141,38 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   return (datum_make_list_of(res));
 }
 
-LOCAL void ffi_type_init(ffi_type **type, datum *definition, context *ctxt) {
+LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, context *ctxt) {
   if (!datum_is_symbol(definition)) {
     abortf(ctxt, "type should be a symbol");
-    return;
+    return NULL;
   }
+  ffi_type *result = &cifd->types[cifd->ntypes++];
   if (!strcmp(definition->symbol_value, "sizet")) {
-    *type = &ffi_type_uint64; // danger!
-    return;
+    *result = ffi_type_uint64; // danger!
   }
-  if (!strcmp(definition->symbol_value, "pointer")) {
-    *type = &ffi_type_pointer;
-    return;
+  else if (!strcmp(definition->symbol_value, "pointer")) {
+    *result = ffi_type_pointer;
   }
-  if (!strcmp(definition->symbol_value, "int")) {
-    *type = &ffi_type_sint;
-    return;
+  else if (!strcmp(definition->symbol_value, "int")) {
+    *result = ffi_type_sint;
+  } else {
+    abortf(ctxt, "unknown type: %s", datum_repr(definition));
+    return NULL;
   }
-  abortf(ctxt, "unknown type: %s", datum_repr(definition));
-  return;
+  return result;
 }
 
-LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
-                                ffi_type **ret_type, context *ctxt) {
+LOCAL ffi_type **cifd_extend_pointers(struct cif_and_data *cifd, ffi_type **ptrs, size_t count) {
+  ffi_type **result = cifd->pointers + cifd->npointers;
+  for (size_t i = 0; i < count; ++i) {
+    cifd->pointers[cifd->npointers++] = ptrs[i];
+  }
+  return result;
+}
+
+LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd, context *ctxt) {
+  ffi_type *ret_type;
+  ffi_type *(args[32]);
   if (list_length(sig) != 2) {
     abortf(ctxt, "the signature should be a two-item list");
     return;
@@ -162,20 +180,21 @@ LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
   datum *arg_defs = list_at(sig, 0);
   int arg_count;
   for (arg_count = 0; arg_count < list_length(arg_defs); ++arg_count) {
-    ffi_type_init(arg_types + arg_count, list_at(arg_defs, arg_count), ctxt);
+    args[arg_count] = ffi_type_init(cifd, list_at(arg_defs, arg_count), ctxt);
     if (ctxt->aborted) {
       return;
     }
   }
-  ffi_type_init(ret_type, list_at(sig, 1), ctxt);
+  ffi_type **args2 = cifd_extend_pointers(cifd, args, arg_count);
+  ret_type = ffi_type_init(cifd, list_at(sig, 1), ctxt);
   if (ctxt->aborted) {
     return;
   }
-  ffi_status status;
+  ffi_status status = ffi_prep_cif(&cifd->cif, FFI_DEFAULT_ABI, arg_count, ret_type,
+                             args2);
   // TODO(): for variadic functions, prep_cif_var must be used.
   // Without it, linux works somehow and mac does not.
-  if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, *ret_type,
-                             arg_types)) != FFI_OK) {
+  if (status != FFI_OK) {
     abortf(ctxt, "something went wrong during ffi_prep_cif");
     return;
   }
@@ -289,10 +308,8 @@ LOCAL datum builtin_call_ffi(datum *argz, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  ffi_cif cif;
-  ffi_type *arg_types[32];
-  ffi_type *ret_type;
-  pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type, ctxt);
+  struct cif_and_data cifd = {};
+  pointer_ffi_init_cif(sig, &cifd, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
@@ -308,7 +325,7 @@ LOCAL datum builtin_call_ffi(datum *argz, context *ctxt) {
     return (datum){};
   }
   blob blb = blob_make_uninitialized(sz);
-  ffi_call(&cif, fn_ptr, blb.begin, cargs);
+  ffi_call(&cifd.cif, fn_ptr, blb.begin, cargs);
   return (datum_make_list_of(datum_make_blob(blb)));
 }
 
