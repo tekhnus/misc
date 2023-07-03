@@ -25,13 +25,12 @@ fopen-impl := (/prelude/c-function libc "fopen" {{'pointer
    'pointer}
   'pointer})
 
-fopen := fn {name mode} {
-  name-ser := (/prelude/ser name)
-  name-on-heap := (/prelude/malloc-and-copy name-ser)
-  mode-ser := (/prelude/ser mode)
-  mode-on-heap := (/prelude/malloc-and-copy mode-ser)
-  return (/prelude/fopen-impl name-on-heap mode-on-heap)
-}
+fopen := fn {name mode}
+{name-ser := (/prelude/ser name)
+ name-on-heap := (/prelude/malloc-and-copy name-ser)
+ mode-ser := (/prelude/ser mode)
+ mode-on-heap := (/prelude/malloc-and-copy mode-ser)
+ return (/prelude/fopen-impl name-on-heap mode-on-heap)}
 
 fread := (/prelude/c-function libc "fread" {{'pointer
    'sizet
@@ -43,21 +42,24 @@ fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'pointer
    'pointer}
   'sizet})
 
-fprintf-new := fn {x y} {
-y-ser := (/prelude/ser y)
-y-on-heap := (/prelude/malloc-and-copy y-ser)
-return (/prelude/fprintf-pointer-new x y-on-heap)}
+fprintf-new := fn {x y}
+{y-ser := (/prelude/ser y)
+ y-on-heap := (/prelude/malloc-and-copy y-ser)
+ return (/prelude/fprintf-pointer-new x y-on-heap)}
 
 stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")
   (/prelude/dlsym-or-error libc "__stdinp")})
+
 stdin-val := (/prelude/deref stdin 'pointer)
 
 stdout := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdout")
   (/prelude/dlsym-or-error libc "__stdoutp")})
+
 stdout-val := (/prelude/deref stdout 'pointer)
 
 stderr := (/std/first-good-value {(/prelude/dlsym-or-error libc "stderr")
   (/prelude/dlsym-or-error libc "__stderrp")})
+
 stderr-val := (/prelude/deref stderr 'pointer)
 
 print := fn {val}

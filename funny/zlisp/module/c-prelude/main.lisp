@@ -1,5 +1,6 @@
 req
 {}
+
 call-ffi-pointer := return @1
 
 @{host
@@ -16,7 +17,6 @@ call-ffi := fn {x y z}
   y
   z}
  return r}
-
 
 len-pointer := return @1
 
@@ -72,11 +72,8 @@ malloc-pointer := return @1
 {}
 
 malloc := fn {n}
-{
-return (../call-ffi malloc-pointer {{'sizet
-    }
-   'pointer} {n
-   })}
+{return (../call-ffi malloc-pointer {{'sizet}
+   'pointer} {n})}
 
 copy-to-memory-pointer := return @1
 
@@ -110,8 +107,7 @@ head-pointer := return @1
 {}
 
 head := fn {x}
-{
- r := return @1
+{r := return @1
  @{host
   "call-builtin"}
  ^{head-pointer
@@ -165,7 +161,6 @@ eq := fn {x y}
   y}
  return r}
 
-
 nth := 42
 
 nth = fn {n xs}
@@ -199,9 +194,9 @@ dlopen-pointer := return @1
 dlopen := fn {x}
 {x-ser := (../ser x)
  x-on-heap := (../malloc-and-copy x-ser)
- if (../eq x "__magic_null_string__") {
-  x-on-heap = null-pointer
- } {}
+ if (../eq x "__magic_null_string__")
+ {x-on-heap = null-pointer}
+ {}
  return (../call-ffi dlopen-pointer {{'pointer
     'int}
    'pointer} {x-on-heap
@@ -223,10 +218,9 @@ dlsym-pointer := return @1
 {}
 
 dlsym := fn {x y}
-{
-y-ser := (../ser y)
-y-on-heap := (../malloc-and-copy y-ser)
-return (../call-ffi dlsym-pointer {{'pointer
+{y-ser := (../ser y)
+ y-on-heap := (../malloc-and-copy y-ser)
+ return (../call-ffi dlsym-pointer {{'pointer
     'pointer}
    'pointer} {x
    y-on-heap})}

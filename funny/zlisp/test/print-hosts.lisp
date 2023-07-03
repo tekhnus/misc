@@ -11,8 +11,11 @@ req
 hostsfile := (/libc/fopen "/etc/hosts" "r")
 
 sz := (/prelude/ser 1024000)
+
 one := (/prelude/ser 1)
+
 filelen := (/prelude/ser 1024)
+
 warning := "TODO: convert those from int64_t to size_t"
 
 buffer := (/prelude/malloc sz)
