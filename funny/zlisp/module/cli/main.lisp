@@ -80,9 +80,9 @@ sl := (/zlisp/psm)
 
 rt := (/zlisp/mres)
 
-compdata := (/prelude/cdm)
+compdata := (/zlisp/cdm)
 
-bdrcompdata := (/prelude/cdm)
+bdrcompdata := (/zlisp/cdm)
 
 ctxt := (/zlisp/cm)
 

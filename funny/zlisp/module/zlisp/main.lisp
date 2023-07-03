@@ -19,8 +19,12 @@ req
 buildlib := (/std/first-good-value {(/prelude/dlopen-or-error "libzlisp-build-lib.so")
   (/prelude/dlopen-or-error "libzlisp-build-lib.dylib")})
 
-compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
-  'pointer})
+compdata-make-impl := (/prelude/c-function selflib "compdata_make" {{}
+  'datum})
+compdata-make := fn {} {
+c := (/prelude/compdata-make-impl)
+return (/prelude/malloc-and-copy c)
+}
 
 make-routine-with-empty-state-impl := (/prelude/c-function selflib "routine_make_topmost" {{'int64_t}
   'datum})

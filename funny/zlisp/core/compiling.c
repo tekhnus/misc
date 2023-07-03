@@ -549,13 +549,6 @@ EXPORT datum compdata_make() {
   return datum_make_list_of(nil);
 }
 
-EXPORT datum *compdata_alloc_make() {
-  // This one is for using from lisp.
-  datum *res = malloc(sizeof(datum));
-  *res = compdata_make();
-  return res;
-}
-
 LOCAL datum compdata_put(datum *compdata, datum var) {
   datum *last_frame = list_get_last(compdata);
   list_append_slow(last_frame, var);
