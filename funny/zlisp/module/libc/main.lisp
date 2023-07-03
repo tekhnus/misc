@@ -4,6 +4,8 @@ req
  {c-function "prelude" c-function}
  {dlsym-or-error "prelude" dlsym-or-error}
  {deref "prelude" deref}
+ {ser "prelude" ser}
+ {copy-to-heap "prelude" copy-to-heap}
  {std "std"}
  {decons-pat "std" decons-pat}
  {eq "std" eq}
@@ -29,17 +31,14 @@ fread := (/prelude/c-function libc "fread" {{'pointer
    'pointer}
   'sizet})
 
-fprintf := (/prelude/c-function libc "fprintf" {{'pointer
-   'string}
-  'sizet})
-
-fprintf-new := (/prelude/c-function libc "fprintf" {{'pointer
-   'string}
-  'sizet})
-
 fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'pointer
    'pointer}
   'sizet})
+
+fprintf-new := fn {x y} {
+y-ser := (/prelude/ser y)
+y-on-heap := (/prelude/copy-to-heap y-ser)
+return (/prelude/fprintf-pointer-new x y-on-heap)}
 
 stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")
   (/prelude/dlsym-or-error libc "__stdinp")})
@@ -54,7 +53,7 @@ stderr := (/std/first-good-value {(/prelude/dlsym-or-error libc "stderr")
 stderr-val := (/prelude/deref stderr 'pointer)
 
 print := fn {val}
-{return (/prelude/fprintf-new stdout-val (/std/repr val))}
+{return (../fprintf-new stdout-val (/std/repr val))}
 
 export
 {{malloc malloc}

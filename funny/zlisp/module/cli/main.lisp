@@ -36,7 +36,7 @@ readme := "A basic REPL for zlisp."
 repl := 42
 
 repl = fn {sl nsp bpptr compdata bdrcompdata ex}
-{tmp := (/prelude/fprintf-new stdout-val "> ")
+{tmp := (/libc/fprintf-new stdout-val "> ")
  ignored := 0
  maybe-prog := 42
  datum := 42
@@ -48,7 +48,7 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
  read-res := (/zlisp/rd stdin-val)
  switch read-res
  {{{:eof}
-   return (/prelude/fprintf-new stdout-val "")}
+   return (/libc/fprintf-new stdout-val "")}
   {{:ok
     datum}
    maybe-prog = (/zlisp/comp-prg-new sl bpptr datum compdata bdrcompdata ex)

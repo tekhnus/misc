@@ -201,12 +201,12 @@ fntest
  '13}
 
 fntest
-{res := (/prelude/fprintf-new stderr-val "hello-fprintf\n")
+{res := (/libc/fprintf-new stderr-val "hello-fprintf\n")
  return 42}
 42
 
 fntest
-{res := (/prelude/fprintf-new stderr-val (/std/repr "hello fprintf-repr\n"))
+{res := (/libc/fprintf-new stderr-val (/std/repr "hello fprintf-repr\n"))
  return 42}
 42
 

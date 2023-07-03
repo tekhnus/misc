@@ -48,6 +48,21 @@ ser := fn {x}
   x}
  return r}
 
+copy-to-heap-pointer := return @1
+
+@{host
+ "copy-to-heap-pointer"}
+
+{}
+
+copy-to-heap := fn {x}
+{r := return @1
+ @{host
+  "call-extension"}
+ ^{copy-to-heap-pointer
+  x}
+ return r}
+
 pointer-call-pointer := return @1
 
 @{host
@@ -157,6 +172,13 @@ pointer-call-and-deserialize := fn {fn-ptr signature params}
    rettype} s)
  return rawres}
 
+null-pointer := return @1
+
+@{host
+ "null"}
+
+{}
+
 rtld-lazy := return @1
 
 @{host
@@ -172,17 +194,15 @@ dlopen-pointer := return @1
 {}
 
 dlopen := fn {x}
-{return (../pointer-call-and-deserialize dlopen-pointer {{'string
+{x-ser := (../ser x)
+ x-on-heap := (../copy-to-heap x-ser)
+ if (../eq x "__magic_null_string__") {
+  x-on-heap = null-pointer
+ } {}
+ return (../pointer-call-and-deserialize dlopen-pointer {{'pointer
     'int}
-   'pointer} {x
+   'pointer} {x-on-heap
    rtld-lazy})}
-
-null-pointer := return @1
-
-@{host
- "null"}
-
-{}
 
 dlopen-or-error := fn {path}
 {r := (../dlopen path)
@@ -200,10 +220,13 @@ dlsym-pointer := return @1
 {}
 
 dlsym := fn {x y}
-{return (../pointer-call-and-deserialize dlsym-pointer {{'pointer
-    'string}
+{
+y-ser := (../ser y)
+y-on-heap := (../copy-to-heap y-ser)
+return (../pointer-call-and-deserialize dlsym-pointer {{'pointer
+    'pointer}
    'pointer} {x
-   y})}
+   y-on-heap})}
 
 dlsym-or-error := fn {handle c-name}
 {resval := (../dlsym handle c-name)
@@ -377,4 +400,5 @@ export
  {c-function c-function}
  {deref deref}
  {ser ser}
+ {copy-to-heap copy-to-heap}
  {selflib selflib}}
