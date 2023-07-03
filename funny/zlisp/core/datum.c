@@ -19,19 +19,19 @@ static const int NON_FLAT = 0;
 static const int FLAT_CHILDREN = 1;
 static const int FLAT = 2;
 
-EXPORT bool datum_is_symbol(datum *e) { return e->type == DATUM_SYMBOL; }
+EXPORT bool datum_is_symbol(datum *e) { return e->_type == DATUM_SYMBOL; }
 
-EXPORT bool datum_is_integer(datum *e) { return e->type == DATUM_INTEGER; }
+EXPORT bool datum_is_integer(datum *e) { return e->_type == DATUM_INTEGER; }
 
 EXPORT bool datum_is_bytestring(datum *e) {
-  return e->type == DATUM_BYTESTRING;
+  return e->_type == DATUM_BYTESTRING;
 }
 
-EXPORT bool datum_is_blob(datum *e) { return e->type == DATUM_BLOB; }
+EXPORT bool datum_is_blob(datum *e) { return e->_type == DATUM_BLOB; }
 
 EXPORT datum datum_make_symbol(char *name) {
   datum e;
-  e.type = DATUM_SYMBOL;
+  e._type = DATUM_SYMBOL;
   size_t length = strlen(name);
   e.symbol_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
@@ -42,7 +42,7 @@ EXPORT datum datum_make_symbol(char *name) {
 
 EXPORT datum datum_make_bytestring(char *text) {
   datum e;
-  e.type = DATUM_BYTESTRING;
+  e._type = DATUM_BYTESTRING;
   size_t length = strlen(text);
   e.bytestring_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
@@ -53,14 +53,19 @@ EXPORT datum datum_make_bytestring(char *text) {
 
 EXPORT datum datum_make_blob(blob b) {
   datum e;
-  e.type = DATUM_BLOB;
-  e.blob_value = b;
+  e._type = DATUM_BLOB;
+  e._blob_value = b;
   return e;
 }
 
 EXPORT blob *datum_get_blob(datum *d) {
   assert(datum_is_blob(d));
-  return &d->blob_value;
+  return &d->_blob_value;
+}
+
+EXPORT array *datum_get_array(datum *d) {
+  assert(datum_is_list(d));
+  return &d->_list_value;
 }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
@@ -109,7 +114,7 @@ EXPORT datum datum_make_blob_size_t(size_t x) {
 
 EXPORT datum datum_make_int(int64_t value) {
   datum e;
-  e.type = DATUM_INTEGER;
+  e._type = DATUM_INTEGER;
   e.integer_value = value;
   return e;
 }
@@ -423,18 +428,18 @@ LOCAL array vec_to_array(vec v) {
 
 EXPORT datum datum_make_list(vec v) {
   datum res = datum_make_nil();
-  res.list_value = vec_to_array(v);
+  res._list_value = vec_to_array(v);
   return res;
 }
 
 EXPORT datum datum_make_nil() {
   datum e;
-  e.type = DATUM_LIST;
-  e.list_value = vec_make(0).storage;
+  e._type = DATUM_LIST;
+  e._list_value = vec_make(0).storage;
   return e;
 }
 
-EXPORT bool datum_is_list(datum *e) { return e->type == DATUM_LIST; }
+EXPORT bool datum_is_list(datum *e) { return e->_type == DATUM_LIST; }
 
 EXPORT bool datum_is_nil(datum *e) {
   return datum_is_list(e) && list_length(e) == 0;
@@ -465,12 +470,12 @@ EXPORT datum *array_at(array *arr, size_t i) {
 
 EXPORT int list_length(datum *seq) {
   assert(datum_is_list(seq));
-  return array_length(&seq->list_value);
+  return array_length(&seq->_list_value);
 }
 
 EXPORT datum *list_at(datum *list, unsigned index) {
   assert(datum_is_list(list));
-  return array_at(&list->list_value, index);
+  return array_at(&list->_list_value, index);
 }
 
 EXPORT datum list_copy(datum *list, int from, int to) {
@@ -554,5 +559,5 @@ LOCAL array array_copy(array *arr) {
 
 EXPORT vec list_to_vec(datum *val) {
   assert(datum_is_list(val));
-  return array_to_vec(array_copy(&val->list_value));
+  return array_to_vec(array_copy(&val->_list_value));
 }

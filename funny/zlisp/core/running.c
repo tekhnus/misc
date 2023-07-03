@@ -531,7 +531,7 @@ LOCAL struct frame get_frame_from_datum(datum *d) {
   assert(datum_is_integer(list_at(d, 1)));
   assert(datum_is_integer(list_at(d, 2)));
   struct frame v;
-  v.state = &list_at(d, 0)->list_value;
+  v.state = datum_get_array(list_at(d, 0));
   v.type_id = list_at(d, 1)->integer_value;
   v.parent_type_id = list_at(d, 2)->integer_value;
   return v;

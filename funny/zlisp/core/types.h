@@ -29,12 +29,12 @@ struct array {
 typedef struct array array;
 
 struct datum {
-  enum datum_type type;
+  enum datum_type _type;
   union {
-    array list_value;
+    array _list_value;
     char *symbol_value;
     char *bytestring_value;
-    blob blob_value;
+    blob _blob_value;
     int64_t integer_value;
   };
 };
