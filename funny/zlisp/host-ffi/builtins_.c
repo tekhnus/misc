@@ -117,3 +117,13 @@ datum builtin_tail(datum *args, context *ctxt) {
   datum tail = list_get_tail(list);
   return (datum_make_list_of(tail));
 }
+
+datum builtin_len(datum *args, context *ctxt) {
+  assert(list_length(args) == 1);
+  datum *arg = list_at(args, 0);
+  if (datum_is_blob(arg)) {
+    return datum_make_list_of(datum_make_int(datum_get_blob(arg)->length));
+  }
+  abortf(ctxt, "unsupported type for len");
+  return (datum){};
+}

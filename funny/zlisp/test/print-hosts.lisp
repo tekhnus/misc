@@ -12,11 +12,11 @@ hostsfile := (/libc/fopen "/etc/hosts" "r")
 
 sz := (/prelude/ser 1024000)
 one := (/prelude/ser 1)
-len := (/prelude/ser 1024)
+filelen := (/prelude/ser 1024)
 warning := "TODO: convert those from int64_t to size_t"
 
 buffer := (/prelude/malloc sz)
 
-xxx := (/prelude/fread buffer one len hostsfile)
+xxx := (/prelude/fread buffer one filelen hostsfile)
 
 yyy := (/prelude/fprintf-pointer-new stdout-val buffer)

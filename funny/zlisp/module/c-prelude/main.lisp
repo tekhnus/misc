@@ -132,6 +132,21 @@ eq := fn {x y}
   y}
  return r}
 
+len-pointer := return @1
+
+@{host
+ "len"}
+
+{}
+
+len := fn {x}
+{r := return @1
+ @{host
+  "call-extension"}
+ ^{len-pointer
+  x}
+ return r}
+
 nth := 42
 
 nth = fn {n xs}
