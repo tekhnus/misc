@@ -181,10 +181,14 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     *result = ffi_type_pointer;
   } else if (!strcmp(definition->symbol_value, "uint8_t")) {
     *result = ffi_type_uint8;
+  } else if (!strcmp(definition->symbol_value, "int64_t")) {
+    *result = ffi_type_sint64;
   } else if (!strcmp(definition->symbol_value, "char")) {
     *result = ffi_type_schar; // danger!
   } else if (!strcmp(definition->symbol_value, "int")) {
     *result = ffi_type_sint;
+  } else if (!strcmp(definition->symbol_value, "int64_t")) {
+    *result = ffi_type_sint64;
   } else if (!strcmp(definition->symbol_value, "context")) {
     *result = *ffi_type_init_struct(
         cifd,
@@ -209,6 +213,29 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
         *ffi_type_init_struct(cifd,
                               datum_make_list_of(datum_make_symbol("array"),
                                                  datum_make_symbol("sizet")),
+                              ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  } else if (!strcmp(definition->symbol_value, "blob")) {
+    *result =
+        *ffi_type_init_struct(cifd,
+                              datum_make_list_of(datum_make_symbol("pointer"),
+                                                 datum_make_symbol("sizet")),
+                              ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  } else if (!strcmp(definition->symbol_value, "datum")) {
+    *result =
+        *ffi_type_init_struct(cifd,
+                              datum_make_list_of(datum_make_symbol("uint8_t"),
+                                                 datum_make_symbol("array"),
+                                                 datum_make_symbol("pointer"),
+                                                 datum_make_symbol("pointer"),
+                                                 datum_make_symbol("blob"),
+                                                 datum_make_symbol("int64_t"),
+      ),
                               ctxt);
     if (ctxt->aborted) {
       return NULL;
@@ -365,6 +392,10 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     return (sizeof(array));
   } else if (!strcmp(rettype, "vec")) {
     return (sizeof(vec));
+  } else if (!strcmp(rettype, "blob")) {
+    return (sizeof(blob));
+  } else if (!strcmp(rettype, "datum")) {
+    return (sizeof(datum));
   }
   abortf(ctxt, "sizeof type not known: %s", datum_repr(rett));
   return 0;
