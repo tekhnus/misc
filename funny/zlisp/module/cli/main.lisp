@@ -76,7 +76,7 @@ repl = fn {sl nsp bpptr compdata bdrcompdata ex}
    ignored = (/libc/print msgc)
    return (../repl sl nsp bpptr compdata bdrcompdata ex)}}}
 
-sl := (/prelude/psm)
+sl := (/zlisp/psm)
 
 rt := (/prelude/mres)
 

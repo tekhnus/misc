@@ -195,6 +195,24 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
+  } else if (!strcmp(definition->symbol_value, "array")) {
+    *result =
+        *ffi_type_init_struct(cifd,
+                              datum_make_list_of(datum_make_symbol("pointer"),
+                                                 datum_make_symbol("sizet")),
+                              ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  } else if (!strcmp(definition->symbol_value, "vec")) {
+    *result =
+        *ffi_type_init_struct(cifd,
+                              datum_make_list_of(datum_make_symbol("array"),
+                                                 datum_make_symbol("sizet")),
+                              ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
   } else {
     abortf(ctxt, "unknown type: %s", datum_repr(definition));
     return NULL;
@@ -343,6 +361,10 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     return (sizeof(int));
   } else if (!strcmp(rettype, "context")) {
     return (sizeof(context));
+  } else if (!strcmp(rettype, "array")) {
+    return (sizeof(array));
+  } else if (!strcmp(rettype, "vec")) {
+    return (sizeof(vec));
   }
   abortf(ctxt, "sizeof type not known: %s", datum_repr(rett));
   return 0;

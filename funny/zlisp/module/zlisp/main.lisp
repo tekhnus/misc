@@ -24,8 +24,11 @@ compdata-make := (/prelude/c-function selflib "compdata_alloc_make" {{}
 make-routine-with-empty-state := (/prelude/c-function selflib "routine_make_alloc" {{}
   'pointer})
 
-prog-slice-make := (/prelude/c-function selflib "vec_alloc_slice" {{}
-  'pointer})
+prog-slice-make-impl := (/prelude/c-function selflib "vec_create_slice" {{}
+  'vec})
+prog-slice-make := fn {} {
+v := (/prelude/prog-slice-make-impl)
+return (/prelude/malloc-and-copy v)}
 
 prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer
    'pointer
