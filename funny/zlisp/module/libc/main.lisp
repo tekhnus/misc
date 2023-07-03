@@ -5,7 +5,7 @@ req
  {dlsym-or-error "prelude" dlsym-or-error}
  {deref "prelude" deref}
  {ser "prelude" ser}
- {copy-to-heap "prelude" copy-to-heap}
+ {malloc-and-copy "prelude" malloc-and-copy}
  {std "std"}
  {decons-pat "std" decons-pat}
  {eq "std" eq}
@@ -27,9 +27,9 @@ fopen-impl := (/prelude/c-function libc "fopen" {{'pointer
 
 fopen := fn {name mode} {
   name-ser := (/prelude/ser name)
-  name-on-heap := (/prelude/copy-to-heap name-ser)
+  name-on-heap := (/prelude/malloc-and-copy name-ser)
   mode-ser := (/prelude/ser mode)
-  mode-on-heap := (/prelude/copy-to-heap mode-ser)
+  mode-on-heap := (/prelude/malloc-and-copy mode-ser)
   return (/prelude/fopen-impl name-on-heap mode-on-heap)
 }
 
@@ -45,7 +45,7 @@ fprintf-pointer-new := (/prelude/c-function libc "fprintf" {{'pointer
 
 fprintf-new := fn {x y} {
 y-ser := (/prelude/ser y)
-y-on-heap := (/prelude/copy-to-heap y-ser)
+y-on-heap := (/prelude/malloc-and-copy y-ser)
 return (/prelude/fprintf-pointer-new x y-on-heap)}
 
 stdin := (/std/first-good-value {(/prelude/dlsym-or-error libc "stdin")

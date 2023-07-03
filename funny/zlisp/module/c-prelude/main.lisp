@@ -1,5 +1,37 @@
 req
 {}
+pointer-call-pointer := return @1
+
+@{host
+ "pointer-call-pointer"}
+
+{}
+
+pointer-call := fn {x y z}
+{r := return @1
+ @{host
+  "call-extension"}
+ ^{pointer-call-pointer
+  x
+  y
+  z}
+ return r}
+
+
+len-pointer := return @1
+
+@{host
+ "len"}
+
+{}
+
+len := fn {x}
+{r := return @1
+ @{host
+  "call-extension"}
+ ^{len-pointer
+  x}
+ return r}
 
 deref-pointer := return @1
 
@@ -32,37 +64,38 @@ ser := fn {x}
   x}
  return r}
 
-copy-to-heap-pointer := return @1
+malloc-pointer := return @1
 
 @{host
- "copy-to-heap-pointer"}
+ "malloc"}
 
 {}
 
-copy-to-heap := fn {x}
-{r := return @1
+malloc := fn {n}
+{
+return (../pointer-call malloc-pointer {{'sizet
+    }
+   'pointer} {n
+   })}
+
+copy-to-memory-pointer := return @1
+
+@{host
+ "copy-to-memory-pointer"}
+
+{}
+
+malloc-and-copy := fn {x}
+{sz := (../len x)
+ sz-ser := (../ser sz)
+ mem := (../malloc sz-ser)
+ {} := return @0
  @{host
   "call-extension"}
- ^{copy-to-heap-pointer
+ ^{copy-to-memory-pointer
+  mem
   x}
- return r}
-
-pointer-call-pointer := return @1
-
-@{host
- "pointer-call-pointer"}
-
-{}
-
-pointer-call := fn {x y z}
-{r := return @1
- @{host
-  "call-extension"}
- ^{pointer-call-pointer
-  x
-  y
-  z}
- return r}
+ return mem}
 
 panic := fn {x}
 {{} := return @panic
@@ -132,20 +165,6 @@ eq := fn {x y}
   y}
  return r}
 
-len-pointer := return @1
-
-@{host
- "len"}
-
-{}
-
-len := fn {x}
-{r := return @1
- @{host
-  "call-extension"}
- ^{len-pointer
-  x}
- return r}
 
 nth := 42
 
@@ -179,7 +198,7 @@ dlopen-pointer := return @1
 
 dlopen := fn {x}
 {x-ser := (../ser x)
- x-on-heap := (../copy-to-heap x-ser)
+ x-on-heap := (../malloc-and-copy x-ser)
  if (../eq x "__magic_null_string__") {
   x-on-heap = null-pointer
  } {}
@@ -206,7 +225,7 @@ dlsym-pointer := return @1
 dlsym := fn {x y}
 {
 y-ser := (../ser y)
-y-on-heap := (../copy-to-heap y-ser)
+y-on-heap := (../malloc-and-copy y-ser)
 return (../pointer-call dlsym-pointer {{'pointer
     'pointer}
    'pointer} {x
@@ -384,5 +403,5 @@ export
  {c-function c-function}
  {deref deref}
  {ser ser}
- {copy-to-heap copy-to-heap}
+ {malloc-and-copy malloc-and-copy}
  {selflib selflib}}

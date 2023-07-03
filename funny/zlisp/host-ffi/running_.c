@@ -99,8 +99,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     return results;
   } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
     res = datum_make_pointer(datum_deref);
-  } else if (!strcmp(name->bytestring_value, "copy-to-heap-pointer")) {
-    res = datum_make_pointer(datum_copy_to_heap);
+  } else if (!strcmp(name->bytestring_value, "copy-to-memory-pointer")) {
+    res = datum_make_pointer(builtin_copy_to_memory);
   } else if (!strcmp(name->bytestring_value, "ser-pointer")) {
     res = datum_make_pointer(datum_ser);
   } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
@@ -117,6 +117,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     res = datum_make_pointer(builtin_len);
   } else if (!strcmp(name->bytestring_value, "null")) {
     res = datum_make_pointer(NULL);
+  } else if (!strcmp(name->bytestring_value, "malloc")) {
+    res = datum_make_pointer(malloc);
   } else if (!strcmp(name->bytestring_value, "dlopen")) {
     res = datum_make_pointer(dlopen);
   } else if (!strcmp(name->bytestring_value, "dlsym")) {
@@ -198,21 +200,25 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
   }
 }
 
-LOCAL datum datum_copy_to_heap(datum *args, context *ctxt) {
+LOCAL datum builtin_copy_to_memory(datum *args, context *ctxt) {
   datum *form = args;
-  if (!datum_is_list(form) || list_length(form) != 1) {
-    abortf(ctxt, "copy-to-heap expected a single argument");
+  if (!datum_is_list(form) || list_length(form) != 2) {
+    abortf(ctxt, "copy-to-heap expected two arguments");
     return (datum){};
   }
-  datum *d = list_at(form, 0);
+  datum *dst = list_at(form, 0);
+  void *dstptr = *datum_get_pointer(dst, ctxt);
+  if (ctxt->aborted) {
+    return (datum){};
+  }
+  datum *d = list_at(form, 1);
   if (!datum_is_blob(d)) {
     abortf(ctxt, "blob expected, got something else");
     return (datum){};
   }
   blob *b = datum_get_blob(d);
-  void *cpy = malloc(b->length);
-  memcpy(cpy, b->begin, b->length);
-  return datum_make_list_of(datum_make_pointer(cpy));
+  memcpy(dstptr, b->begin, b->length);
+  return datum_make_list_of();
 }
 
 LOCAL datum datum_ser(datum *args, context *ctxt) {
