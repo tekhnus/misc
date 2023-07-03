@@ -141,12 +141,24 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   return (datum_make_list_of(res));
 }
 
+LOCAL ffi_type **cifd_alloc_pointers(struct cif_and_data *cifd, size_t count) {
+  ffi_type **result = cifd->pointers + cifd->npointers;
+  cifd->npointers += count;
+  return result;
+}
+
+LOCAL ffi_type *cifd_alloc_type(struct cif_and_data *cifd) {
+  ffi_type *result = cifd->types + cifd->ntypes;
+  cifd->ntypes += 1;
+  return result;
+}
+
 LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, context *ctxt) {
   if (!datum_is_symbol(definition)) {
     abortf(ctxt, "type should be a symbol");
     return NULL;
   }
-  ffi_type *result = &cifd->types[cifd->ntypes++];
+  ffi_type *result = cifd_alloc_type(cifd);
   if (!strcmp(definition->symbol_value, "sizet")) {
     *result = ffi_type_uint64; // danger!
   }
@@ -159,12 +171,6 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, cont
     abortf(ctxt, "unknown type: %s", datum_repr(definition));
     return NULL;
   }
-  return result;
-}
-
-LOCAL ffi_type **cifd_alloc_pointers(struct cif_and_data *cifd, size_t count) {
-  ffi_type **result = cifd->pointers + cifd->npointers;
-  cifd->npointers += count;
   return result;
 }
 
