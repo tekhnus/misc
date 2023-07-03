@@ -16,7 +16,6 @@ struct cif_and_data {
 };
 #include <running_.h>
 
-
 EXPORT datum *routine_run_in_ffi_host(vec *sl, datum *r0d, context *ctxt) {
   // This one is for lisp.
   result r = host_ffi_run(sl, r0d, datum_make_nil(), ctxt);
@@ -153,7 +152,8 @@ LOCAL ffi_type *cifd_alloc_type(struct cif_and_data *cifd) {
   return result;
 }
 
-LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, context *ctxt) {
+LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
+                              context *ctxt) {
   ffi_type *result = cifd_alloc_type(cifd);
   if (datum_is_list(definition) && list_length(definition) == 2) {
     datum *sz = list_at(definition, 0);
@@ -177,34 +177,24 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, cont
     return NULL;
   } else if (!strcmp(definition->symbol_value, "sizet")) {
     *result = ffi_type_uint64; // danger!
-  }
-  else if (!strcmp(definition->symbol_value, "pointer")) {
+  } else if (!strcmp(definition->symbol_value, "pointer")) {
     *result = ffi_type_pointer;
-  }
-  else if (!strcmp(definition->symbol_value, "uint8_t")) {
+  } else if (!strcmp(definition->symbol_value, "uint8_t")) {
     *result = ffi_type_uint8;
-  }
-  else if (!strcmp(definition->symbol_value, "char")) {
-    *result = ffi_type_schar;  // danger!
-  }
-  else if (!strcmp(definition->symbol_value, "int")) {
+  } else if (!strcmp(definition->symbol_value, "char")) {
+    *result = ffi_type_schar; // danger!
+  } else if (!strcmp(definition->symbol_value, "int")) {
     *result = ffi_type_sint;
   } else if (!strcmp(definition->symbol_value, "context")) {
-    result->type = FFI_TYPE_STRUCT;  
-    result->size = 0;
-    result->alignment = 0;
-    result->elements = cifd_alloc_pointers(cifd, 3);
-    datum def = datum_make_symbol("uint8_t");
-    result->elements[0] = ffi_type_init(cifd, &def, ctxt);
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(datum_make_symbol("uint8_t"),
+                           datum_make_list_of(datum_make_int(1024),
+                                              datum_make_symbol("char"))),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
-    def = datum_make_list_of(datum_make_int(1024), datum_make_symbol("char"));
-    result->elements[1] = ffi_type_init(cifd, &def, ctxt);
-    if (ctxt->aborted) {
-      return NULL;
-    }
-    result->elements[2] = NULL;
   } else {
     abortf(ctxt, "unknown type: %s", datum_repr(definition));
     return NULL;
@@ -212,7 +202,27 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition, cont
   return result;
 }
 
-LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd, context *ctxt) {
+LOCAL ffi_type *ffi_type_init_struct(struct cif_and_data *cifd, datum members,
+                                     context *ctxt) {
+  ffi_type *result = cifd_alloc_type(cifd);
+  assert(datum_is_list(&members));
+  int n = list_length(&members);
+  result->type = FFI_TYPE_STRUCT;
+  result->size = 0;
+  result->alignment = 0;
+  result->elements = cifd_alloc_pointers(cifd, n + 1);
+  for (int i = 0; i < n; ++i) {
+    result->elements[i] = ffi_type_init(cifd, list_at(&members, i), ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  }
+  result->elements[n] = NULL;
+  return result;
+}
+
+LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd,
+                                context *ctxt) {
   ffi_type *ret_type;
   datum *arg_defs = list_at(sig, 0);
   int arg_count = list_length(arg_defs);
@@ -231,8 +241,8 @@ LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd, context *
   if (ctxt->aborted) {
     return;
   }
-  ffi_status status = ffi_prep_cif(&cifd->cif, FFI_DEFAULT_ABI, arg_count, ret_type,
-                             args2);
+  ffi_status status =
+      ffi_prep_cif(&cifd->cif, FFI_DEFAULT_ABI, arg_count, ret_type, args2);
   // TODO(): for variadic functions, prep_cif_var must be used.
   // Without it, linux works somehow and mac does not.
   if (status != FFI_OK) {
