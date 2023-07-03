@@ -227,16 +227,30 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
       return NULL;
     }
   } else if (!strcmp(definition->symbol_value, "datum")) {
-    *result =
-        *ffi_type_init_struct(cifd,
-                              datum_make_list_of(datum_make_symbol("uint8_t"),
-                                                 datum_make_symbol("array"),
-                                                 datum_make_symbol("pointer"),
-                                                 datum_make_symbol("pointer"),
-                                                 datum_make_symbol("blob"),
-                                                 datum_make_symbol("int64_t"),
-      ),
-                              ctxt);
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(
+            datum_make_symbol("uint8_t"), datum_make_symbol("array"),
+            datum_make_symbol("pointer"), datum_make_symbol("pointer"),
+            datum_make_symbol("blob"), datum_make_symbol("int64_t"), ),
+        ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  } else if (!strcmp(definition->symbol_value, "extension")) {
+    *result = *ffi_type_init_struct(
+        cifd, datum_make_list_of(datum_make_symbol("pointer")), ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  } else if (!strcmp(definition->symbol_value, "lisp_extension")) {
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(datum_make_symbol("extension"),
+                           datum_make_symbol("vec"), datum_make_symbol("datum"),
+                           datum_make_symbol("datum"),
+                           datum_make_symbol("pointer")),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
@@ -396,6 +410,10 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     return (sizeof(blob));
   } else if (!strcmp(rettype, "datum")) {
     return (sizeof(datum));
+  } else if (!strcmp(rettype, "extension")) {
+    return (sizeof(extension));
+  } else if (!strcmp(rettype, "lisp_extension")) {
+    return (sizeof(lisp_extension));
   }
   abortf(ctxt, "sizeof type not known: %s", datum_repr(rett));
   return 0;

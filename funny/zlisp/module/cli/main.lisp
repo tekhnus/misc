@@ -86,7 +86,7 @@ bdrcompdata := (/prelude/cdm)
 
 ctxt := (/zlisp/cm)
 
-ex := (/prelude/em ctxt)
+ex := (/zlisp/em ctxt)
 
 {} := (/zlisp/panic-if-aborted @0 ctxt)
 

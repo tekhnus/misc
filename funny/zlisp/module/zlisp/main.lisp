@@ -70,8 +70,11 @@ prog-build-init := (/prelude/c-function buildlib "prog_build_init" {{'pointer
 get-host-ffi-settings := (/prelude/c-function buildlib "get_host_ffi_settings" {{}
   'pointer})
 
-ext-make := (/prelude/c-function buildlib "standard_extension_alloc_make" {{'pointer}
-  'pointer})
+ext-make-impl := (/prelude/c-function buildlib "standard_extension_make" {{'pointer}
+  'lisp_extension})
+ext-make := fn {x} {
+e := (/prelude/ext-make-impl x)
+return (/prelude/malloc-and-copy e)}
 
 init-prog := fn {sl compdata bdrcompdata}
 {ctxt := (../context-make)
