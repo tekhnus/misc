@@ -80,9 +80,9 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   }
   // fprintf(stderr, "host ffi %s\n", datum_repr(name));
   datum res;
-  if (!strcmp(name->bytestring_value, "call-extension")) {
+  if (!strcmp(name->bytestring_value, "call-builtin")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
-      abortf(ctxt, "call-extension expected at least a single arg");
+      abortf(ctxt, "call-builtin expected at least a single arg");
       return (datum){};
     }
     datum *fn = list_at(args, 0);
@@ -97,14 +97,14 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
       return (datum){};
     }
     return results;
-  } else if (!strcmp(name->bytestring_value, "deref-pointer")) {
-    res = datum_make_pointer(datum_deref);
-  } else if (!strcmp(name->bytestring_value, "copy-to-memory-pointer")) {
+  } else if (!strcmp(name->bytestring_value, "deref")) {
+    res = datum_make_pointer(builtin_deref);
+  } else if (!strcmp(name->bytestring_value, "copy-to-memory")) {
     res = datum_make_pointer(builtin_copy_to_memory);
-  } else if (!strcmp(name->bytestring_value, "ser-pointer")) {
-    res = datum_make_pointer(datum_ser);
-  } else if (!strcmp(name->bytestring_value, "pointer-call-pointer")) {
-    res = datum_make_pointer(pointer_call);
+  } else if (!strcmp(name->bytestring_value, "serialize")) {
+    res = datum_make_pointer(builtin_serialize);
+  } else if (!strcmp(name->bytestring_value, "call-ffi")) {
+    res = datum_make_pointer(builtin_call_ffi);
   } else if (!strcmp(name->bytestring_value, "head")) {
     res = datum_make_pointer(builtin_head);
   } else if (!strcmp(name->bytestring_value, "tail")) {
@@ -192,7 +192,7 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
     datum *a = list_at(args, arg_cnt);
 
     if (!datum_is_blob(a)) {
-      abortf(ctxt, "pointer-call expects blobs");
+      abortf(ctxt, "call-ffi expects blobs");
       return;
     }
     blob *b = datum_get_blob(a);
@@ -221,7 +221,7 @@ LOCAL datum builtin_copy_to_memory(datum *args, context *ctxt) {
   return datum_make_list_of();
 }
 
-LOCAL datum datum_ser(datum *args, context *ctxt) {
+LOCAL datum builtin_serialize(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 1) {
     abortf(ctxt, "ser expected a single argument");
@@ -239,7 +239,7 @@ LOCAL datum datum_ser(datum *args, context *ctxt) {
   return (datum){};
 }
 
-LOCAL datum datum_deref(datum *args, context *ctxt) {
+LOCAL datum builtin_deref(datum *args, context *ctxt) {
   datum *form = args;
   if (!datum_is_list(form) || list_length(form) != 2) {
     abortf(ctxt, "deref expected a pair on stack");
@@ -276,9 +276,9 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
   return 0;
 }
 
-LOCAL datum pointer_call(datum *argz, context *ctxt) {
+LOCAL datum builtin_call_ffi(datum *argz, context *ctxt) {
   if (!datum_is_list(argz) || list_length(argz) != 3) {
-    abortf(ctxt, "pointer-call expected a triple on stack");
+    abortf(ctxt, "call-ffi expected a triple on stack");
     return (datum){};
   }
 

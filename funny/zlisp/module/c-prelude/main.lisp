@@ -1,17 +1,17 @@
 req
 {}
-pointer-call-pointer := return @1
+call-ffi-pointer := return @1
 
 @{host
- "pointer-call-pointer"}
+ "call-ffi"}
 
 {}
 
-pointer-call := fn {x y z}
+call-ffi := fn {x y z}
 {r := return @1
  @{host
-  "call-extension"}
- ^{pointer-call-pointer
+  "call-builtin"}
+ ^{call-ffi-pointer
   x
   y
   z}
@@ -28,7 +28,7 @@ len-pointer := return @1
 len := fn {x}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{len-pointer
   x}
  return r}
@@ -36,31 +36,31 @@ len := fn {x}
 deref-pointer := return @1
 
 @{host
- "deref-pointer"}
+ "deref"}
 
 {}
 
 deref := fn {x y}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{deref-pointer
   x
   y}
  return r}
 
-ser-pointer := return @1
+serialize-pointer := return @1
 
 @{host
- "ser-pointer"}
+ "serialize"}
 
 {}
 
 ser := fn {x}
 {r := return @1
  @{host
-  "call-extension"}
- ^{ser-pointer
+  "call-builtin"}
+ ^{serialize-pointer
   x}
  return r}
 
@@ -73,7 +73,7 @@ malloc-pointer := return @1
 
 malloc := fn {n}
 {
-return (../pointer-call malloc-pointer {{'sizet
+return (../call-ffi malloc-pointer {{'sizet
     }
    'pointer} {n
    })}
@@ -81,7 +81,7 @@ return (../pointer-call malloc-pointer {{'sizet
 copy-to-memory-pointer := return @1
 
 @{host
- "copy-to-memory-pointer"}
+ "copy-to-memory"}
 
 {}
 
@@ -91,7 +91,7 @@ malloc-and-copy := fn {x}
  mem := (../malloc sz-ser)
  {} := return @0
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{copy-to-memory-pointer
   mem
   x}
@@ -113,7 +113,7 @@ head := fn {x}
 {
  r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{head-pointer
   x}
  return r}
@@ -128,7 +128,7 @@ tail-pointer := return @1
 tail := fn {x}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{tail-pointer
   x}
  return r}
@@ -143,7 +143,7 @@ cons-pointer := return @1
 cons := fn {x xs}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{cons-pointer
   x
   xs}
@@ -159,7 +159,7 @@ eq-pointer := return @1
 eq := fn {x y}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{eq-pointer
   x
   y}
@@ -202,7 +202,7 @@ dlopen := fn {x}
  if (../eq x "__magic_null_string__") {
   x-on-heap = null-pointer
  } {}
- return (../pointer-call dlopen-pointer {{'pointer
+ return (../call-ffi dlopen-pointer {{'pointer
     'int}
    'pointer} {x-on-heap
    rtld-lazy})}
@@ -226,7 +226,7 @@ dlsym := fn {x y}
 {
 y-ser := (../ser y)
 y-on-heap := (../malloc-and-copy y-ser)
-return (../pointer-call dlsym-pointer {{'pointer
+return (../call-ffi dlsym-pointer {{'pointer
     'pointer}
    'pointer} {x
    y-on-heap})}
@@ -247,30 +247,30 @@ dlsym-or-panic := fn {handle c-name}
 
 c-function-0 := fn {fn-ptr signature}
 {return ^{}
- return (../pointer-call fn-ptr signature {})}
+ return (../call-ffi fn-ptr signature {})}
 
 c-function-1 := fn {fn-ptr signature}
 {a1 := return @1
  ^{}
- return (../pointer-call fn-ptr signature {a1})}
+ return (../call-ffi fn-ptr signature {a1})}
 
 c-function-2 := fn {fn-ptr signature}
 {{a1 a2} := return @2
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2})}
 
 c-function-3 := fn {fn-ptr signature}
 {{a1 a2 a3} := return @3
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2
    a3})}
 
 c-function-4 := fn {fn-ptr signature}
 {{a1 a2 a3 a4} := return @4
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2
    a3
    a4})}
@@ -278,7 +278,7 @@ c-function-4 := fn {fn-ptr signature}
 c-function-5 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5} := return @5
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2
    a3
    a4
@@ -287,7 +287,7 @@ c-function-5 := fn {fn-ptr signature}
 c-function-6 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6} := return @6
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2
    a3
    a4
@@ -297,7 +297,7 @@ c-function-6 := fn {fn-ptr signature}
 c-function-7 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6 a7} := return @7
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2
    a3
    a4
@@ -308,7 +308,7 @@ c-function-7 := fn {fn-ptr signature}
 c-function-8 := fn {fn-ptr signature}
 {{a1 a2 a3 a4 a5 a6 a7 a8} := return @8
  ^{}
- return (../pointer-call fn-ptr signature {a1
+ return (../call-ffi fn-ptr signature {a1
    a2
    a3
    a4
@@ -340,7 +340,7 @@ annotate-pointer := (dlsym-or-panic selflib "builtin_annotate")
 annotate := fn {x}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{annotate-pointer
   x}
  return r}
@@ -350,7 +350,7 @@ is-constant-pointer := (dlsym-or-panic selflib "builtin_is_constant")
 is-constant := fn {x}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{is-constant-pointer
   x}
  return r}
@@ -360,7 +360,7 @@ repr-pointer := (dlsym-or-panic selflib "builtin_repr")
 repr := fn {x}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{repr-pointer
   x}
  return r}
@@ -370,7 +370,7 @@ concat-bytestrings-pointer := (dlsym-or-panic selflib "builtin_concat_bytestring
 concat-bytestrings := fn {x y}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{concat-bytestrings-pointer
   x
   y}
@@ -381,7 +381,7 @@ concat-bytestrings := fn {x y}
 + := fn {x y}
 {r := return @1
  @{host
-  "call-extension"}
+  "call-builtin"}
  ^{+-pointer
   x
   y}
