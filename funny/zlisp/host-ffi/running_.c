@@ -153,7 +153,7 @@ LOCAL void ffi_type_init(ffi_type **type, datum *definition, context *ctxt) {
   return;
 }
 
-LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
+LOCAL void ffi_make_types_from_signature(datum *sig, ffi_type **arg_types,
                                 ffi_type **ret_type, context *ctxt) {
   if (list_length(sig) != 2) {
     abortf(ctxt, "the signature should be a two-item list");
@@ -171,17 +171,9 @@ LOCAL void pointer_ffi_init_cif(datum *sig, ffi_cif *cif, ffi_type **arg_types,
   if (ctxt->aborted) {
     return;
   }
-  ffi_status status;
-  // TODO(): for variadic functions, prep_cif_var must be used.
-  // Without it, linux works somehow and mac does not.
-  if ((status = ffi_prep_cif(cif, FFI_DEFAULT_ABI, arg_count, *ret_type,
-                             arg_types)) != FFI_OK) {
-    abortf(ctxt, "something went wrong during ffi_prep_cif");
-    return;
-  }
 }
 
-LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
+LOCAL void ffi_prepare_cargs(datum *args, void **cargs, int nargs,
                                       context *ctxt) {
   if (list_length(args) != nargs) {
     abortf(ctxt, "incorrect number of args for FFI call");
@@ -292,13 +284,22 @@ LOCAL datum builtin_call_ffi(datum *argz, context *ctxt) {
   ffi_cif cif;
   ffi_type *arg_types[32];
   ffi_type *ret_type;
-  pointer_ffi_init_cif(sig, &cif, &arg_types[0], &ret_type, ctxt);
+  ffi_make_types_from_signature(sig, &arg_types[0], &ret_type, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
   int nargs = list_length(list_at(sig, 0));
+  ffi_status status =
+    ffi_prep_cif(&cif, FFI_DEFAULT_ABI, nargs, ret_type,
+                 arg_types);
+  // TODO(): for variadic functions, prep_cif_var must be used.
+  // Without it, linux works somehow and mac does not.
+  if (status != FFI_OK) {
+    abortf(ctxt, "something went wrong during ffi_prep_cif");
+    return (datum){};
+  }
   void *cargs[32];
-  pointer_ffi_serialize_args(args, cargs, nargs, ctxt);
+  ffi_prepare_cargs(args, cargs, nargs, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
