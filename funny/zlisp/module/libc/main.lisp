@@ -21,9 +21,17 @@ libc := (/std/first-good-value {(/prelude/dlopen-or-error "libc.so.6")
 malloc := (/prelude/c-function libc "malloc" {{'sizet}
   'pointer})
 
-fopen := (/prelude/c-function libc "fopen" {{'string
-   'string}
+fopen-impl := (/prelude/c-function libc "fopen" {{'pointer
+   'pointer}
   'pointer})
+
+fopen := fn {name mode} {
+  name-ser := (/prelude/ser name)
+  name-on-heap := (/prelude/copy-to-heap name-ser)
+  mode-ser := (/prelude/ser mode)
+  mode-on-heap := (/prelude/copy-to-heap mode-ser)
+  return (/prelude/fopen-impl name-on-heap mode-on-heap)
+}
 
 fread := (/prelude/c-function libc "fread" {{'pointer
    'sizet

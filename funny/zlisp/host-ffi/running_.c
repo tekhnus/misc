@@ -135,10 +135,6 @@ LOCAL void ffi_type_init(ffi_type **type, datum *definition, context *ctxt) {
     abortf(ctxt, "type should be a symbol");
     return;
   }
-  if (!strcmp(definition->symbol_value, "string")) {
-    *type = &ffi_type_pointer;
-    return;
-  }
   if (!strcmp(definition->symbol_value, "sizet")) {
     *type = &ffi_type_uint64; // danger!
     return;
@@ -250,19 +246,7 @@ LOCAL datum datum_serialize(datum *args, context *ctxt) {
     return (datum){};
   }
   char *des = desc->symbol_value;
-  if (!strcmp(des, "string")) {
-    if (!datum_is_bytestring(d)) {
-      abortf(ctxt, "string expected, got something else");
-      return (datum){};
-    }
-    void *addr;
-    if (!strcmp(d->bytestring_value, "__magic_null_string__")) {
-      addr = NULL;
-    } else {
-      addr = d->bytestring_value;
-    }
-    return (datum_make_list_of(datum_make_pointer(addr)));
-  } else if (!strcmp(des, "sizet")) {
+  if (!strcmp(des, "sizet")) {
     return datum_make_list_of(datum_copy(d));
   } else if (!strcmp(des, "int")) {
     return datum_make_list_of(datum_copy(d));
@@ -306,8 +290,6 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     return (sizeof(void *));
   } else if (!strcmp(rettype, "int")) {
     return (sizeof(int));
-  } else if (!strcmp(rettype, "string")) {
-    return (sizeof(char *));
   }
   abortf(ctxt, "uknown type: %s", datum_repr(rett));
   return 0;

@@ -8,7 +8,7 @@ req
  {fread "libc" fread}
  {fprintf-pointer-new "libc" fprintf-pointer-new}}
 
-hostsfile := (/prelude/fopen "/etc/hosts" "r")
+hostsfile := (/libc/fopen "/etc/hosts" "r")
 
 sz := (/prelude/ser 1024000)
 one := (/prelude/ser 1)
