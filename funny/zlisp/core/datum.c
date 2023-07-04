@@ -417,14 +417,8 @@ EXPORT datum *vec_at(vec *s, size_t index) {
 EXPORT size_t vec_length(vec *s) { return s->length; }
 
 LOCAL array vec_to_array(vec v) {
-  if (v.length == v.storage.length) {
-    return v.storage;
-  }
-  array res = array_make(vec_length(&v));
-  for (size_t i = 0; i < vec_length(&v); ++i) {
-    *array_at(&res, i) = *vec_at(&v, i);
-  }
-  return res;
+  v.storage.length = v.length;
+  return v.storage;
 }
 
 EXPORT datum datum_make_list(vec v) {
