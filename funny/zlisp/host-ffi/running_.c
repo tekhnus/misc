@@ -16,22 +16,6 @@ struct cif_and_data {
 };
 #include <running_.h>
 
-EXPORT datum *routine_run_in_ffi_host(vec *sl, datum *r0d, context *ctxt) {
-  // This one is for lisp.
-  result r = host_ffi_run(sl, r0d, datum_make_nil(), ctxt);
-  if (ctxt->aborted) {
-    return NULL;
-  }
-  datum *res = malloc(sizeof(datum));
-  if (datum_is_the_symbol(&r.type, "halt")) {
-    *res = (r.value);
-  } else {
-    abortf(ctxt, "panic while running");
-    return NULL;
-  }
-  return res;
-}
-
 EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
   result res;
   datum current_statement = datum_make_nil();
@@ -254,6 +238,15 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
+  } else if (!strcmp(definition->symbol_value, "result")) {
+    *result =
+        *ffi_type_init_struct(cifd,
+                              datum_make_list_of(datum_make_symbol("datum"),
+                                                 datum_make_symbol("datum")),
+                              ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
   } else {
     abortf(ctxt, "unknown type: %s", datum_repr(definition));
     return NULL;
@@ -414,6 +407,8 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     return (sizeof(extension));
   } else if (!strcmp(rettype, "lisp_extension")) {
     return (sizeof(lisp_extension));
+  } else if (!strcmp(rettype, "result")) {
+    return (sizeof(result));
   }
   abortf(ctxt, "sizeof type not known: %s", datum_repr(rett));
   return 0;

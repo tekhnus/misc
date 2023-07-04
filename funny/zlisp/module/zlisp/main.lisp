@@ -93,10 +93,11 @@ compile-prog-new := fn {sl bpptr src compdata bdrcompdata ex}
  return {:ok
   :nothing}}
 
-routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "routine_run_in_ffi_host" {{'pointer
+routine-run-and-get-value-c-host-new := (/prelude/c-function selflib "host_ffi_run" {{'pointer
    'pointer
+   'datum
    'pointer}
-  'pointer})
+  'result})
 
 repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'pointer}
   'pointer})
@@ -104,12 +105,22 @@ repr-pointer-impl := (/prelude/c-function selflib "datum_repr" {{'pointer}
 repr-pointer := fn {x}
 {return (/prelude/repr-pointer-impl x)}
 
+datum-make-nil := (/prelude/c-function selflib "datum_make_nil" {{}
+  'datum})
+
+result-get-value := (/prelude/c-function selflib "result_get_value" {{'pointer 'pointer}
+  'pointer})
+
 eval-new := fn {sl rt0}
 {ctxt := (../context-make)
- res := (/prelude/routine-run-and-get-value-c-host-new sl rt0 ctxt)
+ ar := (/prelude/datum-make-nil)
+ res := (/prelude/routine-run-and-get-value-c-host-new sl rt0 ar ctxt)
+ {} := (../panic-if-aborted @0 ctxt)
+ res-ptr := (/prelude/malloc-and-copy res)
+ val := (/prelude/result-get-value res-ptr ctxt)
  {} := (../panic-if-aborted @0 ctxt)
  return {:ok
-  res}}
+  val}}
 
 read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'pointer
    'pointer}

@@ -90,6 +90,15 @@ EXPORT result routine_run(vec *sl, datum *r, datum args, context *ctxt) {
   return routine_run_impl(sl, &rt, args, ctxt);
 }
 
+EXPORT datum *result_get_value(result *r, context *ctxt) {
+  datum *type = &r->type;
+  if (!datum_is_the_symbol(type, "halt")) {
+    abortf(ctxt, "expected halt, got %s", datum_repr(type));
+    return NULL;
+  }
+  return &r->value;
+}
+
 LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
   for (;;) {
     prog prg = datum_to_prog(vec_at(sl, *routine_offset(r)), ctxt);
