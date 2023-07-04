@@ -23,16 +23,6 @@ enum token_type {
 #include <ctype.h>
 #include <stdlib.h>
 
-EXPORT datum *datum_alloc_read_all(FILE *stre, context *ctxt) { // used in lisp.
-  vec v = datum_read_all(stre, ctxt);
-  if (ctxt->aborted) {
-    return NULL;
-  }
-  datum *res = malloc(sizeof(datum));
-  *res = datum_make_list(v);
-  return res;
-}
-
 EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
   datum rr;
   vec res = vec_make(0);

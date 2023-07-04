@@ -122,17 +122,22 @@ eval-new := fn {sl rt0}
  return {:ok
   val}}
 
-read-all-alloc := (/prelude/c-function selflib "datum_alloc_read_all" {{'pointer
+read-all-alloc := (/prelude/c-function selflib "datum_read_all" {{'pointer
    'pointer}
-  'pointer})
+  'vec})
 
 datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'pointer}
   'pointer})
 
+datum-make-list := (/prelude/c-function selflib "datum_make_list" {{'vec}
+  'datum})
+
 read-new := fn {strm}
 {ctxt := (../context-make)
- res := (/prelude/read-all-alloc strm ctxt)
+ resvec := (/prelude/read-all-alloc strm ctxt)
  {} := (../panic-if-aborted @0 ctxt)
+ resdat := (/prelude/datum-make-list resvec)
+ res := (/prelude/malloc-and-copy resdat)
  is-eof := (/prelude/datum-is-nil res)
  if (/std/eq is-eof null-pointer)
  {return {:ok
