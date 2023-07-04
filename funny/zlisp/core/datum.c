@@ -436,7 +436,7 @@ EXPORT datum datum_make_list(vec v) {
 EXPORT datum datum_make_nil() {
   datum e;
   e._type = DATUM_LIST;
-  e._list_value = vec_make(0).storage;
+  e._list_value = array_make(0);
   return e;
 }
 
