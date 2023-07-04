@@ -631,11 +631,6 @@ LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata,
   }
 }
 
-EXPORT vec vec_create_slice() {
-  vec sl = vec_make(16 * 1024);
-  return sl;
-}
-
 EXPORT size_t prog_get_next_index(vec *sl) { return vec_length(sl); }
 
 LOCAL void list_append_slow(datum *list, datum value) {

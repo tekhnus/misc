@@ -19,7 +19,7 @@ EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
 
 LOCAL void standard_extension_init(vec *program, datum *routine_,
                                    datum *compdata, context *ctxt) {
-  *program = vec_create_slice();
+  *program = vec_make(0);
   size_t lisp_extension_builder_prg = 0;
   *routine_ = routine_make_topmost(lisp_extension_builder_prg);
   *compdata = compdata_make();

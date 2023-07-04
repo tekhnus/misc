@@ -54,7 +54,7 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
     return (datum_make_nil());
   }
   datum compdata = compdata_make();
-  vec sl = vec_create_slice();
+  vec sl = vec_make(0);
   prog_compile(&sl, &src, &compdata, extension, ctxt);
   if (ctxt->aborted) {
     return (datum_make_nil());

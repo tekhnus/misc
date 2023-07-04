@@ -32,10 +32,11 @@ make-routine-with-empty-state := fn {} {
 r := (/prelude/make-routine-with-empty-state-impl (/prelude/ser 0))
 return (/prelude/malloc-and-copy r)}
 
-prog-slice-make-impl := (/prelude/c-function selflib "vec_create_slice" {{}
+prog-slice-make-impl := (/prelude/c-function selflib "vec_make" {{'sizet}
   'vec})
 prog-slice-make := fn {} {
-v := (/prelude/prog-slice-make-impl)
+zero := (/prelude/ser 0)
+v := (/prelude/prog-slice-make-impl zero)
 return (/prelude/malloc-and-copy v)}
 
 prog-build-one-c-host-2 := (/prelude/c-function buildlib "prog_build" {{'pointer

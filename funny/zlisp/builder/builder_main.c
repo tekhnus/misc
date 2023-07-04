@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "while obtaining source: %s", ctxt.error);
     return EXIT_FAILURE;
   }
-  vec sl = vec_create_slice();
+  vec sl = vec_make(0);
   // the interpreter will start from the first instruction,
   // so the first call of append_new must be for the starting point.
   size_t bp;
