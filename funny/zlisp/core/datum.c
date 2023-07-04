@@ -83,15 +83,13 @@ EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
   return b->begin;
 }
 
-EXPORT blob blob_make(void *data, size_t length) {
-  blob b;
-  b.length = length;
-  b.begin = malloc(length);
+EXPORT blob blob_make_copy(void *data, size_t length) {
+  blob b = blob_make(length);
   memcpy(b.begin, data, length);
   return b;
 }
 
-EXPORT blob blob_make_uninitialized(size_t length) {
+EXPORT blob blob_make(size_t length) {
   blob b;
   b.length = length;
   b.begin = malloc(length);
@@ -99,22 +97,22 @@ EXPORT blob blob_make_uninitialized(size_t length) {
 }
 
 EXPORT datum datum_make_pointer(void *ptr) {
-  blob b = blob_make(&ptr, sizeof(void *));
+  blob b = blob_make_copy(&ptr, sizeof(void *));
   return datum_make_blob(b);
 }
 
 EXPORT datum datum_make_blob_int(int x) {
-  blob b = blob_make(&x, sizeof(int));
+  blob b = blob_make_copy(&x, sizeof(int));
   return datum_make_blob(b);
 }
 
 EXPORT datum datum_make_blob_int64_t(int64_t x) {
-  blob b = blob_make(&x, sizeof(int64_t));
+  blob b = blob_make_copy(&x, sizeof(int64_t));
   return datum_make_blob(b);
 }
 
 EXPORT datum datum_make_blob_size_t(size_t x) {
-  blob b = blob_make(&x, sizeof(size_t));
+  blob b = blob_make_copy(&x, sizeof(size_t));
   return datum_make_blob(b);
 }
 
@@ -358,7 +356,7 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
 }
 
-EXPORT array array_make_uninitialized(size_t length) {
+LOCAL array array_make(size_t length) {
   array res;
   res.begin = malloc(length * sizeof(datum));
   res.length = length;
@@ -367,7 +365,7 @@ EXPORT array array_make_uninitialized(size_t length) {
 
 EXPORT vec vec_make(size_t capacity) {
   vec res;
-  res.storage = array_make_uninitialized(capacity);
+  res.storage = array_make(capacity);
   res.length = 0;
   return res;
 }
@@ -388,12 +386,11 @@ EXPORT datum *vec_append(vec *s, datum x) {
   assert(s->length <= s->storage.length);
   if (s->length == s->storage.length) {
     size_t new_capacity = (s->storage.length + 1) * 2;
-    datum *new_begin = malloc(sizeof(datum) * new_capacity);
+    array new_storage = array_make(new_capacity);
     for (size_t i = 0; i < s->length; ++i) {
-      new_begin[i] = s->storage.begin[i];
+      *array_at(&new_storage, i) = *array_at(&s->storage, i);
     }
-    s->storage.length = new_capacity;
-    s->storage.begin = new_begin;
+    s->storage = new_storage;
   }
   size_t res = s->length++;
   (s->storage.begin)[res] = x;
@@ -423,7 +420,7 @@ LOCAL array vec_to_array(vec v) {
   if (v.length == v.storage.length) {
     return v.storage;
   }
-  array res = array_make_uninitialized(vec_length(&v));
+  array res = array_make(vec_length(&v));
   for (size_t i = 0; i < vec_length(&v); ++i) {
     *array_at(&res, i) = *vec_at(&v, i);
   }
@@ -535,7 +532,7 @@ EXPORT datum datum_copy(datum *d) {
 }
 
 EXPORT blob blob_copy(blob *b) {
-  return blob_make(b->begin, b->length);
+  return blob_make_copy(b->begin, b->length);
 }
 
 EXPORT vec vec_copy(vec *src) {
@@ -554,7 +551,7 @@ LOCAL vec array_to_vec(array arr) {
 }
 
 LOCAL array array_copy(array *arr) {
-  array res = array_make_uninitialized(arr->length);
+  array res = array_make(arr->length);
   for (size_t i = 0; i < arr->length; ++i) {
     *array_at(&res, i) = datum_copy(array_at(arr, i));
   }

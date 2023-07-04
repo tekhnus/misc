@@ -351,7 +351,7 @@ LOCAL datum builtin_serialize(datum *args, context *ctxt) {
   }
   datum *d = list_at(form, 0);
   if (datum_is_bytestring(d)) {
-    blob b = blob_make(d->bytestring_value, 1 + strlen(d->bytestring_value));
+    blob b = blob_make_copy(d->bytestring_value, 1 + strlen(d->bytestring_value));
     return datum_make_list_of(datum_make_blob(b));
   }
   if (datum_is_integer(d)) {
@@ -377,7 +377,7 @@ LOCAL datum builtin_deref(datum *args, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  blob dereferenced = blob_make(ptr, sz);
+  blob dereferenced = blob_make_copy(ptr, sz);
   return datum_make_list_of(datum_make_blob(dereferenced));
 }
 
@@ -443,7 +443,7 @@ LOCAL datum builtin_call_ffi(datum *argz, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  blob blb = blob_make_uninitialized(sz);
+  blob blb = blob_make(sz);
   ffi_call(&cifd.cif, fn_ptr, blb.begin, cargs);
   return (datum_make_list_of(datum_make_blob(blb)));
 }
