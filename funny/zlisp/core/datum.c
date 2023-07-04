@@ -144,20 +144,18 @@ EXPORT char *datum_repr_pretty(datum *e, extension *ext) {
   return buf;
 }
 
-LOCAL char *escape_string(char *s) {
-  size_t len = strlen(s) * 2;
-  char *quoted = malloc(len);
+LOCAL size_t fprintf_escaped(FILE *f, char *s) {
   size_t i = 0;
+  i += fprintf(f, "\"");
   for (size_t j = 0; j < strlen(s); ++j) {
     if (s[j] == '\n') {
-      quoted[i++] = '\\';
-      quoted[i++] = 'n';
+      i += fprintf(f, "\\n");
       continue;
     }
-    quoted[i++] = s[j];
+    i += fprintf(f, "%c", s[j]);
   }
-  quoted[i++] = '\0';
-  return quoted;
+  i += fprintf(f, "\"");
+  return i;
 }
 
 LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
@@ -296,7 +294,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
   } else if (datum_is_symbol(e)) {
     offset += fprintf(buf, "%s", e->symbol_value);
   } else if (datum_is_bytestring(e)) {
-    offset += fprintf(buf, "\"%s\"", escape_string(e->bytestring_value));
+    offset += fprintf_escaped(buf, e->bytestring_value);
   } else if (datum_is_blob(e)) {
     blob *blb = datum_get_blob(e);
     offset += fprintf(buf, "`");
