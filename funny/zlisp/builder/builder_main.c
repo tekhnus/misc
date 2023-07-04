@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     fprintf(stderr, "while building: %s", ctxt.error);
     return EXIT_FAILURE;
   }
-  datum d = datum_make_list(sl);
+  datum d = datum_make_list_vec(sl);
   printf("%s\n", datum_repr(&d));
   return EXIT_SUCCESS;
 }

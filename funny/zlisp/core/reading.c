@@ -166,7 +166,7 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
         datum comp = datum_make_symbol(nm[cc]);
         vec_append(&elems, comp);
       }
-      sym = datum_make_list(elems);
+      sym = datum_make_list_vec(elems);
     }
     return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
   }
@@ -237,13 +237,13 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
     }
     if (tok.type == TOKEN_LEFT_PAREN) {
       return datum_make_list_of(
-          datum_make_list_of(datum_make_symbol("call"), datum_make_list(list)));
+          datum_make_list_of(datum_make_symbol("call"), datum_make_list_vec(list)));
     }
     if (tok.type == TOKEN_LEFT_SQUARE) {
-      return datum_make_list_of(datum_make_list(list));
+      return datum_make_list_of(datum_make_list_vec(list));
     }
     if (tok.type == TOKEN_LEFT_CURLY) {
-      return datum_make_list_of(datum_make_list(list));
+      return datum_make_list_of(datum_make_list_vec(list));
     }
     assert(false);
   }

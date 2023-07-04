@@ -371,7 +371,7 @@ EXPORT vec vec_make(size_t capacity) {
 }
 
 EXPORT datum list_make_copies(size_t length, datum val) {
-  return datum_make_list(vec_make_copies(length, val));
+  return datum_make_list_vec(vec_make_copies(length, val));
 }
 
 EXPORT vec vec_make_copies(size_t length, datum val) {
@@ -421,17 +421,19 @@ LOCAL array vec_to_array(vec v) {
   return v.storage;
 }
 
-EXPORT datum datum_make_list(vec v) {
-  datum res = datum_make_nil();
-  res._list_value = vec_to_array(v);
+EXPORT datum datum_make_list_vec(vec v) {
+  return datum_make_list(vec_to_array(v));
+}
+
+EXPORT datum datum_make_list(array v) {
+  datum res;
+  res._type = DATUM_LIST;
+  res._list_value = v;
   return res;
 }
 
 EXPORT datum datum_make_nil() {
-  datum e;
-  e._type = DATUM_LIST;
-  e._list_value = array_make(0);
-  return e;
+  return datum_make_list_of();
 }
 
 EXPORT bool datum_is_list(datum *e) { return e->_type == DATUM_LIST; }
@@ -440,18 +442,11 @@ EXPORT bool datum_is_nil(datum *e) {
   return datum_is_list(e) && list_length(e) == 0;
 }
 
-EXPORT void *datum_is_nil_as_ptr(datum *e) {  // For lisp.
-  if (datum_is_nil(e)) {
-    return NULL;
-  }
-  return &"not null";
-}
-
 EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
-  vec vals = vec_make_copies(count, datum_make_nil());
+  array vals = array_make(count);
   for (size_t i = 0; i < count; ++i) {
     datum elem = values[i];
-    *vec_at(&vals, i) = elem;
+    *array_at(&vals, i) = elem;
   }
   return datum_make_list(vals);
 }

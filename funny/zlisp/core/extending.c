@@ -63,7 +63,7 @@ LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
     vec_append(&invokation_statement, datum_make_list_of(orig));
   }
   datum call_statement = datum_make_list_of(
-      datum_make_symbol("call"), datum_make_list(invokation_statement));
+      datum_make_symbol("call"), datum_make_list_vec(invokation_statement));
   datum res = lisp_extension_run(&call_statement, self, ctxt);
   if (ctxt->aborted) {
     return;
@@ -193,7 +193,7 @@ LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
     vec_append(&vars, datum_copy(item_var));
     vec_append(&specs, item_spec);
   }
-  return datum_make_list_of(datum_make_list(vars), datum_make_list(specs));
+  return datum_make_list_of(datum_make_list_vec(vars), datum_make_list_vec(specs));
 }
 
 LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
@@ -219,8 +219,8 @@ LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
     vec_append(&vals, datum_copy(list_at(exprs, i)));
   }
   vec_append(&return_expr, datum_make_symbol("flat"));
-  vec_append(&return_expr, datum_make_list_of(datum_make_list(vals)));
-  datum return_expr_ = datum_make_list(return_expr);
+  vec_append(&return_expr, datum_make_list_of(datum_make_list_vec(vals)));
+  datum return_expr_ = datum_make_list_vec(return_expr);
   prog_compile(sl, &return_expr_, compdata, ext, ctxt);
 
   if (ctxt->aborted) {
@@ -255,6 +255,6 @@ LOCAL datum prog_read_exports(datum *spec, context *ctxt) {
     vec_append(&names, datum_copy(item_name));
     vec_append(&expressions, datum_copy(item_expression));
   }
-  return datum_make_list_of(datum_make_list(names),
-                            datum_make_list(expressions));
+  return datum_make_list_of(datum_make_list_vec(names),
+                            datum_make_list_vec(expressions));
 }

@@ -130,7 +130,7 @@ read-all-alloc := (/prelude/c-function selflib "datum_read_all" {{'pointer
 datum-is-nil := (/prelude/c-function selflib "datum_is_nil" {{'pointer}
   'pointer})
 
-datum-make-list := (/prelude/c-function selflib "datum_make_list" {{'vec}
+datum-make-list := (/prelude/c-function selflib "datum_make_list_vec" {{'vec}
   'datum})
 
 read-new := fn {strm}

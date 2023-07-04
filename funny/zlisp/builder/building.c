@@ -20,7 +20,7 @@ EXPORT datum file_source(char *fname, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  return datum_make_list(rr);
+  return datum_make_list_vec(rr);
 }
 
 EXPORT void module_to_filename(char *fname, char *module, context *ctxt) {
@@ -59,7 +59,7 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
   if (ctxt->aborted) {
     return (datum_make_nil());
   }
-  return (datum_make_list(sl));
+  return (datum_make_list_vec(sl));
 }
 
 EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
@@ -77,7 +77,7 @@ EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_symbol("halt")),
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
-  datum ret_exp = datum_make_list(return_expr);
+  datum ret_exp = datum_make_list_vec(return_expr);
   prog_compile(sl, &ret_exp, builder_compdata, ext, ctxt);
   if (ctxt->aborted) {
     return 0;

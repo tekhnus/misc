@@ -410,7 +410,7 @@ LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
-  prog_append_call(sl, capture_size, datum_make_list(indices), !mut, target,
+  prog_append_call(sl, capture_size, datum_make_list_vec(indices), !mut, target,
                    arg_count, ret_count, top_arg_poly, compdata);
   return;
 }

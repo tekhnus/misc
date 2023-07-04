@@ -457,7 +457,7 @@ LOCAL datum state_stack_set(routine *r, datum *target, datum value,
 LOCAL datum state_stack_set_many(routine *r, datum idx, datum list,
                                  context *ctxt) {
   datum form =
-      datum_make_list(vec_make_copies(list_length(&list), datum_make_nil()));
+      datum_make_list_vec(vec_make_copies(list_length(&list), datum_make_nil()));
   assert(datum_is_list(&list));
   for (int i = 0; i < list_length(&list); ++i) {
     *list_at(&form, i) = state_stack_set(r, &idx, *list_at(&list, i), ctxt);
@@ -477,7 +477,7 @@ LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
                                         datum top_polyindex, context *ctxt) {
   return state_stack_set_many(
       r, top_polyindex,
-      datum_make_list(vec_make_copies(count, datum_make_symbol(":invalid"))),
+      datum_make_list_vec(vec_make_copies(count, datum_make_symbol(":invalid"))),
       ctxt);
 }
 
@@ -522,7 +522,7 @@ LOCAL routine get_routine_from_datum(datum *e, context *ctxt) {
 }
 
 LOCAL datum datum_make_frame(vec state, int type_id, int parent_type_id) {
-  return datum_make_list_of(datum_make_list(state), datum_make_int(type_id),
+  return datum_make_list_of(datum_make_list_vec(state), datum_make_int(type_id),
                             datum_make_int(parent_type_id));
 }
 

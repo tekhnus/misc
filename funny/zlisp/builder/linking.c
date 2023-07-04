@@ -13,7 +13,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
       datum_make_symbol("at"), datum_make_list_of(datum_make_symbol("halt")),
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
-  datum ret_exp = datum_make_list(return_expr);
+  datum ret_exp = datum_make_list_vec(return_expr);
   prog_compile(sl, &ret_exp, builder_compdata, &ext, ctxt);
   if (ctxt->aborted) {
     return 0;
@@ -28,7 +28,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
       datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
       datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
       datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
-  ret_exp = datum_make_list(return_expr);
+  ret_exp = datum_make_list_vec(return_expr);
   prog_compile(sl, &ret_exp, compdata, &ext, ctxt);
   if (ctxt->aborted) {
     return 0;
@@ -45,7 +45,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
   vec_append(&call_sexp, datum_make_symbol("at"));
   vec_append(&call_sexp, datum_make_list_of(datum_make_int(0)));
   datum call_stmt = datum_make_list_of(datum_make_list_of(
-      datum_make_symbol("call"), datum_make_list(call_sexp)));
+      datum_make_symbol("call"), datum_make_list_vec(call_sexp)));
   prog_compile(sl, &call_stmt, builder_compdata, &ext, ctxt);
   if (ctxt->aborted) {
     return 0;
@@ -81,7 +81,7 @@ EXPORT void prog_link_deps(vec *sl, datum *builder_compdata, datum *input_meta,
     vec_append(&call_sexp, vn);
   }
   datum call_stmt = datum_make_list_of(datum_make_list_of(
-      datum_make_symbol("call"), datum_make_list(call_sexp)));
+      datum_make_symbol("call"), datum_make_list_vec(call_sexp)));
   prog_compile(sl, &call_stmt, builder_compdata, ext, ctxt);
   if (ctxt->aborted) {
     return;
@@ -196,11 +196,11 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
     vn = datum_make_symbol(varname);
     vec_append(&names, vn);
   }
-  datum names_ = datum_make_list(names);
+  datum names_ = datum_make_list_vec(names);
   datum call_stmt =
       datum_make_list_of(names_, datum_make_symbol(":="),
                          datum_make_list_of(datum_make_symbol("call"),
-                                            datum_make_list(call_sexp)));
+                                            datum_make_list_vec(call_sexp)));
   prog_compile(sl, &call_stmt, compdata, ext, ctxt);
   if (ctxt->aborted) {
     return;

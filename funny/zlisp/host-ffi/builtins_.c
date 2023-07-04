@@ -96,7 +96,7 @@ datum builtin_cons(datum *args, context *ctxt) {
   for (int i = 0; i < list_length(tail); ++i) {
     *vec_at(&vc, i + 1) = datum_copy(list_at(tail, i));
   }
-  return (datum_make_list_of(datum_make_list(vc)));
+  return (datum_make_list_of(datum_make_list_vec(vc)));
 }
 
 datum builtin_head(datum *args, context *ctxt) {

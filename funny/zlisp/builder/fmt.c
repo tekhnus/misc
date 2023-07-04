@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
     perror("while opening file (C host)");
     return EXIT_FAILURE;
   }
-  datum src = datum_make_list(rr);
+  datum src = datum_make_list_vec(rr);
   datum source = rewrite(&src);
   char *res = datum_repr_pretty(&source, &ext.base);
   res[strlen(res) - 1] = 0;
@@ -50,5 +50,5 @@ LOCAL datum rewrite(datum *source) {
     datum *elem = list_at(source, i);
     vec_append(&res, rewrite(elem));
   }
-  return datum_make_list(res);
+  return datum_make_list_vec(res);
 }
