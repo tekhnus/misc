@@ -77,16 +77,20 @@ EXPORT char *datum_get_bytestring(datum *d) {
 }
 
 EXPORT int64_t datum_get_integer(datum *d) {
-  assert(datum_is_integer(d));
-  return d->_integer_value;
+  return *datum_get_integer_ptr(d);
 }
 
 EXPORT int64_t *datum_get_integer_ptr(datum *d) {
   assert(datum_is_integer(d));
   return &d->_integer_value;
+  return blob_get_int64_t_pointer(&d->_blob_value);
 }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
+  if(!datum_is_blob(d)) {
+    abortf(ctxt, "expected a pointer, got %s", datum_repr(d));
+    return NULL;
+  }
   blob *b = datum_get_blob(d);
   if (b->length != sizeof(void *)) {
     abortf(ctxt, "expected a pointer");
@@ -108,6 +112,16 @@ EXPORT blob blob_make(size_t length) {
   return b;
 }
 
+LOCAL blob blob_make_int64_t(int64_t x) {
+  blob b = blob_make_copy(&x, sizeof(int64_t));
+  return b;
+}
+
+LOCAL int64_t *blob_get_int64_t_pointer(blob *b) {
+  assert(b->length == sizeof(int64_t));
+  return (int64_t *)b->begin;
+}
+
 EXPORT datum datum_make_pointer(void *ptr) {
   blob b = blob_make_copy(&ptr, sizeof(void *));
   return datum_make_blob(b);
@@ -119,7 +133,7 @@ EXPORT datum datum_make_blob_int(int x) {
 }
 
 EXPORT datum datum_make_blob_int64_t(int64_t x) {
-  blob b = blob_make_copy(&x, sizeof(int64_t));
+  blob b = blob_make_int64_t(x);
   return datum_make_blob(b);
 }
 
@@ -132,6 +146,7 @@ EXPORT datum datum_make_int(int64_t value) {
   datum e;
   e._type = DATUM_INTEGER;
   e._integer_value = value;
+  // e._blob_value = blob_make_int64_t(value);
   return e;
 }
 
