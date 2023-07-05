@@ -391,15 +391,15 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
 
 LOCAL array array_make(size_t length) {
   array res;
-  res.begin = calloc(length, sizeof(datum));
-  res.length = length;
+  res._begin = calloc(length, sizeof(datum));
+  res._length = length;
   return res;
 }
 
 EXPORT vec vec_make(size_t capacity) {
   vec res;
-  res.storage = array_make(capacity);
-  res.length = 0;
+  res._storage = array_make(capacity);
+  res._length = 0;
   return res;
 }
 
@@ -416,18 +416,18 @@ EXPORT vec vec_make_copies(size_t length, datum val) {
 }
 
 EXPORT datum *vec_append(vec *s, datum x) {
-  assert(s->length <= s->storage.length);
-  if (s->length == s->storage.length) {
-    size_t new_capacity = (s->storage.length + 1) * 2;
+  assert(s->_length <= s->_storage._length);
+  if (s->_length == s->_storage._length) {
+    size_t new_capacity = (s->_storage._length + 1) * 2;
     array new_storage = array_make(new_capacity);
-    for (size_t i = 0; i < s->length; ++i) {
-      *array_at(&new_storage, i) = *array_at(&s->storage, i);
+    for (size_t i = 0; i < s->_length; ++i) {
+      *array_at(&new_storage, i) = *array_at(&s->_storage, i);
     }
-    s->storage = new_storage;
+    s->_storage = new_storage;
   }
-  size_t res = s->length++;
-  (s->storage.begin)[res] = (x);
-  return s->storage.begin + res;
+  size_t res = s->_length++;
+  (s->_storage._begin)[res] = (x);
+  return s->_storage._begin + res;
 }
 
 EXPORT vec vec_make_of_impl(size_t count, datum *values) {
@@ -439,18 +439,18 @@ EXPORT vec vec_make_of_impl(size_t count, datum *values) {
 }
 
 EXPORT datum *vec_at(vec *s, size_t index) {
-  if (index >= s->length) {
+  if (index >= s->_length) {
     fprintf(stderr, "prog slice index overflow\n");
     assert(false);
   }
-  return s->storage.begin + index;
+  return s->_storage._begin + index;
 }
 
-EXPORT size_t vec_length(vec *s) { return s->length; }
+EXPORT size_t vec_length(vec *s) { return s->_length; }
 
 LOCAL array vec_to_array(vec v) {
-  v.storage.length = v.length;
-  return v.storage;
+  v._storage._length = v._length;
+  return v._storage;
 }
 
 EXPORT datum datum_make_list_vec(vec v) {
@@ -482,11 +482,11 @@ EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
   return datum_make_list(vals);
 }
 
-EXPORT size_t array_length(array *arr) { return arr->length; }
+EXPORT size_t array_length(array *arr) { return arr->_length; }
 
 EXPORT datum *array_at(array *arr, size_t i) {
-  assert(i < arr->length);
-  return arr->begin + i;
+  assert(i < arr->_length);
+  return arr->_begin + i;
 }
 
 EXPORT int list_length(datum *seq) {
@@ -556,8 +556,8 @@ EXPORT blob blob_copy(blob *b) {
 }
 
 EXPORT vec vec_copy(vec *src) {
-  vec dst = vec_make(src->storage.length);
-  for (size_t i = 0; i < src->length; ++i) {
+  vec dst = vec_make(src->_storage._length);
+  for (size_t i = 0; i < src->_length; ++i) {
     vec_append(&dst, datum_copy(vec_at(src, i)));
   }
   return dst;
@@ -565,14 +565,14 @@ EXPORT vec vec_copy(vec *src) {
 
 LOCAL vec array_to_vec(array arr) {
   vec res;
-  res.length = arr.length;
-  res.storage = arr;
+  res._length = arr._length;
+  res._storage = arr;
   return res;
 }
 
 LOCAL array array_copy(array *arr) {
-  array res = array_make(arr->length);
-  for (size_t i = 0; i < arr->length; ++i) {
+  array res = array_make(arr->_length);
+  for (size_t i = 0; i < arr->_length; ++i) {
     *array_at(&res, i) = datum_copy(array_at(arr, i));
   }
   return res;

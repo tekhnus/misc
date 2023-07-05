@@ -16,8 +16,8 @@ struct blob {
 typedef struct blob blob;
 
 struct array {
-  datum *begin;
-  size_t length;
+  datum *_begin;
+  size_t _length;
 };
 
 typedef struct array array;
@@ -34,8 +34,8 @@ struct result {
 };
 
 struct vec {
-  array storage;
-  size_t length;
+  array _storage;
+  size_t _length;
 };
 
 typedef struct vec vec;
