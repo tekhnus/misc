@@ -19,7 +19,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
     return 0;
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
-  ptrdiff_t *bdr_put_prog_ = prog_define_routine(
+  datum *bdr_put_prog_ = prog_define_routine(
       sl, datum_make_symbol("__main__"), builder_compdata, ctxt);
   if (ctxt->aborted) {
     return 0;
@@ -34,8 +34,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
     return 0;
   }
   size_t jm = prog_get_next_index(sl);
-  ptrdiff_t *jm_ = prog_append_jmp(sl); // filled below
-  *bdr_put_prog_ = prog_get_next_index(sl) - bdr_put_prog;
+  datum *jm_ = prog_append_jmp(sl); // filled below
+  *bdr_put_prog_ = datum_make_int(prog_get_next_index(sl) - bdr_put_prog);
 
   vec call_sexp = vec_make_of(datum_make_list_of(
       datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"),
@@ -54,7 +54,7 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
   size_t bdr = prog_get_next_index(sl);
   prog_append_jmp(sl); // this is first builder instruction.
   // filled by prog__build.
-  *jm_ = prog_get_next_index(sl) - jm;
+  *jm_ = datum_make_int(prog_get_next_index(sl) - jm);
   return bdr;
 }
 
@@ -168,13 +168,13 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
   datum dep_singleton = datum_make_list_of(datum_copy(dep));
   get_varname(varname, &dep_singleton);
   vn = datum_make_symbol(varname);
-  ptrdiff_t *put_prog_off_ = prog_define_routine(sl, vn, compdata, ctxt);
+  datum *put_prog_off_ = prog_define_routine(sl, vn, compdata, ctxt);
   if (ctxt->aborted) {
     return;
   }
 
   prog_append_bytecode(sl, &module_sl);
-  *put_prog_off_ = prog_get_next_index(sl) - ppo;
+  *put_prog_off_ = datum_make_int(prog_get_next_index(sl) - ppo);
 
   vec call_sexp = vec_make_of(datum_make_list_of(
       datum_make_symbol("polysym"), datum_make_symbol("empty-symbol"), vn));

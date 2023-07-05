@@ -505,7 +505,7 @@ LOCAL void prog_append_collect(vec *sl, size_t count, datum top_idx,
   compdata_put(compdata, datum_make_symbol(":anon"));
 }
 
-EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata,
+EXPORT datum *prog_define_routine(vec *sl, datum name, datum *compdata,
                                       context *ctxt) {
   datum target = compdata_put(compdata, datum_make_symbol(":anon"));
   datum ins = prog_get_put_prog(&target, 100500, 0);
@@ -515,15 +515,14 @@ EXPORT ptrdiff_t *prog_define_routine(vec *sl, datum name, datum *compdata,
   if (ctxt->aborted) {
     return NULL;
   }
-  ptrdiff_t *delt = (ptrdiff_t *)datum_get_integer_ptr(list_at(&ins, 3));
-  return delt;
+  return list_at(&ins, 3);
 }
 
-EXPORT ptrdiff_t *prog_append_jmp(vec *sl) {
+EXPORT datum *prog_append_jmp(vec *sl) {
   datum ins = prog_get_jmp(100500);
   size_t offset = prog_get_next_index(sl);
   vec_append(sl, ins);
-  return prog_get_jmp_delta(sl, offset);
+  return (list_at(vec_at(sl, offset), 1));
 }
 
 LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
@@ -531,11 +530,7 @@ LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
                             datum_make_int(capture), datum_make_int(delta));
 }
 
-EXPORT ptrdiff_t *prog_get_jmp_delta(vec *sl, size_t offset) {
-  return (ptrdiff_t *)datum_get_integer_ptr(list_at(vec_at(sl, offset), 1));
-}
-
-LOCAL datum prog_get_jmp(ptrdiff_t delta) {
+EXPORT datum prog_get_jmp(ptrdiff_t delta) {
   return datum_make_list_of(datum_make_symbol(":jmp"), datum_make_int(delta));
 }
 
