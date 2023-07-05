@@ -25,7 +25,6 @@ typedef struct array array;
 struct datum {
   datum_type _type;
   array _list_value;
-  char *_symbol_value;
   char *_bytestring_value;
   blob _blob_value;
   int64_t _integer_value;
