@@ -23,7 +23,6 @@ struct array {
 typedef struct array array;
 
 struct datum {
-  uint8_t moved;
   datum_type _type;
   array _list_value;
   blob _leaf_value;
