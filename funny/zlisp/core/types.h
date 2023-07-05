@@ -70,8 +70,10 @@ struct lisp_extension {
   vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
                    (datum[]){__VA_ARGS__})
 
-#define owns(var) ((var).owner == NULL, (var).owner = &(var))
+#define assert_of_warn(cond) (true || cond ? fprintf(stderr, "") : fprintf(stderr, "warning: %s %d\n", __FILE__, __LINE__))
 
-#define move(var) (var.owner == &var, var.owner = NULL, var)
+#define owns(var) (assert_of_warn((var).owner == NULL), (var).owner = &(var))
 
-#define borrow(var) (var.owner == &var, &var)
+#define move(var) (assert_of_warn(var.owner == &var), var.owner = NULL, var)
+
+#define borrow(var) (assert_of_warn(var.owner == &var), &var)

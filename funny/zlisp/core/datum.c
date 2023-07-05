@@ -142,7 +142,7 @@ EXPORT datum datum_make_blob_size_t(size_t x) {
 }
 
 EXPORT datum datum_make_int(int64_t value) {
-  datum e;
+  datum e = {};
   owns(e);
   e._type = DATUM_INTEGER;
   e._leaf_value = blob_make_int64_t(value);
@@ -384,7 +384,7 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
 
 LOCAL array array_make(size_t length) {
   array res;
-  res.begin = malloc(length * sizeof(datum));
+  res.begin = calloc(length, sizeof(datum));
   res.length = length;
   return res;
 }
@@ -455,7 +455,7 @@ EXPORT datum datum_make_list_vec(vec v) {
 }
 
 EXPORT datum datum_make_list(array v) {
-  datum res;
+  datum res = {};
   owns(res);
   res._type = DATUM_LIST;
   res._list_value = v;
@@ -546,11 +546,11 @@ EXPORT datum datum_copy(datum *d) {
   if (datum_is_list(d)) {
     return list_copy(d, 0, list_length(d));
   }
-  datum res;
+  datum res = {};
   owns(res);
   res._type = d->_type;
   res._leaf_value = blob_copy(&d->_leaf_value);
-  return res;
+  return move(res);
 }
 
 EXPORT blob blob_copy(blob *b) {
