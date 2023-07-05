@@ -76,7 +76,7 @@ EXPORT char *datum_get_bytestring(datum *d) {
   return d->_blob_value.begin;
 }
 
-EXPORT int datum_get_integer(datum *d) {
+EXPORT int64_t datum_get_integer(datum *d) {
   assert(datum_is_integer(d));
   return d->_integer_value;
 }
@@ -174,7 +174,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
   if (depth == 0) {
     offset += fprintf(buf, "<truncated>");
   } else if (datum_is_integer(e)) {
-    offset += fprintf(buf, "%" PRId64, e->_integer_value);
+    offset += fprintf(buf, "%" PRId64, datum_get_integer(e));
   } else if (datum_is_list(e)) {
     int first = 0;
     char *pair = "{}";
@@ -326,7 +326,7 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     return false;
   }
   if (datum_is_integer(x) && datum_is_integer(y)) {
-    if (x->_integer_value == y->_integer_value) {
+    if (datum_get_integer(x) == datum_get_integer(y)) {
       return true;
     }
     return false;
