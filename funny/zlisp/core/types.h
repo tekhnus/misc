@@ -9,7 +9,7 @@ typedef uint8_t datum_type;
 typedef struct datum datum;
 
 struct blob {
-  void *begin;
+  void *_begin;
   size_t length;
 };
 

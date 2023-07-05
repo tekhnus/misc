@@ -68,12 +68,12 @@ EXPORT array *datum_get_array(datum *d) {
 
 EXPORT char *datum_get_symbol(datum *d) {
   assert(datum_is_symbol(d));
-  return d->_leaf_value.begin;
+  return d->_leaf_value._begin;
 }
 
 EXPORT char *datum_get_bytestring(datum *d) {
   assert(datum_is_bytestring(d));
-  return d->_leaf_value.begin;
+  return d->_leaf_value._begin;
 }
 
 EXPORT int64_t datum_get_integer(datum *d) {
@@ -83,6 +83,10 @@ EXPORT int64_t datum_get_integer(datum *d) {
 EXPORT int64_t *datum_get_integer_ptr(datum *d) {
   assert(datum_is_integer(d));
   return blob_get_int64_t_pointer(&d->_leaf_value);
+}
+
+EXPORT void *blob_get_begin(blob *b) {
+  return b->_begin;
 }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
@@ -95,19 +99,19 @@ EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
-  return b->begin;
+  return b->_begin;
 }
 
 EXPORT blob blob_make_copy(void *data, size_t length) {
   blob b = blob_make(length);
-  memcpy(b.begin, data, length);
+  memcpy(b._begin, data, length);
   return b;
 }
 
 EXPORT blob blob_make(size_t length) {
   blob b;
   b.length = length;
-  b.begin = malloc(length);
+  b._begin = malloc(length);
   return b;
 }
 
@@ -118,7 +122,7 @@ LOCAL blob blob_make_int64_t(int64_t x) {
 
 LOCAL int64_t *blob_get_int64_t_pointer(blob *b) {
   assert(b->length == sizeof(int64_t));
-  return (int64_t *)b->begin;
+  return (int64_t *)b->_begin;
 }
 
 EXPORT datum datum_make_pointer(void *ptr) {
@@ -322,7 +326,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
     blob *blb = datum_get_blob(e);
     offset += fprintf(buf, "`");
     for (size_t i = 0; i < blb->length; ++i) {
-      offset += fprintf(buf, "%.2hhx", ((char *)(blb->begin))[i]);
+      offset += fprintf(buf, "%.2hhx", ((char *)(blb->_begin))[i]);
     }
     offset += fprintf(buf, "`");
   } else {
@@ -367,7 +371,7 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     if (xb->length != yb->length) {
       return false;
     }
-    return !memcmp(xb->begin, yb->begin, xb->length);
+    return !memcmp(xb->_begin, yb->_begin, xb->length);
   }
   return false;
 }
@@ -544,7 +548,7 @@ EXPORT datum datum_copy(datum *d) {
 }
 
 EXPORT blob blob_copy(blob *b) {
-  return blob_make_copy(b->begin, b->length);
+  return blob_make_copy(b->_begin, b->length);
 }
 
 EXPORT vec vec_copy(vec *src) {

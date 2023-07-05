@@ -317,7 +317,7 @@ LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
       return;
     }
     blob *b = datum_get_blob(a);
-    cargs[arg_cnt] = b->begin;
+    cargs[arg_cnt] = blob_get_begin(b);
   }
 }
 
@@ -338,7 +338,7 @@ LOCAL datum builtin_copy_to_memory(datum *args, context *ctxt) {
     return (datum){};
   }
   blob *b = datum_get_blob(d);
-  memcpy(dstptr, b->begin, b->length);
+  memcpy(dstptr, blob_get_begin(b), b->length);
   return datum_make_list_of();
 }
 
@@ -445,7 +445,7 @@ LOCAL datum builtin_call_ffi(datum *argz, context *ctxt) {
     return (datum){};
   }
   blob blb = blob_make(sz);
-  ffi_call(&cifd.cif, fn_ptr, blb.begin, cargs);
+  ffi_call(&cifd.cif, fn_ptr, blob_get_begin(&blb), cargs);
   return (datum_make_list_of(datum_make_blob(blb)));
 }
 
