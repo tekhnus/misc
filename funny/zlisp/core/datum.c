@@ -86,6 +86,9 @@ EXPORT int64_t *datum_get_integer_ptr(datum *d) {
 }
 
 EXPORT void *blob_get_begin(blob *b) {
+  if (blob_get_length(b) <= sizeof(b->_begin)) {
+    return &b->_begin;
+  }
   return b->_begin;
 }
 
@@ -115,6 +118,9 @@ EXPORT blob blob_make_copy(void *data, size_t length) {
 EXPORT blob blob_make(size_t length) {
   blob b;
   b._length = length;
+  if (length <= sizeof(b._begin)) {
+    return b;
+  }
   b._begin = malloc(length);
   return b;
 }
