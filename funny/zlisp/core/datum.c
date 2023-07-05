@@ -545,10 +545,10 @@ EXPORT datum datum_copy(datum *d) {
   res._type = d->_type;
   if (datum_is_integer(d)) {
     res._integer_value = d->_integer_value;
-    return *d;
+    return res;
   }
   res._blob_value = blob_copy(&d->_blob_value);
-  return *d;
+  return res;
 }
 
 EXPORT blob blob_copy(blob *b) {
