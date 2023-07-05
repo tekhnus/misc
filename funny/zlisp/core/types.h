@@ -28,7 +28,7 @@ struct datum {
   char *_symbol_value;
   char *_bytestring_value;
   blob _blob_value;
-  int64_t integer_value;
+  int64_t _integer_value;
 };
 
 struct result {

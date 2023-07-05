@@ -149,7 +149,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
 
       datum fn_index = datum_copy(prg.call_arg_index);
       if (prg.call_invalidate_function) {
-        list_at(&fn_index, 1)->integer_value -= 1;
+        *datum_get_integer_ptr(list_at(&fn_index, 1)) -= 1;
       }
       state_stack_set_many(r, fn_index, *argz, ctxt);
       if (ctxt->aborted) {
@@ -464,7 +464,7 @@ LOCAL datum state_stack_set_many(routine *r, datum idx, datum list,
     if (ctxt->aborted) {
       return (datum){};
     }
-    list_at(&idx, 1)->integer_value += 1;
+    *datum_get_integer_ptr(list_at(&idx, 1)) += 1;
   }
   return form;
 }
@@ -505,7 +505,7 @@ LOCAL ptrdiff_t *routine_offset(routine *r) {
   assert(array_length(f.state) == 1);
   datum *offset_datum = array_at(f.state, 0);
   assert(datum_is_integer(offset_datum));
-  return (ptrdiff_t *)&offset_datum->integer_value;
+  return (ptrdiff_t *)datum_get_integer_ptr(offset_datum);
 }
 
 LOCAL routine get_routine_from_datum(datum *e, context *ctxt) {
