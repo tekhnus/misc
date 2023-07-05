@@ -146,8 +146,8 @@ EXPORT datum datum_make_int(int64_t value) {
   datum e;
   e._type = DATUM_INTEGER;
   e._integer_value = value;
-  // e._blob_value = blob_make_int64_t(value);
   return e;
+  e._blob_value = blob_make_int64_t(value);
 }
 
 EXPORT char *datum_repr(datum *e) {
@@ -541,9 +541,13 @@ EXPORT datum datum_copy(datum *d) {
   if (datum_is_list(d)) {
     return list_copy(d, 0, list_length(d));
   }
-  if (datum_is_blob(d)) {
-    return datum_make_blob(blob_copy(datum_get_blob(d)));
+  datum res;
+  res._type = d->_type;
+  if (datum_is_integer(d)) {
+    res._integer_value = d->_integer_value;
+    return *d;
   }
+  res._blob_value = blob_copy(&d->_blob_value);
   return *d;
 }
 
