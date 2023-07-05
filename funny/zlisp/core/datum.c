@@ -39,9 +39,9 @@ EXPORT datum datum_make_symbol(char *name) {
   datum e;
   e._type = DATUM_SYMBOL;
   size_t length = strlen(name);
-  e.symbol_value = malloc((length + 1) * sizeof(char));
+  e._symbol_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
-    e.symbol_value[i] = name[i];
+    e._symbol_value[i] = name[i];
   }
   return e;
 }
@@ -72,6 +72,11 @@ EXPORT blob *datum_get_blob(datum *d) {
 EXPORT array *datum_get_array(datum *d) {
   assert(datum_is_list(d));
   return &d->_list_value;
+}
+
+EXPORT char *datum_get_symbol(datum *d) {
+  assert(datum_is_symbol(d));
+  return d->_symbol_value;
 }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
@@ -290,7 +295,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
     }
   } else if (pretty && datum_is_the_symbol(e, "empty-symbol")) {
   } else if (datum_is_symbol(e)) {
-    offset += fprintf(buf, "%s", e->symbol_value);
+    offset += fprintf(buf, "%s", e->_symbol_value);
   } else if (datum_is_bytestring(e)) {
     offset += fprintf_escaped(buf, e->bytestring_value);
   } else if (datum_is_blob(e)) {
@@ -308,7 +313,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
 
 EXPORT bool datum_eq(datum *x, datum *y) {
   if (datum_is_symbol(x) && datum_is_symbol(y)) {
-    if (!strcmp(x->symbol_value, y->symbol_value)) {
+    if (!strcmp(x->_symbol_value, y->_symbol_value)) {
       return true;
     }
     return false;
@@ -349,11 +354,11 @@ EXPORT bool datum_eq(datum *x, datum *y) {
 
 EXPORT bool datum_is_constant(datum *d) {
   return (datum_is_integer(d) || datum_is_bytestring(d) ||
-          (datum_is_symbol(d) && d->symbol_value[0] == ':'));
+          (datum_is_symbol(d) && d->_symbol_value[0] == ':'));
 }
 
 EXPORT bool datum_is_the_symbol(datum *d, char *val) {
-  return datum_is_symbol(d) && !strcmp(d->symbol_value, val);
+  return datum_is_symbol(d) && !strcmp(d->_symbol_value, val);
 }
 
 LOCAL array array_make(size_t length) {

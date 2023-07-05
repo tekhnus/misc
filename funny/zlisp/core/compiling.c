@@ -451,7 +451,7 @@ LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata,
   }
   datum polyindex = compdata_get_polyindex(compdata, val);
   if (datum_is_nil(&polyindex)) {
-    abortf(ctxt, "undefined variable: %s\n", val->symbol_value);
+    abortf(ctxt, "undefined variable: %s\n", datum_get_symbol(val));
     return (datum){};
   }
   compdata_put(compdata, datum_make_symbol(":anon"));

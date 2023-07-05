@@ -159,21 +159,21 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
   } else if (!datum_is_symbol(definition)) {
     abortf(ctxt, "type should be a symbol");
     return NULL;
-  } else if (!strcmp(definition->symbol_value, "sizet")) {
+  } else if (!strcmp(datum_get_symbol(definition), "sizet")) {
     *result = ffi_type_uint64; // danger!
-  } else if (!strcmp(definition->symbol_value, "pointer")) {
+  } else if (!strcmp(datum_get_symbol(definition), "pointer")) {
     *result = ffi_type_pointer;
-  } else if (!strcmp(definition->symbol_value, "uint8_t")) {
+  } else if (!strcmp(datum_get_symbol(definition), "uint8_t")) {
     *result = ffi_type_uint8;
-  } else if (!strcmp(definition->symbol_value, "int64_t")) {
+  } else if (!strcmp(datum_get_symbol(definition), "int64_t")) {
     *result = ffi_type_sint64;
-  } else if (!strcmp(definition->symbol_value, "char")) {
+  } else if (!strcmp(datum_get_symbol(definition), "char")) {
     *result = ffi_type_schar; // danger!
-  } else if (!strcmp(definition->symbol_value, "int")) {
+  } else if (!strcmp(datum_get_symbol(definition), "int")) {
     *result = ffi_type_sint;
-  } else if (!strcmp(definition->symbol_value, "int64_t")) {
+  } else if (!strcmp(datum_get_symbol(definition), "int64_t")) {
     *result = ffi_type_sint64;
-  } else if (!strcmp(definition->symbol_value, "context")) {
+  } else if (!strcmp(datum_get_symbol(definition), "context")) {
     *result = *ffi_type_init_struct(
         cifd,
         datum_make_list_of(datum_make_symbol("uint8_t"),
@@ -183,7 +183,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "array")) {
+  } else if (!strcmp(datum_get_symbol(definition), "array")) {
     *result =
         *ffi_type_init_struct(cifd,
                               datum_make_list_of(datum_make_symbol("pointer"),
@@ -192,7 +192,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "vec")) {
+  } else if (!strcmp(datum_get_symbol(definition), "vec")) {
     *result =
         *ffi_type_init_struct(cifd,
                               datum_make_list_of(datum_make_symbol("array"),
@@ -201,7 +201,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "blob")) {
+  } else if (!strcmp(datum_get_symbol(definition), "blob")) {
     *result =
         *ffi_type_init_struct(cifd,
                               datum_make_list_of(datum_make_symbol("pointer"),
@@ -210,7 +210,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "datum")) {
+  } else if (!strcmp(datum_get_symbol(definition), "datum")) {
     *result = *ffi_type_init_struct(
         cifd,
         datum_make_list_of(
@@ -221,13 +221,13 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "extension")) {
+  } else if (!strcmp(datum_get_symbol(definition), "extension")) {
     *result = *ffi_type_init_struct(
         cifd, datum_make_list_of(datum_make_symbol("pointer")), ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "lisp_extension")) {
+  } else if (!strcmp(datum_get_symbol(definition), "lisp_extension")) {
     *result = *ffi_type_init_struct(
         cifd,
         datum_make_list_of(datum_make_symbol("extension"),
@@ -238,7 +238,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(definition->symbol_value, "result")) {
+  } else if (!strcmp(datum_get_symbol(definition), "result")) {
     *result =
         *ffi_type_init_struct(cifd,
                               datum_make_list_of(datum_make_symbol("datum"),
@@ -386,7 +386,7 @@ LOCAL size_t get_sizeof(datum *rett, context *ctxt) {
     abortf(ctxt, "bad type: %s", datum_repr(rett));
     return 0;
   }
-  char *rettype = rett->symbol_value;
+  char *rettype = datum_get_symbol(rett);
   if (!strcmp(rettype, "sizet")) {
     return (sizeof(size_t));
   } else if (!strcmp(rettype, "pointer")) {

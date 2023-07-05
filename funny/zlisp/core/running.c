@@ -350,7 +350,7 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     abortf(ctxt, "datum_to_prog panic\n");
     return (prog){};
   }
-  char *opsym = list_at(d, 0)->symbol_value;
+  char *opsym = datum_get_symbol(list_at(d, 0));
   if (!strcmp(opsym, ":if")) {
     res.type = PROG_IF;
     res.if_index = list_at(d, 1);

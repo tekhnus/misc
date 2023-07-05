@@ -108,7 +108,7 @@ LOCAL void get_varname(char *res, datum *dep_and_sym) {
   char *dep = list_at(dep_and_sym, 0)->bytestring_value;
   char *sym;
   if (list_length(dep_and_sym) > 1) {
-    sym = list_at(dep_and_sym, 1)->symbol_value;
+    sym = datum_get_symbol(list_at(dep_and_sym, 1));
   } else {
     sym = "";
   }
