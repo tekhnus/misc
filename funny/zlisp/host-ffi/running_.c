@@ -72,7 +72,7 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   }
   // fprintf(stderr, "host ffi %s\n", datum_repr(name));
   datum res;
-  if (!strcmp(name->bytestring_value, "call-builtin")) {
+  if (!strcmp(datum_get_bytestring(name), "call-builtin")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
       abortf(ctxt, "call-builtin expected at least a single arg");
       return (datum){};
@@ -89,33 +89,33 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
       return (datum){};
     }
     return results;
-  } else if (!strcmp(name->bytestring_value, "deref")) {
+  } else if (!strcmp(datum_get_bytestring(name), "deref")) {
     res = datum_make_pointer(builtin_deref);
-  } else if (!strcmp(name->bytestring_value, "copy-to-memory")) {
+  } else if (!strcmp(datum_get_bytestring(name), "copy-to-memory")) {
     res = datum_make_pointer(builtin_copy_to_memory);
-  } else if (!strcmp(name->bytestring_value, "serialize")) {
+  } else if (!strcmp(datum_get_bytestring(name), "serialize")) {
     res = datum_make_pointer(builtin_serialize);
-  } else if (!strcmp(name->bytestring_value, "call-ffi")) {
+  } else if (!strcmp(datum_get_bytestring(name), "call-ffi")) {
     res = datum_make_pointer(builtin_call_ffi);
-  } else if (!strcmp(name->bytestring_value, "head")) {
+  } else if (!strcmp(datum_get_bytestring(name), "head")) {
     res = datum_make_pointer(builtin_head);
-  } else if (!strcmp(name->bytestring_value, "tail")) {
+  } else if (!strcmp(datum_get_bytestring(name), "tail")) {
     res = datum_make_pointer(builtin_tail);
-  } else if (!strcmp(name->bytestring_value, "cons")) {
+  } else if (!strcmp(datum_get_bytestring(name), "cons")) {
     res = datum_make_pointer(builtin_cons);
-  } else if (!strcmp(name->bytestring_value, "eq")) {
+  } else if (!strcmp(datum_get_bytestring(name), "eq")) {
     res = datum_make_pointer(builtin_eq);
-  } else if (!strcmp(name->bytestring_value, "len")) {
+  } else if (!strcmp(datum_get_bytestring(name), "len")) {
     res = datum_make_pointer(builtin_len);
-  } else if (!strcmp(name->bytestring_value, "null")) {
+  } else if (!strcmp(datum_get_bytestring(name), "null")) {
     res = datum_make_pointer(NULL);
-  } else if (!strcmp(name->bytestring_value, "malloc")) {
+  } else if (!strcmp(datum_get_bytestring(name), "malloc")) {
     res = datum_make_pointer(malloc);
-  } else if (!strcmp(name->bytestring_value, "dlopen")) {
+  } else if (!strcmp(datum_get_bytestring(name), "dlopen")) {
     res = datum_make_pointer(dlopen);
-  } else if (!strcmp(name->bytestring_value, "dlsym")) {
+  } else if (!strcmp(datum_get_bytestring(name), "dlsym")) {
     res = datum_make_pointer(dlsym);
-  } else if (!strcmp(name->bytestring_value, "RTLD_LAZY")) {
+  } else if (!strcmp(datum_get_bytestring(name), "RTLD_LAZY")) {
     res = datum_make_blob_int(RTLD_LAZY);
   } else {
     abortf(ctxt, "unknown host instruction");
@@ -351,7 +351,9 @@ LOCAL datum builtin_serialize(datum *args, context *ctxt) {
   }
   datum *d = list_at(form, 0);
   if (datum_is_bytestring(d)) {
-    blob b = blob_make_copy(d->bytestring_value, 1 + strlen(d->bytestring_value));
+    blob b = blob_make_copy(
+      datum_get_bytestring(d),
+      1 + strlen(datum_get_bytestring(d)));
     return datum_make_list_of(datum_make_blob(b));
   }
   if (datum_is_integer(d)) {

@@ -105,7 +105,7 @@ LOCAL void prog_build_deps(vec *sl, datum *deps,
 }
 
 LOCAL void get_varname(char *res, datum *dep_and_sym) {
-  char *dep = list_at(dep_and_sym, 0)->bytestring_value;
+  char *dep = datum_get_bytestring(list_at(dep_and_sym, 0));
   char *sym;
   if (list_length(dep_and_sym) > 1) {
     sym = datum_get_symbol(list_at(dep_and_sym, 1));
@@ -142,7 +142,7 @@ LOCAL void prog_build_dep(vec *sl, datum *dep_and_sym,
   if (already_built) {
     return;
   }
-  datum stts = module_bytecode(dep->bytestring_value, settings, ext, ctxt);
+  datum stts = module_bytecode(datum_get_bytestring(dep), settings, ext, ctxt);
   if (ctxt->aborted) {
     return;
   }

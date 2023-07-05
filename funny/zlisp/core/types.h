@@ -26,7 +26,7 @@ struct datum {
   datum_type _type;
   array _list_value;
   char *_symbol_value;
-  char *bytestring_value;
+  char *_bytestring_value;
   blob _blob_value;
   int64_t integer_value;
 };

@@ -50,9 +50,9 @@ EXPORT datum datum_make_bytestring(char *text) {
   datum e;
   e._type = DATUM_BYTESTRING;
   size_t length = strlen(text);
-  e.bytestring_value = malloc((length + 1) * sizeof(char));
+  e._bytestring_value = malloc((length + 1) * sizeof(char));
   for (size_t i = 0; i <= length; ++i) {
-    e.bytestring_value[i] = text[i];
+    e._bytestring_value[i] = text[i];
   }
   return e;
 }
@@ -77,6 +77,11 @@ EXPORT array *datum_get_array(datum *d) {
 EXPORT char *datum_get_symbol(datum *d) {
   assert(datum_is_symbol(d));
   return d->_symbol_value;
+}
+
+EXPORT char *datum_get_bytestring(datum *d) {
+  assert(datum_is_bytestring(d));
+  return d->_bytestring_value;
 }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
@@ -297,7 +302,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
   } else if (datum_is_symbol(e)) {
     offset += fprintf(buf, "%s", e->_symbol_value);
   } else if (datum_is_bytestring(e)) {
-    offset += fprintf_escaped(buf, e->bytestring_value);
+    offset += fprintf_escaped(buf, e->_bytestring_value);
   } else if (datum_is_blob(e)) {
     blob *blb = datum_get_blob(e);
     offset += fprintf(buf, "`");
@@ -325,7 +330,7 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     return false;
   }
   if (datum_is_bytestring(x) && datum_is_bytestring(y)) {
-    if (!strcmp(x->bytestring_value, y->bytestring_value)) {
+    if (!strcmp(x->_bytestring_value, y->_bytestring_value)) {
       return true;
     }
     return false;

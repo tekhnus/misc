@@ -68,8 +68,8 @@ datum builtin_concat_bytestrings(datum *args, context *ctxt) {
   }
   char buf[1024 * 16];
   buf[0] = '\0';
-  strcat(buf, x->bytestring_value);
-  strcat(buf, y->bytestring_value);
+  strcat(buf, datum_get_bytestring(x));
+  strcat(buf, datum_get_bytestring(y));
   return (datum_make_list_of(datum_make_bytestring(buf)));
 }
 

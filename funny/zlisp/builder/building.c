@@ -42,7 +42,7 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
     return (datum_make_nil());
   }
   if (!strcmp(module, "prelude")) {
-    module = settings->bytestring_value;
+    module = datum_get_bytestring(settings);
   }
   char fname[1024] = {'\0'};
   module_to_filename(fname, module, ctxt);
