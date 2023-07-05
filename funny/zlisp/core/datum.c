@@ -416,11 +416,11 @@ EXPORT vec vec_make_copies(size_t length, datum val) {
 }
 
 EXPORT datum *vec_append(vec *s, datum x) {
-  assert(s->_length <= s->_storage._length);
-  if (s->_length == s->_storage._length) {
-    size_t new_capacity = (s->_storage._length + 1) * 2;
+  assert(vec_length(s) <= array_length(&s->_storage));
+  if (vec_length(s) == array_length(&s->_storage)) {
+    size_t new_capacity = (array_length(&s->_storage) + 1) * 2;
     array new_storage = array_make(new_capacity);
-    for (size_t i = 0; i < s->_length; ++i) {
+    for (size_t i = 0; i < vec_length(s); ++i) {
       *array_at(&new_storage, i) = *array_at(&s->_storage, i);
     }
     s->_storage = new_storage;
@@ -440,7 +440,7 @@ EXPORT vec vec_make_of_impl(size_t count, datum *values) {
 }
 
 EXPORT datum *vec_at(vec *s, size_t index) {
-  if (index >= s->_length) {
+  if (index >= vec_length(s)) {
     fprintf(stderr, "prog slice index overflow\n");
     assert(false);
   }
@@ -450,7 +450,7 @@ EXPORT datum *vec_at(vec *s, size_t index) {
 EXPORT size_t vec_length(vec *s) { return s->_length; }
 
 LOCAL array vec_to_array(vec v) {
-  v._storage._length = v._length;
+  v._storage._length = vec_length(&v);
   return v._storage;
 }
 
@@ -486,7 +486,7 @@ EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
 EXPORT size_t array_length(array *arr) { return arr->_length; }
 
 EXPORT datum *array_at(array *arr, size_t i) {
-  assert(i < arr->_length);
+  assert(i < array_length(arr));
   return arr->_begin + i;
 }
 
@@ -557,8 +557,8 @@ EXPORT blob blob_copy(blob *b) {
 }
 
 EXPORT vec vec_copy(vec *src) {
-  vec dst = vec_make(src->_storage._length);
-  for (size_t i = 0; i < src->_length; ++i) {
+  vec dst = vec_make(vec_length(src));
+  for (size_t i = 0; i < vec_length(src); ++i) {
     vec_append(&dst, datum_copy(vec_at(src, i)));
   }
   return dst;
@@ -566,14 +566,14 @@ EXPORT vec vec_copy(vec *src) {
 
 LOCAL vec array_to_vec(array arr) {
   vec res;
-  res._length = arr._length;
+  res._length = array_length(&arr);
   res._storage = arr;
   return res;
 }
 
 LOCAL array array_copy(array *arr) {
-  array res = array_make(arr->_length);
-  for (size_t i = 0; i < arr->_length; ++i) {
+  array res = array_make(array_length(arr));
+  for (size_t i = 0; i < array_length(arr); ++i) {
     *array_at(&res, i) = datum_copy(array_at(arr, i));
   }
   return res;
