@@ -38,27 +38,27 @@ EXPORT bool datum_is_blob(datum *e) { return e->_type == DATUM_BLOB; }
 EXPORT datum datum_make_symbol(char *name) {
   datum e;
   e._type = DATUM_SYMBOL;
-  e._blob_value = blob_make_copy(name, strlen(name) + 1);
+  e._leaf_value = blob_make_copy(name, strlen(name) + 1);
   return e;
 }
 
 EXPORT datum datum_make_bytestring(char *text) {
   datum e;
   e._type = DATUM_BYTESTRING;
-  e._blob_value = blob_make_copy(text, strlen(text) + 1);
+  e._leaf_value = blob_make_copy(text, strlen(text) + 1);
   return e;
 }
 
 EXPORT datum datum_make_blob(blob b) {
   datum e;
   e._type = DATUM_BLOB;
-  e._blob_value = b;
+  e._leaf_value = b;
   return e;
 }
 
 EXPORT blob *datum_get_blob(datum *d) {
   assert(datum_is_blob(d));
-  return &d->_blob_value;
+  return &d->_leaf_value;
 }
 
 EXPORT array *datum_get_array(datum *d) {
@@ -68,12 +68,12 @@ EXPORT array *datum_get_array(datum *d) {
 
 EXPORT char *datum_get_symbol(datum *d) {
   assert(datum_is_symbol(d));
-  return d->_blob_value.begin;
+  return d->_leaf_value.begin;
 }
 
 EXPORT char *datum_get_bytestring(datum *d) {
   assert(datum_is_bytestring(d));
-  return d->_blob_value.begin;
+  return d->_leaf_value.begin;
 }
 
 EXPORT int64_t datum_get_integer(datum *d) {
@@ -82,7 +82,7 @@ EXPORT int64_t datum_get_integer(datum *d) {
 
 EXPORT int64_t *datum_get_integer_ptr(datum *d) {
   assert(datum_is_integer(d));
-  return blob_get_int64_t_pointer(&d->_blob_value);
+  return blob_get_int64_t_pointer(&d->_leaf_value);
 }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
@@ -145,7 +145,7 @@ EXPORT datum datum_make_int(int64_t value) {
   datum e;
   owns(e);
   e._type = DATUM_INTEGER;
-  e._blob_value = blob_make_int64_t(value);
+  e._leaf_value = blob_make_int64_t(value);
   return move(e);
 }
 
@@ -549,7 +549,7 @@ EXPORT datum datum_copy(datum *d) {
   datum res;
   owns(res);
   res._type = d->_type;
-  res._blob_value = blob_copy(&d->_blob_value);
+  res._leaf_value = blob_copy(&d->_leaf_value);
   return res;
 }
 

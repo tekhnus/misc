@@ -215,7 +215,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
         cifd,
         datum_make_list_of(
             datum_make_symbol("uint8_t"), datum_make_symbol("array"),
-            datum_make_symbol("blob"), datum_make_symbol("int64_t"), ),
+            datum_make_symbol("blob") ),
         ctxt);
     if (ctxt->aborted) {
       return NULL;

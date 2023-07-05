@@ -26,8 +26,7 @@ struct datum {
   void *owner;
   datum_type _type;
   array _list_value;
-  blob _blob_value;
-  int64_t _integer_value;
+  blob _leaf_value;
 };
 
 struct result {
