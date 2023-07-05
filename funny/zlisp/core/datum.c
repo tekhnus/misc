@@ -68,12 +68,12 @@ EXPORT array *datum_get_array(datum *d) {
 
 EXPORT char *datum_get_symbol(datum *d) {
   assert(datum_is_symbol(d));
-  return d->_leaf_value._begin;
+  return blob_get_begin(&d->_leaf_value);
 }
 
 EXPORT char *datum_get_bytestring(datum *d) {
   assert(datum_is_bytestring(d));
-  return d->_leaf_value._begin;
+  return blob_get_begin(&d->_leaf_value);
 }
 
 EXPORT int64_t datum_get_integer(datum *d) {
@@ -108,7 +108,7 @@ EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
 
 EXPORT blob blob_make_copy(void *data, size_t length) {
   blob b = blob_make(length);
-  memcpy(b._begin, data, length);
+  memcpy(blob_get_begin(&b), data, length);
   return b;
 }
 
@@ -426,8 +426,9 @@ EXPORT datum *vec_append(vec *s, datum x) {
     s->_storage = new_storage;
   }
   size_t res = s->_length++;
-  (s->_storage._begin)[res] = (x);
-  return s->_storage._begin + res;
+  datum *ptr = array_at(&s->_storage, res);
+  *ptr = x;
+  return ptr;
 }
 
 EXPORT vec vec_make_of_impl(size_t count, datum *values) {
@@ -443,7 +444,7 @@ EXPORT datum *vec_at(vec *s, size_t index) {
     fprintf(stderr, "prog slice index overflow\n");
     assert(false);
   }
-  return s->_storage._begin + index;
+  return array_at(&s->_storage, index);
 }
 
 EXPORT size_t vec_length(vec *s) { return s->_length; }
