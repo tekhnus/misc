@@ -100,8 +100,9 @@ EXPORT datum *result_get_value(result *r, context *ctxt) {
 }
 
 LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
+  ptrdiff_t *ro = routine_offset(r);
   for (;;) {
-    prog prg = datum_to_prog(vec_at(sl, *routine_offset(r)), ctxt);
+    prog prg = datum_to_prog(vec_at(sl, *ro), ctxt);
     if (ctxt->aborted) {
       print_frame(sl, r);
       return (result){};
@@ -157,7 +158,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         print_frame(sl, r);
         return (result){};
       }
-      *routine_offset(r) += 1;
+      *ro += 1;
       goto body;
     }
     if (prg.type == PROG_YIELD) {
@@ -173,19 +174,19 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         print_frame(sl, r);
         return (result){};
       }
-      *routine_offset(r) += 1;
+      *ro += 1;
       goto body;
     }
   body:
     if (true) {
     }
     for (;;) {
-      if (*routine_offset(r) >= (ptrdiff_t)vec_length(sl)) {
+      if (*ro >= (ptrdiff_t)vec_length(sl)) {
         abortf(ctxt, "jumped out of bounds\n");
         print_frame(sl, r);
         return (result){};
       }
-      prg = datum_to_prog(vec_at(sl, *routine_offset(r)), ctxt);
+      prg = datum_to_prog(vec_at(sl, *ro), ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
         return (result){};
@@ -214,7 +215,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         break;
       }
       if (prg.type == PROG_PUT_PROG) {
-        size_t put_prog_value = *routine_offset(r) + 1;
+        size_t put_prog_value = *ro + 1;
         datum prog_ptr =
             routine_make(put_prog_value, prg.put_prog_capture ? r : NULL);
         state_stack_set(r, prg.put_prog_target, prog_ptr, ctxt);
@@ -222,11 +223,11 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           print_frame(sl, r);
           return (result){};
         }
-        *routine_offset(r) += prg.put_prog_next;
+        *ro += prg.put_prog_next;
         continue;
       }
       if (prg.type == PROG_JMP) {
-        *routine_offset(r) += prg.jmp_next;
+        *ro += prg.jmp_next;
         continue;
       }
       if (prg.type == PROG_IF) {
@@ -236,9 +237,9 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           return (result){};
         }
         if (!datum_is_nil(&v)) {
-          *routine_offset(r) += 1;
+          *ro += 1;
         } else {
-          *routine_offset(r) += prg.if_false;
+          *ro += prg.if_false;
         }
         continue;
       }
@@ -249,7 +250,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           print_frame(sl, r);
           return (result){};
         }
-        *routine_offset(r) += 1;
+        *ro += 1;
         continue;
       }
       if (prg.type == PROG_COPY) {
@@ -263,7 +264,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           print_frame(sl, r);
           return (result){};
         }
-        *routine_offset(r) += 1;
+        *ro += 1;
         continue;
       }
       if (prg.type == PROG_MOVE) {
@@ -277,7 +278,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           print_frame(sl, r);
           return (result){};
         }
-        *routine_offset(r) += 1;
+        *ro += 1;
         continue;
       }
       if (prg.type == PROG_COLLECT) {
@@ -293,7 +294,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           print_frame(sl, r);
           return (result){};
         }
-        *routine_offset(r) += 1;
+        *ro += 1;
         continue;
       }
       abortf(ctxt, "unhandled instruction type\n");
