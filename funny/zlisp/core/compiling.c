@@ -213,7 +213,7 @@ LOCAL void prog_append_expression(vec *sl, datum *source, int *i,
         break;
       }
       if (datum_is_integer(content_val)) {
-        recieve_count = content_val->integer_value;
+        recieve_count = datum_get_integer(content_val);
         ++(*i);
       } else if (datum_is_list(content_val) && list_length(content_val) == 2 &&
                  datum_is_the_symbol(list_at(content_val, 0), "meta")) {
@@ -341,7 +341,7 @@ LOCAL void prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       break;
     }
     if (datum_is_integer(content)) {
-      ret_count = content->integer_value;
+      ret_count = datum_get_integer(content);
       ++index;
     } else if (datum_is_the_symbol(content, "mut")) {
       mut = true;

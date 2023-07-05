@@ -84,6 +84,11 @@ EXPORT char *datum_get_bytestring(datum *d) {
   return d->_bytestring_value;
 }
 
+EXPORT int datum_get_integer(datum *d) {
+  assert(datum_is_integer(d));
+  return d->integer_value;
+}
+
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
   blob *b = datum_get_blob(d);
   if (b->length != sizeof(void *)) {

@@ -354,10 +354,10 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
   if (!strcmp(opsym, ":if")) {
     res.type = PROG_IF;
     res.if_index = list_at(d, 1);
-    res.if_false = (list_at(d, 2)->integer_value);
+    res.if_false = (datum_get_integer(list_at(d, 2)));
   } else if (!strcmp(opsym, ":jmp")) {
     res.type = PROG_JMP;
-    res.jmp_next = (list_at(d, 1)->integer_value);
+    res.jmp_next = (datum_get_integer(list_at(d, 1)));
   } else if (!strcmp(opsym, ":put-const")) {
     res.type = PROG_PUT_CONST;
     res.put_const_target = list_at(d, 1);
@@ -372,28 +372,28 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.move_offset = list_at(d, 2);
   } else if (!strcmp(opsym, ":call")) {
     res.type = PROG_CALL;
-    res.call_capture_count = list_at(d, 1)->integer_value;
+    res.call_capture_count = datum_get_integer(list_at(d, 1));
     res.call_indices = list_at(d, 2);
-    res.call_invalidate_function = list_at(d, 3)->integer_value;
+    res.call_invalidate_function = datum_get_integer(list_at(d, 3));
     res.call_type = list_at(d, 4);
-    res.call_arg_count = list_at(d, 5)->integer_value;
-    res.call_return_count = list_at(d, 6)->integer_value;
+    res.call_arg_count = datum_get_integer(list_at(d, 5));
+    res.call_return_count = datum_get_integer(list_at(d, 6));
     res.call_arg_index = list_at(d, 7);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
-    res.collect_count = list_at(d, 1)->integer_value;
+    res.collect_count = datum_get_integer(list_at(d, 1));
     res.collect_top_index = list_at(d, 2);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_target = list_at(d, 1);
-    res.put_prog_capture = list_at(d, 2)->integer_value;
-    res.put_prog_next = (list_at(d, 3)->integer_value);
+    res.put_prog_capture = datum_get_integer(list_at(d, 2));
+    res.put_prog_next = (datum_get_integer(list_at(d, 3)));
   } else if (!strcmp(opsym, ":yield")) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);
     res.yield_val_index = list_at(d, 2);
-    res.yield_count = list_at(d, 3)->integer_value;
-    res.yield_recieve_count = list_at(d, 4)->integer_value;
+    res.yield_count = datum_get_integer(list_at(d, 3));
+    res.yield_recieve_count = datum_get_integer(list_at(d, 4));
     res.yield_meta = list_at(d, 5);
   } else {
     abortf(ctxt, "unknown instruction: %s\n", datum_repr(d));
@@ -427,20 +427,20 @@ LOCAL datum *state_stack_at(routine *r, datum *offset, context *ctxt) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
-  if (frame->integer_value >= (int)routine_get_count(r)) {
+  if (datum_get_integer(frame) >= (int)routine_get_count(r)) {
     abortf(ctxt, "wrong frame index");
     return NULL;
   }
-  struct frame f = r->frames[frame->integer_value];
+  struct frame f = r->frames[datum_get_integer(frame)];
   assert(list_length(offset) == 2);
   datum *idx = list_at(offset, 1);
   assert(datum_is_integer(idx));
   array *vars = f.state;
-  if ((size_t)idx->integer_value >= array_length(vars)) {
+  if ((size_t)datum_get_integer(idx) >= array_length(vars)) {
     abortf(ctxt, "wrong variable index");
     return NULL;
   }
-  return array_at(vars, idx->integer_value);
+  return array_at(vars, datum_get_integer(idx));
 }
 
 LOCAL datum state_stack_set(routine *r, datum *target, datum value,
@@ -534,7 +534,7 @@ LOCAL struct frame get_frame_from_datum(datum *d) {
   assert(datum_is_integer(list_at(d, 2)));
   struct frame v;
   v.state = datum_get_array(list_at(d, 0));
-  v.type_id = list_at(d, 1)->integer_value;
-  v.parent_type_id = list_at(d, 2)->integer_value;
+  v.type_id = datum_get_integer(list_at(d, 1));
+  v.parent_type_id = datum_get_integer(list_at(d, 2));
   return v;
 }

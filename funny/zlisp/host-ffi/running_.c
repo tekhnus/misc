@@ -142,7 +142,7 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
   if (datum_is_list(definition) && list_length(definition) == 2) {
     datum *sz = list_at(definition, 0);
     assert(datum_is_integer(sz));
-    size_t siz = sz->integer_value;
+    size_t siz = datum_get_integer(sz);
     datum *elem = list_at(definition, 1);
     ffi_type *elem_t = ffi_type_init(cifd, elem, ctxt);
     if (ctxt->aborted) {
@@ -357,7 +357,7 @@ LOCAL datum builtin_serialize(datum *args, context *ctxt) {
     return datum_make_list_of(datum_make_blob(b));
   }
   if (datum_is_integer(d)) {
-    return datum_make_list_of(datum_make_blob_int64_t(d->integer_value));
+    return datum_make_list_of(datum_make_blob_int64_t(datum_get_integer(d)));
   }
   abortf(ctxt, "serialization not supported for %s", datum_repr(d));
   return (datum){};

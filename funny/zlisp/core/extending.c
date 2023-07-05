@@ -52,7 +52,7 @@ LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
   assert(datum_is_list(&arityc) && list_length(&arityc) == 1);
   datum *arityd = list_at(&arityc, 0);
   assert(datum_is_integer(arityd));
-  int arity = arityd->integer_value;
+  int arity = datum_get_integer(arityd);
   *i += arity;
   datum invokation_statement_ = list_copy(source, *i - arity, *i);
   vec invokation_statement = vec_make(0);

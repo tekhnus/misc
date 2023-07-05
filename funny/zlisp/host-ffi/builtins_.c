@@ -81,7 +81,7 @@ datum builtin_add(datum *args, context *ctxt) {
     return (datum){};
   }
   return (
-      datum_make_list_of(datum_make_int(x->integer_value + y->integer_value)));
+      datum_make_list_of(datum_make_int(datum_get_integer(x) + datum_get_integer(y))));
 }
 
 datum builtin_cons(datum *args, context *ctxt) {
