@@ -23,6 +23,7 @@ struct array {
 typedef struct array array;
 
 struct datum {
+  void *owner;
   datum_type _type;
   array _list_value;
   blob _blob_value;
@@ -69,3 +70,9 @@ struct lisp_extension {
 #define vec_make_of(...)                                                       \
   vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
                    (datum[]){__VA_ARGS__})
+
+#define owns(var) ((var).owner == NULL, (var).owner = &(var))
+
+#define move(var) (var.owner == &var, var.owner = NULL, var)
+
+#define borrow(var) (var.owner == &var, &var)
