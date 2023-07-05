@@ -82,7 +82,6 @@ EXPORT int64_t datum_get_integer(datum *d) {
 
 EXPORT int64_t *datum_get_integer_ptr(datum *d) {
   assert(datum_is_integer(d));
-  return &d->_integer_value;
   return blob_get_int64_t_pointer(&d->_blob_value);
 }
 
@@ -146,9 +145,8 @@ EXPORT datum datum_make_int(int64_t value) {
   datum e;
   owns(e);
   e._type = DATUM_INTEGER;
-  e._integer_value = value;
-  return move(e);
   e._blob_value = blob_make_int64_t(value);
+  return move(e);
 }
 
 EXPORT char *datum_repr(datum *e) {
@@ -551,10 +549,6 @@ EXPORT datum datum_copy(datum *d) {
   datum res;
   owns(res);
   res._type = d->_type;
-  if (datum_is_integer(d)) {
-    res._integer_value = d->_integer_value;
-    return res;
-  }
   res._blob_value = blob_copy(&d->_blob_value);
   return res;
 }
