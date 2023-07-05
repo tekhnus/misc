@@ -10,7 +10,7 @@ typedef struct datum datum;
 
 struct blob {
   void *_begin;
-  size_t length;
+  size_t _length;
 };
 
 typedef struct blob blob;

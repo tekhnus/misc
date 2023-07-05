@@ -338,7 +338,7 @@ LOCAL datum builtin_copy_to_memory(datum *args, context *ctxt) {
     return (datum){};
   }
   blob *b = datum_get_blob(d);
-  memcpy(dstptr, blob_get_begin(b), b->length);
+  memcpy(dstptr, blob_get_begin(b), blob_get_length(b));
   return datum_make_list_of();
 }
 

@@ -89,13 +89,17 @@ EXPORT void *blob_get_begin(blob *b) {
   return b->_begin;
 }
 
+EXPORT size_t blob_get_length(blob *b) {
+  return b->_length;
+}
+
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
   if(!datum_is_blob(d)) {
     abortf(ctxt, "expected a pointer, got %s", datum_repr(d));
     return NULL;
   }
   blob *b = datum_get_blob(d);
-  if (b->length != sizeof(void *)) {
+  if (b->_length != sizeof(void *)) {
     abortf(ctxt, "expected a pointer");
     return NULL;
   }
@@ -110,7 +114,7 @@ EXPORT blob blob_make_copy(void *data, size_t length) {
 
 EXPORT blob blob_make(size_t length) {
   blob b;
-  b.length = length;
+  b._length = length;
   b._begin = malloc(length);
   return b;
 }
@@ -121,7 +125,7 @@ LOCAL blob blob_make_int64_t(int64_t x) {
 }
 
 LOCAL int64_t *blob_get_int64_t_pointer(blob *b) {
-  assert(b->length == sizeof(int64_t));
+  assert(b->_length == sizeof(int64_t));
   return (int64_t *)b->_begin;
 }
 
@@ -325,7 +329,7 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
   } else if (datum_is_blob(e)) {
     blob *blb = datum_get_blob(e);
     offset += fprintf(buf, "`");
-    for (size_t i = 0; i < blb->length; ++i) {
+    for (size_t i = 0; i < blb->_length; ++i) {
       offset += fprintf(buf, "%.2hhx", ((char *)(blb->_begin))[i]);
     }
     offset += fprintf(buf, "`");
@@ -368,10 +372,10 @@ EXPORT bool datum_eq(datum *x, datum *y) {
   if (datum_is_blob(x) && datum_is_blob(y)) {
     blob *xb = datum_get_blob(x);
     blob *yb = datum_get_blob(y);
-    if (xb->length != yb->length) {
+    if (xb->_length != yb->_length) {
       return false;
     }
-    return !memcmp(xb->_begin, yb->_begin, xb->length);
+    return !memcmp(xb->_begin, yb->_begin, xb->_length);
   }
   return false;
 }
@@ -548,7 +552,7 @@ EXPORT datum datum_copy(datum *d) {
 }
 
 EXPORT blob blob_copy(blob *b) {
-  return blob_make_copy(b->_begin, b->length);
+  return blob_make_copy(b->_begin, b->_length);
 }
 
 EXPORT vec vec_copy(vec *src) {
