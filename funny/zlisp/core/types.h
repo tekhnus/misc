@@ -69,11 +69,3 @@ struct lisp_extension {
 #define vec_make_of(...)                                                       \
   vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
                    (datum[]){__VA_ARGS__})
-
-#define soft_assert(cond) (true || cond ? fprintf(stderr, "") : fprintf(stderr, "warning: %s %d\n", __FILE__, __LINE__))
-
-#define own(var) (soft_assert((var).moved), (var).moved = 0)
-
-#define move(var) (soft_assert(!(var).moved), (var).moved = 1, (var))
-
-#define borrow(var) (soft_assert(!(var).moved), &(var))

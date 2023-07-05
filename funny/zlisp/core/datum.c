@@ -143,10 +143,9 @@ EXPORT datum datum_make_blob_size_t(size_t x) {
 
 EXPORT datum datum_make_int(int64_t value) {
   datum e = {};
-  own(e);
   e._type = DATUM_INTEGER;
   e._leaf_value = blob_make_int64_t(value);
-  return move(e);
+  return (e);
 }
 
 EXPORT char *datum_repr(datum *e) {
@@ -397,21 +396,18 @@ EXPORT vec vec_make(size_t capacity) {
 }
 
 EXPORT datum list_make_copies(size_t length, datum val) {
-  own(val);
-  return datum_make_list_vec(vec_make_copies(length, move(val)));
+  return datum_make_list_vec(vec_make_copies(length, (val)));
 }
 
 EXPORT vec vec_make_copies(size_t length, datum val) {
-  own(val);
   vec res = vec_make(length);
   for (size_t i = 0; i < length; ++i) {
-    vec_append(&res, datum_copy(borrow(val)));
+    vec_append(&res, datum_copy(&(val)));
   }
   return res;
 }
 
 EXPORT datum *vec_append(vec *s, datum x) {
-  own(x);
   assert(s->length <= s->storage.length);
   if (s->length == s->storage.length) {
     size_t new_capacity = (s->storage.length + 1) * 2;
@@ -422,15 +418,14 @@ EXPORT datum *vec_append(vec *s, datum x) {
     s->storage = new_storage;
   }
   size_t res = s->length++;
-  (s->storage.begin)[res] = move(x);
-  own((s->storage.begin)[res]);
+  (s->storage.begin)[res] = (x);
   return s->storage.begin + res;
 }
 
 EXPORT vec vec_make_of_impl(size_t count, datum *values) {
   vec e = vec_make(count);
   for (size_t i = 0; i < count; ++i) {
-    vec_append(&e, move(values[i]));
+    vec_append(&e, (values[i]));
   }
   return e;
 }
@@ -456,10 +451,9 @@ EXPORT datum datum_make_list_vec(vec v) {
 
 EXPORT datum datum_make_list(array v) {
   datum res = {};
-  own(res);
   res._type = DATUM_LIST;
   res._list_value = v;
-  return move(res);
+  return (res);
 }
 
 EXPORT datum datum_make_nil() {
@@ -475,8 +469,7 @@ EXPORT bool datum_is_nil(datum *e) {
 EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
   array vals = array_make(count);
   for (size_t i = 0; i < count; ++i) {
-    *array_at(&vals, i) = move(values[i]);
-    own(*array_at(&vals, i));
+    *array_at(&vals, i) = (values[i]);
   }
   return datum_make_list(vals);
 }
@@ -500,11 +493,10 @@ EXPORT datum *list_at(datum *list, unsigned index) {
 
 EXPORT datum list_copy(datum *list, int from, int to) {
   datum res = list_make_copies(to - from, datum_make_nil());
-  own(res);
   for (int i = 0; from + i < to; ++i) {
-    *list_at(borrow(res), i) = datum_copy(list_at(list, from + i));
+    *list_at(&(res), i) = datum_copy(list_at(list, from + i));
   }
-  return move(res);
+  return (res);
 }
 
 EXPORT datum *list_get_last(datum *list) {
@@ -517,11 +509,10 @@ EXPORT datum list_get_tail(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);
   datum e = list_make_copies(list_length(list) - 1, datum_make_nil());
-  own(e);
   for (int i = 1; i < list_length(list); ++i) {
-    *list_at(borrow(e), i - 1) = datum_copy(list_at(list, i));
+    *list_at(&(e), i - 1) = datum_copy(list_at(list, i));
   }
-  return move(e);
+  return (e);
 }
 
 EXPORT void vec_extend(vec *list, datum *another) {
@@ -547,10 +538,9 @@ EXPORT datum datum_copy(datum *d) {
     return list_copy(d, 0, list_length(d));
   }
   datum res = {};
-  own(res);
   res._type = d->_type;
   res._leaf_value = blob_copy(&d->_leaf_value);
-  return move(res);
+  return (res);
 }
 
 EXPORT blob blob_copy(blob *b) {
