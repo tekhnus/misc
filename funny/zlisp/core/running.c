@@ -47,13 +47,10 @@ struct prog {
       struct datum *call_indices;
       size_t call_capture_count;
       struct datum *call_type;
-      size_t call_arg_count;
-      size_t call_return_count;
       struct datum *call_arg_indices;
       struct datum *call_result_indices;
     };
     struct {
-      size_t collect_count;
       struct datum *collect_indices;
       struct datum *collect_target;
     };
@@ -65,7 +62,6 @@ struct prog {
     struct {
       struct datum *yield_type;
       struct datum *yield_val_index;
-      size_t yield_count;
       struct datum *yield_recieve_indices;
       struct datum *yield_meta;
     };
@@ -143,7 +139,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         return err;
       }
       datum *argz = &err.value;
-      if (prg.call_return_count != (long unsigned int)list_length(argz)) {
+      size_t ret_cnt = list_length(prg.call_result_indices);
+      if (ret_cnt != (long unsigned int)list_length(argz)) {
         abortf(ctxt, "call count and yield count are not equal\n");
         print_frame(sl, r);
         return (result){};
@@ -190,8 +187,9 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
+        size_t cnt = list_length(prg.yield_val_index);
         datum res =
-            state_stack_invalidate_many_2(r, prg.yield_count, first_index, ctxt);
+            state_stack_invalidate_many_2(r, cnt, first_index, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -203,8 +201,9 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
       if (prg.type == PROG_CALL) {
         datum arg_indices = datum_copy(prg.call_arg_indices);
+        size_t argcnt = list_length(&arg_indices);
         args =
-            state_stack_invalidate_many_2(r, prg.call_arg_count, arg_indices, ctxt);
+            state_stack_invalidate_many_2(r, argcnt, arg_indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -280,7 +279,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
       if (prg.type == PROG_COLLECT) {
         datum indices = datum_copy(prg.collect_indices);
-        datum form = state_stack_invalidate_many_2(r, prg.collect_count,
+        size_t cnt = list_length(&indices);
+        datum form = state_stack_invalidate_many_2(r, cnt,
                                                  indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
@@ -374,13 +374,10 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.call_capture_count = datum_get_integer(list_at(d, 1));
     res.call_indices = list_at(d, 2);
     res.call_type = list_at(d, 3);
-    res.call_arg_count = datum_get_integer(list_at(d, 4));
-    res.call_return_count = datum_get_integer(list_at(d, 5));
     res.call_arg_indices = list_at(d, 6);
     res.call_result_indices = list_at(d, 7);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
-    res.collect_count = datum_get_integer(list_at(d, 1));
     res.collect_target = list_at(d, 2);
     res.collect_indices = list_at(d, 3);
   } else if (!strcmp(opsym, ":put-prog")) {
@@ -392,9 +389,8 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.type = PROG_YIELD;
     res.yield_type = list_at(d, 1);
     res.yield_val_index = list_at(d, 2);
-    res.yield_count = datum_get_integer(list_at(d, 3));
-    res.yield_recieve_indices = (list_at(d, 4));
-    res.yield_meta = list_at(d, 5);
+    res.yield_recieve_indices = (list_at(d, 3));
+    res.yield_meta = list_at(d, 4);
   } else {
     abortf(ctxt, "unknown instruction: %s\n", datum_repr(d));
     return (prog){};

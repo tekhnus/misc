@@ -487,7 +487,7 @@ LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_indices,
   }
   datum recieve_indices = datum_make_list(res);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
-                                    yield_indices, datum_make_int(count),
+                                    yield_indices,
                                     recieve_indices, meta));
   return recieve_indices;
 }
