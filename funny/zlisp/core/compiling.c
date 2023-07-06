@@ -51,7 +51,7 @@ EXPORT datum prog_compile(vec *sl, datum *source, datum *compdata,
                         datum_make_list_of(datum_make_symbol("debugger"),
                                            datum_make_symbol("statement"),
                                            list_copy(source, i_before, i)),
-                        compdata_get_next_polyindex(compdata), 0, 0,
+                        datum_make_nil(), 0, 0,
                         datum_make_nil(), compdata);
     }
   }
@@ -181,12 +181,12 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
       prog_append_yield(sl, target,
-                        compdata_get_next_polyindex(&routine_compdata), 0, 0,
+                        datum_make_nil(), 0, 0,
                         met, &routine_compdata);
     }
     datum *args = list_at(source, (*i)++);
     prog_append_yield(sl, datum_make_symbol("plain"),
-                      compdata_get_next_polyindex(&routine_compdata), 0,
+                      datum_make_nil(), 0,
                       list_length(args), datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args, ctxt);
     if (ctxt->aborted) {
@@ -239,9 +239,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     }
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
-    datum idx = compdata_get_next_polyindex(compdata);
     datum yielded = prog_append_expression(sl, source, i, compdata, ext, ctxt);
-
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -251,7 +249,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
       abortf(ctxt, "yield internal error: %s", datum_repr(source));
       return (datum){};
     }
-    return prog_append_yield(sl, target, idx, argcnt, recieve_count, meta, compdata);
+    return prog_append_yield(sl, target, yielded, argcnt, recieve_count, meta, compdata);
   }
   if (datum_is_the_symbol(head, "flat")) {
     datum *arg = list_at(source, (*i)++);
@@ -267,8 +265,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     int j = 0;
     vec indices = vec_make(0);
     while (j < list_length(vals)) {
-      datum idx = prog_append_expression(sl, vals, &j, compdata, ext, ctxt);
-      vec_append(&indices, idx);
+      datum idxs = prog_append_expression(sl, vals, &j, compdata, ext, ctxt);
+      vec_extend(&indices, &idxs);
 
       if (ctxt->aborted) {
         return (datum){};
@@ -476,7 +474,7 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
   compdata_del(compdata);
 }
 
-LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_val_index,
+LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_indices,
                              size_t count, size_t recieve_count, datum meta,
                              datum *compdata) {
   for (size_t i = 0; i < count; ++i) {
@@ -489,7 +487,7 @@ LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_val_index,
   }
   datum recieve_indices = datum_make_list(res);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
-                                    yield_val_index, datum_make_int(count),
+                                    yield_indices, datum_make_int(count),
                                     recieve_indices, meta));
   return recieve_indices;
 }
@@ -589,14 +587,6 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 LOCAL void compdata_start_new_section(datum *compdata) {
   datum nil = datum_make_nil();
   list_append_slow(compdata, nil);
-}
-
-LOCAL datum compdata_get_next_polyindex(datum *compdata) {
-  size_t frames = list_length(compdata);
-  size_t indices = list_length(list_get_last(compdata));
-  assert(frames > 0);
-  return datum_make_list_of(datum_make_int(frames - 1),
-                            datum_make_int(indices));
 }
 
 LOCAL size_t compdata_get_length(datum *compdata) {

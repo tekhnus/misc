@@ -191,7 +191,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
         datum res =
-            state_stack_invalidate_many(r, prg.yield_count, first_index, ctxt);
+            state_stack_invalidate_many_2(r, prg.yield_count, first_index, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -454,22 +454,6 @@ LOCAL datum state_stack_set(routine *r, datum *target, datum value,
   return res;
 }
 
-LOCAL datum state_stack_set_many(routine *r, datum idx, datum list,
-                                 context *ctxt) {
-  datum form =
-      datum_make_list_vec(vec_make_copies(list_length(&list), datum_make_nil()));
-  assert(datum_is_list(&list));
-  for (int i = 0; i < list_length(&list); ++i) {
-    *list_at(&form, i) = state_stack_set(r, &idx, *list_at(&list, i), ctxt);
-    if (ctxt->aborted) {
-      return (datum){};
-    }
-    int64_t prev_idx = datum_get_integer(list_at(&idx, 1));
-    *list_at(&idx, 1) = datum_make_int(prev_idx + 1);
-  }
-  return form;
-}
-
 LOCAL datum state_stack_set_many_2(routine *r, datum indices, datum list,
                                  context *ctxt) {
   datum form =
@@ -488,14 +472,6 @@ LOCAL datum state_stack_set_many_2(routine *r, datum indices, datum list,
 
 LOCAL datum state_stack_invalidate(routine *r, datum polyindex, context *ctxt) {
   return state_stack_set(r, &polyindex, datum_make_symbol(":invalid"), ctxt);
-}
-
-LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
-                                        datum top_polyindex, context *ctxt) {
-  return state_stack_set_many(
-      r, top_polyindex,
-      datum_make_list_vec(vec_make_copies(count, datum_make_symbol(":invalid"))),
-      ctxt);
 }
 
 LOCAL datum state_stack_invalidate_many_2(routine *r, size_t count,
