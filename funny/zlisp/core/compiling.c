@@ -183,8 +183,6 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     datum pi = prog_append_put_prog(sl, 2, compdata); // filled below.
     datum routine_compdata = datum_copy(compdata);
     compdata_start_new_section(&routine_compdata);
-
-    size_t prog_off = prog_get_next_index(sl);
     if (datum_is_the_symbol(head, "magically_called_fn")) {
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
@@ -196,14 +194,11 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     datum argindices = prog_append_yield(sl, datum_make_symbol("plain"),
                       datum_make_nil(),
                       list_length(args), datum_make_nil(), &routine_compdata);
-
-    assert(list_length(&argindices) == list_length(args));
     compdata_give_names(&routine_compdata, &argindices, args, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
     prog_append_expression(sl, source, i, &routine_compdata, ext, ctxt);
-
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -212,7 +207,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     prog_append_yield(sl, datum_make_symbol("panic"),
                       datum_make_list_of(polyi), 0,
                       datum_make_nil(), &routine_compdata);
-    assert(put_prog_off + 1 == prog_off);
+
     *vec_at(sl, put_prog_off) =
         prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
     return datum_make_list_of(pi);
