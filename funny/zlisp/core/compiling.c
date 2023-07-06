@@ -70,12 +70,13 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   }
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
-    prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum conditions = prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    assert(list_length(&conditions) == 1);
+    datum *condition = list_at(&conditions, 0);
 
     if (ctxt->aborted) {
       return (datum){};
     }
-    datum idx = compdata_get_top_polyindex(compdata);
     size_t if_instruction = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     datum false_compdata = datum_copy(compdata);
@@ -85,7 +86,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     }
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
-        prog_get_if(prog_get_next_index(sl) - if_instruction, idx);
+        prog_get_if(prog_get_next_index(sl) - if_instruction, *condition);
     datum res2 = prog_append_expression(sl, source, i, &false_compdata, ext, ctxt);
 
     if (ctxt->aborted) {
@@ -105,12 +106,13 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   if (datum_is_the_symbol(head, "while")) {
     size_t pre_condition_check = prog_get_next_index(sl);
     datum pre_condition_check_compdata = datum_copy(compdata);
-    prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum conditions = prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    assert(list_length(&conditions) == 1);
+    datum *condition = list_at(&conditions, 0);
 
     if (ctxt->aborted) {
       return (datum){};
     }
-    datum idx = compdata_get_top_polyindex(compdata);
     size_t condition_check = prog_append_something(sl); // filled below.
     compdata_del(compdata);
     prog_append_expression(sl, source, i, compdata, ext, ctxt);
@@ -122,7 +124,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = prog_get_next_index(sl);
-    *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check, idx);
+    *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check, *condition);
     // FIXME!!!
     return datum_make_nil();
   }
@@ -149,7 +151,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
-    prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum rhs_elements = prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return (datum){};
@@ -160,7 +162,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    move_values_to_variables(sl, &names, compdata, ctxt);
+    move_values_to_variables(sl, &names, &rhs_elements, compdata, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -386,13 +388,13 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       }
       vec_append(&indices, idx);
     } else {
-      prog_append_expression(sl, fns, &fn_index, compdata, ext, ctxt);
+      datum xx = prog_append_expression(sl, fns, &fn_index, compdata, ext, ctxt);
+      assert(list_length(&xx) == 1);
 
       if (ctxt->aborted) {
         return (datum){};
       }
-      datum idx = compdata_get_top_polyindex(compdata);
-      vec_append(&indices, idx);
+      vec_append(&indices, *list_at(&xx, 0));
     }
   }
   datum top_arg_poly = compdata_get_next_polyindex(compdata);
@@ -545,9 +547,14 @@ EXPORT datum compdata_make() {
 }
 
 LOCAL datum compdata_put(datum *compdata, datum var) {
-  datum *last_frame = list_get_last(compdata);
+  size_t frames = list_length(compdata);
+  assert(frames > 0);
+  datum *last_frame = list_at(compdata, frames - 1);
   list_append_slow(last_frame, var);
-  return compdata_get_top_polyindex(compdata);
+  size_t indices = list_length(last_frame);
+  assert(indices > 0);
+  return datum_make_list_of(datum_make_int(frames - 1),
+                            datum_make_int(indices - 1));
 }
 
 LOCAL void compdata_del(datum *compdata) {
@@ -571,14 +578,6 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 LOCAL void compdata_start_new_section(datum *compdata) {
   datum nil = datum_make_nil();
   list_append_slow(compdata, nil);
-}
-
-LOCAL datum compdata_get_top_polyindex(datum *compdata) {
-  size_t frames = list_length(compdata);
-  size_t indices = list_length(list_get_last(compdata));
-  assert(frames > 0 && indices > 0);
-  return datum_make_list_of(datum_make_int(frames - 1),
-                            datum_make_int(indices - 1));
 }
 
 LOCAL datum compdata_get_next_polyindex(datum *compdata) {
@@ -611,8 +610,9 @@ LOCAL void compdata_give_names(datum *compdata, datum *var, context *ctxt) {
   }
 }
 
-LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata,
+LOCAL void move_values_to_variables(vec *sl, datum *var, datum *rhs_elements, datum *compdata,
                                     context *ctxt) {
+  assert(list_length(var) == list_length(rhs_elements));
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
     datum target = compdata_get_polyindex(compdata, list_at(var, idx));
@@ -621,8 +621,8 @@ LOCAL void move_values_to_variables(vec *sl, datum *var, datum *compdata,
              datum_repr(list_at(var, idx)));
       return;
     }
-    datum source = compdata_get_top_polyindex(compdata);
-    prog_append_move(sl, &target, &source, compdata);
+    datum *source = list_at(rhs_elements, i);
+    prog_append_move(sl, &target, source, compdata);
   }
 }
 
