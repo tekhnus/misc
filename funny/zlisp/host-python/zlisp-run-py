@@ -147,7 +147,7 @@ def main():
             pdata[-1].varz[frame].pop()
             ip += 1
         elif op == sexpdata.Symbol(":call"):
-            capture_cnt, indices, pop_one, target, arg_cnt, ret_cnt, top_arg_index, result_idxs = args
+            capture_cnt, indices, target, arg_cnt, ret_cnt, top_arg_index, result_idxs = args
             if target != sexpdata.Symbol("plain"):
                 raise RuntimeError("only plain targets are currently supported")
             args = list(reversed([pop_stack() for _ in range(arg_cnt)]))
@@ -219,14 +219,13 @@ def main():
                 op, args = ins[0], ins[1:]
                 if op != sexpdata.Symbol(":call"):
                     raise RuntimeError ("expected a call")
-                capture_cnt, indices, pop_one, _, arg_cnt, ret_cnt, top_arg_index, result_idxs = args
+                capture_cnt, indices, _, arg_cnt, ret_cnt, top_arg_index, result_idxs = args
 
                 # update the routine
                 frame, indx = indices[-1]
                 pdata[-1].varz[frame][indx] = cont
-                if pop_one:
-                    pop_stack()
-                pdata[-1].varz[-1].extend(reversed(rvalues))
+                for idx, rval in zip(result_idxs, reversed(rvalues)):
+                    set_stack(idx, rval)
 
                 ip += 1
             elif (

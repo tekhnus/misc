@@ -46,7 +46,6 @@ struct prog {
     struct {
       struct datum *call_indices;
       size_t call_capture_count;
-      bool call_invalidate_function;
       struct datum *call_type;
       size_t call_arg_count;
       size_t call_return_count;
@@ -151,9 +150,6 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
 
       datum result_indices = datum_copy(prg.call_result_indices);
-      if (prg.call_invalidate_function) {
-        // FIXME!!!
-      }
       state_stack_set_many_2(r, result_indices, *argz, ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
@@ -377,12 +373,11 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.type = PROG_CALL;
     res.call_capture_count = datum_get_integer(list_at(d, 1));
     res.call_indices = list_at(d, 2);
-    res.call_invalidate_function = datum_get_integer(list_at(d, 3));
-    res.call_type = list_at(d, 4);
-    res.call_arg_count = datum_get_integer(list_at(d, 5));
-    res.call_return_count = datum_get_integer(list_at(d, 6));
-    res.call_arg_indices = list_at(d, 7);
-    res.call_result_indices = list_at(d, 8);
+    res.call_type = list_at(d, 3);
+    res.call_arg_count = datum_get_integer(list_at(d, 4));
+    res.call_return_count = datum_get_integer(list_at(d, 5));
+    res.call_arg_indices = list_at(d, 6);
+    res.call_result_indices = list_at(d, 7);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = datum_get_integer(list_at(d, 1));

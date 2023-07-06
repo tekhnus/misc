@@ -441,7 +441,7 @@ LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
   datum result_indices = datum_make_list(res);
   vec_append(sl, datum_make_list_of(
                      datum_make_symbol(":call"), datum_make_int(capture_size),
-                     indices, datum_make_int(pop_one), type,
+                     indices, type,
                      datum_make_int(arg_count), datum_make_int(return_count),
                      arg_indices, result_indices));
   return result_indices;
