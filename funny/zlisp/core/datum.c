@@ -395,7 +395,7 @@ EXPORT bool datum_is_the_symbol(datum *d, char *val) {
   return datum_is_symbol(d) && !strcmp(datum_get_symbol(d), val);
 }
 
-LOCAL array array_make(size_t length) {
+EXPORT array array_make(size_t length) {
   array res;
   res._begin = calloc(length, sizeof(datum));
   res._length = length;
