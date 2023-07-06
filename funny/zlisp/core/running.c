@@ -378,8 +378,8 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.call_result_indices = list_at(d, 5);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
-    res.collect_target = list_at(d, 2);
-    res.collect_indices = list_at(d, 3);
+    res.collect_target = list_at(d, 1);
+    res.collect_indices = list_at(d, 2);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_target = list_at(d, 1);

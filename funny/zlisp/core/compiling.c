@@ -510,8 +510,9 @@ LOCAL datum prog_append_collect(vec *sl, size_t count, datum indices,
     compdata_del(compdata);
   }
   datum res = compdata_put(compdata, datum_make_symbol(":anon"));
+  assert(count == (size_t)list_length(&indices));
   vec_append(sl, datum_make_list_of(datum_make_symbol(":collect"),
-                                    datum_make_int(count), res, indices));
+                                    res, indices));
   return res;
 }
 

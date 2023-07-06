@@ -186,7 +186,8 @@ def main():
                 )
             ip += 1
         elif op == sexpdata.Symbol(":collect"):
-            cnt, indices, target = args
+            target, indices = args
+            cnt = len(indices)
             form = []
             for _ in range(cnt):
                 val = pop_stack()
