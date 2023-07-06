@@ -290,16 +290,17 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     int before = compdata_get_length(compdata);
     datum *vals = head;
     int j = 0;
-    datum idx = compdata_get_next_polyindex(compdata);
+    vec indices = vec_make(0);
     while (j < list_length(vals)) {
-      prog_append_expression(sl, vals, &j, compdata, ext, ctxt);
+      datum comp = prog_append_expression(sl, vals, &j, compdata, ext, ctxt);
+      vec_extend(&indices, &comp);
 
       if (ctxt->aborted) {
         return (datum){};
       }
     }
     int after = compdata_get_length(compdata);
-    datum index = prog_append_collect(sl, after - before, idx, compdata);
+    datum index = prog_append_collect(sl, after - before, datum_make_list_vec(indices), compdata);
     return datum_make_list_of(index);
   }
   if (datum_is_constant(head)) {
@@ -497,14 +498,15 @@ LOCAL datum prog_append_put_const(vec *sl, datum *val, datum *compdata) {
   return target_polyindex;
 }
 
-LOCAL datum prog_append_collect(vec *sl, size_t count, datum top_idx,
+LOCAL datum prog_append_collect(vec *sl, size_t count, datum indices,
                                datum *compdata) {
-  vec_append(sl, datum_make_list_of(datum_make_symbol(":collect"),
-                                    datum_make_int(count), top_idx));
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
-  return compdata_put(compdata, datum_make_symbol(":anon"));
+  datum res = compdata_put(compdata, datum_make_symbol(":anon"));
+  vec_append(sl, datum_make_list_of(datum_make_symbol(":collect"),
+                                    datum_make_int(count), res, indices));
+  return res;
 }
 
 EXPORT datum *prog_define_routine(vec *sl, datum name, datum *compdata,

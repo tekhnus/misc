@@ -54,7 +54,8 @@ struct prog {
     };
     struct {
       size_t collect_count;
-      struct datum *collect_top_index;
+      struct datum *collect_indices;
+      struct datum *collect_target;
     };
     struct {
       datum *put_prog_target;
@@ -282,14 +283,14 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         continue;
       }
       if (prg.type == PROG_COLLECT) {
-        datum first_index = datum_copy(prg.collect_top_index);
-        datum form = state_stack_invalidate_many(r, prg.collect_count,
-                                                 first_index, ctxt);
+        datum indices = datum_copy(prg.collect_indices);
+        datum form = state_stack_invalidate_many_2(r, prg.collect_count,
+                                                 indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
         }
-        state_stack_set(r, prg.collect_top_index, form, ctxt);
+        state_stack_set(r, prg.collect_target, form, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -384,7 +385,8 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = datum_get_integer(list_at(d, 1));
-    res.collect_top_index = list_at(d, 2);
+    res.collect_target = list_at(d, 2);
+    res.collect_indices = list_at(d, 3);
   } else if (!strcmp(opsym, ":put-prog")) {
     res.type = PROG_PUT_PROG;
     res.put_prog_target = list_at(d, 1);
@@ -472,6 +474,22 @@ LOCAL datum state_stack_set_many(routine *r, datum idx, datum list,
   return form;
 }
 
+LOCAL datum state_stack_set_many_2(routine *r, datum indices, datum list,
+                                 context *ctxt) {
+  datum form =
+      datum_make_list_vec(vec_make_copies(list_length(&list), datum_make_nil()));
+  assert(datum_is_list(&list));
+  assert(list_length(&list) == list_length(&indices));
+  for (int i = 0; i < list_length(&list); ++i) {
+    datum *idx = list_at(&indices, i);
+    *list_at(&form, i) = state_stack_set(r, idx, *list_at(&list, i), ctxt);
+    if (ctxt->aborted) {
+      return (datum){};
+    }
+  }
+  return form;
+}
+
 LOCAL datum state_stack_invalidate(routine *r, datum polyindex, context *ctxt) {
   return state_stack_set(r, &polyindex, datum_make_symbol(":invalid"), ctxt);
 }
@@ -480,6 +498,14 @@ LOCAL datum state_stack_invalidate_many(routine *r, size_t count,
                                         datum top_polyindex, context *ctxt) {
   return state_stack_set_many(
       r, top_polyindex,
+      datum_make_list_vec(vec_make_copies(count, datum_make_symbol(":invalid"))),
+      ctxt);
+}
+
+LOCAL datum state_stack_invalidate_many_2(routine *r, size_t count,
+                                        datum indices, context *ctxt) {
+  return state_stack_set_many_2(
+      r, indices,
       datum_make_list_vec(vec_make_copies(count, datum_make_symbol(":invalid"))),
       ctxt);
 }
