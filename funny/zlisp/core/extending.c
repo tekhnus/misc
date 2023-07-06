@@ -17,37 +17,37 @@ EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
+LOCAL datum lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
                                datum *compdata, context *ctxt) {
   extension nu = null_extension_make();
   int i_val = *i;
   null_extension_call(&nu, sl, source, i, compdata, ctxt);
 
   if (ctxt->aborted) {
-    return;
+    return (datum){};
   }
   if (i_val != *i) {
-    return;
+    return (datum){};
   }
 
   lisp_extension *self = (lisp_extension *)self_;
   datum *op = list_at(source, *i);
   if (!datum_is_symbol(op)) {
-    return;
+    return (datum){};
   }
   char nm[128] = {0};
   snprintf(nm, 128, ".%s", datum_get_symbol(op));
   datum name = datum_make_symbol(nm);
   datum pi = compdata_get_polyindex(&self->compdata, &name);
   if (datum_is_nil(&pi)) {
-    return;
+    return (datum){};
   }
   char aritynm[128] = {0};
   snprintf(aritynm, 128, ".%s.arity", datum_get_symbol(op));
   datum arity_statement = datum_make_symbol(aritynm);
   datum arityc = lisp_extension_run(&arity_statement, self, ctxt);
   if (ctxt->aborted) {
-    return;
+    return (datum){};
   }
   assert(datum_is_list(&arityc) && list_length(&arityc) == 1);
   datum *arityd = list_at(&arityc, 0);
@@ -66,15 +66,15 @@ LOCAL void lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
       datum_make_symbol("call"), datum_make_list_vec(invokation_statement));
   datum res = lisp_extension_run(&call_statement, self, ctxt);
   if (ctxt->aborted) {
-    return;
+    return (datum){};
   }
   assert(datum_is_list(&res));
   assert(list_length(&res) == 1);
-  prog_compile(sl, list_at(&res, 0), compdata, self_, ctxt);
+  datum polys = prog_compile(sl, list_at(&res, 0), compdata, self_, ctxt);
   if (ctxt->aborted) {
-    return;
+    return (datum){};
   }
-  return;
+  return polys;
 }
 
 LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
@@ -101,7 +101,7 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   return res.value;
 }
 
-LOCAL void null_extension_call(extension *self, vec *sl, datum *source, int *i,
+LOCAL datum null_extension_call(extension *self, vec *sl, datum *source, int *i,
                                datum *compdata, context *ctxt) {
   datum *op = list_at(source, *i);
   datum stmt;
@@ -111,9 +111,10 @@ LOCAL void null_extension_call(extension *self, vec *sl, datum *source, int *i,
     prog_append_usages(sl, &stmt, compdata, self, ctxt);
 
     if (ctxt->aborted) {
-      return;
+      return (datum){};
     }
-    return;
+    // FIXME!!!
+    return (datum){};
   }
   if (datum_is_the_symbol(op, "export")) {
     *i += 2;
@@ -121,11 +122,12 @@ LOCAL void null_extension_call(extension *self, vec *sl, datum *source, int *i,
     prog_append_exports(sl, &stmt, compdata, self, ctxt);
 
     if (ctxt->aborted) {
-      return;
+      return (datum){};
     }
-    return;
+    // FIXME!!!
+    return (datum){};
   }
-  return;
+  return (datum){};
 }
 
 LOCAL void prog_append_usages(vec *sl, datum *spec, datum *compdata,

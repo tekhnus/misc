@@ -28,21 +28,23 @@ EXPORT void abortf(context *ctxt, char *format, ...) {
   ctxt->aborted = true;
 }
 
-EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
+EXPORT datum prog_compile(vec *sl, datum *source, datum *compdata,
                          extension *ext, context *ctxt) {
   if (!datum_is_list(source)) {
     abortf(ctxt, "source should be a list, got %s", datum_repr(source));
-    return;
+    return (datum){};
   }
+  vec res = vec_make(0);
   int i = 0;
   for (;;) {
     if (i >= list_length(source)) {
       break;
     }
     int i_before = i;
-    prog_append_expression(sl, source, &i, compdata, ext, ctxt);
+    datum exp = prog_append_expression(sl, source, &i, compdata, ext, ctxt);
+    vec_extend(&res, &exp);
     if (ctxt->aborted) {
-      return;
+      return (datum){};
     }
     if (i < list_length(source)) {
       prog_append_yield(sl,
@@ -53,20 +55,19 @@ EXPORT void prog_compile(vec *sl, datum *source, datum *compdata,
                         datum_make_nil(), compdata);
     }
   }
-  return;
+  return datum_make_list_vec(res);
 }
 
 LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
                                   datum *compdata, extension *ext,
                                   context *ctxt) {
   int i_val = *i;
-  ext->call(ext, sl, source, i, compdata, ctxt);
+  datum res = ext->call(ext, sl, source, i, compdata, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
   if (i_val != *i) {
-    // FIXME!!!
-    return datum_make_nil();
+    return res;
   }
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
@@ -239,13 +240,17 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     size_t argcnt;
     size_t before = compdata_get_length(compdata);
     datum idx = compdata_get_next_polyindex(compdata);
-    prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum yielded = prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return (datum){};
     }
     size_t after = compdata_get_length(compdata);
     argcnt = after - before;
+    if(list_length(&yielded) != (int)argcnt) {
+      abortf(ctxt, "yield internal error: %s", datum_repr(source));
+      return (datum){};
+    }
     return prog_append_yield(sl, target, idx, argcnt, recieve_count, meta, compdata);
   }
   if (datum_is_the_symbol(head, "flat")) {
