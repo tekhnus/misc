@@ -143,7 +143,11 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    compdata_give_names(compdata, &names, ctxt);
+    if(list_length(&res) != list_length(&names)) {
+      abortf(ctxt, "wrong assignment count: %s", datum_repr(source));
+      return (datum){};
+    }
+    compdata_give_names(compdata, &res, &names, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -186,10 +190,12 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
                         met, &routine_compdata);
     }
     datum *args = list_at(source, (*i)++);
-    prog_append_yield(sl, datum_make_symbol("plain"),
+    datum argindices = prog_append_yield(sl, datum_make_symbol("plain"),
                       datum_make_nil(),
                       list_length(args), datum_make_nil(), &routine_compdata);
-    compdata_give_names(&routine_compdata, args, ctxt);
+
+    assert(list_length(&argindices) == list_length(args));
+    compdata_give_names(&routine_compdata, &argindices, args, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -511,7 +517,8 @@ EXPORT datum *prog_define_routine(vec *sl, datum name, datum *compdata,
   datum ins = prog_get_put_prog(&target, 100500, 0);
   vec_append(sl, ins);
   datum names = datum_make_list_of(name);
-  compdata_give_names(compdata, &names, ctxt);
+  datum targets = datum_make_list_of(target);
+  compdata_give_names(compdata, &targets, &names, ctxt);
   if (ctxt->aborted) {
     return NULL;
   }
@@ -589,7 +596,8 @@ LOCAL size_t compdata_get_frame_count(datum *compdata) {
   return list_length(compdata);
 }
 
-LOCAL void compdata_give_names(datum *compdata, datum *var, context *ctxt) {
+LOCAL void compdata_give_names(datum *compdata, datum *indices, datum *var, context *ctxt) {
+  assert(list_length(indices) == list_length(var));
   for (int i = 0; i < list_length(var); ++i) {
     compdata_del(compdata);
   }

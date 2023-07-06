@@ -175,7 +175,7 @@ switch-clause := fn {a0}
  sig := (../head a1)
  if sig
  {}
- {{} := (../panic "empty signature")}
+ {{} := (../panic @0 "empty signature")}
  cmds := (../tail a1)
  checker := {'call
   {'/std/decons-pat
