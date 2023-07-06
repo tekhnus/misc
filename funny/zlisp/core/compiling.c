@@ -596,18 +596,21 @@ LOCAL size_t compdata_get_frame_count(datum *compdata) {
   return list_length(compdata);
 }
 
+LOCAL datum *compdata_at(datum *compdata, datum *idx) {
+  assert(list_length(idx) == 2);
+  int64_t i = datum_get_integer(list_at(idx, 0));
+  int64_t j = datum_get_integer(list_at(idx, 1));
+  datum *frame = list_at(compdata, i);
+  return list_at(frame, j);
+}
+
 LOCAL void compdata_give_names(datum *compdata, datum *indices, datum *var, context *ctxt) {
+  if (ctxt == ctxt + 1) {}
   assert(list_length(indices) == list_length(var));
-  for (int i = 0; i < list_length(var); ++i) {
-    compdata_del(compdata);
-  }
-  for (int i = 0; i < list_length(var); ++i) {
-    datum target = compdata_get_polyindex(compdata, list_at(var, i));
-    if (!datum_is_nil(&target)) {
-      abortf(ctxt, "erorr: redefinition of %s\n", datum_repr(list_at(var, i)));
-      return;
-    }
-    compdata_put(compdata, datum_copy(list_at(var, i)));
+  for (int i = 0; i < list_length(indices); ++i) {
+    datum *vari = list_at(var, i);
+    datum *srci = list_at(indices, i);
+    *compdata_at(compdata, srci) = datum_copy(vari);
   }
 }
 
