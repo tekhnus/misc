@@ -93,8 +93,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     if (ctxt->aborted) {
       return (datum){};
     }
-    if (!datum_eq(compdata, &false_compdata)) {
-      abortf(ctxt, "different if branches");
+    compdata_merge(compdata, &false_compdata, ctxt);
+    if (ctxt->aborted) {
       return (datum){};
     }
     if (!datum_eq(&res, &res2)) {
@@ -121,7 +121,10 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     if (ctxt->aborted) {
       return (datum){};
     }
-    assert(datum_eq(&pre_condition_check_compdata, compdata));
+    compdata_merge(compdata, &pre_condition_check_compdata, ctxt);
+    if (ctxt->aborted) {
+      return (datum){};
+    }
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = prog_get_next_index(sl);
@@ -600,7 +603,7 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 }
 
 LOCAL void compdata_start_new_section(datum *compdata) {
-  datum nil = list_make_copies(1000, datum_make_symbol(":invalid"));
+  datum nil = datum_make_nil();
   list_append_slow(compdata, nil);
 }
 
@@ -639,6 +642,29 @@ LOCAL void move_values_to_variables(vec *sl, datum *var, datum *rhs_elements, da
     }
     datum *source = list_at(rhs_elements, i);
     prog_append_move(sl, &target, source, compdata);
+  }
+}
+
+LOCAL void compdata_merge(datum *aa, datum *bb, context *ctxt) {
+  datum *a = list_get_last(aa);
+  datum *b = list_get_last(bb);
+  if (list_length(a) > list_length(b)) {
+    compdata_merge(bb, aa, ctxt);
+    return;
+  }
+  assert(list_length(a) <= list_length(b));
+  for (int i = 0; i < list_length(a); ++i) {
+    if (!datum_eq(list_at(a, i), list_at(b, i))) {
+      abortf(ctxt, "can't merge compdata, non-equal prefixes: %s %s", datum_repr(a), datum_repr(b));
+      return;
+    }
+  }
+  for (int i = list_length(a); i < list_length(b); ++i) {
+    if (!datum_is_the_symbol(list_at(b, i), ":invalid")) {
+      abortf(ctxt, "can't merge compdata, extra valid items");
+      return;
+    }
+    list_append_slow(a, datum_make_symbol(":invalid"));
   }
 }
 
