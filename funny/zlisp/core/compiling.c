@@ -207,7 +207,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     datum errm = datum_make_bytestring("routine guard reached");
     datum polyi = prog_append_put_const(sl, &errm, &routine_compdata);
     prog_append_yield(sl, datum_make_symbol("panic"),
-                      polyi, 0,
+                      datum_make_list_of(polyi), 0,
                       datum_make_nil(), &routine_compdata);
     assert(put_prog_off + 1 == prog_off);
     *vec_at(sl, put_prog_off) =
@@ -557,16 +557,39 @@ LOCAL datum compdata_put(datum *compdata, datum var) {
   size_t frames = list_length(compdata);
   assert(frames > 0);
   datum *last_frame = list_at(compdata, frames - 1);
-  list_append_slow(last_frame, var);
   size_t indices = list_length(last_frame);
-  assert(indices > 0);
+  for (size_t i = 0; i < indices && false; ++i) {
+    datum *item = list_at(last_frame, i);
+    if (datum_is_the_symbol(item, ":invalid")) {
+      *item = var;
+    }
+    return datum_make_list_of(datum_make_int(frames - 1),
+                              datum_make_int(i));
+  }
+  list_append_slow(last_frame, var);
   return datum_make_list_of(datum_make_int(frames - 1),
-                            datum_make_int(indices - 1));
+                            datum_make_int(indices));
 }
 
 LOCAL void compdata_invalidate(datum *compdata, datum *indices) {
+  assert(datum_is_list(indices));
+  for (int i = 0; i < list_length(indices); ++i) {
+    datum *idx = list_at(indices, i);
+    assert(datum_is_list(idx));
+    datum *item = compdata_at(compdata, idx);
+    if (!datum_is_the_symbol(item, ":anon")) {
+      // fprintf(stderr, "invalidating %s\n", datum_repr(item));
+      // assert(false);
+    }
+    // *compdata_at(compdata, idx) = datum_make_symbol(":invalid");
+  }
   datum *last_frame = list_get_last(compdata);
   for (int i = 0; i < list_length(indices); ++i) {
+    datum *item = list_get_last(last_frame);
+        if (!datum_is_the_symbol(item, ":anon")) {
+      // fprintf(stderr, "invalidating %s\n", datum_repr(item));
+      // assert(false);
+    }
     *last_frame = list_pop_slow(last_frame);
   }
 }
