@@ -51,7 +51,7 @@ EXPORT datum prog_compile(vec *sl, datum *source, datum *compdata,
                         datum_make_list_of(datum_make_symbol("debugger"),
                                            datum_make_symbol("statement"),
                                            list_copy(source, i_before, i)),
-                        datum_make_nil(), 0, 0,
+                        datum_make_nil(), 0,
                         datum_make_nil(), compdata);
     }
   }
@@ -181,12 +181,12 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
       prog_append_yield(sl, target,
-                        datum_make_nil(), 0, 0,
+                        datum_make_nil(), 0,
                         met, &routine_compdata);
     }
     datum *args = list_at(source, (*i)++);
     prog_append_yield(sl, datum_make_symbol("plain"),
-                      datum_make_nil(), 0,
+                      datum_make_nil(),
                       list_length(args), datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, args, ctxt);
     if (ctxt->aborted) {
@@ -200,7 +200,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     datum errm = datum_make_bytestring("routine guard reached");
     datum polyi = prog_append_put_const(sl, &errm, &routine_compdata);
     prog_append_yield(sl, datum_make_symbol("panic"),
-                      polyi, 1, 0,
+                      polyi, 0,
                       datum_make_nil(), &routine_compdata);
     assert(put_prog_off + 1 == prog_off);
     datum pi = compdata_put(compdata, datum_make_symbol(":anon"));
@@ -237,19 +237,11 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
         return (datum){};
       }
     }
-    size_t argcnt;
-    size_t before = compdata_get_length(compdata);
     datum yielded = prog_append_expression(sl, source, i, compdata, ext, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
-    size_t after = compdata_get_length(compdata);
-    argcnt = after - before;
-    if(list_length(&yielded) != (int)argcnt) {
-      abortf(ctxt, "yield internal error: %s", datum_repr(source));
-      return (datum){};
-    }
-    return prog_append_yield(sl, target, yielded, argcnt, recieve_count, meta, compdata);
+    return prog_append_yield(sl, target, yielded, recieve_count, meta, compdata);
   }
   if (datum_is_the_symbol(head, "flat")) {
     datum *arg = list_at(source, (*i)++);
@@ -290,7 +282,6 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     return prog_append_apply(sl, exp, compdata, ext, ctxt);
   }
   if (datum_is_list(head)) {
-    int before = compdata_get_length(compdata);
     datum *vals = head;
     int j = 0;
     vec indices = vec_make(0);
@@ -302,8 +293,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
         return (datum){};
       }
     }
-    int after = compdata_get_length(compdata);
-    datum index = prog_append_collect(sl, after - before, datum_make_list_vec(indices), compdata);
+    datum index = prog_append_collect(sl, datum_make_list_vec(indices), compdata);
     return datum_make_list_of(index);
   }
   if (datum_is_constant(head)) {
@@ -401,7 +391,6 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       vec_append(&indices, *list_at(&xx, 0));
     }
   }
-  int before = compdata_get_length(compdata);
   vec arg_indices = vec_make(0);
   while (index < list_length(s_expr)) {
     datum arg_idx = prog_append_expression(sl, s_expr, &index, compdata, ext, ctxt);
@@ -411,11 +400,8 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       return (datum){};
     }
   }
-  int after = compdata_get_length(compdata);
-  size_t arg_count = after - before;
-  assert(vec_length(&arg_indices) == arg_count);
   return prog_append_call(sl, capture_size, datum_make_list_vec(indices), !mut, target,
-                   arg_count, ret_count, datum_make_list_vec(arg_indices), compdata);
+                   ret_count, datum_make_list_vec(arg_indices), compdata);
 }
 
 EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
@@ -426,9 +412,10 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
 }
 
 LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
-                            bool pop_one, datum type, int arg_count,
+                            bool pop_one, datum type,
                             int return_count, datum arg_indices,
                             datum *compdata) {
+  int arg_count = list_length(&arg_indices);
   assert(datum_is_list(&indices));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);
@@ -474,8 +461,9 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
 }
 
 LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_indices,
-                             size_t count, size_t recieve_count, datum meta,
+                             size_t recieve_count, datum meta,
                              datum *compdata) {
+  size_t count = list_length(&yield_indices);
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
@@ -504,8 +492,9 @@ LOCAL datum prog_append_put_const(vec *sl, datum *val, datum *compdata) {
   return target_polyindex;
 }
 
-LOCAL datum prog_append_collect(vec *sl, size_t count, datum indices,
+LOCAL datum prog_append_collect(vec *sl, datum indices,
                                datum *compdata) {
+  size_t count = list_length(&indices);
   for (size_t i = 0; i < count; ++i) {
     compdata_del(compdata);
   }
@@ -587,10 +576,6 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 LOCAL void compdata_start_new_section(datum *compdata) {
   datum nil = datum_make_nil();
   list_append_slow(compdata, nil);
-}
-
-LOCAL size_t compdata_get_length(datum *compdata) {
-  return list_length(list_get_last(compdata));
 }
 
 LOCAL size_t compdata_get_frame_count(datum *compdata) {
