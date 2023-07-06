@@ -79,7 +79,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
       return (datum){};
     }
     size_t if_instruction = prog_append_something(sl); // filled below.
-    compdata_del(compdata);
+    compdata_invalidate(compdata, &conditions);
     datum false_compdata = datum_copy(compdata);
     datum res = prog_append_expression(sl, source, i, compdata, ext, ctxt);
     if (ctxt->aborted) {
@@ -115,7 +115,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
       return (datum){};
     }
     size_t condition_check = prog_append_something(sl); // filled below.
-    compdata_del(compdata);
+    compdata_invalidate(compdata, &conditions);
     prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
@@ -421,13 +421,12 @@ LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
                             bool pop_one, datum type,
                             int return_count, datum arg_indices,
                             datum *compdata) {
-  int arg_count = list_length(&arg_indices);
   assert(datum_is_list(&indices));
-  for (int i = 0; i < arg_count; ++i) {
-    compdata_del(compdata);
-  }
+  assert(!datum_is_nil(&indices));
+  compdata_invalidate(compdata, &arg_indices);
   if (pop_one) {
-    compdata_del(compdata);
+    datum last_index = datum_make_list_of(datum_copy(list_get_last(&indices)));
+    compdata_invalidate(compdata, &last_index);
   }
   array res = array_make(return_count);
   for (int i = 0; i < return_count; ++i) {
@@ -463,16 +462,14 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
                             datum *compdata) {
   vec_append(sl, datum_make_list_of(datum_make_symbol(":move"),
                                     datum_copy(target), datum_copy(source)));
-  compdata_del(compdata);
+  datum src = datum_make_list_of(datum_copy(source));
+  compdata_invalidate(compdata, &src);
 }
 
 LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_indices,
                              size_t recieve_count, datum meta,
                              datum *compdata) {
-  size_t count = list_length(&yield_indices);
-  for (size_t i = 0; i < count; ++i) {
-    compdata_del(compdata);
-  }
+  compdata_invalidate(compdata, &yield_indices);
   array res = array_make(recieve_count);
   for (size_t i = 0; i < recieve_count; ++i) {
     datum comp = compdata_put(compdata, datum_make_symbol(":anon"));
@@ -501,9 +498,7 @@ LOCAL datum prog_append_put_const(vec *sl, datum *val, datum *compdata) {
 LOCAL datum prog_append_collect(vec *sl, datum indices,
                                datum *compdata) {
   size_t count = list_length(&indices);
-  for (size_t i = 0; i < count; ++i) {
-    compdata_del(compdata);
-  }
+  compdata_invalidate(compdata, &indices);
   datum res = compdata_put(compdata, datum_make_symbol(":anon"));
   assert(count == (size_t)list_length(&indices));
   vec_append(sl, datum_make_list_of(datum_make_symbol(":collect"),
@@ -572,6 +567,12 @@ LOCAL datum compdata_put(datum *compdata, datum var) {
 LOCAL void compdata_del(datum *compdata) {
   datum *last_frame = list_get_last(compdata);
   *last_frame = list_pop_slow(last_frame);
+}
+
+LOCAL void compdata_invalidate(datum *compdata, datum *indices) {
+  for (int i = 0; i < list_length(indices); ++i) {
+    compdata_del(compdata);
+  }
 }
 
 EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
