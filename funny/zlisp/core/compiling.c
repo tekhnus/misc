@@ -549,8 +549,9 @@ LOCAL datum prog_get_if(ptrdiff_t delta, datum index) {
 }
 
 EXPORT datum compdata_make() {
-  datum nil = datum_make_nil();
-  return datum_make_list_of(nil);
+  datum compdata = datum_make_nil();
+  compdata_start_new_section(&compdata);
+  return compdata;
 }
 
 LOCAL datum compdata_put(datum *compdata, datum var) {
@@ -558,13 +559,13 @@ LOCAL datum compdata_put(datum *compdata, datum var) {
   assert(frames > 0);
   datum *last_frame = list_at(compdata, frames - 1);
   size_t indices = list_length(last_frame);
-  for (size_t i = 0; i < indices && false; ++i) {
+  for (size_t i = 0; i < indices; ++i) {
     datum *item = list_at(last_frame, i);
     if (datum_is_the_symbol(item, ":invalid")) {
       *item = var;
-    }
-    return datum_make_list_of(datum_make_int(frames - 1),
+      return datum_make_list_of(datum_make_int(frames - 1),
                               datum_make_int(i));
+    }
   }
   list_append_slow(last_frame, var);
   return datum_make_list_of(datum_make_int(frames - 1),
@@ -581,16 +582,7 @@ LOCAL void compdata_invalidate(datum *compdata, datum *indices) {
       // fprintf(stderr, "invalidating %s\n", datum_repr(item));
       // assert(false);
     }
-    // *compdata_at(compdata, idx) = datum_make_symbol(":invalid");
-  }
-  datum *last_frame = list_get_last(compdata);
-  for (int i = 0; i < list_length(indices); ++i) {
-    datum *item = list_get_last(last_frame);
-        if (!datum_is_the_symbol(item, ":anon")) {
-      // fprintf(stderr, "invalidating %s\n", datum_repr(item));
-      // assert(false);
-    }
-    *last_frame = list_pop_slow(last_frame);
+    *compdata_at(compdata, idx) = datum_make_symbol(":invalid");
   }
 }
 
@@ -608,7 +600,7 @@ EXPORT datum compdata_get_polyindex(datum *compdata, datum *var) {
 }
 
 LOCAL void compdata_start_new_section(datum *compdata) {
-  datum nil = datum_make_nil();
+  datum nil = list_make_copies(1000, datum_make_symbol(":invalid"));
   list_append_slow(compdata, nil);
 }
 
@@ -659,9 +651,4 @@ LOCAL void list_append_slow(datum *list, datum value) {
   }
   *list_at(&newlist, list_length(list)) = value;
   *list = newlist;
-}
-
-LOCAL datum list_pop_slow(datum *list) {
-  assert(list_length(list) > 0);
-  return list_copy(list, 0, list_length(list) - 1);
 }
