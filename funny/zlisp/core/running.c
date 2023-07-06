@@ -50,7 +50,8 @@ struct prog {
       struct datum *call_type;
       size_t call_arg_count;
       size_t call_return_count;
-      struct datum *call_arg_index;
+      struct datum *call_arg_indices;
+      struct datum *call_result_indices;
     };
     struct {
       size_t collect_count;
@@ -149,12 +150,11 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         return (result){};
       }
 
-      datum fn_index = datum_copy(prg.call_arg_index);
+      datum result_indices = datum_copy(prg.call_result_indices);
       if (prg.call_invalidate_function) {
-        int64_t prev_val = datum_get_integer(list_at(&fn_index, 1));
-        *list_at(&fn_index, 1) = datum_make_int(prev_val - 1);
+        // FIXME!!!
       }
-      state_stack_set_many(r, fn_index, *argz, ctxt);
+      state_stack_set_many_2(r, result_indices, *argz, ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
         return (result){};
@@ -206,9 +206,9 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         return (result){datum_copy(prg.yield_type), res};
       }
       if (prg.type == PROG_CALL) {
-        datum arg_index = datum_copy(prg.call_arg_index);
+        datum arg_indices = datum_copy(prg.call_arg_indices);
         args =
-            state_stack_invalidate_many(r, prg.call_arg_count, arg_index, ctxt);
+            state_stack_invalidate_many_2(r, prg.call_arg_count, arg_indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -381,7 +381,8 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.call_type = list_at(d, 4);
     res.call_arg_count = datum_get_integer(list_at(d, 5));
     res.call_return_count = datum_get_integer(list_at(d, 6));
-    res.call_arg_index = list_at(d, 7);
+    res.call_arg_indices = list_at(d, 7);
+    res.call_result_indices = list_at(d, 8);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_count = datum_get_integer(list_at(d, 1));

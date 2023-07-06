@@ -398,10 +398,11 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       vec_append(&indices, *list_at(&xx, 0));
     }
   }
-  datum top_arg_poly = compdata_get_next_polyindex(compdata);
   int before = compdata_get_length(compdata);
+  vec arg_indices = vec_make(0);
   while (index < list_length(s_expr)) {
-    prog_append_expression(sl, s_expr, &index, compdata, ext, ctxt);
+    datum arg_idx = prog_append_expression(sl, s_expr, &index, compdata, ext, ctxt);
+    vec_extend(&arg_indices, &arg_idx);
 
     if (ctxt->aborted) {
       return (datum){};
@@ -409,8 +410,9 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   }
   int after = compdata_get_length(compdata);
   size_t arg_count = after - before;
+  assert(vec_length(&arg_indices) == arg_count);
   return prog_append_call(sl, capture_size, datum_make_list_vec(indices), !mut, target,
-                   arg_count, ret_count, top_arg_poly, compdata);
+                   arg_count, ret_count, datum_make_list_vec(arg_indices), compdata);
 }
 
 EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
@@ -422,14 +424,9 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
 
 LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
                             bool pop_one, datum type, int arg_count,
-                            int return_count, datum top_arg_polyindex,
+                            int return_count, datum arg_indices,
                             datum *compdata) {
   assert(datum_is_list(&indices));
-  vec_append(sl, datum_make_list_of(
-                     datum_make_symbol(":call"), datum_make_int(capture_size),
-                     indices, datum_make_int(pop_one), type,
-                     datum_make_int(arg_count), datum_make_int(return_count),
-                     top_arg_polyindex));
   for (int i = 0; i < arg_count; ++i) {
     compdata_del(compdata);
   }
@@ -441,7 +438,13 @@ LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
     datum idx = compdata_put(compdata, datum_make_symbol(":anon"));
     *array_at(&res, i) = idx;
   }
-  return datum_make_list(res);
+  datum result_indices = datum_make_list(res);
+  vec_append(sl, datum_make_list_of(
+                     datum_make_symbol(":call"), datum_make_int(capture_size),
+                     indices, datum_make_int(pop_one), type,
+                     datum_make_int(arg_count), datum_make_int(return_count),
+                     arg_indices, result_indices));
+  return result_indices;
 }
 
 LOCAL datum prog_append_copy(vec *sl, datum *val, datum *compdata,
