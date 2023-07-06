@@ -564,14 +564,10 @@ LOCAL datum compdata_put(datum *compdata, datum var) {
                             datum_make_int(indices - 1));
 }
 
-LOCAL void compdata_del(datum *compdata) {
-  datum *last_frame = list_get_last(compdata);
-  *last_frame = list_pop_slow(last_frame);
-}
-
 LOCAL void compdata_invalidate(datum *compdata, datum *indices) {
+  datum *last_frame = list_get_last(compdata);
   for (int i = 0; i < list_length(indices); ++i) {
-    compdata_del(compdata);
+    *last_frame = list_pop_slow(last_frame);
   }
 }
 
