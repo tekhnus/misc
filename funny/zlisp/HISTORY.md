@@ -59,3 +59,9 @@ May 2023:
 - the bytecode is now position-independent
 - the syntax is redesigned: the curly brackets are introduced;
   the statements are now not surrounded by brackets
+- the auto-formatter is implemented
+
+June 2023:
+- error handling is improved; no more early exits
+- the source code is now sanitized (except leak sanitizer)
+- the FFI is reworked; binary blobs are used on the boundary instead of integers
