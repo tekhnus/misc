@@ -179,7 +179,7 @@ def main():
                     print(i, pref, prog[i])
                 raise RuntimeError("expected a yield-reciever")
             _, val_idx, cnt, recieve_cnt, meta = args
-            if arg_cnt != recieve_cnt:
+            if arg_cnt != len(recieve_cnt):
                 raise RuntimeError(
                     f"arg count {arg_cnt} and recieve count {recieve_cnt} are different"
                 )

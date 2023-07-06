@@ -66,7 +66,7 @@ struct prog {
       struct datum *yield_type;
       struct datum *yield_val_index;
       size_t yield_count;
-      size_t yield_recieve_count;
+      struct datum *yield_recieve_indices;
       struct datum *yield_meta;
     };
   };
@@ -159,14 +159,14 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       goto body;
     }
     if (prg.type == PROG_YIELD) {
-      if (list_length(&args) != (int)prg.yield_recieve_count) {
+      if (list_length(&args) != list_length(prg.yield_recieve_indices)) {
         abortf(ctxt,
                "recieved incorrect number of arguments: expected %zu, got %d",
-               prg.yield_recieve_count, list_length(&args));
+               list_length(prg.yield_recieve_indices), list_length(&args));
         print_frame(sl, r);
         return (result){};
       }
-      state_stack_set_many(r, datum_copy(prg.yield_val_index), args, ctxt);
+      state_stack_set_many_2(r, datum_copy(prg.yield_recieve_indices), args, ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
         return (result){};
@@ -393,7 +393,7 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.yield_type = list_at(d, 1);
     res.yield_val_index = list_at(d, 2);
     res.yield_count = datum_get_integer(list_at(d, 3));
-    res.yield_recieve_count = datum_get_integer(list_at(d, 4));
+    res.yield_recieve_indices = (list_at(d, 4));
     res.yield_meta = list_at(d, 5);
   } else {
     abortf(ctxt, "unknown instruction: %s\n", datum_repr(d));

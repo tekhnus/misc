@@ -487,10 +487,11 @@ LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_val_index,
     datum comp = compdata_put(compdata, datum_make_symbol(":anon"));
     *array_at(&res, i) = comp;
   }
+  datum recieve_indices = datum_make_list(res);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
                                     yield_val_index, datum_make_int(count),
-                                    datum_make_int(recieve_count), meta));
-  return datum_make_list(res);
+                                    recieve_indices, meta));
+  return recieve_indices;
 }
 
 LOCAL size_t prog_append_something(vec *sl) {
