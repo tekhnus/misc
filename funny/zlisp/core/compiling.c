@@ -172,7 +172,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   }
   if (datum_is_the_symbol(head, "fn") ||
       datum_is_the_symbol(head, "magically_called_fn")) {
-    size_t put_prog_off = prog_append_something(sl); // filled below.
+    size_t put_prog_off = prog_get_next_index(sl);
+    datum pi = prog_append_put_prog(sl, 2, compdata); // filled below.
     datum routine_compdata = datum_copy(compdata);
     compdata_start_new_section(&routine_compdata);
 
@@ -203,7 +204,6 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
                       polyi, 0,
                       datum_make_nil(), &routine_compdata);
     assert(put_prog_off + 1 == prog_off);
-    datum pi = compdata_put(compdata, datum_make_symbol(":anon"));
     *vec_at(sl, put_prog_off) =
         prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
     return datum_make_list_of(pi);
@@ -523,6 +523,13 @@ EXPORT datum *prog_append_jmp(vec *sl) {
   size_t offset = prog_get_next_index(sl);
   vec_append(sl, ins);
   return (list_at(vec_at(sl, offset), 1));
+}
+
+LOCAL datum prog_append_put_prog(vec *sl, int capture, datum *compdata) {
+  datum target = compdata_put(compdata, datum_make_symbol(":anon"));
+  datum ins = prog_get_put_prog(&target, 100500, capture);
+  vec_append(sl, ins);
+  return target;
 }
 
 LOCAL datum prog_get_put_prog(datum *target, ptrdiff_t delta, int capture) {
