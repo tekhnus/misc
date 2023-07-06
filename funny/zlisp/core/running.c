@@ -374,8 +374,8 @@ LOCAL prog datum_to_prog(datum *d, context *ctxt) {
     res.call_capture_count = datum_get_integer(list_at(d, 1));
     res.call_indices = list_at(d, 2);
     res.call_type = list_at(d, 3);
-    res.call_arg_indices = list_at(d, 6);
-    res.call_result_indices = list_at(d, 7);
+    res.call_arg_indices = list_at(d, 4);
+    res.call_result_indices = list_at(d, 5);
   } else if (!strcmp(opsym, ":collect")) {
     res.type = PROG_COLLECT;
     res.collect_target = list_at(d, 2);
