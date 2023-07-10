@@ -14,7 +14,8 @@ do
   dd bs=1 count=0 </dev/tty >/dev/null 2>/dev/null
   echo 'server will eval' >>/tmp/crsh-log
 	eval "$cmd" </dev/tty >/dev/tty
+	status="$?"
   echo 'server did eval' >>/tmp/crsh-log
-	echo 0
+	echo "$status"
   echo 'server did send status' >>/tmp/crsh-log
 done </tmp/crsh-command >/tmp/crsh-result

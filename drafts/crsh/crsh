@@ -23,7 +23,7 @@ function get_pid() {
   while true; do
     echo 'client will read' >>/tmp/crsh-log
     read -p '> ' -r line >/dev/tty
-    echo 'client did read' >>/tmp/crsh-log
+    echo "client did read $line" >>/tmp/crsh-log
     echo "$line"
     if [ -z "$line" ]; then
       exit
@@ -50,11 +50,16 @@ echo 'master did recieve server pid' >>/tmp/crsh-log
   while true; do
     IFS= read -r res
     if [ -z "$res" ]; then
-      echo 'master did finish server result' >>/tmp/crsh-log
+      echo 'master will finish listening to server' >>/tmp/crsh-log
       exit
     fi
-    echo "master did recieve server result x${res}x" >>/tmp/crsh-log
+    echo "master did recieve server result ${res}" >>/tmp/crsh-log
+    echo "master will sleep before stopping server" >>/tmp/crsh-log
+    sleep 1
+    echo "master did sleep before stopping server" >>/tmp/crsh-log
+    echo "master will stop the server" >>/tmp/crsh-log
     kill -STOP -- "-$server_pid" 2>/dev/null || break
+    echo "master did stop the server" >>/tmp/crsh-log
   done </tmp/crsh-result
 )&
 disown
