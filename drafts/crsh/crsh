@@ -80,6 +80,7 @@ while true; do
   echo 'master did switch to client' >>/tmp/crsh-log
   echo 'master will switch to server' >>/tmp/crsh-log
   fg %2 >/dev/null
+  bg %2 >/dev/null  # Apparently ssh doesn't like to be stopped, so we resume it immediately.
   echo 'master did switch to server' >>/tmp/crsh-log
-  # bg %2 >/dev/null
+  sleep 0.5  # Apparently there can be a lag between recieving command status and transmittion of all data in tty, so we wait.
 done
