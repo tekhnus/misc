@@ -1,95 +1,20 @@
 #!/bin/bash
-set -m
-
 echo '' >>/tmp/crsh-log
 echo 'STARTING NEW SESSION' >>/tmp/crsh-log
 echo '' >>/tmp/crsh-log
 
-rm -rf /tmp/crsh-pids
-mkfifo /tmp/crsh-pids
+( sleep 1; ./crsh-server ) &
+disown
 
-rm -rf /tmp/crsh-server-pid
-mkfifo /tmp/crsh-server-pid
+sleep 2  # So that the fifos are initialized
 
-function get_pid() {
-  exec sh -c 'echo "$PPID"'
-}
-
-(
-  IFS= read -r server_pid </tmp/crsh-server-pid
-  sleep 2 # This is a workaround so that the server has time to create fifos.
-  while true; do
-    IFS= read -r res
-    if [ -z "$res" ]; then
-      echo 'master will finish listening to server' >>/tmp/crsh-log
-      exit
-    fi
-    echo "master did recieve server result ${res}" >>/tmp/crsh-log
-    sleep 1 # Apparently there can be a lag between recieving command status and transmittion of all data in tty, so we wait.
-    echo "master will stop the server" >>/tmp/crsh-log
-    kill -TSTP -- "-$server_pid" 2>/dev/null || break
-    echo "master did stop the server" >>/tmp/crsh-log
-  done </tmp/crsh-result
-)&
-
-(
-  echo "$(get_pid)" >/tmp/crsh-pids
-  echo 'server did send pid' >>/tmp/crsh-log
-  sleep 1  # Sleep to ensure that crsh-remote starts in foreground.
-  # This is crucial because ssh won't start in background properly (it will mess up tty somehow).
-  echo "master will start the remote" >>/tmp/crsh-log
-  ./crsh-remote
-)&
-
-IFS= read -r server_pid </tmp/crsh-pids
-echo $server_pid >/tmp/crsh-server-pid
-
-echo 'master did recieve server pid' >>/tmp/crsh-log
-
-(
-  echo "$(get_pid)" >/tmp/crsh-pids
-  echo 'client did send pid' >>/tmp/crsh-log
-  sleep 2  # This is a workaround so that the server has time to create fifos.
-  while true; do
-    echo 'client will sleep' >>/tmp/crsh-log
-    kill -TSTP -- "$(get_pid)"
-    echo 'client did sleep' >>/tmp/crsh-log
-    echo 'client will read' >>/tmp/crsh-log
-    read -p '> ' -r line >/dev/tty
-    echo "client did read $line" >>/tmp/crsh-log
-    # kill -STOP -- "-$server_pid"  # Trying to fix problems with terminal apps with this.
-    echo "$line"
-    if [ -z "$line" ]; then
-      exit
-    fi
-  done >/tmp/crsh-command
-)&
-
-IFS= read -r reader_pid </tmp/crsh-pids
-
-function on_sigchld () {
-  if {
-    kill -0 $reader_pid 2>/dev/null &&
-    kill -0 $server_pid 2>/dev/null
-  }; then
-    return
-  fi
-  echo 'master will exit' >>/tmp/crsh-log
-  exit
-}
-
-trap on_sigchld SIGCHLD
-
-echo 'master will switch to server until init' >>/tmp/crsh-log
-fg %2 >/dev/null
-echo 'master did switch to server until init' >>/tmp/crsh-log
-
+echo "master will enter the loop" >>/tmp/crsh-log
 while true; do
-  echo 'master will switch to client' >>/tmp/crsh-log
-  bg %2 >/dev/null 2>/dev/null # Apparently ssh doesn't like to be stopped, so we resume it immediately.
-  fg %3 >/dev/null
-  echo 'master did switch to client' >>/tmp/crsh-log
-  echo 'master will switch to server' >>/tmp/crsh-log
-  fg %2 >/dev/null
-  echo 'master did switch to server' >>/tmp/crsh-log
-done
+  echo "master will read a line" >>/tmp/crsh-log
+  read -p '> ' -r line </dev/tty >/dev/tty
+  echo "master did read a line $line" >>/tmp/crsh-log
+  echo "$line"
+  echo "master did send the line" >>/tmp/crsh-log
+  IFS= read -r res
+  echo "master did read the result" >>/tmp/crsh-log
+done >/tmp/crsh-command </tmp/crsh-result 

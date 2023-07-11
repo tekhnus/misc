@@ -5,8 +5,10 @@ mkfifo /tmp/crsh-command
 rm -rf /tmp/crsh-result
 mkfifo /tmp/crsh-result
 
+echo "server will enter the loop" >>/tmp/crsh-log
+
 {
-  echo "init"
+	echo "server did enter the loop" >>/tmp/crsh-log
 	while true;
 	do
 		IFS= read -r cmd
