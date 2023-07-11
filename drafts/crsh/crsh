@@ -27,6 +27,8 @@ function get_pid() {
 )&
 
 (
+  sleep 1  # Sleep to ensure that crsh-remote starts in foreground.
+  # This is crucial because ssh won't start in background properly (it will mess up tty somehow).
   echo "$(get_pid)" >/tmp/crsh-pids
   echo 'server did send pid' >>/tmp/crsh-log
   ./crsh-remote
