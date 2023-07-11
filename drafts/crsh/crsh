@@ -3,7 +3,7 @@ echo '' >>/tmp/crsh-log
 echo 'STARTING NEW SESSION' >>/tmp/crsh-log
 echo '' >>/tmp/crsh-log
 
-( sleep 1; ./crsh-server ) &
+( sleep 1; ./crsh-remote ) &
 disown
 
 sleep 2  # So that the fifos are initialized
