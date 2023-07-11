@@ -26,7 +26,7 @@ done >/tmp/crsh-command </tmp/crsh-result
 import subprocess
 import time
 
-# sub = subprocess.Popen("./crsh-remote")
+# sub = subprocess.Popen("./crsh-server")
 
 time.sleep(1)
 
