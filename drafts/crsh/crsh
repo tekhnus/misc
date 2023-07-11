@@ -26,7 +26,7 @@ echo 'master did recieve server pid' >>/tmp/crsh-log
     echo 'client will read' >>/tmp/crsh-log
     read -p '> ' -r line >/dev/tty
     echo "client did read $line" >>/tmp/crsh-log
-    kill -STOP -- "-$server_pid"  # Trying to fix problems with terminal apps with this.
+    # kill -STOP -- "-$server_pid"  # Trying to fix problems with terminal apps with this.
     echo "$line"
     if [ -z "$line" ]; then
       exit

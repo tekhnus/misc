@@ -31,4 +31,5 @@ echo 'remote sheduled result backwarding' >>/tmp/crsh-log
 }&
 echo 'remote scheduled log forwarding' >>/tmp/crsh-log
 
+# sleep 10000
 ssh ma crsh-server
