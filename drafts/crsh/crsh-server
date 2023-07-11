@@ -6,6 +6,7 @@ rm -rf /tmp/crsh-result
 mkfifo /tmp/crsh-result
 
 {
+  echo "init"
 	while true;
 	do
 		IFS= read -r cmd

@@ -1,6 +1,10 @@
 #!/bin/bash
 set -m
 
+echo '' >>/tmp/crsh-log
+echo 'STARTING NEW SESSION' >>/tmp/crsh-log
+echo '' >>/tmp/crsh-log
+
 rm -rf /tmp/crsh-pids
 mkfifo /tmp/crsh-pids
 
@@ -13,7 +17,7 @@ function get_pid() {
 
 (
   IFS= read -r server_pid </tmp/crsh-server-pid
-  sleep 1  # This is a workaround so that the server has time to create fifos.
+  sleep 2 # This is a workaround so that the server has time to create fifos.
   while true; do
     IFS= read -r res
     if [ -z "$res" ]; then
@@ -28,10 +32,11 @@ function get_pid() {
 )&
 
 (
-  sleep 1  # Sleep to ensure that crsh-remote starts in foreground.
-  # This is crucial because ssh won't start in background properly (it will mess up tty somehow).
   echo "$(get_pid)" >/tmp/crsh-pids
   echo 'server did send pid' >>/tmp/crsh-log
+  sleep 1  # Sleep to ensure that crsh-remote starts in foreground.
+  # This is crucial because ssh won't start in background properly (it will mess up tty somehow).
+  echo "master will start the remote" >>/tmp/crsh-log
   ./crsh-remote
 )&
 
@@ -41,10 +46,13 @@ echo $server_pid >/tmp/crsh-server-pid
 echo 'master did recieve server pid' >>/tmp/crsh-log
 
 (
-  sleep 1  # This is a workaround so that the server has time to create fifos.
   echo "$(get_pid)" >/tmp/crsh-pids
   echo 'client did send pid' >>/tmp/crsh-log
+  sleep 2  # This is a workaround so that the server has time to create fifos.
   while true; do
+    echo 'client will sleep' >>/tmp/crsh-log
+    kill -TSTP -- "$(get_pid)"
+    echo 'client did sleep' >>/tmp/crsh-log
     echo 'client will read' >>/tmp/crsh-log
     read -p '> ' -r line >/dev/tty
     echo "client did read $line" >>/tmp/crsh-log
@@ -53,15 +61,10 @@ echo 'master did recieve server pid' >>/tmp/crsh-log
     if [ -z "$line" ]; then
       exit
     fi
-    echo 'client will sleep' >>/tmp/crsh-log
-    kill -TSTP -- "$(get_pid)"
-    echo 'client did sleep' >>/tmp/crsh-log
   done >/tmp/crsh-command
 )&
 
 IFS= read -r reader_pid </tmp/crsh-pids
-
-# fg %2
 
 function on_sigchld () {
   if {
@@ -75,6 +78,10 @@ function on_sigchld () {
 }
 
 trap on_sigchld SIGCHLD
+
+echo 'master will switch to server until init' >>/tmp/crsh-log
+fg %2 >/dev/null
+echo 'master did switch to server until init' >>/tmp/crsh-log
 
 while true; do
   echo 'master will switch to client' >>/tmp/crsh-log

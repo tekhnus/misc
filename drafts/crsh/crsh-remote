@@ -2,6 +2,8 @@
 
 echo 'remote started' >>/tmp/crsh-log
 
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
 rm -rf /tmp/crsh-command
 mkfifo /tmp/crsh-command
 
@@ -31,5 +33,5 @@ echo 'remote sheduled result backwarding' >>/tmp/crsh-log
 }&
 echo 'remote scheduled log forwarding' >>/tmp/crsh-log
 
-# sleep 10000
+echo 'remote will invoke ssh' >>/tmp/crsh-log
 ssh ma crsh-server
