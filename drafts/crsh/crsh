@@ -32,7 +32,7 @@ echo 'master did recieve server pid' >>/tmp/crsh-log
       exit
     fi
     echo 'client will sleep' >>/tmp/crsh-log
-    kill -STOP -- "$(get_pid)"
+    kill -TSTP -- "$(get_pid)"
     echo 'client did sleep' >>/tmp/crsh-log
   done >/tmp/crsh-command
 )&
@@ -47,7 +47,7 @@ IFS= read -r reader_pid </tmp/crsh-pids
     fi
     echo "master did recieve server result ${res}" >>/tmp/crsh-log
     echo "master will stop the server" >>/tmp/crsh-log
-    kill -STOP -- "-$server_pid" 2>/dev/null || break
+    kill -TSTP -- "-$server_pid" 2>/dev/null || break
     echo "master did stop the server" >>/tmp/crsh-log
   done </tmp/crsh-result
 )&
