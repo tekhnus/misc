@@ -1,21 +1,34 @@
 #!/bin/bash
 
+echo 'remote started' >>/tmp/crsh-log
+
 rm -rf /tmp/crsh-command
 mkfifo /tmp/crsh-command
 
 rm -rf /tmp/crsh-result
 mkfifo /tmp/crsh-result
 
+echo 'remote will copy the script' >>/tmp/crsh-log
 scp crsh-server ma:/home/zahaaar/.local/bin
 echo 'remote did copy the script' >>/tmp/crsh-log
 
+(
+	echo 'remote will start command forwarding' >>/tmp/crsh-log
+  # The sleep is a workaround so that the server has time to create the fifo.
+  ssh -T ma 'sleep 5 && cat -u >/tmp/crsh-command' </tmp/crsh-command
+	echo 'remote finished command forwarding' >>/tmp/crsh-log
+)&
+echo 'remote scheduled command forwarding' >>/tmp/crsh-log
 {
-	ssh -T ma 'cat -u >/tmp/crsh-command' </tmp/crsh-command
+	echo 'remote will start result backwarding' >>/tmp/crsh-log
+  # The sleep is a workaround so that the server has time to create the fifo.
+	ssh ma -T 'sleep 5 && cat -u /tmp/crsh-result' >/tmp/crsh-result
+	echo 'remote finished result backwarding' >>/tmp/crsh-log
 }&
-echo 'remote started command forwarding' >>/tmp/crsh-log
+echo 'remote sheduled result backwarding' >>/tmp/crsh-log
 {
-	ssh ma -T 'cat -u /tmp/crsh-result' >/tmp/crsh-result
+	ssh ma -T 'tail -n0 -F /tmp/crsh-log' >>/tmp/crsh-log
 }&
-echo 'remote started result backwarding' >>/tmp/crsh-log
+echo 'remote scheduled log forwarding' >>/tmp/crsh-log
 
 ssh ma crsh-server

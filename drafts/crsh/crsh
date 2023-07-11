@@ -11,7 +11,7 @@ function get_pid() {
 (
   echo "$(get_pid)" >/tmp/crsh-pids
   echo 'server did send pid' >>/tmp/crsh-log
-  ./crsh-server
+  ./crsh-remote
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
@@ -70,11 +70,11 @@ trap on_sigchld SIGCHLD
 
 while true; do
   echo 'master will switch to client' >>/tmp/crsh-log
+  bg %1 >/dev/null 2>/dev/null # Apparently ssh doesn't like to be stopped, so we resume it immediately.
   fg %2 >/dev/null
   echo 'master did switch to client' >>/tmp/crsh-log
   echo 'master will switch to server' >>/tmp/crsh-log
   fg %1 >/dev/null
-  bg %1 >/dev/null  # Apparently ssh doesn't like to be stopped, so we resume it immediately.
   echo 'master did switch to server' >>/tmp/crsh-log
   sleep 0.5  # Apparently there can be a lag between recieving command status and transmittion of all data in tty, so we wait.
 done
