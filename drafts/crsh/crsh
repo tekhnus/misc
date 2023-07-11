@@ -25,6 +25,7 @@ function get_pid() {
       exit
     fi
     echo "master did recieve server result ${res}" >>/tmp/crsh-log
+    sleep 1 # Apparently there can be a lag between recieving command status and transmittion of all data in tty, so we wait.
     echo "master will stop the server" >>/tmp/crsh-log
     kill -TSTP -- "-$server_pid" 2>/dev/null || break
     echo "master did stop the server" >>/tmp/crsh-log
@@ -85,11 +86,10 @@ echo 'master did switch to server until init' >>/tmp/crsh-log
 
 while true; do
   echo 'master will switch to client' >>/tmp/crsh-log
-  bg %2 >/dev/null 2>/dev/null # Apparently ssh doesn't like to be stopped, so we resume it immediately.
+  # bg %2 >/dev/null 2>/dev/null # Apparently ssh doesn't like to be stopped, so we resume it immediately.
   fg %3 >/dev/null
   echo 'master did switch to client' >>/tmp/crsh-log
   echo 'master will switch to server' >>/tmp/crsh-log
   fg %2 >/dev/null
   echo 'master did switch to server' >>/tmp/crsh-log
-  sleep 0.5  # Apparently there can be a lag between recieving command status and transmittion of all data in tty, so we wait.
 done
