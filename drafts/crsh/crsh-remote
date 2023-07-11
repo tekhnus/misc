@@ -11,7 +11,7 @@ rm -rf /tmp/crsh-result
 mkfifo /tmp/crsh-result
 
 echo 'remote will copy the script' >>/tmp/crsh-log
-scp crsh-server ma:/home/zahaaar/.local/bin
+scp crsh-server ma:/home/zahaaar/.local/bin >/dev/null 2>/dev/null
 echo 'remote did copy the script' >>/tmp/crsh-log
 
 (
