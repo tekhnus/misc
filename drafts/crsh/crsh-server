@@ -14,11 +14,6 @@ mkfifo /tmp/crsh-result
 		if [ -z "$cmd" ]; then
 			break
 		fi
-	  # We do a zero-byte read from tty
-	  # to create a synchronization point.
-	  # This command will return only when the process
-	  # is foregrounded.
-	  dd bs=1 count=0 </dev/tty >/dev/null 2>/dev/null
     # Also wait a bit.
 		sleep 1
 	  echo 'server will eval' >>/tmp/crsh-log
