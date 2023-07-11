@@ -13,6 +13,7 @@ function get_pid() {
 
 (
   IFS= read -r server_pid </tmp/crsh-server-pid
+  sleep 1  # This is a workaround so that the server has time to create fifos.
   while true; do
     IFS= read -r res
     if [ -z "$res" ]; then
@@ -35,12 +36,12 @@ function get_pid() {
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
-sleep 1  # This is a workaround so that the server has time to create fifos.
 echo $server_pid >/tmp/crsh-server-pid
 
 echo 'master did recieve server pid' >>/tmp/crsh-log
 
 (
+  sleep 1  # This is a workaround so that the server has time to create fifos.
   echo "$(get_pid)" >/tmp/crsh-pids
   echo 'client did send pid' >>/tmp/crsh-log
   while true; do
@@ -59,6 +60,8 @@ echo 'master did recieve server pid' >>/tmp/crsh-log
 )&
 
 IFS= read -r reader_pid </tmp/crsh-pids
+
+# fg %2
 
 function on_sigchld () {
   if {
