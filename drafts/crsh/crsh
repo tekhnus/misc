@@ -1,17 +1,8 @@
 #!/bin/bash
 set -m
 
-rm -rf /tmp/crsh-log
-touch /tmp/crsh-log
-
 rm -rf /tmp/crsh-pids
 mkfifo /tmp/crsh-pids
-
-rm -rf /tmp/crsh-command
-mkfifo /tmp/crsh-command
-
-rm -rf /tmp/crsh-result
-mkfifo /tmp/crsh-result
 
 function get_pid() {
   exec sh -c 'echo "$PPID"'
@@ -24,6 +15,7 @@ function get_pid() {
 )&
 
 IFS= read -r server_pid </tmp/crsh-pids
+sleep 1  # This is a workaround so that the server has time to create fifos.
 
 echo 'master did recieve server pid' >>/tmp/crsh-log
 

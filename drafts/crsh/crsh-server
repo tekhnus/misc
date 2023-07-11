@@ -1,9 +1,14 @@
 #!/bin/bash
+rm -rf /tmp/crsh-command
+mkfifo /tmp/crsh-command
+
+rm -rf /tmp/crsh-result
+mkfifo /tmp/crsh-result
 
 while true;
 do
 	IFS= read -r cmd
-  echo 'server did read a command' >>/tmp/crsh-log
+  echo "server did read a command $cmd" >>/tmp/crsh-log
 	if [ -z "$cmd" ]; then
 		break
 	fi

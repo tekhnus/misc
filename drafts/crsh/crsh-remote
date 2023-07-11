@@ -1,10 +1,14 @@
 #!/bin/bash
 
+rm -rf /tmp/crsh-command
+mkfifo /tmp/crsh-command
+
+rm -rf /tmp/crsh-result
+mkfifo /tmp/crsh-result
+
 scp crsh-server ma:/home/zahaaar/.local/bin
 echo 'remote did copy the script' >>/tmp/crsh-log
-ssh -T ma 'rm -rf /tmp/crsh-command && mkfifo /tmp/crsh-command'
-ssh -T ma 'rm -rf /tmp/crsh-result && mkfifo /tmp/crsh-result'
-echo 'remote did initialize fifos' >>/tmp/crsh-log
+
 {
 	ssh -T ma 'cat -u >/tmp/crsh-command' </tmp/crsh-command
 }&
@@ -13,4 +17,5 @@ echo 'remote started command forwarding' >>/tmp/crsh-log
 	ssh ma -T 'cat -u /tmp/crsh-result' >/tmp/crsh-result
 }&
 echo 'remote started result backwarding' >>/tmp/crsh-log
+
 ssh ma crsh-server
