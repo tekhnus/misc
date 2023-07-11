@@ -86,7 +86,7 @@ echo 'master did switch to server until init' >>/tmp/crsh-log
 
 while true; do
   echo 'master will switch to client' >>/tmp/crsh-log
-  # bg %2 >/dev/null 2>/dev/null # Apparently ssh doesn't like to be stopped, so we resume it immediately.
+  bg %2 >/dev/null 2>/dev/null # Apparently ssh doesn't like to be stopped, so we resume it immediately.
   fg %3 >/dev/null
   echo 'master did switch to client' >>/tmp/crsh-log
   echo 'master will switch to server' >>/tmp/crsh-log
