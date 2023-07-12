@@ -17,5 +17,4 @@ while true; do
   echo "master did send the line" >>/tmp/crsh-log
   IFS= read -r res
   echo "master did read the result $res" >>/tmp/crsh-log
-  sleep 1  # So that the tty is fully outputted
 done >/tmp/crsh-command </tmp/crsh-result 
