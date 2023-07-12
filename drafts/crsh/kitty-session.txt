@@ -1,4 +1,5 @@
 layout vertical
 launch ./crsh-server
 launch ./crsh
+focus
 resize_window shorter 100

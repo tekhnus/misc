@@ -8,9 +8,9 @@ sleep 2  # So that the fifos are initialized
 echo "master will enter the loop" >>/tmp/crsh-log
 while true; do
   echo "master will read a line" >>/tmp/crsh-log
-  clear >/dev/tty </dev/tty
   read -p '> ' -r line </dev/tty >/dev/tty
   echo "master did read a line $line" >>/tmp/crsh-log
+  clear >/dev/tty </dev/tty
   echo "$line"
   echo "master did send the line" >>/tmp/crsh-log
   IFS= read -r res

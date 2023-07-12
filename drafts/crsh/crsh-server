@@ -8,6 +8,7 @@ mkfifo /tmp/crsh-result
 echo "server will enter the loop" >>/tmp/crsh-log
 
 {
+	tput cup $(tput lines) 0 </dev/tty >/dev/tty 
 	echo "server did enter the loop" >>/tmp/crsh-log
 	while true;
 	do
@@ -16,6 +17,7 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		if [ -z "$cmd" ]; then
 			break
 		fi
+		echo "> $cmd" </dev/tty >/dev/tty
     # Also wait a bit.
 		sleep 1
 	  echo "server will eval $cmd" >>/tmp/crsh-log
