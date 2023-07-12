@@ -3,15 +3,12 @@ echo '' >>/tmp/crsh-log
 echo 'STARTING NEW SESSION' >>/tmp/crsh-log
 echo '' >>/tmp/crsh-log
 
-( sleep 1; ./crsh-remote ) &
-disown %1
-echo "master disowned the remote" >>/tmp/crsh-log
-
 sleep 2  # So that the fifos are initialized
 
 echo "master will enter the loop" >>/tmp/crsh-log
 while true; do
   echo "master will read a line" >>/tmp/crsh-log
+  clear >/dev/tty </dev/tty
   read -p '> ' -r line </dev/tty >/dev/tty
   echo "master did read a line $line" >>/tmp/crsh-log
   echo "$line"

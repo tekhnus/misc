@@ -1,0 +1,4 @@
+layout vertical
+launch ./crsh-server
+launch ./crsh
+resize_window shorter 100
