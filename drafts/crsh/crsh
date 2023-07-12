@@ -12,6 +12,7 @@ while true; do
   read -p '> ' -r line </dev/tty >/dev/tty
   echo "master did read a line $line" >>/tmp/crsh-log
   clear >/dev/tty </dev/tty
+  kitty @ focus-window -m "cmdline:.*crsh-.*"
   echo "$line"
   echo "master did send the line" >>/tmp/crsh-log
   IFS= read -r res

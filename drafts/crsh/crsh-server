@@ -19,7 +19,6 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		sleep 1
 	  echo "server will eval $cmd" >>/tmp/crsh-log
 		# vim </dev/tty >/dev/tty
-	  kitty @ focus-window
 		eval "$cmd" </dev/tty >/dev/tty
 		status="$?"
 	  echo 'server did eval' >>/tmp/crsh-log
