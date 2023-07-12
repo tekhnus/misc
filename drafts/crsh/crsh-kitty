@@ -1,0 +1,4 @@
+#!/bin/sh
+kitty \
+	--session=$PWD/kitty-session.txt \
+	-o allow_remote_control=yes

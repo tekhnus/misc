@@ -1,5 +1,5 @@
 layout vertical
-launch ./crsh-server
-launch ./crsh
+launch sh -c './crsh-server; kitty @ close-window -m "cmdline:.*crsh.*"'
+launch sh -c './crsh; kitty @ close-window -m "cmdline:.*crsh.*"'
 focus
 resize_window shorter 100
