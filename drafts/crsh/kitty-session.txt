@@ -2,4 +2,4 @@ layout vertical
 launch sh -c './crsh-remote; kitty @ close-window -m "cmdline:.*crsh.*"'
 launch sh -c './crsh; kitty @ close-window -m "cmdline:.*crsh.*"'
 focus
-resize_window shorter 27
+# resize_window shorter 10

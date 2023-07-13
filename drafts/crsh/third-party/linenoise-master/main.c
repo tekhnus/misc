@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,26 +23,11 @@ char *hints(const char *buf, int *color, int *bold) {
 
 int main(int argc, char **argv) {
     char *line;
-    char *prgname = argv[0];
+    assert(argc == 2);
+    char *fname = argv[1];
     int async = 0;
 
-    /* Parse options, with --multiline we enable multi line editing. */
-    while(argc > 1) {
-        argc--;
-        argv++;
-        if (!strcmp(*argv,"--multiline")) {
-            linenoiseSetMultiLine(1);
-            printf("Multi-line mode enabled.\n");
-        } else if (!strcmp(*argv,"--keycodes")) {
-            linenoisePrintKeyCodes();
-            exit(0);
-        } else if (!strcmp(*argv,"--async")) {
-            async = 1;
-        } else {
-            fprintf(stderr, "Usage: %s [--multiline] [--keycodes] [--async]\n", prgname);
-            exit(1);
-        }
-    }
+    FILE *outp = fopen(fname, "w");
 
     /* Set the completion callback. This will be called every time the
      * user uses the <tab> key. */
@@ -104,7 +90,7 @@ int main(int argc, char **argv) {
 
         /* Do something with the string. */
         if (line[0] != '\0' && line[0] != '/') {
-            printf("%s\n", line);
+            fprintf(outp, "%s\n", line);
             linenoiseHistoryAdd(line); /* Add to the history. */
             linenoiseHistorySave("history.txt"); /* Save the history on disk. */
         } else if (!strncmp(line,"/historylen",11)) {
@@ -120,5 +106,6 @@ int main(int argc, char **argv) {
         }
         free(line);
     } while (0);
+    fclose(outp);
     return 0;
 }
