@@ -5,5 +5,4 @@ dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 winid=$(kitty @ launch --location=before --cwd=${dir} sh -c './crsh-remote')
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null 
 clear
-# The sleep is a workaround so that the remote has time to create the fifo.
-sleep 1 && ./crsh
+./crsh
