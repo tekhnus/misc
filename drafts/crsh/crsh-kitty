@@ -1,8 +1,0 @@
-dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-
-./crsh-create-channels
-
-winid=$(kitty @ launch --location=before --cwd=${dir} sh -c './crsh-remote')
-kitty @ resize-window --self -a vertical -i -1000 2>/dev/null 
-clear
-./crsh
