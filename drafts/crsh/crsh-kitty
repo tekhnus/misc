@@ -1,4 +1,3 @@
-#!/bin/sh
-kitty \
-	--session=$PWD/kitty-session.txt \
-	-o allow_remote_control=yes
+dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+winid=$(kitty @ launch --location=before --cwd=${dir} --hold sh -c './crsh-remote')
+sleep 1 && ./crsh
