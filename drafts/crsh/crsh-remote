@@ -12,14 +12,12 @@ echo 'remote did create channels' >>/tmp/crsh-log
 
 (
 	echo 'remote will start command forwarding' >>/tmp/crsh-log
-  # The sleep is a workaround so that the server has time to create the fifo.
   ssh -T ma 'cat -u >/tmp/crsh-command' </tmp/crsh-command
 	echo 'remote finished command forwarding' >>/tmp/crsh-log
 )&
 echo 'remote scheduled command forwarding' >>/tmp/crsh-log
 {
 	echo 'remote will start result backwarding' >>/tmp/crsh-log
-  # The sleep is a workaround so that the server has time to create the fifo.
 	ssh ma -T 'cat -u /tmp/crsh-result' >/tmp/crsh-result
 	echo 'remote finished result backwarding' >>/tmp/crsh-log
 }&
