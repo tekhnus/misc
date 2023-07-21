@@ -16,6 +16,9 @@ while true; do
   line=$(cat /tmp/linenoise-result)
   echo "master did read a line $line" >>/tmp/crsh-log
   clear >/dev/tty </dev/tty
+  if [ "$line" = "exit" ]; then
+    break
+  fi
   kitty @ focus-window -m "cmdline:.*crsh-.*"
   echo "$line"
   echo "master did send the line" >>/tmp/crsh-log

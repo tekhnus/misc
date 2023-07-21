@@ -26,13 +26,6 @@ echo 'remote scheduled command forwarding' >>/tmp/crsh-log
 	echo 'remote finished result backwarding' >>/tmp/crsh-log
 }&
 echo 'remote sheduled result backwarding' >>/tmp/crsh-log
-{
-	ssh ma -T 'tail -n0 -F /tmp/crsh-log' >>/tmp/crsh-log
-}&
-echo 'remote scheduled log forwarding' >>/tmp/crsh-log
 
 echo 'remote will invoke ssh' >>/tmp/crsh-log
 ssh -tt ma crsh-server
-
-jobs -p
-kill $(jobs -p)
