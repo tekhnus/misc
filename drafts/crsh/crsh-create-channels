@@ -1,0 +1,7 @@
+#!/bin/bash
+
+rm -rf /tmp/crsh-command
+mkfifo /tmp/crsh-command
+
+rm -rf /tmp/crsh-result
+mkfifo /tmp/crsh-result
