@@ -1,3 +1,5 @@
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --location=before --cwd=${dir} --hold sh -c './crsh-remote')
+winid=$(kitty @ launch --location=before --cwd=${dir} sh -c './crsh-remote')
+clear
+# The sleep is a workaround so that the remote has time to create the fifo.
 sleep 1 && ./crsh
