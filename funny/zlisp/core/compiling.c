@@ -10,24 +10,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-EXPORT context context_make() {
-  return (context){};
-}
-
-EXPORT char *context_abort_reason(context *ctxt) {
-  if (!ctxt->aborted) {
-    return NULL;
-  }
-  return ctxt->error;
-}
-
-EXPORT void abortf(context *ctxt, char *format, ...) {
-  va_list args;
-  va_start(args, format);
-  vsnprintf(ctxt->error, 1024, format, args);
-  ctxt->aborted = true;
-}
-
 EXPORT datum prog_compile(vec *sl, datum *source, datum *compdata,
                          extension *ext, context *ctxt) {
   if (!datum_is_list(source)) {

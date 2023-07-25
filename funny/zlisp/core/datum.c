@@ -589,3 +589,22 @@ EXPORT vec list_to_vec(datum *val) {
   assert(datum_is_list(val));
   return array_to_vec(array_copy(&val->_list_value));
 }
+
+EXPORT context context_make() {
+  return (context){};
+}
+
+EXPORT char *context_abort_reason(context *ctxt) {
+  if (!ctxt->aborted) {
+    return NULL;
+  }
+  return ctxt->error;
+}
+
+EXPORT void abortf(context *ctxt, char *format, ...) {
+  va_list args;
+  va_start(args, format);
+  vsnprintf(ctxt->error, 1024, format, args);
+  ctxt->aborted = true;
+}
+
