@@ -8,20 +8,21 @@ if [ ! -p /tmp/crsh-command ]; then
   exit 1
 fi
 
-echo "master will enter the loop" >>/tmp/crsh-log
+echo "client will enter the loop" >>/tmp/crsh-log
 while true; do
-  echo "master will read a line" >>/tmp/crsh-log
+  echo "client will read a line" >>/tmp/crsh-log
   kitty @ focus-window
   ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
-  echo "master did read a line $line" >>/tmp/crsh-log
+  echo "client did read a line $line" >>/tmp/crsh-log
   clear >/dev/tty </dev/tty
   kitty @ focus-window -m "cmdline:.*crsh-.*"
   echo "$line"
-  echo "master did send the line" >>/tmp/crsh-log
+  echo "client did send the line" >>/tmp/crsh-log
   if [ "$line" = "exit" ]; then
     break
   fi
+  echo "client will read a result" >>/tmp/crsh-log
   IFS= read -r res
-  echo "master did read the result $res" >>/tmp/crsh-log
+  echo "client did read the result $res" >>/tmp/crsh-log
 done >/tmp/crsh-command </tmp/crsh-result 
