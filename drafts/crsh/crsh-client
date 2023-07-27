@@ -12,7 +12,7 @@ echo "master will enter the loop" >>/tmp/crsh-log
 while true; do
   echo "master will read a line" >>/tmp/crsh-log
   kitty @ focus-window
-  $(./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty)
+  ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
   echo "master did read a line $line" >>/tmp/crsh-log
   clear >/dev/tty </dev/tty
