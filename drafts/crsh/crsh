@@ -1,4 +1,8 @@
 server=$1
+if [ -z $server ]; then
+	echo "usage: $0 <server>"
+	exit 1
+fi
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
