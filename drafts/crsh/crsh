@@ -1,14 +1,8 @@
-server=$1
-if [ -z $server ]; then
-	echo "usage: $0 <server>"
-	exit 1
-fi
-
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 ./crsh-create-channels
 
-winid=$(kitty @ launch --location=before --cwd=${dir} sh -c "./crsh-remote $server")
+winid=$(kitty @ launch --location=before --cwd=${dir} sh -c "./crsh-remote $@")
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null 
 tput smcup
 ./crsh-client
