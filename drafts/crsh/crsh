@@ -1,9 +1,9 @@
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-./crsh-create-channels
+chan=$(./crsh-create-channels)
 
-winid=$(kitty @ launch --location=before --cwd=${dir} sh -c "./crsh-remote $@")
+winid=$(kitty @ launch --location=before --cwd=${dir} bash -c "./crsh-remote $chan $@")
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null 
 tput smcup
-./crsh-client
+./crsh-client $chan
 tput rmcup

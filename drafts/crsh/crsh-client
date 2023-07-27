@@ -1,12 +1,9 @@
 #!/bin/bash
+chan=$1
+
 echo '' >>/tmp/crsh-log
 echo 'STARTING NEW SESSION' >>/tmp/crsh-log
 echo '' >>/tmp/crsh-log
-
-if [ ! -p /tmp/crsh-command ]; then
-  echo "command pipe not found" >/dev/stderr
-  exit 1
-fi
 
 echo "client will enter the loop" >>/tmp/crsh-log
 while true; do
@@ -28,4 +25,4 @@ while true; do
   if [ "$line" = "exit" ]; then
     break
   fi
-done >/tmp/crsh-command </tmp/crsh-result 
+done >$chan/command <$chan/result 

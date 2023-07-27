@@ -1,5 +1,6 @@
 #!/bin/bash
-server=$1
+chan=$1
+server=$2
 
 echo 'remote started' >>/tmp/crsh-log
 
@@ -8,23 +9,23 @@ scp crsh-create-channels crsh-server $server:/home/$USER/.local/bin >/dev/null 2
 echo 'remote did copy the scripts' >>/tmp/crsh-log
 
 echo 'remote will create channels' >>/tmp/crsh-log
-ssh -tt $server crsh-create-channels 2>/dev/null
+remotechan="$(ssh -T $server crsh-create-channels 2>/dev/null)"
 echo 'remote did create channels' >>/tmp/crsh-log
 
 (
 	echo 'remote will start command forwarding' >>/tmp/crsh-log
-  ssh -T $server 'cat -u >/tmp/crsh-command' </tmp/crsh-command
+  ssh -T $server "cat -u >$remotechan/command" <$chan/command
 	echo 'remote finished command forwarding' >>/tmp/crsh-log
 )&
 echo 'remote scheduled command forwarding' >>/tmp/crsh-log
 {
 	echo 'remote will start result backwarding' >>/tmp/crsh-log
-	ssh $server -T 'cat -u /tmp/crsh-result' >/tmp/crsh-result
+	ssh $server -T "cat -u $remotechan/result" >$chan/result
 	echo 'remote finished result backwarding' >>/tmp/crsh-log
 }&
 echo 'remote sheduled result backwarding' >>/tmp/crsh-log
 
 echo 'remote will invoke ssh' >>/tmp/crsh-log
-ssh -tt $server crsh-server
+ssh -tt $server crsh-server $remotechan
 
 wait

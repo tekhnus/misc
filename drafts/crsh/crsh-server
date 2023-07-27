@@ -1,4 +1,5 @@
 #!/bin/bash
+chan=$1
 
 echo "server will enter the loop" >>/tmp/crsh-log
 
@@ -18,4 +19,4 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		status="$?"
 	  echo 'server did eval' >>/tmp/crsh-log
 	done
-} </tmp/crsh-command >/tmp/crsh-result
+} <$chan/command >$chan/result
