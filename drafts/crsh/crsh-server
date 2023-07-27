@@ -5,8 +5,11 @@ echo "server will enter the loop" >>/tmp/crsh-log
 {
 	tput cup $(tput lines) 0 </dev/tty >/dev/tty 
 	echo "server did enter the loop" >>/tmp/crsh-log
+  status=0
 	while true;
 	do
+		echo "$status"
+	  echo 'server did send status' >>/tmp/crsh-log
 		IFS= read -r cmd
 	  echo "server did read a command $cmd" >>/tmp/crsh-log
 		echo "> $cmd" </dev/tty >/dev/tty
@@ -14,7 +17,5 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		eval "$cmd" </dev/tty >/dev/tty
 		status="$?"
 	  echo 'server did eval' >>/tmp/crsh-log
-		echo "$status"
-	  echo 'server did send status' >>/tmp/crsh-log
 	done
 } </tmp/crsh-command >/tmp/crsh-result

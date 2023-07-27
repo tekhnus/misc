@@ -10,6 +10,9 @@ fi
 
 echo "client will enter the loop" >>/tmp/crsh-log
 while true; do
+  echo "client will read a result" >>/tmp/crsh-log
+  IFS= read -r res
+  echo "client did read the result $res" >>/tmp/crsh-log
   echo "client will read a line" >>/tmp/crsh-log
   kitty @ focus-window
   ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
@@ -22,7 +25,4 @@ while true; do
   if [ "$line" = "exit" ]; then
     break
   fi
-  echo "client will read a result" >>/tmp/crsh-log
-  IFS= read -r res
-  echo "client did read the result $res" >>/tmp/crsh-log
 done >/tmp/crsh-command </tmp/crsh-result 
