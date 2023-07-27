@@ -13,6 +13,9 @@ while true; do
   echo "client will read a result" >>/tmp/crsh-log
   IFS= read -r res
   echo "client did read the result $res" >>/tmp/crsh-log
+  if [ -z "$res" ]; then
+    break
+  fi
   echo "client will read a line" >>/tmp/crsh-log
   kitty @ focus-window
   ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
