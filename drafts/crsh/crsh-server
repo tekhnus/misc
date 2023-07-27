@@ -11,7 +11,6 @@ echo "server will enter the loop" >>/tmp/crsh-log
 	  echo "server did read a command $cmd" >>/tmp/crsh-log
 		echo "> $cmd" </dev/tty >/dev/tty
 	  echo "server will eval $cmd" >>/tmp/crsh-log
-		# vim </dev/tty >/dev/tty
 		eval "$cmd" </dev/tty >/dev/tty
 		status="$?"
 	  echo 'server did eval' >>/tmp/crsh-log

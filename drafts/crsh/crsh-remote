@@ -26,3 +26,5 @@ echo 'remote sheduled result backwarding' >>/tmp/crsh-log
 
 echo 'remote will invoke ssh' >>/tmp/crsh-log
 ssh -tt $server crsh-server
+
+wait
