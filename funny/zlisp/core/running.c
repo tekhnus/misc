@@ -33,7 +33,7 @@ struct prog {
     ptrdiff_t jmp_next;
     struct {
       datum *put_const_target;
-      struct datum *put_const_value;
+      datum *put_const_value;
     };
     struct {
       datum *copy_target;
@@ -44,15 +44,15 @@ struct prog {
       datum *move_offset;
     };
     struct {
-      struct datum *call_indices;
+      datum *call_indices;
       size_t call_capture_count;
-      struct datum *call_type;
-      struct datum *call_arg_indices;
-      struct datum *call_result_indices;
+      datum *call_type;
+      datum *call_arg_indices;
+      datum *call_result_indices;
     };
     struct {
-      struct datum *collect_indices;
-      struct datum *collect_target;
+      datum *collect_indices;
+      datum *collect_target;
     };
     struct {
       datum *put_prog_target;
@@ -60,10 +60,10 @@ struct prog {
       ptrdiff_t put_prog_next;
     };
     struct {
-      struct datum *yield_type;
-      struct datum *yield_val_index;
-      struct datum *yield_recieve_indices;
-      struct datum *yield_meta;
+      datum *yield_type;
+      datum *yield_val_index;
+      datum *yield_recieve_indices;
+      datum *yield_meta;
     };
   };
 };
