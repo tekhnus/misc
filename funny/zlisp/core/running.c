@@ -314,7 +314,10 @@ LOCAL routine make_routine_from_indices(routine *r,
     if (ctxt->aborted) {
       return (routine){};
     }
-    routine_merge(&rt, &nr);
+    routine_merge(&rt, &nr, ctxt);
+    if (ctxt->aborted) {
+      return (routine){};
+    }
   }
   bool good = true;
   for (size_t i = 0; i < routine_get_count(&rt); ++i) {
@@ -344,8 +347,11 @@ LOCAL routine routine_get_prefix(routine *r,
   return rt;
 }
 
-LOCAL void routine_merge(routine *r, routine *rt_tail) {
-  assert(r->cnt > 0);
+LOCAL void routine_merge(routine *r, routine *rt_tail, context *ctxt) {
+  if(r->cnt == 0) {
+    abortf(ctxt, "empty routine");
+    return;
+  }
   // We chop off the program counter.
   --r->cnt;
   for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
