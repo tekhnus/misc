@@ -114,20 +114,6 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args,
         print_frame(sl, r);
         return (result){};
       }
-      bool good = true;
-      for (size_t i = 0; i < routine_get_count(&rt); ++i) {
-        if ((i == 0 && -1 != (rt.frames[0].parent_type_id)) ||
-            (i > 0 && (rt.frames[i].parent_type_id !=
-                       rt.frames[i - 1].type_id))) {
-          good = false;
-          break;
-        }
-      }
-      if (!good) {
-        abortf(ctxt, "wrong call, frame types are wrong\n");
-        print_frame(sl, r);
-        return (result){};
-      }
       result err = routine_run_impl(sl, &rt, args, ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
@@ -329,6 +315,19 @@ LOCAL routine make_routine_from_indices(routine *r,
       return (routine){};
     }
     routine_merge(&rt, &nr);
+  }
+  bool good = true;
+  for (size_t i = 0; i < routine_get_count(&rt); ++i) {
+    if ((i == 0 && -1 != (rt.frames[0].parent_type_id)) ||
+        (i > 0 && (rt.frames[i].parent_type_id !=
+                   rt.frames[i - 1].type_id))) {
+      good = false;
+      break;
+    }
+  }
+  if (!good) {
+    abortf(ctxt, "wrong call, frame types are wrong\n");
+    return (routine){};
   }
   return rt;
 }
