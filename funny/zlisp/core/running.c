@@ -163,7 +163,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         print_frame(sl, r);
         return (result){};
       }
-      state_stack_set_many_2(r, datum_copy(prg.yield_recieve_indices), args, ctxt);
+      state_stack_set_many_2(r, datum_copy(prg.yield_recieve_indices), args,
+                             ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
         return (result){};
@@ -188,8 +189,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
         size_t cnt = list_length(prg.yield_val_index);
-        datum res =
-            state_stack_invalidate_many_2(r, cnt, first_index, ctxt);
+        datum res = state_stack_invalidate_many_2(r, cnt, first_index, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -202,8 +202,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_CALL) {
         datum arg_indices = datum_copy(prg.call_arg_indices);
         size_t argcnt = list_length(&arg_indices);
-        args =
-            state_stack_invalidate_many_2(r, argcnt, arg_indices, ctxt);
+        args = state_stack_invalidate_many_2(r, argcnt, arg_indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -280,8 +279,7 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_COLLECT) {
         datum indices = datum_copy(prg.collect_indices);
         size_t cnt = list_length(&indices);
-        datum form = state_stack_invalidate_many_2(r, cnt,
-                                                 indices, ctxt);
+        datum form = state_stack_invalidate_many_2(r, cnt, indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -451,9 +449,9 @@ LOCAL datum state_stack_set(routine *r, datum *target, datum value,
 }
 
 LOCAL datum state_stack_set_many_2(routine *r, datum indices, datum list,
-                                 context *ctxt) {
-  datum form =
-      datum_make_list_vec(vec_make_copies(list_length(&list), datum_make_nil()));
+                                   context *ctxt) {
+  datum form = datum_make_list_vec(
+      vec_make_copies(list_length(&list), datum_make_nil()));
   assert(datum_is_list(&list));
   assert(list_length(&list) == list_length(&indices));
   for (int i = 0; i < list_length(&list); ++i) {
@@ -471,11 +469,11 @@ LOCAL datum state_stack_invalidate(routine *r, datum polyindex, context *ctxt) {
 }
 
 LOCAL datum state_stack_invalidate_many_2(routine *r, size_t count,
-                                        datum indices, context *ctxt) {
-  return state_stack_set_many_2(
-      r, indices,
-      datum_make_list_vec(vec_make_copies(count, datum_make_symbol(":invalid"))),
-      ctxt);
+                                          datum indices, context *ctxt) {
+  return state_stack_set_many_2(r, indices,
+                                datum_make_list_vec(vec_make_copies(
+                                    count, datum_make_symbol(":invalid"))),
+                                ctxt);
 }
 
 EXPORT datum routine_make_topmost(int64_t prg) {

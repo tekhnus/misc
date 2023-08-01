@@ -17,8 +17,8 @@ EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL datum lisp_extension_call(extension *self_, vec *sl, datum *source, int *i,
-                               datum *compdata, context *ctxt) {
+LOCAL datum lisp_extension_call(extension *self_, vec *sl, datum *source,
+                                int *i, datum *compdata, context *ctxt) {
   extension nu = null_extension_make();
   int i_val = *i;
   null_extension_call(&nu, sl, source, i, compdata, ctxt);
@@ -102,7 +102,7 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
 }
 
 LOCAL datum null_extension_call(extension *self, vec *sl, datum *source, int *i,
-                               datum *compdata, context *ctxt) {
+                                datum *compdata, context *ctxt) {
   datum *op = list_at(source, *i);
   datum stmt;
   if (datum_is_the_symbol(op, "req")) {
@@ -195,7 +195,8 @@ LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
     vec_append(&vars, datum_copy(item_var));
     vec_append(&specs, item_spec);
   }
-  return datum_make_list_of(datum_make_list_vec(vars), datum_make_list_vec(specs));
+  return datum_make_list_of(datum_make_list_vec(vars),
+                            datum_make_list_vec(specs));
 }
 
 LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,

@@ -63,8 +63,8 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
 }
 
 EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
-                         datum *builder_compdata, datum settings,
-                         extension *ext, context *ctxt) {
+                        datum *builder_compdata, datum settings, extension *ext,
+                        context *ctxt) {
   size_t start_p = prog_get_next_index(sl);
   prog_compile(sl, source, compdata, ext, ctxt);
   if (ctxt->aborted) {

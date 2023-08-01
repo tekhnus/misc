@@ -49,7 +49,7 @@ struct context {
 typedef struct extension extension;
 struct extension {
   datum (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata,
-               context *ctxt);
+                context *ctxt);
 };
 typedef struct lisp_extension lisp_extension;
 

@@ -211,12 +211,12 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
       return NULL;
     }
   } else if (!strcmp(datum_get_symbol(definition), "datum")) {
-    *result = *ffi_type_init_struct(
-        cifd,
-        datum_make_list_of(
-            datum_make_symbol("uint8_t"), datum_make_symbol("array"),
-            datum_make_symbol("blob") ),
-        ctxt);
+    *result =
+        *ffi_type_init_struct(cifd,
+                              datum_make_list_of(datum_make_symbol("uint8_t"),
+                                                 datum_make_symbol("array"),
+                                                 datum_make_symbol("blob")),
+                              ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
@@ -350,9 +350,8 @@ LOCAL datum builtin_serialize(datum *args, context *ctxt) {
   }
   datum *d = list_at(form, 0);
   if (datum_is_bytestring(d)) {
-    blob b = blob_make_copy(
-      datum_get_bytestring(d),
-      1 + strlen(datum_get_bytestring(d)));
+    blob b = blob_make_copy(datum_get_bytestring(d),
+                            1 + strlen(datum_get_bytestring(d)));
     return datum_make_list_of(datum_make_blob(b));
   }
   if (datum_is_integer(d)) {

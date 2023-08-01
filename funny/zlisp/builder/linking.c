@@ -19,8 +19,8 @@ EXPORT size_t prog_build_init(vec *sl, datum *compdata, datum *builder_compdata,
     return 0;
   }
   size_t bdr_put_prog = prog_get_next_index(sl);
-  datum *bdr_put_prog_ = prog_define_routine(
-      sl, datum_make_symbol("__main__"), builder_compdata, ctxt);
+  datum *bdr_put_prog_ = prog_define_routine(sl, datum_make_symbol("__main__"),
+                                             builder_compdata, ctxt);
   if (ctxt->aborted) {
     return 0;
   }

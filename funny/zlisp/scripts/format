@@ -1,6 +1,6 @@
 list_sources() {
-  fdfind -E 'tools/*' '.*[.]c'
+  fd -E 'tools/*' '.*[.]c'
   echo core/types.h
 }
 
-clang-format-13 -i $(list_sources)
+clang-format -i $(list_sources)

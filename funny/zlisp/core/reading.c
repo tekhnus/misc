@@ -236,8 +236,8 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
       vec_extend(&list, &elem);
     }
     if (tok.type == TOKEN_LEFT_PAREN) {
-      return datum_make_list_of(
-          datum_make_list_of(datum_make_symbol("call"), datum_make_list_vec(list)));
+      return datum_make_list_of(datum_make_list_of(datum_make_symbol("call"),
+                                                   datum_make_list_vec(list)));
     }
     if (tok.type == TOKEN_LEFT_SQUARE) {
       return datum_make_list_of(datum_make_list_vec(list));

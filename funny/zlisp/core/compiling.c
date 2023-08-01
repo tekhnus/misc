@@ -11,7 +11,7 @@
 #include <string.h>
 
 EXPORT datum prog_compile(vec *sl, datum *source, datum *compdata,
-                         extension *ext, context *ctxt) {
+                          extension *ext, context *ctxt) {
   if (!datum_is_list(source)) {
     abortf(ctxt, "source should be a list, got %s", datum_repr(source));
     return (datum){};
@@ -33,16 +33,15 @@ EXPORT datum prog_compile(vec *sl, datum *source, datum *compdata,
                         datum_make_list_of(datum_make_symbol("debugger"),
                                            datum_make_symbol("statement"),
                                            list_copy(source, i_before, i)),
-                        datum_make_nil(), 0,
-                        datum_make_nil(), compdata);
+                        datum_make_nil(), 0, datum_make_nil(), compdata);
     }
   }
   return datum_make_list_vec(res);
 }
 
 LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
-                                  datum *compdata, extension *ext,
-                                  context *ctxt) {
+                                   datum *compdata, extension *ext,
+                                   context *ctxt) {
   int i_val = *i;
   datum res = ext->call(ext, sl, source, i, compdata, ctxt);
   if (ctxt->aborted) {
@@ -53,7 +52,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   }
   datum *head = list_at(source, (*i)++);
   if (datum_is_the_symbol(head, "if")) {
-    datum conditions = prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum conditions =
+        prog_append_expression(sl, source, i, compdata, ext, ctxt);
     assert(list_length(&conditions) == 1);
     datum *condition = list_at(&conditions, 0);
 
@@ -70,7 +70,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     size_t true_end = prog_append_something(sl); // filled below.
     *vec_at(sl, if_instruction) =
         prog_get_if(prog_get_next_index(sl) - if_instruction, *condition);
-    datum res2 = prog_append_expression(sl, source, i, &false_compdata, ext, ctxt);
+    datum res2 =
+        prog_append_expression(sl, source, i, &false_compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return (datum){};
@@ -89,7 +90,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   if (datum_is_the_symbol(head, "while")) {
     size_t pre_condition_check = prog_get_next_index(sl);
     datum pre_condition_check_compdata = datum_copy(compdata);
-    datum conditions = prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum conditions =
+        prog_append_expression(sl, source, i, compdata, ext, ctxt);
     assert(list_length(&conditions) == 1);
     datum *condition = list_at(&conditions, 0);
 
@@ -110,7 +112,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     size_t jump_back = prog_append_something(sl); // filled immediately.
     *vec_at(sl, jump_back) = prog_get_jmp(pre_condition_check - jump_back);
     size_t loop_end = prog_get_next_index(sl);
-    *vec_at(sl, condition_check) = prog_get_if(loop_end - condition_check, *condition);
+    *vec_at(sl, condition_check) =
+        prog_get_if(loop_end - condition_check, *condition);
     // FIXME!!!
     return datum_make_nil();
   }
@@ -128,7 +131,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     } else {
       names = datum_make_list_of(datum_copy(head));
     }
-    if(list_length(&res) != list_length(&names)) {
+    if (list_length(&res) != list_length(&names)) {
       abortf(ctxt, "wrong assignment count: %s", datum_repr(source));
       return (datum){};
     }
@@ -141,7 +144,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
   if (*i < list_length(source) &&
       datum_is_the_symbol(list_at(source, *i), "=")) {
     (*i)++;
-    datum rhs_elements = prog_append_expression(sl, source, i, compdata, ext, ctxt);
+    datum rhs_elements =
+        prog_append_expression(sl, source, i, compdata, ext, ctxt);
 
     if (ctxt->aborted) {
       return (datum){};
@@ -168,14 +172,13 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     if (datum_is_the_symbol(head, "magically_called_fn")) {
       datum target = datum_make_symbol("plain");
       datum met = datum_make_nil();
-      prog_append_yield(sl, target,
-                        datum_make_nil(), 0,
-                        met, &routine_compdata);
+      prog_append_yield(sl, target, datum_make_nil(), 0, met,
+                        &routine_compdata);
     }
     datum *args = list_at(source, (*i)++);
     datum argindices = prog_append_yield(sl, datum_make_symbol("plain"),
-                      datum_make_nil(),
-                      list_length(args), datum_make_nil(), &routine_compdata);
+                                         datum_make_nil(), list_length(args),
+                                         datum_make_nil(), &routine_compdata);
     compdata_give_names(&routine_compdata, &argindices, args, ctxt);
     if (ctxt->aborted) {
       return (datum){};
@@ -186,9 +189,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     }
     datum errm = datum_make_bytestring("routine guard reached");
     datum polyi = prog_append_put_const(sl, &errm, &routine_compdata);
-    prog_append_yield(sl, datum_make_symbol("panic"),
-                      datum_make_list_of(polyi), 0,
-                      datum_make_nil(), &routine_compdata);
+    prog_append_yield(sl, datum_make_symbol("panic"), datum_make_list_of(polyi),
+                      0, datum_make_nil(), &routine_compdata);
 
     *vec_at(sl, put_prog_off) =
         prog_get_put_prog(&pi, prog_get_next_index(sl) - put_prog_off, 2);
@@ -227,7 +229,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
     if (ctxt->aborted) {
       return (datum){};
     }
-    return prog_append_yield(sl, target, yielded, recieve_count, meta, compdata);
+    return prog_append_yield(sl, target, yielded, recieve_count, meta,
+                             compdata);
   }
   if (datum_is_the_symbol(head, "flat")) {
     datum *arg = list_at(source, (*i)++);
@@ -279,7 +282,8 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
         return (datum){};
       }
     }
-    datum index = prog_append_collect(sl, datum_make_list_vec(indices), compdata);
+    datum index =
+        prog_append_collect(sl, datum_make_list_vec(indices), compdata);
     return datum_make_list_of(index);
   }
   if (datum_is_constant(head)) {
@@ -295,7 +299,7 @@ LOCAL datum prog_append_expression(vec *sl, datum *source, int *i,
 }
 
 LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
-                             extension *ext, context *ctxt) {
+                              extension *ext, context *ctxt) {
   datum *fn = list_at(s_expr, 0);
   datum target = datum_make_symbol("plain");
   bool target_is_set = false;
@@ -368,7 +372,8 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
       }
       vec_append(&indices, idx);
     } else {
-      datum xx = prog_append_expression(sl, fns, &fn_index, compdata, ext, ctxt);
+      datum xx =
+          prog_append_expression(sl, fns, &fn_index, compdata, ext, ctxt);
       assert(list_length(&xx) == 1);
 
       if (ctxt->aborted) {
@@ -379,15 +384,17 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr, datum *compdata,
   }
   vec arg_indices = vec_make(0);
   while (index < list_length(s_expr)) {
-    datum arg_idx = prog_append_expression(sl, s_expr, &index, compdata, ext, ctxt);
+    datum arg_idx =
+        prog_append_expression(sl, s_expr, &index, compdata, ext, ctxt);
     vec_extend(&arg_indices, &arg_idx);
 
     if (ctxt->aborted) {
       return (datum){};
     }
   }
-  return prog_append_call(sl, capture_size, datum_make_list_vec(indices), !mut, target,
-                   ret_count, datum_make_list_vec(arg_indices), compdata);
+  return prog_append_call(sl, capture_size, datum_make_list_vec(indices), !mut,
+                          target, ret_count, datum_make_list_vec(arg_indices),
+                          compdata);
 }
 
 EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
@@ -398,9 +405,8 @@ EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
 }
 
 LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
-                            bool pop_one, datum type,
-                            int return_count, datum arg_indices,
-                            datum *compdata) {
+                             bool pop_one, datum type, int return_count,
+                             datum arg_indices, datum *compdata) {
   assert(datum_is_list(&indices));
   assert(!datum_is_nil(&indices));
   compdata_invalidate(compdata, &arg_indices);
@@ -414,10 +420,9 @@ LOCAL datum prog_append_call(vec *sl, size_t capture_size, datum indices,
     *array_at(&res, i) = idx;
   }
   datum result_indices = datum_make_list(res);
-  vec_append(sl, datum_make_list_of(
-                     datum_make_symbol(":call"), datum_make_int(capture_size),
-                     indices, type,
-                     arg_indices, result_indices));
+  vec_append(sl, datum_make_list_of(datum_make_symbol(":call"),
+                                    datum_make_int(capture_size), indices, type,
+                                    arg_indices, result_indices));
   return result_indices;
 }
 
@@ -447,8 +452,8 @@ LOCAL void prog_append_move(vec *sl, datum *target, datum *source,
 }
 
 LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_indices,
-                             size_t recieve_count, datum meta,
-                             datum *compdata) {
+                              size_t recieve_count, datum meta,
+                              datum *compdata) {
   compdata_invalidate(compdata, &yield_indices);
   array res = array_make(recieve_count);
   for (size_t i = 0; i < recieve_count; ++i) {
@@ -457,8 +462,7 @@ LOCAL datum prog_append_yield(vec *sl, datum type, datum yield_indices,
   }
   datum recieve_indices = datum_make_list(res);
   vec_append(sl, datum_make_list_of(datum_make_symbol(":yield"), type,
-                                    yield_indices,
-                                    recieve_indices, meta));
+                                    yield_indices, recieve_indices, meta));
   return recieve_indices;
 }
 
@@ -475,19 +479,18 @@ LOCAL datum prog_append_put_const(vec *sl, datum *val, datum *compdata) {
   return target_polyindex;
 }
 
-LOCAL datum prog_append_collect(vec *sl, datum indices,
-                               datum *compdata) {
+LOCAL datum prog_append_collect(vec *sl, datum indices, datum *compdata) {
   size_t count = list_length(&indices);
   compdata_invalidate(compdata, &indices);
   datum res = compdata_put(compdata, datum_make_symbol(":anon"));
   assert(count == (size_t)list_length(&indices));
-  vec_append(sl, datum_make_list_of(datum_make_symbol(":collect"),
-                                    res, indices));
+  vec_append(sl,
+             datum_make_list_of(datum_make_symbol(":collect"), res, indices));
   return res;
 }
 
 EXPORT datum *prog_define_routine(vec *sl, datum name, datum *compdata,
-                                      context *ctxt) {
+                                  context *ctxt) {
   datum target = compdata_put(compdata, datum_make_symbol(":anon"));
   datum ins = prog_get_put_prog(&target, 100500, 0);
   vec_append(sl, ins);
@@ -543,8 +546,7 @@ LOCAL datum compdata_put(datum *compdata, datum var) {
     datum *item = list_at(last_frame, i);
     if (datum_is_the_symbol(item, ":invalid")) {
       *item = var;
-      return datum_make_list_of(datum_make_int(frames - 1),
-                              datum_make_int(i));
+      return datum_make_list_of(datum_make_int(frames - 1), datum_make_int(i));
     }
   }
   list_append_slow(last_frame, var);
@@ -596,8 +598,10 @@ LOCAL datum *compdata_at(datum *compdata, datum *idx) {
   return list_at(frame, j);
 }
 
-LOCAL void compdata_give_names(datum *compdata, datum *indices, datum *var, context *ctxt) {
-  if (ctxt == ctxt + 1) {}
+LOCAL void compdata_give_names(datum *compdata, datum *indices, datum *var,
+                               context *ctxt) {
+  if (ctxt == ctxt + 1) {
+  }
   assert(list_length(indices) == list_length(var));
   for (int i = 0; i < list_length(indices); ++i) {
     datum *vari = list_at(var, i);
@@ -606,8 +610,8 @@ LOCAL void compdata_give_names(datum *compdata, datum *indices, datum *var, cont
   }
 }
 
-LOCAL void move_values_to_variables(vec *sl, datum *var, datum *rhs_elements, datum *compdata,
-                                    context *ctxt) {
+LOCAL void move_values_to_variables(vec *sl, datum *var, datum *rhs_elements,
+                                    datum *compdata, context *ctxt) {
   assert(list_length(var) == list_length(rhs_elements));
   for (int i = 0; i < list_length(var); ++i) {
     int idx = list_length(var) - i - 1;
@@ -632,7 +636,8 @@ LOCAL void compdata_merge(datum *aa, datum *bb, context *ctxt) {
   assert(list_length(a) <= list_length(b));
   for (int i = 0; i < list_length(a); ++i) {
     if (!datum_eq(list_at(a, i), list_at(b, i))) {
-      abortf(ctxt, "can't merge compdata, non-equal prefixes: %s %s", datum_repr(a), datum_repr(b));
+      abortf(ctxt, "can't merge compdata, non-equal prefixes: %s %s",
+             datum_repr(a), datum_repr(b));
       return;
     }
   }

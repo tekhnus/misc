@@ -80,8 +80,8 @@ datum builtin_add(datum *args, context *ctxt) {
     abortf(ctxt, "expected integers");
     return (datum){};
   }
-  return (
-      datum_make_list_of(datum_make_int(datum_get_integer(x) + datum_get_integer(y))));
+  return (datum_make_list_of(
+      datum_make_int(datum_get_integer(x) + datum_get_integer(y))));
 }
 
 datum builtin_cons(datum *args, context *ctxt) {
@@ -122,7 +122,8 @@ datum builtin_len(datum *args, context *ctxt) {
   assert(list_length(args) == 1);
   datum *arg = list_at(args, 0);
   if (datum_is_blob(arg)) {
-    return datum_make_list_of(datum_make_int(blob_get_length(datum_get_blob(arg))));
+    return datum_make_list_of(
+        datum_make_int(blob_get_length(datum_get_blob(arg))));
   }
   abortf(ctxt, "unsupported type for len");
   return (datum){};

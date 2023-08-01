@@ -76,9 +76,7 @@ EXPORT char *datum_get_bytestring(datum *d) {
   return blob_get_begin(&d->_leaf_value);
 }
 
-EXPORT int64_t datum_get_integer(datum *d) {
-  return *datum_get_integer_ptr(d);
-}
+EXPORT int64_t datum_get_integer(datum *d) { return *datum_get_integer_ptr(d); }
 
 EXPORT int64_t *datum_get_integer_ptr(datum *d) {
   assert(datum_is_integer(d));
@@ -92,12 +90,10 @@ EXPORT void *blob_get_begin(blob *b) {
   return b->_begin;
 }
 
-EXPORT size_t blob_get_length(blob *b) {
-  return b->_length;
-}
+EXPORT size_t blob_get_length(blob *b) { return b->_length; }
 
 EXPORT void **datum_get_pointer(datum *d, context *ctxt) {
-  if(!datum_is_blob(d)) {
+  if (!datum_is_blob(d)) {
     abortf(ctxt, "expected a pointer, got %s", datum_repr(d));
     return NULL;
   }
@@ -471,9 +467,7 @@ EXPORT datum datum_make_list(array v) {
   return (res);
 }
 
-EXPORT datum datum_make_nil() {
-  return datum_make_list_of();
-}
+EXPORT datum datum_make_nil() { return datum_make_list_of(); }
 
 EXPORT bool datum_is_list(datum *e) { return e->_type == DATUM_LIST; }
 
@@ -590,9 +584,7 @@ EXPORT vec list_to_vec(datum *val) {
   return array_to_vec(array_copy(&val->_list_value));
 }
 
-EXPORT context context_make() {
-  return (context){};
-}
+EXPORT context context_make() { return (context){}; }
 
 EXPORT char *context_abort_reason(context *ctxt) {
   if (!ctxt->aborted) {
@@ -607,4 +599,3 @@ EXPORT void abortf(context *ctxt, char *format, ...) {
   vsnprintf(ctxt->error, 1024, format, args);
   ctxt->aborted = true;
 }
-
