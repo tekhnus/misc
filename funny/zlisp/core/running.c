@@ -319,19 +319,6 @@ LOCAL routine make_routine_from_indices(routine *r,
       return (routine){};
     }
   }
-  bool good = true;
-  for (size_t i = 0; i < routine_get_count(&rt); ++i) {
-    if ((i == 0 && -1 != (rt.frames[0].parent_type_id)) ||
-        (i > 0 && (rt.frames[i].parent_type_id !=
-                   rt.frames[i - 1].type_id))) {
-      good = false;
-      break;
-    }
-  }
-  if (!good) {
-    abortf(ctxt, "wrong call, frame types are wrong\n");
-    return (routine){};
-  }
   return rt;
 }
 
@@ -347,13 +334,23 @@ LOCAL routine routine_get_prefix(routine *r,
   return rt;
 }
 
-LOCAL void routine_merge(routine *r, routine *rt_tail, context *ctxt) {
-  if(r->cnt == 0) {
+LOCAL void routine_merge(routine *r, routine *rt_tail,
+                         context *ctxt) {
+  if (r->cnt == 0 || rt_tail->cnt == 0) {
     abortf(ctxt, "empty routine");
     return;
   }
   // We chop off the program counter.
   --r->cnt;
+  if (r->cnt == 0 && rt_tail->frames[0].parent_type_id != -1) {
+    abortf(ctxt, "bad frame type");
+    return;
+  }
+  if (r->cnt > 0 && rt_tail->frames[0].parent_type_id !=
+                        r->frames[r->cnt - 1].type_id) {
+    abortf(ctxt, "bad frame type");
+    return;
+  }
   for (size_t j = 0; j < routine_get_count(rt_tail); ++j) {
     r->frames[r->cnt++] = rt_tail->frames[j];
   }
