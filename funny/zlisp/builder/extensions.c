@@ -6,7 +6,8 @@
 #include <zlisp/host-ffi.h>
 #endif
 
-EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
+EXPORT struct lisp_extension
+standard_extension_make(context *ctxt) {
   vec program;
   datum routine_;
   datum compdata;
@@ -14,11 +15,13 @@ EXPORT struct lisp_extension standard_extension_make(context *ctxt) {
   if (ctxt->aborted) {
     return (struct lisp_extension){};
   }
-  return lisp_extension_make(program, routine_, compdata, host_ffi_run);
+  return lisp_extension_make(program, routine_, compdata,
+                             host_ffi_run);
 }
 
 LOCAL void standard_extension_init(vec *program, datum *routine_,
-                                   datum *compdata, context *ctxt) {
+                                   datum *compdata,
+                                   context *ctxt) {
   *program = vec_make(0);
   size_t lisp_extension_builder_prg = 0;
   *routine_ = routine_make_topmost(lisp_extension_builder_prg);
@@ -40,13 +43,15 @@ LOCAL void standard_extension_init(vec *program, datum *routine_,
     return;
   }
   datum set = datum_make_bytestring("c-prelude");
-  prog_build(program, &lisp_extension_builder_prg, &initialization_statements,
-             compdata, &lisp_extension_builder_compdata, set,
+  prog_build(program, &lisp_extension_builder_prg,
+             &initialization_statements, compdata,
+             &lisp_extension_builder_compdata, set,
              &lisp_extension_ext, ctxt);
   if (ctxt->aborted) {
     return;
   }
-  result init_res = host_ffi_run(program, routine_, datum_make_nil(), ctxt);
+  result init_res =
+      host_ffi_run(program, routine_, datum_make_nil(), ctxt);
   if (ctxt->aborted) {
     return;
   }

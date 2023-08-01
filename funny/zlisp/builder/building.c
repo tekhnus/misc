@@ -23,7 +23,8 @@ EXPORT datum file_source(char *fname, context *ctxt) {
   return datum_make_list_vec(rr);
 }
 
-EXPORT void module_to_filename(char *fname, char *module, context *ctxt) {
+EXPORT void module_to_filename(char *fname, char *module,
+                               context *ctxt) {
   char *zlisp_home = getenv("ZLISP");
   if (zlisp_home == NULL) {
     abortf(ctxt, "ZLISP variable not defined");
@@ -35,7 +36,8 @@ EXPORT void module_to_filename(char *fname, char *module, context *ctxt) {
   strcat(fname, "/main.lisp");
 }
 
-EXPORT datum compile_module(char *module, datum *settings, extension *extension,
+EXPORT datum compile_module(char *module, datum *settings,
+                            extension *extension,
                             context *ctxt) {
   if (!datum_is_bytestring(settings)) {
     abortf(ctxt, "settings should be a string");
@@ -62,8 +64,9 @@ EXPORT datum compile_module(char *module, datum *settings, extension *extension,
   return (datum_make_list_vec(sl));
 }
 
-EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
-                        datum *builder_compdata, datum settings, extension *ext,
+EXPORT void *prog_build(vec *sl, size_t *bp, datum *source,
+                        datum *compdata, datum *builder_compdata,
+                        datum settings, extension *ext,
                         context *ctxt) {
   size_t start_p = prog_get_next_index(sl);
   prog_compile(sl, source, compdata, ext, ctxt);
@@ -73,10 +76,13 @@ EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   datum *input_meta = extract_meta(*sl, start_p);
 
   vec return_expr = vec_make_of(
-      datum_make_nil(), datum_make_symbol(":="), datum_make_symbol("return"),
-      datum_make_symbol("at"), datum_make_list_of(datum_make_symbol("halt")),
-      datum_make_symbol("at"), datum_make_list_of(datum_make_int(0)),
-      datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
+      datum_make_nil(), datum_make_symbol(":="),
+      datum_make_symbol("return"), datum_make_symbol("at"),
+      datum_make_list_of(datum_make_symbol("halt")),
+      datum_make_symbol("at"),
+      datum_make_list_of(datum_make_int(0)),
+      datum_make_symbol("flat"),
+      datum_make_list_of(datum_make_nil()));
   datum ret_exp = datum_make_list_vec(return_expr);
   prog_compile(sl, &ret_exp, builder_compdata, ext, ctxt);
   if (ctxt->aborted) {
@@ -86,8 +92,8 @@ EXPORT void *prog_build(vec *sl, size_t *bp, datum *source, datum *compdata,
   datum *p_end_ = prog_append_jmp(sl); // filled below.
   assert(bp != NULL);
   *vec_at(sl, *bp) = prog_get_jmp(prog_get_next_index(sl) - *bp);
-  prog_link_deps(sl, builder_compdata, input_meta, compile_module, &settings,
-                 ext, ctxt);
+  prog_link_deps(sl, builder_compdata, input_meta,
+                 compile_module, &settings, ext, ctxt);
   if (ctxt->aborted) {
     return 0;
   }

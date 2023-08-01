@@ -48,8 +48,8 @@ struct context {
 };
 typedef struct extension extension;
 struct extension {
-  datum (*call)(extension *self, vec *sl, datum *stmt, int *i, datum *compdata,
-                context *ctxt);
+  datum (*call)(extension *self, vec *sl, datum *stmt, int *i,
+                datum *compdata, context *ctxt);
 };
 typedef struct lisp_extension lisp_extension;
 
@@ -61,10 +61,12 @@ struct lisp_extension {
   result (*runner)(vec *, datum *, datum, context *);
 };
 
-#define datum_make_list_of(...)                                                \
-  datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),      \
+#define datum_make_list_of(...)                                 \
+  datum_make_list_of_impl(sizeof((datum[]){__VA_ARGS__}) /      \
+                              sizeof(datum),                    \
                           (datum[]){__VA_ARGS__})
 
-#define vec_make_of(...)                                                       \
-  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) / sizeof(datum),             \
+#define vec_make_of(...)                                        \
+  vec_make_of_impl(sizeof((datum[]){__VA_ARGS__}) /             \
+                       sizeof(datum),                           \
                    (datum[]){__VA_ARGS__})

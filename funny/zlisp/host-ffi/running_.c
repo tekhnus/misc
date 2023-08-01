@@ -16,7 +16,8 @@ struct cif_and_data {
 };
 #include <running_.h>
 
-EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
+EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args,
+                           context *ctxt) {
   result res;
   datum current_statement = datum_make_nil();
   for (;;) {
@@ -28,7 +29,8 @@ EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
     }
     datum *sec = &res.value;
     datum *yield_type = &res.type;
-    if (datum_is_list(yield_type) && list_length(yield_type) == 2 &&
+    if (datum_is_list(yield_type) &&
+        list_length(yield_type) == 2 &&
         datum_is_the_symbol(list_at(yield_type, 0), "host")) {
       datum handler_res = host_ffi(yield_type, sec, ctxt);
       if (ctxt->aborted) {
@@ -39,8 +41,10 @@ EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
       args = handler_res;
       continue;
     }
-    if (datum_is_list(yield_type) && list_length(yield_type) == 3 &&
-        datum_is_the_symbol(list_at(yield_type, 0), "debugger")) {
+    if (datum_is_list(yield_type) &&
+        list_length(yield_type) == 3 &&
+        datum_is_the_symbol(list_at(yield_type, 0),
+                            "debugger")) {
       datum *cmd = list_at(yield_type, 1);
       if (datum_is_the_symbol(cmd, "statement")) {
         current_statement = *list_at(yield_type, 2);
@@ -54,10 +58,12 @@ EXPORT result host_ffi_run(vec *sl, datum *r0d, datum args, context *ctxt) {
     break;
   }
   if (datum_is_the_symbol(&res.type, "panic")) {
-    fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
+    fprintf(stderr, "CURRENT STATEMENT: %s\n",
+            datum_repr(&current_statement));
   }
   if (datum_is_the_symbol(&res.type, "interpreter-panic")) {
-    fprintf(stderr, "CURRENT STATEMENT: %s\n", datum_repr(&current_statement));
+    fprintf(stderr, "CURRENT STATEMENT: %s\n",
+            datum_repr(&current_statement));
   }
   return res;
 }
@@ -74,16 +80,19 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   datum res;
   if (!strcmp(datum_get_bytestring(name), "call-builtin")) {
     if (!datum_is_list(args) || list_length(args) == 0) {
-      abortf(ctxt, "call-builtin expected at least a single arg");
+      abortf(ctxt,
+             "call-builtin expected at least a single arg");
       return (datum){};
     }
     datum *fn = list_at(args, 0);
     datum callargs = list_get_tail(args);
-    datum (*fnptr)(datum *, context *) = datum_get_builtin_ptr(fn, ctxt);
+    datum (*fnptr)(datum *, context *) =
+        datum_get_builtin_ptr(fn, ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
-    // fprintf(stderr, "call extension %p %s\n", fnptr, datum_repr(args));
+    // fprintf(stderr, "call extension %p %s\n", fnptr,
+    // datum_repr(args));
     datum results = fnptr(&callargs, ctxt);
     if (ctxt->aborted) {
       return (datum){};
@@ -91,7 +100,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
     return results;
   } else if (!strcmp(datum_get_bytestring(name), "deref")) {
     res = datum_make_pointer(builtin_deref);
-  } else if (!strcmp(datum_get_bytestring(name), "copy-to-memory")) {
+  } else if (!strcmp(datum_get_bytestring(name),
+                     "copy-to-memory")) {
     res = datum_make_pointer(builtin_copy_to_memory);
   } else if (!strcmp(datum_get_bytestring(name), "serialize")) {
     res = datum_make_pointer(builtin_serialize);
@@ -124,7 +134,8 @@ LOCAL datum host_ffi(datum *type, datum *args, context *ctxt) {
   return (datum_make_list_of(res));
 }
 
-LOCAL ffi_type **cifd_alloc_pointers(struct cif_and_data *cifd, size_t count) {
+LOCAL ffi_type **cifd_alloc_pointers(struct cif_and_data *cifd,
+                                     size_t count) {
   ffi_type **result = cifd->pointers + cifd->npointers;
   cifd->npointers += count;
   return result;
@@ -136,10 +147,11 @@ LOCAL ffi_type *cifd_alloc_type(struct cif_and_data *cifd) {
   return result;
 }
 
-LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
-                              context *ctxt) {
+LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd,
+                              datum *definition, context *ctxt) {
   ffi_type *result = cifd_alloc_type(cifd);
-  if (datum_is_list(definition) && list_length(definition) == 2) {
+  if (datum_is_list(definition) &&
+      list_length(definition) == 2) {
     datum *sz = list_at(definition, 0);
     assert(datum_is_integer(sz));
     size_t siz = datum_get_integer(sz);
@@ -176,61 +188,66 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
   } else if (!strcmp(datum_get_symbol(definition), "context")) {
     *result = *ffi_type_init_struct(
         cifd,
-        datum_make_list_of(datum_make_symbol("uint8_t"),
-                           datum_make_list_of(datum_make_int(1024),
-                                              datum_make_symbol("char"))),
+        datum_make_list_of(
+            datum_make_symbol("uint8_t"),
+            datum_make_list_of(datum_make_int(1024),
+                               datum_make_symbol("char"))),
         ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
   } else if (!strcmp(datum_get_symbol(definition), "array")) {
-    *result =
-        *ffi_type_init_struct(cifd,
-                              datum_make_list_of(datum_make_symbol("pointer"),
-                                                 datum_make_symbol("sizet")),
-                              ctxt);
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(datum_make_symbol("pointer"),
+                           datum_make_symbol("sizet")),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
   } else if (!strcmp(datum_get_symbol(definition), "vec")) {
-    *result =
-        *ffi_type_init_struct(cifd,
-                              datum_make_list_of(datum_make_symbol("array"),
-                                                 datum_make_symbol("sizet")),
-                              ctxt);
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(datum_make_symbol("array"),
+                           datum_make_symbol("sizet")),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
   } else if (!strcmp(datum_get_symbol(definition), "blob")) {
-    *result =
-        *ffi_type_init_struct(cifd,
-                              datum_make_list_of(datum_make_symbol("pointer"),
-                                                 datum_make_symbol("sizet")),
-                              ctxt);
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(datum_make_symbol("pointer"),
+                           datum_make_symbol("sizet")),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
   } else if (!strcmp(datum_get_symbol(definition), "datum")) {
-    *result =
-        *ffi_type_init_struct(cifd,
-                              datum_make_list_of(datum_make_symbol("uint8_t"),
-                                                 datum_make_symbol("array"),
-                                                 datum_make_symbol("blob")),
-                              ctxt);
-    if (ctxt->aborted) {
-      return NULL;
-    }
-  } else if (!strcmp(datum_get_symbol(definition), "extension")) {
     *result = *ffi_type_init_struct(
-        cifd, datum_make_list_of(datum_make_symbol("pointer")), ctxt);
+        cifd,
+        datum_make_list_of(datum_make_symbol("uint8_t"),
+                           datum_make_symbol("array"),
+                           datum_make_symbol("blob")),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
-  } else if (!strcmp(datum_get_symbol(definition), "lisp_extension")) {
+  } else if (!strcmp(datum_get_symbol(definition),
+                     "extension")) {
+    *result = *ffi_type_init_struct(
+        cifd, datum_make_list_of(datum_make_symbol("pointer")),
+        ctxt);
+    if (ctxt->aborted) {
+      return NULL;
+    }
+  } else if (!strcmp(datum_get_symbol(definition),
+                     "lisp_extension")) {
     *result = *ffi_type_init_struct(
         cifd,
         datum_make_list_of(datum_make_symbol("extension"),
-                           datum_make_symbol("vec"), datum_make_symbol("datum"),
+                           datum_make_symbol("vec"),
+                           datum_make_symbol("datum"),
                            datum_make_symbol("datum"),
                            datum_make_symbol("pointer")),
         ctxt);
@@ -238,11 +255,11 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
       return NULL;
     }
   } else if (!strcmp(datum_get_symbol(definition), "result")) {
-    *result =
-        *ffi_type_init_struct(cifd,
-                              datum_make_list_of(datum_make_symbol("datum"),
-                                                 datum_make_symbol("datum")),
-                              ctxt);
+    *result = *ffi_type_init_struct(
+        cifd,
+        datum_make_list_of(datum_make_symbol("datum"),
+                           datum_make_symbol("datum")),
+        ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
@@ -253,7 +270,8 @@ LOCAL ffi_type *ffi_type_init(struct cif_and_data *cifd, datum *definition,
   return result;
 }
 
-LOCAL ffi_type *ffi_type_init_struct(struct cif_and_data *cifd, datum members,
+LOCAL ffi_type *ffi_type_init_struct(struct cif_and_data *cifd,
+                                     datum members,
                                      context *ctxt) {
   ffi_type *result = cifd_alloc_type(cifd);
   assert(datum_is_list(&members));
@@ -263,7 +281,8 @@ LOCAL ffi_type *ffi_type_init_struct(struct cif_and_data *cifd, datum members,
   result->alignment = 0;
   result->elements = cifd_alloc_pointers(cifd, n + 1);
   for (int i = 0; i < n; ++i) {
-    result->elements[i] = ffi_type_init(cifd, list_at(&members, i), ctxt);
+    result->elements[i] =
+        ffi_type_init(cifd, list_at(&members, i), ctxt);
     if (ctxt->aborted) {
       return NULL;
     }
@@ -272,7 +291,8 @@ LOCAL ffi_type *ffi_type_init_struct(struct cif_and_data *cifd, datum members,
   return result;
 }
 
-LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd,
+LOCAL void pointer_ffi_init_cif(datum *sig,
+                                struct cif_and_data *cifd,
                                 context *ctxt) {
   ffi_type *ret_type;
   datum *arg_defs = list_at(sig, 0);
@@ -292,8 +312,8 @@ LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd,
   if (ctxt->aborted) {
     return;
   }
-  ffi_status status =
-      ffi_prep_cif(&cifd->cif, FFI_DEFAULT_ABI, arg_count, ret_type, args2);
+  ffi_status status = ffi_prep_cif(&cifd->cif, FFI_DEFAULT_ABI,
+                                   arg_count, ret_type, args2);
   // TODO(): for variadic functions, prep_cif_var must be used.
   // Without it, linux works somehow and mac does not.
   if (status != FFI_OK) {
@@ -302,8 +322,8 @@ LOCAL void pointer_ffi_init_cif(datum *sig, struct cif_and_data *cifd,
   }
 }
 
-LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs, int nargs,
-                                      context *ctxt) {
+LOCAL void pointer_ffi_serialize_args(datum *args, void **cargs,
+                                      int nargs, context *ctxt) {
   if (list_length(args) != nargs) {
     abortf(ctxt, "incorrect number of args for FFI call");
     return;
@@ -355,9 +375,11 @@ LOCAL datum builtin_serialize(datum *args, context *ctxt) {
     return datum_make_list_of(datum_make_blob(b));
   }
   if (datum_is_integer(d)) {
-    return datum_make_list_of(datum_make_blob_int64_t(datum_get_integer(d)));
+    return datum_make_list_of(
+        datum_make_blob_int64_t(datum_get_integer(d)));
   }
-  abortf(ctxt, "serialization not supported for %s", datum_repr(d));
+  abortf(ctxt, "serialization not supported for %s",
+         datum_repr(d));
   return (datum){};
 }
 
@@ -456,8 +478,9 @@ LOCAL void (*datum_get_fn_ptr(datum *d, context *ctxt))(void) {
   return __extension__(void (*)(void)) * ptr;
 }
 
-LOCAL datum (*datum_get_builtin_ptr(datum *d, context *ctxt))(datum *,
-                                                              context *) {
+LOCAL datum (*datum_get_builtin_ptr(datum *d,
+                                    context *ctxt))(datum *,
+                                                    context *) {
   void **ptr = datum_get_pointer(d, ctxt);
   if (ctxt->aborted) {
     return NULL;

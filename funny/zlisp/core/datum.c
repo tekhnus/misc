@@ -25,15 +25,21 @@ static const datum_type DATUM_BYTESTRING = 2;
 static const datum_type DATUM_BLOB = 3;
 static const datum_type DATUM_INTEGER = 4;
 
-EXPORT bool datum_is_symbol(datum *e) { return e->_type == DATUM_SYMBOL; }
+EXPORT bool datum_is_symbol(datum *e) {
+  return e->_type == DATUM_SYMBOL;
+}
 
-EXPORT bool datum_is_integer(datum *e) { return e->_type == DATUM_INTEGER; }
+EXPORT bool datum_is_integer(datum *e) {
+  return e->_type == DATUM_INTEGER;
+}
 
 EXPORT bool datum_is_bytestring(datum *e) {
   return e->_type == DATUM_BYTESTRING;
 }
 
-EXPORT bool datum_is_blob(datum *e) { return e->_type == DATUM_BLOB; }
+EXPORT bool datum_is_blob(datum *e) {
+  return e->_type == DATUM_BLOB;
+}
 
 EXPORT datum datum_make_symbol(char *name) {
   datum e;
@@ -76,7 +82,9 @@ EXPORT char *datum_get_bytestring(datum *d) {
   return blob_get_begin(&d->_leaf_value);
 }
 
-EXPORT int64_t datum_get_integer(datum *d) { return *datum_get_integer_ptr(d); }
+EXPORT int64_t datum_get_integer(datum *d) {
+  return *datum_get_integer_ptr(d);
+}
 
 EXPORT int64_t *datum_get_integer_ptr(datum *d) {
   assert(datum_is_integer(d));
@@ -191,8 +199,9 @@ LOCAL size_t fprintf_escaped(FILE *f, char *s) {
   return i;
 }
 
-LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
-                             bool pretty, int flat, char *spacing) {
+LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth,
+                             size_t start, bool pretty, int flat,
+                             char *spacing) {
   size_t offset = 0;
   if (depth == 0) {
     offset += fprintf(buf, "<truncated>");
@@ -242,7 +251,8 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
         offset += fprintf(buf, "`");
         item = list_at(list_at(e, ++i), 0);
       }
-      if (datum_is_the_symbol(item, "tilde") && i + 1 < list_length(e)) {
+      if (datum_is_the_symbol(item, "tilde") &&
+          i + 1 < list_length(e)) {
         offset += fprintf(buf, "~");
         item = list_at(list_at(e, ++i), 0);
       }
@@ -254,7 +264,8 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
         offset += fprintf(buf, "@");
         item = list_at(list_at(e, ++i), 0);
       }
-      if (datum_is_the_symbol(item, "quote") && i + 1 < list_length(e) &&
+      if (datum_is_the_symbol(item, "quote") &&
+          i + 1 < list_length(e) &&
           datum_is_list(list_at(e, i + 1)) &&
           list_length(list_at(e, i + 1)) == 1) {
         offset += fprintf(buf, "'");
@@ -312,10 +323,12 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
         child_flatness = FLAT;
       }
       if (inhibit_child_newlines >= 0) {
-        child_flatness = child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
+        child_flatness =
+            child_flatness == FLAT ? FLAT : FLAT_CHILDREN;
       }
-      offset += datum_repr_impl(buf, item, depth - 1, start + 1, pretty,
-                                child_flatness, child_sep);
+      offset +=
+          datum_repr_impl(buf, item, depth - 1, start + 1,
+                          pretty, child_flatness, child_sep);
       --inhibit_newline;
       --inhibit_double_newline;
       --inhibit_child_newlines;
@@ -332,7 +345,8 @@ LOCAL size_t datum_repr_impl(FILE *buf, datum *e, size_t depth, size_t start,
     blob *blb = datum_get_blob(e);
     offset += fprintf(buf, "`");
     for (size_t i = 0; i < blob_get_length(blb); ++i) {
-      offset += fprintf(buf, "%.2hhx", ((char *)(blob_get_begin(blb)))[i]);
+      offset += fprintf(buf, "%.2hhx",
+                        ((char *)(blob_get_begin(blb)))[i]);
     }
     offset += fprintf(buf, "`");
   } else {
@@ -355,7 +369,8 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     return false;
   }
   if (datum_is_bytestring(x) && datum_is_bytestring(y)) {
-    if (!strcmp(datum_get_bytestring(x), datum_get_bytestring(y))) {
+    if (!strcmp(datum_get_bytestring(x),
+                datum_get_bytestring(y))) {
       return true;
     }
     return false;
@@ -377,7 +392,8 @@ EXPORT bool datum_eq(datum *x, datum *y) {
     if (blob_get_length(xb) != blob_get_length(yb)) {
       return false;
     }
-    return !memcmp(blob_get_begin(xb), blob_get_begin(yb), blob_get_length(xb));
+    return !memcmp(blob_get_begin(xb), blob_get_begin(yb),
+                   blob_get_length(xb));
   }
   return false;
 }
@@ -469,13 +485,16 @@ EXPORT datum datum_make_list(array v) {
 
 EXPORT datum datum_make_nil() { return datum_make_list_of(); }
 
-EXPORT bool datum_is_list(datum *e) { return e->_type == DATUM_LIST; }
+EXPORT bool datum_is_list(datum *e) {
+  return e->_type == DATUM_LIST;
+}
 
 EXPORT bool datum_is_nil(datum *e) {
   return datum_is_list(e) && list_length(e) == 0;
 }
 
-EXPORT datum datum_make_list_of_impl(size_t count, datum *values) {
+EXPORT datum datum_make_list_of_impl(size_t count,
+                                     datum *values) {
   array vals = array_make(count);
   for (size_t i = 0; i < count; ++i) {
     *array_at(&vals, i) = (values[i]);
@@ -517,7 +536,8 @@ EXPORT datum *list_get_last(datum *list) {
 EXPORT datum list_get_tail(datum *list) {
   assert(datum_is_list(list));
   assert(list_length(list) > 0);
-  datum e = list_make_copies(list_length(list) - 1, datum_make_nil());
+  datum e =
+      list_make_copies(list_length(list) - 1, datum_make_nil());
   for (int i = 1; i < list_length(list); ++i) {
     *list_at(&(e), i - 1) = datum_copy(list_at(list, i));
   }

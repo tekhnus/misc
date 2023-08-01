@@ -79,7 +79,8 @@ struct routine {
   size_t cnt;
 };
 
-EXPORT result routine_run(vec *sl, datum *r, datum args, context *ctxt) {
+EXPORT result routine_run(vec *sl, datum *r, datum args,
+                          context *ctxt) {
   routine rt = get_routine_from_datum(r, ctxt);
   if (ctxt->aborted) {
     return (result){};
@@ -96,7 +97,8 @@ EXPORT datum *result_get_value(result *r, context *ctxt) {
   return &r->value;
 }
 
-LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
+LOCAL result routine_run_impl(vec *sl, routine *r, datum args,
+                              context *ctxt) {
   ptrdiff_t *ro = routine_offset(r);
   for (;;) {
     prog prg = datum_to_prog(vec_at(sl, *ro), ctxt);
@@ -106,8 +108,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
     }
     if (prg.type == PROG_CALL) {
       datum *recieve_type = prg.call_type;
-      routine rt = make_routine_from_indices(r, prg.call_capture_count,
-                                             prg.call_indices, ctxt);
+      routine rt = make_routine_from_indices(
+          r, prg.call_capture_count, prg.call_indices, ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
         return (result){};
@@ -115,8 +117,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       bool good = true;
       for (size_t i = 0; i < routine_get_count(&rt); ++i) {
         if ((i == 0 && -1 != (rt.frames[0].parent_type_id)) ||
-            (i > 0 &&
-             (rt.frames[i].parent_type_id != rt.frames[i - 1].type_id))) {
+            (i > 0 && (rt.frames[i].parent_type_id !=
+                       rt.frames[i - 1].type_id))) {
           good = false;
           break;
         }
@@ -141,7 +143,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       datum *argz = &err.value;
       size_t ret_cnt = list_length(prg.call_result_indices);
       if (ret_cnt != (long unsigned int)list_length(argz)) {
-        abortf(ctxt, "call count and yield count are not equal\n");
+        abortf(ctxt,
+               "call count and yield count are not equal\n");
         print_frame(sl, r);
         return (result){};
       }
@@ -156,15 +159,19 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       goto body;
     }
     if (prg.type == PROG_YIELD) {
-      if (list_length(&args) != list_length(prg.yield_recieve_indices)) {
-        abortf(ctxt,
-               "recieved incorrect number of arguments: expected %zu, got %d",
-               list_length(prg.yield_recieve_indices), list_length(&args));
+      if (list_length(&args) !=
+          list_length(prg.yield_recieve_indices)) {
+        abortf(
+            ctxt,
+            "recieved incorrect number of arguments: expected "
+            "%zu, got %d",
+            list_length(prg.yield_recieve_indices),
+            list_length(&args));
         print_frame(sl, r);
         return (result){};
       }
-      state_stack_set_many_2(r, datum_copy(prg.yield_recieve_indices), args,
-                             ctxt);
+      state_stack_set_many_2(
+          r, datum_copy(prg.yield_recieve_indices), args, ctxt);
       if (ctxt->aborted) {
         print_frame(sl, r);
         return (result){};
@@ -189,7 +196,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_YIELD) {
         datum first_index = datum_copy(prg.yield_val_index);
         size_t cnt = list_length(prg.yield_val_index);
-        datum res = state_stack_invalidate_many_2(r, cnt, first_index, ctxt);
+        datum res = state_stack_invalidate_many_2(
+            r, cnt, first_index, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -202,7 +210,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_CALL) {
         datum arg_indices = datum_copy(prg.call_arg_indices);
         size_t argcnt = list_length(&arg_indices);
-        args = state_stack_invalidate_many_2(r, argcnt, arg_indices, ctxt);
+        args = state_stack_invalidate_many_2(r, argcnt,
+                                             arg_indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -211,8 +220,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       }
       if (prg.type == PROG_PUT_PROG) {
         size_t put_prog_value = *ro + 1;
-        datum prog_ptr =
-            routine_make(put_prog_value, prg.put_prog_capture ? r : NULL);
+        datum prog_ptr = routine_make(
+            put_prog_value, prg.put_prog_capture ? r : NULL);
         state_stack_set(r, prg.put_prog_target, prog_ptr, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
@@ -254,7 +263,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
           print_frame(sl, r);
           return (result){};
         }
-        state_stack_set(r, prg.copy_target, datum_copy(er), ctxt);
+        state_stack_set(r, prg.copy_target, datum_copy(er),
+                        ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -263,7 +273,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
         continue;
       }
       if (prg.type == PROG_MOVE) {
-        datum er = state_stack_invalidate(r, datum_copy(prg.move_offset), ctxt);
+        datum er = state_stack_invalidate(
+            r, datum_copy(prg.move_offset), ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -279,7 +290,8 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
       if (prg.type == PROG_COLLECT) {
         datum indices = datum_copy(prg.collect_indices);
         size_t cnt = list_length(&indices);
-        datum form = state_stack_invalidate_many_2(r, cnt, indices, ctxt);
+        datum form =
+            state_stack_invalidate_many_2(r, cnt, indices, ctxt);
         if (ctxt->aborted) {
           print_frame(sl, r);
           return (result){};
@@ -302,8 +314,10 @@ LOCAL result routine_run_impl(vec *sl, routine *r, datum args, context *ctxt) {
   return (result){};
 }
 
-LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
-                                        datum *call_indices, context *ctxt) {
+LOCAL routine make_routine_from_indices(routine *r,
+                                        size_t capture_count,
+                                        datum *call_indices,
+                                        context *ctxt) {
   routine rt = routine_get_prefix(r, capture_count + 1);
   for (int i = 0; i < list_length(call_indices); ++i) {
     datum *x = state_stack_at(r, list_at(call_indices, i), ctxt);
@@ -319,7 +333,8 @@ LOCAL routine make_routine_from_indices(routine *r, size_t capture_count,
   return rt;
 }
 
-LOCAL routine routine_get_prefix(routine *r, size_t capture_count) {
+LOCAL routine routine_get_prefix(routine *r,
+                                 size_t capture_count) {
   routine rt;
   rt.cnt = 0;
   assert(capture_count <= r->cnt);
@@ -343,7 +358,8 @@ LOCAL size_t routine_get_count(routine *r) { return r->cnt; }
 
 LOCAL prog datum_to_prog(datum *d, context *ctxt) {
   prog res;
-  if (!datum_is_list(d) || datum_is_nil(d) || !datum_is_symbol(list_at(d, 0))) {
+  if (!datum_is_list(d) || datum_is_nil(d) ||
+      !datum_is_symbol(list_at(d, 0))) {
     abortf(ctxt, "datum_to_prog panic\n");
     return (prog){};
   }
@@ -417,7 +433,8 @@ LOCAL void print_frame(vec *sl, routine *r) {
   fprintf(stderr, "**********\n");
 }
 
-LOCAL datum *state_stack_at(routine *r, datum *offset, context *ctxt) {
+LOCAL datum *state_stack_at(routine *r, datum *offset,
+                            context *ctxt) {
   assert(datum_is_list(offset) && list_length(offset) > 0);
   datum *frame = list_at(offset, 0);
   assert(datum_is_integer(frame));
@@ -437,8 +454,8 @@ LOCAL datum *state_stack_at(routine *r, datum *offset, context *ctxt) {
   return array_at(vars, datum_get_integer(idx));
 }
 
-LOCAL datum state_stack_set(routine *r, datum *target, datum value,
-                            context *ctxt) {
+LOCAL datum state_stack_set(routine *r, datum *target,
+                            datum value, context *ctxt) {
   datum *loc = state_stack_at(r, target, ctxt);
   if (ctxt->aborted) {
     return (datum){};
@@ -448,15 +465,16 @@ LOCAL datum state_stack_set(routine *r, datum *target, datum value,
   return res;
 }
 
-LOCAL datum state_stack_set_many_2(routine *r, datum indices, datum list,
-                                   context *ctxt) {
+LOCAL datum state_stack_set_many_2(routine *r, datum indices,
+                                   datum list, context *ctxt) {
   datum form = datum_make_list_vec(
       vec_make_copies(list_length(&list), datum_make_nil()));
   assert(datum_is_list(&list));
   assert(list_length(&list) == list_length(&indices));
   for (int i = 0; i < list_length(&list); ++i) {
     datum *idx = list_at(&indices, i);
-    *list_at(&form, i) = state_stack_set(r, idx, *list_at(&list, i), ctxt);
+    *list_at(&form, i) =
+        state_stack_set(r, idx, *list_at(&list, i), ctxt);
     if (ctxt->aborted) {
       return (datum){};
     }
@@ -464,32 +482,40 @@ LOCAL datum state_stack_set_many_2(routine *r, datum indices, datum list,
   return form;
 }
 
-LOCAL datum state_stack_invalidate(routine *r, datum polyindex, context *ctxt) {
-  return state_stack_set(r, &polyindex, datum_make_symbol(":invalid"), ctxt);
+LOCAL datum state_stack_invalidate(routine *r, datum polyindex,
+                                   context *ctxt) {
+  return state_stack_set(r, &polyindex,
+                         datum_make_symbol(":invalid"), ctxt);
 }
 
-LOCAL datum state_stack_invalidate_many_2(routine *r, size_t count,
-                                          datum indices, context *ctxt) {
-  return state_stack_set_many_2(r, indices,
-                                datum_make_list_vec(vec_make_copies(
-                                    count, datum_make_symbol(":invalid"))),
-                                ctxt);
+LOCAL datum state_stack_invalidate_many_2(routine *r,
+                                          size_t count,
+                                          datum indices,
+                                          context *ctxt) {
+  return state_stack_set_many_2(
+      r, indices,
+      datum_make_list_vec(
+          vec_make_copies(count, datum_make_symbol(":invalid"))),
+      ctxt);
 }
 
 EXPORT datum routine_make_topmost(int64_t prg) {
   return routine_make(prg, NULL);
 }
 
-LOCAL datum routine_make(ptrdiff_t prg, struct routine *context) {
+LOCAL datum routine_make(ptrdiff_t prg,
+                         struct routine *context) {
   assert(context == NULL || routine_get_count(context) > 1);
   int parent_type_id =
       context != NULL
-          ? (context->frames[routine_get_count(context) - 2].type_id)
+          ? (context->frames[routine_get_count(context) - 2]
+                 .type_id)
           : -1;
   datum vars_datum = datum_make_frame(
-      vec_make_copies(256, datum_make_symbol(":invalid")), prg, parent_type_id);
-  datum pc_frame_datum =
-      datum_make_frame(vec_make_of(datum_make_int(prg)), -1, prg);
+      vec_make_copies(256, datum_make_symbol(":invalid")), prg,
+      parent_type_id);
+  datum pc_frame_datum = datum_make_frame(
+      vec_make_of(datum_make_int(prg)), -1, prg);
   datum res = datum_make_list_of(vars_datum, pc_frame_datum);
   return res;
 }
@@ -516,8 +542,10 @@ LOCAL routine get_routine_from_datum(datum *e, context *ctxt) {
   return rt;
 }
 
-LOCAL datum datum_make_frame(vec state, int type_id, int parent_type_id) {
-  return datum_make_list_of(datum_make_list_vec(state), datum_make_int(type_id),
+LOCAL datum datum_make_frame(vec state, int type_id,
+                             int parent_type_id) {
+  return datum_make_list_of(datum_make_list_vec(state),
+                            datum_make_int(type_id),
                             datum_make_int(parent_type_id));
 }
 

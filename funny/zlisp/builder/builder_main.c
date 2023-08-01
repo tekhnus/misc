@@ -34,7 +34,8 @@ int main(int argc, char **argv) {
   }
   vec sl = vec_make(0);
   // the interpreter will start from the first instruction,
-  // so the first call of append_new must be for the starting point.
+  // so the first call of append_new must be for the starting
+  // point.
   size_t bp;
   datum compdata = compdata_make();
   datum builder_compdata = compdata_make();
@@ -44,13 +45,15 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
   datum set = datum_make_bytestring(argv[1]);
-  struct lisp_extension extension = standard_extension_make(&ctxt);
+  struct lisp_extension extension =
+      standard_extension_make(&ctxt);
   if (ctxt.aborted) {
-    fprintf(stderr, "while initializing extension: %s", ctxt.error);
+    fprintf(stderr, "while initializing extension: %s",
+            ctxt.error);
     return EXIT_FAILURE;
   }
-  prog_build(&sl, &bp, &src, &compdata, &builder_compdata, set, &extension.base,
-             &ctxt);
+  prog_build(&sl, &bp, &src, &compdata, &builder_compdata, set,
+             &extension.base, &ctxt);
   if (ctxt.aborted) {
     fprintf(stderr, "while building: %s", ctxt.error);
     return EXIT_FAILURE;

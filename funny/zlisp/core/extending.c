@@ -4,12 +4,14 @@
 #include <zlisp/common.h>
 #include <extending.h>
 
-EXPORT lisp_extension lisp_extension_make(vec program, datum routine_,
-                                          datum compdata,
-                                          result (*runner)(vec *, datum *,
-                                                           datum, context *)) {
-  lisp_extension e = {
-      {.call = lisp_extension_call}, program, routine_, compdata, runner};
+EXPORT lisp_extension lisp_extension_make(
+    vec program, datum routine_, datum compdata,
+    result (*runner)(vec *, datum *, datum, context *)) {
+  lisp_extension e = {{.call = lisp_extension_call},
+                      program,
+                      routine_,
+                      compdata,
+                      runner};
   return e;
 }
 
@@ -17,8 +19,9 @@ EXPORT extension null_extension_make() {
   return (extension){null_extension_call};
 }
 
-LOCAL datum lisp_extension_call(extension *self_, vec *sl, datum *source,
-                                int *i, datum *compdata, context *ctxt) {
+LOCAL datum lisp_extension_call(extension *self_, vec *sl,
+                                datum *source, int *i,
+                                datum *compdata, context *ctxt) {
   extension nu = null_extension_make();
   int i_val = *i;
   null_extension_call(&nu, sl, source, i, compdata, ctxt);
@@ -45,7 +48,8 @@ LOCAL datum lisp_extension_call(extension *self_, vec *sl, datum *source,
   char aritynm[128] = {0};
   snprintf(aritynm, 128, ".%s.arity", datum_get_symbol(op));
   datum arity_statement = datum_make_symbol(aritynm);
-  datum arityc = lisp_extension_run(&arity_statement, self, ctxt);
+  datum arityc =
+      lisp_extension_run(&arity_statement, self, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
@@ -54,34 +58,41 @@ LOCAL datum lisp_extension_call(extension *self_, vec *sl, datum *source,
   assert(datum_is_integer(arityd));
   int arity = datum_get_integer(arityd);
   *i += arity;
-  datum invokation_statement_ = list_copy(source, *i - arity, *i);
+  datum invokation_statement_ =
+      list_copy(source, *i - arity, *i);
   vec invokation_statement = vec_make(0);
   vec_append(&invokation_statement, name);
   for (int i = 1; i < list_length(&invokation_statement_); ++i) {
     datum orig = datum_copy(list_at(&invokation_statement_, i));
-    vec_append(&invokation_statement, datum_make_symbol("quote"));
+    vec_append(&invokation_statement,
+               datum_make_symbol("quote"));
     vec_append(&invokation_statement, datum_make_list_of(orig));
   }
   datum call_statement = datum_make_list_of(
-      datum_make_symbol("call"), datum_make_list_vec(invokation_statement));
+      datum_make_symbol("call"),
+      datum_make_list_vec(invokation_statement));
   datum res = lisp_extension_run(&call_statement, self, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
   assert(datum_is_list(&res));
   assert(list_length(&res) == 1);
-  datum polys = prog_compile(sl, list_at(&res, 0), compdata, self_, ctxt);
+  datum polys =
+      prog_compile(sl, list_at(&res, 0), compdata, self_, ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
   return polys;
 }
 
-LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
+LOCAL datum lisp_extension_run(datum *e, lisp_extension *est,
+                               context *ctxt) {
   datum mod = datum_make_list_of(
       datum_make_symbol("return"), datum_make_symbol("at"),
-      datum_make_list_of(datum_make_int(0)), datum_make_symbol("at"),
-      datum_make_list_of(datum_make_symbol("halt")), datum_copy(e));
+      datum_make_list_of(datum_make_int(0)),
+      datum_make_symbol("at"),
+      datum_make_list_of(datum_make_symbol("halt")),
+      datum_copy(e));
 
   extension ext = null_extension_make();
   prog_compile(&est->program, &mod, &est->compdata, &ext, ctxt);
@@ -89,8 +100,8 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   if (ctxt->aborted) {
     return (datum){};
   }
-  result res =
-      est->runner(&est->program, &est->routine_, datum_make_nil(), ctxt);
+  result res = est->runner(&est->program, &est->routine_,
+                           datum_make_nil(), ctxt);
   if (ctxt->aborted) {
     return (datum){};
   }
@@ -101,7 +112,8 @@ LOCAL datum lisp_extension_run(datum *e, lisp_extension *est, context *ctxt) {
   return res.value;
 }
 
-LOCAL datum null_extension_call(extension *self, vec *sl, datum *source, int *i,
+LOCAL datum null_extension_call(extension *self, vec *sl,
+                                datum *source, int *i,
                                 datum *compdata, context *ctxt) {
   datum *op = list_at(source, *i);
   datum stmt;
@@ -130,8 +142,9 @@ LOCAL datum null_extension_call(extension *self, vec *sl, datum *source, int *i,
   return (datum){};
 }
 
-LOCAL void prog_append_usages(vec *sl, datum *spec, datum *compdata,
-                              extension *ext, context *ctxt) {
+LOCAL void prog_append_usages(vec *sl, datum *spec,
+                              datum *compdata, extension *ext,
+                              context *ctxt) {
   datum re = prog_read_usages(spec, ctxt);
   if (ctxt->aborted) {
     return;
@@ -143,13 +156,14 @@ LOCAL void prog_append_usages(vec *sl, datum *spec, datum *compdata,
   datum *vars = list_at(&re, 0);
   datum *meta = list_at(&re, 1);
   datum stmt = datum_make_list_of(
-      datum_copy(vars), datum_make_symbol(":="), datum_make_symbol("return"),
-      datum_make_symbol("at"),
+      datum_copy(vars), datum_make_symbol(":="),
+      datum_make_symbol("return"), datum_make_symbol("at"),
       datum_make_list_of(datum_make_int(list_length(vars))),
       datum_make_symbol("at"),
-      datum_make_list_of(
-          datum_make_list_of(datum_make_symbol("meta"), datum_copy(meta))),
-      datum_make_symbol("flat"), datum_make_list_of(datum_make_nil()));
+      datum_make_list_of(datum_make_list_of(
+          datum_make_symbol("meta"), datum_copy(meta))),
+      datum_make_symbol("flat"),
+      datum_make_list_of(datum_make_nil()));
   prog_compile(sl, &stmt, compdata, ext, ctxt);
 
   if (ctxt->aborted) {
@@ -184,10 +198,12 @@ LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
 
     datum item_spec;
     if (list_length(item) == 2) {
-      item_spec = datum_make_list_of(datum_copy(list_at(item, 1)));
+      item_spec =
+          datum_make_list_of(datum_copy(list_at(item, 1)));
     } else if (list_length(item) == 3) {
-      item_spec = datum_make_list_of(datum_copy(list_at(item, 1)),
-                                     datum_copy(list_at(item, 2)));
+      item_spec =
+          datum_make_list_of(datum_copy(list_at(item, 1)),
+                             datum_copy(list_at(item, 2)));
     } else {
       abortf(ctxt, "wrong usage spec: wrong item length");
       return (datum){};
@@ -199,8 +215,9 @@ LOCAL datum prog_read_usages(datum *spec, context *ctxt) {
                             datum_make_list_vec(specs));
 }
 
-LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
-                               extension *ext, context *ctxt) {
+LOCAL void prog_append_exports(vec *sl, datum *spec,
+                               datum *compdata, extension *ext,
+                               context *ctxt) {
   datum re = prog_read_exports(spec, ctxt);
   if (ctxt->aborted) {
     return;
@@ -212,17 +229,18 @@ LOCAL void prog_append_exports(vec *sl, datum *spec, datum *compdata,
   datum *meta = list_at(&re, 0);
   datum *exprs = list_at(&re, 1);
 
-  vec return_expr =
-      vec_make_of(datum_make_nil(), datum_make_symbol(":="),
-                  datum_make_symbol("return"), datum_make_symbol("at"),
-                  datum_make_list_of(datum_make_list_of(
-                      datum_make_symbol("meta"), datum_copy(meta))));
+  vec return_expr = vec_make_of(
+      datum_make_nil(), datum_make_symbol(":="),
+      datum_make_symbol("return"), datum_make_symbol("at"),
+      datum_make_list_of(datum_make_list_of(
+          datum_make_symbol("meta"), datum_copy(meta))));
   vec vals = vec_make(0);
   for (int i = 0; i < list_length(exprs); ++i) {
     vec_append(&vals, datum_copy(list_at(exprs, i)));
   }
   vec_append(&return_expr, datum_make_symbol("flat"));
-  vec_append(&return_expr, datum_make_list_of(datum_make_list_vec(vals)));
+  vec_append(&return_expr,
+             datum_make_list_of(datum_make_list_vec(vals)));
   datum return_expr_ = datum_make_list_vec(return_expr);
   prog_compile(sl, &return_expr_, compdata, ext, ctxt);
 

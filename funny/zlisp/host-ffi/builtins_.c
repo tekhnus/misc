@@ -37,8 +37,8 @@ datum builtin_annotate(datum *args, context *ctxt) {
     abortf(ctxt, "incomplete implementation of type");
     return (datum){};
   }
-  return (datum_make_list_of(
-      datum_make_list_of(datum_make_symbol(type), datum_copy(arg_value))));
+  return (datum_make_list_of(datum_make_list_of(
+      datum_make_symbol(type), datum_copy(arg_value))));
 }
 
 datum builtin_is_constant(datum *args, context *ctxt) {
@@ -56,7 +56,8 @@ datum builtin_repr(datum *args, context *ctxt) {
   if (ctxt == ctxt + 1) {
   }
   datum *v = list_at(args, 0);
-  return (datum_make_list_of(datum_make_bytestring(datum_repr(v))));
+  return (
+      datum_make_list_of(datum_make_bytestring(datum_repr(v))));
 }
 
 datum builtin_concat_bytestrings(datum *args, context *ctxt) {
@@ -80,8 +81,8 @@ datum builtin_add(datum *args, context *ctxt) {
     abortf(ctxt, "expected integers");
     return (datum){};
   }
-  return (datum_make_list_of(
-      datum_make_int(datum_get_integer(x) + datum_get_integer(y))));
+  return (datum_make_list_of(datum_make_int(
+      datum_get_integer(x) + datum_get_integer(y))));
 }
 
 datum builtin_cons(datum *args, context *ctxt) {
@@ -91,7 +92,8 @@ datum builtin_cons(datum *args, context *ctxt) {
     abortf(ctxt, "cons requires a list as a second argument");
     return (datum){};
   }
-  vec vc = vec_make_copies(list_length(tail) + 1, datum_make_nil());
+  vec vc =
+      vec_make_copies(list_length(tail) + 1, datum_make_nil());
   *vec_at(&vc, 0) = datum_copy(head);
   for (int i = 0; i < list_length(tail); ++i) {
     *vec_at(&vc, i + 1) = datum_copy(list_at(tail, i));

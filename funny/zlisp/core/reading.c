@@ -39,11 +39,13 @@ EXPORT vec datum_read_all(FILE *stre, context *ctxt) {
   return res;
 }
 
-LOCAL bool is_whitespace(char c) { return isspace(c) || c == ','; }
+LOCAL bool is_whitespace(char c) {
+  return isspace(c) || c == ',';
+}
 
 LOCAL bool is_allowed_inside_symbol(char c) {
-  return isalnum(c) || c == '.' || c == '-' || c == '_' || c == ':' ||
-         c == '+' || c == '/' || c == '=';
+  return isalnum(c) || c == '.' || c == '-' || c == '_' ||
+         c == ':' || c == '+' || c == '/' || c == '=';
 }
 
 LOCAL bool consume_control_sequence(char c, datum *form) {
@@ -132,7 +134,8 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
       ungetc(h, strm);
     }
     return (struct token){.type = TOKEN_DATUM,
-                          .datum_value = datum_make_int(sign * val)};
+                          .datum_value =
+                              datum_make_int(sign * val)};
   }
   if (is_allowed_inside_symbol(c)) {
     ungetc(c, strm);
@@ -141,7 +144,8 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
     int c = 0;
     int i;
     char x = 0; // = 0 is to satisfy the compiler
-    for (i = 0; !feof(strm) && is_allowed_inside_symbol(x = getc(strm));) {
+    for (i = 0; !feof(strm) &&
+                is_allowed_inside_symbol(x = getc(strm));) {
       if (x == '/') {
         if (strlen(nm[c]) == 0) {
           strcpy(nm[c], "empty-symbol");
@@ -168,7 +172,8 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
       }
       sym = datum_make_list_vec(elems);
     }
-    return (struct token){.type = TOKEN_DATUM, .datum_value = sym};
+    return (struct token){.type = TOKEN_DATUM,
+                          .datum_value = sym};
   }
   if (c == '"') {
     char literal[256];
@@ -188,7 +193,8 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
     }
     literal[i] = '\0';
     return (struct token){.type = TOKEN_DATUM,
-                          .datum_value = datum_make_bytestring(literal)};
+                          .datum_value =
+                              datum_make_bytestring(literal)};
   }
   datum form;
   if (consume_control_sequence(c, &form)) {
@@ -199,7 +205,8 @@ LOCAL struct token token_read(FILE *strm, context *ctxt) {
   return (struct token){};
 }
 
-LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
+LOCAL datum datum_read(FILE *strm, context *ctxt,
+                       enum token_type terminator) {
   struct token tok = token_read(strm, ctxt);
   if (ctxt->aborted) {
     return (datum){};
@@ -211,7 +218,8 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
     datum val = tok.datum_value;
     return datum_make_list_of(val);
   }
-  if (tok.type == TOKEN_LEFT_PAREN || tok.type == TOKEN_LEFT_SQUARE ||
+  if (tok.type == TOKEN_LEFT_PAREN ||
+      tok.type == TOKEN_LEFT_SQUARE ||
       tok.type == TOKEN_LEFT_CURLY) {
     datum elem;
     vec list = vec_make(0);
@@ -236,8 +244,8 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
       vec_extend(&list, &elem);
     }
     if (tok.type == TOKEN_LEFT_PAREN) {
-      return datum_make_list_of(datum_make_list_of(datum_make_symbol("call"),
-                                                   datum_make_list_vec(list)));
+      return datum_make_list_of(datum_make_list_of(
+          datum_make_symbol("call"), datum_make_list_vec(list)));
     }
     if (tok.type == TOKEN_LEFT_SQUARE) {
       return datum_make_list_of(datum_make_list_vec(list));
@@ -253,7 +261,8 @@ LOCAL datum datum_read(FILE *strm, context *ctxt, enum token_type terminator) {
       return (datum){};
     }
     if (datum_is_nil(&v)) {
-      abortf(ctxt, "expected an expression after a control character");
+      abortf(ctxt,
+             "expected an expression after a control character");
       return (datum){};
     }
     return datum_make_list_of(tok.control_sequence_symbol, v);
