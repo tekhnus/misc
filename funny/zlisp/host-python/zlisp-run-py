@@ -143,8 +143,9 @@ def main():
             set_stack(target,
                 pdata[-1].varz[frame][indx]
             )
-            assert indx + 1 == len(pdata[-1].varz[frame])
-            pdata[-1].varz[frame].pop()
+            set_stack(offset, None)
+            # assert indx + 1 == len(pdata[-1].varz[frame])
+            # pdata[-1].varz[frame].pop()
             ip += 1
         elif op == sexpdata.Symbol(":call"):
             capture_cnt, indices, target, top_arg_index, result_idxs = args
