@@ -383,11 +383,10 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
   for (int j = 0; j + chop < (int)frames; ++j) {
     ++capture_size;
   }
-  vec moves = vec_make(0);
   while (fn_index < list_length(fns)) {
     bool borrow = fn_index + 1 < list_length(fns) || mut;
     if (borrow) {
-      datum *component = list_at(fns, fn_index);
+      datum *component = list_at(fns, fn_index++);
       if (!datum_is_symbol(component)) {
         abortf(ctxt, "expected an lvalue");
         return (datum){};
@@ -400,15 +399,7 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
           return (datum){};
         }
       }
-      datum xx = datum_make_list_of(datum_copy(&idx));
-      xx = prog_append_expression(sl, fns, &fn_index, compdata, ext, ctxt);
-      if (ctxt->aborted) {
-        return (datum){};
-      }
-      assert(list_length(&xx) == 1);
-      datum *xx_ind = list_at(&xx, 0);
-      vec_append(&moves, datum_make_list_of(idx, datum_copy(xx_ind)));
-      vec_append(&indices, *xx_ind);
+      vec_append(&indices, idx);
     } else {
       datum xx = prog_append_expression(sl, fns, &fn_index,
                                         compdata, ext, ctxt);
@@ -430,18 +421,10 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
       return (datum){};
     }
   }
-  datum res = prog_append_call(
+  return prog_append_call(
       sl, capture_size, datum_make_list_vec(indices), !mut,
       target, ret_count, datum_make_list_vec(arg_indices),
       compdata);
-  for (size_t i = 0; i < vec_length(&moves); ++i) {
-    datum *item = vec_at(&moves, i);
-    assert(list_length(item) == 2);
-    datum *orig = list_at(item, 0);
-    datum *moved = list_at(item, 1);
-    prog_append_move(sl, orig, moved, compdata);
-  }
-  return res;
 }
 
 EXPORT void prog_append_bytecode(vec *sl, vec *src_sl) {
