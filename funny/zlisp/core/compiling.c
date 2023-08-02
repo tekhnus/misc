@@ -407,7 +407,8 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
       }
       assert(list_length(&xx) == 1);
       datum *xx_ind = list_at(&xx, 0);
-      vec_append(&moves, datum_make_list_of(idx, datum_copy(xx_ind)));
+      vec_append(&moves,
+        datum_make_list_of(idx, datum_copy(xx_ind), datum_copy(component)));
       vec_append(&indices, *xx_ind);
     } else {
       datum xx = prog_append_expression(sl, fns, &fn_index,
@@ -436,7 +437,7 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
       compdata);
   for (size_t i = 0; i < vec_length(&moves); ++i) {
     datum *item = vec_at(&moves, i);
-    assert(list_length(item) == 2);
+    assert(list_length(item) == 3);
     datum *orig = list_at(item, 0);
     datum *moved = list_at(item, 1);
     prog_append_move(sl, orig, moved, compdata);
