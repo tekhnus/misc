@@ -405,6 +405,9 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
       if (ctxt->aborted) {
         return (datum){};
       }
+      // TODO(): enable the temporary invalidation.
+      // datum idxs = datum_make_list_of(idx);
+      // compdata_invalidate(compdata, &idxs);
       assert(list_length(&xx) == 1);
       datum *xx_ind = list_at(&xx, 0);
       vec_append(&moves,
