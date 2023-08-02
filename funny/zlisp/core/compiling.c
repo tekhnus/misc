@@ -440,7 +440,14 @@ LOCAL datum prog_append_apply(vec *sl, datum *s_expr,
     assert(list_length(item) == 3);
     datum *orig = list_at(item, 0);
     datum *moved = list_at(item, 1);
+    datum *name = list_at(item, 2);
     prog_append_move(sl, orig, moved, compdata);
+    datum orig_idxes = datum_make_list_of(datum_copy(orig));
+    datum names = datum_make_list_of(datum_copy(name));
+    compdata_give_names(compdata, &orig_idxes, &names, ctxt);
+    if (ctxt->aborted) {
+      return (datum){};
+    }
   }
   return res;
 }
