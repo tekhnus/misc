@@ -11,8 +11,10 @@ echo "server will enter the loop" >>/tmp/crsh-log
 	do
 		echo "$status"
 	  echo 'server did send status' >>/tmp/crsh-log
+		printf '\033[38;5;56;48;5;230m(%(%H:%M)T)\x1b[K\x1b[0m' </dev/tty >/dev/tty
 		IFS= read -r cmd
 	  echo "server did read a command $cmd" >>/tmp/crsh-log
+		echo </dev/tty >/dev/tty
 		echo "> $cmd" </dev/tty >/dev/tty
 	  echo "server will eval $cmd" >>/tmp/crsh-log
 		eval "$cmd" </dev/tty >/dev/tty
