@@ -16,7 +16,10 @@ while true; do
   fi
   echo "client will read a line" >>/tmp/crsh-log
   kitty @ focus-window
-  echo "$server" </dev/tty >/dev/tty
+  lines=$(tput lines </dev/tty)
+  tput cup $(($lines - 1)) 0 </dev/tty >/dev/tty
+  echo -n "@${server}" </dev/tty >/dev/tty
+  tput cup 0 0 </dev/tty >/dev/tty
   ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
   echo "client did read a line $line" >>/tmp/crsh-log
