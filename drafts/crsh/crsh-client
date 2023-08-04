@@ -18,7 +18,7 @@ while true; do
   kitty @ focus-window
   lines=$(tput lines </dev/tty)
   tput cup $(($lines - 1)) 0 </dev/tty >/dev/tty
-  echo -n "@${server}" </dev/tty >/dev/tty
+  printf "\x1b[38;5;251m@${server}\x1b[K\x1b[0m" </dev/tty >/dev/tty
   tput cup 0 0 </dev/tty >/dev/tty
   ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
