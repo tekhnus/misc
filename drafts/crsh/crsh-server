@@ -20,6 +20,6 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		eval "$cmd" </dev/tty >/dev/tty
 		status="$?"
 	  echo 'server did eval' >>/tmp/crsh-log
-		printf "\033[38;5;251m$(date '+(%H:%M)' | tr -d '\n') $PWD\x1b[K\x1b[0m" </dev/tty >/dev/tty
+		printf "\033[38;5;251m$(date '+(%H:%M)' | tr -d '\n') $(dirs +0)\x1b[K\x1b[0m" </dev/tty >/dev/tty
 	done
 } <$chan/command >$chan/result
