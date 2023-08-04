@@ -1,5 +1,6 @@
 #!/bin/bash
 chan=$1
+server=$2
 
 echo '' >>/tmp/crsh-log
 echo 'STARTING NEW SESSION' >>/tmp/crsh-log
@@ -15,6 +16,7 @@ while true; do
   fi
   echo "client will read a line" >>/tmp/crsh-log
   kitty @ focus-window
+  echo "$server" </dev/tty >/dev/tty
   ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
   echo "client did read a line $line" >>/tmp/crsh-log
