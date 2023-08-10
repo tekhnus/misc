@@ -5,5 +5,5 @@ chan=$(./crsh-create-channels)
 winid=$(kitty @ launch --location=before --cwd=${dir} bash -c "./crsh-server $chan $@")
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null 
 tput smcup
-./crsh-client $chan "$@"
+go run crsh-client.go $chan "$@"
 tput rmcup
