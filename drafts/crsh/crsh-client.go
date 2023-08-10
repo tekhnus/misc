@@ -43,7 +43,7 @@ func main() {
 	}
 
 	if name, err := line.Prompt("> "); err == nil {
-		fmt.Fprintln(outfile, name)
+		fmt.Fprintln(outfile, "EVAL", name)
 		line.AppendHistory(name)
 	} else if err == liner.ErrPromptAborted {
 		log.Print("Aborted")

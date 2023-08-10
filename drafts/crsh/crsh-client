@@ -22,7 +22,7 @@ while true; do
   kitty @ focus-window
   go run crsh-client.go /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
-  echo "EVAL $line"
+  echo "$line"
   echo "client did read a line $line" >>/tmp/crsh-log
   clear >/dev/tty </dev/tty
   kitty @ focus-window -m "cmdline:.*crsh-.*"
