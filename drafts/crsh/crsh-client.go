@@ -38,6 +38,8 @@ func main() {
 	}
 	defer outfile.Close()
 
+	servername := os.Args[2]
+
 	line.SetCtrlCAborts(true)
 
 	line.SetCompleter(func(line string) (c []string) {
@@ -56,6 +58,7 @@ func main() {
 
 	// log.Print("Ready")
 	for {
+		fmt.Printf("\x1b[38;5;251m@%s\x1b[K\x1b[0m\n", servername)
 		response, isprefix, err := inreader.ReadLine()
 		// log.Print("Response")
 		if err != nil || isprefix {
