@@ -4,6 +4,7 @@ import (
 	"log"
 	"fmt"
 	"os"
+	"os/exec"
 	"bufio"
 	"path/filepath"
 	"strings"
@@ -61,6 +62,10 @@ func main() {
 		if len(response) == 0 {
 			break
 		}
+		err = exec.Command("kitty", "@", "focus-window").Run()
+		if err != nil {
+			panic(err)
+		}
 		if name, err := line.Prompt("> "); err == nil {
 			fmt.Fprintln(outfile, "EVAL", name)
 			line.AppendHistory(name)
@@ -80,5 +85,9 @@ func main() {
 			f.Close()
 		}
 		fmt.Print("\033[H\033[2J")
+		err = exec.Command("kitty", "@", "focus-window", "-m", "cmdline:.*crsh-.*").Run()
+		if err != nil {
+			panic(err)
+		}
 	}
 }
