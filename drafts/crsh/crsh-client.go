@@ -4,6 +4,7 @@ import (
 	"log"
 	"fmt"
 	"os"
+	"io"
 	"os/exec"
 	"bufio"
 	"path/filepath"
@@ -82,22 +83,24 @@ func main() {
 			if name == "exit" {
 				break
 			}
+			if f, err := os.Create(history_fn); err != nil {
+				log.Print("Error writing history file: ", err)
+			} else {
+				line.WriteHistory(f)
+				f.Close()
+			}
+			fmt.Print("\033[H\033[2J")
+			err = exec.Command("kitty", "@", "focus-window", "-m", "cmdline:.*crsh-.*").Run()
+			if err != nil {
+				panic(err)
+			}
 		} else if err == liner.ErrPromptAborted {
 			log.Print("Aborted")
+		} else if err == io.EOF {
+			break
 		} else {
 			log.Print("Error reading line: ", err)
 		}
 
-		if f, err := os.Create(history_fn); err != nil {
-			log.Print("Error writing history file: ", err)
-		} else {
-			line.WriteHistory(f)
-			f.Close()
-		}
-		fmt.Print("\033[H\033[2J")
-		err = exec.Command("kitty", "@", "focus-window", "-m", "cmdline:.*crsh-.*").Run()
-		if err != nil {
-			panic(err)
-		}
 	}
 }
