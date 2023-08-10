@@ -20,7 +20,7 @@ while true; do
   fi
   echo "client will read a line" >>/tmp/crsh-log
   kitty @ focus-window
-  ./third-party/linenoise-master/linenoise_main /tmp/linenoise-result </dev/tty >/dev/tty
+  go run crsh-client.go /tmp/linenoise-result </dev/tty >/dev/tty
   line=$(cat /tmp/linenoise-result)
   echo "client did read a line $line" >>/tmp/crsh-log
   clear >/dev/tty </dev/tty
