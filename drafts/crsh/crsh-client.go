@@ -21,7 +21,9 @@ func main() {
 	line := liner.NewLiner()
 	defer line.Close()
 
-	infilename := os.Args[2]
+	chandir := os.Args[1]
+
+	infilename := chandir + "/result"
 	infile, err := os.Create(infilename)
 	if err != nil {
 		return
@@ -29,7 +31,7 @@ func main() {
 	defer infile.Close()
 	inreader := bufio.NewReader(infile)
 
-	outfilename := os.Args[1]
+	outfilename := chandir + "/command"
 	outfile, err := os.Create(outfilename)
 	if err != nil {
 		return
