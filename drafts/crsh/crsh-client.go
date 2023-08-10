@@ -4,6 +4,7 @@ import (
 	"log"
 	"fmt"
 	"os"
+	"bufio"
 	"path/filepath"
 	"strings"
 
@@ -18,6 +19,14 @@ var (
 func main() {
 	line := liner.NewLiner()
 	defer line.Close()
+
+	infilename := os.Args[2]
+	infile, err := os.Create(infilename)
+	if err != nil {
+		return
+	}
+	defer infile.Close()
+	inreader := bufio.NewReader(infile)
 
 	outfilename := os.Args[1]
 	outfile, err := os.Create(outfilename)
@@ -42,19 +51,34 @@ func main() {
 		f.Close()
 	}
 
-	if name, err := line.Prompt("> "); err == nil {
-		fmt.Fprintln(outfile, "EVAL", name)
-		line.AppendHistory(name)
-	} else if err == liner.ErrPromptAborted {
-		log.Print("Aborted")
-	} else {
-		log.Print("Error reading line: ", err)
-	}
+	// log.Print("Ready")
+	for {
+		response, isprefix, err := inreader.ReadLine()
+		// log.Print("Response")
+		if err != nil || isprefix {
+			break
+		}
+		if len(response) == 0 {
+			break
+		}
+		if name, err := line.Prompt("> "); err == nil {
+			fmt.Fprintln(outfile, "EVAL", name)
+			line.AppendHistory(name)
+			if name == "exit" {
+				break
+			}
+		} else if err == liner.ErrPromptAborted {
+			log.Print("Aborted")
+		} else {
+			log.Print("Error reading line: ", err)
+		}
 
-	if f, err := os.Create(history_fn); err != nil {
-		log.Print("Error writing history file: ", err)
-	} else {
-		line.WriteHistory(f)
-		f.Close()
+		if f, err := os.Create(history_fn); err != nil {
+			log.Print("Error writing history file: ", err)
+		} else {
+			line.WriteHistory(f)
+			f.Close()
+		}
+		fmt.Print("\033[H\033[2J")
 	}
 }
