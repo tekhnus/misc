@@ -7,14 +7,12 @@ import (
 	"os/exec"
 	"bufio"
 	"path/filepath"
-	"strings"
 
 	"github.com/peterh/liner"
 )
 
 var (
 	history_fn = filepath.Join(os.TempDir(), ".liner_example_history")
-	names      = []string{"john", "james", "mary", "nancy"}
 )
 
 func main() {
@@ -43,10 +41,13 @@ func main() {
 	line.SetCtrlCAborts(true)
 
 	line.SetCompleter(func(line string) (c []string) {
-		for _, n := range names {
-			if strings.HasPrefix(n, strings.ToLower(line)) {
-				c = append(c, n)
-			}
+		fmt.Fprintln(outfile, "COMPLETE", line)
+		response, isprefix, err := inreader.ReadLine()
+		if isprefix || err != nil {
+			panic("bad")
+		}
+		if string(response) != "42" {
+			panic(string(response))
 		}
 		return
 	})

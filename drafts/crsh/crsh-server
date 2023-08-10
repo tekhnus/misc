@@ -14,6 +14,7 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		IFS= read -r cmd
 	  echo "server did read a command $cmd" >>/tmp/crsh-log
 		eval_cmd="${cmd##EVAL }"
+		complete_cmd="${cmd##COMPLETE }"
 		if [ ! "$eval_cmd" = "$cmd" ]; then
 			echo </dev/tty >/dev/tty
 			printf '\033[38;5;251m%.s─\x1b[K\x1b[0m' $(seq 1 $(tput cols)) </dev/tty >/dev/tty
@@ -21,11 +22,13 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		  echo "server will eval $eval_cmd" >>/tmp/crsh-log
 			eval "$eval_cmd" </dev/tty >/dev/tty
 			status="$?"
+		  echo 'server did eval' >>/tmp/crsh-log
+			printf "\033[38;5;251m$(date '+(%H:%M)' | tr -d '\n') $(dirs +0)\x1b[K\x1b[0m" </dev/tty >/dev/tty
+		elif [ ! "$complete_cmd" = "$cmd" ]; then
+			status="42"
 		else
 			echo "unknown verb" >>/tmp/crsh-log
 			break
 		fi
-	  echo 'server did eval' >>/tmp/crsh-log
-		printf "\033[38;5;251m$(date '+(%H:%M)' | tr -d '\n') $(dirs +0)\x1b[K\x1b[0m" </dev/tty >/dev/tty
 	done
 } <$chan/command >$chan/result
