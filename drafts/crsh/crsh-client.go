@@ -65,14 +65,6 @@ func main() {
 	// log.Print("Ready")
 	for {
 		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", servername)
-		response, isprefix, err := inreader.ReadLine()
-		// log.Print("Response")
-		if err != nil || isprefix {
-			break
-		}
-		if len(response) == 0 {
-			break
-		}
 		err = exec.Command("kitty", "@", "focus-window").Run()
 		if err != nil {
 			panic(err)
@@ -93,6 +85,13 @@ func main() {
 			err = exec.Command("kitty", "@", "focus-window", "-m", "cmdline:.*crsh-.*").Run()
 			if err != nil {
 				panic(err)
+			}
+			response, isprefix, err := inreader.ReadLine()
+			if err != nil || isprefix {
+				break
+			}
+			if len(response) == 0 {
+				break
 			}
 		} else if err == liner.ErrPromptAborted {
 			log.Print("Aborted")

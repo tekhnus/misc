@@ -15,8 +15,6 @@ echo "server will enter the loop" >>/tmp/crsh-log
   status=0
 	while true;
 	do
-		echo "$status"
-	  echo 'server did send status' >>/tmp/crsh-log
 		IFS= read -r cmd
 	  echo "server did read a command $cmd" >>/tmp/crsh-log
 		eval_cmd="${cmd##EVAL }"
@@ -30,6 +28,8 @@ echo "server will enter the loop" >>/tmp/crsh-log
 			status="$?"
 		  echo 'server did eval' >>/tmp/crsh-log
 			printf "\033[38;5;251m$(date '+(%H:%M)' | tr -d '\n') $(dirs +0)\x1b[K\x1b[0m" </dev/tty >/dev/tty
+			echo "$status"
+		  echo 'server did send status' >>/tmp/crsh-log
 		elif [ ! "$complete_cmd" = "$cmd" ]; then
 			last_word=$(split "${complete_cmd}" " " | tail -n1)
 			prefix="${complete_cmd%%$last_word}"
@@ -37,7 +37,7 @@ echo "server will enter the loop" >>/tmp/crsh-log
 			if [ "$last_word" = "$complete_cmd" ]; then
 				compgen -c -- "${last_word}" | sed -E "s/^/$prefix/"
 			fi
-			status=""
+			echo
 		else
 			echo "unknown verb" >>/tmp/crsh-log
 			break
