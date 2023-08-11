@@ -94,7 +94,7 @@ func main() {
 				break
 			}
 		} else if err == liner.ErrPromptAborted {
-			log.Print("Aborted")
+			fmt.Print("\033[H\033[2J")
 		} else if err == io.EOF {
 			break
 		} else {
