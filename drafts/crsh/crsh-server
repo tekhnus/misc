@@ -33,7 +33,10 @@ echo "server will enter the loop" >>/tmp/crsh-log
 		elif [ ! "$complete_cmd" = "$cmd" ]; then
 			last_word=$(split "${complete_cmd}" " " | tail -n1)
 			prefix="${complete_cmd%%$last_word}"
-			compgen -o default "${last_word}" | sed -E "s/^/$prefix/"
+			compgen -o default -- "${last_word}" | sed -E "s/^/$prefix/"
+			if [ "$last_word" = "$complete_cmd" ]; then
+				compgen -c -- "${last_word}" | sed -E "s/^/$prefix/"
+			fi
 			status=""
 		else
 			echo "unknown verb" >>/tmp/crsh-log
