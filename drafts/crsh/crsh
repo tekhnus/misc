@@ -16,3 +16,4 @@ kitty @ resize-window --self -a vertical -i -1000 2>/dev/null
 sleep 1
 
 ~/.local/bin/crsh-client "$chan" "$@"
+kitty @ send-text --match "title:crsh-server" '\c\'
