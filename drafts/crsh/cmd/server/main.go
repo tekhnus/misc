@@ -39,27 +39,31 @@ func main() {
 		}
 		reader := bufio.NewReader(client)
 		for {
-			command, _, err := reader.ReadLine()
+			_command, _, err := reader.ReadLine()
+			command := string(_command)
 			if err == io.EOF {
 				break
 			}
 			if err != nil {
 				log.Fatal(err)
 			}
-			source, err := syntax.NewParser().Parse(strings.NewReader(string(command)), "")
-			if err != nil {
-				log.Fatal(err)
-			}
-			for _, stmt := range source.Stmts {
-				err = runner.Run(context.TODO(), stmt)
+			if command[:4] == "EVAL" {
+				cmd := command[5:]
+				source, err := syntax.NewParser().Parse(strings.NewReader(string(cmd)), "")
 				if err != nil {
-					client.Write([]byte("1\n"))
-				} else {
-					client.Write([]byte("0\n"))
+					log.Fatal(err)
 				}
-				exited = runner.Exited()
-				if exited {
-					break
+				for _, stmt := range source.Stmts {
+					err = runner.Run(context.TODO(), stmt)
+					if err != nil {
+						client.Write([]byte("1\n"))
+					} else {
+						client.Write([]byte("0\n"))
+					}
+					exited = runner.Exited()
+					if exited {
+						break
+					}
 				}
 			}
 		}
