@@ -24,33 +24,22 @@ func main() {
 	}
 	defer listener.Close()
 
-	commands := make(chan string)
-	go Execute(commands)
 	for {
 		client, err := listener.Accept()
 		if err != nil {
 			log.Fatal(err)
 		}
-		go Serve(client, commands)
+		reader := bufio.NewReader(client)
+		for {
+			command, _, err := reader.ReadLine()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("RECEIVED: %s\n", command)
+		}
 	}
 }
 
-func Execute(commands chan string) {
-	for command := range commands {
-		fmt.Printf("RECEIVED: %s\n", command)
-	}
-}
-
-func Serve(client net.Conn, commands chan string) {
-	reader := bufio.NewReader(client)
-	for {
-		line, _, err := reader.ReadLine()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		commands <- string(line)
-	}
-}
