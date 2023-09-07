@@ -11,10 +11,10 @@ name="$1"
 chan="/tmp/crsh-${name}.sock"
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "~/.local/bin/crsh-server-in-abduco $chan $name; if [ ! $? -eq 0 ]; then sleep 3; fi; sleep 1;")
+winid=$(kitty @ launch --title "crsh-${name}" --location=before --cwd=${dir} bash -c "~/.local/bin/crsh-server-in-abduco $chan $name; if [ ! $? -eq 0 ]; then sleep 3; fi; sleep 1;")
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null
 
 sleep 1
 
 ~/.local/bin/crsh-client "$chan" "$@"
-kitty @ send-text --match "title:crsh-server" '\c\'
+kitty @ send-text --match "title:crsh-${name}" '\c\'
