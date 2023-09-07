@@ -7,6 +7,10 @@ import (
 	"log"
 	"net"
 	"bufio"
+	"context"
+	"strings"
+	"mvdan.cc/sh/v3/syntax"
+	"mvdan.cc/sh/v3/interp"
 )
 
 const Addr = "/tmp/crsh.sock"
@@ -24,6 +28,11 @@ func main() {
 	}
 	defer listener.Close()
 
+	runner, err := interp.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for {
 		client, err := listener.Accept()
 		if err != nil {
@@ -39,6 +48,14 @@ func main() {
 				log.Fatal(err)
 			}
 			fmt.Printf("RECEIVED: %s\n", command)
+			source, err := syntax.NewParser().Parse(strings.NewReader(string(command)), "")
+			if err != nil {
+				log.Fatal(err)
+			}
+			err = runner.Run(context.TODO(), source)
+			if err != nil {
+				log.Fatal(err)
+			}
 			client.Write([]byte("0\n"))
 		}
 	}
