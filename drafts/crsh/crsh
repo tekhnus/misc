@@ -2,12 +2,17 @@
 go build -o crsh-server cmd/server/main.go
 go build -o crsh-client cmd/client/main.go
 
+cp crsh-server ~/.local/bin
+cp crsh-client ~/.local/bin
+cp crsh-server-in-abduco ~/.local/bin
+
 chan=/tmp/crsh.sock
+name=testname
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "./crsh-server $chan $@")
+winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "~/.local/bin/crsh-server-in-abduco $chan $name; if [ ! $? -eq 0 ]; then sleep 3; fi;")
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null
 
 sleep 1
 
-./crsh-client "$chan" "$@"
+~/.local/bin/crsh-client "$chan" "$@"
