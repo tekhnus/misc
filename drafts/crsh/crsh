@@ -6,11 +6,11 @@ cp crsh-server ~/.local/bin
 cp crsh-client ~/.local/bin
 cp crsh-server-in-abduco ~/.local/bin
 
-chan=/tmp/crsh.sock
-name=testname
+name="$1"
+chan="/tmp/crsh-${name}.sock"
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "~/.local/bin/crsh-server-in-abduco $chan $name; if [ ! $? -eq 0 ]; then sleep 3; fi;")
+winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "~/.local/bin/crsh-server-in-abduco $chan $name; if [ ! $? -eq 0 ]; then sleep 3; fi; sleep 1;")
 kitty @ resize-window --self -a vertical -i -1000 2>/dev/null
 
 sleep 1
