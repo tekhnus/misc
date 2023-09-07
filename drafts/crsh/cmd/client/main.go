@@ -27,6 +27,9 @@ func main() {
 	defer server.Close()
 	reader := bufio.NewReader(server)
 
+	fmt.Print("\x1b[?1049h")
+	defer fmt.Print("\x1b[?1049l")
+
 	line := liner.NewLiner()
 	defer line.Close()
 
