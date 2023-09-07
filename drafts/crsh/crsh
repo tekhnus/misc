@@ -5,7 +5,7 @@ go build -o crsh-client cmd/client/main.go
 chan=/tmp/crsh.sock
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --location=before --cwd=${dir} bash -c "./crsh-server $chan $@")
+winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "./crsh-server $chan $@")
 
 sleep 1
 
