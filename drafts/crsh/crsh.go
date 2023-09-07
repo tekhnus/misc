@@ -3,7 +3,6 @@ package main;
 import (
 	"io"
 	"os"
-	"fmt"
 	"log"
 	"net"
 	"bufio"
@@ -16,7 +15,6 @@ import (
 const Addr = "/tmp/crsh.sock"
 
 func main() {
-	fmt.Printf("Hello, world!\n")
 	err := os.RemoveAll(Addr)
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +26,7 @@ func main() {
 	}
 	defer listener.Close()
 
-	runner, err := interp.New()
+	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,16 +45,16 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("RECEIVED: %s\n", command)
 			source, err := syntax.NewParser().Parse(strings.NewReader(string(command)), "")
 			if err != nil {
 				log.Fatal(err)
 			}
 			err = runner.Run(context.TODO(), source)
 			if err != nil {
-				log.Fatal(err)
+				client.Write([]byte("1\n"))
+			} else {
+				client.Write([]byte("0\n"))
 			}
-			client.Write([]byte("0\n"))
 		}
 	}
 }
