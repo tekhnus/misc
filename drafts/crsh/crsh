@@ -6,6 +6,7 @@ chan=/tmp/crsh.sock
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 winid=$(kitty @ launch --title crsh-server --location=before --cwd=${dir} bash -c "./crsh-server $chan $@")
+kitty @ resize-window --self -a vertical -i -1000 2>/dev/null
 
 sleep 1
 
