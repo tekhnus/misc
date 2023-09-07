@@ -6,8 +6,8 @@ import (
 	"os"
 	"io"
 	"net"
-	// "os/exec"
 	"bufio"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/peterh/liner"
@@ -59,7 +59,7 @@ func main() {
 	// log.Print("Ready")
 	for {
 		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
-		// err = exec.Command("kitty", "@", "focus-window").Run()
+		err = exec.Command("kitty", "@", "focus-window").Run()
 		// if err != nil {
 		// 	panic(err)
 		// }
@@ -76,9 +76,9 @@ func main() {
 				f.Close()
 			}
 			fmt.Print("\033[H\033[2J")
-			// err = exec.Command("kitty", "@", "focus-window", "-m", "cmdline:.*crsh-.*").Run()
+			err = exec.Command("kitty", "@", "focus-window", "-m", "title:.*server.*").Run()
 			// if err != nil {
-				// panic(err)
+			// 	panic(err)
 			// }
 			response, isprefix, err := reader.ReadLine()
 			if err != nil || isprefix {
