@@ -3,6 +3,7 @@ package main;
 import (
 	"io"
 	"os"
+	"fmt"
 	"log"
 	"net"
 	"bufio"
@@ -65,6 +66,8 @@ func main() {
 						break
 					}
 				}
+			} else if command[:8] == "COMPLETE" {
+				fmt.Fprintf(client, "\n")
 			}
 		}
 	}

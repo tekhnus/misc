@@ -37,17 +37,17 @@ func main() {
 
 	line.SetTabCompletionStyle(liner.TabPrints)
 	line.SetCompleter(func(line string) (c []string) {
-		// fmt.Fprintln(outfile, "COMPLETE", line)
-		// for {
-		// 	response, isprefix, err := inreader.ReadLine()
-		// 	if isprefix || err != nil {
-		// 		panic("bad")
-		// 	}
-		// 	if len(response) == 0 {
-		// 		break
-		// 	}
-		// 	c = append(c, string(response))
-		// }
+		fmt.Fprintf(server, "COMPLETE %s\n", line)
+		for {
+			response, isprefix, err := reader.ReadLine()
+			if isprefix || err != nil {
+				panic("bad")
+			}
+			if len(response) == 0 {
+				break
+			}
+			c = append(c, string(response))
+		}
 		return
 	})
 
