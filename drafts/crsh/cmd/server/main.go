@@ -13,15 +13,18 @@ import (
 	"mvdan.cc/sh/v3/interp"
 )
 
-const Addr = "/tmp/crsh.sock"
-
 func main() {
-	err := os.RemoveAll(Addr)
+	if len(os.Args) <= 1 {
+		log.Fatal("Not enough args")
+	}
+	addr := os.Args[1]
+
+	err := os.RemoveAll(addr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	listener, err := net.Listen("unix", Addr)
+	listener, err := net.Listen("unix", addr)
 	if err != nil {
 		log.Fatal(err)
 	}

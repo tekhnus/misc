@@ -13,14 +13,17 @@ import (
 	"github.com/peterh/liner"
 )
 
-const Addr = "/tmp/crsh.sock"
-
 var (
 	history_fn = filepath.Join(os.TempDir(), ".liner_example_history")
 )
 
 func main() {
-	server, err := net.Dial("unix", Addr)
+	if len(os.Args) <= 1 {
+		log.Fatal("Not enough args")
+	}
+	addr := os.Args[1]
+
+	server, err := net.Dial("unix", addr)
 	if err != nil {
 		log.Fatal(err)
 	}
