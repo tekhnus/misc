@@ -39,6 +39,7 @@ func main() {
 				log.Fatal(err)
 			}
 			fmt.Printf("RECEIVED: %s\n", command)
+			client.Write([]byte("0\n"))
 		}
 	}
 }
