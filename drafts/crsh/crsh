@@ -1,10 +1,11 @@
 #!/bin/sh
-go build -o crsh-server cmd/server/main.go
-go build -o crsh-client cmd/client/main.go
+go build -o crsh-server cmd/server/main.go || exit
+go build -o crsh-client cmd/client/main.go || exit
 
-cp crsh-server ~/.local/bin
-cp crsh-client ~/.local/bin
-cp crsh-server-in-abduco ~/.local/bin
+for file in crsh-server crsh-client crsh-server-in-abduco; do
+	rm -f ~/.local/bin/$file || exit
+	cp $file ~/.local/bin || exit
+done
 
 name="$1"
 chan="/tmp/crsh-${name}.sock"
