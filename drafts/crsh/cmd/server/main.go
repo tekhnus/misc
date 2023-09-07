@@ -31,7 +31,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for {
+	exited := false
+	for !exited {
 		client, err := listener.Accept()
 		if err != nil {
 			log.Fatal(err)
@@ -49,11 +50,17 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = runner.Run(context.TODO(), source)
-			if err != nil {
-				client.Write([]byte("1\n"))
-			} else {
-				client.Write([]byte("0\n"))
+			for _, stmt := range source.Stmts {
+				err = runner.Run(context.TODO(), stmt)
+				if err != nil {
+					client.Write([]byte("1\n"))
+				} else {
+					client.Write([]byte("0\n"))
+				}
+				exited = runner.Exited()
+				if exited {
+					break
+				}
 			}
 		}
 	}

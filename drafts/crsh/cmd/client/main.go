@@ -55,7 +55,7 @@ func main() {
 
 	// log.Print("Ready")
 	for {
-		// fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", servername)
+		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
 		// err = exec.Command("kitty", "@", "focus-window").Run()
 		// if err != nil {
 		// 	panic(err)
@@ -72,7 +72,7 @@ func main() {
 				line.WriteHistory(f)
 				f.Close()
 			}
-			// fmt.Print("\033[H\033[2J")
+			fmt.Print("\033[H\033[2J")
 			// err = exec.Command("kitty", "@", "focus-window", "-m", "cmdline:.*crsh-.*").Run()
 			// if err != nil {
 				// panic(err)
