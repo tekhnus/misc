@@ -64,7 +64,7 @@ func main() {
 		// 	panic(err)
 		// }
 		if name, err := line.Prompt("> "); err == nil {
-			server.Write([]byte(name + "\n"))
+			fmt.Fprintln(server, name)
 			line.AppendHistory(name)
 			if name == "exit" {
 				break
