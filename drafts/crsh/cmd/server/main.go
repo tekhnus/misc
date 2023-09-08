@@ -68,46 +68,54 @@ func mainImpl() error {
 	fmt.Printf("\033[%d;0H", rows)
 	exited := false
 	for !exited {
-		client, err := listener.Accept()
-		if err != nil {
-			return (err)
-		}
-		reader := bufio.NewReader(client)
-		for {
-			_command, _, err := reader.ReadLine()
-			command := string(_command)
-			if err == io.EOF {
-				break
-			}
+		err = func() error {
+			client, err := listener.Accept()
 			if err != nil {
 				return (err)
 			}
-			if command[:4] == "EVAL" {
-				cmd := command[5:]
-				fmt.Printf("> %s\n", cmd)
-				source, err := syntax.NewParser().Parse(strings.NewReader(string(cmd)), "")
+			defer client.Close()
+
+			reader := bufio.NewReader(client)
+			for {
+				_command, _, err := reader.ReadLine()
+				command := string(_command)
+				if err == io.EOF {
+					break
+				}
 				if err != nil {
 					return (err)
 				}
-				for _, stmt := range source.Stmts {
-					err = runner.Run(context.TODO(), stmt)
+				if command[:4] == "EVAL" {
+					cmd := command[5:]
+					fmt.Printf("> %s\n", cmd)
+					source, err := syntax.NewParser().Parse(strings.NewReader(string(cmd)), "")
 					if err != nil {
-						client.Write([]byte("1\n"))
-					} else {
-						client.Write([]byte("0\n"))
+						return (err)
 					}
-					exited = runner.Exited()
-					if exited {
-						break
+					for _, stmt := range source.Stmts {
+						err = runner.Run(context.TODO(), stmt)
+						if err != nil {
+							client.Write([]byte("1\n"))
+						} else {
+							client.Write([]byte("0\n"))
+						}
+						exited = runner.Exited()
+						if exited {
+							break
+						}
 					}
+					fmt.Printf("---\n")
+				} else if command[:8] == "COMPLETE" {
+					fmt.Fprintf(client, "\n")
+				} else if command == "HELLO" {
+					fmt.Fprintf(client, "HELLO\n")
+					break
 				}
-				fmt.Printf("---\n")
-			} else if command[:8] == "COMPLETE" {
-				fmt.Fprintf(client, "\n")
-			} else if command == "HELLO" {
-				fmt.Fprintf(client, "HELLO\n")
-				break
 			}
+			return nil
+		}()
+		if err != nil {
+			return err
 		}
 	}
 	log.Printf("Exiting server\n");
