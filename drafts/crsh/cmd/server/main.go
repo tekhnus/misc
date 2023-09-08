@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	logfile, err := net.Dial("unix", "/tmp/crsh.log")
+	logfile, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
 		log.Fatal(err)
 	}

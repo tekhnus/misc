@@ -16,7 +16,8 @@ GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 )
 cp crsh-server-in-abduco crsh-server-in-ssh ~/.local/bin || exit
 
-# scp linux/* crsh-server-in-abduco crsh-server-in-ssh ma:/home/$USER/.local/bin
+ssh ma rm '/home/$USER/.local/bin/crsh*'
+scp linux/* crsh-server-in-abduco crsh-server-in-ssh ma:/home/$USER/.local/bin
 
 name="$1"
 chan="/tmp/crsh-${name}.sock"
