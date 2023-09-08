@@ -16,6 +16,8 @@ GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 )
 cp crsh-server-in-abduco ~/.local/bin || exit
 
+scp linux/* crsh-server-in-abduco ma:/home/$USER/.local/bin
+
 name="$1"
 chan="/tmp/crsh-${name}.sock"
 
