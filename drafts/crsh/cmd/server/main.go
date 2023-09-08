@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"context"
 	"strings"
+	"golang.org/x/term"
 	"mvdan.cc/sh/v3/syntax"
 	"mvdan.cc/sh/v3/interp"
 )
@@ -35,7 +36,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("\033[9999;0H")
+	_, rows, err := term.GetSize(0)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("\033[%d;0H", rows)
 	exited := false
 	for !exited {
 		client, err := listener.Accept()
