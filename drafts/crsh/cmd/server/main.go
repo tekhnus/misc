@@ -90,5 +90,6 @@ func main() {
 			}
 		}
 	}
+	log.Printf("Exiting server\n");
 }
 

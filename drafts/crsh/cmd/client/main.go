@@ -107,4 +107,5 @@ func main() {
 		}
 
 	}
+	log.Printf("Exiting client\n");
 }

@@ -1,6 +1,9 @@
 #!/bin/sh
 
+echo "Starting abduco wrapper" | nc -U /tmp/crsh.log
+
 chan="$1"
 name="$2"
 
 ~/.local/bin/abduco -A "$name" ~/.local/bin/crsh-server "$chan"
+echo "Exiting abduco wrapper" | nc -U /tmp/crsh.log
