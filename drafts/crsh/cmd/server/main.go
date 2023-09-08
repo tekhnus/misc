@@ -54,6 +54,7 @@ func main() {
 			}
 			if command[:4] == "EVAL" {
 				cmd := command[5:]
+				fmt.Printf("> %s\n", cmd)
 				source, err := syntax.NewParser().Parse(strings.NewReader(string(cmd)), "")
 				if err != nil {
 					log.Fatal(err)
@@ -70,7 +71,7 @@ func main() {
 						break
 					}
 				}
-				// fmt.Printf("---\n")
+				fmt.Printf("---\n")
 			} else if command[:8] == "COMPLETE" {
 				fmt.Fprintf(client, "\n")
 			}
