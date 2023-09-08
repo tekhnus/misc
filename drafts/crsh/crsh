@@ -18,13 +18,13 @@ GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 )
 cp crsh-server-in-abduco crsh-server-in-ssh ~/.local/bin || exit
 
-# scp linux/* crsh-server-in-abduco crsh-server-in-ssh ma:/home/$USER/.local/bin
+scp linux/* crsh-server-in-abduco crsh-server-in-ssh ma:/home/$USER/.local/bin
 
 name="$1"
 chan="/tmp/crsh-${name}.sock"
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${dir} bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-abduco $chan $name")
+winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${dir} bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-ssh $chan $name")
 
 kitty @ launch --location=before tail -F /tmp/crsh.log
 
