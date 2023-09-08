@@ -104,6 +104,9 @@ func mainImpl() error {
 				fmt.Printf("---\n")
 			} else if command[:8] == "COMPLETE" {
 				fmt.Fprintf(client, "\n")
+			} else if command == "HELLO" {
+				fmt.Fprintf(client, "HELLO\n")
+				break
 			}
 		}
 	}
