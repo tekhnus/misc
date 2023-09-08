@@ -23,9 +23,22 @@ name="$1"
 chan="/tmp/crsh-${name}.sock"
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${dir} bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-ssh $chan $name")
+winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${dir} bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-abduco $chan $name")
 
-while [ ! -e "$chan" ]; do sleep 0.1; done
+echo "Checking server availability" | nc localhost 5678
+while true; do
+	# res=$(echo HELLO | nc -U "$chan")
+	# echo "Sent HELLO, got '$res'" | nc localhost 5678
+	# if [ "$res" = "HELLO" ]; then
+	# 	break
+	# fi
+	if [ -e "$chan" ]; then
+		break
+	fi
+	sleep 2
+done
+echo "Server is ready" | nc localhost 5678
+
 ~/.local/bin/crsh-client "$chan" "$@"
 kitty @ send-text --match "title:crsh-server-${name}" '\c\'
 
