@@ -1,4 +1,7 @@
 #!/bin/sh
+mkdir -p darwin
+mkdir -p linux
+
 go build -o darwin/crsh-server cmd/server/main.go || exit
 go build -o darwin/crsh-client cmd/client/main.go || exit
 GOOS=linux GOARCH=amd64 go build -o linux/crsh-server cmd/server/main.go || exit
