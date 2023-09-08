@@ -1,6 +1,8 @@
 #!/bin/sh
 go build -o crsh-server cmd/server/main.go || exit
 go build -o crsh-client cmd/client/main.go || exit
+GOOS=linux GOARCH=amd64 go build -o crsh-server-linux cmd/server/main.go || exit
+GOOS=linux GOARCH=amd64 go build -o crsh-client-linux cmd/client/main.go || exit
 
 for file in crsh-server crsh-client crsh-server-in-abduco; do
 	rm -f ~/.local/bin/$file || exit
