@@ -62,11 +62,12 @@ func main() {
 	// log.Print("Ready")
 	for {
 		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
-		err = exec.Command("kitty", "@", "focus-window").Run()
 		// if err != nil {
 		// 	panic(err)
 		// }
+		err = exec.Command("kitty", "@", "focus-window").Run()
 		if name, err := line.Prompt("> "); err == nil {
+			err = exec.Command("kitty", "@", "focus-window", "-m", "title:.*crsh-server.*").Run()
 			fmt.Fprintf(server, "EVAL %s\n", name)
 			line.AppendHistory(name)
 			if name == "exit" {
@@ -79,7 +80,6 @@ func main() {
 				f.Close()
 			}
 			fmt.Print("\033[H\033[2J")
-			err = exec.Command("kitty", "@", "focus-window", "-m", "title:.*server.*").Run()
 			// if err != nil {
 			// 	panic(err)
 			// }
