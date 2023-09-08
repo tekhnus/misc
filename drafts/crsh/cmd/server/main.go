@@ -35,6 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	fmt.Printf("\033[9999;0H")
 	exited := false
 	for !exited {
 		client, err := listener.Accept()
@@ -69,6 +70,7 @@ func main() {
 						break
 					}
 				}
+				// fmt.Printf("---\n")
 			} else if command[:8] == "COMPLETE" {
 				fmt.Fprintf(client, "\n")
 			}
