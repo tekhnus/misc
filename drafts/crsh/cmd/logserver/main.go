@@ -2,22 +2,14 @@ package main;
 
 import (
 	"io"
-	"os"
 	"fmt"
 	"log"
 	"net"
 	"bufio"
 )
 
-const Addr = "/tmp/crsh.log"
-
 func main() {
-	err := os.RemoveAll(Addr)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	listener, err := net.Listen("unix", Addr)
+	listener, err := net.Listen("tcp", "localhost:5678")
 	if err != nil {
 		log.Fatal(err)
 	}
