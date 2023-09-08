@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"bufio"
+	"errors"
 	"os/exec"
 	"path/filepath"
 
@@ -20,20 +21,29 @@ var (
 func main() {
 	logfile, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	defer logfile.Close()
 	log.SetOutput(logfile)
 
+	err = mainImpl()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func mainImpl() error {
 	log.Printf("Starting client\n")
 	if len(os.Args) <= 1 {
-		log.Fatal("Not enough args")
+		return errors.New("Not enough args")
 	}
 	addr := os.Args[1]
 
 	server, err := net.Dial("unix", addr)
 	if err != nil {
-		log.Fatal(err)
+		return (err)
 	}
 	defer server.Close()
 	reader := bufio.NewReader(server)
@@ -92,8 +102,14 @@ func main() {
 			// 	panic(err)
 			// }
 			response, isprefix, err := reader.ReadLine()
-			if err != nil || isprefix {
-				break
+			if err == io.EOF {
+				return errors.New("Received a sudden EOF from server")
+			}
+			if err != nil {
+				return (err)
+			}
+			if isprefix {
+				return errors.New("Incomplete read")
 			}
 			if len(response) == 0 {
 				break
@@ -108,4 +124,5 @@ func main() {
 
 	}
 	log.Printf("Exiting client\n");
+	return nil
 }

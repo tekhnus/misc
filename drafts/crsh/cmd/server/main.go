@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"bufio"
+	"errors"
 	"context"
 	"strings"
 	"golang.org/x/term"
@@ -17,43 +18,59 @@ import (
 func main() {
 	logfile, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
+	}
+	defer logfile.Close()
+	log.SetOutput(logfile)
+
+	err = mainImpl()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
+func mainImpl() error {
+	logfile, err := net.Dial("tcp", "localhost:5678")
+	if err != nil {
+		return (err)
 	}
 	defer logfile.Close()
 	log.SetOutput(logfile)
 
 	log.Printf("Starting server\n")
 	if len(os.Args) <= 1 {
-		log.Fatal("Not enough args")
+		return errors.New("Not enough args")
 	}
 	addr := os.Args[1]
 
 	err = os.RemoveAll(addr)
 	if err != nil {
-		log.Fatal(err)
+		return (err)
 	}
 
 	listener, err := net.Listen("unix", addr)
 	if err != nil {
-		log.Fatal(err)
+		return (err)
 	}
 	defer listener.Close()
 
 	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
 	if err != nil {
-		log.Fatal(err)
+		return (err)
 	}
 
 	_, rows, err := term.GetSize(0)
 	if err != nil {
-		log.Fatal(err)
+		return (err)
 	}
 	fmt.Printf("\033[%d;0H", rows)
 	exited := false
 	for !exited {
 		client, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			return (err)
 		}
 		reader := bufio.NewReader(client)
 		for {
@@ -63,14 +80,14 @@ func main() {
 				break
 			}
 			if err != nil {
-				log.Fatal(err)
+				return (err)
 			}
 			if command[:4] == "EVAL" {
 				cmd := command[5:]
 				fmt.Printf("> %s\n", cmd)
 				source, err := syntax.NewParser().Parse(strings.NewReader(string(cmd)), "")
 				if err != nil {
-					log.Fatal(err)
+					return (err)
 				}
 				for _, stmt := range source.Stmts {
 					err = runner.Run(context.TODO(), stmt)
@@ -91,5 +108,6 @@ func main() {
 		}
 	}
 	log.Printf("Exiting server\n");
+	return nil
 }
 
