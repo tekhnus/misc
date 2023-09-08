@@ -1,6 +1,4 @@
 #!/bin/sh
-echo log: >>/tmp/crsh.log
-
 mkdir -p darwin
 mkdir -p linux
 
