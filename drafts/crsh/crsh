@@ -1,13 +1,17 @@
 #!/bin/sh
-go build -o crsh-server cmd/server/main.go || exit
-go build -o crsh-client cmd/client/main.go || exit
-GOOS=linux GOARCH=amd64 go build -o crsh-server-linux cmd/server/main.go || exit
-GOOS=linux GOARCH=amd64 go build -o crsh-client-linux cmd/client/main.go || exit
+go build -o darwin/crsh-server cmd/server/main.go || exit
+go build -o darwin/crsh-client cmd/client/main.go || exit
+GOOS=linux GOARCH=amd64 go build -o linux/crsh-server cmd/server/main.go || exit
+GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 
-for file in crsh-server crsh-client crsh-server-in-abduco; do
-	rm -f ~/.local/bin/$file || exit
-	cp $file ~/.local/bin || exit
-done
+(
+	cd darwin
+	for file in *; do
+		rm -f ~/.local/bin/$file || exit
+		cp $file ~/.local/bin || exit
+	done
+)
+cp crsh-server-in-abduco ~/.local/bin || exit
 
 name="$1"
 chan="/tmp/crsh-${name}.sock"
