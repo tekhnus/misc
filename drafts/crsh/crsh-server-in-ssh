@@ -7,6 +7,6 @@ name="$2"
 
 trap 'rm -f -- "$chan"' EXIT
 
-ssh -L "$chan:$chan" -R "5678:localhost:5678" ma "crsh-server-in-abduco $chan $name" 2> >( nc localhost 5678 )
+ssh -L "$chan:$chan" -R "5678:localhost:5678" -tt ma "crsh-server-in-abduco $chan $name" 2> >( nc localhost 5678 )
 
 echo "Exiting ssh wrapper" | nc localhost 5678
