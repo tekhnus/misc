@@ -1,0 +1,6 @@
+#!/bin/sh
+
+chan="$1"
+name="$2"
+
+ssh -L "$chan:$chan" ma crsh-server-in-abduco "$chan" "$name"
