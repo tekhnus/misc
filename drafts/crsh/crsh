@@ -31,3 +31,5 @@ kitty @ launch --location=before tail -F /tmp/crsh.log
 while [ ! -e "$chan" ]; do sleep 0.1; done
 ~/.local/bin/crsh-client "$chan" "$@" || sleep 3
 kitty @ send-text --match "title:crsh-server-${name}" '\c\'
+
+kitty @ focus-window -m "title:.*tail.*"
