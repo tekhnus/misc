@@ -18,6 +18,13 @@ var (
 )
 
 func main() {
+	logfile, err := os.OpenFile("/tmp/crsh.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logfile.Close()
+	log.SetOutput(logfile)
+
 	if len(os.Args) <= 1 {
 		log.Fatal("Not enough args")
 	}
