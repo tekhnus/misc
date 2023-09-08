@@ -27,14 +27,14 @@ winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${d
 
 echo "Checking server availability" | nc localhost 5678
 while true; do
-	# res=$(echo HELLO | nc -U "$chan")
-	# echo "Sent HELLO, got '$res'" | nc localhost 5678
-	# if [ "$res" = "HELLO" ]; then
-	# 	break
-	# fi
-	if [ -e "$chan" ]; then
+	res=$(echo HELLO | nc -U "$chan")
+	echo "Sent HELLO, got '$res'" | nc localhost 5678
+	if [ "$res" = "HELLO" ]; then
 		break
 	fi
+	# if [ -e "$chan" ]; then
+	# 	break
+	# fi
 	sleep 2
 done
 echo "Server is ready" | nc localhost 5678

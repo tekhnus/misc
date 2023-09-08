@@ -29,6 +29,7 @@ func main() {
 		log.Println(err)
 		return
 	}
+	log.Println("Exiting server normally")
 }
 
 func mainImpl() error {
@@ -56,6 +57,7 @@ func mainImpl() error {
 	}
 	defer listener.Close()
 
+	log.Printf("Started listening\n")
 	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
 	if err != nil {
 		return (err)
@@ -68,24 +70,32 @@ func mainImpl() error {
 	fmt.Printf("\033[%d;0H", rows)
 	exited := false
 	for !exited {
+		log.Printf("Waiting for connection\n")
 		err = func() error {
 			client, err := listener.Accept()
 			if err != nil {
 				return (err)
 			}
 			defer client.Close()
+			log.Printf("Connection received\n")
 
 			reader := bufio.NewReader(client)
 			for {
+				log.Printf("Reading a line\n")
 				_command, _, err := reader.ReadLine()
-				command := string(_command)
+				log.Printf("Done reading a line\n")
 				if err == io.EOF {
+					log.Printf("Received an EOF\n")
 					break
 				}
 				if err != nil {
+					log.Printf("Read error\n")
 					return (err)
 				}
-				if command[:4] == "EVAL" {
+				command := string(_command)
+				log.Printf("Read success: %s\n", command)
+				if strings.HasPrefix(command, "EVAL ") {
+					log.Printf("Eval request\n")
 					cmd := command[5:]
 					fmt.Printf("> %s\n", cmd)
 					source, err := syntax.NewParser().Parse(strings.NewReader(string(cmd)), "")
@@ -105,15 +115,20 @@ func mainImpl() error {
 						}
 					}
 					fmt.Printf("---\n")
-				} else if command[:8] == "COMPLETE" {
+				} else if strings.HasPrefix(command, "COMPLETE ") {
+					log.Printf("Complete request\n")
 					fmt.Fprintf(client, "\n")
-				} else if command == "HELLO" {
+				} else if strings.HasPrefix(command, "HELLO") {
+					log.Printf("Hello request\n")
 					fmt.Fprintf(client, "HELLO\n")
 					break
+				} else {
+					return errors.New("Unknown command")
 				}
 			}
 			return nil
 		}()
+		log.Printf("Connection done\n")
 		if err != nil {
 			return err
 		}

@@ -6,4 +6,6 @@ chan="$1"
 name="$2"
 
 ~/.local/bin/abduco -A "$name" ~/.local/bin/crsh-server "$chan" 2> >( nc localhost 5678 )
+echo "Abduco wrapper: server exit status $?" | nc localhost 5678
+
 echo "Exiting abduco wrapper" | nc localhost 5678
