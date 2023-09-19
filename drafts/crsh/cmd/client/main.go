@@ -22,10 +22,10 @@ func main() {
 	logfile, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
 		log.Println(err)
-		return
+	} else {
+		defer logfile.Close()
+		log.SetOutput(logfile)
 	}
-	defer logfile.Close()
-	log.SetOutput(logfile)
 
 	err = mainImpl()
 	if err != nil {
