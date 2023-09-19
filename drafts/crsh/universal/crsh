@@ -1,5 +1,4 @@
 #!/bin/sh
-ssh ma rm '/home/$USER/.local/bin/crsh*'
 scp linux/* universal/* ma:/home/$USER/.local/bin
 
 name="$1"
@@ -15,10 +14,7 @@ while true; do
 	if [ "$res" = "HELLO" ]; then
 		break
 	fi
-	# if [ -e "$chan" ]; then
-	# 	break
-	# fi
-	sleep 2
+	sleep 0.5
 done
 echo "Server is ready" | ~/.local/bin/crsh-logclient
 
