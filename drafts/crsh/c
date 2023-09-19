@@ -14,6 +14,12 @@ GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 		cp $file ~/.local/bin || exit
 	done
 )
-cp crsh crsh-server-in-abduco crsh-server-in-ssh crsh-logclient ~/.local/bin || exit
+(
+	cd universal
+	for file in *; do
+		rm -f ~/.local/bin/$file || exit
+		cp $file ~/.local/bin || exit
+	done
+)
 
-exec ./crsh
+exec ~/.local/bin/crsh

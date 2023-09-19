@@ -1,6 +1,6 @@
 #!/bin/sh
 ssh ma rm '/home/$USER/.local/bin/crsh*'
-scp linux/* crsh-server-in-abduco crsh-server-in-ssh crsh-logclient ma:/home/$USER/.local/bin
+scp linux/* universal/* ma:/home/$USER/.local/bin
 
 name="$1"
 chan="/tmp/crsh-${name}.sock"
