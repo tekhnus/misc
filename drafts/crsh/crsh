@@ -14,10 +14,10 @@ GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 		cp $file ~/.local/bin || exit
 	done
 )
-cp crsh-server-in-abduco crsh-server-in-ssh ~/.local/bin || exit
+cp crsh-server-in-abduco crsh-server-in-ssh crsh-logclient ~/.local/bin || exit
 
 ssh ma rm '/home/$USER/.local/bin/crsh*'
-scp linux/* crsh-server-in-abduco crsh-server-in-ssh ma:/home/$USER/.local/bin
+scp linux/* crsh-server-in-abduco crsh-server-in-ssh crsh-logclient ma:/home/$USER/.local/bin
 
 name="$1"
 chan="/tmp/crsh-${name}.sock"
@@ -25,10 +25,10 @@ chan="/tmp/crsh-${name}.sock"
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${dir} bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-ssh $chan $name")
 
-echo "Checking server availability" | nc localhost 5678
+echo "Checking server availability" | ~/.local/bin/crsh-logclient
 while true; do
 	res=$(echo HELLO | nc -U "$chan")
-	echo "Sent HELLO, got '$res'" | nc localhost 5678
+	echo "Sent HELLO, got '$res'" | ~/.local/bin/crsh-logclient
 	if [ "$res" = "HELLO" ]; then
 		break
 	fi
@@ -37,7 +37,7 @@ while true; do
 	# fi
 	sleep 2
 done
-echo "Server is ready" | nc localhost 5678
+echo "Server is ready" | ~/.local/bin/crsh-logclient
 
 ~/.local/bin/crsh-client "$chan" "$@"
 kitty @ send-text --match "title:crsh-server-${name}" '\c\'

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-echo "Starting ssh wrapper" | nc localhost 5678
+echo "Starting ssh wrapper" | ~/.local/bin/crsh-logclient
 
 chan="$1"
 name="$2"
 
 trap 'rm -f -- "$chan"' EXIT
 
-ssh -L "$chan:$chan" -R "5678:localhost:5678" -tt ma "crsh-server-in-abduco $chan $name" 2> >( nc localhost 5678 )
+ssh -L "$chan:$chan" -R "5678:localhost:5678" -tt ma "crsh-server-in-abduco $chan $name" 2> >( ~/.local/bin/crsh-logclient )
 
-echo "Exiting ssh wrapper" | nc localhost 5678
+echo "Exiting ssh wrapper" | ~/.local/bin/crsh-logclient
