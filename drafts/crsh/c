@@ -21,5 +21,8 @@ GOOS=linux GOARCH=amd64 go build -o linux/crsh-client cmd/client/main.go || exit
 		cp $file ~/.local/bin || exit
 	done
 )
+rm -rf ~/.local/share/crsh
+mkdir -p ~/.local/share/crsh
+cp -r darwin linux universal ~/.local/share/crsh
 
 exec ~/.local/bin/crsh

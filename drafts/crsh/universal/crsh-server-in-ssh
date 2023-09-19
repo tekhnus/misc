@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
-
-echo "Starting ssh wrapper" | ~/.local/bin/crsh-logclient
-
 chan="$1"
 name="$2"
 
+echo "Starting ssh wrapper" | ~/.local/bin/crsh-logclient
+
+echo "Copying executables to remote" | ~/.local/bin/crsh-logclient
+
+scp ~/.local/share/crsh/linux/* ~/.local/share/crsh/universal/* ma:/home/$USER/.local/bin 2> >( ~/.local/bin/crsh-logclient )
+
+echo "End copying executables to remote" | ~/.local/bin/crsh-logclient
+
 trap 'rm -f -- "$chan"' EXIT
 
-ssh -L "$chan:$chan" -R "5678:localhost:5678" -tt ma "crsh-server-in-abduco $chan $name" 2> >( ~/.local/bin/crsh-logclient )
+ssh -L "$chan:$chan" -R "5678:localhost:5678" -tt ma "~/.local/bin/crsh-server-in-abduco $chan $name" 2> >( ~/.local/bin/crsh-logclient )
 
 echo "Exiting ssh wrapper" | ~/.local/bin/crsh-logclient
