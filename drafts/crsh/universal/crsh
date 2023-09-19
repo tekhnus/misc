@@ -2,7 +2,7 @@
 name="$1"
 chan="/tmp/crsh-${name}.sock"
 
-winid=$(kitty @ launch --title "crsh-server-${name}" --location=before --cwd=${dir} bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-ssh $chan $name")
+winid=$(kitty @ launch --title "crsh-server-${name}" --location=before bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-ssh $chan $name")
 
 echo "Checking server availability" | ~/.local/bin/crsh-logclient
 while true; do
