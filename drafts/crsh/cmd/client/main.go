@@ -43,10 +43,10 @@ func mainImpl() error {
 	if len(os.Args) <= 1 {
 		return errors.New("Not enough args")
 	}
-	addr := os.Args[1]
 	onPrompt := flag.String("on-prompt", "kitty @ focus-window", "Prompt command")
 	onExec := flag.String("on-exec", "kitty @ focus-window -m title:.*crsh-server.*", "Exec command")
 	flag.Parse()
+	addr := flag.Arg(0)
 
 	log.Printf("Saying hello\n")
 	server, err := dialAndCheck(addr)
