@@ -12,6 +12,7 @@ winid=$( \
              ~/.local/bin/crsh-server-in-ssh $chan $name")
 
 ~/.local/bin/crsh-client \
+  --clear \
 	--on-prompt 'kitty @ focus-window' \
   --on-exec 'kitty @ focus-window -m title:.*crsh-server.*' "$chan"
 

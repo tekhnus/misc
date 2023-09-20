@@ -43,8 +43,11 @@ func mainImpl() error {
 	if len(os.Args) <= 1 {
 		return errors.New("Not enough args")
 	}
+
 	onPrompt := flag.String("on-prompt", "", "Prompt command")
 	onExec := flag.String("on-exec", "", "Exec command")
+	clear := flag.Bool("clear", false, "Whether to clear the screen")
+
 	flag.Parse()
 	addr := flag.Arg(0)
 
@@ -60,8 +63,10 @@ func mainImpl() error {
 	log.Printf("Said hello\n")
 	reader := bufio.NewReader(server)
 
-	// fmt.Print("\x1b[?1049h")
-	// defer fmt.Print("\x1b[?1049l")
+	if (*clear) {
+		fmt.Print("\x1b[?1049h")
+		defer fmt.Print("\x1b[?1049l")
+	}
 
 	line := liner.NewLiner()
 	defer line.Close()
@@ -91,7 +96,9 @@ func mainImpl() error {
 	onPromptCmd := strings.Split(*onPrompt, " ")
 	onExecCmd := strings.Split(*onExec, " ")
 	for {
-		// fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
+		if (*clear) {
+			fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
+		}
 		if len(onPromptCmd) > 0 {
 			err = exec.Command(onPromptCmd[0], onPromptCmd[1:]...).Run()
 		}
@@ -110,7 +117,9 @@ func mainImpl() error {
 				line.WriteHistory(f)
 				f.Close()
 			}
-			// fmt.Print("\033[H\033[2J")
+			if (*clear) {
+				fmt.Print("\033[H\033[2J")
+			}
 			response, isprefix, err := reader.ReadLine()
 			if err == io.EOF {
 				return errors.New("Received a sudden EOF from server")
@@ -125,7 +134,9 @@ func mainImpl() error {
 				break
 			}
 		} else if err == liner.ErrPromptAborted {
-			// fmt.Print("\033[H\033[2J")
+			if (*clear) {
+				fmt.Print("\033[H\033[2J")
+			}
 		} else if err == io.EOF {
 			break
 		} else {
