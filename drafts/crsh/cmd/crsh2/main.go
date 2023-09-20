@@ -28,7 +28,7 @@ func mainImpl() error {
 	chn := "/tmp/crsh-foo-bar"
 	name := "hi"
 
-	cmd := exec.Command("/Users/zahaaar/.local/bin/crsh-server-in-ssh", chn, name)
+	cmd := exec.Command("/Users/zahaaar/.local/bin/crsh-server", chn)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
