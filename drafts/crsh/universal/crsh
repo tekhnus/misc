@@ -2,6 +2,8 @@
 name="$1"
 chan="/tmp/crsh-${name}.sock"
 
+kitty @ goto-layout tall
+
 winid=$( \
 	kitty @ launch \
 		--title "crsh-server-${name}" \
