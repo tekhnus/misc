@@ -92,9 +92,13 @@ func mainImpl() error {
 	onExecCmd := strings.Split(*onExec, " ")
 	for {
 		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
-		err = exec.Command(onPromptCmd[0], onPromptCmd[1:]...).Run()
+		if len(onPromptCmd) > 0 {
+			err = exec.Command(onPromptCmd[0], onPromptCmd[1:]...).Run()
+		}
 		if name, err := line.Prompt("> "); err == nil {
-			err = exec.Command(onExecCmd[0], onExecCmd[1:]...).Run()
+			if len(onExecCmd) > 0 {
+				err = exec.Command(onExecCmd[0], onExecCmd[1:]...).Run()
+			}
 			fmt.Fprintf(server, "EVAL %s\n", name)
 			line.AppendHistory(name)
 			if name == "exit" {
