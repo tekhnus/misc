@@ -6,6 +6,7 @@ import (
 	"os"
 	"io"
 	"net"
+	"time"
 	"bufio"
 	"errors"
 	"os/exec"
@@ -19,6 +20,7 @@ var (
 )
 
 func main() {
+	log.SetPrefix("client ")
 	logfile, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
 		log.Println(err)
@@ -41,11 +43,16 @@ func mainImpl() error {
 	}
 	addr := os.Args[1]
 
-	server, err := net.Dial("unix", addr)
-	if err != nil {
-		return (err)
+	log.Printf("Saying hello\n")
+	server, err := dialAndCheck(addr)
+	for err != nil {
+		log.Println(err)
+		time.Sleep(time.Second / 2)
+		log.Printf("Retrying hello\n")
+		server, err = dialAndCheck(addr)
 	}
 	defer server.Close()
+	log.Printf("Said hello\n")
 	reader := bufio.NewReader(server)
 
 	fmt.Print("\x1b[?1049h")
@@ -125,4 +132,25 @@ func mainImpl() error {
 	}
 	log.Printf("Exiting client\n");
 	return nil
+}
+
+func dialAndCheck(addr string) (net.Conn, error) {
+	server, err := net.Dial("unix", addr)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Fprintf(server, "HELLO\n")
+	var resp [6]byte
+	log.Printf("Reading hello\n")
+	_, err = io.ReadFull(server, resp[:])
+	if err != nil {
+		server.Close()
+		return nil, err
+	}
+	log.Printf("Recieved a potential hello\n")
+	if string(resp[:]) != "HELLO\n" {
+		server.Close()
+		return nil, errors.New("Didn't receive a proper hello")
+	}
+	return server, nil
 }

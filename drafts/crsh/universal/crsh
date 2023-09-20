@@ -4,17 +4,6 @@ chan="/tmp/crsh-${name}.sock"
 
 winid=$(kitty @ launch --title "crsh-server-${name}" --location=before bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null; ~/.local/bin/crsh-server-in-ssh $chan $name")
 
-echo "Checking server availability" | ~/.local/bin/crsh-logclient
-while true; do
-	res=$(echo HELLO | nc -U "$chan")
-	echo "Sent HELLO, got '$res'" | ~/.local/bin/crsh-logclient
-	if [ "$res" = "HELLO" ]; then
-		break
-	fi
-	sleep 0.5
-done
-echo "Server is ready" | ~/.local/bin/crsh-logclient
-
 ~/.local/bin/crsh-client "$chan" "$@"
 kitty @ send-text --match "title:crsh-server-${name}" '\c\'
 

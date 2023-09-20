@@ -114,7 +114,6 @@ func mainImpl() error {
 				} else if strings.HasPrefix(command, "HELLO") {
 					log.Printf("Hello request\n")
 					fmt.Fprintf(client, "HELLO\n")
-					break
 				} else {
 					return errors.New("Unknown command")
 				}
