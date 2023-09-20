@@ -45,6 +45,7 @@ func mainImpl() error {
 	}
 	addr := os.Args[1]
 	onPrompt := flag.String("on-prompt", "kitty @ focus-window", "Prompt command")
+	onExec := flag.String("on-exec", "kitty @ focus-window -m title:.*crsh-server.*", "Exec command")
 	flag.Parse()
 
 	log.Printf("Saying hello\n")
@@ -88,12 +89,12 @@ func mainImpl() error {
 		f.Close()
 	}
 	onPromptCmd := strings.Split(*onPrompt, " ")
-	log.Println(onPromptCmd)
+	onExecCmd := strings.Split(*onExec, " ")
 	for {
 		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
 		err = exec.Command(onPromptCmd[0], onPromptCmd[1:]...).Run()
 		if name, err := line.Prompt("> "); err == nil {
-			err = exec.Command("kitty", "@", "focus-window", "-m", "title:.*crsh-server.*").Run()
+			err = exec.Command(onExecCmd[0], onExecCmd[1:]...).Run()
 			fmt.Fprintf(server, "EVAL %s\n", name)
 			line.AppendHistory(name)
 			if name == "exit" {
