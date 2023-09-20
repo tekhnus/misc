@@ -83,13 +83,8 @@ func mainImpl() error {
 		line.ReadHistory(f)
 		f.Close()
 	}
-
-	// log.Print("Ready")
 	for {
 		fmt.Printf("\033[9999;1H\x1b[38;5;251m@%s\x1b[K\x1b[0m\033[1;0H", "servername")
-		// if err != nil {
-		// 	panic(err)
-		// }
 		err = exec.Command("kitty", "@", "focus-window").Run()
 		if name, err := line.Prompt("> "); err == nil {
 			err = exec.Command("kitty", "@", "focus-window", "-m", "title:.*crsh-server.*").Run()
@@ -105,9 +100,6 @@ func mainImpl() error {
 				f.Close()
 			}
 			fmt.Print("\033[H\033[2J")
-			// if err != nil {
-			// 	panic(err)
-			// }
 			response, isprefix, err := reader.ReadLine()
 			if err == io.EOF {
 				return errors.New("Received a sudden EOF from server")
