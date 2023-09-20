@@ -6,7 +6,7 @@ winid=$( \
 	kitty @ launch \
 		--title "crsh-server-${name}" \
 		--location=before \
-		bash -c "kitty @ resize-window --self -a vertical -i +1000 2>/dev/null;
+		bash -c "kitty @ resize-window --self -a vertical -i +1000 2> >( ~/.local/bin/crsh-logclient );
              ~/.local/bin/crsh-server-in-ssh $chan $name")
 
 ~/.local/bin/crsh-client \
