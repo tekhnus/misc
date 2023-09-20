@@ -43,8 +43,8 @@ func mainImpl() error {
 	if len(os.Args) <= 1 {
 		return errors.New("Not enough args")
 	}
-	onPrompt := flag.String("on-prompt", "kitty @ focus-window", "Prompt command")
-	onExec := flag.String("on-exec", "kitty @ focus-window -m title:.*crsh-server.*", "Exec command")
+	onPrompt := flag.String("on-prompt", "", "Prompt command")
+	onExec := flag.String("on-exec", "", "Exec command")
 	flag.Parse()
 	addr := flag.Arg(0)
 
