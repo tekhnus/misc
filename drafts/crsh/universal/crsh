@@ -2,12 +2,13 @@
 name="$1"
 chan="/tmp/crsh-${name}.sock"
 
-kitty @ goto-layout tall
+kitty @ goto-layout splits
 
 winid=$( \
 	kitty @ launch \
 		--title "crsh-server-${name}" \
 		--location=before \
+		--location=hsplit \
 		bash -c "kitty @ resize-window --self -a vertical -i +1000 2> >( ~/.local/bin/crsh-logclient );
              ~/.local/bin/crsh-server-in-ssh $chan $name")
 
