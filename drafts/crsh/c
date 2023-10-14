@@ -26,4 +26,4 @@ rm -rf ~/.local/share/crsh
 mkdir -p ~/.local/share/crsh
 cp -r darwin linux universal ~/.local/share/crsh
 
-exec ~/.local/bin/crsh2
+exec ~/.local/bin/crsh
