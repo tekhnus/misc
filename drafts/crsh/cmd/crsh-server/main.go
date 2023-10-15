@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -47,6 +48,9 @@ func echo(args []string) error {
 	for {
 		var msg map[string]string
 		err = dec.Decode(&msg)
+		if err == io.EOF {
+			break
+		}
 		if err != nil {
 			return err
 		}

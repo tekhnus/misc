@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+go build ./... || exit
+
+kitty @ launch --type os-window --title CRSH --cwd current --hold go run cmd/crsh-server/main.go echo
+kitty @ goto-layout --match title:CRSH splits
+kitty @ launch --match title:CRSH --location hsplit --cwd current --hold go run cmd/crsh/main.go
