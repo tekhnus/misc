@@ -123,7 +123,7 @@ func serveSession(cmdline []string, addr string, conn net.Conn) error {
 			return err
 		}
 		if msg["cmd"] == "/open" {
-			
+
 		} else {
 			enc.Encode(msg)
 		}
