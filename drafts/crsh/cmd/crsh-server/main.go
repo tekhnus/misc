@@ -86,28 +86,12 @@ func manager(args []string) error {
 }
 
 func serveSession(cmdline []string, addr string, conn net.Conn) error {
-	if len(cmdline) == 0 {
-		return errors.New("cmdline cannot be empty")
-	}
-	cmd := exec.Command(cmdline[0], cmdline[1:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Start()
+	cmd, cmdconn, err := startSession(cmdline, addr)
 	if err != nil {
 		return err
 	}
 	defer cmd.Wait()
-
-	log.Println("Starting dialing shell")
-	cmdconn, err := net.Dial("tcp", addr)
-	for err != nil {
-		time.Sleep(time.Second / 5)
-		cmdconn, err = net.Dial("tcp", addr)
-	}
 	defer cmdconn.Close()
-	log.Println("Ending dialing shell")
 
 	go func() { io.Copy(conn, cmdconn) }()
 
@@ -130,4 +114,29 @@ func serveSession(cmdline []string, addr string, conn net.Conn) error {
 	}
 
 	return nil
+}
+
+func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
+	if len(cmdline) == 0 {
+		return nil, nil, errors.New("cmdline cannot be empty")
+	}
+	cmd := exec.Command(cmdline[0], cmdline[1:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Start()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	log.Println("Starting dialing shell")
+	cmdconn, err := net.Dial("tcp", addr)
+	for err != nil {
+		time.Sleep(time.Second / 5)
+		cmdconn, err = net.Dial("tcp", addr)
+	}
+	log.Println("Ending dialing shell")
+
+	return cmd, cmdconn, nil
 }
