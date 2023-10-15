@@ -2,6 +2,7 @@
 
 go build ./... || exit
 
-kitty @ launch --type os-window --title CRSH --cwd current --hold go run cmd/crsh-server/main.go echo
-kitty @ goto-layout --match title:CRSH splits
-kitty @ launch --match title:CRSH --location hsplit --cwd current --hold go run cmd/crsh/main.go
+kitty @ launch --type os-window --title CRSH-SERVER --cwd current --hold go run cmd/crsh-server/main.go echo
+kitty @ goto-layout --match title:CRSH-SERVER splits
+kitty @ launch --title CRSH-CLIENT --match title:CRSH-SERVER --location hsplit --cwd current --hold go run cmd/crsh/main.go
+kitty @ resize-window --match title:CRSH-SERVER --axis vertical --increment +1000
