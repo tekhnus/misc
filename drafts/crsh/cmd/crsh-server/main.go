@@ -97,7 +97,7 @@ func manager(args []string) error {
 			if err != nil {
 				return err
 			}
-			if msg["cmd"] == "/open" {
+			if msg["cmd"] == "\\open" {
 				log.Println("closing the connection")
 				cmdconn.Close()
 				log.Println("waiting the command")
@@ -111,6 +111,14 @@ func manager(args []string) error {
 				}
 				fmt.Println("connected to new session")
 				enc = json.NewEncoder(cmdconn)
+			} else if msg["cmd"] == "\\exit" {
+				log.Println("closing the connection")
+				cmdconn.Close()
+				log.Println("waiting the command")
+				cmd.Wait()
+				log.Println("wait done")
+				exited = true
+				break
 			} else {
 				enc.Encode(msg)
 			}
