@@ -77,16 +77,9 @@ func manager(args []string) error {
 	}
 	defer conn.Close()
 
-	err = serveSession([]string{"crsh-server", "echo"}, "localhost:5679", conn)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func serveSession(cmdline []string, addr string, conn net.Conn) error {
-	cmd, cmdconn, err := startSession(cmdline, addr)
+	cmd, cmdconn, err := startSession(
+		[]string{"crsh-server", "echo"},
+		"localhost:5679")
 	if err != nil {
 		return err
 	}
