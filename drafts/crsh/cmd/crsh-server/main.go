@@ -97,7 +97,24 @@ func manager(args []string) error {
 	log.Println("Ending dialing shell")
 
 	go func() { io.Copy(conn, cmdconn) }()
-	io.Copy(cmdconn, conn)
+
+	dec := json.NewDecoder(conn)
+	enc := json.NewEncoder(cmdconn)
+	for {
+		var msg map[string]string
+		err = dec.Decode(&msg)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if msg["cmd"] == "/open" {
+			
+		} else {
+			enc.Encode(msg)
+		}
+	}
 
 	return nil
 }
