@@ -85,9 +85,8 @@ func manager(args []string) error {
 		return err
 	}
 	enc := json.NewEncoder(cmdconn)
-	for {
-		go func() { io.Copy(conn, cmdconn) }()
-
+	exited := false
+	for !exited {
 		for {
 			var msg map[string]string
 			err = dec.Decode(&msg)
