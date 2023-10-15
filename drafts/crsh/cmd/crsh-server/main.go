@@ -110,6 +110,7 @@ func manager(args []string) error {
 				if err != nil {
 					return err
 				}
+				fmt.Println("connected to new session")
 				enc = json.NewEncoder(cmdconn)
 			} else {
 				enc.Encode(msg)
