@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -76,22 +77,34 @@ func manager(args []string) error {
 	}
 	defer conn.Close()
 
-	cmd := exec.Command("crsh-server", "echo")
+	err = serveSession([]string{"crsh-server", "echo"}, "localhost:5679", conn)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func serveSession(cmdline []string, addr string, conn net.Conn) error {
+	if len(cmdline) == 0 {
+		return errors.New("cmdline cannot be empty")
+	}
+	cmd := exec.Command(cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		return err
 	}
 	defer cmd.Wait()
 
 	log.Println("Starting dialing shell")
-	cmdconn, err := net.Dial("tcp", "localhost:5679")
+	cmdconn, err := net.Dial("tcp", addr)
 	for err != nil {
 		time.Sleep(time.Second / 5)
-		cmdconn, err = net.Dial("tcp", "localhost:5679")
+		cmdconn, err = net.Dial("tcp", addr)
 	}
 	defer cmdconn.Close()
 	log.Println("Ending dialing shell")
