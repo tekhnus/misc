@@ -33,7 +33,10 @@ func client() error {
 			"cmd": cmd,
 		}
 
-		enc.Encode(msg)
+		err = enc.Encode(msg)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
