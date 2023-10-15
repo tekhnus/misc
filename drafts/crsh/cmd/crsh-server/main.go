@@ -76,6 +76,7 @@ func manager(args []string) error {
 		return err
 	}
 	defer conn.Close()
+	dec := json.NewDecoder(conn)
 
 	cmd, cmdconn, err := startSession(
 		[]string{"crsh-server", "echo"},
@@ -83,26 +84,36 @@ func manager(args []string) error {
 	if err != nil {
 		return err
 	}
-	defer cmd.Wait()
-	defer cmdconn.Close()
-
-	go func() { io.Copy(conn, cmdconn) }()
-
-	dec := json.NewDecoder(conn)
 	enc := json.NewEncoder(cmdconn)
 	for {
-		var msg map[string]string
-		err = dec.Decode(&msg)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return err
-		}
-		if msg["cmd"] == "/open" {
+		go func() { io.Copy(conn, cmdconn) }()
 
-		} else {
-			enc.Encode(msg)
+		for {
+			var msg map[string]string
+			err = dec.Decode(&msg)
+			if err == io.EOF {
+				log.Println("EOF")
+				break
+			}
+			if err != nil {
+				return err
+			}
+			if msg["cmd"] == "/open" {
+				log.Println("closing the connection")
+				cmdconn.Close()
+				log.Println("waiting the command")
+				cmd.Wait()
+				log.Println("wait done")
+				cmd, cmdconn, err = startSession(
+					[]string{"crsh-server", "echo"},
+					"localhost:5679")
+				if err != nil {
+					return err
+				}
+				enc = json.NewEncoder(cmdconn)
+			} else {
+				enc.Encode(msg)
+			}
 		}
 	}
 
