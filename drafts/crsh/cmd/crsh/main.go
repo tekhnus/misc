@@ -3,7 +3,8 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"bufio"
+	"os"
 	"io"
 	"log"
 	"net"
@@ -63,10 +64,9 @@ Loop:
 }
 
 func readPrompt(outp chan string) {
-	for {
-		var cmd string
-		fmt.Scanln(&cmd)
-		outp <- cmd
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		outp <- scanner.Text()
 	}
 }
 

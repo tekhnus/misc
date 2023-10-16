@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"errors"
 	"fmt"
 	"io"
@@ -97,7 +98,13 @@ func manager(args []string) error {
 			if err != nil {
 				return err
 			}
-			if msg["cmd"] == "\\open" {
+			parsedMsg := strings.Split(msg["cmd"], " ")
+			if parsedMsg[0] == "\\open" {
+				if len(parsedMsg) != 2 {
+					log.Println(parsedMsg)
+					return errors.New("Expected a single argument")
+				}
+				// name := parsedMsg[1]
 				log.Println("closing the connection")
 				server.Close()
 				log.Println("waiting the command")
@@ -111,7 +118,7 @@ func manager(args []string) error {
 				}
 				fmt.Println("connected to new session")
 				enc = json.NewEncoder(server)
-			} else if msg["cmd"] == "\\exit" {
+			} else if parsedMsg[0] == "\\exit" {
 				log.Println("closing the connection")
 				server.Close()
 				log.Println("waiting the command")
