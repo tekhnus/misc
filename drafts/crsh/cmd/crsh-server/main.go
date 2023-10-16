@@ -125,6 +125,7 @@ func manager(args []string) error {
 		}
 	}
 
+	log.Println("exiting")
 	return nil
 }
 
