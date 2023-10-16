@@ -25,19 +25,30 @@ func client() error {
 
 	enc := json.NewEncoder(conn)
 
+	commands := make(chan string)
+	go readPrompt(commands)
+
 	for {
-		var cmd string
-		fmt.Scanln(&cmd)
+		select {
+			case cmd := <- commands:
+				msg := map[string]string{
+					"cmd": cmd,
+				}
 
-		msg := map[string]string{
-			"cmd": cmd,
-		}
-
-		err = enc.Encode(msg)
-		if err != nil {
-			return err
+				err = enc.Encode(msg)
+				if err != nil {
+					return err
+				}
 		}
 	}
 
 	return nil
+}
+
+func readPrompt(outp chan string) {
+	for {
+		var cmd string
+		fmt.Scanln(&cmd)
+		outp <- cmd
+	}
 }
