@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 	"errors"
+	"fmt"
+	"io"
+	"log"
 	"net"
 	"time"
-	"io"
 )
 
 func main() {
@@ -33,28 +33,28 @@ func client() error {
 	replies := make(chan map[string]string)
 	go readMessages(conn, replies)
 
-	Loop:
+Loop:
 	for {
 		select {
-			case cmd := <- commands:
-				msg := map[string]string{
-					"cmd": cmd,
-				}
+		case cmd := <-commands:
+			msg := map[string]string{
+				"cmd": cmd,
+			}
 
-				err = enc.Encode(msg)
-				if err != nil {
-					return err
-				}
-			case msg := <- replies:
-				log.Println("Received a message")
-				msgtype := msg["type"]
-				switch msgtype {
-					case "end":
-						log.Println("Received an end message")
-						break Loop
-					default:
-						return errors.New("Unknown message type")
-				}
+			err = enc.Encode(msg)
+			if err != nil {
+				return err
+			}
+		case msg := <-replies:
+			log.Println("Received a message")
+			msgtype := msg["type"]
+			switch msgtype {
+			case "end":
+				log.Println("Received an end message")
+				break Loop
+			default:
+				return errors.New("Unknown message type")
+			}
 		}
 	}
 
