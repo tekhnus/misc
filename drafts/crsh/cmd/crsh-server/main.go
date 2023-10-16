@@ -71,20 +71,20 @@ func manager(args []string) error {
 	}
 	defer listener.Close()
 
-	conn, err := listener.Accept()
+	client, err := listener.Accept()
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
-	dec := json.NewDecoder(conn)
+	defer client.Close()
+	dec := json.NewDecoder(client)
 
-	cmd, cmdconn, err := startSession(
+	serverProcess, server, err := startSession(
 		[]string{"crsh-server", "echo"},
 		"localhost:5679")
 	if err != nil {
 		return err
 	}
-	enc := json.NewEncoder(cmdconn)
+	enc := json.NewEncoder(server)
 	exited := false
 	for !exited {
 		for {
@@ -99,23 +99,23 @@ func manager(args []string) error {
 			}
 			if msg["cmd"] == "\\open" {
 				log.Println("closing the connection")
-				cmdconn.Close()
+				server.Close()
 				log.Println("waiting the command")
-				cmd.Wait()
+				serverProcess.Wait()
 				log.Println("wait done")
-				cmd, cmdconn, err = startSession(
+				serverProcess, server, err = startSession(
 					[]string{"crsh-server", "echo"},
 					"localhost:5679")
 				if err != nil {
 					return err
 				}
 				fmt.Println("connected to new session")
-				enc = json.NewEncoder(cmdconn)
+				enc = json.NewEncoder(server)
 			} else if msg["cmd"] == "\\exit" {
 				log.Println("closing the connection")
-				cmdconn.Close()
+				server.Close()
 				log.Println("waiting the command")
-				cmd.Wait()
+				serverProcess.Wait()
 				log.Println("wait done")
 				exited = true
 				break
