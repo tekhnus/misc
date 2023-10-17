@@ -11,6 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"time"
+	"flag"
+	"net/url"
 )
 
 func main() {
@@ -38,7 +40,17 @@ func main() {
 }
 
 func echo(args []string) error {
-	listener, err := net.Listen("tcp", "localhost:5679")
+	fset := flag.NewFlagSet("echo", flag.ExitOnError)
+	fset.Parse(args)
+	if fset.NArg() < 1 {
+		return errors.New("expected a url")
+	}
+	addr := fset.Arg(0)
+	url, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+	listener, err := net.Listen(url.Scheme, url.Host)
 	if err != nil {
 		return err
 	}
@@ -88,7 +100,7 @@ func manager(args []string) error {
 	dec := json.NewDecoder(client)
 
 	serverProcess, server, err := startSession(
-		[]string{"crsh-server", "echo"},
+		[]string{"crsh-server", "echo", "tcp://localhost:5679"},
 		"localhost:5679")
 	if err != nil {
 		return err
