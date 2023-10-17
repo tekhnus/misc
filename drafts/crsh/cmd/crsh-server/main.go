@@ -44,25 +44,33 @@ func echo(args []string) error {
 	}
 	defer listener.Close()
 
-	conn, err := listener.Accept()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	dec := json.NewDecoder(conn)
 	for {
-		var msg map[string]string
-		err = dec.Decode(&msg)
-		if err == io.EOF {
-			break
-		}
+		conn, err := listener.Accept()
 		if err != nil {
 			return err
 		}
-		fmt.Printf("received: %s\n", msg)
+		exit, _ := echoLoop(conn)
+		if exit {
+			break
+		}
 	}
 	return nil
+}
+
+func echoLoop(conn net.Conn) (bool, error) {
+	defer conn.Close()
+	dec := json.NewDecoder(conn)
+	for {
+		var msg map[string]string
+		err := dec.Decode(&msg)
+		if err != nil {
+			return false, err
+		}
+		fmt.Printf("received: %s\n", msg)
+		if msg["type"] == "exit" {
+			return true, nil
+		}
+	}
 }
 
 func manager(args []string) error {
@@ -104,14 +112,15 @@ func manager(args []string) error {
 					log.Println(parsedMsg)
 					return errors.New("Expected a single argument")
 				}
-				// name := parsedMsg[1]
+				name := parsedMsg[1]
 				log.Println("closing the connection")
+				enc.Encode(map[string]string{"type": "exit",})
 				server.Close()
 				log.Println("waiting the command")
 				serverProcess.Wait()
 				log.Println("wait done")
 				serverProcess, server, err = startSession(
-					[]string{"crsh-server", "echo"},
+					[]string{"abduco", "-A", name, "crsh-server", "echo"},
 					"localhost:5679")
 				if err != nil {
 					return err
@@ -120,6 +129,7 @@ func manager(args []string) error {
 				enc = json.NewEncoder(server)
 			} else if parsedMsg[0] == "\\exit" {
 				log.Println("closing the connection")
+				enc.Encode(map[string]string{"type": "exit",})
 				server.Close()
 				log.Println("waiting the command")
 				serverProcess.Wait()
