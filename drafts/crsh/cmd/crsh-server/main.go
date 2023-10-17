@@ -99,9 +99,10 @@ func manager(args []string) error {
 	defer client.Close()
 	dec := json.NewDecoder(client)
 
+	url := "tcp://localhost:5679"
 	serverProcess, server, err := startSession(
-		[]string{"crsh-server", "echo", "tcp://localhost:5679"},
-		"localhost:5679")
+		[]string{"crsh-server", "echo", url},
+		url)
 	if err != nil {
 		return err
 	}
@@ -131,9 +132,10 @@ func manager(args []string) error {
 				log.Println("waiting the command")
 				serverProcess.Wait()
 				log.Println("wait done")
+				aurl := "tcp://localhost:5679"
 				serverProcess, server, err = startSession(
-					[]string{"abduco", "-A", name, "crsh-server", "echo"},
-					"localhost:5679")
+					[]string{"abduco", "-A", name, "crsh-server", "echo", aurl},
+					aurl)
 				if err != nil {
 					return err
 				}
@@ -159,6 +161,10 @@ func manager(args []string) error {
 }
 
 func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
+	url, err := url.Parse(addr)
+	if err != nil {
+		return nil, nil, err
+	}
 	if len(cmdline) == 0 {
 		return nil, nil, errors.New("cmdline cannot be empty")
 	}
@@ -167,16 +173,17 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return nil, nil, err
 	}
 
 	log.Println("Starting dialing shell")
-	cmdconn, err := net.Dial("tcp", addr)
+	cmdconn, err := net.Dial(url.Scheme, url.Host)
 	for err != nil {
+		log.Println(err)
 		time.Sleep(time.Second / 5)
-		cmdconn, err = net.Dial("tcp", addr)
+		cmdconn, err = net.Dial(url.Scheme, url.Host)
 	}
 	log.Println("Ending dialing shell")
 
