@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"context"
 	"strings"
 	"errors"
@@ -51,7 +52,7 @@ func echo(args []string) error {
 	if err != nil {
 		return err
 	}
-	listener, err := net.Listen(url.Scheme, url.Host)
+	listener, err := net.Listen(url.Scheme, url.Host + url.Path)
 	if err != nil {
 		return err
 	}
@@ -97,7 +98,7 @@ func manager(args []string) error {
 	if err != nil {
 		return err
 	}
-	listener, err := net.Listen(murl.Scheme, murl.Host)
+	listener, err := net.Listen(murl.Scheme, murl.Host + murl.Path)
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,8 @@ func manager(args []string) error {
 	defer client.Close()
 	dec := json.NewDecoder(client)
 
-	url := "tcp://localhost:5679"
+	sock := filepath.Join(os.TempDir(), "default")
+	url := "unix://" + sock
 	serverProcess, cancel, server, err := startSession(
 		[]string{"crsh-server", "echo", url},
 		url)
@@ -191,12 +193,12 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, context.CancelFunc,
 		return nil, nil, nil, err
 	}
 
-	log.Println("Starting dialing shell")
-	cmdconn, err := net.Dial(url.Scheme, url.Host)
+	log.Println("Starting dialing shell", addr, url.Scheme, url.Host + url.Path)
+	cmdconn, err := net.Dial(url.Scheme, url.Host + url.Path)
 	for err != nil {
 		log.Println(err)
 		time.Sleep(time.Second / 5)
-		cmdconn, err = net.Dial(url.Scheme, url.Host)
+		cmdconn, err = net.Dial(url.Scheme, url.Host + url.Path)
 	}
 	log.Println("Ending dialing shell")
 
