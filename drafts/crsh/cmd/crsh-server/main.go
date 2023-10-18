@@ -94,17 +94,33 @@ func echo(args []string, ctx context.Context) error {
 
 func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	defer conn.Close()
+	msgs := make(chan map[string]string)
+	go readMessages(conn, msgs)
+	for {
+		msg := <- msgs
+		fmt.Printf("received: %s\n", msg)
+		if msg["type"] == "exit" {
+			return true, nil
+		}
+	}
+}
+
+func readMessages(conn net.Conn, outp chan map[string]string) {
 	dec := json.NewDecoder(conn)
 	for {
 		var msg map[string]string
 		err := dec.Decode(&msg)
 		if err != nil {
-			return false, err
+			var isEof string
+			if err == io.EOF {
+				isEof = "1"
+			} else {
+				isEof = "0"
+			}
+			outp <- map[string]string{"type": "end", "is_eof": isEof, "error": err.Error()}
+			break
 		}
-		fmt.Printf("received: %s\n", msg)
-		if msg["type"] == "exit" {
-			return true, nil
-		}
+		outp <- msg
 	}
 }
 
