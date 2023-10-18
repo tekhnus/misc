@@ -15,9 +15,20 @@ import (
 	"time"
 	"flag"
 	"net/url"
+	"os/signal"
 )
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt)
+
+	go func() {
+		<-signals
+		cancel()
+	}()
+
 	if len(os.Args) <= 1 {
 		log.Fatal("Not enough arguments")
 	}
@@ -31,7 +42,7 @@ func main() {
 	case "echo":
 		err = echo(args)
 	case "manager":
-		err = manager(args)
+		err = manager(args, ctx)
 	default:
 		log.Fatal("Unknown command")
 	}
@@ -87,7 +98,7 @@ func echoLoop(conn net.Conn) (bool, error) {
 	}
 }
 
-func manager(args []string) error {
+func manager(args []string, ctx context.Context) error {
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 1 {
