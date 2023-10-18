@@ -34,6 +34,7 @@ func main() {
 
 	go func() {
 		<-signals
+		log.Println("Received an interrupt signal")
 		cancel()
 		time.Sleep(1 * time.Second)
 		log.Fatal("Self-terminating by timeout")
@@ -86,6 +87,7 @@ func echo(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		log.Println("Accepted a connection")
 		exit, _ := echoLoop(conn, ctx)
 		if exit {
 			break
@@ -101,11 +103,13 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	for {
 		select {
 		case msg := <- msgs:
+		log.Println("Received a message", msg)
 		fmt.Printf("received: %s\n", msg)
 		if msg["type"] == "exit" {
 			return true, nil
 		}
 		case <- ctx.Done():
+		log.Println("Context is done")
 		return true, nil
 		}
 	}
