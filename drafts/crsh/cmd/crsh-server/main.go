@@ -16,7 +16,7 @@ import (
 	"flag"
 	"net/url"
 	"bufio"
-	// "os/signal"
+	"os/signal"
 )
 
 func main() {
@@ -30,7 +30,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)
-	// signal.Notify(signals, os.Interrupt)
+	signal.Notify(signals, os.Interrupt)
 
 	go func() {
 		<-signals
@@ -136,7 +136,7 @@ func manager(args []string, ctx context.Context) error {
 
 	sock := filepath.Join(os.TempDir(), "default")
 	url := "unix://" + sock
-	serverProcess, cancel, server, err := startSession(
+	serverProcess, server, err := startSession(
 		[]string{"crsh-server", "echo", url},
 		url)
 	if err != nil {
@@ -166,12 +166,12 @@ func manager(args []string, ctx context.Context) error {
 				log.Println("closing the connection")
 				server.Close()
 				log.Println("killing the server")
-				cancel()
+				serverProcess.Process.Signal(os.Interrupt)
 				serverProcess.Wait()
 				log.Println("wait done")
 				asock := filepath.Join(os.TempDir(), name)
 				aurl := "unix://" + asock
-				serverProcess, cancel, server, err = startSession(
+				serverProcess, server, err = startSession(
 					[]string{"abduco", "-A", name, "crsh-server", "echo", aurl},
 					aurl)
 				if err != nil {
@@ -199,23 +199,22 @@ func manager(args []string, ctx context.Context) error {
 	return nil
 }
 
-func startSession(cmdline []string, addr string) (*exec.Cmd, context.CancelFunc, net.Conn, error) {
+func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 	url, err := url.Parse(addr)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 	if len(cmdline) == 0 {
-		return nil, nil, nil, errors.New("cmdline cannot be empty")
+		return nil, nil, errors.New("cmdline cannot be empty")
 	}
-	ctxt, cancel := context.WithCancel(context.Background())
-	cmd := exec.CommandContext(ctxt, cmdline[0], cmdline[1:]...)
+	cmd := exec.Command(cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err = cmd.Start()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, err
 	}
 
 	log.Println("Starting dialing shell", addr, url.Scheme, url.Host + url.Path)
@@ -227,7 +226,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, context.CancelFunc,
 	}
 	log.Println("Ending dialing shell")
 
-	return cmd, cancel, cmdconn, nil
+	return cmd, cmdconn, nil
 }
 
 func logserver() error {
