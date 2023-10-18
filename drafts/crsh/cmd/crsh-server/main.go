@@ -119,6 +119,7 @@ func manager(args []string) error {
 	if err != nil {
 		return err
 	}
+	defer server.Close()
 	enc := json.NewEncoder(server)
 	exited := false
 	for !exited {
