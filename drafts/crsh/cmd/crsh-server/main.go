@@ -44,6 +44,8 @@ func main() {
 		err = echo(args)
 	case "manager":
 		err = manager(args, ctx)
+	case "logserver":
+		err = logserver()
 	default:
 		log.Fatal("Unknown command")
 	}
