@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"context"
 	"strings"
 	"errors"
 	"fmt"
@@ -100,7 +101,7 @@ func manager(args []string) error {
 	dec := json.NewDecoder(client)
 
 	url := "tcp://localhost:5679"
-	serverProcess, server, err := startSession(
+	serverProcess, cancel, server, err := startSession(
 		[]string{"crsh-server", "echo", url},
 		url)
 	if err != nil {
@@ -127,13 +128,13 @@ func manager(args []string) error {
 				}
 				name := parsedMsg[1]
 				log.Println("closing the connection")
-				enc.Encode(map[string]string{"type": "exit",})
 				server.Close()
-				log.Println("waiting the command")
+				log.Println("killing the server")
+				cancel()
 				serverProcess.Wait()
 				log.Println("wait done")
 				aurl := "tcp://localhost:5679"
-				serverProcess, server, err = startSession(
+				serverProcess, cancel, server, err = startSession(
 					[]string{"abduco", "-A", name, "crsh-server", "echo", aurl},
 					aurl)
 				if err != nil {
@@ -142,8 +143,9 @@ func manager(args []string) error {
 				fmt.Println("connected to new session")
 				enc = json.NewEncoder(server)
 			} else if parsedMsg[0] == "\\exit" {
-				log.Println("closing the connection")
+				log.Println("exiting the server")
 				enc.Encode(map[string]string{"type": "exit",})
+				log.Println("closing the connection")
 				server.Close()
 				log.Println("waiting the command")
 				serverProcess.Wait()
@@ -160,22 +162,23 @@ func manager(args []string) error {
 	return nil
 }
 
-func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
+func startSession(cmdline []string, addr string) (*exec.Cmd, context.CancelFunc, net.Conn, error) {
 	url, err := url.Parse(addr)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if len(cmdline) == 0 {
-		return nil, nil, errors.New("cmdline cannot be empty")
+		return nil, nil, nil, errors.New("cmdline cannot be empty")
 	}
-	cmd := exec.Command(cmdline[0], cmdline[1:]...)
+	ctxt, cancel := context.WithCancel(context.Background())
+	cmd := exec.CommandContext(ctxt, cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err = cmd.Start()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	log.Println("Starting dialing shell")
@@ -187,5 +190,5 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 	}
 	log.Println("Ending dialing shell")
 
-	return cmd, cmdconn, nil
+	return cmd, cancel, cmdconn, nil
 }
