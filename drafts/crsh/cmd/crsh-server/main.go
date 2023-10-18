@@ -46,7 +46,7 @@ func main() {
 
 	switch cmd {
 	case "echo":
-		err = echo(args)
+		err = echo(args, ctx)
 	case "manager":
 		err = manager(args, ctx)
 	case "logserver":
@@ -60,7 +60,7 @@ func main() {
 	}
 }
 
-func echo(args []string) error {
+func echo(args []string, ctx context.Context) error {
 	log.SetPrefix("echo ")
 
 	fset := flag.NewFlagSet("echo", flag.ExitOnError)
@@ -84,7 +84,7 @@ func echo(args []string) error {
 		if err != nil {
 			return err
 		}
-		exit, _ := echoLoop(conn)
+		exit, _ := echoLoop(conn, ctx)
 		if exit {
 			break
 		}
@@ -92,7 +92,7 @@ func echo(args []string) error {
 	return nil
 }
 
-func echoLoop(conn net.Conn) (bool, error) {
+func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	defer conn.Close()
 	dec := json.NewDecoder(conn)
 	for {
