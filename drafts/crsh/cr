@@ -9,7 +9,6 @@ kitty @ launch \
   --type os-window \
   --title CRSH-SERVER \
   --cwd current \
-  --hold \
   --env "PATH=$PATH" \
   crsh-server manager tcp://localhost:5678
 kitty @ goto-layout \
@@ -20,7 +19,6 @@ kitty @ launch \
   --match title:CRSH-SERVER \
   --location hsplit \
   --cwd current \
-  --hold \
   crsh tcp://localhost:5678
 kitty @ resize-window \
   --match title:CRSH-SERVER \

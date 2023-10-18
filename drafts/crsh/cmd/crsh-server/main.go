@@ -15,14 +15,14 @@ import (
 	"time"
 	"flag"
 	"net/url"
-	"os/signal"
+	// "os/signal"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, os.Interrupt)
+	// signal.Notify(signals, os.Interrupt)
 
 	go func() {
 		<-signals
