@@ -20,6 +20,13 @@ import (
 )
 
 func main() {
+	logger, err := net.Dial("tcp", "localhost:5679")
+	if err == nil {
+		defer logger.Close()
+		log.SetOutput(logger)
+	} else {
+		log.Println("While trying to connect to logserver:", err)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 
 	signals := make(chan os.Signal, 1)
@@ -36,8 +43,6 @@ func main() {
 
 	cmd := os.Args[1]
 	args := os.Args[2:]
-
-	var err error
 
 	switch cmd {
 	case "echo":
@@ -56,6 +61,8 @@ func main() {
 }
 
 func echo(args []string) error {
+	log.SetPrefix("echo")
+
 	fset := flag.NewFlagSet("echo", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 1 {
@@ -102,6 +109,8 @@ func echoLoop(conn net.Conn) (bool, error) {
 }
 
 func manager(args []string, ctx context.Context) error {
+	log.SetPrefix("manager")
+
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 1 {
@@ -222,12 +231,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, context.CancelFunc,
 }
 
 func logserver() error {
-	addr := "tcp://localhost:5679"
-	url, err := url.Parse(addr)
-	if err != nil {
-		return err
-	}
-	listener, err := net.Listen(url.Scheme, url.Host + url.Path)
+	listener, err := net.Listen("tcp", "localhost:5679")
 	if err != nil {
 		return err
 	}
