@@ -83,6 +83,7 @@ func echo(args []string, ctx context.Context) error {
 	defer listener.Close()
 
 	for {
+		log.Println("Listening for a connection")
 		conn, err := listener.Accept()
 		if err != nil {
 			return err
@@ -93,6 +94,7 @@ func echo(args []string, ctx context.Context) error {
 			break
 		}
 	}
+	log.Println("exiting")
 	return nil
 }
 
@@ -107,6 +109,9 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 		fmt.Printf("received: %s\n", msg)
 		if msg["type"] == "exit" {
 			return true, nil
+		}
+		if msg["type"] == "end" {
+			return false, nil
 		}
 		case <- ctx.Done():
 		log.Println("Context is done")
@@ -217,6 +222,7 @@ func manager(args []string, ctx context.Context) error {
 				break
 			} else {
 				enc.Encode(msg)
+				log.Println("forwarded the message", msg)
 			}
 		}
 	}
