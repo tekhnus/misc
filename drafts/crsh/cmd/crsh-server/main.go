@@ -15,6 +15,7 @@ import (
 	"time"
 	"flag"
 	"net/url"
+	"bufio"
 	// "os/signal"
 )
 
@@ -216,4 +217,35 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, context.CancelFunc,
 	log.Println("Ending dialing shell")
 
 	return cmd, cancel, cmdconn, nil
+}
+
+func logserver() error {
+	addr := "tcp://localhost:5679"
+	url, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+	listener, err := net.Listen(url.Scheme, url.Host + url.Path)
+	if err != nil {
+		return err
+	}
+	defer listener.Close()
+
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			return err
+		}
+		go func() {
+			defer conn.Close()
+			reader := bufio.NewReader(conn)
+			for {
+				line, _, err := reader.ReadLine()
+				if err != nil {
+					break
+				}
+				fmt.Printf("%s\n", line)
+			}
+		}()
+	}
 }
