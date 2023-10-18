@@ -145,7 +145,8 @@ func manager(args []string) error {
 				cancel()
 				serverProcess.Wait()
 				log.Println("wait done")
-				aurl := "tcp://localhost:5679"
+				asock := filepath.Join(os.TempDir(), name)
+				aurl := "unix://" + asock
 				serverProcess, cancel, server, err = startSession(
 					[]string{"abduco", "-A", name, "crsh-server", "echo", aurl},
 					aurl)
