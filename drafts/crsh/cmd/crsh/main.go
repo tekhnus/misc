@@ -9,20 +9,33 @@ import (
 	"log"
 	"net"
 	"time"
+	"flag"
+	"net/url"
 )
 
 func main() {
-	err := client()
+	err := client(os.Args[1:])
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func client() error {
-	conn, err := net.Dial("tcp", "localhost:5678")
+func client(args []string) error {
+	fset := flag.NewFlagSet("client", flag.ExitOnError)
+	fset.Parse(args)
+	if fset.NArg() < 1 {
+		return errors.New("expected a url")
+	}
+	addr := fset.Arg(0)
+	murl, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+
+	conn, err := net.Dial(murl.Scheme, murl.Host)
 	for err != nil {
 		time.Sleep(time.Second / 5)
-		conn, err = net.Dial("tcp", "localhost:5678")
+		conn, err = net.Dial(murl.Scheme, murl.Host)
 	}
 	defer conn.Close()
 

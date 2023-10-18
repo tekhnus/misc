@@ -87,7 +87,7 @@ func echoLoop(conn net.Conn) (bool, error) {
 }
 
 func manager(args []string) error {
-	fset := flag.NewFlagSet("echo", flag.ExitOnError)
+	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")

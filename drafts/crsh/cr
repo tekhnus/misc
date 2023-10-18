@@ -21,7 +21,7 @@ kitty @ launch \
   --location hsplit \
   --cwd current \
   --hold \
-  crsh
+  crsh tcp://localhost:5678
 kitty @ resize-window \
   --match title:CRSH-SERVER \
   --axis vertical \
