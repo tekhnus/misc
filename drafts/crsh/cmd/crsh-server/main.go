@@ -82,16 +82,29 @@ func echo(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	for {
-		log.Println("Listening for a connection")
-		conn, err := listener.Accept()
-		if err != nil {
-			return err
+	connections := make(chan net.Conn)
+	go func() {
+		for {
+			log.Println("Listening for a connection")
+			conn, err := listener.Accept()
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println("Accepted a connection")
+			connections <- conn
 		}
-		log.Println("Accepted a connection")
-		exit, _ := echoLoop(conn, ctx)
-		if exit {
-			break
+	}()
+	for {
+		select {
+		case conn := <- connections:
+			exit, _ := echoLoop(conn, ctx)
+			if exit {
+				log.Println("Exiting because was told to do so")
+				return nil
+			}
+		case <- ctx.Done():
+			log.Println("Context is done")
+			return nil
 		}
 	}
 	log.Println("exiting")
