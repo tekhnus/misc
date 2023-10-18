@@ -61,7 +61,7 @@ func main() {
 }
 
 func echo(args []string) error {
-	log.SetPrefix("echo")
+	log.SetPrefix("echo ")
 
 	fset := flag.NewFlagSet("echo", flag.ExitOnError)
 	fset.Parse(args)
@@ -109,7 +109,7 @@ func echoLoop(conn net.Conn) (bool, error) {
 }
 
 func manager(args []string, ctx context.Context) error {
-	log.SetPrefix("manager")
+	log.SetPrefix("manager ")
 
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	fset.Parse(args)
