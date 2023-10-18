@@ -35,6 +35,8 @@ func main() {
 	go func() {
 		<-signals
 		cancel()
+		time.Sleep(1 * time.Second)
+		log.Fatal("Self-terminating by timeout")
 	}()
 
 	if len(os.Args) <= 1 {
@@ -96,13 +98,19 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	defer conn.Close()
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
+	Loop:
 	for {
-		msg := <- msgs
+		select {
+		case msg := <- msgs:
 		fmt.Printf("received: %s\n", msg)
 		if msg["type"] == "exit" {
 			return true, nil
 		}
+		case <- ctx.Done():
+		break Loop
+		}
 	}
+	return false, nil
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
