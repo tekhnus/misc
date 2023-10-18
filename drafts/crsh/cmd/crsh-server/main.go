@@ -98,7 +98,6 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	defer conn.Close()
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
-	Loop:
 	for {
 		select {
 		case msg := <- msgs:
@@ -107,10 +106,9 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 			return true, nil
 		}
 		case <- ctx.Done():
-		break Loop
+		return true, nil
 		}
 	}
-	return false, nil
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
