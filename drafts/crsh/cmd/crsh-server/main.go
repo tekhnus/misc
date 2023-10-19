@@ -224,6 +224,15 @@ func manager(args []string, ctx context.Context) error {
 				serverProcess.Process.Signal(os.Interrupt)
 				serverProcess.Wait()
 				log.Println("wait done")
+				log.Println("resetting the terminal")
+				resetCmd := exec.Command("reset")
+				resetCmd.Stdin = os.Stdin
+				resetCmd.Stdout = os.Stdout
+				resetCmd.Stderr = os.Stderr
+				err = resetCmd.Run()
+				if err != nil {
+					return err
+				}
 				asock := filepath.Join(os.TempDir(), name)
 				aurl := "unix://" + asock
 				serverProcess, server, err = startSession(
