@@ -1,16 +1,16 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
-	"bufio"
-	"os"
+	"flag"
 	"io"
 	"log"
 	"net"
-	"time"
-	"flag"
 	"net/url"
+	"os"
+	"time"
 )
 
 func main() {
@@ -32,10 +32,10 @@ func client(args []string) error {
 		return err
 	}
 
-	conn, err := net.Dial(murl.Scheme, murl.Host + murl.Path)
+	conn, err := net.Dial(murl.Scheme, murl.Host+murl.Path)
 	for err != nil {
 		time.Sleep(time.Second / 5)
-		conn, err = net.Dial(murl.Scheme, murl.Host + murl.Path)
+		conn, err = net.Dial(murl.Scheme, murl.Host+murl.Path)
 	}
 	defer conn.Close()
 

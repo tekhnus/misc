@@ -1,22 +1,22 @@
 package main
 
 import (
-	"encoding/json"
-	"path/filepath"
+	"bufio"
 	"context"
-	"strings"
+	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"net"
+	"net/url"
 	"os"
 	"os/exec"
-	"time"
-	"flag"
-	"net/url"
-	"bufio"
 	"os/signal"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -87,7 +87,7 @@ func echo(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	listener, err := net.Listen(url.Scheme, url.Host + url.Path)
+	listener, err := net.Listen(url.Scheme, url.Host+url.Path)
 	if err != nil {
 		return err
 	}
@@ -107,13 +107,13 @@ func echo(args []string, ctx context.Context) error {
 	}()
 	for {
 		select {
-		case conn := <- connections:
+		case conn := <-connections:
 			exit, _ := echoLoop(conn, ctx)
 			if exit {
 				log.Println("Exiting because was told to do so")
 				return nil
 			}
-		case <- ctx.Done():
+		case <-ctx.Done():
 			log.Println("Context is done")
 			return nil
 		}
@@ -128,18 +128,18 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	go readMessages(conn, msgs)
 	for {
 		select {
-		case msg := <- msgs:
-		log.Println("Received a message", msg)
-		fmt.Printf("received: %s\n", msg)
-		if msg["type"] == "exit" {
+		case msg := <-msgs:
+			log.Println("Received a message", msg)
+			fmt.Printf("received: %s\n", msg)
+			if msg["type"] == "exit" {
+				return true, nil
+			}
+			if msg["type"] == "end" {
+				return false, nil
+			}
+		case <-ctx.Done():
+			log.Println("Context is done")
 			return true, nil
-		}
-		if msg["type"] == "end" {
-			return false, nil
-		}
-		case <- ctx.Done():
-		log.Println("Context is done")
-		return true, nil
 		}
 	}
 }
@@ -176,7 +176,7 @@ func manager(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	listener, err := net.Listen(murl.Scheme, murl.Host + murl.Path)
+	listener, err := net.Listen(murl.Scheme, murl.Host+murl.Path)
 	if err != nil {
 		return err
 	}
@@ -224,6 +224,9 @@ func manager(args []string, ctx context.Context) error {
 				serverProcess.Process.Signal(os.Interrupt)
 				serverProcess.Wait()
 				log.Println("wait done")
+				// abduco apparently doesn't restore
+				// the tty state on sigint properly,
+				// so resetting the term.
 				log.Println("resetting the terminal")
 				resetCmd := exec.Command("reset")
 				resetCmd.Stdin = os.Stdin
@@ -245,7 +248,7 @@ func manager(args []string, ctx context.Context) error {
 				enc = json.NewEncoder(server)
 			} else if parsedMsg[0] == "\\exit" {
 				log.Println("exiting the server")
-				enc.Encode(map[string]string{"type": "exit",})
+				enc.Encode(map[string]string{"type": "exit"})
 				log.Println("closing the connection")
 				server.Close()
 				log.Println("waiting the command")
@@ -282,12 +285,12 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 		return nil, nil, err
 	}
 
-	log.Println("Starting dialing shell", addr, url.Scheme, url.Host + url.Path)
-	cmdconn, err := net.Dial(url.Scheme, url.Host + url.Path)
+	log.Println("Starting dialing shell", addr, url.Scheme, url.Host+url.Path)
+	cmdconn, err := net.Dial(url.Scheme, url.Host+url.Path)
 	for err != nil {
 		log.Println(err)
 		time.Sleep(time.Second / 5)
-		cmdconn, err = net.Dial(url.Scheme, url.Host + url.Path)
+		cmdconn, err = net.Dial(url.Scheme, url.Host+url.Path)
 	}
 	log.Println("Ending dialing shell")
 
