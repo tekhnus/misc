@@ -54,6 +54,17 @@ func main() {
 		err = manager(args, ctx)
 	case "logserver":
 		err = logserver()
+	case "scratch":
+		cmd := exec.Command("abduco", "-A", "scratch", "cat")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Start()
+		if err != nil {
+			break
+		}
+		cmd.Wait()
 	default:
 		log.Fatal("Unknown command")
 	}
@@ -221,7 +232,7 @@ func manager(args []string, ctx context.Context) error {
 				if err != nil {
 					return err
 				}
-				fmt.Println("connected to new session")
+				log.Println("connected to new session")
 				enc = json.NewEncoder(server)
 			} else if parsedMsg[0] == "\\exit" {
 				log.Println("exiting the server")
