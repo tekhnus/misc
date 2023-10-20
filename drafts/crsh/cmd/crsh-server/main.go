@@ -75,13 +75,13 @@ func main() {
 }
 
 func echo(args []string, ctx context.Context) error {
-	log.SetPrefix("echo ")
-
 	fset := flag.NewFlagSet("echo", flag.ExitOnError)
+	name := fset.String("name", "[no name]", "name for the logger")
 	fset.Parse(args)
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")
 	}
+	log.SetPrefix(fmt.Sprintf("%12s ", "echo " + *name))
 	addr := fset.Arg(0)
 	url, err := url.Parse(addr)
 	if err != nil {
@@ -164,7 +164,7 @@ func readMessages(conn net.Conn, outp chan map[string]string) {
 }
 
 func manager(args []string, ctx context.Context) error {
-	log.SetPrefix("manager ")
+	log.SetPrefix(fmt.Sprintf("%12s ", "manager"))
 
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	fset.Parse(args)
@@ -189,10 +189,11 @@ func manager(args []string, ctx context.Context) error {
 	defer client.Close()
 	dec := json.NewDecoder(client)
 
-	sock := filepath.Join(os.TempDir(), "default")
+	defname := "default"
+	sock := filepath.Join(os.TempDir(), defname)
 	url := "unix://" + sock
 	serverProcess, server, err := startSession(
-		[]string{"crsh-server", "echo", url},
+		[]string{"crsh-server", "echo", "-name", defname, url},
 		url)
 	if err != nil {
 		return err
@@ -239,7 +240,7 @@ func manager(args []string, ctx context.Context) error {
 				asock := filepath.Join(os.TempDir(), name)
 				aurl := "unix://" + asock
 				serverProcess, server, err = startSession(
-					[]string{"abduco", "-A", name, "crsh-server", "echo", aurl},
+					[]string{"abduco", "-A", name, "crsh-server", "echo", "-name", name, aurl},
 					aurl)
 				if err != nil {
 					return err
