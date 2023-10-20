@@ -240,7 +240,7 @@ func manager(args []string, ctx context.Context) error {
 				asock := filepath.Join(os.TempDir(), name)
 				aurl := "unix://" + asock
 				serverProcess, server, err = startSession(
-					[]string{"tea", "tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+					[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
 					aurl)
 				if err != nil {
 					return err
@@ -280,8 +280,6 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	// currently having troubles with kitty and tmux
-	cmd.Env = append(cmd.Environ(), "TERM=xterm-256color")
 
 	err = cmd.Start()
 	if err != nil {
