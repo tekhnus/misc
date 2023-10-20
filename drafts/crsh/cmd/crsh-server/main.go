@@ -193,7 +193,7 @@ func manager(args []string, ctx context.Context) error {
 	sock := filepath.Join(os.TempDir(), defname)
 	url := "unix://" + sock
 	serverProcess, server, err := startSession(
-		[]string{"crsh-server", "echo", "-name", defname, url},
+		[]string{"tmux", "new-session", "-A", "-s", defname, "crsh-server", "echo", "-name", defname, url},
 		url)
 	if err != nil {
 		return err
