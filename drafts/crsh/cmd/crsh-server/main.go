@@ -189,11 +189,11 @@ func manager(args []string, ctx context.Context) error {
 	defer client.Close()
 	dec := json.NewDecoder(client)
 
-	defname := "default"
-	sock := filepath.Join(os.TempDir(), defname)
+	name := "default"
+	sock := filepath.Join(os.TempDir(), name)
 	url := "unix://" + sock
 	serverProcess, server, err := startSession(
-		[]string{"tmux", "new-session", "-A", "-s", defname, "crsh-server", "echo", "-name", defname, url},
+		[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, url},
 		url)
 	if err != nil {
 		return err
@@ -218,11 +218,14 @@ func manager(args []string, ctx context.Context) error {
 					log.Println(parsedMsg)
 					return errors.New("Expected a single argument")
 				}
-				name := parsedMsg[1]
+				newname := parsedMsg[1]
 				log.Println("closing the connection")
 				server.Close()
 				log.Println("killing the server")
-				serverProcess.Process.Signal(os.Interrupt)
+				err := exec.Command("tmux", "detach-client", "-s", name).Run()
+				if err != nil {
+					return err
+				}
 				serverProcess.Wait()
 				log.Println("wait done")
 				// abduco apparently doesn't restore
@@ -237,6 +240,7 @@ func manager(args []string, ctx context.Context) error {
 				if err != nil {
 					return err
 				}
+				name = newname
 				asock := filepath.Join(os.TempDir(), name)
 				aurl := "unix://" + asock
 				serverProcess, server, err = startSession(
