@@ -228,18 +228,6 @@ func manager(args []string, ctx context.Context) error {
 				}
 				serverProcess.Wait()
 				log.Println("wait done")
-				// abduco apparently doesn't restore
-				// the tty state on sigint properly,
-				// so resetting the term.
-				log.Println("resetting the terminal")
-				resetCmd := exec.Command("reset")
-				resetCmd.Stdin = os.Stdin
-				resetCmd.Stdout = os.Stdout
-				resetCmd.Stderr = os.Stderr
-				err = resetCmd.Run()
-				if err != nil {
-					return err
-				}
 				name = newname
 				asock := filepath.Join(os.TempDir(), name)
 				aurl := "unix://" + asock
