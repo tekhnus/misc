@@ -53,7 +53,7 @@ Loop:
 		case cmd := <-commands:
 			msg := map[string]string{
 				"type": "cmd",
-				"cmd": cmd,
+				"cmd":  cmd,
 			}
 
 			err = enc.Encode(msg)
