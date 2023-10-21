@@ -203,52 +203,64 @@ func manager(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer server.Close()
-	enc := json.NewEncoder(server)
+	toServer := make(chan map[string]string)
 
-	for {
-		msg := <-clientMsgs
-		if msg["type"] == "end" {
-			log.Println("Received end message")
-			break
-		}
-		if msg["type"] != "cmd" {
-			log.Panicf("Unknown message type: %s\n", msg["type"])
-		}
-		parsedMsg := strings.Split(msg["cmd"], " ")
-		if parsedMsg[0] == "\\open" {
-			if len(parsedMsg) != 2 {
-				log.Println(parsedMsg)
-				return errors.New("Expected a single argument")
-			}
-			newname := parsedMsg[1]
-			log.Println("closing the connection")
-			server.Close()
-			log.Println("killing the server")
-			err := exec.Command("tmux", "detach-client", "-s", name).Run()
-			if err != nil {
-				return err
-			}
-			serverProcess.Wait()
-			log.Println("wait done")
-			name = newname
-			asock := filepath.Join(os.TempDir(), name)
-			aurl := "unix://" + asock
-			serverProcess, server, err = startSession(
-				[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
-				aurl)
-			if err != nil {
-				return err
-			}
-			log.Println("connected to new session")
-			enc = json.NewEncoder(server)
-		} else {
-			log.Println("forwarding the message", msg)
+	serve := func () {
+		defer server.Close()
+		defer serverProcess.Wait()
+
+		enc := json.NewEncoder(server)
+		for msg := range toServer {
 			err := enc.Encode(msg)
 			if err != nil {
-				return err
+				break
 			}
-			log.Println("forwarded the message")
+		}
+	}
+
+	for {
+		go serve()
+		for {
+			msg := <-clientMsgs
+			if msg["type"] == "end" {
+				log.Println("Received end message")
+				break
+			}
+			if msg["type"] != "cmd" {
+				log.Panicf("Unknown message type: %s\n", msg["type"])
+			}
+			parsedMsg := strings.Split(msg["cmd"], " ")
+			if parsedMsg[0] == "\\open" {
+				if len(parsedMsg) != 2 {
+					log.Println(parsedMsg)
+					return errors.New("Expected a single argument")
+				}
+				newname := parsedMsg[1]
+				log.Println("closing the connection")
+				close(toServer)
+				log.Println("killing the server")
+				err := exec.Command("tmux", "detach-client", "-s", name).Run()
+				if err != nil {
+					return err
+				}
+				log.Println("wait done")
+				name = newname
+				asock := filepath.Join(os.TempDir(), name)
+				aurl := "unix://" + asock
+				serverProcess, server, err = startSession(
+					[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+					aurl)
+				if err != nil {
+					return err
+				}
+				toServer = make(chan map[string]string)
+				log.Println("connected to new session")
+				break
+			} else {
+				log.Println("forwarding the message", msg)
+				toServer <- msg
+				log.Println("forwarded the message")
+			}
 		}
 	}
 
