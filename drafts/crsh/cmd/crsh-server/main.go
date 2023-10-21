@@ -87,6 +87,13 @@ func echo(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if url.Scheme == "unix" {
+		log.Println("trying to unlink the socket first")
+		err := os.Remove(url.Path)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 	listener, err := net.Listen(url.Scheme, url.Host+url.Path)
 	if err != nil {
 		return err
