@@ -131,11 +131,12 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 		case msg := <-msgs:
 			log.Println("Received a message", msg)
 			fmt.Printf("received: %s\n", msg)
-			if msg["type"] == "exit" {
-				return true, nil
-			}
-			if msg["type"] == "end" {
+			if msg["type"] == "cmd" {
+				continue
+			} else if msg["type"] == "end" {
 				return false, nil
+			} else {
+				log.Panicf("Unsupported message type: %s\n", msg["type"])
 			}
 		case <-ctx.Done():
 			log.Println("Context is done")
@@ -239,16 +240,6 @@ func manager(args []string, ctx context.Context) error {
 				}
 				log.Println("connected to new session")
 				enc = json.NewEncoder(server)
-			} else if parsedMsg[0] == "\\exit" {
-				log.Println("exiting the server")
-				enc.Encode(map[string]string{"type": "exit"})
-				log.Println("closing the connection")
-				server.Close()
-				log.Println("waiting the command")
-				serverProcess.Wait()
-				log.Println("wait done")
-				exited = true
-				break
 			} else {
 				enc.Encode(msg)
 				log.Println("forwarded the message", msg)

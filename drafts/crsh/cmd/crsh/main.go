@@ -52,6 +52,7 @@ Loop:
 		select {
 		case cmd := <-commands:
 			msg := map[string]string{
+				"type": "cmd",
 				"cmd": cmd,
 			}
 
