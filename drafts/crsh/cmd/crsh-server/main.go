@@ -132,7 +132,9 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 			log.Println("Received a message", msg)
 			fmt.Printf("received: %s\n", msg)
 			if msg["type"] == "cmd" {
-				continue
+				if msg["cmd"] == "exit" {
+					return true, nil
+				}
 			} else if msg["type"] == "end" {
 				return false, nil
 			} else {
@@ -241,8 +243,12 @@ func manager(args []string, ctx context.Context) error {
 				log.Println("connected to new session")
 				enc = json.NewEncoder(server)
 			} else {
-				enc.Encode(msg)
-				log.Println("forwarded the message", msg)
+				log.Println("forwarding the message", msg)
+				err := enc.Encode(msg)
+				if err != nil {
+					return err
+				}
+				log.Println("forwarded the message")
 			}
 		}
 	}
