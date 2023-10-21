@@ -288,6 +288,19 @@ func manager(args []string, ctx context.Context) error {
 					toServer = make(chan map[string]string)
 					log.Println("connected to new session")
 					break Loop
+				} else if parsedMsg[0] == "\\quit" {
+					
+					log.Println("clising the server control")
+					close(toServer)
+					log.Println("killing the server")
+					err := exec.Command("tmux", "detach-client", "-s", name).Run()
+					if err != nil {
+						return err
+					}
+					log.Println("waiting for the server")
+					<- serverDone
+					log.Println("wait done")
+					return nil
 				} else {
 					log.Println("forwarding the message", msg)
 					toServer <- msg
