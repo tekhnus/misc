@@ -215,7 +215,7 @@ func manager(args []string, ctx context.Context) error {
 	toServer := make(chan map[string]string)
 	serverDone := make(chan error)
 
-	serve := func () {
+	serve := func() {
 		defer func() { serverDone <- nil }()
 		defer serverProcess.Wait()
 		defer server.Close()
@@ -226,7 +226,7 @@ func manager(args []string, ctx context.Context) error {
 		enc := json.NewEncoder(server)
 		for {
 			select {
-			case msg, ok := <- toServer:
+			case msg, ok := <-toServer:
 				if !ok {
 					return
 				}
@@ -234,7 +234,7 @@ func manager(args []string, ctx context.Context) error {
 				if err != nil {
 					return
 				}
-			case msg, ok := <- fromServer:
+			case msg, ok := <-fromServer:
 				if !ok {
 					return
 				}
@@ -248,7 +248,7 @@ func manager(args []string, ctx context.Context) error {
 
 	for {
 		go serve()
-		Loop:
+	Loop:
 		for {
 			select {
 			case msg := <-clientMsgs:
@@ -274,7 +274,7 @@ func manager(args []string, ctx context.Context) error {
 						return err
 					}
 					log.Println("waiting for the server")
-					<- serverDone
+					<-serverDone
 					log.Println("wait done")
 					name = newname
 					asock := filepath.Join(os.TempDir(), name)
@@ -289,7 +289,6 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("connected to new session")
 					break Loop
 				} else if parsedMsg[0] == "\\quit" {
-					
 					log.Println("clising the server control")
 					close(toServer)
 					log.Println("killing the server")
@@ -298,7 +297,7 @@ func manager(args []string, ctx context.Context) error {
 						return err
 					}
 					log.Println("waiting for the server")
-					<- serverDone
+					<-serverDone
 					log.Println("wait done")
 					return nil
 				} else {
@@ -306,21 +305,21 @@ func manager(args []string, ctx context.Context) error {
 					toServer <- msg
 					log.Println("forwarded the message")
 				}
-				case <- serverDone:
-					log.Println("the server is done")
-					log.Println("switching to the default session")
-					name = "default"
-					asock := filepath.Join(os.TempDir(), name)
-					aurl := "unix://" + asock
-					serverProcess, server, err = startSession(
-						[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
-						aurl)
-					if err != nil {
-						return err
-					}
-					toServer = make(chan map[string]string)
-					log.Println("connected to default session")
-					break Loop
+			case <-serverDone:
+				log.Println("the server is done")
+				log.Println("switching to the default session")
+				name = "default"
+				asock := filepath.Join(os.TempDir(), name)
+				aurl := "unix://" + asock
+				serverProcess, server, err = startSession(
+					[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+					aurl)
+				if err != nil {
+					return err
+				}
+				toServer = make(chan map[string]string)
+				log.Println("connected to default session")
+				break Loop
 			}
 		}
 	}
