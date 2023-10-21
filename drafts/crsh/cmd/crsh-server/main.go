@@ -209,11 +209,25 @@ func manager(args []string, ctx context.Context) error {
 		defer server.Close()
 		defer serverProcess.Wait()
 
+		fromServer := make(chan map[string]string)
+		go readMessages(server, fromServer)
+
 		enc := json.NewEncoder(server)
-		for msg := range toServer {
-			err := enc.Encode(msg)
-			if err != nil {
-				break
+		for {
+			select {
+			case msg, ok := <- toServer:
+				if !ok {
+					return
+				}
+				err := enc.Encode(msg)
+				if err != nil {
+					return
+				}
+			case msg, ok := <- fromServer:
+				if !ok {
+					return
+				}
+				log.Println("Received from server", msg)
 			}
 		}
 	}
