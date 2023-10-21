@@ -126,6 +126,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	defer conn.Close()
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
+	enc := json.NewEncoder(conn)
 	for {
 		select {
 		case msg := <-msgs:
@@ -133,6 +134,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 			fmt.Printf("received: %s\n", msg)
 			if msg["type"] == "cmd" {
 				if msg["cmd"] == "exit" {
+					enc.Encode(map[string]string{"type": "status", "status": "exiting"})
 					return true, nil
 				}
 			} else if msg["type"] == "end" {
@@ -204,10 +206,12 @@ func manager(args []string, ctx context.Context) error {
 		return err
 	}
 	toServer := make(chan map[string]string)
+	serverDone := make(chan error)
 
 	serve := func () {
-		defer server.Close()
+		defer func() { serverDone <- nil }()
 		defer serverProcess.Wait()
+		defer server.Close()
 
 		fromServer := make(chan map[string]string)
 		go readMessages(server, fromServer)
@@ -228,52 +232,63 @@ func manager(args []string, ctx context.Context) error {
 					return
 				}
 				log.Println("Received from server", msg)
+				if msg["type"] == "status" && msg["status"] == "exiting" {
+					return
+				}
 			}
 		}
 	}
 
 	for {
 		go serve()
+		Loop:
 		for {
-			msg := <-clientMsgs
-			if msg["type"] == "end" {
-				log.Println("Received end message")
-				break
-			}
-			if msg["type"] != "cmd" {
-				log.Panicf("Unknown message type: %s\n", msg["type"])
-			}
-			parsedMsg := strings.Split(msg["cmd"], " ")
-			if parsedMsg[0] == "\\open" {
-				if len(parsedMsg) != 2 {
-					log.Println(parsedMsg)
-					return errors.New("Expected a single argument")
+			select {
+			case msg := <-clientMsgs:
+				if msg["type"] == "end" {
+					log.Println("Received end message")
+					break
 				}
-				newname := parsedMsg[1]
-				log.Println("closing the connection")
-				close(toServer)
-				log.Println("killing the server")
-				err := exec.Command("tmux", "detach-client", "-s", name).Run()
-				if err != nil {
-					return err
+				if msg["type"] != "cmd" {
+					log.Panicf("Unknown message type: %s\n", msg["type"])
 				}
-				log.Println("wait done")
-				name = newname
-				asock := filepath.Join(os.TempDir(), name)
-				aurl := "unix://" + asock
-				serverProcess, server, err = startSession(
-					[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
-					aurl)
-				if err != nil {
-					return err
+				parsedMsg := strings.Split(msg["cmd"], " ")
+				if parsedMsg[0] == "\\open" {
+					if len(parsedMsg) != 2 {
+						log.Println(parsedMsg)
+						return errors.New("Expected a single argument")
+					}
+					newname := parsedMsg[1]
+					log.Println("clising the server control")
+					close(toServer)
+					log.Println("killing the server")
+					err := exec.Command("tmux", "detach-client", "-s", name).Run()
+					if err != nil {
+						return err
+					}
+					log.Println("waiting for the server")
+					<- serverDone
+					log.Println("wait done")
+					name = newname
+					asock := filepath.Join(os.TempDir(), name)
+					aurl := "unix://" + asock
+					serverProcess, server, err = startSession(
+						[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+						aurl)
+					if err != nil {
+						return err
+					}
+					toServer = make(chan map[string]string)
+					log.Println("connected to new session")
+					break Loop
+				} else {
+					log.Println("forwarding the message", msg)
+					toServer <- msg
+					log.Println("forwarded the message")
 				}
-				toServer = make(chan map[string]string)
-				log.Println("connected to new session")
-				break
-			} else {
-				log.Println("forwarding the message", msg)
-				toServer <- msg
-				log.Println("forwarded the message")
+				case <- serverDone:
+					log.Println("the server is done")
+					return nil
 			}
 		}
 	}
