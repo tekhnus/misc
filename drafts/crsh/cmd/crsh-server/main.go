@@ -190,7 +190,9 @@ func manager(args []string, ctx context.Context) error {
 		return err
 	}
 	defer client.Close()
-	dec := json.NewDecoder(client)
+
+	clientMsgs := make(chan map[string]string)
+	go readMessages(client, clientMsgs)
 
 	name := "default"
 	sock := filepath.Join(os.TempDir(), name)
@@ -204,16 +206,16 @@ func manager(args []string, ctx context.Context) error {
 	defer server.Close()
 	enc := json.NewEncoder(server)
 	exited := false
+
 	for !exited {
 		for {
-			var msg map[string]string
-			err = dec.Decode(&msg)
-			if err == io.EOF {
-				log.Println("EOF")
+			msg := <- clientMsgs
+			if msg["type"] == "end" {
+				log.Println("Received end message")
 				break
 			}
-			if err != nil {
-				return err
+			if msg["type"] != "cmd" {
+				log.Panicf("Unknown message type: %s\n", msg["type"])
 			}
 			parsedMsg := strings.Split(msg["cmd"], " ")
 			if parsedMsg[0] == "\\open" {
