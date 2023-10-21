@@ -295,7 +295,19 @@ func manager(args []string, ctx context.Context) error {
 				}
 				case <- serverDone:
 					log.Println("the server is done")
-					return nil
+					log.Println("switching to the default session")
+					name = "default"
+					asock := filepath.Join(os.TempDir(), name)
+					aurl := "unix://" + asock
+					serverProcess, server, err = startSession(
+						[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+						aurl)
+					if err != nil {
+						return err
+					}
+					toServer = make(chan map[string]string)
+					log.Println("connected to default session")
+					break Loop
 			}
 		}
 	}
