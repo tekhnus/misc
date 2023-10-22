@@ -209,10 +209,13 @@ func manager(args []string, ctx context.Context) error {
 	var toServer chan map[string]string
 	var serverDone chan error
 
+	closeView := func() {
+		defer exec.Command("tmux", "detach-client", "-s", name).Run()
+	}
 	serve := func() {
 		defer func() { serverDone <- nil }()
 		defer serverProcess.Wait()
-		defer exec.Command("tmux", "detach-client", "-s", name).Run()
+		defer closeView()
 		defer server.Close()
 
 		fromServer := make(chan map[string]string)
