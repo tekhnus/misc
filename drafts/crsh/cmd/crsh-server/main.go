@@ -242,20 +242,20 @@ func manager(args []string, ctx context.Context) error {
 
 	for {
 		if name == "" {
-			log.Println("cpnnecting to default session")
+			log.Println("connecting to default session")
 			name = "default"
-			asock := filepath.Join(os.TempDir(), name)
-			aurl := "unix://" + asock
-			serverProcess, server, err = startSession(
-				[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
-				aurl)
-			if err != nil {
-				return err
-			}
-			toServer = make(chan map[string]string)
-			serverDone = make(chan error)
-			log.Println("connected to default session")
 		}
+		asock := filepath.Join(os.TempDir(), name)
+		aurl := "unix://" + asock
+		serverProcess, server, err = startSession(
+			[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+			aurl)
+		if err != nil {
+			return err
+		}
+		toServer = make(chan map[string]string)
+		serverDone = make(chan error)
+		log.Println("connected to session")
 		go serve()
 	Loop:
 		for {
@@ -286,16 +286,6 @@ func manager(args []string, ctx context.Context) error {
 					<-serverDone
 					log.Println("wait done")
 					name = newname
-					asock := filepath.Join(os.TempDir(), name)
-					aurl := "unix://" + asock
-					serverProcess, server, err = startSession(
-						[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
-						aurl)
-					if err != nil {
-						return err
-					}
-					toServer = make(chan map[string]string)
-					log.Println("connected to new session")
 					break Loop
 				} else if parsedMsg[0] == "\\quit" {
 					log.Println("clising the server control")
