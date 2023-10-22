@@ -203,17 +203,11 @@ func manager(args []string, ctx context.Context) error {
 	clientMsgs := make(chan map[string]string)
 	go readMessages(client, clientMsgs)
 
-	name := "default"
-	sock := filepath.Join(os.TempDir(), name)
-	url := "unix://" + sock
-	serverProcess, server, err := startSession(
-		[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, url},
-		url)
-	if err != nil {
-		return err
-	}
-	toServer := make(chan map[string]string)
-	serverDone := make(chan error)
+	name := ""
+	var serverProcess *exec.Cmd
+	var server net.Conn
+	var toServer chan map[string]string
+	var serverDone chan error
 
 	serve := func() {
 		defer func() { serverDone <- nil }()
@@ -247,6 +241,21 @@ func manager(args []string, ctx context.Context) error {
 	}
 
 	for {
+		if name == "" {
+			log.Println("cpnnecting to default session")
+			name = "default"
+			asock := filepath.Join(os.TempDir(), name)
+			aurl := "unix://" + asock
+			serverProcess, server, err = startSession(
+				[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+				aurl)
+			if err != nil {
+				return err
+			}
+			toServer = make(chan map[string]string)
+			serverDone = make(chan error)
+			log.Println("connected to default session")
+		}
 		go serve()
 	Loop:
 		for {
@@ -307,18 +316,7 @@ func manager(args []string, ctx context.Context) error {
 				}
 			case <-serverDone:
 				log.Println("the server is done")
-				log.Println("switching to the default session")
-				name = "default"
-				asock := filepath.Join(os.TempDir(), name)
-				aurl := "unix://" + asock
-				serverProcess, server, err = startSession(
-					[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
-					aurl)
-				if err != nil {
-					return err
-				}
-				toServer = make(chan map[string]string)
-				log.Println("connected to default session")
+				name = ""
 				break Loop
 			}
 		}
