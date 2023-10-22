@@ -17,6 +17,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"syscall"
 )
 
 func main() {
@@ -278,6 +279,7 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("clising the server control")
 					close(toServer)
 					log.Println("killing the server")
+					serverProcess.Process.Signal(syscall.SIGTERM)
 					err := exec.Command("tmux", "detach-client", "-s", name).Run()
 					if err != nil {
 						return err
@@ -291,10 +293,7 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("clising the server control")
 					close(toServer)
 					log.Println("killing the server")
-					err := exec.Command("tmux", "detach-client", "-s", name).Run()
-					if err != nil {
-						return err
-					}
+					serverProcess.Process.Signal(syscall.SIGTERM)
 					log.Println("waiting for the server")
 					<-serverDone
 					log.Println("wait done")
