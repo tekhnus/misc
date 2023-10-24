@@ -52,6 +52,8 @@ func main() {
 		err = echo(args, ctx)
 	case "manager":
 		err = manager(args, ctx)
+	case "ssh":
+		err = ssh(args, ctx)
 	case "logserver":
 		err = logserver()
 	case "scratch":
@@ -154,6 +156,18 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 			return true, nil
 		}
 	}
+}
+
+func ssh(args []string, ctx context.Context) error {
+	fset := flag.NewFlagSet("ssh", flag.ExitOnError)
+	fset.Parse(args)
+	if fset.NArg() < 2 {
+		return errors.New("expected a host and a command")
+	}
+	host := fset.Arg(0)
+	cmd := fset.Args()[1:]
+	fmt.Println(host, cmd)
+	return nil
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
