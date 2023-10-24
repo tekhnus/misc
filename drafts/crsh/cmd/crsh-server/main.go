@@ -280,6 +280,7 @@ func manager(args []string, ctx context.Context) error {
 		defer serverProcess.Wait()
 		defer closeView()
 		defer server.Close()
+		defer log.Println("closing server")
 
 		fromServer := make(chan map[string]string)
 		go readMessages(server, fromServer)
@@ -288,21 +289,27 @@ func manager(args []string, ctx context.Context) error {
 		for {
 			select {
 			case msg, ok := <-toServer:
+				log.Println("Received from toserver channel", msg)
 				if !ok {
+					log.Println("channel is closed, so exiting")
 					return
 				}
 				err := enc.Encode(msg)
 				if err != nil {
+					log.Println("error while encoding message to server, so exiting")
 					return
 				}
 			case msg, ok := <-fromServer:
+				log.Println("Received from fromserver channel", msg)
 				if !ok {
+					log.Println("channel is closed, so exiting")
 					return
 				}
-				log.Println("Received from server", msg)
 				if msg["type"] == "status" && msg["status"] == "exiting" {
+					log.Println("client said it's exiting, so exiting")
 					return
 				}
+				log.Println("doing nothing with client message")
 			}
 		}
 	}
@@ -315,6 +322,9 @@ func manager(args []string, ctx context.Context) error {
 		asock := filepath.Join("/tmp", name)
 		aurl := "unix://" + asock
 		var cmd []string
+		if host != "" {
+			cmd = append(cmd, "crsh-server", "ssh", aurl, host)
+		}
 		cmd = append(cmd, "tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl)
 		serverProcess, server, err = startSession(
 			cmd,
