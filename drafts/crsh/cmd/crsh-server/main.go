@@ -195,7 +195,7 @@ func ssh(args []string, ctx context.Context) error {
 		return err
 	}
 
-	sshArgs := []string{host}
+	sshArgs := []string{"-t", host}
 	sshArgs = append(sshArgs, cmd...)
 	comd := exec.Command("ssh", sshArgs...)
 	comd.Stdin = os.Stdin
