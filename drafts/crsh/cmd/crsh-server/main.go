@@ -197,12 +197,16 @@ func ssh(args []string, ctx context.Context) error {
 
 	sshArgs := []string{host}
 	sshArgs = append(sshArgs, cmd...)
-	out, err = exec.Command("ssh", sshArgs...).CombinedOutput()
-	fmt.Println(string(out))
+	comd := exec.Command("ssh", sshArgs...)
+	comd.Stdin = os.Stdin
+	comd.Stdout = os.Stdout
+	comd.Stderr = os.Stderr
+
+	err = comd.Start()
 	if err != nil {
 		return err
 	}
-	return nil
+	return comd.Wait()
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
