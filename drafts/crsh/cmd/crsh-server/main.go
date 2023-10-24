@@ -162,11 +162,18 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 func ssh(args []string, ctx context.Context) error {
 	fset := flag.NewFlagSet("ssh", flag.ExitOnError)
 	fset.Parse(args)
-	if fset.NArg() < 2 {
-		return errors.New("expected a host and a command")
+	if fset.NArg() < 3 {
+		return errors.New("expected an address, a host and a command")
 	}
-	host := fset.Arg(0)
-	cmd := fset.Args()[1:]
+	addr := fset.Arg(0)
+	host := fset.Arg(1)
+	cmd := fset.Args()[2:]
+
+	url, err := url.Parse(addr)
+	if err != nil {
+		return err
+	}
+	socket := url.Host + url.Path
 
 	usr, _ := user.Current()
 	dir := usr.HomeDir
@@ -195,8 +202,9 @@ func ssh(args []string, ctx context.Context) error {
 		return err
 	}
 
-	sshArgs := []string{"-t", host}
+	sshArgs := []string{"-L", socket + ":" + socket, "-t", host}
 	sshArgs = append(sshArgs, cmd...)
+	log.Println("ssh args", sshArgs)
 	comd := exec.Command("ssh", sshArgs...)
 	comd.Stdin = os.Stdin
 	comd.Stdout = os.Stdout
