@@ -277,8 +277,11 @@ func manager(args []string, ctx context.Context) error {
 	}
 	serve := func() {
 		defer func() { serverDone <- nil }()
+		defer log.Println("sending the done signal")
 		defer serverProcess.Wait()
+		defer log.Println("waiting server process")
 		defer closeView()
+		defer log.Println("closing view")
 		defer server.Close()
 		defer log.Println("closing server")
 
