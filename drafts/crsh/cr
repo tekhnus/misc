@@ -5,9 +5,12 @@ go build -o darwin ./... || exit
 mkdir -p linux || exit
 GOOS=linux GOARCH=amd64 go build -o linux ./... || exit
 
-
 rm ~/.local/bin/crsh*
 cp darwin/* ~/.local/bin || exit
+
+rm -rf ~/.local/share/crsh
+mkdir -p ~/.local/share/crsh
+cp -r darwin linux ~/.local/share/crsh
 
 kitty @ launch \
   --type os-window \
