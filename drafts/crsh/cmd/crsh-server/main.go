@@ -166,7 +166,13 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	host := fset.Arg(0)
 	cmd := fset.Args()[1:]
-	fmt.Println(host, cmd)
+	sshArgs := []string{host}
+	sshArgs = append(sshArgs, cmd...)
+	out, err := exec.Command("ssh", sshArgs...).CombinedOutput()
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(out))
 	return nil
 }
 
