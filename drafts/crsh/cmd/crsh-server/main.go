@@ -312,7 +312,7 @@ func manager(args []string, ctx context.Context) error {
 			log.Println("connecting to default session")
 			name = "default"
 		}
-		asock := filepath.Join(os.TempDir(), name)
+		asock := filepath.Join("/tmp", name)
 		aurl := "unix://" + asock
 		serverProcess, server, err = startSession(
 			[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
