@@ -314,8 +314,10 @@ func manager(args []string, ctx context.Context) error {
 		}
 		asock := filepath.Join("/tmp", name)
 		aurl := "unix://" + asock
+		var cmd []string
+		cmd = append(cmd, "tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl)
 		serverProcess, server, err = startSession(
-			[]string{"tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl},
+			cmd,
 			aurl)
 		if err != nil {
 			return err
