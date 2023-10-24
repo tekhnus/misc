@@ -204,6 +204,8 @@ func manager(args []string, ctx context.Context) error {
 	go readMessages(client, clientMsgs)
 
 	name := ""
+	host := ""
+
 	var serverProcess *exec.Cmd
 	var server net.Conn
 	var toServer chan map[string]string
@@ -245,7 +247,7 @@ func manager(args []string, ctx context.Context) error {
 	}
 
 	for {
-		if name == "" {
+		if name == "" && host == "" {
 			log.Println("connecting to default session")
 			name = "default"
 		}
@@ -274,16 +276,19 @@ func manager(args []string, ctx context.Context) error {
 				}
 				parsedMsg := strings.Split(msg["cmd"], " ")
 				if parsedMsg[0] == "\\open" {
-					if len(parsedMsg) != 2 {
-						log.Println(parsedMsg)
-						return errors.New("Expected a single argument")
-					}
 					log.Println("clising the server control")
 					close(toServer)
 					log.Println("waiting for the server")
 					<-serverDone
 					log.Println("wait done")
-					name = parsedMsg[1]
+					if len(parsedMsg) == 2 {
+						name = parsedMsg[1]
+					} else if len(parsedMsg) == 3 {
+						host = parsedMsg[1]
+						name = parsedMsg[2]
+					} else {
+						return errors.New("Expected one or two arguments")
+					}
 					break Loop
 				} else if parsedMsg[0] == "\\quit" {
 					log.Println("clising the server control")
@@ -300,6 +305,7 @@ func manager(args []string, ctx context.Context) error {
 			case <-serverDone:
 				log.Println("the server is done")
 				name = ""
+				host = ""
 				break Loop
 			}
 		}
