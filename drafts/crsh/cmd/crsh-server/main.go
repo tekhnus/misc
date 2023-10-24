@@ -202,7 +202,7 @@ func ssh(args []string, ctx context.Context) error {
 		return err
 	}
 
-	sshArgs := []string{"-L", socket + ":" + socket, "-t", host}
+	sshArgs := []string{"-t", host}
 	sshArgs = append(sshArgs, cmd...)
 	log.Println("ssh args", sshArgs)
 	comd := exec.Command("ssh", sshArgs...)
@@ -214,6 +214,19 @@ func ssh(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// FIXME
+ 	time.Sleep(time.Second * 3)
+
+	fwdArgs := []string{"-L", socket + ":" + socket, host}
+	log.Println("sshfwd args", fwdArgs)
+	fwdcomd := exec.Command("ssh", fwdArgs...)
+	err = fwdcomd.Start()
+	if err != nil {
+		return err
+	}
+	defer fwdcomd.Process.Kill()
+
 	return comd.Wait()
 }
 
