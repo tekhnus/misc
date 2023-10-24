@@ -273,7 +273,15 @@ func manager(args []string, ctx context.Context) error {
 	var serverDone chan error
 
 	closeView := func() {
-		defer exec.Command("tmux", "detach-client", "-s", name).Run()
+		var cmd []string
+		if host != "" {
+			cmd = append(cmd, "ssh", host)
+		}
+		cmd = append(cmd, "tmux", "detach-client", "-s", name)
+		err := exec.Command(cmd[0], cmd[1:]...).Run()
+		if err != nil {
+			log.Println("detach command error", err)
+		}
 	}
 	serve := func() {
 		defer func() { serverDone <- nil }()
@@ -299,7 +307,7 @@ func manager(args []string, ctx context.Context) error {
 				}
 				err := enc.Encode(msg)
 				if err != nil {
-					log.Println("error while encoding message to server, so exiting")
+					log.Println("error while encoding message to server, so exiting", err)
 					return
 				}
 			case msg, ok := <-fromServer:
