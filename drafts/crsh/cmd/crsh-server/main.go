@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -166,13 +167,41 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	host := fset.Arg(0)
 	cmd := fset.Args()[1:]
-	sshArgs := []string{host}
-	sshArgs = append(sshArgs, cmd...)
-	out, err := exec.Command("ssh", sshArgs...).CombinedOutput()
+
+	usr, _ := user.Current()
+	dir := usr.HomeDir
+
+	srcDir := filepath.Join(dir, ".local", "share", "crsh", "linux")
+	srcF, err := os.Open(srcDir)
 	if err != nil {
 		return err
 	}
+	defer srcF.Close()
+	entries, err := srcF.Readdirnames(0)
+	if err != nil {
+		return err
+	}
+
+	var scpArgs []string
+	for _, entry := range entries {
+		scpArgs = append(scpArgs, filepath.Join(srcDir, entry))
+	}
+	dst := host + ":" + "/home/" + usr.Username + "/.local/bin"
+	scpArgs = append(scpArgs, dst)
+
+	out, err := exec.Command("scp", scpArgs...).CombinedOutput()
 	fmt.Println(string(out))
+	if err != nil {
+		return err
+	}
+
+	sshArgs := []string{host}
+	sshArgs = append(sshArgs, cmd...)
+	out, err = exec.Command("ssh", sshArgs...).CombinedOutput()
+	fmt.Println(string(out))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
