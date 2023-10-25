@@ -72,6 +72,7 @@ func main() {
 		log.Fatal("Unknown command")
 	}
 
+	log.Println("Terminating the command")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -160,6 +161,8 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 }
 
 func ssh(args []string, ctx context.Context) error {
+	log.SetPrefix(fmt.Sprintf("%12s ", "ssh"))
+
 	fset := flag.NewFlagSet("ssh", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 3 {
@@ -177,7 +180,15 @@ func ssh(args []string, ctx context.Context) error {
 
 	usr, _ := user.Current()
 	dir := usr.HomeDir
-
+	remoteBinDir := "/home/" + usr.Username + "/.local/bin"
+	rmBinArgs := []string{host, "rm", "-f", remoteBinDir + "/" + "crsh*"}
+	log.Println("ssh rm args", rmBinArgs)
+	rmout, err := exec.Command("ssh", rmBinArgs...).CombinedOutput()
+	fmt.Println(string(rmout))
+	if err != nil {
+		return err
+	}
+	
 	srcDir := filepath.Join(dir, ".local", "share", "crsh", "linux")
 	srcF, err := os.Open(srcDir)
 	if err != nil {
@@ -193,7 +204,7 @@ func ssh(args []string, ctx context.Context) error {
 	for _, entry := range entries {
 		scpArgs = append(scpArgs, filepath.Join(srcDir, entry))
 	}
-	dst := host + ":" + "/home/" + usr.Username + "/.local/bin"
+	dst := host + ":" + remoteBinDir
 	scpArgs = append(scpArgs, dst)
 
 	out, err := exec.Command("scp", scpArgs...).CombinedOutput()
@@ -201,6 +212,8 @@ func ssh(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
+	statuses := make(chan error)
 
 	sshArgs := []string{"-t", host}
 	sshArgs = append(sshArgs, cmd...)
@@ -214,11 +227,15 @@ func ssh(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	defer comd.Process.Kill()
+	go func() {
+		statuses <- comd.Wait()
+	}()
 
 	// FIXME
  	time.Sleep(time.Second * 3)
 
-	fwdArgs := []string{"-L", socket + ":" + socket, host}
+	fwdArgs := []string{"-N", "-o", "ExitOnForwardFailure=yes", "-L", socket + ":" + socket, host}
 	log.Println("sshfwd args", fwdArgs)
 	fwdcomd := exec.Command("ssh", fwdArgs...)
 	err = fwdcomd.Start()
@@ -226,8 +243,11 @@ func ssh(args []string, ctx context.Context) error {
 		return err
 	}
 	defer fwdcomd.Process.Kill()
+	go func() {
+		statuses <- fwdcomd.Wait()
+	}()
 
-	return comd.Wait()
+	return <- statuses
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
