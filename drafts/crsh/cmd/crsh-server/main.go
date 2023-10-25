@@ -283,6 +283,8 @@ func manager(args []string, ctx context.Context) error {
 	log.SetPrefix(fmt.Sprintf("%12s ", "manager"))
 
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
+	initname := fset.String("name", "", "initial session name")
+	inithost := fset.String("host", "", "initial session host")
 	fset.Parse(args)
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")
@@ -307,8 +309,8 @@ func manager(args []string, ctx context.Context) error {
 	clientMsgs := make(chan map[string]string)
 	go readMessages(client, clientMsgs)
 
-	name := ""
-	host := ""
+	name := *initname
+	host := *inithost
 
 	var serverProcessWaiter chan error
 	var server net.Conn
