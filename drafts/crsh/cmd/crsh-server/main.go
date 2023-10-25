@@ -380,7 +380,11 @@ func manager(args []string, ctx context.Context) error {
 			cmd,
 			aurl)
 		if err != nil {
-			return err
+			log.Println("error while trying to open session", err)
+			log.Println("switching back to default session")
+			name = ""
+			host = ""
+			continue
 		}
 		toServer = make(chan map[string]string)
 		serverDone = make(chan error)
@@ -464,8 +468,14 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	cmdconn, err := net.Dial(url.Scheme, url.Host+url.Path)
 	for err != nil {
 		log.Println(err)
-		time.Sleep(time.Second / 5)
-		cmdconn, err = net.Dial(url.Scheme, url.Host+url.Path)
+		select {
+		case err := <- waiter:
+			log.Println("The server process stopped while dialing")
+			return nil, nil, nil, err
+		default:
+			time.Sleep(time.Second / 5)
+			cmdconn, err = net.Dial(url.Scheme, url.Host+url.Path)
+		}
 	}
 	log.Println("Ending dialing shell")
 
