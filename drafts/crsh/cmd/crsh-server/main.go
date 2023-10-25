@@ -300,7 +300,7 @@ func manager(args []string, ctx context.Context) error {
 	name := ""
 	host := ""
 
-	var serverProcess *exec.Cmd
+	var serverProcessWaiter chan error
 	var server net.Conn
 	var toServer chan map[string]string
 	var serverDone chan error
@@ -319,7 +319,6 @@ func manager(args []string, ctx context.Context) error {
 	serve := func() {
 		defer func() { serverDone <- nil }()
 		defer log.Println("sending the done signal")
-		defer serverProcess.Wait()
 		defer log.Println("waiting server process")
 		defer closeView()
 		defer log.Println("closing view")
@@ -354,6 +353,13 @@ func manager(args []string, ctx context.Context) error {
 					return
 				}
 				log.Println("doing nothing with client message")
+			case err, ok := <-serverProcessWaiter:
+				log.Println("Received from serverwaiter channel", err)
+				if !ok {
+					log.Println("channel is closed, so exiting")
+					return
+				}
+				return
 			}
 		}
 	}
@@ -370,7 +376,7 @@ func manager(args []string, ctx context.Context) error {
 			cmd = append(cmd, "crsh-server", "ssh", aurl, host)
 		}
 		cmd = append(cmd, "tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl)
-		serverProcess, server, err = startSession(
+		_, serverProcessWaiter, server, err = startSession(
 			cmd,
 			aurl)
 		if err != nil {
@@ -432,13 +438,13 @@ func manager(args []string, ctx context.Context) error {
 	return nil
 }
 
-func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
+func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Conn, error) {
 	url, err := url.Parse(addr)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if len(cmdline) == 0 {
-		return nil, nil, errors.New("cmdline cannot be empty")
+		return nil, nil, nil, errors.New("cmdline cannot be empty")
 	}
 	cmd := exec.Command(cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
@@ -447,8 +453,12 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 
 	err = cmd.Start()
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
+	waiter := make(chan error)
+	go func() {
+		waiter <- cmd.Wait()
+	}()
 
 	log.Println("Starting dialing shell", addr, url.Scheme, url.Host+url.Path)
 	cmdconn, err := net.Dial(url.Scheme, url.Host+url.Path)
@@ -459,7 +469,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, net.Conn, error) {
 	}
 	log.Println("Ending dialing shell")
 
-	return cmd, cmdconn, nil
+	return cmd, waiter, cmdconn, nil
 }
 
 func logserver() error {
