@@ -188,7 +188,7 @@ func ssh(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	
+
 	srcDir := filepath.Join(dir, ".local", "share", "crsh", "linux")
 	srcF, err := os.Open(srcDir)
 	if err != nil {
@@ -237,7 +237,7 @@ func ssh(args []string, ctx context.Context) error {
 	// If the forwarding command starts before the remote socket is created,
 	// then the local socket will start in an corrupted state (it will accept connections)
 	// but it will close immediately.
- 	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 3)
 
 	log.Println("trying to unlink the socket first")
 	err = os.Remove(socket)
@@ -257,7 +257,7 @@ func ssh(args []string, ctx context.Context) error {
 		statuses <- fwdcomd.Wait()
 	}()
 
-	return <- statuses
+	return <-statuses
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
@@ -479,7 +479,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	for err != nil {
 		log.Println(err)
 		select {
-		case err := <- waiter:
+		case err := <-waiter:
 			log.Println("The server process stopped while dialing")
 			return nil, nil, nil, err
 		default:
