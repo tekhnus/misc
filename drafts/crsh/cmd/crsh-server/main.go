@@ -233,7 +233,17 @@ func ssh(args []string, ctx context.Context) error {
 	}()
 
 	// FIXME
+	// This is needed to give the server the time to create the socket.
+	// If the forwarding command starts before the remote socket is created,
+	// then the local socket will start in an corrupted state (it will accept connections)
+	// but it will close immediately.
  	time.Sleep(time.Second * 3)
+
+	log.Println("trying to unlink the socket first")
+	err = os.Remove(socket)
+	if err != nil {
+		log.Println(err)
+	}
 
 	fwdArgs := []string{"-N", "-o", "ExitOnForwardFailure=yes", "-L", socket + ":" + socket, host}
 	log.Println("sshfwd args", fwdArgs)
