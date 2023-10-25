@@ -56,7 +56,7 @@ func main() {
 	case "ssh":
 		err = ssh(args, ctx)
 	case "logserver":
-		err = logserver()
+		err = logserver(args, ctx)
 	case "scratch":
 		cmd := exec.Command("abduco", "-A", "scratch", "cat")
 		cmd.Stdin = os.Stdin
@@ -492,28 +492,66 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	return cmd, waiter, cmdconn, nil
 }
 
-func logserver() error {
+func logserver(args []string, ctx context.Context) error {
+	log.SetPrefix(fmt.Sprintf("%12s ", "logserver"))
+
+	fset := flag.NewFlagSet("logserver", flag.ExitOnError)
+	remotes := fset.String("remotes", "", "remote hosts")
+	fset.Parse(args)
+
+	statuses := make(chan error)
+	var remoteList []string
+	if *remotes != "" {
+		remoteList = strings.Split(*remotes, ",")
+	}
+	for _, remote := range remoteList {
+		fwdArgs := []string{"-N", "-o", "ExitOnForwardFailure=yes", "-R", "5679:localhost:5679", remote}
+		log.Println("sshfwd args", fwdArgs)
+		fwdcomd := exec.Command("ssh", fwdArgs...)
+		err := fwdcomd.Start()
+		if err != nil {
+			return err
+		}
+		defer fwdcomd.Process.Kill()
+		go func() {
+			statuses <- fwdcomd.Wait()
+		}()
+	}
+
 	listener, err := net.Listen("tcp", "localhost:5679")
 	if err != nil {
 		return err
 	}
 	defer listener.Close()
 
-	for {
-		conn, err := listener.Accept()
-		if err != nil {
-			return err
-		}
-		go func() {
-			defer conn.Close()
-			reader := bufio.NewReader(conn)
-			for {
-				line, _, err := reader.ReadLine()
-				if err != nil {
-					break
-				}
-				fmt.Printf("%s\n", line)
+	go func() {
+		defer func() { statuses <- errors.New("listener stopped") }()
+		for {
+			conn, err := listener.Accept()
+			if err != nil {
+				return
 			}
-		}()
+			go func() {
+				defer conn.Close()
+				reader := bufio.NewReader(conn)
+				for {
+					line, _, err := reader.ReadLine()
+					if err != nil {
+						break
+					}
+					fmt.Printf("%s\n", line)
+				}
+			}()
+		}
+	}()
+
+	log.Println("Waiting while one of the forwarding processes stops")
+	select {
+	case err = <- statuses:
+		log.Println("Forwarding process stopped:", err)
+		return err
+	case <- ctx.Done():
+		log.Println("the context is done")
+		return nil
 	}
 }
