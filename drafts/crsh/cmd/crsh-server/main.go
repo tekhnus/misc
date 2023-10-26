@@ -309,8 +309,8 @@ func manager(args []string, ctx context.Context) error {
 	clientMsgs := make(chan map[string]string)
 	go readMessages(client, clientMsgs)
 
-	name := *initname
-	host := *inithost
+	name := ""
+	host := ""
 
 	var serverProcessWaiter chan error
 	var server net.Conn
@@ -378,8 +378,9 @@ func manager(args []string, ctx context.Context) error {
 
 	for {
 		if name == "" && host == "" {
-			log.Println("connecting to default session")
-			name = "default"
+			log.Println("connecting to initial session")
+			name = *initname
+			host = *inithost
 		}
 		asock := filepath.Join("/tmp", name)
 		aurl := "unix://" + asock

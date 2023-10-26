@@ -47,7 +47,8 @@ func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	fset.Parse(args)
 
-	name := fmt.Sprintf("crsh-%d", os.Getpid())
+	id := os.Getpid()
+	name := fmt.Sprintf("crsh-%d", id)
 	sock := filepath.Join("/tmp", name)
 	url := "unix://" + sock
 
@@ -63,7 +64,7 @@ func crsh(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name default2 %s`, url))
+	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name default%d %s`, id, url))
 	if err != nil {
 		return err
 	}
