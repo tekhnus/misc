@@ -11,11 +11,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 )
 
 func main() {
-	command := os.Args[0]
+	_, command := filepath.Split(os.Args[0])
 	args := os.Args[1:]
 
 	if len(args) > 0 {
@@ -31,9 +32,11 @@ func main() {
 	case "prompt":
 		err = prompt(args)
 	default:
+		time.Sleep(1)
 		log.Fatalln("unknown command", command)
 	}
 	if err != nil {
+		time.Sleep(1)
 		log.Fatal(err)
 	}
 }
@@ -41,7 +44,7 @@ func main() {
 func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	fset.Parse(args)
-	outp, err := exec.Command("ls").CombinedOutput()
+	outp, err := exec.Command("crsh-here").CombinedOutput()
 	if err != nil {
 		log.Println(outp)
 		return err

@@ -7,6 +7,7 @@ GOOS=linux GOARCH=amd64 go build -o linux ./... || exit
 
 rm ~/.local/bin/crsh*
 cp darwin/* ~/.local/bin || exit
+cp crsh-here ~/.local/bin || exit
 
 rm -rf ~/.local/share/crsh
 mkdir -p ~/.local/share/crsh
@@ -16,4 +17,4 @@ kitty @ launch \
   --type os-window \
   --cwd current \
   --env "PATH=$PATH" \
-  ./crsh-here
+  crsh-here
