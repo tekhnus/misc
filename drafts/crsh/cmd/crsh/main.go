@@ -45,6 +45,13 @@ func main() {
 func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	fset.Parse(args)
+	err := SimpleRun(`kitty @ goto-layout splits`)
+	if err != nil {
+		return err
+	}
+	// kitty @ launch --self --location hsplit --cwd current crsh prompt tcp://localhost:5678
+	// kitty @ resize-window --self --axis vertical --increment +1000
+	// crsh-server manager -name default2 tcp://localhost:5678
 	return SimpleRun("crsh-here")
 }
 
