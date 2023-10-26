@@ -14,7 +14,22 @@ import (
 )
 
 func main() {
-	err := client(os.Args[1:])
+	command := os.Args[0]
+	args := os.Args[1:]
+
+	if len(args) > 0 {
+		if args[0] == "prompt" {
+			command = args[0]
+			args = args[1:]
+		}
+	}
+	var err error
+	switch command {
+	case "prompt":
+		err = client(args)
+	default:
+		log.Fatalln("unknown command", command)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
