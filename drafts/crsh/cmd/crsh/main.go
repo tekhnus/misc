@@ -44,12 +44,16 @@ func main() {
 func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	fset.Parse(args)
-	outp, err := exec.Command("crsh-here").CombinedOutput()
+	cmd := exec.Command("crsh-here")
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Start()
 	if err != nil {
-		log.Println(outp)
 		return err
 	}
-	return nil
+	return cmd.Wait()
 }
 
 func prompt(args []string) error {
