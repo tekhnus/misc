@@ -26,7 +26,7 @@ func main() {
 	var err error
 	switch command {
 	case "prompt":
-		err = client(args)
+		err = prompt(args)
 	default:
 		log.Fatalln("unknown command", command)
 	}
@@ -35,8 +35,8 @@ func main() {
 	}
 }
 
-func client(args []string) error {
-	fset := flag.NewFlagSet("client", flag.ExitOnError)
+func prompt(args []string) error {
+	fset := flag.NewFlagSet("prompt", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")
