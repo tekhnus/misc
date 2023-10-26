@@ -14,7 +14,6 @@ cp -r darwin linux ~/.local/share/crsh
 
 kitty @ launch \
   --type os-window \
-  --title CRSH-SERVER \
   --cwd current \
   --env "PATH=$PATH" \
   ./crsh-here

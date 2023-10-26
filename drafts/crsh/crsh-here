@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 
 kitty @ goto-layout \
-  --match title:CRSH-SERVER \
   splits
 kitty @ launch \
-  --title CRSH-CLIENT \
-  --match title:CRSH-SERVER \
+	--self \
   --location hsplit \
   --cwd current \
   crsh prompt tcp://localhost:5678
 kitty @ resize-window \
-  --match title:CRSH-SERVER \
+	--self \
   --axis vertical \
   --increment +1000
 crsh-server manager -name default2 tcp://localhost:5678
