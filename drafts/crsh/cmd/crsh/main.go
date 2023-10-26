@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -45,11 +46,18 @@ func main() {
 func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	fset.Parse(args)
+
+	name := fmt.Sprintf("crsh-%d", os.Getpid())
+	sock := filepath.Join("/tmp", name)
+	url := "unix://" + sock
+
+	defer os.Remove(sock)
+
 	err := SimpleRun(`kitty @ goto-layout splits`)
 	if err != nil {
 		return err
 	}
-	err = SimpleRun(`kitty @ launch --self --location hsplit --cwd current crsh prompt tcp://localhost:5678`)
+	err = SimpleRun(fmt.Sprintf(`kitty @ launch --self --location hsplit --cwd current crsh prompt %s`, url))
 	if err != nil {
 		return err
 	}
@@ -57,7 +65,7 @@ func crsh(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = SimpleRun(`crsh-server manager -name default2 tcp://localhost:5678`)
+	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name default2 %s`, url))
 	if err != nil {
 		return err
 	}
