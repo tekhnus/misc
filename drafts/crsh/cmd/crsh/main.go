@@ -49,10 +49,19 @@ func crsh(args []string) error {
 	if err != nil {
 		return err
 	}
-	// kitty @ launch --self --location hsplit --cwd current crsh prompt tcp://localhost:5678
-	// kitty @ resize-window --self --axis vertical --increment +1000
-	// crsh-server manager -name default2 tcp://localhost:5678
-	return SimpleRun("crsh-here")
+	err = SimpleRun(`kitty @ launch --self --location hsplit --cwd current crsh prompt tcp://localhost:5678`)
+	if err != nil {
+		return err
+	}
+	err = SimpleRun(`kitty @ resize-window --self --axis vertical --increment +1000`)
+	if err != nil {
+		return err
+	}
+	err = SimpleRun(`crsh-server manager -name default2 tcp://localhost:5678`)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func SimpleRun(comm string) error {
