@@ -51,8 +51,6 @@ func crsh(args []string) error {
 	sock := filepath.Join("/tmp", name)
 	url := "unix://" + sock
 
-	defer os.Remove(sock)
-
 	err := SimpleRun(`kitty @ goto-layout splits`)
 	if err != nil {
 		return err
