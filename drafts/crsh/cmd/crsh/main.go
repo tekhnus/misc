@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -25,6 +26,8 @@ func main() {
 	}
 	var err error
 	switch command {
+	case "crsh":
+		err = crsh(args)
 	case "prompt":
 		err = prompt(args)
 	default:
@@ -33,6 +36,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func crsh(args []string) error {
+	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
+	fset.Parse(args)
+	outp, err := exec.Command("ls").CombinedOutput()
+	if err != nil {
+		log.Println(outp)
+		return err
+	}
+	return nil
 }
 
 func prompt(args []string) error {
