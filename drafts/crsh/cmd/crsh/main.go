@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"time"
+	"strings"
 )
 
 func main() {
@@ -44,16 +45,18 @@ func main() {
 func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	fset.Parse(args)
-	cmd := exec.Command("crsh-here")
+	return SimpleRun("crsh-here")
+}
+
+func SimpleRun(comm string) error {
+	args := strings.Split(comm, " ")
+	cmd := exec.Command(args[0], args[1:]...)
+
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-	return cmd.Wait()
+	return cmd.Run()
 }
 
 func prompt(args []string) error {
