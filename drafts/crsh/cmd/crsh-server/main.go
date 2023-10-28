@@ -431,7 +431,7 @@ func manager(args []string, ctx context.Context) error {
 						return errors.New("Expected one or two arguments")
 					}
 					break Loop
-				} else if parsedMsg[0] == "\\quit" {
+				} else if parsedMsg[0] == "\\detach" {
 					log.Println("clising the server control")
 					close(toServer)
 					log.Println("waiting for the server")
