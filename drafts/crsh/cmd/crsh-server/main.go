@@ -280,7 +280,7 @@ func readMessages(conn net.Conn, outp chan map[string]string) {
 }
 
 func manager(args []string, ctx context.Context) error {
-	log.SetPrefix(fmt.Sprintf("%12s ", "manager"))
+	log.SetPrefix(fmt.Sprintf("%12s %d ", "manager", os.Getpid()))
 
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	initname := fset.String("name", "", "initial session name")
@@ -438,6 +438,13 @@ func manager(args []string, ctx context.Context) error {
 					<-serverDone
 					log.Println("wait done")
 					return nil
+				} else if parsedMsg[0] == "\\new" {
+					err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab crsh -name %s -host %s`, name + "1", host))
+					if err != nil {
+						log.Println("error while opening the tab: ", err)
+						return err
+					}
+					log.Println("Success")
 				} else {
 					log.Println("forwarding the message", msg)
 					toServer <- msg
@@ -452,6 +459,13 @@ func manager(args []string, ctx context.Context) error {
 
 	log.Println("exiting")
 	return nil
+}
+
+func SimpleRun(comm string) error {
+	args := strings.Split(comm, " ")
+	log.Println("Executing", args)
+	cmd := exec.Command(args[0], args[1:]...)
+	return cmd.Run()
 }
 
 func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Conn, error) {
