@@ -16,4 +16,4 @@ kitty @ launch \
   --type os-window \
   --cwd current \
   --env "PATH=$PATH" \
-  crsh
+  crsh "$@"
