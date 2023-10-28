@@ -439,8 +439,7 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("wait done")
 					return nil
 				} else if parsedMsg[0] == "\\new" {
-					err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab bash`))
-					// err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab crsh -name %s -host %s`, name + "1", host))
+					err := SimpleRun(fmt.Sprintf(`kitty @ launch --match window_title:crsh --type tab bash`))
 					if err != nil {
 						log.Println("error while opening the tab: ", err)
 						return err
@@ -466,7 +465,10 @@ func SimpleRun(comm string) error {
 	args := strings.Split(comm, " ")
 	log.Println("Executing", args)
 	cmd := exec.Command(args[0], args[1:]...)
-	_, err := cmd.CombinedOutput()
+	cmd.Stdin = nil
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	err := cmd.Run()
 	log.Println("Finished execution")
 	return err
 }
