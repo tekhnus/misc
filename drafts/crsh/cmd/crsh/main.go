@@ -112,7 +112,11 @@ func prompt(args []string) error {
 Loop:
 	for {
 		select {
-		case cmd := <-commands:
+		case cmd, ok := <-commands:
+			if !ok {
+				log.Println("Received an EOF from reader")
+				break Loop
+			}
 			msg := map[string]string{
 				"type": "cmd",
 				"cmd":  cmd,
@@ -144,6 +148,8 @@ func readPrompt(outp chan string) {
 	for scanner.Scan() {
 		outp <- scanner.Text()
 	}
+	log.Println("Received EOF while reading prompt")
+	close(outp)
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
