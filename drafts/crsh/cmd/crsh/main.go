@@ -48,7 +48,7 @@ func crsh(args []string) error {
 	fset.Parse(args)
 
 	id := os.Getpid()
-	name := fmt.Sprintf("crsh%d", id)
+	name := fmt.Sprintf("default%d", id)
 	sockname := "crsh-socket-" + name
 	sock := filepath.Join("/tmp", sockname)
 	url := "unix://" + sock
