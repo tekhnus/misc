@@ -416,7 +416,8 @@ func manager(args []string, ctx context.Context) error {
 				}
 				parsedMsg := strings.Split(msg["cmd"], " ")
 				if parsedMsg[0] == "\\open" {
-					log.Println("clising the server control")
+					log.Println("sending the exit request to the server")
+					toServer <- map[string]string{"type": "cmd", "cmd": "exit"}
 					close(toServer)
 					log.Println("waiting for the server")
 					<-serverDone
