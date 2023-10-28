@@ -439,12 +439,14 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("wait done")
 					return nil
 				} else if parsedMsg[0] == "\\new" {
-					err := SimpleRun(fmt.Sprintf(`kitty @ launch --match window_title:crsh --type tab bash`))
+					hostcopy := host
+					if hostcopy == "" {
+						hostcopy = "localhost"
+					}
+					err := SimpleRun(fmt.Sprintf(`nohup kitty @ launch --match window_title:crsh --type tab bash`))
 					if err != nil {
 						log.Println("error while opening the tab: ", err)
-						return err
 					}
-					log.Println("Success")
 				} else {
 					log.Println("forwarding the message", msg)
 					toServer <- msg
