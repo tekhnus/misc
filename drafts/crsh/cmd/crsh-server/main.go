@@ -443,7 +443,7 @@ func manager(args []string, ctx context.Context) error {
 					if hostcopy == "" {
 						hostcopy = "localhost"
 					}
-					err := SimpleRun(fmt.Sprintf(`nohup kitty @ launch --match window_title:crsh --type tab bash`))
+					err := SimpleRun(fmt.Sprintf(`kitty @ launch --match window_title:crsh --type tab bash`))
 					if err != nil {
 						log.Println("error while opening the tab: ", err)
 					}
