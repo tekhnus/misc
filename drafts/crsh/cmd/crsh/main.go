@@ -65,7 +65,7 @@ func crsh(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name default%d %s`, id, url))
+	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name %s %s`, name, url))
 	if err != nil {
 		return err
 	}
