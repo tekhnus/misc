@@ -284,10 +284,13 @@ func manager(args []string, ctx context.Context) error {
 
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	initname := fset.String("name", "", "initial session name")
-	inithost := fset.String("host", "", "initial session host")
+	inithost := fset.String("host", "localhost", "initial session host")
 	fset.Parse(args)
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")
+	}
+	if *inithost == "localhost" {
+		*inithost = ""
 	}
 	addr := fset.Arg(0)
 	murl, err := url.Parse(addr)

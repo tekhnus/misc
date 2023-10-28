@@ -45,11 +45,15 @@ func main() {
 
 func crsh(args []string) error {
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
+	name := fset.String("name", "", "initial session name")
+	host := fset.String("host", "localhost", "initial session host")
 	fset.Parse(args)
 
-	id := os.Getpid()
-	name := fmt.Sprintf("default%d", id)
-	sockname := "crsh-socket-" + name
+	if *name == "" {
+		id := os.Getpid()
+		*name = fmt.Sprintf("default%d", id)
+	}
+	sockname := "crsh-socket-" + *name
 	sock := filepath.Join("/tmp", sockname)
 	url := "unix://" + sock
 
@@ -65,7 +69,7 @@ func crsh(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name %s %s`, name, url))
+	err = SimpleRun(fmt.Sprintf(`crsh-server manager -name %s -host %s %s`, *name, *host, url))
 	if err != nil {
 		return err
 	}
