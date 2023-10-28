@@ -439,21 +439,26 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("wait done")
 					return nil
 				} else if parsedMsg[0] == "\\new" {
+					// FIXME: we need to close the server temporarily
+					// because if we use remote control while the tmux is running
+					// it goes wild.
 					log.Println("clising the server control")
 					close(toServer)
 					log.Println("waiting for the server")
 					<-serverDone
 					log.Println("wait done")
-					break Loop
 
-					// hostcopy := host
-					// if hostcopy == "" {
-					// 	hostcopy = "localhost"
-					// }
-					// err := SimpleRun(fmt.Sprintf(`kitty @ launch --match window_title:crsh --type os-window bash`))
-					// if err != nil {
-						// log.Println("error while opening the tab: ", err)
-					// }
+
+					hostcopy := host
+					if hostcopy == "" {
+						hostcopy = "localhost"
+					}
+					err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab bash`))
+					if err != nil {
+						log.Println("error while opening the tab: ", err)
+					}
+
+					break Loop
 				} else {
 					log.Println("forwarding the message", msg)
 					toServer <- msg
