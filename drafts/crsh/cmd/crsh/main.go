@@ -114,8 +114,9 @@ Loop:
 		select {
 		case cmd, ok := <-commands:
 			if !ok {
-				log.Println("Received an EOF from reader")
-				break Loop
+				log.Println("Received an EOF from reader, sending exit")
+				commands = nil
+				cmd = "exit"
 			}
 			msg := map[string]string{
 				"type": "cmd",
