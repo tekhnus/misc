@@ -418,7 +418,7 @@ func manager(args []string, ctx context.Context) error {
 					log.Panicf("Unknown message type: %s\n", msg["type"])
 				}
 				parsedMsg := strings.Split(msg["cmd"], " ")
-				if parsedMsg[0] == "\\open" {
+				if parsedMsg[0] == "\\ssh" {
 					log.Println("sending the exit request to the server")
 					toServer <- map[string]string{"type": "cmd", "cmd": "exit"}
 					close(toServer)
@@ -426,10 +426,7 @@ func manager(args []string, ctx context.Context) error {
 					<-serverDone
 					log.Println("wait done")
 					if len(parsedMsg) == 2 {
-						name = parsedMsg[1]
-					} else if len(parsedMsg) == 3 {
 						host = parsedMsg[1]
-						name = parsedMsg[2]
 					} else {
 						return errors.New("Expected one or two arguments")
 					}
