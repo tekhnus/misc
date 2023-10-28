@@ -439,14 +439,21 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("wait done")
 					return nil
 				} else if parsedMsg[0] == "\\new" {
-					hostcopy := host
-					if hostcopy == "" {
-						hostcopy = "localhost"
-					}
-					err := SimpleRun(fmt.Sprintf(`kitty @ launch --match window_title:crsh --type tab bash`))
-					if err != nil {
-						log.Println("error while opening the tab: ", err)
-					}
+					log.Println("clising the server control")
+					close(toServer)
+					log.Println("waiting for the server")
+					<-serverDone
+					log.Println("wait done")
+					break Loop
+
+					// hostcopy := host
+					// if hostcopy == "" {
+					// 	hostcopy = "localhost"
+					// }
+					// err := SimpleRun(fmt.Sprintf(`kitty @ launch --match window_title:crsh --type os-window bash`))
+					// if err != nil {
+						// log.Println("error while opening the tab: ", err)
+					// }
 				} else {
 					log.Println("forwarding the message", msg)
 					toServer <- msg
