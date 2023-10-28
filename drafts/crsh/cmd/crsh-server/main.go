@@ -444,9 +444,7 @@ func manager(args []string, ctx context.Context) error {
 				}
 			case <-serverDone:
 				log.Println("the server is done")
-				name = ""
-				host = ""
-				break Loop
+				return nil
 			}
 		}
 	}
