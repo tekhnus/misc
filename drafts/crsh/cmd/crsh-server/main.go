@@ -448,12 +448,12 @@ func manager(args []string, ctx context.Context) error {
 					<-serverDone
 					log.Println("wait done")
 
-
+					newname := name + "1"
 					hostcopy := host
 					if hostcopy == "" {
 						hostcopy = "localhost"
 					}
-					err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab crsh -name %s -host %s`, name, hostcopy))
+					err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab crsh -name %s -host %s`, newname, hostcopy))
 					if err != nil {
 						log.Println("error while opening the tab: ", err)
 					}
