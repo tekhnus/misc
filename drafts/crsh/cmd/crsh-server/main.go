@@ -453,7 +453,7 @@ func manager(args []string, ctx context.Context) error {
 					if hostcopy == "" {
 						hostcopy = "localhost"
 					}
-					err := SimpleRun(fmt.Sprintf(`kitty @ launch --type tab crsh -name %s -host %s`, newname, hostcopy))
+					err := SimpleRun(fmt.Sprintf(`kitty @ launch --env PATH=%s --type tab crsh -name %s -host %s`, os.Getenv("PATH"), newname, hostcopy))
 					if err != nil {
 						log.Println("error while opening the tab: ", err)
 					}
