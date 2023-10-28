@@ -49,7 +49,8 @@ func crsh(args []string) error {
 
 	id := os.Getpid()
 	name := fmt.Sprintf("crsh%d", id)
-	sock := filepath.Join("/tmp", name)
+	sockname := "crsh-socket-" + name
+	sock := filepath.Join("/tmp", sockname)
 	url := "unix://" + sock
 
 	err := SimpleRun(`kitty @ goto-layout splits`)
