@@ -383,6 +383,7 @@ func manager(args []string, ctx context.Context) error {
 	var serverProcessWaiter chan error
 	var server net.Conn
 	var toServer chan map[string]string
+	var fromServer chan map[string]string
 	var serverDone chan error
 
 	closeView := func() {
@@ -404,9 +405,6 @@ func manager(args []string, ctx context.Context) error {
 		defer log.Println("closing view")
 		defer server.Close()
 		defer log.Println("closing server")
-
-		fromServer := make(chan map[string]string)
-		go readMessages(server, fromServer)
 
 		enc := json.NewEncoder(server)
 		for {
@@ -457,7 +455,7 @@ func manager(args []string, ctx context.Context) error {
 			cmd = append(cmd, "crsh-server", "ssh", aurl, host)
 		}
 		cmd = append(cmd, "tmux", "new-session", "-A", "-s", name, "crsh-server", "echo", "-name", name, aurl)
-		_, serverProcessWaiter, server, err = startSession(
+		_, serverProcessWaiter, server, fromServer, err = startSession(
 			cmd,
 			aurl)
 		if err != nil {
@@ -552,13 +550,13 @@ func SimpleRun(comm string) error {
 	return err
 }
 
-func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Conn, error) {
+func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Conn, chan map[string]string, error) {
 	url, err := url.Parse(addr)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	if len(cmdline) == 0 {
-		return nil, nil, nil, errors.New("cmdline cannot be empty")
+		return nil, nil, nil, nil, errors.New("cmdline cannot be empty")
 	}
 	cmd := exec.Command(cmdline[0], cmdline[1:]...)
 	cmd.Stdin = os.Stdin
@@ -567,7 +565,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 
 	err = cmd.Start()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	waiter := make(chan error)
 	go func() {
@@ -575,13 +573,14 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	}()
 
 	log.Println("Starting dialing shell", addr, url.Scheme, url.Host+url.Path)
+	var fromServer chan map[string]string
 	var cmdconn net.Conn
 	Loop:
 	for {
 		select {
 		case err := <-waiter:
 			log.Println("The server process stopped while dialing")
-			return nil, nil, nil, err
+			return nil, nil, nil, nil, err
 		default:
 			time.Sleep(time.Second / 5)
 			cmdconn, err = net.Dial(url.Scheme, url.Host+url.Path)
@@ -589,14 +588,14 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 				log.Println(err)
 				continue Loop
 			}
-			fromServer := make(chan map[string]string)
+			fromServer = make(chan map[string]string)
 			go readMessages(cmdconn, fromServer)
 			break Loop
 		}
 	}
 	log.Println("Ending dialing shell")
 
-	return cmd, waiter, cmdconn, nil
+	return cmd, waiter, cmdconn, fromServer, nil
 }
 
 func logserver(args []string, ctx context.Context) error {
