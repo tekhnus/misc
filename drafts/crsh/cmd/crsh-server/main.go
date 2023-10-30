@@ -239,7 +239,11 @@ func ssh(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer comd.Process.Kill()
+	defer func() {
+		if comd.Process != nil {
+			comd.Process.Kill()
+		}
+	}()
 	go func() {
 		statuses <- struct{*exec.Cmd; string; error}{comd, "", comd.Wait()}
 	}()
