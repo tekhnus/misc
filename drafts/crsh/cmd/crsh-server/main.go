@@ -166,6 +166,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 type DummyReader struct{}
 
 func (DummyReader) Read(b[]byte) (int, error) {
+	// FIXME
 	time.Sleep(1)
 	copy(b, "#")
 	return 1, nil
