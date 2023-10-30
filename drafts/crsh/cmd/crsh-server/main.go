@@ -180,15 +180,22 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	socket := url.Host + url.Path
 
+	statuses := make(chan struct {*exec.Cmd; error})
+
 	usr, _ := user.Current()
 	dir := usr.HomeDir
 	remoteBinDir := "/home/" + usr.Username + "/.local/bin"
 	rmBinArgs := []string{host, "rm", "-f", remoteBinDir + "/" + "crsh*"}
 	log.Println("ssh rm args", rmBinArgs)
-	rmout, err := exec.Command("ssh", rmBinArgs...).CombinedOutput()
-	fmt.Println(string(rmout))
-	if err != nil {
-		return err
+	rmcmd := exec.Command("ssh", rmBinArgs...)
+	go func() {
+		rmcmd.Start()
+		statuses <- struct{*exec.Cmd; error}{rmcmd, rmcmd.Wait()}
+	}()
+	status := <- statuses
+	if status.error != nil {
+		log.Println("rm failed:", status.error)
+		return status.error
 	}
 
 	srcDir := filepath.Join(dir, ".local", "share", "crsh", "linux")
@@ -215,8 +222,6 @@ func ssh(args []string, ctx context.Context) error {
 		return err
 	}
 
-	statuses := make(chan error)
-
 	sshArgs := []string{"-t", host}
 	sshArgs = append(sshArgs, cmd...)
 	log.Println("ssh args", sshArgs)
@@ -231,7 +236,7 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	defer comd.Process.Kill()
 	go func() {
-		statuses <- comd.Wait()
+		statuses <- struct{*exec.Cmd; error}{comd, comd.Wait()}
 	}()
 
 	// FIXME
@@ -256,7 +261,7 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	defer fwdcomd.Process.Kill()
 	go func() {
-		statuses <- fwdcomd.Wait()
+		statuses <- struct{*exec.Cmd; error}{fwdcomd, fwdcomd.Wait()}
 	}()
 
 	return <-statuses
