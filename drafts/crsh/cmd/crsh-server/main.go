@@ -182,6 +182,12 @@ func ssh(args []string, ctx context.Context) error {
 
 	statuses := make(chan struct {*exec.Cmd; string; error})
 
+	masterCmd := exec.Command("ssh", "-M", "-S", "/tmp/crsh-ssh-socket", "-N", host)
+	go func() {
+		outp, err := masterCmd.CombinedOutput()
+		statuses <- struct{*exec.Cmd; string; error}{masterCmd, string(outp), err}
+	}()
+
 	usr, _ := user.Current()
 	dir := usr.HomeDir
 	remoteBinDir := "/home/" + usr.Username + "/.local/bin"
@@ -192,10 +198,19 @@ func ssh(args []string, ctx context.Context) error {
 		outp, err := rmcmd.CombinedOutput()
 		statuses <- struct{*exec.Cmd; string; error}{rmcmd, string(outp), err}
 	}()
+
 	status := <- statuses
-	if status.error != nil {
-		log.Println("rm failed:", status.error, status.string)
-		return status.error
+	switch status.Cmd {
+	case masterCmd:
+		log.Println("master finished:", status.error, status.string)
+		return fmt.Errorf("master finished unexpectedly")
+	case rmcmd:
+		if status.error != nil {
+			log.Println("rm failed:", status.error, status.string)
+			return status.error
+		}
+	default:
+		log.Panicln("unexpected command")
 	}
 
 	srcDir := filepath.Join(dir, ".local", "share", "crsh", "linux")
