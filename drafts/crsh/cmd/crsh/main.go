@@ -18,6 +18,16 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmsgprefix)
+
+	logger, err := net.Dial("tcp", "localhost:5679")
+	if err == nil {
+		defer logger.Close()
+		log.SetOutput(logger)
+	} else {
+		log.Println("While trying to connect to logserver:", err)
+	}
+
 	_, command := filepath.Split(os.Args[0])
 	args := os.Args[1:]
 
@@ -27,7 +37,6 @@ func main() {
 			args = args[1:]
 		}
 	}
-	var err error
 	switch command {
 	case "crsh":
 		err = crsh(args)
@@ -44,6 +53,8 @@ func main() {
 }
 
 func crsh(args []string) error {
+	log.SetPrefix(fmt.Sprintf("%18s ", "crsh"))
+
 	fset := flag.NewFlagSet("crsh", flag.ExitOnError)
 	name := fset.String("name", "", "initial session name")
 	host := fset.String("host", "localhost", "initial session host")
@@ -88,6 +99,8 @@ func SimpleRun(comm string) error {
 }
 
 func prompt(args []string) error {
+	log.SetPrefix(fmt.Sprintf("%18s ", "prompt"))
+
 	fset := flag.NewFlagSet("prompt", flag.ExitOnError)
 	fset.Parse(args)
 	if fset.NArg() < 1 {

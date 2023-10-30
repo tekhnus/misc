@@ -21,6 +21,8 @@ import (
 )
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmsgprefix)
+
 	logger, err := net.Dial("tcp", "localhost:5679")
 	if err == nil {
 		defer logger.Close()
@@ -85,7 +87,7 @@ func echo(args []string, ctx context.Context) error {
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")
 	}
-	log.SetPrefix(fmt.Sprintf("%12s ", "echo "+*name))
+	log.SetPrefix(fmt.Sprintf("%18s ", "echo " + *name))
 	addr := fset.Arg(0)
 	url, err := url.Parse(addr)
 	if err != nil {
@@ -161,7 +163,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 }
 
 func ssh(args []string, ctx context.Context) error {
-	log.SetPrefix(fmt.Sprintf("%12s ", "ssh"))
+	log.SetPrefix(fmt.Sprintf("%18s ", "ssh"))
 
 	fset := flag.NewFlagSet("ssh", flag.ExitOnError)
 	fset.Parse(args)
@@ -280,7 +282,7 @@ func readMessages(conn net.Conn, outp chan map[string]string) {
 }
 
 func manager(args []string, ctx context.Context) error {
-	log.SetPrefix(fmt.Sprintf("%12s %d ", "manager", os.Getpid()))
+	log.SetPrefix(fmt.Sprintf("%18s ", fmt.Sprintf("manager %d", os.Getpid())))
 
 	fset := flag.NewFlagSet("manager", flag.ExitOnError)
 	initname := fset.String("name", "", "initial session name")
@@ -528,7 +530,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 }
 
 func logserver(args []string, ctx context.Context) error {
-	log.SetPrefix(fmt.Sprintf("%12s ", "logserver"))
+	log.SetPrefix(fmt.Sprintf("%18s ", "logserver"))
 
 	fset := flag.NewFlagSet("logserver", flag.ExitOnError)
 	remotes := fset.String("remotes", "", "remote hosts")
