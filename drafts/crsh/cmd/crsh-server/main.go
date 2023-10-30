@@ -575,10 +575,9 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	}()
 
 	log.Println("Starting dialing shell", addr, url.Scheme, url.Host+url.Path)
-	cmdconn, err := net.Dial(url.Scheme, url.Host+url.Path)
+	var cmdconn net.Conn
 	Loop:
 	for {
-		log.Println(err)
 		select {
 		case err := <-waiter:
 			log.Println("The server process stopped while dialing")
@@ -587,8 +586,11 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 			time.Sleep(time.Second / 5)
 			cmdconn, err = net.Dial(url.Scheme, url.Host+url.Path)
 			if err != nil {
+				log.Println(err)
 				continue Loop
 			}
+			fromServer := make(chan map[string]string)
+			go readMessages(cmdconn, fromServer)
 			break Loop
 		}
 	}
