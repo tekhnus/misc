@@ -187,6 +187,11 @@ func ssh(args []string, ctx context.Context) error {
 		outp, err := masterCmd.CombinedOutput()
 		statuses <- struct{*exec.Cmd; string; error}{masterCmd, string(outp), err}
 	}()
+	defer func() {
+		if masterCmd.Process != nil {
+			masterCmd.Process.Kill()
+		}
+	}()
 
 	usr, _ := user.Current()
 	dir := usr.HomeDir
