@@ -306,6 +306,7 @@ func ssh(args []string, ctx context.Context) error {
 	}()
 
 	status = <-statuses
+	log.Println("something finished", status.Cmd, status.error, status.string)
 	return status.error
 }
 
