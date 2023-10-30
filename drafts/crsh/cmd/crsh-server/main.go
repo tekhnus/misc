@@ -182,7 +182,10 @@ func ssh(args []string, ctx context.Context) error {
 
 	statuses := make(chan struct {*exec.Cmd; string; error})
 
-	masterCmd := exec.Command("ssh", "-M", "-S", "/tmp/crsh-ssh-socket", "-N", host)
+	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-socket%d", os.Getpid())
+	defer os.Remove(masterSocket)
+
+	masterCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-N", host)
 	go func() {
 		outp, err := masterCmd.CombinedOutput()
 		statuses <- struct{*exec.Cmd; string; error}{masterCmd, string(outp), err}
@@ -196,7 +199,7 @@ func ssh(args []string, ctx context.Context) error {
 	usr, _ := user.Current()
 	dir := usr.HomeDir
 	remoteBinDir := "/home/" + usr.Username + "/.local/bin"
-	rmBinArgs := []string{host, "rm", "-f", remoteBinDir + "/" + "crsh*"}
+	rmBinArgs := []string{"-S", masterSocket, host, "rm", "-f", remoteBinDir + "/" + "crsh*"}
 	log.Println("ssh rm args", rmBinArgs)
 	rmcmd := exec.Command("ssh", rmBinArgs...)
 	go func() {
