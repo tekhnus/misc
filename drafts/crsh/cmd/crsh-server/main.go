@@ -165,7 +165,11 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 
 type DummyReader struct{}
 
-func (DummyReader) Read([]byte) (int, error) { select {} }
+func (DummyReader) Read(b[]byte) (int, error) {
+	time.Sleep(1)
+	copy(b, "#")
+	return 1, nil
+}
 
 func ssh(args []string, ctx context.Context) error {
 	log.SetPrefix(fmt.Sprintf("%18s ", "ssh"))
