@@ -260,13 +260,10 @@ func ssh(args []string, ctx context.Context) error {
 	fwdArgs := []string{"-N", "-o", "ExitOnForwardFailure=yes", "-L", socket + ":" + socket, host}
 	log.Println("sshfwd args", fwdArgs)
 	fwdcomd := exec.Command("ssh", fwdArgs...)
-	err = fwdcomd.Start()
-	if err != nil {
-		return err
-	}
 	defer fwdcomd.Process.Kill()
 	go func() {
-		statuses <- struct{*exec.Cmd; string; error}{fwdcomd, "", fwdcomd.Wait()}
+		outp, err := fwdcomd.CombinedOutput()
+		statuses <- struct{*exec.Cmd; string; error}{fwdcomd, string(outp), err}
 	}()
 
 	status = <-statuses
