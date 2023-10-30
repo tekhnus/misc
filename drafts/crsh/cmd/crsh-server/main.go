@@ -304,7 +304,11 @@ func ssh(args []string, ctx context.Context) error {
 	fwdArgs := []string{"-S", masterSocket, "-N", "-o", "ExitOnForwardFailure=yes", "-L", socket + ":" + socket, host}
 	log.Println("sshfwd args", fwdArgs)
 	fwdcomd := exec.Command("ssh", fwdArgs...)
+
+	// For reasons not known, ssh -S ... -L ... -N reads stdin and exits on EOF,
+	// so we feed it an infinite stream.
 	fwdcomd.Stdin = DummyReader{}
+
 	defer func() {
 		if fwdcomd.Process != nil {
 			fwdcomd.Process.Kill()
