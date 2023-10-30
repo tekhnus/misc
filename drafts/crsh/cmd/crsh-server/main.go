@@ -194,7 +194,7 @@ func ssh(args []string, ctx context.Context) error {
 	}()
 	status := <- statuses
 	if status.error != nil {
-		log.Println("rm failed:", status.error)
+		log.Println("rm failed:", status.error, status.string)
 		return status.error
 	}
 
@@ -216,10 +216,15 @@ func ssh(args []string, ctx context.Context) error {
 	dst := host + ":" + remoteBinDir
 	scpArgs = append(scpArgs, dst)
 
-	out, err := exec.Command("scp", scpArgs...).CombinedOutput()
-	fmt.Println(string(out))
-	if err != nil {
-		return err
+	scpcmd := exec.Command("scp", scpArgs...)
+	go func() {
+		outp, err := scpcmd.CombinedOutput()
+		statuses <- struct{*exec.Cmd; string; error}{scpcmd, string(outp), err}
+	}()
+	status = <- statuses
+	if status.error != nil {
+		log.Println("scp failed:", status.error, status.string)
+		return status.error
 	}
 
 	sshArgs := []string{"-t", host}
