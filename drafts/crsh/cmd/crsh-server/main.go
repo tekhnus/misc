@@ -162,6 +162,11 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	}
 }
 
+
+type DummyReader struct{}
+
+func (DummyReader) Read([]byte) (int, error) { select {} }
+
 func ssh(args []string, ctx context.Context) error {
 	log.SetPrefix(fmt.Sprintf("%18s ", "ssh"))
 
@@ -292,9 +297,10 @@ func ssh(args []string, ctx context.Context) error {
 		log.Println(err)
 	}
 
-	fwdArgs := []string{"-N", "-o", "ExitOnForwardFailure=yes", "-L", socket + ":" + socket, host}
+	fwdArgs := []string{"-S", masterSocket, "-N", "-o", "ExitOnForwardFailure=yes", "-L", socket + ":" + socket, host}
 	log.Println("sshfwd args", fwdArgs)
 	fwdcomd := exec.Command("ssh", fwdArgs...)
+	fwdcomd.Stdin = DummyReader{}
 	defer func() {
 		if fwdcomd.Process != nil {
 			fwdcomd.Process.Kill()
