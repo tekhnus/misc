@@ -180,7 +180,7 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	socket := url.Host + url.Path
 
-	statuses := make(chan struct {*exec.Cmd; error})
+	statuses := make(chan struct {*exec.Cmd; string; error})
 
 	usr, _ := user.Current()
 	dir := usr.HomeDir
@@ -190,7 +190,7 @@ func ssh(args []string, ctx context.Context) error {
 	rmcmd := exec.Command("ssh", rmBinArgs...)
 	go func() {
 		rmcmd.Start()
-		statuses <- struct{*exec.Cmd; error}{rmcmd, rmcmd.Wait()}
+		statuses <- struct{*exec.Cmd; string; error}{rmcmd, "", rmcmd.Wait()}
 	}()
 	status := <- statuses
 	if status.error != nil {
@@ -236,7 +236,7 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	defer comd.Process.Kill()
 	go func() {
-		statuses <- struct{*exec.Cmd; error}{comd, comd.Wait()}
+		statuses <- struct{*exec.Cmd; string; error}{comd, "", comd.Wait()}
 	}()
 
 	// FIXME
@@ -261,10 +261,11 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	defer fwdcomd.Process.Kill()
 	go func() {
-		statuses <- struct{*exec.Cmd; error}{fwdcomd, fwdcomd.Wait()}
+		statuses <- struct{*exec.Cmd; string; error}{fwdcomd, "", fwdcomd.Wait()}
 	}()
 
-	return <-statuses
+	status = <-statuses
+	return status.error
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
