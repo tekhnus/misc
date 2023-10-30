@@ -267,7 +267,7 @@ func ssh(args []string, ctx context.Context) error {
 		log.Panicln("unexpected command")
 	}
 
-	sshArgs := []string{"-t", host}
+	sshArgs := []string{"-S", masterSocket, "-t", host}
 	sshArgs = append(sshArgs, cmd...)
 	log.Println("ssh args", sshArgs)
 	comd := exec.Command("ssh", sshArgs...)
