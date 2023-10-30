@@ -189,8 +189,8 @@ func ssh(args []string, ctx context.Context) error {
 	log.Println("ssh rm args", rmBinArgs)
 	rmcmd := exec.Command("ssh", rmBinArgs...)
 	go func() {
-		rmcmd.Start()
-		statuses <- struct{*exec.Cmd; string; error}{rmcmd, "", rmcmd.Wait()}
+		outp, err := rmcmd.CombinedOutput()
+		statuses <- struct{*exec.Cmd; string; error}{rmcmd, string(outp), err}
 	}()
 	status := <- statuses
 	if status.error != nil {
