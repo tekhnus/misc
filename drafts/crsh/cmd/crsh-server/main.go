@@ -242,9 +242,17 @@ func ssh(args []string, ctx context.Context) error {
 		statuses <- struct{*exec.Cmd; string; error}{scpcmd, string(outp), err}
 	}()
 	status = <- statuses
-	if status.error != nil {
-		log.Println("scp failed:", status.error, status.string)
-		return status.error
+	switch status.Cmd {
+	case masterCmd:
+		log.Println("master finished:", status.error, status.string)
+		return fmt.Errorf("master finished unexpectedly")
+	case scpcmd:
+		if status.error != nil {
+			log.Println("scp failed:", status.error, status.string)
+			return status.error
+		}
+	default:
+		log.Panicln("unexpected command")
 	}
 
 	sshArgs := []string{"-t", host}
