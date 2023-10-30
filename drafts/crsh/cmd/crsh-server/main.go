@@ -232,7 +232,7 @@ func ssh(args []string, ctx context.Context) error {
 		return err
 	}
 
-	var scpArgs []string
+	scpArgs := []string{"-o", "ControlPath=" + masterSocket}
 	for _, entry := range entries {
 		scpArgs = append(scpArgs, filepath.Join(srcDir, entry))
 	}
