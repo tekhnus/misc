@@ -289,12 +289,29 @@ func ssh(args []string, ctx context.Context) error {
 		statuses <- struct{*exec.Cmd; string; error}{comd, "", comd.Wait()}
 	}()
 
-	// FIXME
-	// This is needed to give the server the time to create the socket.
-	// If the forwarding command starts before the remote socket is created,
-	// then the local socket will start in an corrupted state (it will accept connections)
-	// but it will close immediately.
-	time.Sleep(time.Second * 3)
+	Loop:
+	for {
+		checkcmd := exec.Command("ssh", "-S", masterSocket, host, fmt.Sprintf("[ -e %s ]", socket))
+		go func() {
+			outp, err := checkcmd.CombinedOutput()
+			statuses <- struct{*exec.Cmd; string; error}{checkcmd, string(outp), err}
+		}()
+		status = <- statuses
+		switch status.Cmd {
+		case masterCmd:
+			log.Println("master finished:", status.error, status.string)
+			return fmt.Errorf("master finished unexpectedly")
+		case checkcmd:
+			if status.error != nil {
+				log.Println("socket existence test failed:", status.error, status.string)
+				time.Sleep(time.Second / 5)
+				continue Loop
+			}
+		default:
+			log.Panicln("unexpected command")
+		}
+		break
+	}
 
 	log.Println("trying to unlink the socket first")
 	err = os.Remove(socket)
