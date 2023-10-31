@@ -43,11 +43,9 @@ func main() {
 	case "prompt":
 		err = prompt(args)
 	default:
-		time.Sleep(1)
 		log.Fatalln("unknown command", command)
 	}
 	if err != nil {
-		time.Sleep(1)
 		log.Fatal(err)
 	}
 }
