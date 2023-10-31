@@ -166,8 +166,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 type DummyReader struct{}
 
 func (DummyReader) Read(b[]byte) (int, error) {
-	// FIXME
-	time.Sleep(1)
+	time.Sleep(time.Second / 5)
 	copy(b, "#")
 	return 1, nil
 }
@@ -310,6 +309,7 @@ func ssh(args []string, ctx context.Context) error {
 		default:
 			log.Panicln("unexpected command")
 		}
+		log.Println("socket existence test success")
 		break
 	}
 
