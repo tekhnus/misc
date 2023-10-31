@@ -196,7 +196,9 @@ func ssh(args []string, ctx context.Context) error {
 
 	masterCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-N", host)
 	go func() {
+		log.Println("Starting master")
 		outp, err := masterCmd.CombinedOutput()
+		log.Println("Ending master")
 		statuses <- struct{*exec.Cmd; string; error}{masterCmd, string(outp), err}
 	}()
 	defer func() {
@@ -212,7 +214,9 @@ func ssh(args []string, ctx context.Context) error {
 	log.Println("ssh rm args", rmBinArgs)
 	rmcmd := exec.Command("ssh", rmBinArgs...)
 	go func() {
+		log.Println("Starting remover")
 		outp, err := rmcmd.CombinedOutput()
+		log.Println("Ending remover")
 		statuses <- struct{*exec.Cmd; string; error}{rmcmd, string(outp), err}
 	}()
 
@@ -250,7 +254,9 @@ func ssh(args []string, ctx context.Context) error {
 
 	scpcmd := exec.Command("scp", scpArgs...)
 	go func() {
+		log.Println("Starting scp:", scpcmd)
 		outp, err := scpcmd.CombinedOutput()
+		log.Println("Ending scp")
 		statuses <- struct{*exec.Cmd; string; error}{scpcmd, string(outp), err}
 	}()
 	status = <- statuses
@@ -285,14 +291,18 @@ func ssh(args []string, ctx context.Context) error {
 		}
 	}()
 	go func() {
+		log.Println("Starting the server view")
 		statuses <- struct{*exec.Cmd; string; error}{comd, "", comd.Wait()}
+		log.Println("Ending the server view")
 	}()
 
 	Loop:
 	for {
 		checkcmd := exec.Command("ssh", "-S", masterSocket, host, fmt.Sprintf("[ -e %s ]", socket))
 		go func() {
+			log.Println("Starting checker")
 			outp, err := checkcmd.CombinedOutput()
+			log.Println("Ending checker")
 			statuses <- struct{*exec.Cmd; string; error}{checkcmd, string(outp), err}
 		}()
 		status = <- statuses
@@ -333,7 +343,9 @@ func ssh(args []string, ctx context.Context) error {
 		}
 	}()
 	go func() {
+		log.Println("Starting forwarder")
 		outp, err := fwdcomd.CombinedOutput()
+		log.Println("Ending forwarder")
 		statuses <- struct{*exec.Cmd; string; error}{fwdcomd, string(outp), err}
 	}()
 
