@@ -421,6 +421,7 @@ func manager(args []string, ctx context.Context) error {
 			cmd = append(cmd, "ssh", host)
 		}
 		cmd = append(cmd, "tmux", "detach-client", "-s", name)
+		log.Println("executing detach command", cmd)
 		err := exec.Command(cmd[0], cmd[1:]...).Run()
 		if err != nil {
 			log.Println("detach command error", err)
@@ -598,7 +599,9 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	}
 	waiter := make(chan error)
 	go func() {
-		waiter <- cmd.Wait()
+		err := cmd.Wait()
+		log.Println("Wait done for the command", cmd)
+		waiter <- err
 	}()
 
 	log.Println("Starting dialing shell", addr, url.Scheme, url.Host+url.Path)
