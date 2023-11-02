@@ -420,7 +420,8 @@ func manager(args []string, ctx context.Context) error {
 		if host != "" {
 			cmd = append(cmd, "ssh", host)
 		}
-		cmd = append(cmd, "tmux", "detach-client", "-s", name)
+		// '=' is needed so tmux does exact matches.
+		cmd = append(cmd, "tmux", "detach-client", "-s", "=" + name)
 		log.Println("executing detach command", cmd)
 		err := exec.Command(cmd[0], cmd[1:]...).Run()
 		if err != nil {
