@@ -176,6 +176,7 @@ func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error)
 						}
 					}
 				}
+				enc.Encode(map[string]string{"type": "status", "status": "waiting"})
 			} else if msg["type"] == "info" {
 				fmt.Println(msg["text"])
 			} else if msg["type"] == "end" {
