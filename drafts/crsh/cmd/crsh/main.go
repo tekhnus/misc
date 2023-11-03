@@ -143,10 +143,6 @@ Loop:
 			if err != nil {
 				return err
 			}
-			// err := SimpleRun(`kitty @ focus-window --match title:`)
-			// if err != nil {
-			// 	log.Println("Kitty unfocus error", err)
-			// }
 		case msg := <-replies:
 			log.Println("Received a message")
 			msgtype := msg["type"]
@@ -179,6 +175,10 @@ func readPrompt(outp chan string) {
 		if err != nil {
 			log.Println("Liner error", err)
 			return
+		}
+		err = SimpleRun(`kitty @ focus-window --match title:crsh-server`)
+		if err != nil {
+			log.Println("Kitty unfocus error", err)
 		}
 		outp <- line
 	}
