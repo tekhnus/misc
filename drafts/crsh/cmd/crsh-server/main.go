@@ -502,7 +502,8 @@ func manager(args []string, ctx context.Context) error {
 		serverDone = make(chan error)
 		log.Println("connected to session")
 		go serve()
-		toServer <- map[string]string{"type": "info", "text": "hello, world!"}
+		sessionList := GetSessionList(host)
+		toServer <- map[string]string{"type": "info", "text": sessionList}
 	Loop:
 		for {
 			select {
@@ -570,6 +571,10 @@ func manager(args []string, ctx context.Context) error {
 
 	log.Println("exiting")
 	return nil
+}
+
+func GetSessionList(host string) string {
+	return "TODO"	
 }
 
 func SimpleRun(comm string) error {
