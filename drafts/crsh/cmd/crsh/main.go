@@ -166,6 +166,7 @@ func readPrompt(outp chan string) {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
 	for {
+		fmt.Print("\033[H\033[2J")
 		line, err := lnr.Prompt("> ")
 		if err != nil {
 			log.Println("Liner error", err)
