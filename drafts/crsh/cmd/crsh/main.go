@@ -62,7 +62,7 @@ func crsh(args []string) error {
 		id := os.Getpid()
 		*name = fmt.Sprintf("default%d", id)
 	}
-	sockname := "crsh-socket-" + *name
+	sockname := "crsh-manager-" + *name
 	sock := filepath.Join("/tmp", sockname)
 	url := "unix://" + sock
 

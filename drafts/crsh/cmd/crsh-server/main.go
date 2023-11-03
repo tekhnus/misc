@@ -482,7 +482,7 @@ func manager(args []string, ctx context.Context) error {
 			name = *initname
 			host = *inithost
 		}
-		asock := filepath.Join("/tmp", name)
+		asock := filepath.Join("/tmp", "crsh-shell-" + name)
 		aurl := "unix://" + asock
 		var cmd []string
 		if host != "" {
