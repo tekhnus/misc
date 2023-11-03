@@ -150,6 +150,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 					enc.Encode(map[string]string{"type": "status", "status": "exiting"})
 					return true, nil
 				}
+			} else if msg["type"] == "info" {
 			} else if msg["type"] == "end" {
 				return false, nil
 			} else {
@@ -500,6 +501,7 @@ func manager(args []string, ctx context.Context) error {
 		serverDone = make(chan error)
 		log.Println("connected to session")
 		go serve()
+		toServer <- map[string]string{"type": "info", "text": "hello, world!"}
 	Loop:
 		for {
 			select {
