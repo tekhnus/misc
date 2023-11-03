@@ -552,6 +552,11 @@ func manager(args []string, ctx context.Context) error {
 			host = ""
 			continue
 		}
+		tuneCmd := exec.Command("tmux", "set-option", "-t", "=" + name, "-g", "status", "off")
+		res, err := tuneCmd.CombinedOutput()
+		if err != nil {
+			log.Println("tmux tune command error", err, string(res))
+		}
 		toServer = make(chan map[string]string)
 		serverDone = make(chan error)
 		log.Println("connected to session")
