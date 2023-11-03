@@ -462,6 +462,7 @@ func manager(args []string, ctx context.Context) error {
 
 	clientMsgs := make(chan map[string]string)
 	go readMessages(client, clientMsgs)
+	toClient := json.NewEncoder(client)
 
 	name := ""
 	host := ""
@@ -518,7 +519,16 @@ func manager(args []string, ctx context.Context) error {
 					log.Println("client said it's exiting, so exiting")
 					return
 				}
-				log.Println("doing nothing with client message")
+ 				if msg["type"] == "status" && msg["status"] == "waiting" {
+					log.Println("client said it's waiting, forwarding the message")
+					err := toClient.Encode(msg)
+					if err != nil {
+						log.Println("error while encoding message to client, so exiting", err)
+						return
+					}
+				} else {
+					log.Println("doing nothing with client message")
+				}
 			case err, ok := <-serverProcessWaiter:
 				log.Println("Received from serverwaiter channel", err)
 				if !ok {

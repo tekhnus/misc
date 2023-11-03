@@ -150,6 +150,11 @@ Loop:
 			case "end":
 				log.Println("Received an end message")
 				break Loop
+			case "status":
+				log.Println("This is a status message")
+				if msg["status"] != "waiting" {
+					return fmt.Errorf("Unknown status %s", msg["status"])
+				}
 			default:
 				return errors.New("Unknown message type")
 			}
