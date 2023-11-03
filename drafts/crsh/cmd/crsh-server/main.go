@@ -100,7 +100,8 @@ func echo(args []string, ctx context.Context) error {
 			log.Println(err)
 		}
 	}
-	listener, err := net.Listen(url.Scheme, url.Host+url.Path)
+	sockpath := url.Host + url.Path
+	listener, err := net.Listen(url.Scheme, sockpath)
 	if err != nil {
 		return err
 	}
@@ -121,7 +122,7 @@ func echo(args []string, ctx context.Context) error {
 	for {
 		select {
 		case conn := <-connections:
-			exit, _ := echoLoop(conn, ctx)
+			exit, _ := echoLoop(conn, sockpath, ctx)
 			if exit {
 				log.Println("Exiting because was told to do so")
 				return nil
@@ -135,12 +136,12 @@ func echo(args []string, ctx context.Context) error {
 	return nil
 }
 
-func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
+func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error) {
 	defer conn.Close()
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
 	enc := json.NewEncoder(conn)
-	sessList, err := GetSessionList()
+	sessList, err := GetSessionList(sockPath)
 	if err != nil {
 		return true, err
 	}
@@ -576,12 +577,16 @@ func manager(args []string, ctx context.Context) error {
 	return nil
 }
 
-func GetSessionList() (string, error) {
+func GetSessionList(sockPath string) (string, error) {
 	sockets, err := filepath.Glob("/tmp/crsh-shell-*")
 	if err != nil {
 		return "", err
 	}
-	return strings.Join(sockets, "\n"), nil
+	var names []string
+	for _, sock := range sockets {
+		names = append(names, sock)
+	}
+	return strings.Join(names, "\n"), nil
 }
 
 func SimpleRun(comm string) error {
