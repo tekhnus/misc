@@ -150,6 +150,7 @@ func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error)
 	if err != nil {
 		return true, err
 	}
+	fmt.Println("Welcome")
 	fmt.Print(sessList)
 
 	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
