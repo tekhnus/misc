@@ -140,6 +140,7 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
 	enc := json.NewEncoder(conn)
+	fmt.Println(GetSessionList())
 	for {
 		select {
 		case msg := <-msgs:
@@ -502,8 +503,6 @@ func manager(args []string, ctx context.Context) error {
 		serverDone = make(chan error)
 		log.Println("connected to session")
 		go serve()
-		sessionList := GetSessionList(host)
-		toServer <- map[string]string{"type": "info", "text": sessionList}
 	Loop:
 		for {
 			select {
@@ -573,8 +572,8 @@ func manager(args []string, ctx context.Context) error {
 	return nil
 }
 
-func GetSessionList(host string) string {
-	return "TODO"	
+func GetSessionList() string {
+	return "TODO"
 }
 
 func SimpleRun(comm string) error {
