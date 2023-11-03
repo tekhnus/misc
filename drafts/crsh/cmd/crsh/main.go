@@ -70,7 +70,7 @@ func crsh(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = SimpleRun(fmt.Sprintf(`kitty @ launch --self --location hsplit --cwd current crsh prompt %s`, url))
+	err = SimpleRun(fmt.Sprintf(`kitty @ launch --self --title crsh-prompt --location hsplit --cwd current crsh prompt %s`, url))
 	if err != nil {
 		return err
 	}
@@ -143,6 +143,10 @@ Loop:
 			if err != nil {
 				return err
 			}
+			// err := SimpleRun(`kitty @ focus-window --match title:`)
+			// if err != nil {
+			// 	log.Println("Kitty unfocus error", err)
+			// }
 		case msg := <-replies:
 			log.Println("Received a message")
 			msgtype := msg["type"]
