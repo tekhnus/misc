@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mvdan.cc/sh/v3/syntax"
+	"mvdan.cc/sh/v3/interp"
 	"net"
 	"net/url"
 	"os"
@@ -149,16 +151,30 @@ func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error)
 		return true, err
 	}
 	fmt.Print(sessList)
+
+	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
+	if err != nil {
+		return true, err
+	}
+
 	for {
 		select {
 		case msg := <-msgs:
 			log.Println("Received a message", msg)
 			if msg["type"] == "cmd" {
-				if msg["cmd"] == "exit" {
-					enc.Encode(map[string]string{"type": "status", "status": "exiting"})
-					return true, nil
-				}
 				fmt.Printf("> %s\n", msg["cmd"])
+				source, err := syntax.NewParser().Parse(strings.NewReader(msg["cmd"]), "")
+				if err != nil {
+					fmt.Println("Syntax error:", err)
+				} else {
+					for _, stmt := range source.Stmts {
+						runner.Run(context.TODO(), stmt)
+						if runner.Exited() {
+							enc.Encode(map[string]string{"type": "status", "status": "exiting"})
+							return true, nil
+						}
+					}
+				}
 			} else if msg["type"] == "info" {
 				fmt.Println(msg["text"])
 			} else if msg["type"] == "end" {
