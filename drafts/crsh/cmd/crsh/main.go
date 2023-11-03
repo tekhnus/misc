@@ -120,11 +120,19 @@ func prompt(args []string) error {
 	enc := json.NewEncoder(conn)
 
 	commands := make(chan string)
-	go readPrompt(commands)
 
 	replies := make(chan map[string]string)
 	go readMessages(conn, replies)
 
+	go func() {
+		for {
+			err := readPrompt(commands)
+			if err != nil {
+				close(commands)
+				return
+			}
+		}
+	}()
 Loop:
 	for {
 		select {
@@ -165,28 +173,25 @@ Loop:
 	return nil
 }
 
-func readPrompt(outp chan string) {
-	defer close(outp)
-
+func readPrompt(outp chan string) error {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
-	for {
-		fmt.Print("\033[H\033[2J")
-		err := SimpleRun(`kitty @ focus-window`)
-		if err != nil {
-			log.Println("Kitty focus error", err)
-		}
-		line, err := lnr.Prompt("> ")
-		if err != nil {
-			log.Println("Liner error", err)
-			return
-		}
-		err = SimpleRun(`kitty @ focus-window --match title:crsh-server`)
-		if err != nil {
-			log.Println("Kitty unfocus error", err)
-		}
-		outp <- line
+	fmt.Print("\033[H\033[2J")
+	err := SimpleRun(`kitty @ focus-window`)
+	if err != nil {
+		log.Println("Kitty focus error", err)
 	}
+	line, err := lnr.Prompt("> ")
+	if err != nil {
+		log.Println("Liner error", err)
+		return err
+	}
+	err = SimpleRun(`kitty @ focus-window --match title:crsh-server`)
+	if err != nil {
+		log.Println("Kitty unfocus error", err)
+	}
+	outp <- line
+	return nil
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
