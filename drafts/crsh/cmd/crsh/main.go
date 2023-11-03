@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/peterh/liner"
 	"io"
 	"log"
 	"net"
@@ -161,12 +161,18 @@ Loop:
 }
 
 func readPrompt(outp chan string) {
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		outp <- scanner.Text()
+	defer close(outp)
+
+	lnr := liner.NewLiner()
+	defer lnr.Close()
+	for {
+		line, err := lnr.Prompt("> ")
+		if err != nil {
+			log.Println("Liner error", err)
+			return
+		}
+		outp <- line
 	}
-	log.Println("Received EOF while reading prompt")
-	close(outp)
 }
 
 func readMessages(conn net.Conn, outp chan map[string]string) {
