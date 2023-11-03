@@ -530,7 +530,20 @@ func manager(args []string, ctx context.Context) error {
 					if len(parsedMsg) == 2 {
 						host = parsedMsg[1]
 					} else {
-						return errors.New("Expected one or two arguments")
+						return errors.New("Expected one argument")
+					}
+					break Loop
+				} else if parsedMsg[0] == "\\go" {
+					log.Println("sending the exit request to the server")
+					toServer <- map[string]string{"type": "cmd", "cmd": "exit"}
+					close(toServer)
+					log.Println("waiting for the server")
+					<-serverDone
+					log.Println("wait done")
+					if len(parsedMsg) == 2 {
+						name = parsedMsg[1]
+					} else {
+						return errors.New("Expected one argument")
 					}
 					break Loop
 				} else if parsedMsg[0] == "\\detach" {
