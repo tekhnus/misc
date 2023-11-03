@@ -584,6 +584,9 @@ func GetSessionList(sockPath string) (string, error) {
 	}
 	var names []string
 	for _, sock := range sockets {
+		if sock == sockPath {
+			continue
+		}
 		names = append(names, sock)
 	}
 	return strings.Join(names, "\n"), nil
