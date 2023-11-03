@@ -126,13 +126,6 @@ func prompt(args []string) error {
 
 Loop:
 	for {
-		go func() {
-			err := readPrompt(commands)
-			if err != nil {
-				close(commands)
-			}
-		}()
-
 		WaitingCommandLoop:
 		for {
 			select {
@@ -170,6 +163,12 @@ Loop:
 				}
 			}
 		}
+		go func() {
+			err := readPrompt(commands)
+			if err != nil {
+				close(commands)
+			}
+		}()
 	}
 
 	log.Println("Exiting")

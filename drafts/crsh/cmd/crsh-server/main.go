@@ -571,6 +571,11 @@ func manager(args []string, ctx context.Context) error {
 		toServer = make(chan map[string]string)
 		serverDone = make(chan error)
 		log.Println("connected to session")
+		log.Println("telling client we're waiting")
+		err = toClient.Encode(map[string]string{"type": "status", "status": "waiting"})
+		if err != nil {
+			return err
+		}
 		go serve()
 	Loop:
 		for {
