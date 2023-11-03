@@ -141,6 +141,9 @@ func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error)
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
 	enc := json.NewEncoder(conn)
+
+	fmt.Print("\033[9999;1H")
+
 	sessList, err := GetSessionList(sockPath)
 	if err != nil {
 		return true, err
