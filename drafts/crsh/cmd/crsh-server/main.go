@@ -145,7 +145,7 @@ func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error)
 	if err != nil {
 		return true, err
 	}
-	fmt.Println(sessList)
+	fmt.Print(sessList)
 	for {
 		select {
 		case msg := <-msgs:
@@ -587,12 +587,16 @@ func GetSessionList(sockPath string) (string, error) {
 		if sock == sockPath {
 			continue
 		}
-		names = append(names, sock)
+		name, ok := strings.CutPrefix(sock, "/tmp/crsh-shell-")
+		if !ok {
+			return "", fmt.Errorf("Bad socket name")
+		}
+		names = append(names, name)
 	}
 	if len(names) == 0 {
 		return "", nil
 	}
-	return "Existing sessions:\n" + strings.Join(names, "\n"), nil
+	return "Existing sessions:\n" + strings.Join(names, "\n") + "\n", nil
 }
 
 func SimpleRun(comm string) error {
