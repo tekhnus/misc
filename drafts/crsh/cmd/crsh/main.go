@@ -167,6 +167,10 @@ func readPrompt(outp chan string) {
 	defer lnr.Close()
 	for {
 		fmt.Print("\033[H\033[2J")
+		err := SimpleRun(`kitty @ focus-window`)
+		if err != nil {
+			log.Println("Kitty focus error", err)
+		}
 		line, err := lnr.Prompt("> ")
 		if err != nil {
 			log.Println("Liner error", err)
