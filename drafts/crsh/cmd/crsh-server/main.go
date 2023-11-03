@@ -87,7 +87,7 @@ func echo(args []string, ctx context.Context) error {
 	if fset.NArg() < 1 {
 		return errors.New("expected a url")
 	}
-	log.SetPrefix(fmt.Sprintf("%18s ", "echo " + *name))
+	log.SetPrefix(fmt.Sprintf("%18s ", "echo "+*name))
 	addr := fset.Arg(0)
 	url, err := url.Parse(addr)
 	if err != nil {
@@ -170,10 +170,9 @@ func echoLoop(conn net.Conn, sockPath string, ctx context.Context) (bool, error)
 	}
 }
 
-
 type DummyReader struct{}
 
-func (DummyReader) Read(b[]byte) (int, error) {
+func (DummyReader) Read(b []byte) (int, error) {
 	time.Sleep(time.Second / 5)
 	copy(b, "#")
 	return 1, nil
@@ -197,7 +196,11 @@ func ssh(args []string, ctx context.Context) error {
 	}
 	socket := url.Host + url.Path
 
-	statuses := make(chan struct {*exec.Cmd; string; error})
+	statuses := make(chan struct {
+		*exec.Cmd
+		string
+		error
+	})
 
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-socket%d", os.Getpid())
 	defer os.Remove(masterSocket)
@@ -207,7 +210,11 @@ func ssh(args []string, ctx context.Context) error {
 		log.Println("Starting master")
 		outp, err := masterCmd.CombinedOutput()
 		log.Println("Ending master")
-		statuses <- struct{*exec.Cmd; string; error}{masterCmd, string(outp), err}
+		statuses <- struct {
+			*exec.Cmd
+			string
+			error
+		}{masterCmd, string(outp), err}
 	}()
 	defer func() {
 		if masterCmd.Process != nil {
@@ -225,10 +232,14 @@ func ssh(args []string, ctx context.Context) error {
 		log.Println("Starting remover")
 		outp, err := rmcmd.CombinedOutput()
 		log.Println("Ending remover")
-		statuses <- struct{*exec.Cmd; string; error}{rmcmd, string(outp), err}
+		statuses <- struct {
+			*exec.Cmd
+			string
+			error
+		}{rmcmd, string(outp), err}
 	}()
 
-	status := <- statuses
+	status := <-statuses
 	switch status.Cmd {
 	case masterCmd:
 		log.Println("master finished:", status.error, status.string)
@@ -265,9 +276,13 @@ func ssh(args []string, ctx context.Context) error {
 		log.Println("Starting scp:", scpcmd)
 		outp, err := scpcmd.CombinedOutput()
 		log.Println("Ending scp")
-		statuses <- struct{*exec.Cmd; string; error}{scpcmd, string(outp), err}
+		statuses <- struct {
+			*exec.Cmd
+			string
+			error
+		}{scpcmd, string(outp), err}
 	}()
-	status = <- statuses
+	status = <-statuses
 	switch status.Cmd {
 	case masterCmd:
 		log.Println("master finished:", status.error, status.string)
@@ -300,20 +315,28 @@ func ssh(args []string, ctx context.Context) error {
 	}()
 	go func() {
 		log.Println("Starting the server view")
-		statuses <- struct{*exec.Cmd; string; error}{comd, "", comd.Wait()}
+		statuses <- struct {
+			*exec.Cmd
+			string
+			error
+		}{comd, "", comd.Wait()}
 		log.Println("Ending the server view")
 	}()
 
-	Loop:
+Loop:
 	for {
 		checkcmd := exec.Command("ssh", "-S", masterSocket, host, fmt.Sprintf("[ -e %s ]", socket))
 		go func() {
 			log.Println("Starting checker")
 			outp, err := checkcmd.CombinedOutput()
 			log.Println("Ending checker")
-			statuses <- struct{*exec.Cmd; string; error}{checkcmd, string(outp), err}
+			statuses <- struct {
+				*exec.Cmd
+				string
+				error
+			}{checkcmd, string(outp), err}
 		}()
-		status = <- statuses
+		status = <-statuses
 		switch status.Cmd {
 		case masterCmd:
 			log.Println("master finished:", status.error, status.string)
@@ -355,7 +378,11 @@ func ssh(args []string, ctx context.Context) error {
 		log.Println("Starting forwarder")
 		outp, err := fwdcomd.CombinedOutput()
 		log.Println("Ending forwarder")
-		statuses <- struct{*exec.Cmd; string; error}{fwdcomd, string(outp), err}
+		statuses <- struct {
+			*exec.Cmd
+			string
+			error
+		}{fwdcomd, string(outp), err}
 	}()
 
 	status = <-statuses
@@ -430,7 +457,7 @@ func manager(args []string, ctx context.Context) error {
 			cmd = append(cmd, "ssh", host)
 		}
 		// '=' is needed so tmux does exact matches.
-		cmd = append(cmd, "tmux", "detach-client", "-s", "=" + name)
+		cmd = append(cmd, "tmux", "detach-client", "-s", "="+name)
 		log.Println("executing detach command", cmd)
 		err := exec.Command(cmd[0], cmd[1:]...).Run()
 		if err != nil {
@@ -488,7 +515,7 @@ func manager(args []string, ctx context.Context) error {
 			name = *initname
 			host = *inithost
 		}
-		asock := filepath.Join("/tmp", "crsh-shell-" + name)
+		asock := filepath.Join("/tmp", "crsh-shell-"+name)
 		aurl := "unix://" + asock
 		var cmd []string
 		if host != "" {
@@ -652,7 +679,7 @@ func startSession(cmdline []string, addr string) (*exec.Cmd, chan error, net.Con
 	log.Println("Starting dialing shell", addr, url.Scheme, url.Host+url.Path)
 	var fromServer chan map[string]string
 	var cmdconn net.Conn
-	Loop:
+Loop:
 	for {
 		select {
 		case err := <-waiter:
@@ -730,10 +757,10 @@ func logserver(args []string, ctx context.Context) error {
 
 	log.Println("Waiting while one of the forwarding processes stops")
 	select {
-	case err = <- statuses:
+	case err = <-statuses:
 		log.Println("Forwarding process stopped:", err)
 		return err
-	case <- ctx.Done():
+	case <-ctx.Done():
 		log.Println("the context is done")
 		return nil
 	}
