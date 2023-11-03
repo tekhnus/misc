@@ -589,7 +589,10 @@ func GetSessionList(sockPath string) (string, error) {
 		}
 		names = append(names, sock)
 	}
-	return strings.Join(names, "\n"), nil
+	if len(names) == 0 {
+		return "", nil
+	}
+	return "Existing sessions:\n" + strings.Join(names, "\n"), nil
 }
 
 func SimpleRun(comm string) error {
