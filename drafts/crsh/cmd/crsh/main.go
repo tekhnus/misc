@@ -179,7 +179,6 @@ Loop:
 func readPrompt(outp chan string) error {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
-	fmt.Print("\033[H\033[2J")
 	err := SimpleRun(`kitty @ focus-window`)
 	if err != nil {
 		log.Println("Kitty focus error", err)
@@ -189,6 +188,7 @@ func readPrompt(outp chan string) error {
 		log.Println("Liner error", err)
 		return err
 	}
+	fmt.Print("\033[H\033[2J")
 	err = SimpleRun(`kitty @ focus-window --match title:crsh-server`)
 	if err != nil {
 		log.Println("Kitty unfocus error", err)
