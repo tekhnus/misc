@@ -144,13 +144,14 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 		select {
 		case msg := <-msgs:
 			log.Println("Received a message", msg)
-			fmt.Printf("received: %s\n", msg)
 			if msg["type"] == "cmd" {
 				if msg["cmd"] == "exit" {
 					enc.Encode(map[string]string{"type": "status", "status": "exiting"})
 					return true, nil
 				}
+				fmt.Printf("> %s\n", msg["cmd"])
 			} else if msg["type"] == "info" {
+				fmt.Println(msg["text"])
 			} else if msg["type"] == "end" {
 				return false, nil
 			} else {
