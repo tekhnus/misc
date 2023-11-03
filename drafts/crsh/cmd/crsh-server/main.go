@@ -140,7 +140,11 @@ func echoLoop(conn net.Conn, ctx context.Context) (bool, error) {
 	msgs := make(chan map[string]string)
 	go readMessages(conn, msgs)
 	enc := json.NewEncoder(conn)
-	fmt.Println(GetSessionList())
+	sessList, err := GetSessionList()
+	if err != nil {
+		return true, err
+	}
+	fmt.Println(sessList)
 	for {
 		select {
 		case msg := <-msgs:
@@ -572,8 +576,12 @@ func manager(args []string, ctx context.Context) error {
 	return nil
 }
 
-func GetSessionList() string {
-	return "TODO"
+func GetSessionList() (string, error) {
+	sockets, err := filepath.Glob("/tmp/crsh-shell-*")
+	if err != nil {
+		return "", err
+	}
+	return strings.Join(sockets, "\n"), nil
 }
 
 func SimpleRun(comm string) error {
