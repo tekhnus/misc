@@ -124,47 +124,50 @@ func prompt(args []string) error {
 	replies := make(chan map[string]string)
 	go readMessages(conn, replies)
 
-	go func() {
-		for {
+Loop:
+	for {
+		go func() {
 			err := readPrompt(commands)
 			if err != nil {
 				close(commands)
-				return
 			}
-		}
-	}()
-Loop:
-	for {
-		select {
-		case cmd, ok := <-commands:
-			if !ok {
-				log.Println("Received an EOF from reader, sending exit")
-				commands = nil
-				cmd = "exit"
-			}
-			msg := map[string]string{
-				"type": "cmd",
-				"cmd":  cmd,
-			}
+		}()
 
-			err = enc.Encode(msg)
-			if err != nil {
-				return err
-			}
-		case msg := <-replies:
-			log.Println("Received a message")
-			msgtype := msg["type"]
-			switch msgtype {
-			case "end":
-				log.Println("Received an end message")
-				break Loop
-			case "status":
-				log.Println("This is a status message")
-				if msg["status"] != "waiting" {
-					return fmt.Errorf("Unknown status %s", msg["status"])
+		WaitingCommandLoop:
+		for {
+			select {
+			case cmd, ok := <-commands:
+				if !ok {
+					log.Println("Received an EOF from reader, sending exit")
+					commands = nil
+					cmd = "exit"
 				}
-			default:
-				return errors.New("Unknown message type")
+				msg := map[string]string{
+					"type": "cmd",
+					"cmd":  cmd,
+				}
+
+				err = enc.Encode(msg)
+				if err != nil {
+					return err
+				}
+			case msg := <-replies:
+				log.Println("Received a message")
+				msgtype := msg["type"]
+				switch msgtype {
+				case "end":
+					log.Println("Received an end message")
+					break Loop
+				case "status":
+					log.Println("This is a status message")
+					if msg["status"] != "waiting" {
+						return fmt.Errorf("Unknown status %s", msg["status"])
+					}
+					log.Println("Received a status, starting a new prompt")
+					break WaitingCommandLoop
+				default:
+					return errors.New("Unknown message type")
+				}
 			}
 		}
 	}
