@@ -19,5 +19,4 @@ cp -r darwin linux $SHARE
 kitty @ launch \
   --type os-window \
   --env "PATH=$PATH" \
-  --hold \
   crsh "$@"

@@ -2,14 +2,24 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
+	"os/signal"
 )
 
 func main() {
+	err := Main()
+	if err != nil {
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
+
+func Main() error {
 	logServer, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
 		log.SetOutput(io.Discard)
@@ -17,6 +27,16 @@ func main() {
 		defer logServer.Close()
 		log.SetOutput(logServer)
 	}
+
+	signals := make(chan os.Signal, 16)
+	signal.Notify(signals, os.Interrupt)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		signal := <-signals
+		log.Println("Received a signal", signal)
+		cancel()
+	}()
 
 	log.Println("Process started:", os.Args)
 
@@ -31,26 +51,23 @@ func main() {
 		}
 	}
 
-	var res error
 	switch cmd {
 	case "manager":
-		res = Manager(args)
+		err = Manager(args, ctx)
 	case "log-server":
-		res = LogServer(args)
+		err = LogServer(args, ctx)
 	default:
-		log.Fatal("Unknown command")
+		err = fmt.Errorf("Unknown command")
 	}
 
-	if res != nil {
-		log.Fatal(res)
-	}
+	return err
 }
 
-func Manager(args []string) error {
+func Manager(args []string, ctx context.Context) error {
 	return nil
 }
 
-func LogServer(args []string) error {
+func LogServer(args []string, ctx context.Context) error {
 	listener, err := net.Listen("tcp", "localhost:5678")
 	if err != nil {
 		return err
@@ -65,10 +82,11 @@ func LogServer(args []string) error {
 	for {
 		select {
 		case conn := <-conns:
-			go func() {
-				defer conn.Close()
-				ReadLines(conn, lines)
-			}()
+			defer conn.Close()
+			go ReadLines(conn, lines)
+		case <-ctx.Done():
+			log.Println("Cancelling")
+			return nil
 		}
 	}
 }
