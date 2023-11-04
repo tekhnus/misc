@@ -8,7 +8,9 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/exec"
 	"os/signal"
+	"strings"
 )
 
 func main() {
@@ -20,6 +22,8 @@ func main() {
 }
 
 func Main() error {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmsgprefix)
+
 	logServer, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
 		log.SetOutput(io.Discard)
@@ -38,32 +42,51 @@ func Main() error {
 		cancel()
 	}()
 
-	log.Println("Process started:", os.Args)
+	cmdline := strings.Join(os.Args, " ")
+	log.SetPrefix(fmt.Sprintf("%18s: ", cmdline))
 
-	cmd := "manager"
-	args := os.Args[1:]
+	log.Println("Process started")
 
-	if len(args) > 0 {
-		switch args[0] {
-		case "manager", "log-server":
-			cmd = args[0]
-			args = args[1:]
-		}
+	var cmd string
+	var args []string
+
+	if len(os.Args) > 1 {
+		cmd = os.Args[1]
+		args = os.Args[2:]
+	} else {
+		cmd = "manager"
 	}
 
 	switch cmd {
 	case "manager":
 		err = Manager(args, ctx)
+	case "shell":
+		err = Shell(args, ctx)
 	case "log-server":
 		err = LogServer(args, ctx)
 	default:
-		err = fmt.Errorf("Unknown command")
+		err = fmt.Errorf("Unknown command: %s", cmd)
+	}
+
+	if err != nil {
+		log.Println(err)
 	}
 
 	return err
 }
 
 func Manager(args []string, ctx context.Context) error {
+	shellCmd := exec.Command("crsh", "shell")
+
+	shellCmd.Stdin = os.Stdin
+	shellCmd.Stdout = os.Stdout
+	shellCmd.Stderr = os.Stderr
+
+	shellCmd.Start()
+	return shellCmd.Wait()
+}
+
+func Shell(args []string, ctx context.Context) error {
 	return nil
 }
 
