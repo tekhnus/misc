@@ -25,7 +25,7 @@ func main() {
 		defer logger.Close()
 		log.SetOutput(logger)
 	} else {
-		log.Println("While trying to connect to logserver:", err)
+		log.SetOutput(io.Discard)
 	}
 
 	_, command := filepath.Split(os.Args[0])

@@ -30,7 +30,7 @@ func main() {
 		defer logger.Close()
 		log.SetOutput(logger)
 	} else {
-		log.Println("While trying to connect to logserver:", err)
+		log.SetOutput(io.Discard)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 
