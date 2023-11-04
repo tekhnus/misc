@@ -69,7 +69,6 @@ func LogServer(args []string) error {
 				defer conn.Close()
 				ReadLines(conn, lines)
 			}()
-			go ReadLines(conn, lines)
 		}
 	}
 }
