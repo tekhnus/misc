@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+mkdir -p darwin 
+go build -o darwin ./... || exit
+mkdir -p linux
+GOOS=linux GOARCH=amd64 go build -o linux ./... || exit
+
+BIN=~/.local/bin
+
+rm $BIN/crsh*
+cp darwin/* $BIN
+
+SHARE=~/.local/share/crsh
+
+rm -rf $SHARE
+mkdir -p $SHARE
+cp -r darwin linux $SHARE
+
+kitty @ launch \
+  --type os-window \
+  --env "PATH=$PATH" \
+  --hold \
+  crsh "$@"
