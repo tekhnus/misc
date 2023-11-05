@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -76,6 +77,12 @@ func Main() error {
 }
 
 func Manager(args []string, ctx context.Context) error {
+	listener, err := net.Listen("unix", "/tmp/crsh-manager")
+	if err != nil {
+		return err
+	}
+	defer listener.Close()
+
 	shellCmd := exec.Command("crsh", "shell")
 
 	shellCmd.Stdin = os.Stdin
@@ -83,11 +90,127 @@ func Manager(args []string, ctx context.Context) error {
 	shellCmd.Stderr = os.Stderr
 
 	shellCmd.Start()
-	return shellCmd.Wait()
+	defer shellCmd.Wait()
+
+	log.Println("Start accepting connection")
+	shell, err := listener.Accept()
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer shell.Close()
+	log.Println("Finish accepting connection")
+
+	shellOut := make(chan Message)
+	go func() {
+		ReadJsons(shell, shellOut)
+		close(shellOut)
+	}()
+
+	shellIn := json.NewEncoder(shell)
+
+	for {
+		select {
+		case msg, ok := <-shellOut:
+			if !ok {
+				log.Println("No more shell messages")
+				return nil
+			}
+			log.Println("Received", msg)
+			switch msg.Type {
+			case "input":
+				shellIn.Encode(Message{Type: "execute", Payload: msg.Payload})
+			default:
+				return fmt.Errorf("Unknown message type %s", msg.Type)
+			}
+		}
+	}
 }
 
 func Shell(args []string, ctx context.Context) error {
-	return nil
+	log.Println("Start dialing manager")
+	manager, err := net.Dial("unix", "/tmp/crsh-manager")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	defer manager.Close()
+	log.Println("Finish dialing manager")
+
+	managerIn := json.NewEncoder(manager)
+
+	managerOut := make(chan Message)
+	go func() {
+		ReadJsons(manager, managerOut)
+		close(managerOut)
+	}()
+
+	stdin := bufio.NewScanner(os.Stdin)
+	inputs := make(chan string)
+	for {
+		go func() {
+			ok, _ := Prompt(stdin, inputs)
+			if !ok {
+				close(inputs)
+			}
+		}()
+
+		select {
+		case input, ok := <-inputs:
+			if !ok {
+				log.Println("No more input")
+				return nil
+			}
+			log.Println("Received", input)
+			err = managerIn.Encode(Message{Type: "input", Payload: input})
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+		case <-ctx.Done():
+			return nil
+		}
+
+		select {
+		case msg, ok := <-managerOut:
+			if !ok {
+				log.Println("No more messages from manager")
+				return nil
+			}
+			log.Println("Received", msg)
+			switch msg.Type {
+			case "execute":
+				err = SimpleExecute(msg.Payload)
+				if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+				}
+			default:
+				return fmt.Errorf("Unknown message type: %s", msg.Type)
+			}
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}
+
+func SimpleExecute(stmt string) error {
+	args := strings.Split(stmt, " ")
+	cmd := exec.Command(args[0], args[1:]...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	return cmd.Run()
+}
+
+func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
+	fmt.Print("> ")
+	ok := src.Scan()
+	if ok {
+		dst <- src.Text()
+	}
+	return ok, src.Err()
 }
 
 func LogServer(args []string, ctx context.Context) error {
@@ -140,4 +263,22 @@ func ReadLines(conn net.Conn, lines chan string) error {
 		}
 		fmt.Println(string(line))
 	}
+}
+
+func ReadJsons(conn net.Conn, dst chan Message) error {
+	reader := json.NewDecoder(conn)
+	for {
+		var msg Message
+		err := reader.Decode(&msg)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		dst <- msg
+	}
+}
+
+type Message struct {
+	Type    string
+	Payload string
 }
