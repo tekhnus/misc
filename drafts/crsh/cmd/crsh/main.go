@@ -256,14 +256,26 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	log.Println("Start accepting connection")
-	manager, err := listener.Accept()
-	if err != nil {
-		log.Println(err)
-		return err
+	for {
+		log.Println("Start accepting connection")
+		manager, err := listener.Accept()
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		log.Println("Finish accepting connection")
+		cont, err := HandleManager(manager, ctx)
+		if err != nil {
+			return err
+		}
+		if !cont {
+			return nil
+		}
 	}
+}
+
+func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 	defer manager.Close()
-	log.Println("Finish accepting connection")
 
 	managerIn := json.NewEncoder(manager)
 
@@ -273,7 +285,7 @@ func ShellMain(args []string, ctx context.Context) error {
 		close(managerOut)
 	}()
 
-	err = SimpleExecute("tmux set-option -g status-left-length 32")
+	err := SimpleExecute("tmux set-option -g status-left-length 32")
 	if err != nil {
 		log.Println("While configuring tmux:", err)
 	}
@@ -292,40 +304,40 @@ func ShellMain(args []string, ctx context.Context) error {
 		case input, ok := <-inputs:
 			if !ok {
 				log.Println("No more input")
-				return nil
+				return false, nil
 			}
 			log.Println("Received", input)
 			err = managerIn.Encode(Message{Type: "input", Payload: input})
 			if err != nil {
 				log.Println(err)
-				return err
+				return false, err
 			}
 		case <-ctx.Done():
-			return nil
+			return false, nil
 		}
 
 		select {
 		case msg, ok := <-managerOut:
 			if !ok {
 				log.Println("No more messages from manager")
-				return nil
+				return true, nil
 			}
 			log.Println("Received", msg)
 			switch msg.Type {
 			case "execute":
 				if msg.Payload == "exit" {
 					log.Println("Exiting")
-					return nil
+					return false, nil
 				}
 				err = SimpleExecute(msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
 			default:
-				return fmt.Errorf("Unknown message type: %s", msg.Type)
+				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
 		case <-ctx.Done():
-			return nil
+			return false, nil
 		}
 	}
 }
