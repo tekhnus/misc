@@ -13,7 +13,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -101,9 +100,6 @@ func ManagerMain(args []string, ctx context.Context) error {
 }
 
 func HandleShell(shell Shell) (string, error) {
-	var wg sync.WaitGroup
-	defer wg.Wait()
-
 	defer func() {
 		log.Println("Start ensuring closed shell status")
 		for range shell.Done {
@@ -117,19 +113,6 @@ func HandleShell(shell Shell) (string, error) {
 		log.Println("Finish ensuring closed shell connection")
 	}()
 
-	shellIn := make(chan Message)
-	go func() {
-		for message := range shellIn {
-			err := shell.In.Encode(message)
-			if err != nil {
-				return
-			}
-		}
-	}()
-
-	shellOutFiltered := make(chan Message)
-	defer close(shellOutFiltered)
-
 	for {
 		select {
 		case msg := <-shell.Out:
@@ -140,18 +123,18 @@ func HandleShell(shell Shell) (string, error) {
 					switch tokens[0] {
 					case "\\go":
 						if len(tokens) != 2 {
-							shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 						}
 						log.Println("Sending an exit message to current shell")
-						shellIn <- Message{Type: "execute", Payload: "exit"}
+						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
 						log.Println("Stopping the shell")
 						name := tokens[1]
 						return name, nil
 					default:
-						shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 					}
 				} else {
-					shellIn <- Message{Type: "execute", Payload: msg.Payload}
+					shell.In.Encode(Message{Type: "execute", Payload: msg.Payload})
 				}
 			default:
 				return "", fmt.Errorf("Unknown message type: %s", msg.Type)
