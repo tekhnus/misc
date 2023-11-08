@@ -80,70 +80,71 @@ func Main() error {
 }
 
 func ManagerMain(args []string, ctx context.Context) error {
-	var wg sync.WaitGroup
 	name := RandomName()
 
 	for {
-		log.Println("Start waiting for previous shell")
-		wg.Wait()
-		log.Println("Finish waiting for previous shell")
-
 		shell, err := MakeShell(name)
 		if err != nil {
 			return err
 		}
-		shellIn := make(chan Message)
-		go func() {
-			for message := range shellIn {
-				err := shell.In.Encode(message)
-				if err != nil {
-					return
-				}
-			}
-		}()
-
-		shellOutFiltered := make(chan Message)
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			HandleShell(shellIn, shellOutFiltered, shell.Done)
-		}()
-
-		exit := true
-	Shell:
-		for msg := range shell.Out {
-			if msg.Type == "input" && strings.HasPrefix(msg.Payload, "\\") {
-				tokens := strings.Split(msg.Payload, " ")
-				switch tokens[0] {
-				case "\\go":
-					if len(tokens) != 2 {
-						shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
-						continue Shell
-					}
-					log.Println("Sending an exit message to current shell")
-					shellIn <- Message{Type: "execute", Payload: "exit"}
-					log.Println("Stopping the shell")
-					exit = false
-					name = tokens[1]
-					break Shell
-				default:
-					shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
-				}
-			} else {
-				shellOutFiltered <- msg
-			}
+		name, err = HandleShell2(shell)
+		if err != nil {
+			return err
 		}
-
-		log.Println("Closing shell handler")
-		close(shellOutFiltered)
-		if exit {
+		if name == "" {
 			break
 		}
 	}
 
 	log.Println("Exiting")
 	return nil
+}
+
+func HandleShell2(shell Shell) (string, error) {
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
+	shellIn := make(chan Message)
+	go func() {
+		for message := range shellIn {
+			err := shell.In.Encode(message)
+			if err != nil {
+				return
+			}
+		}
+	}()
+
+	shellOutFiltered := make(chan Message)
+	defer close(shellOutFiltered)
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		HandleShell(shellIn, shellOutFiltered, shell.Done)
+	}()
+
+	for msg := range shell.Out {
+		if msg.Type == "input" && strings.HasPrefix(msg.Payload, "\\") {
+			tokens := strings.Split(msg.Payload, " ")
+			switch tokens[0] {
+			case "\\go":
+				if len(tokens) != 2 {
+					shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+				}
+				log.Println("Sending an exit message to current shell")
+				shellIn <- Message{Type: "execute", Payload: "exit"}
+				log.Println("Stopping the shell")
+				name := tokens[1]
+				return name, nil
+			default:
+				shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+			}
+		} else {
+			shellOutFiltered <- msg
+		}
+	}
+
+	return "", nil
 }
 
 func HandleShell(shellIn chan Message, shellOut chan Message, shellCmdOut chan error) error {
@@ -198,7 +199,9 @@ func MakeShell(name string) (Shell, error) {
 	log.Println("Start launching shell")
 	shellCmd := MakeShellCommand(name)
 	go func() {
+		log.Println("Start running shell")
 		shellCmdOut <- shellCmd.Run()
+		log.Println("Finish running shell")
 		close(shellCmdOut)
 	}()
 	log.Println("Finish launching shell")
@@ -206,7 +209,7 @@ func MakeShell(name string) (Shell, error) {
 	log.Println("Start dialing shell")
 	shell, err := MakeShellConnection()
 	if err != nil {
-		log.Println(err)
+		log.Println("While dialing shell:", err)
 		log.Println("Waiting for shell command to complete")
 		for range shellCmdOut {
 		}
