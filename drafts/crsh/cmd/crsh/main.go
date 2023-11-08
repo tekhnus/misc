@@ -130,12 +130,21 @@ func HandleShell(shell Shell) (string, error) {
 					case "\\go":
 						if len(tokens) != 2 {
 							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
+							break
 						}
 						log.Println("Sending an exit message to current shell")
 						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
 						log.Println("Stopping the shell")
 						name := tokens[1]
 						return name, nil
+					case "\\detach":
+						if len(tokens) != 1 {
+							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
+							break
+						}
+						log.Println("Detaching from current shell")
+						err := shell.Detach()
+						return "", err
 					default:
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 					}
@@ -159,9 +168,10 @@ func HandleShell(shell Shell) (string, error) {
 }
 
 type Shell = struct {
-	In   *json.Encoder
-	Out  chan Message
-	Done chan error
+	In     *json.Encoder
+	Out    chan Message
+	Done   chan error
+	Detach func() error
 }
 
 func MakeShell(name string) (Shell, error) {
@@ -196,11 +206,29 @@ func MakeShell(name string) (Shell, error) {
 	}()
 	log.Println("Finish dialing shell")
 
-	return Shell{shellIn, shellOut, shellCmdOut}, nil
+	detach := func() error {
+		detachCmd := MakeDetachCommand(name)
+		err := detachCmd.Run()
+		if err != nil {
+			return err
+		}
+		return shell.Close()
+	}
+	return Shell{shellIn, shellOut, shellCmdOut, detach}, nil
 }
 
 func MakeShellCommand(name string) *exec.Cmd {
 	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, "crsh", "shell")
+
+	shellCmd.Stdin = os.Stdin
+	shellCmd.Stdout = os.Stdout
+	shellCmd.Stderr = os.Stderr
+
+	return shellCmd
+}
+
+func MakeDetachCommand(name string) *exec.Cmd {
+	shellCmd := exec.Command("tmux", "detach-client", "-s", "="+name)
 
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
