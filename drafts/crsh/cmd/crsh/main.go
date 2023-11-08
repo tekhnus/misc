@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -190,7 +191,7 @@ func MakeShell(name string) (Shell, error) {
 	log.Println("Finish launching shell")
 
 	log.Println("Start dialing shell")
-	shell, err := MakeShellConnection()
+	shell, err := MakeShellConnection(name)
 	if err != nil {
 		log.Println("While dialing shell:", err)
 		log.Println("Waiting for shell command to complete")
@@ -218,7 +219,7 @@ func MakeShell(name string) (Shell, error) {
 }
 
 func MakeShellCommand(name string) *exec.Cmd {
-	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, "crsh", "shell")
+	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, "crsh", "shell", name)
 
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
@@ -237,9 +238,9 @@ func MakeDetachCommand(name string) *exec.Cmd {
 	return shellCmd
 }
 
-func MakeShellConnection() (net.Conn, error) {
+func MakeShellConnection(name string) (net.Conn, error) {
 	for {
-		shell, err := net.Dial("unix", "/tmp/crsh-manager")
+		shell, err := net.Dial("unix", GetSocketPath(name))
 		if err != nil {
 			log.Println(err)
 			time.Sleep(time.Second / 5)
@@ -250,7 +251,17 @@ func MakeShellConnection() (net.Conn, error) {
 }
 
 func ShellMain(args []string, ctx context.Context) error {
-	listener, err := net.Listen("unix", "/tmp/crsh-manager")
+	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
+	err := fs.Parse(args)
+	if err != nil {
+		return err
+	}
+	if fs.NArg() != 1 {
+		return fmt.Errorf("Expected one argument")
+	}
+	name := fs.Arg(0)
+
+	listener, err := net.Listen("unix", GetSocketPath(name))
 	if err != nil {
 		return err
 	}
@@ -272,6 +283,10 @@ func ShellMain(args []string, ctx context.Context) error {
 			return nil
 		}
 	}
+}
+
+func GetSocketPath(name string) string {
+	return "/tmp/crsh-shell-" + name
 }
 
 func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
