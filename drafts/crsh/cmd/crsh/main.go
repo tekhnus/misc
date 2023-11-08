@@ -101,21 +101,27 @@ func ManagerMain(args []string, ctx context.Context) error {
 
 func HandleShell(shell Shell) (string, error) {
 	defer func() {
-		log.Println("Start ensuring closed shell status")
-		for range shell.Done {
+		for shell.Out != nil || shell.Done != nil {
+			select {
+			case _, ok := <-shell.Out:
+				if !ok {
+					shell.Out = nil
+				}
+			case _, ok := <-shell.Done:
+				if !ok {
+					shell.Done = nil
+				}
+			}
 		}
-		log.Println("Finish ensuring closed shell status")
-	}()
-	defer func() {
-		log.Println("Start ensuring closed shell connection")
-		for range shell.Out {
-		}
-		log.Println("Finish ensuring closed shell connection")
 	}()
 
-	for {
+	for shell.Out != nil && shell.Done != nil {
 		select {
-		case msg := <-shell.Out:
+		case msg, ok := <-shell.Out:
+			if !ok {
+				shell.Out = nil
+				break
+			}
 			switch msg.Type {
 			case "input":
 				if strings.HasPrefix(msg.Payload, "\\") {
@@ -141,12 +147,15 @@ func HandleShell(shell Shell) (string, error) {
 			}
 		case err, ok := <-shell.Done:
 			if !ok {
-				return "", fmt.Errorf("Channel closed unexpectedly")
+				shell.Done = nil
+				break
 			}
 			log.Println("Shell command finished:", err)
 			return "", err
 		}
 	}
+
+	return "", nil
 }
 
 type Shell = struct {
