@@ -87,7 +87,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		name, err = HandleShell2(shell)
+		name, err = HandleShell(shell)
 		if err != nil {
 			return err
 		}
@@ -100,7 +100,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	return nil
 }
 
-func HandleShell2(shell Shell) (string, error) {
+func HandleShell(shell Shell) (string, error) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
