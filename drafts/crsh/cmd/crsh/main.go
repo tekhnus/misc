@@ -7,11 +7,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
+	"time"
 )
 
 func main() {
@@ -23,7 +26,7 @@ func main() {
 }
 
 func Main() error {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lmsgprefix)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile | log.Lmsgprefix)
 
 	logServer, err := net.Dial("tcp", "localhost:5678")
 	if err != nil {
@@ -60,11 +63,11 @@ func Main() error {
 
 	switch cmd {
 	case "manager":
-		err = Manager(args, ctx)
+		err = ManagerMain(args, ctx)
 	case "shell":
-		err = Shell(args, ctx)
+		err = ShellMain(args, ctx)
 	case "log-server":
-		err = LogServer(args, ctx)
+		err = LogServerMain(args, ctx)
 	default:
 		err = fmt.Errorf("Unknown command: %s", cmd)
 	}
@@ -76,38 +79,86 @@ func Main() error {
 	return err
 }
 
-func Manager(args []string, ctx context.Context) error {
-	listener, err := net.Listen("unix", "/tmp/crsh-manager")
-	if err != nil {
-		return err
+func ManagerMain(args []string, ctx context.Context) error {
+	var wg sync.WaitGroup
+	name := RandomName()
+
+	for {
+		log.Println("Start waiting for previous shell")
+		wg.Wait()
+		log.Println("Finish waiting for previous shell")
+
+		shell, err := MakeShell(name)
+		if err != nil {
+			return err
+		}
+		shellIn := make(chan Message)
+		go func() {
+			for message := range shellIn {
+				err := shell.In.Encode(message)
+				if err != nil {
+					return
+				}
+			}
+		}()
+
+		shellOutFiltered := make(chan Message)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			HandleShell(shellIn, shellOutFiltered, shell.Done)
+		}()
+
+		exit := true
+	Shell:
+		for msg := range shell.Out {
+			if msg.Type == "input" && strings.HasPrefix(msg.Payload, "\\") {
+				tokens := strings.Split(msg.Payload, " ")
+				switch tokens[0] {
+				case "\\go":
+					if len(tokens) != 2 {
+						shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+						continue Shell
+					}
+					log.Println("Sending an exit message to current shell")
+					shellIn <- Message{Type: "execute", Payload: "exit"}
+					log.Println("Stopping the shell")
+					exit = false
+					name = tokens[1]
+					break Shell
+				default:
+					shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+				}
+			} else {
+				shellOutFiltered <- msg
+			}
+		}
+
+		log.Println("Closing shell handler")
+		close(shellOutFiltered)
+		if exit {
+			break
+		}
 	}
-	defer listener.Close()
 
-	shellCmd := exec.Command("crsh", "shell")
+	log.Println("Exiting")
+	return nil
+}
 
-	shellCmd.Stdin = os.Stdin
-	shellCmd.Stdout = os.Stdout
-	shellCmd.Stderr = os.Stderr
-
-	shellCmd.Start()
-	defer shellCmd.Wait()
-
-	log.Println("Start accepting connection")
-	shell, err := listener.Accept()
-	if err != nil {
-		log.Println(err)
-		return err
-	}
-	defer shell.Close()
-	log.Println("Finish accepting connection")
-
-	shellOut := make(chan Message)
-	go func() {
-		ReadJsons(shell, shellOut)
-		close(shellOut)
+func HandleShell(shellIn chan Message, shellOut chan Message, shellCmdOut chan error) error {
+	defer func() {
+		log.Println("Start ensuring closed shell status")
+		for range shellCmdOut {
+		}
+		log.Println("Finish ensuring closed shell status")
 	}()
-
-	shellIn := json.NewEncoder(shell)
+	defer func() {
+		log.Println("Start ensuring closed shell connection")
+		for range shellOut {
+		}
+		log.Println("Finish ensuring closed shell connection")
+	}()
 
 	for {
 		select {
@@ -119,23 +170,96 @@ func Manager(args []string, ctx context.Context) error {
 			log.Println("Received", msg)
 			switch msg.Type {
 			case "input":
-				shellIn.Encode(Message{Type: "execute", Payload: msg.Payload})
+				shellIn <- Message{Type: "execute", Payload: msg.Payload}
 			default:
 				return fmt.Errorf("Unknown message type %s", msg.Type)
 			}
+		case err, ok := <-shellCmdOut:
+			if !ok {
+				return fmt.Errorf("Channel closed unexpectedly")
+			}
+			log.Println("Shell command finished:", err)
+			return err
 		}
 	}
 }
 
-func Shell(args []string, ctx context.Context) error {
-	log.Println("Start dialing manager")
-	manager, err := net.Dial("unix", "/tmp/crsh-manager")
+type Shell = struct {
+	In   *json.Encoder
+	Out  chan Message
+	Done chan error
+}
+
+func MakeShell(name string) (Shell, error) {
+	var shellIn *json.Encoder
+	shellOut := make(chan Message)
+	shellCmdOut := make(chan error)
+
+	log.Println("Start launching shell")
+	shellCmd := MakeShellCommand(name)
+	go func() {
+		shellCmdOut <- shellCmd.Run()
+		close(shellCmdOut)
+	}()
+	log.Println("Finish launching shell")
+
+	log.Println("Start dialing shell")
+	shell, err := MakeShellConnection()
+	if err != nil {
+		log.Println(err)
+		log.Println("Waiting for shell command to complete")
+		for range shellCmdOut {
+		}
+		return Shell{}, err
+	}
+	shellIn = json.NewEncoder(shell)
+	go func() {
+		ReadJsons(shell, shellOut)
+		shell.Close()
+		close(shellOut)
+	}()
+	log.Println("Finish dialing shell")
+
+	return Shell{shellIn, shellOut, shellCmdOut}, nil
+}
+
+func MakeShellCommand(name string) *exec.Cmd {
+	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, "crsh", "shell")
+
+	shellCmd.Stdin = os.Stdin
+	shellCmd.Stdout = os.Stdout
+	shellCmd.Stderr = os.Stderr
+
+	return shellCmd
+}
+
+func MakeShellConnection() (net.Conn, error) {
+	for {
+		shell, err := net.Dial("unix", "/tmp/crsh-manager")
+		if err != nil {
+			log.Println(err)
+			time.Sleep(time.Second / 5)
+			continue
+		}
+		return shell, nil
+	}
+}
+
+func ShellMain(args []string, ctx context.Context) error {
+	listener, err := net.Listen("unix", "/tmp/crsh-manager")
+	if err != nil {
+		return err
+	}
+	defer listener.Close()
+
+	log.Println("Start accepting connection")
+	manager, err := listener.Accept()
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 	defer manager.Close()
-	log.Println("Finish dialing manager")
+	log.Println("Finish accepting connection")
 
 	managerIn := json.NewEncoder(manager)
 
@@ -144,6 +268,11 @@ func Shell(args []string, ctx context.Context) error {
 		ReadJsons(manager, managerOut)
 		close(managerOut)
 	}()
+
+	err = SimpleExecute("tmux set-option -g status-left-length 32")
+	if err != nil {
+		log.Println("While configuring tmux:", err)
+	}
 
 	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
@@ -180,6 +309,10 @@ func Shell(args []string, ctx context.Context) error {
 			log.Println("Received", msg)
 			switch msg.Type {
 			case "execute":
+				if msg.Payload == "exit" {
+					log.Println("Exiting")
+					return nil
+				}
 				err = SimpleExecute(msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
@@ -213,7 +346,7 @@ func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
 	return ok, src.Err()
 }
 
-func LogServer(args []string, ctx context.Context) error {
+func LogServerMain(args []string, ctx context.Context) error {
 	listener, err := net.Listen("tcp", "localhost:5678")
 	if err != nil {
 		return err
@@ -278,7 +411,23 @@ func ReadJsons(conn net.Conn, dst chan Message) error {
 	}
 }
 
-type Message struct {
+func RandomName() string {
+	words := []string{
+		"ocean", "mountain", "cat", "computer", "river",
+		"painting", "novel", "piano", "lawyer", "bacteria",
+		"galaxy", "equation", "volcano", "poetry",
+		"theater", "neuron", "atom", "eclipse", "typhoon",
+		"quasar", "jazz", "chess", "robot", "cipher",
+		"sonnet", "monsoon", "kaleidoscope", "harmony", "jungle",
+	}
+	var result []string
+	for i := 0; i < 3; i++ {
+		result = append(result, words[rand.Intn(len(words))])
+	}
+	return strings.Join(result, "-")
+}
+
+type Message = struct {
 	Type    string
 	Payload string
 }
