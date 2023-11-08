@@ -104,6 +104,19 @@ func HandleShell2(shell Shell) (string, error) {
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
+	defer func() {
+		log.Println("Start ensuring closed shell status")
+		for range shell.Done {
+		}
+		log.Println("Finish ensuring closed shell status")
+	}()
+	defer func() {
+		log.Println("Start ensuring closed shell connection")
+		for range shell.Out {
+		}
+		log.Println("Finish ensuring closed shell connection")
+	}()
+
 	shellIn := make(chan Message)
 	go func() {
 		for message := range shellIn {
@@ -117,70 +130,38 @@ func HandleShell2(shell Shell) (string, error) {
 	shellOutFiltered := make(chan Message)
 	defer close(shellOutFiltered)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		HandleShell(shellIn, shellOutFiltered, shell.Done)
-	}()
-
-	for msg := range shell.Out {
-		if msg.Type == "input" && strings.HasPrefix(msg.Payload, "\\") {
-			tokens := strings.Split(msg.Payload, " ")
-			switch tokens[0] {
-			case "\\go":
-				if len(tokens) != 2 {
-					shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
-				}
-				log.Println("Sending an exit message to current shell")
-				shellIn <- Message{Type: "execute", Payload: "exit"}
-				log.Println("Stopping the shell")
-				name := tokens[1]
-				return name, nil
-			default:
-				shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
-			}
-		} else {
-			shellOutFiltered <- msg
-		}
-	}
-
-	return "", nil
-}
-
-func HandleShell(shellIn chan Message, shellOut chan Message, shellCmdOut chan error) error {
-	defer func() {
-		log.Println("Start ensuring closed shell status")
-		for range shellCmdOut {
-		}
-		log.Println("Finish ensuring closed shell status")
-	}()
-	defer func() {
-		log.Println("Start ensuring closed shell connection")
-		for range shellOut {
-		}
-		log.Println("Finish ensuring closed shell connection")
-	}()
-
 	for {
 		select {
-		case msg, ok := <-shellOut:
-			if !ok {
-				log.Println("No more shell messages")
-				return nil
-			}
-			log.Println("Received", msg)
+		case msg := <-shell.Out:
 			switch msg.Type {
 			case "input":
-				shellIn <- Message{Type: "execute", Payload: msg.Payload}
+				if strings.HasPrefix(msg.Payload, "\\") {
+					tokens := strings.Split(msg.Payload, " ")
+					switch tokens[0] {
+					case "\\go":
+						if len(tokens) != 2 {
+							shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+						}
+						log.Println("Sending an exit message to current shell")
+						shellIn <- Message{Type: "execute", Payload: "exit"}
+						log.Println("Stopping the shell")
+						name := tokens[1]
+						return name, nil
+					default:
+						shellIn <- Message{Type: "execute", Payload: "echo Wrong command"}
+					}
+				} else {
+					shellIn <- Message{Type: "execute", Payload: msg.Payload}
+				}
 			default:
-				return fmt.Errorf("Unknown message type %s", msg.Type)
+				return "", fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
-		case err, ok := <-shellCmdOut:
+		case err, ok := <-shell.Done:
 			if !ok {
-				return fmt.Errorf("Channel closed unexpectedly")
+				return "", fmt.Errorf("Channel closed unexpectedly")
 			}
 			log.Println("Shell command finished:", err)
-			return err
+			return "", err
 		}
 	}
 }
