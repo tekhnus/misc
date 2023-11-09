@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -267,6 +268,23 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
+	sessions, err := ListSessions()
+	if err != nil {
+		return err
+	}
+
+	header := false
+	for _, session := range sessions {
+		if session == name {
+			continue
+		}
+		if !header {
+			fmt.Println("Sessions on this host:")
+			header = true
+		}
+		fmt.Printf("- %s\n", session)
+	}
+
 	for {
 		log.Println("Start accepting connection")
 		manager, err := listener.Accept()
@@ -355,6 +373,22 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 			return false, nil
 		}
 	}
+}
+
+func ListSessions() ([]string, error) {
+	var sessions []string
+	sockets, err := filepath.Glob("/tmp/crsh-shell-*")
+	if err != nil {
+		return nil, err
+	}
+	for _, sock := range sockets {
+		name, ok := strings.CutPrefix(sock, "/tmp/crsh-shell-")
+		if !ok {
+			return nil, fmt.Errorf("Unexpected problem")
+		}
+		sessions = append(sessions, name)
+	}
+	return sessions, nil
 }
 
 func SimpleExecute(stmt string) error {
