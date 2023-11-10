@@ -406,7 +406,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	time.Sleep(5 * time.Second)
 
-	masterExitCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-O", "exit", host)
+	masterExitCmd := exec.Command("ssh", "-S", masterSocket, "-O", "exit", host)
 	defer func() {
 		log.Println("Started command:", masterExitCmd)
 		out, err := masterExitCmd.CombinedOutput()
