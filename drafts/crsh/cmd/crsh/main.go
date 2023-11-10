@@ -466,7 +466,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	executable := dstDir + "/linux/crsh"
 	shellCmd := exec.Command(
-		"ssh", "-S", masterSocket, host,
+		"ssh", "-S", masterSocket, "-t", host,
 		executable)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
