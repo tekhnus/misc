@@ -422,7 +422,9 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Status:", err)
 	}()
 
-	mkdirCmd := exec.Command("ssh", "-S", masterSocket, host, "mkdir", "-p", "~/.local/share/crsh/tmp/"+Version)
+	downloadDir := "~/.local/share/crsh/tmp/" + Version
+
+	mkdirCmd := exec.Command("ssh", "-S", masterSocket, host, "rm", "-rf", downloadDir, "&&", "mkdir", "-p", downloadDir)
 	out, err := mkdirCmd.CombinedOutput()
 	log.Println("Finished command:", mkdirCmd)
 	log.Print("Output: ", string(out))
