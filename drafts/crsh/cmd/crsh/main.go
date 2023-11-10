@@ -418,6 +418,8 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Status:", err)
 	}()
 
+	time.Sleep(1 * time.Second)
+
 	return nil
 }
 
