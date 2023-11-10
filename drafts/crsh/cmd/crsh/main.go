@@ -393,7 +393,6 @@ func SSHMain(args []string, ctx context.Context) error {
 	host := fs.Arg(0)
 
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
-	defer os.Remove(masterSocket)
 
 	masterCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-N", host)
 	go func() {
@@ -402,8 +401,6 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished command:", masterCmd)
 		log.Println("Output:", string(out))
 		log.Println("Status:", err)
-
-		os.Remove(masterSocket)
 	}()
 
 	masterExitCmd := exec.Command("ssh", "-S", masterSocket, "-O", "exit", host)
