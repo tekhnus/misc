@@ -394,7 +394,11 @@ func SSHMain(args []string, ctx context.Context) error {
 	host := fs.Arg(0)
 
 	var wg sync.WaitGroup
-	defer wg.Wait()
+	defer func() {
+		log.Println("Started waiting on child processes")
+		wg.Wait()
+		log.Println("Finished waiting on child processes")
+	}()
 
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
 
@@ -417,6 +421,12 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
 	}()
+
+	mkdirCmd := exec.Command("ssh", "-S", masterSocket, host, "mkdir", "-p", "~/.local/share/crsh/tmp/"+Version)
+	out, err := mkdirCmd.CombinedOutput()
+	log.Println("Finished command:", mkdirCmd)
+	log.Print("Output: ", string(out))
+	log.Println("Status:", err)
 
 	time.Sleep(1 * time.Second)
 
