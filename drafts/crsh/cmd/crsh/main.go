@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -17,6 +18,9 @@ import (
 	"strings"
 	"time"
 )
+
+//go:embed git-head.txt
+var Version string
 
 func main() {
 	err := Main()
