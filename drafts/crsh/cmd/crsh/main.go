@@ -71,6 +71,8 @@ func Main() error {
 		err = ManagerMain(args, ctx)
 	case "shell":
 		err = ShellMain(args, ctx)
+	case "ssh":
+		err = SSHMain(args, ctx)
 	case "log-server":
 		err = LogServerMain(args, ctx)
 	default:
@@ -377,6 +379,20 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 			return false, nil
 		}
 	}
+}
+
+func SSHMain(args []string, ctx context.Context) error {
+	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
+	err := fs.Parse(args)
+	if err != nil {
+		return err
+	}
+	if fs.NArg() != 1 {
+		return fmt.Errorf("Expected one argument")
+	}
+	host := fs.Arg(0)
+	fmt.Println(host)
+	return nil
 }
 
 func ListSessions() ([]string, error) {
