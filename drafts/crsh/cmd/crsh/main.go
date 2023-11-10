@@ -468,9 +468,12 @@ func SSHMain(args []string, ctx context.Context) error {
 	shellCmd := exec.Command(
 		"ssh", "-S", masterSocket, host,
 		executable)
-	out, err = shellCmd.CombinedOutput()
+	shellCmd.Stdin = os.Stdin
+	shellCmd.Stdout = os.Stdout
+	shellCmd.Stderr = os.Stderr
+
+	err = shellCmd.Run()
 	log.Println("Finished command:", shellCmd)
-	log.Print("Output: ", string(out))
 	log.Println("Status:", err)
 
 	time.Sleep(1 * time.Second)
