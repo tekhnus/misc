@@ -388,7 +388,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if fs.NArg() != 1 {
+	if fs.NArg() < 1 {
 		return fmt.Errorf("Expected one argument")
 	}
 	host := fs.Arg(0)
@@ -462,6 +462,15 @@ func SSHMain(args []string, ctx context.Context) error {
 	} else {
 		log.Println("Skipping transfer")
 	}
+
+	executable := dstDir + "/linux/crsh"
+	shellCmd := exec.Command(
+		"ssh", "-S", masterSocket, host,
+		executable)
+	out, err = shellCmd.CombinedOutput()
+	log.Println("Finished command:", shellCmd)
+	log.Print("Output: ", string(out))
+	log.Println("Status:", err)
 
 	time.Sleep(1 * time.Second)
 
