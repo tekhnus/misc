@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
+
 if [[ ! -z $(git status --porcelain) ]]; then
   git add .
   git ci -m do
 fi
-[[ -z $(git status --porcelain) ]] || exit
 
-mkdir -p darwin 
+[[ -z $(git status --porcelain) ]] || exit
+git rev-parse HEAD >git-head
+
+mkdir -p darwin
 go build -o darwin ./... || exit
 mkdir -p linux
 GOOS=linux GOARCH=amd64 go build -o linux ./... || exit
