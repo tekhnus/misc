@@ -422,8 +422,9 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Status:", err)
 	}()
 
-	finalDir := "~/.local/share/crsh/" + Version
-	downloadDir := "~/.local/share/crsh/tmp/" + Version
+	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
+	downloadDir := ".local/share/crsh/tmp/" + Version
+	// dstDir := ".local/share/crsh/" + Version
 
 	mkdirCmd := exec.Command(
 		"ssh", "-S", masterSocket, host,
@@ -436,7 +437,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	scpCmd := exec.Command(
 		"scp", "-o", "ControlPath="+masterSocket,
-		"-r", finalDir, host+":"+downloadDir)
+		"-r", srcDir, host+":"+downloadDir)
 	out, err = scpCmd.CombinedOutput()
 	log.Println("Finished command:", scpCmd)
 	log.Print("Output: ", string(out))
