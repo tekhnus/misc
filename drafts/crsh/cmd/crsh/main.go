@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -392,10 +393,15 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 	host := fs.Arg(0)
 
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
 
 	masterCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-N", host)
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		log.Println("Started command:", masterCmd)
 		out, err := masterCmd.CombinedOutput()
 		log.Println("Finished command:", masterCmd)
