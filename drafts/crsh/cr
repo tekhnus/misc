@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+git add . || exit
+git ci -m do || exit
 
 mkdir -p darwin 
 go build -o darwin ./... || exit
