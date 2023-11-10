@@ -426,30 +426,42 @@ func SSHMain(args []string, ctx context.Context) error {
 	downloadDir := ".local/share/crsh/tmp/" + Version
 	dstDir := ".local/share/crsh/" + Version
 
-	mkdirCmd := exec.Command(
+	testCmd := exec.Command(
 		"ssh", "-S", masterSocket, host,
-		"rm", "-rf", downloadDir,
-		"&&", "mkdir", "-p", downloadDir)
-	out, err := mkdirCmd.CombinedOutput()
-	log.Println("Finished command:", mkdirCmd)
+		"[", "-e", dstDir, "]")
+	out, err := testCmd.CombinedOutput()
+	log.Println("Finished command:", testCmd)
 	log.Print("Output: ", string(out))
 	log.Println("Status:", err)
 
-	scpCmd := exec.Command(
-		"scp", "-o", "ControlPath="+masterSocket,
-		"-r", srcDir, host+":"+downloadDir)
-	out, err = scpCmd.CombinedOutput()
-	log.Println("Finished command:", scpCmd)
-	log.Print("Output: ", string(out))
-	log.Println("Status:", err)
+	if err != nil {
+		mkdirCmd := exec.Command(
+			"ssh", "-S", masterSocket, host,
+			"rm", "-rf", downloadDir,
+			"&&", "mkdir", "-p", downloadDir)
+		out, err := mkdirCmd.CombinedOutput()
+		log.Println("Finished command:", mkdirCmd)
+		log.Print("Output: ", string(out))
+		log.Println("Status:", err)
 
-	cpCmd := exec.Command(
-		"ssh", "-S", masterSocket, host,
-		"mv", downloadDir, dstDir)
-	out, err = cpCmd.CombinedOutput()
-	log.Println("Finished command:", cpCmd)
-	log.Print("Output: ", string(out))
-	log.Println("Status:", err)
+		scpCmd := exec.Command(
+			"scp", "-o", "ControlPath="+masterSocket,
+			"-r", srcDir, host+":"+downloadDir)
+		out, err = scpCmd.CombinedOutput()
+		log.Println("Finished command:", scpCmd)
+		log.Print("Output: ", string(out))
+		log.Println("Status:", err)
+
+		cpCmd := exec.Command(
+			"ssh", "-S", masterSocket, host,
+			"mv", downloadDir, dstDir)
+		out, err = cpCmd.CombinedOutput()
+		log.Println("Finished command:", cpCmd)
+		log.Print("Output: ", string(out))
+		log.Println("Status:", err)
+	} else {
+		log.Println("Skipping transfer")
+	}
 
 	time.Sleep(1 * time.Second)
 
