@@ -7,7 +7,7 @@ fi
 
 [[ -z $(git status --porcelain) ]] || exit
 VERSION="$(git rev-parse HEAD)"
-echo $VERSION >cmd/crsh/git-head.txt
+echo -n $VERSION >cmd/crsh/git-head.txt
 
 mkdir -p darwin
 go build -o darwin ./... || exit
