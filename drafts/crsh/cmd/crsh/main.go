@@ -400,7 +400,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Started command:", masterCmd)
 		out, err := masterCmd.CombinedOutput()
 		log.Println("Finished command:", masterCmd)
-		log.Println("Output:", out)
+		log.Println("Output:", string(out))
 		log.Println("Status:", err)
 	}()
 
@@ -409,7 +409,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Started command:", masterExitCmd)
 		out, err := masterExitCmd.CombinedOutput()
 		log.Println("Finished command:", masterExitCmd)
-		log.Println("Output:", out)
+		log.Println("Output:", string(out))
 		log.Println("Status:", err)
 	}()
 
