@@ -5,7 +5,6 @@ if [[ ! -z $(git status --porcelain) ]]; then
 fi
 [[ -z $(git status --porcelain) ]] || exit
 
-
 mkdir -p darwin 
 go build -o darwin ./... || exit
 mkdir -p linux
