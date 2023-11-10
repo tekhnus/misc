@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
-git add . || exit
-git ci -m do || exit
+if [[ ! -z $(git status --porcelain) ]]; then
+  git add .
+  git ci -m do
+fi
+[[ -z $(git status --porcelain) ]] || exit
+
 
 mkdir -p darwin 
 go build -o darwin ./... || exit
