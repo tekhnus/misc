@@ -6,7 +6,7 @@ if [[ ! -z $(git status --porcelain) ]]; then
 fi
 
 [[ -z $(git status --porcelain) ]] || exit
-git rev-parse HEAD >git-head.txt
+git rev-parse HEAD >cmd/crsh/git-head.txt
 
 mkdir -p darwin
 go build -o darwin ./... || exit
