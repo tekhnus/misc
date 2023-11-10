@@ -19,7 +19,7 @@ BIN=~/.local/bin
 rm $BIN/crsh*
 cp darwin/* $BIN
 
-SHARE=~/.local/share/crsh
+SHARE=~/.local/share/crsh/$VERSION
 
 rm -rf $SHARE
 mkdir -p $SHARE
