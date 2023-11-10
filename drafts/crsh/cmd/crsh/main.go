@@ -436,8 +436,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	scpCmd := exec.Command(
 		"scp", "-o", "ControlPath="+masterSocket,
-		"-r", finalDir, host + ":" + downloadDir
-	)
+		"-r", finalDir, host+":"+downloadDir)
 	out, err = scpCmd.CombinedOutput()
 	log.Println("Finished command:", scpCmd)
 	log.Print("Output: ", string(out))
