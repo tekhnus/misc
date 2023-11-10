@@ -391,7 +391,28 @@ func SSHMain(args []string, ctx context.Context) error {
 		return fmt.Errorf("Expected one argument")
 	}
 	host := fs.Arg(0)
-	fmt.Println(host)
+
+	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
+	defer os.Remove(masterSocket)
+
+	masterCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-N", host)
+	go func() {
+		log.Println("Started command:", masterCmd)
+		out, err := masterCmd.CombinedOutput()
+		log.Println("Finished command:", masterCmd)
+		log.Println("Output:", out)
+		log.Println("Status:", err)
+	}()
+
+	masterExitCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-O", "exit", host)
+	defer func() {
+		log.Println("Started command:", masterExitCmd)
+		out, err := masterExitCmd.CombinedOutput()
+		log.Println("Finished command:", masterExitCmd)
+		log.Println("Output:", out)
+		log.Println("Status:", err)
+	}()
+
 	return nil
 }
 
