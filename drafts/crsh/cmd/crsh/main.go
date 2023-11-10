@@ -402,9 +402,9 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished command:", masterCmd)
 		log.Println("Output:", string(out))
 		log.Println("Status:", err)
-	}()
 
-	time.Sleep(5 * time.Second)
+		os.Remove(masterSocket)
+	}()
 
 	masterExitCmd := exec.Command("ssh", "-S", masterSocket, "-O", "exit", host)
 	defer func() {
