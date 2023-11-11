@@ -184,6 +184,8 @@ type Shell = struct {
 }
 
 func MakeShell(name string) (Shell, error) {
+	shellCtx, cancel := context.WithCancel(context.Background())
+
 	var shellIn *json.Encoder
 	shellOut := make(chan Message)
 	shellCmdOut := make(chan error)
@@ -194,13 +196,14 @@ func MakeShell(name string) (Shell, error) {
 		log.Println("Start running shell")
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
+		cancel()
 		shellCmdOut <- err
 		close(shellCmdOut)
 	}()
 	log.Println("Finish launching shell")
 
 	log.Println("Start dialing shell")
-	shell, err := MakeShellConnection(name)
+	shell, err := MakeShellConnection(name, shellCtx)
 	if err != nil {
 		log.Println("While dialing shell:", err)
 		log.Println("Waiting for shell command to complete")
@@ -247,8 +250,13 @@ func MakeDetachCommand(name string) *exec.Cmd {
 	return shellCmd
 }
 
-func MakeShellConnection(name string) (net.Conn, error) {
+func MakeShellConnection(name string, ctx context.Context) (net.Conn, error) {
 	for {
+		select {
+		case <-ctx.Done():
+			return nil, nil
+		default:
+		}
 		shell, err := net.Dial("unix", GetSocketPath(name))
 		if err != nil {
 			log.Println(err)
