@@ -227,7 +227,7 @@ func MakeShell(name string) (Shell, error) {
 }
 
 func MakeShellCommand(name string) *exec.Cmd {
-	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, "crsh", "shell", name)
+	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, "crs", "shell", name)
 
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
