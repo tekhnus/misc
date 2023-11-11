@@ -196,27 +196,19 @@ func MakeShell(name string) (Shell, error) {
 		log.Println("Start running shell")
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
-		time.Sleep(2 * time.Second)
-		fmt.Println("hello1")
 		cancel()
-		time.Sleep(2 * time.Second)
-		fmt.Println("hello15")
 		shellCmdOut <- err
-		fmt.Println("hello2")
 		close(shellCmdOut)
-		fmt.Println("hello3")
 	}()
 	log.Println("Finish launching shell")
 
 	log.Println("Start dialing shell")
 	shell, err := MakeShellConnection(name, shellCtx)
-	fmt.Println("hello16")
 	if err != nil {
 		log.Println("While dialing shell:", err)
 		log.Println("Waiting for shell command to complete")
 		for range shellCmdOut {
 		}
-		fmt.Println("hello17")
 		return Shell{}, err
 	}
 	shellIn = json.NewEncoder(shell)
@@ -262,11 +254,9 @@ func MakeShellConnection(name string, ctx context.Context) (net.Conn, error) {
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("helloxx")
 			return nil, fmt.Errorf("Cancelled")
 		default:
 		}
-		fmt.Println("helloyy")
 		shell, err := net.Dial("unix", GetSocketPath(name))
 		if err != nil {
 			log.Println(err)
