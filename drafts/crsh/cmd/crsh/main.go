@@ -97,12 +97,15 @@ func ManagerMain(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		name, err = HandleShell(shell)
+		newhost, name, err := HandleShell(shell)
 		if err != nil {
 			return err
 		}
 		if name == "" {
 			break
+		}
+		if newhost != "" {
+			host = newhost
 		}
 	}
 
@@ -110,7 +113,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	return nil
 }
 
-func HandleShell(shell Shell) (string, error) {
+func HandleShell(shell Shell) (string, string, error) {
 	defer func() {
 		for shell.Out != nil || shell.Done != nil {
 			select {
@@ -147,7 +150,7 @@ func HandleShell(shell Shell) (string, error) {
 						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
 						log.Println("Stopping the shell")
 						name := tokens[1]
-						return name, nil
+						return "", name, nil
 					case "\\detach":
 						if len(tokens) != 1 {
 							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
@@ -155,7 +158,7 @@ func HandleShell(shell Shell) (string, error) {
 						}
 						log.Println("Detaching from current shell")
 						err := shell.Detach()
-						return "", err
+						return "", "", err
 					default:
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 					}
@@ -163,7 +166,7 @@ func HandleShell(shell Shell) (string, error) {
 					shell.In.Encode(Message{Type: "execute", Payload: msg.Payload})
 				}
 			default:
-				return "", fmt.Errorf("Unknown message type: %s", msg.Type)
+				return "", "", fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
 		case err, ok := <-shell.Done:
 			if !ok {
@@ -171,11 +174,11 @@ func HandleShell(shell Shell) (string, error) {
 				break
 			}
 			log.Println("Shell command finished:", err)
-			return "", err
+			return "", "", err
 		}
 	}
 
-	return "", nil
+	return "", "", nil
 }
 
 type Shell = struct {
