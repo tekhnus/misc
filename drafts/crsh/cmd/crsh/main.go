@@ -531,6 +531,29 @@ func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
 }
 
 func LogServerMain(args []string, ctx context.Context) error {
+	fset := flag.NewFlagSet("logserver", flag.ContinueOnError)
+	remotes := fset.String("remotes", "", "remote hosts")
+	err := fset.Parse(args)
+	if err != nil {
+		return err
+	}
+
+	var remoteList []string
+	if *remotes != "" {
+		remoteList = strings.Split(*remotes, ",")
+	}
+	for _, remote := range remoteList {
+		cmd := exec.Command(
+			"ssh", "-N",
+			"-o", "ExitOnForwardFailure=yes",
+			"-R", "5678:localhost:5678", remote)
+		err := cmd.Start()
+		if err != nil {
+			return err
+		}
+		defer cmd.Process.Kill()
+	}
+
 	listener, err := net.Listen("tcp", "localhost:5678")
 	if err != nil {
 		return err
