@@ -193,13 +193,13 @@ func MakeShell(name string) (Shell, error) {
 	log.Println("Start launching shell")
 	shellCmd := MakeShellCommand(name)
 	go func() {
-		defer fmt.Println("hello")
 		log.Println("Start running shell")
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
 		cancel()
 		shellCmdOut <- err
 		close(shellCmdOut)
+		fmt.Println("hello")
 	}()
 	log.Println("Finish launching shell")
 
