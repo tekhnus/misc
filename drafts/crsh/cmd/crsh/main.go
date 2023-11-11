@@ -407,6 +407,14 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 	host := fs.Arg(0)
 
+	if host == "@" {
+		shellCmd := exec.Command(Executable, fs.Args()[1:]...)
+		shellCmd.Stdin = os.Stdin
+		shellCmd.Stdout = os.Stdout
+		shellCmd.Stderr = os.Stderr
+		return shellCmd.Run()
+	}
+
 	var wg sync.WaitGroup
 	defer func() {
 		log.Println("Started waiting on child processes")
