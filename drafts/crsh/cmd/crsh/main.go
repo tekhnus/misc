@@ -208,10 +208,10 @@ func MakeShell(name string) (Shell, error) {
 
 	log.Println("Start dialing shell")
 	shell, err := MakeShellConnection(name, shellCtx)
+	fmt.Println("hello16")
 	if err != nil {
 		log.Println("While dialing shell:", err)
 		log.Println("Waiting for shell command to complete")
-		fmt.Println("hello16")
 		for range shellCmdOut {
 		}
 		fmt.Println("hello17")
