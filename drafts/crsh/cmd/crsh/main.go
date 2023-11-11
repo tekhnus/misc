@@ -101,10 +101,12 @@ func ManagerMain(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		if newname == "" {
+		if newhost == "" && newname == "" {
 			break
 		}
-		name = newname
+		if newname != "" {
+			name = newname
+		}
 		if newhost != "" {
 			host = newhost
 		}
@@ -152,6 +154,16 @@ func HandleShell(shell Shell) (string, string, error) {
 						log.Println("Stopping the shell")
 						name := tokens[1]
 						return "", name, nil
+					case "\\ssh":
+						if len(tokens) != 2 {
+							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
+							break
+						}
+						log.Println("Sending an exit message to current shell")
+						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
+						log.Println("Stopping the shell")
+						host := tokens[1]
+						return host, "", nil
 					case "\\detach":
 						if len(tokens) != 1 {
 							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
