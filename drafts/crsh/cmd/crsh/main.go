@@ -260,9 +260,11 @@ func MakeShellConnection(name string, ctx context.Context) (net.Conn, error) {
 	for {
 		select {
 		case <-ctx.Done():
+			fmt.Println("helloxx")
 			return nil, fmt.Errorf("Cancelled")
 		default:
 		}
+		fmt.Println("helloyy")
 		shell, err := net.Dial("unix", GetSocketPath(name))
 		if err != nil {
 			log.Println(err)
