@@ -97,13 +97,14 @@ func ManagerMain(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		newhost, name, err := HandleShell(shell)
+		newhost, newname, err := HandleShell(shell)
 		if err != nil {
 			return err
 		}
-		if name == "" {
+		if newname == "" {
 			break
 		}
+		name = newname
 		if newhost != "" {
 			host = newhost
 		}
