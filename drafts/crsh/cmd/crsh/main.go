@@ -408,7 +408,9 @@ func SSHMain(args []string, ctx context.Context) error {
 	host := fs.Arg(0)
 
 	if host == "@" {
-		shellCmd := exec.Command(Executable, fs.Args()[1:]...)
+		args := []string{"shell"}
+		args = append(args, fs.Args()[1:]...)
+		shellCmd := exec.Command(Executable, args...)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
