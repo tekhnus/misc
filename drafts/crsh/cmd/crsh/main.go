@@ -184,6 +184,7 @@ type Shell = struct {
 }
 
 func MakeShell(name string) (Shell, error) {
+	defer fmt.Println("hello")
 	shellCtx, cancel := context.WithCancel(context.Background())
 
 	var shellIn *json.Encoder
@@ -195,7 +196,6 @@ func MakeShell(name string) (Shell, error) {
 	go func() {
 		log.Println("Start running shell")
 		err := shellCmd.Run()
-		fmt.Println("hello")
 		log.Println("Finish running shell:", err)
 		cancel()
 		shellCmdOut <- err
