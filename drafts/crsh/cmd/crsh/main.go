@@ -22,6 +22,7 @@ import (
 
 //go:embed git-head.txt
 var Version string
+var Executable string = os.Args[0]
 
 func main() {
 	err := Main()
@@ -55,7 +56,7 @@ func Main() error {
 	cmdline := strings.Join(os.Args, " ")
 	log.SetPrefix(fmt.Sprintf("%18s: ", cmdline))
 
-	log.Println("Process started")
+	log.Println("Process started:", Executable)
 
 	var cmd string
 	var args []string
