@@ -235,7 +235,7 @@ func MakeShellCommand(name string) *exec.Cmd {
 	// For some reason tmux handles multi-word
 	// commands badly *sometimes*.
 	// Try tmux new-session ls -l for example.
-	cmdString := fmt.Sprintf("crsh shell %s", name)
+	cmdString := fmt.Sprintf("%s shell %s", Executable, name)
 	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, cmdString)
 
 	shellCmd.Stdin = os.Stdin
