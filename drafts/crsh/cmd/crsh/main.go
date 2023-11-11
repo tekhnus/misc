@@ -231,7 +231,7 @@ func MakeShell(name string) (Shell, error) {
 }
 
 func MakeShellCommand(name string) *exec.Cmd {
-	cmdString := fmt.Sprintf("crs shell %s", name)
+	cmdString := fmt.Sprintf("crsh shell %s", name)
 	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, cmdString)
 
 	shellCmd.Stdin = os.Stdin
