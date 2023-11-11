@@ -195,7 +195,7 @@ func MakeShell(host string, name string) (Shell, error) {
 	shellOut := make(chan Message)
 	shellCmdOut := make(chan error)
 
-	log.Println("Start launching shell")
+	log.Println("Start launching shell", host, name)
 	shellCmd := MakeShellCommand(host, name)
 	go func() {
 		log.Println("Start running shell:", shellCmd)
