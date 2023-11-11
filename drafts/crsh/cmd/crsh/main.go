@@ -89,10 +89,11 @@ func Main() error {
 }
 
 func ManagerMain(args []string, ctx context.Context) error {
+	host := "@"
 	name := RandomName()
 
 	for {
-		shell, err := MakeShell(name)
+		shell, err := MakeShell(host, name)
 		if err != nil {
 			return err
 		}
@@ -184,7 +185,7 @@ type Shell = struct {
 	Detach func() error
 }
 
-func MakeShell(name string) (Shell, error) {
+func MakeShell(host string, name string) (Shell, error) {
 	shellCtx, cancel := context.WithCancel(context.Background())
 
 	var shellIn *json.Encoder
@@ -192,7 +193,7 @@ func MakeShell(name string) (Shell, error) {
 	shellCmdOut := make(chan error)
 
 	log.Println("Start launching shell")
-	shellCmd := MakeShellCommand(name)
+	shellCmd := MakeShellCommand(host, name)
 	go func() {
 		log.Println("Start running shell:", shellCmd)
 		err := shellCmd.Run()
@@ -231,11 +232,11 @@ func MakeShell(name string) (Shell, error) {
 	return Shell{shellIn, shellOut, shellCmdOut, detach}, nil
 }
 
-func MakeShellCommand(name string) *exec.Cmd {
+func MakeShellCommand(host string, name string) *exec.Cmd {
 	// For some reason tmux handles multi-word
 	// commands badly *sometimes*.
 	// Try tmux new-session ls -l for example.
-	cmdString := fmt.Sprintf("%s ssh @ %s", Executable, name)
+	cmdString := fmt.Sprintf("%s ssh %s %s", Executable, host, name)
 	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, cmdString)
 
 	shellCmd.Stdin = os.Stdin
