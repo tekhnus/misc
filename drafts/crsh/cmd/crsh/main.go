@@ -628,7 +628,10 @@ func SimpleExecute(stmt string) error {
 }
 
 func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
-	fmt.Println(os.Getwd())
+	cwd, err := os.Getwd()
+	if err == nil {
+		fmt.Println(cwd)
+	}
 	fmt.Print("$ ")
 	ok := src.Scan()
 	if ok {
