@@ -495,6 +495,8 @@ func SSHMain(args []string, ctx context.Context) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		// FIXME Done so than the master appears
+		time.Sleep(time.Second * 2)
 		for {
 			pingCmd := exec.Command(
 				"ssh", "-S", masterSocket,
