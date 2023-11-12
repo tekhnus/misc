@@ -97,11 +97,11 @@ func ManagerMain(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		newhost, newname, err := HandleShell(shell)
+		newhost, newname, exit, err := HandleShell(shell)
 		if err != nil {
 			return err
 		}
-		if newhost == "" && newname == "" {
+		if exit {
 			break
 		}
 		if newname != "" {
@@ -116,7 +116,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	return nil
 }
 
-func HandleShell(shell Shell) (string, string, error) {
+func HandleShell(shell Shell) (string, string, bool, error) {
 	defer func() {
 		log.Println("Start waiting on shell termination")
 		for shell.Out != nil || shell.Done != nil {
@@ -145,7 +145,7 @@ func HandleShell(shell Shell) (string, string, error) {
 				if err != nil {
 					log.Println("Shell detach error:", err)
 				}
-				return "", "", nil
+				return "", "", false, nil
 			}
 			switch msg.Type {
 			case "input":
@@ -161,7 +161,7 @@ func HandleShell(shell Shell) (string, string, error) {
 						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
 						log.Println("Stopping the shell")
 						name := tokens[1]
-						return "", name, nil
+						return "", name, false, nil
 					case "\\ssh":
 						if len(tokens) != 2 {
 							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
@@ -171,7 +171,7 @@ func HandleShell(shell Shell) (string, string, error) {
 						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
 						log.Println("Stopping the shell")
 						host := tokens[1]
-						return host, "", nil
+						return host, "", false, nil
 					case "\\detach":
 						if len(tokens) != 1 {
 							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
@@ -179,7 +179,7 @@ func HandleShell(shell Shell) (string, string, error) {
 						}
 						log.Println("Detaching from current shell")
 						err := shell.Detach()
-						return "", "", err
+						return "", "", true, err
 					default:
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 					}
@@ -187,20 +187,20 @@ func HandleShell(shell Shell) (string, string, error) {
 					shell.In.Encode(Message{Type: "execute", Payload: msg.Payload})
 				}
 			default:
-				return "", "", fmt.Errorf("Unknown message type: %s", msg.Type)
+				return "", "", false, fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
 		case err, ok := <-shell.Done:
 			if !ok {
 				log.Println("Shell status channel was closed")
 				shell.Done = nil
-				return "", "", fmt.Errorf("Shell status channel was closed")
+				return "", "", false, fmt.Errorf("Shell status channel was closed")
 			}
 			log.Println("Shell command finished:", err)
-			return "", "", err
+			return "", "", true, err
 		}
 	}
 
-	return "", "", nil
+	return "", "", false, fmt.Errorf("All channels were closed")
 }
 
 type Shell = struct {
@@ -460,6 +460,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		defer os.Remove(shellSocket)
 		log.Println("Started command:", masterCmd)
 		out, err := masterCmd.CombinedOutput()
 		log.Println("Finished command:", masterCmd)
