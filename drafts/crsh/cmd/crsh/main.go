@@ -420,7 +420,7 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 				return false, nil
 			}
 			log.Println("Received", input)
-			err = managerIn.Encode(Message{Type: "input", Payload: input})
+			err := managerIn.Encode(Message{Type: "input", Payload: input})
 			if err != nil {
 				log.Println(err)
 				return false, err
@@ -442,7 +442,7 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 					log.Println("Exiting")
 					return false, nil
 				}
-				err = SimpleExecute(msg.Payload)
+				err := SimpleExecute(msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
