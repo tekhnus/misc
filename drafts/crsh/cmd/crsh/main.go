@@ -250,7 +250,7 @@ func MakeShell(host string, name string) (Shell, error) {
 	log.Println("Finish dialing shell")
 
 	detach := func() error {
-		detachCmd := MakeDetachCommand(name)
+		detachCmd := MakeDetachCommand(host, name)
 		err := detachCmd.Run()
 		if err != nil {
 			return err
