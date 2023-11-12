@@ -319,8 +319,6 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	fmt.Printf("\033]0;%s\007", name)
-
 	sessions, err := ListSessions()
 	if err != nil {
 		return err
@@ -389,6 +387,8 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 	if err != nil {
 		log.Println("While configuring tmux:", err)
 	}
+
+	fmt.Printf("\033]0;%s\007", "foobar")
 
 	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
