@@ -261,12 +261,7 @@ func MakeShell(host string, name string) (Shell, error) {
 }
 
 func MakeShellCommand(host string, name string) *exec.Cmd {
-	shellCmdX := []string{Executable, "ssh", host, name}
-	// For some reason tmux handles multi-word
-	// commands badly *sometimes*.
-	// Try tmux new-session ls -l for example.
-	cmdString := strings.Join(shellCmdX, " ")
-	shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, cmdString)
+	shellCmd := exec.Command(Executable, "ssh", host, name)
 
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
@@ -460,7 +455,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	name := fs.Arg(1)
 
 	if host == "@" {
-		shellCmd := exec.Command(Executable, "shell", name)
+		shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
