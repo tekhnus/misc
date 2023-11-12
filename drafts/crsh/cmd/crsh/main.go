@@ -443,7 +443,11 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
 
-	masterCmd := exec.Command("ssh", "-M", "-S", masterSocket, "-N", host)
+	shellSocket := GetSocketPath(name)
+	masterCmd := exec.Command("ssh",
+		"-M", "-S", masterSocket, "-N",
+		"-L", shellSocket+":"+shellSocket,
+		host)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
