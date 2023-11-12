@@ -388,7 +388,7 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		log.Println("While configuring tmux:", err)
 	}
 
-	err = SimpleExecute("tmux set-option -g set-titles-string #W")
+	err = SimpleExecute("tmux set-option -g set-titles-string #T/#W/#S")
 	if err != nil {
 		log.Println("While configuring tmux:", err)
 	}
