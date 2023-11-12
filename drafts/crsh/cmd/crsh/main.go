@@ -345,12 +345,12 @@ func ShellMain(args []string, ctx context.Context) error {
 		close(managers)
 	}()
 	log.Println("Start accepting connection")
-	for managers != nil {
+	for {
 		select {
 		case manager, ok := <-managers:
 			if !ok {
-				managers = nil
-				break
+				log.Println("Finish listening")
+				return nil
 			}
 			log.Println("Finish accepting connection")
 			cont, err := HandleManager(manager, ctx)
@@ -366,8 +366,6 @@ func ShellMain(args []string, ctx context.Context) error {
 			return nil
 		}
 	}
-	log.Println("Finish listening")
-	return nil
 }
 
 func GetSocketPath(name string) string {
