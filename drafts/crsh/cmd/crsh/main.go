@@ -383,25 +383,25 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		close(managerOut)
 	}()
 
-	err := SimpleExecute("tmux set-option -g status-left-length 32")
-	if err != nil {
-		log.Println("While configuring tmux:", err)
-	}
+	// err := SimpleExecute("tmux set-option -g status-left-length 32")
+	// if err != nil {
+	// 	log.Println("While configuring tmux:", err)
+	// }
 
-	err = SimpleExecute("tmux set-option -g set-titles-string #S")
-	if err != nil {
-		log.Println("While configuring tmux:", err)
-	}
+	// err = SimpleExecute("tmux set-option -g set-titles-string #S")
+	// if err != nil {
+	// 	log.Println("While configuring tmux:", err)
+	// }
 
-	err = SimpleExecute("tmux set-option -g set-titles on")
-	if err != nil {
-		log.Println("While configuring tmux:", err)
-	}
+	// err = SimpleExecute("tmux set-option -g set-titles on")
+	// if err != nil {
+	// 	log.Println("While configuring tmux:", err)
+	// }
 
-	err = SimpleExecute("tmux set-option -g status off")
-	if err != nil {
-		log.Println("While configuring tmux:", err)
-	}
+	// err = SimpleExecute("tmux set-option -g status off")
+	// if err != nil {
+	// 	log.Println("While configuring tmux:", err)
+	// }
 
 	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
@@ -475,6 +475,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	name := fs.Arg(1)
 
 	if host == "@" {
+		// tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		shellCmd := exec.Command("tmux", "new-session", "-A", "-s", name, Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
