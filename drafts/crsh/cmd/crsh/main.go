@@ -427,6 +427,16 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 }
 
 func SSHMain(args []string, ctx context.Context) error {
+	var wg sync.WaitGroup
+	defer func() {
+		log.Println("Started waiting on child processes")
+		wg.Wait()
+		log.Println("Finished waiting on child processes")
+	}()
+
+	ownCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
 	err := fs.Parse(args)
 	if err != nil {
@@ -446,24 +456,15 @@ func SSHMain(args []string, ctx context.Context) error {
 		return shellCmd.Run()
 	}
 
-	var wg sync.WaitGroup
-	defer func() {
-		log.Println("Started waiting on child processes")
-		wg.Wait()
-		log.Println("Finished waiting on child processes")
-	}()
-
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
 
 	shellSocket := GetSocketPath(name)
 	masterCmd := exec.Command("ssh",
 		"-M", "-S", masterSocket, "-N",
-		"-L", shellSocket+":"+shellSocket,
 		host)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		defer os.Remove(shellSocket)
 		log.Println("Started command:", masterCmd)
 		out, err := masterCmd.CombinedOutput()
 		log.Println("Finished command:", masterCmd)
@@ -478,6 +479,40 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished command:", masterExitCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-ownCtx.Done():
+				return
+			default:
+			}
+			checkCmd := exec.Command(
+				"ssh", "-S", masterSocket, host,
+				"[", "-e", shellSocket, "]")
+			out, err := checkCmd.CombinedOutput()
+			log.Println("Finished command:", checkCmd)
+			log.Print("Output: ", string(out))
+			log.Println("Status:", err)
+			if err == nil {
+				break
+			}
+			time.Sleep(time.Second / 5)
+		}
+		fwdCmd := exec.Command("ssh",
+			"-S", masterSocket,
+			"-O", "forward",
+			"-L", shellSocket+":"+shellSocket,
+			host)
+		log.Println("Started command:", fwdCmd)
+		out, err := fwdCmd.CombinedOutput()
+		log.Println("Finished command:", fwdCmd)
+		log.Print("Output: ", string(out))
+		log.Println("Status:", err)
+		defer os.Remove(shellSocket)
 	}()
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
