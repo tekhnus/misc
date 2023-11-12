@@ -434,9 +434,6 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished waiting on child processes")
 	}()
 
-	ownCtx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
 	err := fs.Parse(args)
 	if err != nil {
@@ -485,15 +482,21 @@ func SSHMain(args []string, ctx context.Context) error {
 	go func() {
 		defer wg.Done()
 		for {
-			select {
-			case <-ownCtx.Done():
-				return
-			default:
+			pingCmd := exec.Command(
+				"ssh", "-S", masterSocket,
+				"-O", "check",
+				host)
+			out, err := pingCmd.CombinedOutput()
+			log.Println("Finished command:", pingCmd)
+			log.Print("Output: ", string(out))
+			log.Println("Status:", err)
+			if err != nil {
+				break
 			}
 			checkCmd := exec.Command(
 				"ssh", "-S", masterSocket, host,
 				"[", "-e", shellSocket, "]")
-			out, err := checkCmd.CombinedOutput()
+			out, err = checkCmd.CombinedOutput()
 			log.Println("Finished command:", checkCmd)
 			log.Print("Output: ", string(out))
 			log.Println("Status:", err)
