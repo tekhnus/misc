@@ -492,6 +492,12 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Status:", err)
 	}()
 
+	// I can't get dynamic master forwarding to work,
+	// so not using master here.
+	fwdCmd := exec.Command("ssh",
+		"-L", shellSocket+":"+shellSocket,
+		"-N",
+		host)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -522,15 +528,17 @@ func SSHMain(args []string, ctx context.Context) error {
 			time.Sleep(time.Second / 5)
 		}
 		defer os.Remove(shellSocket)
-		fwdCmd := exec.Command("ssh",
-			"-L", shellSocket+":"+shellSocket,
-			"-N",
-			host)
 		log.Println("Started command:", fwdCmd)
 		out, err := fwdCmd.CombinedOutput()
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
+	}()
+	defer func() {
+		proc := fwdCmd.Process
+		if proc != nil {
+			proc.Kill()
+		}
 	}()
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
