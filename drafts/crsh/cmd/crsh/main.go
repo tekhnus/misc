@@ -383,26 +383,6 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		close(managerOut)
 	}()
 
-	// err := SimpleExecute("tmux set-option -g status-left-length 32")
-	// if err != nil {
-	// 	log.Println("While configuring tmux:", err)
-	// }
-
-	// err = SimpleExecute("tmux set-option -g set-titles-string #S")
-	// if err != nil {
-	// 	log.Println("While configuring tmux:", err)
-	// }
-
-	// err = SimpleExecute("tmux set-option -g set-titles on")
-	// if err != nil {
-	// 	log.Println("While configuring tmux:", err)
-	// }
-
-	// err = SimpleExecute("tmux set-option -g status off")
-	// if err != nil {
-	// 	log.Println("While configuring tmux:", err)
-	// }
-
 	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
 	for {
