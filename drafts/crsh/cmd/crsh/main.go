@@ -521,17 +521,16 @@ func SSHMain(args []string, ctx context.Context) error {
 			}
 			time.Sleep(time.Second / 5)
 		}
+		defer os.Remove(shellSocket)
 		fwdCmd := exec.Command("ssh",
-			"-S", masterSocket,
-			"-O", "forward",
 			"-L", shellSocket+":"+shellSocket,
+			"-N",
 			host)
 		log.Println("Started command:", fwdCmd)
 		out, err := fwdCmd.CombinedOutput()
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
-		defer os.Remove(shellSocket)
 	}()
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
