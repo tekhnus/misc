@@ -270,8 +270,13 @@ func MakeShellCommand(host string, name string) *exec.Cmd {
 	return shellCmd
 }
 
-func MakeDetachCommand(name string) *exec.Cmd {
-	shellCmd := exec.Command("tmux", "detach-client", "-s", "="+name)
+func MakeDetachCommand(host string, name string) *exec.Cmd {
+	args := []string{}
+	if host != "@" {
+		args = append(args, "ssh", host)
+	}
+	args = append(args, "tmux", "detach-client", "-s", "="+name)
+	shellCmd := exec.Command(args[0], args[1:]...)
 
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
