@@ -118,6 +118,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 
 func HandleShell(shell Shell) (string, string, error) {
 	defer func() {
+		log.Println("Start waiting on shell termination")
 		for shell.Out != nil || shell.Done != nil {
 			select {
 			case _, ok := <-shell.Out:
@@ -130,14 +131,21 @@ func HandleShell(shell Shell) (string, string, error) {
 				}
 			}
 		}
+		log.Println("Finish waiting on shell termination")
 	}()
 
-	for shell.Out != nil && shell.Done != nil {
+	for shell.Out != nil || shell.Done != nil {
 		select {
 		case msg, ok := <-shell.Out:
 			if !ok {
+				log.Println("Shell output was closed")
 				shell.Out = nil
-				break
+				log.Println("Start detaching")
+				err := shell.Detach()
+				if err != nil {
+					log.Println("Shell detach error:", err)
+				}
+				return "", "", nil
 			}
 			switch msg.Type {
 			case "input":
@@ -183,8 +191,9 @@ func HandleShell(shell Shell) (string, string, error) {
 			}
 		case err, ok := <-shell.Done:
 			if !ok {
+				log.Println("Shell status channel was closed")
 				shell.Done = nil
-				break
+				return "", "", fmt.Errorf("Shell status channel was closed")
 			}
 			log.Println("Shell command finished:", err)
 			return "", "", err
