@@ -388,7 +388,7 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		log.Println("While configuring tmux:", err)
 	}
 
-	err = SimpleExecute("tmux set-option -g set-titles-string #T/#W/#S")
+	err = SimpleExecute("tmux set-option -g set-titles-string #S")
 	if err != nil {
 		log.Println("While configuring tmux:", err)
 	}
@@ -397,8 +397,6 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 	if err != nil {
 		log.Println("While configuring tmux:", err)
 	}
-
-	fmt.Printf("\033]0;%s\007", "foobar")
 
 	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
