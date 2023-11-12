@@ -427,7 +427,8 @@ func SSHMain(args []string, ctx context.Context) error {
 	passArgs := fs.Args()[1:]
 
 	if host == "@" {
-		args := []string{"shell", passArgs...}
+		args := []string{"shell"}
+		args = append(args, passArgs...)
 		shellCmd := exec.Command(Executable, args...)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
@@ -509,7 +510,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	executable := dstDir + "/linux/crsh"
 	shellCmd := exec.Command(
 		"ssh", "-S", masterSocket, "-t", host,
-		executable, "ssh", "@")
+		executable)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
