@@ -345,16 +345,26 @@ func ShellMain(args []string, ctx context.Context) error {
 		close(managers)
 	}()
 	log.Println("Start accepting connection")
-	for manager := range managers {
-		log.Println("Finish accepting connection")
-		cont, err := HandleManager(manager, ctx)
-		if err != nil {
-			return err
-		}
-		if !cont {
+	for managers != nil {
+		select {
+		case manager, ok := <-managers:
+			if !ok {
+				managers = nil
+				break
+			}
+			log.Println("Finish accepting connection")
+			cont, err := HandleManager(manager, ctx)
+			if err != nil {
+				return err
+			}
+			if !cont {
+				return nil
+			}
+			log.Println("Start accepting connection")
+		case <-ctx.Done():
+			log.Println("Cancelled")
 			return nil
 		}
-		log.Println("Start accepting connection")
 	}
 	log.Println("Finish listening")
 	return nil
