@@ -275,7 +275,7 @@ func MakeDetachCommand(host string, name string) *exec.Cmd {
 	if host != "@" {
 		args = append(args, "ssh", host)
 	}
-	args = append(args, "tmux", "detach-client", "-s", "="+name)
+	args = append(args, "tmux", "-L", "crsh-tmux", "detach-client", "-s", "="+name)
 	shellCmd := exec.Command(args[0], args[1:]...)
 
 	shellCmd.Stdin = os.Stdin
@@ -456,7 +456,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	if host == "@" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
-		shellCmd := exec.Command("tmux", "-f", tmuxConf, "new-session", "-A", "-s", name, Executable, "shell", name)
+		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", name, Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
