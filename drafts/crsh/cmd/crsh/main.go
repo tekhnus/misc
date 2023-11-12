@@ -420,16 +420,14 @@ func SSHMain(args []string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if fs.NArg() < 1 {
-		return fmt.Errorf("Expected one argument")
+	if fs.NArg() != 2 {
+		return fmt.Errorf("Expected two arguments")
 	}
 	host := fs.Arg(0)
-	passArgs := fs.Args()[1:]
+	name := fs.Arg(1)
 
 	if host == "@" {
-		args := []string{"shell"}
-		args = append(args, passArgs...)
-		shellCmd := exec.Command(Executable, args...)
+		shellCmd := exec.Command(Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
@@ -508,11 +506,9 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 
 	executable := dstDir + "/linux/crsh"
-	sshArgs := []string{"-S", masterSocket, "-t", host,
-		executable, "ssh", "@"}
-	sshArgs = append(sshArgs, passArgs...)
-	shellCmd := exec.Command(
-		"ssh", sshArgs...)
+	shellCmd := exec.Command("ssh",
+		"-S", masterSocket, "-t", host,
+		executable, "ssh", "@", name)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
