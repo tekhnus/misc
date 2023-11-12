@@ -93,6 +93,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	name := RandomName()
 
 	for {
+		fmt.Println("Connecting to session", name, "at", host)
 		shell, err := MakeShell(host, name)
 		if err != nil {
 			return err
