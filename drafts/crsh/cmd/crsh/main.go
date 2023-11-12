@@ -336,13 +336,16 @@ func ShellMain(args []string, ctx context.Context) error {
 		fmt.Printf("- %s\n", session)
 	}
 
-	for {
-		log.Println("Start accepting connection")
-		manager, err := listener.Accept()
+	managers := make(chan net.Conn)
+	go func() {
+		err := Accept(listener, managers)
 		if err != nil {
 			log.Println(err)
-			return err
 		}
+		close(managers)
+	}()
+	log.Println("Start accepting connection")
+	for manager := range managers {
 		log.Println("Finish accepting connection")
 		cont, err := HandleManager(manager, ctx)
 		if err != nil {
@@ -351,7 +354,10 @@ func ShellMain(args []string, ctx context.Context) error {
 		if !cont {
 			return nil
 		}
+		log.Println("Start accepting connection")
 	}
+	log.Println("Finish listening")
+	return nil
 }
 
 func GetSocketPath(name string) string {
