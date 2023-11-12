@@ -398,6 +398,11 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		log.Println("While configuring tmux:", err)
 	}
 
+	err = SimpleExecute("tmux set-option -g status off")
+	if err != nil {
+		log.Println("While configuring tmux:", err)
+	}
+
 	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
 	for {
