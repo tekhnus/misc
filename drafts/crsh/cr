@@ -24,7 +24,7 @@ SHARE=~/.local/share/crsh/$VERSION
 
 rm -rf $SHARE
 mkdir -p $SHARE
-cp -r darwin linux $SHARE
+cp -r darwin linux universal $SHARE
 
 kitty @ launch \
   --type os-window \
