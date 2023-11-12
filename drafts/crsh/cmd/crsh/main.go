@@ -145,7 +145,7 @@ func HandleShell(shell Shell) (string, string, bool, error) {
 				if err != nil {
 					log.Println("Shell detach error:", err)
 				}
-				return "", "", false, nil
+				return "", "", true, nil
 			}
 			switch msg.Type {
 			case "input":
