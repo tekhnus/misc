@@ -424,10 +424,10 @@ func SSHMain(args []string, ctx context.Context) error {
 		return fmt.Errorf("Expected one argument")
 	}
 	host := fs.Arg(0)
+	passArgs := fs.Args()[1:]
 
 	if host == "@" {
-		args := []string{"shell"}
-		args = append(args, fs.Args()[1:]...)
+		args := []string{"shell", passArgs...}
 		shellCmd := exec.Command(Executable, args...)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
