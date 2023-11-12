@@ -193,10 +193,13 @@ func HandleShell(shell Shell) (string, string, bool, error) {
 			if !ok {
 				log.Println("Shell status channel was closed")
 				shell.Done = nil
-				return "", "", false, fmt.Errorf("Shell status channel was closed")
+				break
 			}
-			log.Println("Shell command finished:", err)
-			return "", "", true, err
+			log.Println("Shell command finished")
+			if err != nil {
+				log.Println("With error:", err)
+				return "", "", true, err
+			}
 		}
 	}
 
