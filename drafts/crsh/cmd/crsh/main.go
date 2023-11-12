@@ -93,7 +93,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	name := RandomName()
 
 	for {
-		fmt.Println("Connecting to session", name, "at", host)
+		fmt.Println("Connecting to session", name, "at", host, "...")
 		shell, err := MakeShell(host, name)
 		if err != nil {
 			return err
@@ -457,6 +457,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	if host == "@" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
+		// TODO: suppress tmux's auxiliarry output at detach.
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", name, Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
@@ -581,6 +582,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 
 	executable := dstDir + "/linux/crsh"
+	// TODO: suppress ssh's auxiliary output on closing.
 	shellCmd := exec.Command("ssh",
 		"-S", masterSocket, "-t", host,
 		executable, "ssh", "@", name)
@@ -592,6 +594,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	log.Println("Finished command:", shellCmd)
 	log.Println("Status:", err)
 
+	// FIXME I don't remember why this is needed
 	time.Sleep(1 * time.Second)
 
 	return nil
@@ -625,7 +628,8 @@ func SimpleExecute(stmt string) error {
 }
 
 func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
-	fmt.Print("> ")
+	fmt.Println(os.Getwd())
+	fmt.Print("$ ")
 	ok := src.Scan()
 	if ok {
 		dst <- src.Text()
