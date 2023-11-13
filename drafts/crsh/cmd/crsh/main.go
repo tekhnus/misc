@@ -620,7 +620,7 @@ func ListSessions() ([]string, error) {
 }
 
 func SessionName(host string, name string) string {
-	return name + "-at-" + host
+	return name + "@" + host
 }
 
 func SimpleExecute(stmt string) error {
