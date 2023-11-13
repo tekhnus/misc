@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/peterh/liner"
-	"mvdan.cc/sh/syntax"
 	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/syntax"
 )
 
 //go:embed git-head.txt
@@ -640,9 +640,7 @@ func SimpleExecute(runner *interp.Runner, stmts string) error {
 	if err != nil {
 		return err
 	}
-	for _, stmt := range source.Stmts {
-		runner.Run(context.TODO(), stmt)
-	}
+	runner.Run(context.TODO(), source)
 	return nil
 }
 
