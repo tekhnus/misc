@@ -638,6 +638,8 @@ func Prompt() (string, error) {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
 	cwd, _ := os.Getwd()
+	home, _ := os.UserHomeDir()
+	cwd, _ = filepath.Rel(home, cwd)
 	fmt.Printf("\033[1m%s\033[0m\n", cwd)
 	line, err := lnr.Prompt("$ ")
 	return line, err
