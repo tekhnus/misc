@@ -397,7 +397,7 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 	inputs := make(chan string)
 	for {
 		go func() {
-			line, err := Prompt()
+			line, err := Prompt(runner)
 			if err != nil {
 				log.Println(err)
 				close(inputs)
@@ -657,10 +657,10 @@ func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
 	return false, err
 }
 
-func Prompt() (string, error) {
+func Prompt(runner interp.Runner) (string, error) {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
-	cwd, _ := os.Getwd()
+	cwd := runner.Dir
 	home, _ := os.UserHomeDir()
 	cwd, _ = filepath.Rel(home, cwd)
 	cwd = "~/" + cwd
