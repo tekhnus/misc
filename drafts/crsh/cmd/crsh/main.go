@@ -640,17 +640,10 @@ func SimpleExecute(runner *interp.Runner, stmts string) error {
 	if err != nil {
 		return err
 	}
-	for _, := range source.Stmts {
+	for _, stmt := range source.Stmts {
 		runner.Run(context.TODO(), stmt)
 	}
-	args := strings.Split(stmt, " ")
-	cmd := exec.Command(args[0], args[1:]...)
-
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	return cmd.Run()
+	return nil
 }
 
 func Prompt() (string, error) {
