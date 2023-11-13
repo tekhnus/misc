@@ -636,6 +636,7 @@ func Prompt() (string, error) {
 	cwd, _ := os.Getwd()
 	host, _ := os.Hostname()
 	prompt := fmt.Sprintf("\033[1m%s %s\n$ \033[0m", cwd, host)
+	prompt = fmt.Sprintf("%s %s\n$ ", cwd, host)
 	line, err := lnr.Prompt(prompt)
 	return line, err
 }
