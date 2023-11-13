@@ -385,14 +385,16 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		close(managerOut)
 	}()
 
-	stdin := bufio.NewScanner(os.Stdin)
 	inputs := make(chan string)
 	for {
 		go func() {
-			ok, _ := Prompt(stdin, inputs)
-			if !ok {
+			line, err := Prompt()
+			if err != nil {
+				log.Println(err)
 				close(inputs)
+				return
 			}
+			inputs <- line
 		}()
 
 		select {
@@ -628,16 +630,14 @@ func SimpleExecute(stmt string) error {
 	return cmd.Run()
 }
 
-func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
-	liner.NewLiner()
+func Prompt() (string, error) {
+	lnr := liner.NewLiner()
+	defer lnr.Close()
 	cwd, _ := os.Getwd()
 	host, _ := os.Hostname()
-	fmt.Printf("\033[1m%s %s\n$ \033[0m", cwd, host)
-	ok := src.Scan()
-	if ok {
-		dst <- src.Text()
-	}
-	return ok, src.Err()
+	prompt := fmt.Sprintf("\033[1m%s %s\n$ \033[0m", cwd, host)
+	line, err := liner.Prompt(prompt)
+	return line, err
 }
 
 func LogServerMain(args []string, ctx context.Context) error {
