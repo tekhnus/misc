@@ -657,7 +657,7 @@ func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
 	return false, err
 }
 
-func Prompt(runner interp.Runner) (string, error) {
+func Prompt(runner *interp.Runner) (string, error) {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
 	cwd := runner.Dir
