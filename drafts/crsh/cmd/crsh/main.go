@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	// "github.com/peterh/liner"
 	"io"
 	"log"
 	"math/rand"
@@ -18,8 +19,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/peterh/liner"
 )
 
 //go:embed git-head.txt
@@ -630,7 +629,7 @@ func SimpleExecute(stmt string) error {
 }
 
 func Prompt(src *bufio.Scanner, dst chan string) (bool, error) {
-	liner.NewLiner()
+	// liner.NewLiner()
 	cwd, _ := os.Getwd()
 	host, _ := os.Hostname()
 	fmt.Printf("\033[1m%s %s\n$ \033[0m", cwd, host)
