@@ -435,9 +435,12 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 					log.Println("Exiting")
 					return false, nil
 				}
-				err := SimpleExecute(runner, msg.Payload)
+				exit, err := SimpleExecute(runner, msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
+				}
+				if exit {
+					return false, nil
 				}
 			default:
 				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
