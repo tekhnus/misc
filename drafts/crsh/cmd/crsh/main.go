@@ -662,9 +662,11 @@ func Prompt(runner *interp.Runner) (string, error) {
 	defer lnr.Close()
 	cwd := runner.Dir
 	home, _ := os.UserHomeDir()
-	cwd, _ = filepath.Rel(home, cwd)
-	cwd = "~/" + cwd
-	// cwd = filepath.Clean(cwd)
+	relcwd, _ := filepath.Rel(home, cwd)
+	if !strings.HasPrefix(relcwd, "..") {
+		cwd = "~/" + relcwd
+		cwd = filepath.Clean(cwd)
+	}
 	fmt.Printf("\033[1m%s\033[0m\n", cwd)
 	line, err := lnr.Prompt("$ ")
 	return line, err
