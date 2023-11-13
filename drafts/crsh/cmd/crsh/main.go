@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/peterh/liner"
+	"mvdan.cc/sh/syntax"
 	"mvdan.cc/sh/v3/interp"
 )
 
@@ -635,6 +636,7 @@ func SessionName(host string, name string) string {
 }
 
 func SimpleExecute(runner *interp.Runner, stmt string) error {
+	source, err := syntax.NewParser().Parse(strings.NewReader(stmt), "")
 	args := strings.Split(stmt, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 
