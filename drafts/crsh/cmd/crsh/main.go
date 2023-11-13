@@ -640,6 +640,7 @@ func Prompt() (string, error) {
 	cwd, _ := os.Getwd()
 	home, _ := os.UserHomeDir()
 	cwd, _ = filepath.Rel(home, cwd)
+	cwd = "~/" + cwd
 	cwd = filepath.Clean(cwd)
 	fmt.Printf("\033[1m%s\033[0m\n", cwd)
 	line, err := lnr.Prompt("$ ")
