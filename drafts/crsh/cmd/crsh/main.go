@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -635,13 +636,22 @@ func SessionName(host string, name string) string {
 	return name + "@" + host
 }
 
-func SimpleExecute(runner *interp.Runner, stmts string) error {
-	source, err := syntax.NewParser().Parse(strings.NewReader(stmts), "")
-	if err != nil {
-		return err
+func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
+	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
+	if perr != nil {
+		return false, perr
 	}
-	runner.Run(context.TODO(), source)
-	return nil
+	var err error
+	for _, stmt := range source.Stmts {
+		serr := runner.Run(context.TODO(), stmt)
+		if serr != nil {
+			err = errors.Join(err, serr)
+		}
+		if runner.Exited() {
+			return true, nil
+		}
+	}
+	return false, err
 }
 
 func Prompt() (string, error) {
