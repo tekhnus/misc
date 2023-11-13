@@ -448,6 +448,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	}()
 
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
+	displayHost := fs.String("display-host", "", "host to display")
 	err := fs.Parse(args)
 	if err != nil {
 		return err
@@ -457,11 +458,14 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 	host := fs.Arg(0)
 	name := fs.Arg(1)
+	if *displayHost == "" {
+		*displayHost = host
+	}
 
 	if host == "^" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		// TODO: suppress tmux's auxiliarry output at detach.
-		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", SessionName(host, name), Executable, "shell", name)
+		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", SessionName(*displayHost, name), Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
@@ -588,7 +592,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	// TODO: suppress ssh's auxiliary output on closing.
 	shellCmd := exec.Command("ssh",
 		"-S", masterSocket, "-t", host,
-		executable, "ssh", "^", name)
+		executable, "ssh", "-display-host", host, "^", name)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
