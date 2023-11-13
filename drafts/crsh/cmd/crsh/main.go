@@ -638,8 +638,7 @@ func Prompt() (string, error) {
 	lnr := liner.NewLiner()
 	defer lnr.Close()
 	cwd, _ := os.Getwd()
-	host, _ := os.Hostname()
-	fmt.Printf("\033[1m%s %s\033[0m\n", cwd, host)
+	fmt.Printf("\033[1m%s\033[0m\n", cwd)
 	line, err := lnr.Prompt("$ ")
 	return line, err
 }
