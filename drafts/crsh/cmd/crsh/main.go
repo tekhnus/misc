@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/peterh/liner"
 	"io"
 	"log"
 	"math/rand"
@@ -19,6 +18,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/peterh/liner"
+	"mvdan.cc/sh/v3/interp"
 )
 
 //go:embed git-head.txt
@@ -385,6 +387,11 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		close(managerOut)
 	}()
 
+	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
+	if err != nil {
+		return false, err
+	}
+
 	inputs := make(chan string)
 	for {
 		go func() {
@@ -426,7 +433,7 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 					log.Println("Exiting")
 					return false, nil
 				}
-				err := SimpleExecute(msg.Payload)
+				err := SimpleExecute(runner, msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
