@@ -635,8 +635,14 @@ func SessionName(host string, name string) string {
 	return name + "@" + host
 }
 
-func SimpleExecute(runner *interp.Runner, stmt string) error {
-	source, err := syntax.NewParser().Parse(strings.NewReader(stmt), "")
+func SimpleExecute(runner *interp.Runner, stmts string) error {
+	source, err := syntax.NewParser().Parse(strings.NewReader(stmts), "")
+	if err != nil {
+		return err
+	}
+	for _, := range source.Stmts {
+		runner.Run(context.TODO(), stmt)
+	}
 	args := strings.Split(stmt, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 
