@@ -90,7 +90,7 @@ func Main() error {
 }
 
 func ManagerMain(args []string, ctx context.Context) error {
-	host := "@"
+	host := "^"
 	name := RandomName()
 
 	for {
@@ -274,7 +274,7 @@ func MakeShellCommand(host string, name string) *exec.Cmd {
 
 func MakeDetachCommand(host string, name string) *exec.Cmd {
 	args := []string{}
-	if host != "@" {
+	if host != "^" {
 		args = append(args, "ssh", host)
 	}
 	args = append(args, "tmux", "-L", "crsh-tmux", "detach-client", "-s", "="+SessionName(host, name))
@@ -458,7 +458,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	host := fs.Arg(0)
 	name := fs.Arg(1)
 
-	if host == "@" {
+	if host == "^" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		// TODO: suppress tmux's auxiliarry output at detach.
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", SessionName(host, name), Executable, "shell", name)
@@ -588,7 +588,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	// TODO: suppress ssh's auxiliary output on closing.
 	shellCmd := exec.Command("ssh",
 		"-S", masterSocket, "-t", host,
-		executable, "ssh", "@", name)
+		executable, "ssh", "^", name)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
