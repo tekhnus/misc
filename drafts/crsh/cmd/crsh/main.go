@@ -634,7 +634,7 @@ func SessionName(host string, name string) string {
 	return name + "@" + host
 }
 
-func SimpleExecute(stmt string) error {
+func SimpleExecute(runner *interp.Runner, stmt string) error {
 	args := strings.Split(stmt, " ")
 	cmd := exec.Command(args[0], args[1:]...)
 
