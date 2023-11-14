@@ -793,6 +793,10 @@ func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
 		if serr != nil {
 			err = errors.Join(err, serr)
 		}
+		cherr := os.Chdir(runner.Dir)
+		if cherr != nil {
+			err = errors.Join(err, cherr)
+		}
 		if runner.Exited() {
 			return true, nil
 		}
