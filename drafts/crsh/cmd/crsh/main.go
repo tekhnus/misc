@@ -352,9 +352,14 @@ func ShellMain(args []string, ctx context.Context) error {
 		return err
 	}
 	lnr := liner.NewLiner()
+	linerMode, err := liner.TerminalMode()
+	if err != nil {
+		return err
+	}
 	defer lnr.Close()
 	normalMode.ApplyMode()
 
+	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode}
 	managers := make(chan net.Conn)
 	go func() {
 		err := Accept(listener, managers)
@@ -372,7 +377,7 @@ func ShellMain(args []string, ctx context.Context) error {
 				return nil
 			}
 			log.Println("Finish accepting connection")
-			cont, err := HandleManager(runner, lnr, manager, ctx)
+			cont, err := HandleManager(state, manager, ctx)
 			if err != nil {
 				return err
 			}
@@ -391,8 +396,7 @@ func GetSocketPath(name string) string {
 	return "/tmp/crsh-shell-" + name
 }
 
-func HandleManager(runner *interp.Runner, lnr *liner.State,
-	manager net.Conn, ctx context.Context) (bool, error) {
+func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, error) {
 	defer manager.Close()
 
 	managerIn := json.NewEncoder(manager)
@@ -406,7 +410,7 @@ func HandleManager(runner *interp.Runner, lnr *liner.State,
 	inputs := make(chan string)
 	for {
 		go func() {
-			line, err := Prompt(runner, lnr)
+			line, err := Prompt(state)
 			if err != nil {
 				log.Println(err)
 				close(inputs)
@@ -440,7 +444,7 @@ func HandleManager(runner *interp.Runner, lnr *liner.State,
 			log.Println("Received", msg)
 			switch msg.Type {
 			case "execute":
-				exit, err := SimpleExecute(runner, msg.Payload)
+				exit, err := SimpleExecute(state.runner, msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
@@ -665,8 +669,8 @@ func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
 	return false, err
 }
 
-func Prompt(runner *interp.Runner, lnr *liner.State) (string, error) {
-	cwd := runner.Dir
+func Prompt(state State) (string, error) {
+	cwd := state.runner.Dir
 	home, _ := os.UserHomeDir()
 	relcwd, _ := filepath.Rel(home, cwd)
 	if !strings.HasPrefix(relcwd, "..") {
@@ -674,7 +678,7 @@ func Prompt(runner *interp.Runner, lnr *liner.State) (string, error) {
 		cwd = filepath.Clean(cwd)
 	}
 	fmt.Printf("\033[1m%s\033[0m\n", cwd)
-	line, err := lnr.Prompt("$ ")
+	line, err := state.lnr.Prompt("$ ")
 	return line, err
 }
 
@@ -785,4 +789,11 @@ func RandomName() string {
 type Message = struct {
 	Type    string
 	Payload string
+}
+
+type State = struct {
+	runner      *interp.Runner
+	lnr         *liner.State
+	defaultMode liner.ModeApplier
+	linerMode   liner.ModeApplier
 }
