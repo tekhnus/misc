@@ -551,7 +551,12 @@ func Complete(prefix string) []string {
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
 	} else {
-		result = append(result, CompleteFile(words[len(words)-1])...)
+		filecomps := CompleteFile(words[len(words)-1])
+		var fullcomps []string
+		for _, cm := range filecomps {
+			fullcomps = append(fullcomps, prefix+cm)
+		}
+		result = append(result, fullcomps...)
 	}
 	return result
 }
