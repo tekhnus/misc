@@ -467,9 +467,28 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 			inputs <- line
 		}()
 
+		log.Println("Starting initial loop")
 	InitialLoop:
 		for {
 			select {
+			case msg, ok := <-managerOut:
+				if !ok {
+					log.Println("No more messages from manager")
+					return true, nil
+				}
+				pl := msg.Payload
+				if len(pl) > 64 {
+					pl = pl[:64] + "..."
+				}
+				log.Printf("Received: %s %#v\n", msg.Type, pl)
+				switch msg.Type {
+				case "history":
+					history := strings.NewReader(msg.Payload)
+					state.lnr.ClearHistory()
+					state.lnr.ReadHistory(history)
+				default:
+					return false, fmt.Errorf("Unknown message type: %s", msg.Type)
+				}
 			case input, ok := <-inputs:
 				if !ok {
 					log.Println("No more input")
@@ -487,6 +506,7 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				return false, nil
 			}
 		}
+		log.Println("Finishing initial loop")
 
 		select {
 		case msg, ok := <-managerOut:
@@ -509,10 +529,6 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 					log.Println("Exiting")
 					return false, nil
 				}
-			case "history":
-				history := strings.NewReader(msg.Payload)
-				state.lnr.ClearHistory()
-				state.lnr.ReadHistory(history)
 			default:
 				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
