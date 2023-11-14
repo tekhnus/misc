@@ -145,7 +145,10 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 		log.Println("Finish waiting on shell termination")
 	}()
 
-	lnr.ClearHistory()
+	err := SyncHistoryAndAppend(lnr, "")
+	if err != nil {
+		log.Println(err)
+	}
 
 	for shell.Out != nil || shell.Done != nil {
 		select {
@@ -162,7 +165,7 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 			}
 			switch msg.Type {
 			case "input":
-				err := AppendHistory(lnr, msg.Payload)
+				err := SyncHistoryAndAppend(lnr, msg.Payload)
 				if err != nil {
 					log.Println(err)
 				}
@@ -223,9 +226,19 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 	return "", "", false, fmt.Errorf("All channels were closed")
 }
 
-func AppendHistory(lnr *liner.State, entry string) error {
-	lnr.AppendHistory(entry)
+func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
 	histfile := os.ExpandEnv("$HOME/.crsh-history")
+	lnr.ClearHistory()
+	hist, err := os.Open(histfile)
+	if err != nil {
+		log.Println(err)
+	} else {
+		lnr.ReadHistory(hist)
+		hist.Close()
+	}
+	if entry != "" {
+		lnr.AppendHistory(entry)
+	}
 	history, err := os.Create(histfile)
 	if err != nil {
 		return err
