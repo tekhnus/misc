@@ -97,13 +97,18 @@ func ManagerMain(args []string, ctx context.Context) error {
 	host := "^"
 	name := RandomName()
 
+	// Doing it in the beginning because it messes with
+	// terminal modes which better done before tmux runs.
+	lnr := liner.NewLiner()
+	lnr.Close()
+
 	for {
 		fmt.Println("Connecting to session", SessionName(host, name), "...")
 		shell, err := MakeShell(host, name)
 		if err != nil {
 			return err
 		}
-		newhost, newname, exit, err := HandleShell(shell)
+		newhost, newname, exit, err := HandleShell(shell, lnr)
 		if err != nil {
 			return err
 		}
@@ -122,7 +127,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	return nil
 }
 
-func HandleShell(shell Shell) (string, string, bool, error) {
+func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 	defer func() {
 		log.Println("Start waiting on shell termination")
 		for shell.Out != nil || shell.Done != nil {
@@ -140,6 +145,8 @@ func HandleShell(shell Shell) (string, string, bool, error) {
 		log.Println("Finish waiting on shell termination")
 	}()
 
+	lnr.ClearHistory()
+
 	for shell.Out != nil || shell.Done != nil {
 		select {
 		case msg, ok := <-shell.Out:
@@ -155,6 +162,7 @@ func HandleShell(shell Shell) (string, string, bool, error) {
 			}
 			switch msg.Type {
 			case "input":
+				lnr.AppendHistory(msg.Payload)
 				if strings.HasPrefix(msg.Payload, "\\") {
 					tokens := strings.Split(msg.Payload, " ")
 					switch tokens[0] {
