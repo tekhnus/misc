@@ -6,5 +6,5 @@ VERSION="$(git rev-parse HEAD)"
 SHARE=~/.local/share/crsh/$VERSION
 BIN=~/.local/bin
 
-rm -r $BIN/crsh
+rm -f $BIN/crsh
 cp $SHARE/crsh $BIN/crsh
