@@ -357,6 +357,7 @@ func ShellMain(args []string, ctx context.Context) error {
 		return err
 	}
 	defer lnr.Close()
+	normalMode.ApplyMode()
 
 	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode}
 	managers := make(chan net.Conn)
@@ -683,6 +684,9 @@ func Prompt(state State) (string, error) {
 		return "", err
 	}
 	line, err := state.lnr.Prompt("$ ")
+	if err != nil {
+		return "", err
+	}
 	err = state.defaultMode.ApplyMode()
 	if err != nil {
 		return "", err
