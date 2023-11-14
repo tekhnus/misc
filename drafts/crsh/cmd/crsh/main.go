@@ -162,7 +162,10 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 			}
 			switch msg.Type {
 			case "input":
-				lnr.AppendHistory(msg.Payload)
+				err := AppendHistory(lnr, msg.Payload)
+				if err != nil {
+					log.Println(err)
+				}
 				if strings.HasPrefix(msg.Payload, "\\") {
 					tokens := strings.Split(msg.Payload, " ")
 					switch tokens[0] {
@@ -218,6 +221,18 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 	}
 
 	return "", "", false, fmt.Errorf("All channels were closed")
+}
+
+func AppendHistory(lnr *liner.State, entry string) error {
+	lnr.AppendHistory(entry)
+	histfile := os.ExpandEnv("$HOME/.crsh-history")
+	history, err := os.Create(histfile)
+	if err != nil {
+		return err
+	}
+	defer history.Close()
+	lnr.WriteHistory(history)
+	return nil
 }
 
 type Shell = struct {
