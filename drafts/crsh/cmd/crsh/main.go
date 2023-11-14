@@ -678,6 +678,10 @@ func Prompt(state State) (string, error) {
 		cwd = filepath.Clean(cwd)
 	}
 	fmt.Printf("\033[1m%s\033[0m\n", cwd)
+	err := state.linerMode.ApplyMode()
+	if err != nil {
+		return "", err
+	}
 	line, err := state.lnr.Prompt("$ ")
 	return line, err
 }
