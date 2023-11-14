@@ -689,6 +689,7 @@ func Prompt(state State) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	state.lnr.AppendHistory(line)
 	err = state.defaultMode.ApplyMode()
 	if err != nil {
 		return "", err
