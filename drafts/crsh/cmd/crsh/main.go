@@ -492,51 +492,53 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 		}
 		log.Println("Finish history wait loop")
 
-		log.Println("Starting input loop")
-		select {
-		case input, ok := <-inputs:
-			if !ok {
-				log.Println("No more input")
-				return false, nil
-			}
-			log.Println("Start sending input to manager", input)
-			err := managerIn.Encode(Message{Type: "input", Payload: input})
-			log.Println("Finish sending input to manager", input)
-			if err != nil {
-				log.Println(err)
-				return false, err
-			}
-		case <-ctx.Done():
-			return false, nil
-		}
-		log.Println("Finishing input loop")
-
-		select {
-		case msg, ok := <-managerOut:
-			if !ok {
-				log.Println("No more messages from manager")
-				return true, nil
-			}
-			pl := msg.Payload
-			if len(pl) > 64 {
-				pl = pl[:64] + "..."
-			}
-			log.Printf("Received: %s %#v\n", msg.Type, pl)
-			switch msg.Type {
-			case "execute":
-				exit, err := SimpleExecute(state.runner, msg.Payload)
-				if err != nil {
-					fmt.Fprintln(os.Stderr, err)
-				}
-				if exit {
-					log.Println("Exiting")
+		for {
+			log.Println("Starting input loop")
+			select {
+			case input, ok := <-inputs:
+				if !ok {
+					log.Println("No more input")
 					return false, nil
 				}
-			default:
-				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
+				log.Println("Start sending input to manager", input)
+				err := managerIn.Encode(Message{Type: "input", Payload: input})
+				log.Println("Finish sending input to manager", input)
+				if err != nil {
+					log.Println(err)
+					return false, err
+				}
+			case <-ctx.Done():
+				return false, nil
 			}
-		case <-ctx.Done():
-			return false, nil
+			log.Println("Finishing input loop")
+
+			select {
+			case msg, ok := <-managerOut:
+				if !ok {
+					log.Println("No more messages from manager")
+					return true, nil
+				}
+				pl := msg.Payload
+				if len(pl) > 64 {
+					pl = pl[:64] + "..."
+				}
+				log.Printf("Received: %s %#v\n", msg.Type, pl)
+				switch msg.Type {
+				case "execute":
+					exit, err := SimpleExecute(state.runner, msg.Payload)
+					if err != nil {
+						fmt.Fprintln(os.Stderr, err)
+					}
+					if exit {
+						log.Println("Exiting")
+						return false, nil
+					}
+				default:
+					return false, fmt.Errorf("Unknown message type: %s", msg.Type)
+				}
+			case <-ctx.Done():
+				return false, nil
+			}
 		}
 	}
 }
