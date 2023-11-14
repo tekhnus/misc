@@ -488,8 +488,8 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				return true, nil
 			}
 			pl := msg.Payload
-			if len(pl) > 128 {
-				pl = pl[:128]
+			if len(pl) > 4 {
+				pl = pl[:4] + "..."
 			}
 			log.Printf("Received: %s %#v\n", msg.Type, pl)
 			switch msg.Type {
