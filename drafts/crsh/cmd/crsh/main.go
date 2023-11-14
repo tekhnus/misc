@@ -487,7 +487,7 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				log.Println("No more messages from manager")
 				return true, nil
 			}
-			log.Printf("Received: %s %#v\n", msg.Type, msg.Payload)
+			log.Printf("Received: %s %#v\n", msg.Type, msg.Payload[:64])
 			switch msg.Type {
 			case "execute":
 				exit, err := SimpleExecute(state.runner, msg.Payload)
