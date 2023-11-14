@@ -554,6 +554,7 @@ func Complete(prefix string) []string {
 }
 
 func CompleteExecutable(prefix string) []string {
+	log.Println("Completing executable for", prefix)
 	var result []string
 	path := os.Getenv("PATH")
 	for _, dir := range filepath.SplitList(path) {
