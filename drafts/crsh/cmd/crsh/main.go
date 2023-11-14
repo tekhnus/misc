@@ -149,6 +149,11 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 	if err != nil {
 		log.Println(err)
 	}
+	var hst strings.Builder
+	_, err = lnr.WriteHistory(&hst)
+	if err != nil {
+		log.Println(err)
+	}
 
 	for shell.Out != nil || shell.Done != nil {
 		select {
@@ -233,8 +238,11 @@ func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
 	if err != nil {
 		log.Println(err)
 	} else {
-		lnr.ReadHistory(hist)
-		hist.Close()
+		defer hist.Close()
+		_, err = lnr.ReadHistory(hist)
+		if err != nil {
+			return err
+		}
 	}
 	if entry != "" {
 		lnr.AppendHistory(entry)
