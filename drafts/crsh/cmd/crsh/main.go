@@ -342,6 +342,11 @@ func ShellMain(args []string, ctx context.Context) error {
 		fmt.Printf("- %s\n", session)
 	}
 
+	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
+	if err != nil {
+		return err
+	}
+
 	managers := make(chan net.Conn)
 	go func() {
 		err := Accept(listener, managers)
@@ -359,7 +364,7 @@ func ShellMain(args []string, ctx context.Context) error {
 				return nil
 			}
 			log.Println("Finish accepting connection")
-			cont, err := HandleManager(manager, ctx)
+			cont, err := HandleManager(runner, manager, ctx)
 			if err != nil {
 				return err
 			}
@@ -378,7 +383,7 @@ func GetSocketPath(name string) string {
 	return "/tmp/crsh-shell-" + name
 }
 
-func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
+func HandleManager(runner *interp.Runner, manager net.Conn, ctx context.Context) (bool, error) {
 	defer manager.Close()
 
 	managerIn := json.NewEncoder(manager)
@@ -388,11 +393,6 @@ func HandleManager(manager net.Conn, ctx context.Context) (bool, error) {
 		ReadJsons(manager, managerOut)
 		close(managerOut)
 	}()
-
-	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
-	if err != nil {
-		return false, err
-	}
 
 	inputs := make(chan string)
 	for {
