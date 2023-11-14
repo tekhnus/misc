@@ -569,6 +569,7 @@ func CompleteExecutable(prefix string) []string {
 		log.Println("Searching in", dir)
 		for _, name := range names {
 			if strings.HasPrefix(name, prefix) {
+				log.Println("Found", name)
 				result = append(result, name)
 			}
 		}
