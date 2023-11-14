@@ -347,8 +347,13 @@ func ShellMain(args []string, ctx context.Context) error {
 		return err
 	}
 
+	normalMode, err := liner.TerminalMode()
+	if err != nil {
+		return err
+	}
 	lnr := liner.NewLiner()
-	lnr.Close()
+	defer lnr.Close()
+	normalMode.ApplyMode()
 
 	managers := make(chan net.Conn)
 	go func() {
