@@ -683,6 +683,10 @@ func Prompt(state State) (string, error) {
 		return "", err
 	}
 	line, err := state.lnr.Prompt("$ ")
+	err = state.defaultMode.ApplyMode()
+	if err != nil {
+		return "", err
+	}
 	return line, err
 }
 
