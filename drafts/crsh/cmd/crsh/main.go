@@ -235,6 +235,7 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 }
 
 func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
+	// TODO: interprocess locking should be done here.
 	histfile := os.ExpandEnv("$HOME/.crsh-history")
 	lnr.ClearHistory()
 	hist, err := os.Open(histfile)
