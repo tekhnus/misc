@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
 
 ./build
-
-BIN=~/.local/bin
-
-rm $BIN/crsh*
-cp darwin/* $BIN
-
-kitty @ launch \
-  --type os-window \
-  --env "PATH=$PATH" \
-  crsh manager "$@"
+./darwin/crsh
