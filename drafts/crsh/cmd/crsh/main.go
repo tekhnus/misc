@@ -620,7 +620,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	if host == "^" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		// TODO: suppress tmux's auxiliarry output at detach.
-		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", SessionName(*displayHost, name), Executable, "shell", name)
+		shellCmd := exec.Command("tmux", "-L", "crsh-tmux", "-f", tmuxConf, "new-session", "-A", "-s", SessionName(*displayHost, name), "env", "-u", "TMUX", Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
