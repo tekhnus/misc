@@ -416,6 +416,7 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				close(inputs)
 				return
 			}
+			log.Printf("Sending line: %#v\n", line)
 			inputs <- line
 		}()
 
