@@ -407,6 +407,7 @@ func ShellMain(args []string, ctx context.Context) error {
 	defer lnr.Close()
 	normalMode.ApplyMode()
 
+	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetCompleter(Complete)
 
 	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode}
@@ -554,7 +555,6 @@ func Complete(prefix string) []string {
 }
 
 func CompleteExecutable(prefix string) []string {
-	log.Println("Completing executable for", prefix)
 	var result []string
 	path := os.Getenv("PATH")
 	for _, dir := range filepath.SplitList(path) {
@@ -566,7 +566,6 @@ func CompleteExecutable(prefix string) []string {
 			log.Println(err)
 			continue
 		}
-		log.Println("Searching in", dir)
 		for _, fullname := range names {
 			name := filepath.Base(fullname)
 			if strings.HasPrefix(name, prefix) {
