@@ -252,8 +252,8 @@ func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
 		return err
 	}
 	defer history.Close()
-	lnr.WriteHistory(history)
-	return nil
+	_, err = lnr.WriteHistory(history)
+	return err
 }
 
 type Shell = struct {
