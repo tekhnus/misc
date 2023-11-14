@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [[ ! -z $(git status --porcelain) ]]; then
+  git add .
+  git ci -m do
+fi
+
+[[ -z $(git status --porcelain) ]] || exit
+VERSION="$(git rev-parse HEAD)"
+echo Install $VERSION
