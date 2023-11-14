@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+if [[ ! -z $(git status --porcelain) ]]; then
+  git add .
+  git ci -m do
+fi
+
+[[ -z $(git status --porcelain) ]] || exit
+VERSION="$(git rev-parse HEAD)"
+echo Build $VERSION
+echo -n $VERSION >cmd/crsh/git-head.txt
+
+mkdir -p darwin
+go build -o darwin ./... || exit
+mkdir -p linux
+GOOS=linux GOARCH=amd64 go build -o linux ./... || exit
+
+SHARE=~/.local/share/crsh/$VERSION
+
+rm -rf $SHARE
+mkdir -p $SHARE
+cp -r darwin linux universal $SHARE
