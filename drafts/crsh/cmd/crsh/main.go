@@ -348,7 +348,7 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 
 	lnr := liner.NewLiner()
-	defer lnr.Close()
+	lnr.Close()
 
 	managers := make(chan net.Conn)
 	go func() {
