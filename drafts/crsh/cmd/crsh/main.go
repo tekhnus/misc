@@ -467,21 +467,25 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 			inputs <- line
 		}()
 
-		select {
-		case input, ok := <-inputs:
-			if !ok {
-				log.Println("No more input")
+	InitialLoop:
+		for {
+			select {
+			case input, ok := <-inputs:
+				if !ok {
+					log.Println("No more input")
+					return false, nil
+				}
+				log.Println("Start sending input to manager", input)
+				err := managerIn.Encode(Message{Type: "input", Payload: input})
+				log.Println("Finish sending input to manager", input)
+				if err != nil {
+					log.Println(err)
+					return false, err
+				}
+				break InitialLoop
+			case <-ctx.Done():
 				return false, nil
 			}
-			log.Println("Start sending input to manager", input)
-			err := managerIn.Encode(Message{Type: "input", Payload: input})
-			log.Println("Finish sending input to manager", input)
-			if err != nil {
-				log.Println(err)
-				return false, err
-			}
-		case <-ctx.Done():
-			return false, nil
 		}
 
 		select {
