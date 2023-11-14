@@ -551,7 +551,7 @@ func Complete(prefix string) []string {
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
 	} else {
-		prevwords := strings.Join(words[:len(words)-1], " ")
+		prevwords := strings.Join(words[:len(words)-1], " ") + " "
 		lastword := words[len(words)-1]
 		filecomps := CompleteFile(lastword)
 		var fullcomps []string
