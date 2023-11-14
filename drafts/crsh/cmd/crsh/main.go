@@ -431,15 +431,12 @@ func HandleManager(runner *interp.Runner, manager net.Conn, ctx context.Context)
 			log.Println("Received", msg)
 			switch msg.Type {
 			case "execute":
-				if msg.Payload == "exit" {
-					log.Println("Exiting")
-					return false, nil
-				}
 				exit, err := SimpleExecute(runner, msg.Payload)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
 				if exit {
+					log.Println("Exiting")
 					return false, nil
 				}
 			default:
