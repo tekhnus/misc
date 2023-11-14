@@ -154,7 +154,9 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 	if err != nil {
 		log.Println(err)
 	}
+	log.Println("Start sending history")
 	shell.In.Encode(Message{Type: "history", Payload: hst.String()})
+	log.Println("Finish sending history")
 
 	for shell.Out != nil || shell.Done != nil {
 		select {
