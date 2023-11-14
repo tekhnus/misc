@@ -7,4 +7,4 @@ SHARE=~/.local/share/crsh/$VERSION
 BIN=~/.local/bin
 
 rm -f $BIN/crsh
-cp $SHARE/crsh $BIN/crsh
+cp $SHARE/darwin/crsh $BIN/crsh
