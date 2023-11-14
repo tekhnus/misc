@@ -454,7 +454,9 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 					return false, nil
 				}
 			case "history":
-				strings.NewReader(msg.Payload)
+				history := strings.NewReader(msg.Payload)
+				state.lnr.ClearHistory()
+				state.lnr.ReadHistory(history)
 			default:
 				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
