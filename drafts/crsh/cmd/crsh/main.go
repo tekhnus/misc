@@ -407,6 +407,8 @@ func ShellMain(args []string, ctx context.Context) error {
 	defer lnr.Close()
 	normalMode.ApplyMode()
 
+	lnr.SetCompleter(Complete)
+
 	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode}
 	managers := make(chan net.Conn)
 	go func() {
@@ -540,6 +542,10 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 			return false, nil
 		}
 	}
+}
+
+func Complete(prefix string) []string {
+	return nil
 }
 
 func SSHMain(args []string, ctx context.Context) error {
