@@ -545,7 +545,33 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 }
 
 func Complete(prefix string) []string {
-	return nil
+	var result []string
+	words := strings.Split(prefix, " ")
+	if len(words) == 1 {
+		result = append(result, CompleteExecutable(words[0])...)
+	}
+	return result
+}
+
+func CompleteExecutable(prefix string) []string {
+	var result []string
+	path := os.Getenv("PATH")
+	for _, dir := range filepath.SplitList(path) {
+		if dir == "" {
+			dir = "."
+		}
+		names, err := filepath.Glob(dir + "/*")
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		for _, name := range names {
+			if strings.HasPrefix(name, prefix) {
+				result = append(result, name)
+			}
+		}
+	}
+	return result
 }
 
 func SSHMain(args []string, ctx context.Context) error {
