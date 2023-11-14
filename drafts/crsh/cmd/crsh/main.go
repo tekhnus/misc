@@ -550,6 +550,8 @@ func Complete(prefix string) []string {
 	words := strings.Split(prefix, " ")
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
+	} else {
+		result = append(result, CompleteFile(words[len(words)-1])...)
 	}
 	return result
 }
@@ -574,6 +576,15 @@ func CompleteExecutable(prefix string) []string {
 		}
 	}
 	return result
+}
+
+func CompleteFile(prefix string) []string {
+	names, err := filepath.Glob(prefix + "*")
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
+	return names
 }
 
 func SSHMain(args []string, ctx context.Context) error {
