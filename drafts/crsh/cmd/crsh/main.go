@@ -347,6 +347,9 @@ func ShellMain(args []string, ctx context.Context) error {
 		return err
 	}
 
+	lnr := liner.NewLiner()
+	defer lnr.Close()
+
 	managers := make(chan net.Conn)
 	go func() {
 		err := Accept(listener, managers)
@@ -364,7 +367,7 @@ func ShellMain(args []string, ctx context.Context) error {
 				return nil
 			}
 			log.Println("Finish accepting connection")
-			cont, err := HandleManager(runner, manager, ctx)
+			cont, err := HandleManager(runner, lnr, manager, ctx)
 			if err != nil {
 				return err
 			}
@@ -383,7 +386,8 @@ func GetSocketPath(name string) string {
 	return "/tmp/crsh-shell-" + name
 }
 
-func HandleManager(runner *interp.Runner, manager net.Conn, ctx context.Context) (bool, error) {
+func HandleManager(runner *interp.Runner, lnr *liner.State,
+	manager net.Conn, ctx context.Context) (bool, error) {
 	defer manager.Close()
 
 	managerIn := json.NewEncoder(manager)
@@ -397,7 +401,7 @@ func HandleManager(runner *interp.Runner, manager net.Conn, ctx context.Context)
 	inputs := make(chan string)
 	for {
 		go func() {
-			line, err := Prompt(runner)
+			line, err := Prompt(runner, lnr)
 			if err != nil {
 				log.Println(err)
 				close(inputs)
@@ -439,6 +443,8 @@ func HandleManager(runner *interp.Runner, manager net.Conn, ctx context.Context)
 					log.Println("Exiting")
 					return false, nil
 				}
+			case "history":
+				strings.NewReader(msg.Payload)
 			default:
 				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
@@ -654,9 +660,7 @@ func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
 	return false, err
 }
 
-func Prompt(runner *interp.Runner) (string, error) {
-	lnr := liner.NewLiner()
-	defer lnr.Close()
+func Prompt(runner *interp.Runner, lnr *liner.State) (string, error) {
 	cwd := runner.Dir
 	home, _ := os.UserHomeDir()
 	relcwd, _ := filepath.Rel(home, cwd)
