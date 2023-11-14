@@ -473,8 +473,9 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				log.Println("No more input")
 				return false, nil
 			}
-			log.Println("Received", input)
+			log.Println("Start sending input to manager", input)
 			err := managerIn.Encode(Message{Type: "input", Payload: input})
+			log.Println("Finish sending input to manager", input)
 			if err != nil {
 				log.Println(err)
 				return false, err
