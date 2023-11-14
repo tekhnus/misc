@@ -3,4 +3,8 @@
 ./build || exit
 
 VERSION="$(git rev-parse HEAD)"
-echo Install $VERSION
+SHARE=~/.local/share/crsh/$VERSION
+BIN=~/.local/bin
+
+rm -r $BIN/crsh
+cp $SHARE/crsh $BIN/crsh
