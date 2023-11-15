@@ -1,3 +1,8 @@
+// TODO: improve directory trailing slash completion
+// TODO: improve tilde completion
+// TODO: list only sessions available for connection
+// TODO: mouse scrolling support
+// TODO: remove detach command
 package main
 
 import (
