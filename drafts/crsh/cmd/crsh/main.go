@@ -109,7 +109,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		newhost, newname, exit, err := HandleShell(shell, lnr)
+		newhost, newname, exit, err := HandleShell(shell, lnr, ctx)
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	return nil
 }
 
-func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
+func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, string, bool, error) {
 	defer func() {
 		log.Println("Start waiting on shell termination")
 		for shell.Out != nil || shell.Done != nil {
@@ -229,6 +229,9 @@ func HandleShell(shell Shell, lnr *liner.State) (string, string, bool, error) {
 				log.Println("With error:", err)
 				return "", "", true, err
 			}
+		case <-ctx.Done():
+			log.Println("Start terminating by cancel")
+			return "", "", true, nil
 		}
 	}
 
