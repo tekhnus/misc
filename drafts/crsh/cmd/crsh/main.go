@@ -425,6 +425,30 @@ func ShellMain(args []string, ctx context.Context) error {
 		}
 		close(managers)
 	}()
+	doPromptChan := make(chan struct{})
+	inputs := make(chan string)
+	go func() {
+		log.Println("Starting waiting permission to prompt")
+		<-doPromptChan
+		log.Println("Finished waiting permission to prompt")
+		line, err := Prompt(state)
+		if err != nil {
+			log.Println(err)
+			close(inputs)
+			return
+		}
+		log.Printf("Sending line: %#v\n", line)
+		inputs <- line
+		log.Println("Sent line")
+	}()
+	doPrompt := func() {
+		select {
+		case doPromptChan <- struct{}{}:
+		default:
+			// FIXME a very subtle race condition can happen here.
+			log.Println("Already waiting for prompt, so skipping")
+		}
+	}
 	log.Println("Start accepting connection")
 	for {
 		select {
@@ -434,7 +458,7 @@ func ShellMain(args []string, ctx context.Context) error {
 				return nil
 			}
 			log.Println("Finish accepting connection")
-			cont, err := HandleManager(state, manager, ctx)
+			cont, err := HandleManager(state, manager, inputs, doPrompt, ctx)
 			if err != nil {
 				return err
 			}
@@ -453,7 +477,7 @@ func GetSocketPath(name string) string {
 	return "/tmp/crsh-shell-" + name
 }
 
-func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, error) {
+func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt func(), ctx context.Context) (bool, error) {
 	defer manager.Close()
 
 	managerIn := json.NewEncoder(manager)
@@ -490,20 +514,10 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 	}
 	log.Println("Finish history wait loop")
 
-	inputs := make(chan string)
 	for {
-		go func() {
-			line, err := Prompt(state)
-			if err != nil {
-				log.Println(err)
-				close(inputs)
-				return
-			}
-			log.Printf("Sending line: %#v\n", line)
-			inputs <- line
-		}()
-
 		log.Println("Starting input loop")
+		doPrompt()
+		log.Println("Finish requesting prompt")
 		select {
 		case input, ok := <-inputs:
 			if !ok {
