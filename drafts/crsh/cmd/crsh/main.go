@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/peterh/liner"
@@ -49,7 +50,7 @@ func Main() error {
 	}
 
 	signals := make(chan os.Signal, 16)
-	signal.Notify(signals, os.Interrupt)
+	signal.Notify(signals, os.Interrupt, syscall.SIGHUP)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
