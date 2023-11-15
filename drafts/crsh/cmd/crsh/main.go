@@ -762,6 +762,9 @@ func SSHMain(args []string, ctx context.Context) error {
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
 
+	// Not processing signals here.
+	// If SIGINT or SIGHUP happens,
+	// the ssh should exit.
 	err = shellCmd.Run()
 	log.Println("Finished command:", shellCmd)
 	log.Println("Status:", err)
