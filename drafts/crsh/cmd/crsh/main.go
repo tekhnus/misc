@@ -517,6 +517,13 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				log.Println(err)
 				return false, err
 			}
+		case msg, ok := <-managerOut:
+			if !ok {
+				log.Println("No more messages from manager")
+				return true, nil
+			}
+			log.Println("Unexpected message from manager:", msg)
+			return true, fmt.Errorf("Unexpected message from manager")
 		case <-ctx.Done():
 			return false, nil
 		}
