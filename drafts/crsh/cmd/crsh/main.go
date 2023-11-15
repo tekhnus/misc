@@ -623,13 +623,15 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	if host == "^" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
-		// TODO: suppress tmux's auxiliarry output at detach.
+		// TODO: suppress tmux's auxiliary output at detach.
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux",
 			"-f", tmuxConf, "new-session", "-A", "-s", SessionName(*displayHost, name),
 			"env", "-u", "TMUX", Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
+		// Do not listening for signals here. If SIGINT or SIGHUP happens,
+		// tmux will receive it too and exit.
 		err = shellCmd.Run()
 		log.Println("Multiplexer finished, exiting")
 		return err
