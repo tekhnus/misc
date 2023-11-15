@@ -518,6 +518,7 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 				return false, err
 			}
 		case msg, ok := <-managerOut:
+			// This can happen if terminal is closed on input.
 			if !ok {
 				log.Println("No more messages from manager")
 				return true, nil
