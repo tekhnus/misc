@@ -428,18 +428,20 @@ func ShellMain(args []string, ctx context.Context) error {
 	doPromptChan := make(chan struct{})
 	inputs := make(chan string)
 	go func() {
-		log.Println("Starting waiting permission to prompt")
-		<-doPromptChan
-		log.Println("Finished waiting permission to prompt")
-		line, err := Prompt(state)
-		if err != nil {
-			log.Println(err)
-			close(inputs)
-			return
+		for {
+			log.Println("Starting waiting permission to prompt")
+			<-doPromptChan
+			log.Println("Finished waiting permission to prompt")
+			line, err := Prompt(state)
+			if err != nil {
+				log.Println(err)
+				close(inputs)
+				return
+			}
+			log.Printf("Sending line: %#v\n", line)
+			inputs <- line
+			log.Println("Sent line")
 		}
-		log.Printf("Sending line: %#v\n", line)
-		inputs <- line
-		log.Println("Sent line")
 	}()
 	doPrompt := func() {
 		select {
