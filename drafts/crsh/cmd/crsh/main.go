@@ -628,7 +628,9 @@ func SSHMain(args []string, ctx context.Context) error {
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
 		shellCmd.Stderr = os.Stderr
-		return shellCmd.Run()
+		err = shellCmd.Run()
+		log.Println("Shell finished, exiting")
+		return err
 	}
 
 	masterSocket := fmt.Sprintf("/tmp/crsh-ssh-%d", os.Getpid())
