@@ -145,6 +145,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 		}
 		log.Println("Finish waiting on shell termination")
 	}()
+	defer shell.Detach()
 
 	err := SyncHistoryAndAppend(lnr, "")
 	if err != nil {
@@ -167,10 +168,6 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 				log.Println("Shell output was closed")
 				shell.Out = nil
 				log.Println("Start detaching")
-				err := shell.Detach()
-				if err != nil {
-					log.Println("Shell detach error:", err)
-				}
 				return "", "", true, nil
 			}
 			log.Println("Received a message from shell")
@@ -208,9 +205,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 							break
 						}
-						log.Println("Detaching from current shell")
-						err := shell.Detach()
-						return "", "", true, err
+						return "", "", true, nil
 					default:
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 					}
@@ -311,12 +306,16 @@ func MakeShell(host string, name string) (Shell, error) {
 	log.Println("Finish dialing shell")
 
 	detach := func() error {
-		detachCmd := MakeDetachCommand(host, name)
-		err := detachCmd.Run()
+		err := shell.Close()
 		if err != nil {
-			return err
+			log.Println(err)
 		}
-		return shell.Close()
+		detachCmd := MakeDetachCommand(host, name)
+		err = detachCmd.Run()
+		if err != nil {
+			log.Println(err)
+		}
+		return nil
 	}
 	return Shell{shellIn, shellOut, shellCmdOut, detach}, nil
 }
