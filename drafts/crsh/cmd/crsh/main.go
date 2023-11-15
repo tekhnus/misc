@@ -479,6 +479,7 @@ func HandleManager(state State, manager net.Conn, ctx context.Context) (bool, er
 		log.Printf("Received: %s %#v\n", msg.Type, pl)
 		switch msg.Type {
 		case "history":
+			log.Println("Received history")
 			history := strings.NewReader(msg.Payload)
 			state.lnr.ClearHistory()
 			state.lnr.ReadHistory(history)
