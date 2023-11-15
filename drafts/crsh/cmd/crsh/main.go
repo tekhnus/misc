@@ -160,6 +160,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 	log.Println("Finish sending history")
 
 	for shell.Out != nil || shell.Done != nil {
+		log.Println("Selecting...")
 		select {
 		case msg, ok := <-shell.Out:
 			if !ok {
@@ -172,6 +173,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 				}
 				return "", "", true, nil
 			}
+			log.Println("Received a message from shell")
 			switch msg.Type {
 			case "input":
 				err := SyncHistoryAndAppend(lnr, msg.Payload)
@@ -235,6 +237,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 		}
 	}
 
+	log.Println("All channels closed")
 	return "", "", false, fmt.Errorf("All channels were closed")
 }
 
