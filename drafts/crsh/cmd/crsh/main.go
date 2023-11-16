@@ -587,6 +587,10 @@ func Complete(prefix string) []string {
 		filecomps := CompleteFile(lastword)
 		var fullcomps []string
 		for _, cm := range filecomps {
+			if cm == "" {
+				fullcomps = append(fullcomps, prefix)
+				continue
+			}
 			fullcomps = append(fullcomps, prefix+Quote(cm))
 		}
 		result = append(result, fullcomps...)
