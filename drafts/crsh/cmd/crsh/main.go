@@ -630,6 +630,16 @@ func CompleteFile(prefix string) []string {
 		log.Println(err)
 		return nil
 	}
+	for i := range names {
+		stat, err := os.Stat(names[i])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if stat.IsDir() {
+			names[i] += "/"
+		}
+	}
 	return names
 }
 
