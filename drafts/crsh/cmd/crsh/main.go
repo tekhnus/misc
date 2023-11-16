@@ -579,6 +579,9 @@ func Complete(prefix string) []string {
 	log.Printf("Complete request: %#v\n", prefix)
 	var result []string
 	words := Unquote(prefix)
+	if strings.HasSuffix(prefix, " ") {
+		words = append(words, "")
+	}
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
