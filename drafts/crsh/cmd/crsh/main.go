@@ -644,7 +644,12 @@ func CompleteFile(prefix string) []string {
 		if stat.IsDir() {
 			names[i] += "/"
 		}
-		names[i] = Quote(names[i])
+		suffix, ok := strings.CutPrefix(names[i], prefix)
+		if !ok {
+			log.Println("Completion problem:", names[i], prefix)
+			continue
+		}
+		names[i] = prefix + Quote(suffix)
 	}
 	return names
 }
