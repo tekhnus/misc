@@ -625,6 +625,9 @@ func CompleteExecutable(prefix string) []string {
 }
 
 func CompleteFile(prefix string) []string {
+	if strings.HasPrefix(prefix, "~") {
+		prefix = "$HOME" + prefix[1:]
+	}
 	names, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		log.Println(err)
