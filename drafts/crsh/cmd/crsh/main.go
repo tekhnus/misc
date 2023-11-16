@@ -630,6 +630,7 @@ func CompleteFile(prefix string) []string {
 		prefix = "$HOME" + prefix[1:]
 	}
 	prefix = os.ExpandEnv(prefix)
+	prefix = Unquote(prefix)
 	names, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		log.Println(err)
@@ -659,6 +660,10 @@ func Quote(s string) string {
 		return `"` + s + `"`
 	}
 	return s
+}
+
+func Unquote(s string) string {
+	return strings.ReplaceAll(s, `"`, "")
 }
 
 func SSHMain(args []string, ctx context.Context) error {
