@@ -1,8 +1,11 @@
 // TODO: improve directory trailing slash completion
 // TODO: improve tilde completion
 // TODO: list only sessions available for connection
+// TODO: more convenient session selection
+// TODO: smart new-session
 // TODO: mouse scrolling support
 // TODO: remove detach command
+// TODO: ssh autoreconnection
 package main
 
 import (
