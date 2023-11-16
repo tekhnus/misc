@@ -584,6 +584,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 }
 
 func Complete(prefix string) []string {
+	log.Printf("Complete request: %#v\n", prefix)
 	var result []string
 	words := strings.Split(prefix, " ")
 	if len(words) == 1 {
@@ -598,6 +599,7 @@ func Complete(prefix string) []string {
 		}
 		result = append(result, fullcomps...)
 	}
+	log.Printf("Complete response: %#v\n", result)
 	return result
 }
 
