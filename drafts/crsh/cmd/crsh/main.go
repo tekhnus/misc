@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -642,8 +643,17 @@ func CompleteFile(prefix string) []string {
 		if stat.IsDir() {
 			names[i] += "/"
 		}
+		names[i] = Quote(names[i])
 	}
 	return names
+}
+
+func Quote(s string) string {
+	result := strconv.Quote(s)
+	if result == `"`+s+`"` {
+		return s
+	}
+	return result
 }
 
 func SSHMain(args []string, ctx context.Context) error {
