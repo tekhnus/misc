@@ -661,7 +661,7 @@ func Quote(s string) string {
 }
 
 func Unquote(s string) []string {
-	result, err := shell.Fields(s, func(string) string { return "" })
+	result, err := shell.Fields(s, os.Getenv)
 	if err != nil {
 		log.Println(err)
 		return []string{s}
