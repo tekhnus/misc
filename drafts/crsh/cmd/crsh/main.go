@@ -664,7 +664,16 @@ func Quote(s string) string {
 }
 
 func Unquote(s string) []string {
-	return strings.Split(s, " ")
+	var result []string
+	err := syntax.NewParser().Words(strings.NewReader(s), func(word *syntax.Word) bool {
+		result = append(result, word.Lit())
+		return true
+	})
+	if err != nil {
+		log.Println(err)
+		return []string{s}
+	}
+	return result
 }
 
 func SSHMain(args []string, ctx context.Context) error {
