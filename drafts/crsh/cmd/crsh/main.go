@@ -628,6 +628,7 @@ func CompleteFile(prefix string) []string {
 	if strings.HasPrefix(prefix, "~") {
 		prefix = "$HOME" + prefix[1:]
 	}
+	prefix = os.ExpandEnv(prefix)
 	names, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		log.Println(err)
