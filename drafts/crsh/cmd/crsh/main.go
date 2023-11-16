@@ -30,6 +30,7 @@ import (
 
 	"github.com/peterh/liner"
 	"mvdan.cc/sh/v3/interp"
+	"mvdan.cc/sh/v3/shell"
 	"mvdan.cc/sh/v3/syntax"
 )
 
@@ -627,10 +628,6 @@ func CompleteExecutable(prefix string) []string {
 }
 
 func CompleteFile(prefix string) []string {
-	if strings.HasPrefix(prefix, "~") {
-		prefix = "$HOME" + prefix[1:]
-	}
-	prefix = os.ExpandEnv(prefix)
 	names, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		log.Println(err)
@@ -665,11 +662,7 @@ func Quote(s string) string {
 }
 
 func Unquote(s string) []string {
-	var result []string
-	err := syntax.NewParser().Words(strings.NewReader(s), func(word *syntax.Word) bool {
-		result = append(result, word.Lit())
-		return true
-	})
+	result, err := shell.Fields(s, func(string) string { return "" })
 	if err != nil {
 		log.Println(err)
 		return []string{s}
