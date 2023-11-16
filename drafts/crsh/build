@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 DIR="$(dirname $0)"
-echo $DIR
+cd $DIR
 
 if [[ ! -z $(git status --porcelain) ]]; then
   git add .
