@@ -1,8 +1,6 @@
 // TODO: list only sessions available for connection
 // TODO: more convenient session selection
 // TODO: smart new-session
-// TODO: mouse scrolling support
-// TODO: remove detach command
 // TODO: ssh autoreconnection
 package main
 
@@ -207,12 +205,6 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 						log.Println("Stopping the shell")
 						host := tokens[1]
 						return host, "", false, nil
-					case "\\detach":
-						if len(tokens) != 1 {
-							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
-							break
-						}
-						return "", "", true, nil
 					default:
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 					}
