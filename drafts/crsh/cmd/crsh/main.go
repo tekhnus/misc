@@ -592,12 +592,11 @@ func Complete(prefix string) []string {
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
 	} else {
-		prevwords := strings.Join(words[:len(words)-1], " ") + " "
 		lastword := words[len(words)-1]
 		filecomps := CompleteFile(lastword)
 		var fullcomps []string
 		for _, cm := range filecomps {
-			fullcomps = append(fullcomps, prevwords+cm)
+			fullcomps = append(fullcomps, prefix+Quote(cm))
 		}
 		result = append(result, fullcomps...)
 	}
@@ -633,6 +632,7 @@ func CompleteFile(prefix string) []string {
 		log.Println(err)
 		return nil
 	}
+	var result []string
 	for i := range names {
 		stat, err := os.Stat(names[i])
 		if err != nil {
@@ -647,9 +647,9 @@ func CompleteFile(prefix string) []string {
 			log.Println("Completion problem:", names[i], prefix)
 			continue
 		}
-		names[i] = prefix + Quote(suffix)
+		result = append(result, suffix)
 	}
-	return names
+	return result
 }
 
 func Quote(s string) string {
