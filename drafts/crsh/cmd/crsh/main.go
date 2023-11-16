@@ -586,7 +586,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 func Complete(prefix string) []string {
 	log.Printf("Complete request: %#v\n", prefix)
 	var result []string
-	words := strings.Split(prefix, " ")
+	words := Unquote(prefix)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
 	} else {
@@ -630,7 +630,6 @@ func CompleteFile(prefix string) []string {
 		prefix = "$HOME" + prefix[1:]
 	}
 	prefix = os.ExpandEnv(prefix)
-	prefix = Unquote(prefix)
 	names, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		log.Println(err)
@@ -656,14 +655,16 @@ func CompleteFile(prefix string) []string {
 }
 
 func Quote(s string) string {
-	if strings.ContainsAny(s, " ") {
-		return `"` + s + `"`
+	res, err := syntax.Quote(s, syntax.LangBash)
+	if err != nil {
+		log.Println(err)
+		return s
 	}
-	return s
+	return res
 }
 
-func Unquote(s string) string {
-	return strings.ReplaceAll(s, `"`, "")
+func Unquote(s string) []string {
+	return strings.Split(s, " ")
 }
 
 func SSHMain(args []string, ctx context.Context) error {
