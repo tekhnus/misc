@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+DIR="$(dirname \"$0\")"
 
 if [[ ! -z $(git status --porcelain) ]]; then
   git add .
