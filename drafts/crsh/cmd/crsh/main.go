@@ -1,4 +1,3 @@
-// TODO: improve escaping while completion
 // TODO: list only sessions available for connection
 // TODO: more convenient session selection
 // TODO: smart new-session
