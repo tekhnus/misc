@@ -649,11 +649,10 @@ func CompleteFile(prefix string) []string {
 }
 
 func Quote(s string) string {
-	result := strconv.Quote(s)
-	if result == `"`+s+`"` {
-		return s
+	if strings.ContainsAny(s, " ") {
+		return `"` + s + `"`
 	}
-	return result
+	return s
 }
 
 func SSHMain(args []string, ctx context.Context) error {
