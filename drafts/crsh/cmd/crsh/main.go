@@ -1,9 +1,10 @@
-// TODO: list only sessions available for connection
 // TODO: more convenient session selection
 // TODO: smart new-session
 // TODO: ssh autoreconnection
 // TODO: start at bottom
 // TODO: support d
+// TODO: nicer autocomplete suggestions
+// TODO: more correct after-space autocomplete
 package main
 
 import (
@@ -414,10 +415,11 @@ func ShellMain(args []string, ctx context.Context) error {
 	defer lnr.Close()
 	normalMode.ApplyMode()
 
-	lnr.SetTabCompletionStyle(liner.TabPrints)
-	lnr.SetCompleter(Complete)
+	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode, sessions: sessions}
 
-	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode}
+	lnr.SetTabCompletionStyle(liner.TabPrints)
+	lnr.SetCompleter(func(prefix string) []string { return Complete(prefix, state) })
+
 	managers := make(chan net.Conn)
 	go func() {
 		err := Accept(listener, managers)
@@ -577,7 +579,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 	}
 }
 
-func Complete(prefix string) []string {
+func Complete(prefix string, state State) []string {
 	log.Printf("Complete request: %#v\n", prefix)
 	var result []string
 	words := Unquote(prefix)
@@ -587,6 +589,12 @@ func Complete(prefix string) []string {
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
+	} else if len(words) == 2 && words[0] == `\go` {
+		for _, sess := range state.sessions {
+			if strings.HasPrefix(sess, words[1]) {
+				result = append(result, prefix+strings.TrimPrefix(sess, words[1]))
+			}
+		}
 	} else {
 		lastword := words[len(words)-1]
 		filecomps := CompleteFile(lastword)
@@ -1052,4 +1060,5 @@ type State = struct {
 	lnr         *liner.State
 	defaultMode liner.ModeApplier
 	linerMode   liner.ModeApplier
+	sessions    []string
 }
