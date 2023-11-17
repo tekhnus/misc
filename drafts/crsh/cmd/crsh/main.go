@@ -428,11 +428,7 @@ func ShellMain(args []string, ctx context.Context) error {
 				continue
 			}
 			rest := strings.TrimPrefix(comp, lastword)
-			if rest == "" {
-				quoted = append(quoted, lastword)
-				continue
-			}
-			quoted = append(quoted, lastword+Quote(rest))
+			quoted = append(quoted, QuoteIfNotEmpty(lastword)+QuoteIfNotEmpty(rest))
 		}
 		return prevwords, quoted, line[pos:]
 	})
@@ -670,6 +666,13 @@ func Quote(s string) string {
 		return s
 	}
 	return res
+}
+
+func QuoteIfNotEmpty(s string) string {
+	if s == "" {
+		return ""
+	}
+	return Quote(s)
 }
 
 func Unquote(s string) []string {
