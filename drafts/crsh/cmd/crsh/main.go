@@ -99,7 +99,11 @@ func Main() error {
 }
 
 func ManagerMain(args []string, ctx context.Context) error {
-	host := "^"
+	host, aerr := GetActiveShell()
+	if aerr != nil {
+		log.Println(aerr)
+		host = "^"
+	}
 	name := RandomName()
 
 	// Doing it in the beginning because it messes with
@@ -130,6 +134,20 @@ func ManagerMain(args []string, ctx context.Context) error {
 
 	log.Println("Exiting")
 	return nil
+}
+
+func GetActiveShell() (string, error) {
+	f, err := os.Open("/tmp/crsh-active")
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	ok := scanner.Scan()
+	if !ok {
+		return "", scanner.Err()
+	}
+	return strings.TrimSpace(scanner.Text()), nil
 }
 
 func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, string, bool, error) {
