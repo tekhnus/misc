@@ -585,7 +585,7 @@ func Complete(prefix string, state State) []string {
 	} else if len(words) == 2 && words[0] == `g` {
 		for _, sess := range state.sessions {
 			if strings.HasPrefix(sess, words[1]) {
-				result = append(result, prefix+strings.TrimPrefix(sess, words[1]))
+				result = append(result, strings.TrimPrefix(sess, words[1]))
 			}
 		}
 	} else {
@@ -594,10 +594,10 @@ func Complete(prefix string, state State) []string {
 		var fullcomps []string
 		for _, cm := range filecomps {
 			if cm == "" {
-				fullcomps = append(fullcomps, prefix)
+				fullcomps = append(fullcomps, "")
 				continue
 			}
-			fullcomps = append(fullcomps, prefix+Quote(cm))
+			fullcomps = append(fullcomps, Quote(cm))
 		}
 		result = append(result, fullcomps...)
 	}
@@ -620,7 +620,7 @@ func CompleteExecutable(prefix string) []string {
 		for _, fullname := range names {
 			name := filepath.Base(fullname)
 			if strings.HasPrefix(name, prefix) {
-				result = append(result, name)
+				result = append(result, strings.TrimPrefix(name, prefix))
 			}
 		}
 	}
