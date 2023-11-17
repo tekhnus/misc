@@ -390,6 +390,7 @@ func ShellMain(args []string, ctx context.Context) error {
 		}
 		fmt.Printf("- %s\n", session)
 	}
+	// Move to the line before the last one.
 	fmt.Print("\033[999B\033[A")
 
 	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
