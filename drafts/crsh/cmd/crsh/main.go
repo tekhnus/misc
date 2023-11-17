@@ -197,7 +197,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 					log.Println("Stopping the shell")
 					name := tokens[1]
 					return "", name, false, nil
-				case "\\ssh":
+				case "s":
 					if len(tokens) != 2 {
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 						break
