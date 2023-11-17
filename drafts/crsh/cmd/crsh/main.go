@@ -323,7 +323,6 @@ func MakeShell(host string, name string) (Shell, error) {
 		}
 		defer os.Remove(f.Name())
 		fmt.Fprintln(f, host)
-		fmt.Fprintln(f, name)
 		f.Close()
 		return os.Rename(f.Name(), "/tmp/crsh-active")
 	}
