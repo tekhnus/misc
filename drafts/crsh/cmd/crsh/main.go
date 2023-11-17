@@ -1,4 +1,3 @@
-// TODO: more convenient session selection
 // TODO: smart new-session
 // TODO: ssh autoreconnection
 // TODO: start at bottom
@@ -579,9 +578,6 @@ func Complete(prefix string, state State) []string {
 	log.Printf("Complete request: %#v\n", prefix)
 	var result []string
 	words := Unquote(prefix)
-	if strings.HasSuffix(prefix, " ") {
-		words = append(words, "")
-	}
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
@@ -666,6 +662,7 @@ func Quote(s string) string {
 }
 
 func Unquote(s string) []string {
+	s += `''` // So that Unquote("x ") returns an empty word at the end.
 	result, err := shell.Fields(s, os.Getenv)
 	if err != nil {
 		log.Println(err)
