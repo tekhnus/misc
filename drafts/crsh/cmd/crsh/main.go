@@ -165,6 +165,10 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 	log.Println("Finish sending history")
 
 	for shell.Out != nil || shell.Done != nil {
+		aerr := shell.MarkActive()
+		if aerr != nil {
+			log.Println(aerr)
+		}
 		log.Println("Selecting...")
 		select {
 		case msg, ok := <-shell.Out:
@@ -257,10 +261,11 @@ func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
 }
 
 type Shell = struct {
-	In     *json.Encoder
-	Out    chan Message
-	Done   chan error
-	Detach func() error
+	In         *json.Encoder
+	Out        chan Message
+	Done       chan error
+	Detach     func() error
+	MarkActive func() error
 }
 
 func MakeShell(host string, name string) (Shell, error) {
@@ -311,7 +316,18 @@ func MakeShell(host string, name string) (Shell, error) {
 		}
 		return nil
 	}
-	return Shell{shellIn, shellOut, shellCmdOut, detach}, nil
+	markActive := func() error {
+		f, err := os.CreateTemp("", "crsh-tmpfile")
+		if err != nil {
+			return err
+		}
+		defer os.Remove(f.Name())
+		fmt.Fprintln(f, host)
+		fmt.Fprintln(f, name)
+		f.Close()
+		return os.Rename(f.Name(), "/tmp/crsh-active")
+	}
+	return Shell{shellIn, shellOut, shellCmdOut, detach, markActive}, nil
 }
 
 func MakeShellCommand(host string, name string) *exec.Cmd {
