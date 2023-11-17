@@ -2,6 +2,8 @@
 // TODO: more convenient session selection
 // TODO: smart new-session
 // TODO: ssh autoreconnection
+// TODO: start at bottom
+// TODO: support d
 package main
 
 import (
@@ -693,9 +695,10 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	if host == "^" {
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
+		sessionName := SessionName(*displayHost, name)
 		// TODO: suppress tmux's auxiliary output at detach.
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux",
-			"-f", tmuxConf, "new-session", "-A", "-s", SessionName(*displayHost, name),
+			"-f", tmuxConf, "new-session", "-A", "-s", sessionName,
 			"env", "-u", "TMUX", Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
 		shellCmd.Stdout = os.Stdout
@@ -703,7 +706,15 @@ func SSHMain(args []string, ctx context.Context) error {
 		// Do not listening for signals here. If SIGINT or SIGHUP happens,
 		// tmux will receive it too and exit.
 		err = shellCmd.Run()
-		log.Println("Multiplexer finished, exiting")
+		log.Println("Finished waiting for multiplexer")
+
+		checkCmd := exec.Command("tmux", "-L", "crsh-tmux", "has-session", "-t", "="+sessionName)
+		outp, err := checkCmd.CombinedOutput()
+		if err != nil {
+			log.Println(outp)
+		} else {
+			log.Println("Session still exists")
+		}
 		return err
 	}
 
