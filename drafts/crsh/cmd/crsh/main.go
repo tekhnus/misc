@@ -710,6 +710,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 		time.Sleep(time.Second)
 		checkCmd := exec.Command("tmux", "-L", "crsh-tmux", "has-session", "-t", "="+sessionName)
+		log.Println("Starting:", checkCmd)
 		outp, cherr := checkCmd.CombinedOutput()
 		if err != nil {
 			log.Println("Session check error:", string(outp), cherr)
