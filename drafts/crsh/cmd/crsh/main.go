@@ -416,6 +416,11 @@ func ShellMain(args []string, ctx context.Context) error {
 		log.Printf("Complete request: %#v\n", line[:pos])
 		words := Unquote(line[:pos])
 		prevwords := Quote(strings.Join(words[:len(words)-1], " ")) + " "
+		completions := Complete(words, state)
+		var quoted []string
+		for _, comp := range completions {
+			quoted = append(quoted, Quote(comp))
+		}
 		return prevwords, Complete(words, state), line[pos:]
 	})
 
