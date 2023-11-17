@@ -413,7 +413,7 @@ func ShellMain(args []string, ctx context.Context) error {
 
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
-		return line[:pos], Complete(line[:pos], state), line[:pos]
+		return "", Complete(line[:pos], state), ""
 	})
 
 	managers := make(chan net.Conn)
