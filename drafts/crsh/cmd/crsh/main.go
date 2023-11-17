@@ -151,6 +151,11 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 	}()
 	defer shell.Detach()
 
+	aerr := shell.MarkActive()
+	if aerr != nil {
+		log.Println(aerr)
+	}
+
 	err := SyncHistoryAndAppend(lnr, "")
 	if err != nil {
 		log.Println(err)
@@ -165,10 +170,6 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 	log.Println("Finish sending history")
 
 	for shell.Out != nil || shell.Done != nil {
-		aerr := shell.MarkActive()
-		if aerr != nil {
-			log.Println(aerr)
-		}
 		log.Println("Selecting...")
 		select {
 		case msg, ok := <-shell.Out:
@@ -181,6 +182,10 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 			log.Println("Received a message from shell")
 			switch msg.Type {
 			case "input":
+				aerr := shell.MarkActive()
+				if aerr != nil {
+					log.Println(aerr)
+				}
 				err := SyncHistoryAndAppend(lnr, msg.Payload)
 				if err != nil {
 					log.Println(err)
