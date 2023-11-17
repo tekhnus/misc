@@ -709,11 +709,18 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished waiting for multiplexer")
 
 		checkCmd := exec.Command("tmux", "-L", "crsh-tmux", "has-session", "-t", "="+sessionName)
-		outp, err := checkCmd.CombinedOutput()
+		outp, cherr := checkCmd.CombinedOutput()
 		if err != nil {
-			log.Println("Session check error:", string(outp), err)
+			log.Println("Session check error:", string(outp), cherr)
 		} else {
 			log.Println("Session still exists")
+			sessionFile := "/tmp/crsh-available-" + name
+			f, ferr := os.Create(sessionFile)
+			if ferr != nil {
+				log.Println("Error while saving crsh-available file:", ferr)
+			} else {
+				f.Close()
+			}
 		}
 		return err
 	}
