@@ -416,12 +416,17 @@ func ShellMain(args []string, ctx context.Context) error {
 		log.Printf("Complete request: %#v\n", line[:pos])
 		words := Unquote(line[:pos])
 		prevwords := Quote(strings.Join(words[:len(words)-1], " ")) + " "
-		// completions := Complete(words, state)
-		// var quoted []string
-		// for _, comp := range completions {
-		// 	quoted = append(quoted, Quote(comp))
-		// }
-		return prevwords, Complete(words, state), line[pos:]
+		lastword := words[len(words)-1]
+		completions := Complete(words, state)
+		var quoted []string
+		for _, comp := range completions {
+			if !strings.HasPrefix(comp, lastword) {
+				log.Println("Completion problem:")
+				continue
+			}
+			quoted = append(quoted, lastword+Quote(strings.TrimPrefix(comp, lastword)))
+		}
+		return prevwords, quoted, line[pos:]
 	})
 
 	managers := make(chan net.Conn)
@@ -599,11 +604,7 @@ func Complete(words []string, state State) []string {
 		filecomps := CompleteFile(lastword)
 		var fullcomps []string
 		for _, cm := range filecomps {
-			if cm == "" {
-				fullcomps = append(fullcomps, "")
-				continue
-			}
-			fullcomps = append(fullcomps, Quote(cm))
+			fullcomps = append(fullcomps, cm)
 		}
 		result = append(result, fullcomps...)
 	}
