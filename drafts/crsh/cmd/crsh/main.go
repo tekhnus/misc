@@ -185,33 +185,29 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 				if err != nil {
 					log.Println(err)
 				}
-				if strings.HasPrefix(msg.Payload, "\\") {
-					tokens := strings.Split(msg.Payload, " ")
-					switch tokens[0] {
-					case "\\go":
-						if len(tokens) != 2 {
-							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
-							break
-						}
-						log.Println("Sending an exit message to current shell")
-						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
-						log.Println("Stopping the shell")
-						name := tokens[1]
-						return "", name, false, nil
-					case "\\ssh":
-						if len(tokens) != 2 {
-							shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
-							break
-						}
-						log.Println("Sending an exit message to current shell")
-						shell.In.Encode(Message{Type: "execute", Payload: "exit"})
-						log.Println("Stopping the shell")
-						host := tokens[1]
-						return host, "", false, nil
-					default:
+				tokens := strings.Split(msg.Payload, " ")
+				switch tokens[0] {
+				case "g":
+					if len(tokens) != 2 {
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
+						break
 					}
-				} else {
+					log.Println("Sending an exit message to current shell")
+					shell.In.Encode(Message{Type: "execute", Payload: "exit"})
+					log.Println("Stopping the shell")
+					name := tokens[1]
+					return "", name, false, nil
+				case "\\ssh":
+					if len(tokens) != 2 {
+						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
+						break
+					}
+					log.Println("Sending an exit message to current shell")
+					shell.In.Encode(Message{Type: "execute", Payload: "exit"})
+					log.Println("Stopping the shell")
+					host := tokens[1]
+					return host, "", false, nil
+				default:
 					shell.In.Encode(Message{Type: "execute", Payload: msg.Payload})
 				}
 			default:
@@ -589,7 +585,7 @@ func Complete(prefix string, state State) []string {
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
-	} else if len(words) == 2 && words[0] == `\go` {
+	} else if len(words) == 2 && words[0] == `g` {
 		for _, sess := range state.sessions {
 			if strings.HasPrefix(sess, words[1]) {
 				result = append(result, prefix+strings.TrimPrefix(sess, words[1]))
