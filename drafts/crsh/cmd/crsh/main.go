@@ -415,7 +415,7 @@ func ShellMain(args []string, ctx context.Context) error {
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
 		log.Printf("Complete request: %#v\n", line[:pos])
 		words := Unquote(line[:pos])
-		prevwords := Quote(strings.Join(words[:len(words)-1], " "))
+		prevwords := Quote(strings.Join(words[:len(words)-1], " ")) + " "
 		return prevwords, Complete(words, state), line[pos:]
 	})
 
