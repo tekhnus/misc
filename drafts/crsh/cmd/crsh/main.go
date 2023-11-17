@@ -694,6 +694,13 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 
 	if host == "^" {
+		sessionFile := "/tmp/crsh-available-" + name
+		rmerr := os.Remove(sessionFile)
+		if rmerr != nil {
+			log.Println("While trying to acquire available-file:", rmerr)
+		} else {
+			log.Println("Acquired available-file")
+		}
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		sessionName := SessionName(*displayHost, name)
 		// TODO: suppress tmux's auxiliary output at detach.
@@ -866,12 +873,12 @@ func SSHMain(args []string, ctx context.Context) error {
 
 func ListSessions() ([]string, error) {
 	var sessions []string
-	sockets, err := filepath.Glob("/tmp/crsh-shell-*")
+	sockets, err := filepath.Glob("/tmp/crsh-available-*")
 	if err != nil {
 		return nil, err
 	}
 	for _, sock := range sockets {
-		name, ok := strings.CutPrefix(sock, "/tmp/crsh-shell-")
+		name, ok := strings.CutPrefix(sock, "/tmp/crsh-available-")
 		if !ok {
 			return nil, fmt.Errorf("Unexpected problem")
 		}
