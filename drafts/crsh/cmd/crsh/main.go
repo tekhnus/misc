@@ -424,7 +424,12 @@ func ShellMain(args []string, ctx context.Context) error {
 				log.Println("Completion problem:")
 				continue
 			}
-			quoted = append(quoted, lastword+Quote(strings.TrimPrefix(comp, lastword)))
+			rest := strings.TrimPrefix(comp, lastword)
+			if rest == "" {
+				quoted = append(quoted, lastword)
+				continue
+			}
+			quoted = append(quoted, lastword+Quote(rest))
 		}
 		return prevwords, quoted, line[pos:]
 	})
