@@ -1,6 +1,5 @@
 // TODO: smart new-session
 // TODO: ssh autoreconnection
-// TODO: start at bottom
 // TODO: support d
 package main
 
