@@ -413,7 +413,10 @@ func ShellMain(args []string, ctx context.Context) error {
 
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
-		return line[:pos], Complete(line[:pos], state), line[pos:]
+		log.Printf("Complete request: %#v\n", line[:pos])
+		words := Unquote(line[:pos])
+		prevwords := Quote(strings.Join(words[:len(words)-1], " "))
+		return prevwords, Complete(words, state), line[pos:]
 	})
 
 	managers := make(chan net.Conn)
@@ -575,17 +578,15 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 	}
 }
 
-func Complete(prefix string, state State) []string {
-	log.Printf("Complete request: %#v\n", prefix)
+func Complete(words []string, state State) []string {
 	var result []string
-	words := Unquote(prefix)
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
 	} else if len(words) == 2 && words[0] == `g` {
 		for _, sess := range state.sessions {
 			if strings.HasPrefix(sess, words[1]) {
-				result = append(result, strings.TrimPrefix(sess, words[1]))
+				result = append(result, sess)
 			}
 		}
 	} else {
@@ -620,7 +621,7 @@ func CompleteExecutable(prefix string) []string {
 		for _, fullname := range names {
 			name := filepath.Base(fullname)
 			if strings.HasPrefix(name, prefix) {
-				result = append(result, strings.TrimPrefix(name, prefix))
+				result = append(result, name)
 			}
 		}
 	}
@@ -643,12 +644,7 @@ func CompleteFile(prefix string) []string {
 		if stat.IsDir() {
 			names[i] += "/"
 		}
-		suffix, ok := strings.CutPrefix(names[i], prefix)
-		if !ok {
-			log.Println("Completion problem:", names[i], prefix)
-			continue
-		}
-		result = append(result, suffix)
+		result = append(result, names[i])
 	}
 	return result
 }
