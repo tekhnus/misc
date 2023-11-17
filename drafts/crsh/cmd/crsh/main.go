@@ -709,7 +709,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished waiting for multiplexer")
 
 		time.Sleep(time.Second * 3)
-		checkCmd := exec.Command("tmux", "-L", "crsh-tmux", "has-session", "-t", "="+sessionName)
+		checkCmd := exec.Command("tmux", "-L", "crsh-tmux", "has-session", "-t", "="+sessionName+"xxx")
 		log.Println("Starting:", checkCmd)
 		outp, cherr := checkCmd.CombinedOutput()
 		if err != nil {
