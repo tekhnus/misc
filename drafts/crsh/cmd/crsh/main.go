@@ -2,7 +2,6 @@
 // TODO: ssh autoreconnection
 // TODO: start at bottom
 // TODO: support d
-// TODO: nicer autocomplete suggestions
 package main
 
 import (
@@ -391,6 +390,7 @@ func ShellMain(args []string, ctx context.Context) error {
 		}
 		fmt.Printf("- %s\n", session)
 	}
+	fmt.Print("\033[999B")
 
 	runner, err := interp.New(interp.StdIO(os.Stdin, os.Stdout, os.Stderr))
 	if err != nil {
