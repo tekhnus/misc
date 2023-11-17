@@ -3,7 +3,6 @@
 // TODO: start at bottom
 // TODO: support d
 // TODO: nicer autocomplete suggestions
-// TODO: more correct after-space autocomplete
 package main
 
 import (
@@ -413,7 +412,9 @@ func ShellMain(args []string, ctx context.Context) error {
 	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode, sessions: sessions}
 
 	lnr.SetTabCompletionStyle(liner.TabPrints)
-	lnr.SetCompleter(func(prefix string) []string { return Complete(prefix, state) })
+	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
+		return line[:pos], Complete(line[:pos], state), line[:pos]
+	})
 
 	managers := make(chan net.Conn)
 	go func() {
