@@ -765,13 +765,12 @@ func SSHMain(args []string, ctx context.Context) error {
 		}
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		sessionName := SessionName(*displayHost, name)
-		// TODO: suppress tmux's auxiliary output at detach.
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux",
 			"-f", tmuxConf, "new-session", "-A", "-s", sessionName,
 			"env", "-u", "TMUX", Executable, "shell", name)
 		shellCmd.Stdin = os.Stdin
-		shellCmd.Stdout = os.Stdout
-		shellCmd.Stderr = os.Stderr
+		// tmux doesn't need stdout and stderr,
+		// it apparently finds tty by stdin.
 		// Do not listening for signals here. If SIGINT or SIGHUP happens,
 		// tmux will receive it too and exit.
 		err = shellCmd.Run()
