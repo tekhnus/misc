@@ -739,6 +739,13 @@ func SSHMain(args []string, ctx context.Context) error {
 		wg.Wait()
 		log.Println("Finished waiting on child processes")
 	}()
+	masterStatus := make(chan error)
+	defer func() {
+		log.Println("Started waiting on master")
+		for range masterStatus {
+		}
+		log.Println("Finished waiting on master")
+	}()
 
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
 	displayHost := fs.String("display-host", "", "host to display")
@@ -800,15 +807,31 @@ func SSHMain(args []string, ctx context.Context) error {
 	masterCmd := exec.Command("ssh",
 		"-M", "-S", masterSocket, "-N",
 		host)
-	wg.Add(1)
+
 	go func() {
-		defer wg.Done()
+		defer close(masterStatus)
 		log.Println("Started command:", masterCmd)
 		out, err := masterCmd.CombinedOutput()
 		log.Println("Finished command:", masterCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
+		masterStatus <- err
 	}()
+
+	for {
+		_, serr := os.Stat(masterSocket)
+		if serr == nil {
+			break
+		}
+		select {
+		case merr := <-masterStatus:
+			log.Println("Master finished with error:", merr)
+			return merr
+		default:
+			log.Println("Master socket check error:", serr)
+			time.Sleep(time.Second / 5)
+		}
+	}
 
 	masterExitCmd := exec.Command("ssh", "-S", masterSocket, "-O", "exit", host)
 	defer func() {
@@ -828,8 +851,6 @@ func SSHMain(args []string, ctx context.Context) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		// FIXME Done so than the master appears
-		time.Sleep(time.Second * 2)
 		for {
 			pingCmd := exec.Command(
 				"ssh", "-S", masterSocket,
@@ -861,7 +882,6 @@ func SSHMain(args []string, ctx context.Context) error {
 		var out []byte
 		var err error
 		out, err = fwdCmd.CombinedOutput()
-		log.Println("!!!!!! RUN THIS:", fwdCmd)
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
