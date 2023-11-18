@@ -347,10 +347,9 @@ func MakeShell(host string, name string) (Shell, error) {
 			log.Println(err)
 		}
 		detachCmd := MakeDetachCommand(host, name)
-		err = detachCmd.Run()
-		if err != nil {
-			log.Println(err)
-		}
+		outp, err := detachCmd.CombinedOutput()
+		log.Println("Detach output:", string(outp))
+		log.Println("Detach status:", err)
 		return nil
 	}
 	markActive := func() error {
@@ -383,10 +382,6 @@ func MakeDetachCommand(host string, name string) *exec.Cmd {
 	}
 	args = append(args, "tmux", "-L", "crsh-tmux", "detach-client", "-s", "="+SessionName(host, name))
 	shellCmd := exec.Command(args[0], args[1:]...)
-
-	shellCmd.Stdin = os.Stdin
-	shellCmd.Stdout = os.Stdout
-	shellCmd.Stderr = os.Stderr
 
 	return shellCmd
 }
