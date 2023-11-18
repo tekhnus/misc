@@ -848,11 +848,9 @@ func SSHMain(args []string, ctx context.Context) error {
 			}
 			time.Sleep(time.Second / 5)
 		}
-		defer os.Remove(shellSocket)
 		log.Println("Started command:", fwdCmd)
 		var out []byte
 		var err error
-		time.Sleep(time.Second * 5) // IDK why
 		out, err = fwdCmd.CombinedOutput()
 		log.Println("!!!!!! RUN THIS:", fwdCmd)
 		log.Println("Finished command:", fwdCmd)
@@ -864,6 +862,7 @@ func SSHMain(args []string, ctx context.Context) error {
 			return
 		}
 	}()
+	defer os.Remove(shellSocket)
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
 	tmpDir := ".local/share/crsh/tmp"
