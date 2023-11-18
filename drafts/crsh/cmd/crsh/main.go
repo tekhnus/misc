@@ -114,7 +114,15 @@ func ManagerMain(args []string, ctx context.Context) error {
 		fmt.Println("Connecting to session", SessionName(host, name), "...")
 		shell, err := MakeShell(host, name)
 		if err != nil {
-			return err
+			dur := time.Second * 1
+			fmt.Println("Error connecting:", err)
+			fmt.Println("Repeating in", dur)
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-time.After(dur):
+			}
+			continue
 		}
 		newhost, newname, exit, err := HandleShell(shell, lnr, ctx)
 		if err != nil {
