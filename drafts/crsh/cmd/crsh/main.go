@@ -852,7 +852,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Started command:", fwdCmd)
 		var out []byte
 		var err error
-		time.Sleep(time.Second * 1) // IDK why
+		time.Sleep(time.Second * 5) // IDK why
 		out, err = fwdCmd.CombinedOutput()
 		log.Println("!!!!!! RUN THIS:", fwdCmd)
 		log.Println("Finished command:", fwdCmd)
