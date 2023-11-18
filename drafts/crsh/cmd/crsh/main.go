@@ -1,4 +1,3 @@
-// TODO: ssh autoreconnection
 // TODO: support d
 package main
 
