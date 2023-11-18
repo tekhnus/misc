@@ -817,9 +817,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		"-O", "forward",
 		"-L", shellSocket+":"+shellSocket,
 		host)
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
+	{
 		// FIXME Done so than the master appears
 		time.Sleep(time.Second * 2)
 		for {
@@ -832,7 +830,7 @@ func SSHMain(args []string, ctx context.Context) error {
 			log.Print("Output: ", string(out))
 			log.Println("Status:", err)
 			if err != nil {
-				break
+				return err
 			}
 			checkCmd := exec.Command(
 				"ssh", "-S", masterSocket, host,
@@ -852,13 +850,10 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
-	}()
-	defer func() {
-		proc := fwdCmd.Process
-		if proc != nil {
-			proc.Kill()
+		if err != nil {
+			return err
 		}
-	}()
+	}
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
 	tmpDir := ".local/share/crsh/tmp"
