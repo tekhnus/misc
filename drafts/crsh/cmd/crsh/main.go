@@ -917,9 +917,6 @@ func SSHMain(args []string, ctx context.Context) error {
 	log.Println("Finished command:", shellCmd)
 	log.Println("Status:", err)
 
-	// FIXME I don't remember why this is needed
-	time.Sleep(1 * time.Second)
-
 	return nil
 }
 
