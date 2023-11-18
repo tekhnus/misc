@@ -209,8 +209,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 			if !ok {
 				log.Println("Shell output was closed")
 				shell.Out = nil
-				log.Println("Start detaching")
-				return "", "", true, nil
+				break
 			}
 			log.Println("Received a message from shell")
 			switch msg.Type {
@@ -260,8 +259,9 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 			log.Println("Shell command finished")
 			if err != nil {
 				log.Println("With error:", err)
-				return "", "", true, err
 			}
+			log.Println("Start detaching")
+			return "", "", true, err
 		case <-ctx.Done():
 			log.Println("Start terminating by cancel")
 			return "", "", true, nil
