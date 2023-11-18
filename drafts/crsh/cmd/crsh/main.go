@@ -126,7 +126,15 @@ func ManagerMain(args []string, ctx context.Context) error {
 		}
 		newhost, newname, exit, err := HandleShell(shell, lnr, ctx)
 		if err != nil {
-			return err
+			dur := time.Second * 1
+			fmt.Println("Session error:", err)
+			fmt.Println("Reconnecting in", dur)
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-time.After(dur):
+			}
+			continue
 		}
 		if exit {
 			break
@@ -261,7 +269,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 	}
 
 	log.Println("All channels closed")
-	return "", "", false, fmt.Errorf("All channels were closed")
+	return "", "", false, fmt.Errorf("Internal error: all channels are closed")
 }
 
 func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
