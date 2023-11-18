@@ -739,13 +739,6 @@ func SSHMain(args []string, ctx context.Context) error {
 		wg.Wait()
 		log.Println("Finished waiting on child processes")
 	}()
-	masterStatus := make(chan error)
-	defer func() {
-		log.Println("Started waiting on master")
-		for range masterStatus {
-		}
-		log.Println("Finished waiting on master")
-	}()
 
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
 	displayHost := fs.String("display-host", "", "host to display")
@@ -808,6 +801,8 @@ func SSHMain(args []string, ctx context.Context) error {
 		"-M", "-S", masterSocket, "-N",
 		host)
 
+	masterStatus := make(chan error)
+
 	go func() {
 		defer close(masterStatus)
 		log.Println("Started command:", masterCmd)
@@ -832,6 +827,13 @@ func SSHMain(args []string, ctx context.Context) error {
 			time.Sleep(time.Second / 5)
 		}
 	}
+
+	defer func() {
+		log.Println("Started waiting on master")
+		for range masterStatus {
+		}
+		log.Println("Finished waiting on master")
+	}()
 
 	masterExitCmd := exec.Command("ssh", "-S", masterSocket, "-O", "exit", host)
 	defer func() {
