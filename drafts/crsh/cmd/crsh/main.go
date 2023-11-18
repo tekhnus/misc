@@ -818,7 +818,9 @@ func SSHMain(args []string, ctx context.Context) error {
 		"-L", shellSocket+":"+shellSocket,
 		host)
 	sshCtxt, sshCancel := context.WithCancel(context.Background())
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		// FIXME Done so than the master appears
 		time.Sleep(time.Second * 2)
 		for {
@@ -854,6 +856,11 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
+		if err != nil {
+			log.Println("Cancelling ssh")
+			sshCancel()
+			return
+		}
 	}()
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
