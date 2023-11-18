@@ -3,6 +3,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
@@ -916,13 +917,13 @@ func SSHMain(args []string, ctx context.Context) error {
 	}
 
 	executable := dstDir + "/linux/crsh"
-	// TODO: suppress ssh's auxiliary output on closing.
 	shellCmd := exec.CommandContext(sshCtxt, "ssh",
 		"-S", masterSocket, "-t", host,
 		executable, "ssh", "-display-host", host, "^", name)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
-	shellCmd.Stderr = os.Stderr
+	var sshErr bytes.Buffer
+	shellCmd.Stderr = &sshErr
 
 	// Not processing signals here.
 	// If SIGINT or SIGHUP happens,
@@ -930,6 +931,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	err = shellCmd.Run()
 	log.Println("Finished command:", shellCmd)
 	log.Println("Status:", err)
+	log.Println("Stderr:", sshErr.String())
 
 	return err
 }
