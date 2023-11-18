@@ -817,7 +817,8 @@ func SSHMain(args []string, ctx context.Context) error {
 		"-O", "forward",
 		"-L", shellSocket+":"+shellSocket,
 		host)
-	{
+	sshCtxt, sshCancel := context.WithCancel(context.Background())
+	go func() {
 		// FIXME Done so than the master appears
 		time.Sleep(time.Second * 2)
 		for {
@@ -830,7 +831,10 @@ func SSHMain(args []string, ctx context.Context) error {
 			log.Print("Output: ", string(out))
 			log.Println("Status:", err)
 			if err != nil {
-				return err
+				log.Println(err)
+				log.Println("Cancelling ssh")
+				sshCancel()
+				return
 			}
 			checkCmd := exec.Command(
 				"ssh", "-S", masterSocket, host,
@@ -850,10 +854,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
-		if err != nil {
-			return err
-		}
-	}
+	}()
 
 	srcDir := os.ExpandEnv("$HOME/.local/share/crsh/" + Version)
 	tmpDir := ".local/share/crsh/tmp"
@@ -899,7 +900,7 @@ func SSHMain(args []string, ctx context.Context) error {
 
 	executable := dstDir + "/linux/crsh"
 	// TODO: suppress ssh's auxiliary output on closing.
-	shellCmd := exec.Command("ssh",
+	shellCmd := exec.CommandContext(sshCtxt, "ssh",
 		"-S", masterSocket, "-t", host,
 		executable, "ssh", "-display-host", host, "^", name)
 	shellCmd.Stdin = os.Stdin
