@@ -810,8 +810,6 @@ func SSHMain(args []string, ctx context.Context) error {
 		log.Println("Status:", err)
 	}()
 
-	// I can't get dynamic master forwarding to work,
-	// so not using master here.
 	fwdCmd := exec.Command("ssh",
 		"-S", masterSocket,
 		"-O", "forward",
@@ -852,7 +850,10 @@ func SSHMain(args []string, ctx context.Context) error {
 		}
 		defer os.Remove(shellSocket)
 		log.Println("Started command:", fwdCmd)
-		out, err := fwdCmd.CombinedOutput()
+		var out []byte
+		var err error
+		// out, err = fwdCmd.CombinedOutput()
+		fmt.Println("RUN THIS:", fwdCmd)
 		log.Println("Finished command:", fwdCmd)
 		log.Print("Output: ", string(out))
 		log.Println("Status:", err)
