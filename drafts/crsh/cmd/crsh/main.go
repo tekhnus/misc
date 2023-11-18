@@ -813,8 +813,9 @@ func SSHMain(args []string, ctx context.Context) error {
 	// I can't get dynamic master forwarding to work,
 	// so not using master here.
 	fwdCmd := exec.Command("ssh",
+		"-S", masterSocket,
+		"-O", "forward",
 		"-L", shellSocket+":"+shellSocket,
-		"-N",
 		host)
 	wg.Add(1)
 	go func() {
