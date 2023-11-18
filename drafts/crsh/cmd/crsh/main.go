@@ -938,7 +938,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	log.Println("Finished command:", shellCmd)
 	log.Println("Status:", err)
 
-	return nil
+	return err
 }
 
 func ListSessions() ([]string, error) {
