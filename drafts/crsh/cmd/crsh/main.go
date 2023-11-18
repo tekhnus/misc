@@ -1,4 +1,3 @@
-// TODO: support d
 package main
 
 import (
@@ -273,7 +272,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 }
 
 func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
-	// TODO: interprocess locking should be done here.
+	// FIXME: interprocess locking should be done here.
 	histfile := os.ExpandEnv("$HOME/.crsh-history")
 	lnr.ClearHistory()
 	hist, err := os.Open(histfile)
@@ -623,7 +622,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 			log.Printf("Received: %s %#v\n", msg.Type, pl)
 			switch msg.Type {
 			case "execute":
-				exit, err := SimpleExecute(state.runner, msg.Payload)
+				exit, err := SimpleExecute(state.runner, msg.Payload, ctx)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
@@ -956,14 +955,14 @@ func SessionName(host string, name string) string {
 	return name + "@" + host
 }
 
-func SimpleExecute(runner *interp.Runner, stmts string) (bool, error) {
+func SimpleExecute(runner *interp.Runner, stmts string, ctx context.Context) (bool, error) {
 	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
 	if perr != nil {
 		return false, perr
 	}
 	var err error
 	for _, stmt := range source.Stmts {
-		serr := runner.Run(context.TODO(), stmt)
+		serr := runner.Run(ctx, stmt)
 		if serr != nil {
 			err = errors.Join(err, serr)
 		}
