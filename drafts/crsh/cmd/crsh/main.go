@@ -724,7 +724,7 @@ func CompleteExecutable(prefix string) []string {
 
 func CompleteFile(prefix string) []string {
 	log.Println("Completing file", prefix)
-	dir, prefix := filepath.Split(prefix)
+	dir, nameprefix := filepath.Split(prefix)
 	entries, err := filepath.Glob(dir + "*")
 	if err != nil {
 		log.Println(err)
@@ -738,13 +738,13 @@ func CompleteFile(prefix string) []string {
 			continue
 		}
 		name := filepath.Base(entries[i])
-		if !strings.HasPrefix(name, prefix) {
+		if !strings.HasPrefix(name, nameprefix) {
 			continue
 		}
 		if stat.IsDir() {
 			name += "/"
 		}
-		result = append(result, prefix+strings.TrimPrefix(name, prefix))
+		result = append(result, dir+name)
 	}
 	log.Printf("Result: %#v\n", result)
 	return result
