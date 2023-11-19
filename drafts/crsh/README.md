@@ -16,6 +16,8 @@ usage:
   - to log into a remote server,
     use a built-in `s [server]` command
     instead of the usual `ssh [server]`;
+  - to terminate the session, type `exit`
+    or press Ctrl + D.
   - to detach from the session without
     terminating it, just close the terminal window;
   - to reattach to the session,
