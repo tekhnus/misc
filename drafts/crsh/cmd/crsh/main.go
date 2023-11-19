@@ -738,10 +738,13 @@ func CompleteFile(prefix string) []string {
 			continue
 		}
 		name := filepath.Base(entries[i])
+		if !strings.HasPrefix(name, prefix) {
+			continue
+		}
 		if stat.IsDir() {
 			name += "/"
 		}
-		result = append(result, prefix+name)
+		result = append(result, prefix+strings.TrimPrefix(name, prefix))
 	}
 	log.Printf("Result: %#v\n", result)
 	return result
