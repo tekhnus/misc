@@ -1012,7 +1012,7 @@ func ListSessions() ([]string, error) {
 }
 
 func SessionName(host string, name string) string {
-	return name + "@" + host
+	return name
 }
 
 func SimpleExecute(runner *interp.Runner, stmts string, ctx context.Context) (bool, error) {
