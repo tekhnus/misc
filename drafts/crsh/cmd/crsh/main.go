@@ -316,10 +316,13 @@ func MakeShell(host string, name string) (Shell, error) {
 	log.Println("Start launching shell", host, name)
 	shellCmd := MakeShellCommand(host, name)
 	go func() {
+		var stderr bytes.Buffer
+		shellCmd.Stderr = &stderr
 		log.Println("Start running shell:", shellCmd)
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
-		shellCmdOut <- err
+		log.Println("Stderr:", stderr.String())
+		shellCmdOut <- fmt.Errorf("%w: %s", err, stderr.String())
 		close(shellCmdOut)
 	}()
 	log.Println("Finish launching shell")
@@ -396,7 +399,6 @@ func MakeShellCommand(host string, name string) *exec.Cmd {
 
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
-	shellCmd.Stderr = os.Stderr
 
 	return shellCmd
 }
