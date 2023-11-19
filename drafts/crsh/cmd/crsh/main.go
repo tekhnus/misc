@@ -455,7 +455,7 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	fmt.Printf("\033]0;%s\007", "crsh")
+	fmt.Printf("\033]0;%s\007", PromptText("crsh", *prompt, false))
 
 	sessions, err := ListSessions()
 	if err != nil {
@@ -1020,8 +1020,8 @@ func SessionName(host string, name string) string {
 }
 
 func SimpleExecute(runner *interp.Runner, stmts string, prompt string, ctx context.Context) (bool, error) {
-	defer fmt.Printf("\033]0;%s\007", PromptText("crsh", prompt))
-	fmt.Printf("\033]0;%16s\007", PromptText(stmts, prompt))
+	defer fmt.Printf("\033]0;%s\007", PromptText("crsh", prompt, false))
+	fmt.Printf("\033]0;%16s\007", PromptText(stmts, prompt, false))
 	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
 	if perr != nil {
 		return false, perr
@@ -1051,7 +1051,7 @@ func Prompt(state State, prompt string) (string, error) {
 		cwd = "~/" + relcwd
 		cwd = filepath.Clean(cwd)
 	}
-	fmt.Printf("%s\n", PromptText(cwd, prompt))
+	fmt.Printf("%s\n", PromptText(cwd, prompt, true))
 	err := state.linerMode.ApplyMode()
 	if err != nil {
 		return "", err
@@ -1068,8 +1068,11 @@ func Prompt(state State, prompt string) (string, error) {
 	return line, err
 }
 
-func PromptText(prefix string, prompt string) string {
-	return fmt.Sprintf("\033[1m%s\033[0m%s\n", prefix, prompt)
+func PromptText(prefix string, prompt string, pretty bool) string {
+	if pretty {
+		return fmt.Sprintf("\033[1m%s\033[0m%s", prefix, prompt)
+	}
+	return fmt.Sprintf("%s%s\n", prefix, prompt)
 }
 
 func LogServerMain(args []string, ctx context.Context) error {
