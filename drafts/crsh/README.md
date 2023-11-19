@@ -20,4 +20,4 @@ usage:
     terminating it, just close the terminal window;
   - to reattach to the session,
     log into the host and use a built-in
-    `a [session]` command.
+    `r [session]` command.

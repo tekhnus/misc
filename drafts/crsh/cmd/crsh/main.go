@@ -223,7 +223,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 				}
 				tokens := strings.Split(msg.Payload, " ")
 				switch tokens[0] {
-				case "a":
+				case "r":
 					if len(tokens) != 2 {
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 						break
@@ -307,6 +307,7 @@ type Shell = struct {
 
 func MakeShell(host string, name string) (Shell, error) {
 	shellCtx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	var shellIn *json.Encoder
 	shellOut := make(chan Message)
@@ -318,18 +319,43 @@ func MakeShell(host string, name string) (Shell, error) {
 		log.Println("Start running shell:", shellCmd)
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
-		cancel()
 		shellCmdOut <- err
 		close(shellCmdOut)
 	}()
 	log.Println("Finish launching shell")
 
+	conn := make(chan net.Conn)
 	log.Println("Start dialing shell")
-	shell, err := MakeShellConnection(name, shellCtx)
-	if err != nil {
-		log.Println("While dialing shell:", err)
-		log.Println("Waiting for shell command to complete")
-		for range shellCmdOut {
+	go func() {
+		defer close(conn)
+		log.Println("Start making connection")
+		shell, err := MakeShellConnection(name, shellCtx)
+		log.Println("Finish making connection:", err)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		conn <- shell
+	}()
+	var shell net.Conn
+	var ok bool
+	select {
+	case shell, ok = <-conn:
+		if !ok {
+			log.Println("Failure while getting a connection")
+			log.Println("Waiting for shell command to complete")
+			for range shellCmdOut {
+			}
+			return Shell{}, fmt.Errorf("Didn't connect")
+		}
+	case err, ok := <-shellCmdOut:
+		log.Println("Shell command finished")
+		if !ok {
+			log.Println("Shouldn't happen")
+		}
+		cancel()
+		log.Println("Waiting for connection being closed")
+		for range conn {
 		}
 		return Shell{}, err
 	}
@@ -644,7 +670,7 @@ func Complete(words []string, state State) []string {
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
-	} else if len(words) == 2 && words[0] == `a` {
+	} else if len(words) == 2 && words[0] == `r` {
 		for _, sess := range state.sessions {
 			if strings.HasPrefix(sess, words[1]) {
 				result = append(result, sess)
