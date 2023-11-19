@@ -6,12 +6,10 @@ probably spent your time on:
   - configuring the shell on each new host;
   - migrating the shell history between the hosts;
   - re-establishing the remote session
-    after each network disconnection.
+    after each network disconnection;
+  - setting up tmux sessions.
 
-**crsh does this all for you out of the box.**
-
-besides that, it setups persistent sessions,
-sparing you from manually interacting with tmux.
+crsh does this all for you out of the box.
 
 usage:
   - to log into a remote server,
