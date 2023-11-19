@@ -805,7 +805,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		sessionName := SessionName(*displayHost, name)
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux",
 			"-f", tmuxConf, "new-session", "-A", "-s", sessionName,
-			"env", "-u", "TMUX", Executable, "shell", "-prompt", " "+*displayHost, name)
+			"env", "-u", "TMUX", Executable, "shell", "-prompt", fmt.Sprintf(" (%s)", *displayHost), name)
 		shellCmd.Stdin = os.Stdin
 		// tmux doesn't need stdout and stderr,
 		// it apparently finds tty by stdin.
