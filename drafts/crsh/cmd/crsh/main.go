@@ -1022,7 +1022,9 @@ func SessionName(host string, name string) string {
 func SimpleExecute(state State, stmts string, prompt string, ctx context.Context) (bool, error) {
 	runner := state.runner
 
-	defer fmt.Printf("\033]0;%s\007", PromptText(PromptPrefix(state), prompt, false))
+	defer func() {
+		fmt.Printf("\033]0;%s\007", PromptText(PromptPrefix(state), prompt, false))
+	}()
 	fmt.Printf("\033]0;%16s\007", PromptText(stmts, prompt, false))
 	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
 	if perr != nil {
