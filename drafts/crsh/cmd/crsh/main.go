@@ -223,7 +223,7 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 				}
 				tokens := strings.Split(msg.Payload, " ")
 				switch tokens[0] {
-				case "g":
+				case "a":
 					if len(tokens) != 2 {
 						shell.In.Encode(Message{Type: "execute", Payload: "echo Wrong command"})
 						break
@@ -644,7 +644,7 @@ func Complete(words []string, state State) []string {
 	log.Printf("After unquoting: %#v\n", words)
 	if len(words) == 1 {
 		result = append(result, CompleteExecutable(words[0])...)
-	} else if len(words) == 2 && words[0] == `g` {
+	} else if len(words) == 2 && words[0] == `a` {
 		for _, sess := range state.sessions {
 			if strings.HasPrefix(sess, words[1]) {
 				result = append(result, sess)
@@ -762,6 +762,10 @@ func SSHMain(args []string, ctx context.Context) error {
 			log.Println("While trying to acquire available-file:", rmerr)
 		} else {
 			log.Println("Acquired available-file")
+		}
+		_, tmuxErr := exec.LookPath("tmoox")
+		if tmuxErr != nil {
+			return tmuxErr
 		}
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		sessionName := SessionName(*displayHost, name)
