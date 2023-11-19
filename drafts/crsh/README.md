@@ -8,9 +8,10 @@ probably spent your time on:
   - re-establishing the remote session
     after each network disconnection.
 
-crsh does this all for you out of the box.
-besides that, it manages persistent sessions,
-sparing you from interacting with tmux.
+**crsh does this all for you out of the box.**
+
+besides that, it setups persistent sessions,
+sparing you from manually interacting with tmux.
 
 usage:
   - to log into a remote server,
