@@ -35,6 +35,7 @@ var Executable string = os.Args[0]
 func main() {
 	err := Main()
 	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 	os.Exit(0)
