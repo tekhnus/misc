@@ -13,7 +13,6 @@ besides that, it manages persistent sessions,
 sparing you from interacting with tmux.
 
 usage:
-  - launch `crsh`;
   - to log into a remote server,
     use a built-in `s [server]` command
     instead of the usual `ssh [server]`;
@@ -31,4 +30,5 @@ installation:
   - ensure that `go` is installed;
   - clone this repo;
   - type `./build && ./install`;
-  - ensure that `~/.local/bin` is in your `$PATH`.
+  - (optionally) configure your terminal
+    to run `~/.local/bin/crsh`
