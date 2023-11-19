@@ -948,7 +948,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	log.Println("Status:", err)
 
 	if err != nil {
-		fmt.Println("Installing crsh, this might take some time ...")
+		fmt.Println("Installing crsh, this might take a while ...")
 		mkdirCmd := exec.Command(
 			"ssh", "-S", masterSocket, host,
 			"rm", "-rf", tmpDir,
