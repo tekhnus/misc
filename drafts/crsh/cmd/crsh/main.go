@@ -323,7 +323,11 @@ func MakeShell(host string, name string) (Shell, error) {
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
 		log.Println("Stderr:", stderr.String())
-		shellCmdOut <- fmt.Errorf("%w: %s", err, stderr.String())
+		if err == nil {
+			shellCmdOut <- nil
+		} else {
+			shellCmdOut <- fmt.Errorf("%w: %s", err, stderr.String())
+		}
 		close(shellCmdOut)
 	}()
 	log.Println("Finish launching shell")
