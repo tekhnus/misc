@@ -1018,6 +1018,8 @@ func SessionName(host string, name string) string {
 }
 
 func SimpleExecute(runner *interp.Runner, stmts string, ctx context.Context) (bool, error) {
+	defer fmt.Printf("\033]0;%s\007", "crsh")
+	fmt.Printf("\033]0;%16s\007", stmts)
 	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
 	if perr != nil {
 		return false, perr
