@@ -807,7 +807,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		// Do not listening for signals here. If SIGINT or SIGHUP happens,
 		// tmux will receive it too and exit.
 		err = shellCmd.Run()
-		log.Println("Finished waiting for multiplexer")
+		log.Println("Finished waiting for multiplexer:", err)
 
 		checkCmd := exec.Command("tmux", "-L", "crsh-tmux", "has-session", "-t", "="+sessionName)
 		log.Println("Starting:", checkCmd)
