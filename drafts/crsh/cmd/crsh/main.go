@@ -723,23 +723,25 @@ func CompleteExecutable(prefix string) []string {
 }
 
 func CompleteFile(prefix string) []string {
-	log.Println("Completing glob", prefix+"*")
-	names, err := filepath.Glob(prefix + "*")
+	log.Println("Completing file", prefix)
+	dir, prefix := filepath.Split(prefix)
+	entries, err := filepath.Glob(dir + "*")
 	if err != nil {
 		log.Println(err)
 		return nil
 	}
 	var result []string
-	for i := range names {
-		stat, err := os.Stat(names[i])
+	for i := range entries {
+		stat, err := os.Stat(entries[i])
 		if err != nil {
 			log.Println(err)
 			continue
 		}
+		name := filepath.Base(entries[i])
 		if stat.IsDir() {
-			names[i] += "/"
+			name += "/"
 		}
-		result = append(result, names[i])
+		result = append(result, prefix+name)
 	}
 	log.Printf("Result: %#v\n", result)
 	return result
