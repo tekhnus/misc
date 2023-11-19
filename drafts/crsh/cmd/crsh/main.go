@@ -723,6 +723,7 @@ func CompleteExecutable(prefix string) []string {
 }
 
 func CompleteFile(prefix string) []string {
+	log.Println("Completing glob", prefix+"*")
 	names, err := filepath.Glob(prefix + "*")
 	if err != nil {
 		log.Println(err)
@@ -740,6 +741,7 @@ func CompleteFile(prefix string) []string {
 		}
 		result = append(result, names[i])
 	}
+	log.Printf("Result: %#v\n", result)
 	return result
 }
 
