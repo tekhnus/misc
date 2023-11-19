@@ -455,8 +455,6 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
-	fmt.Printf("\033]0;%s\007", PromptText("crsh", *prompt, false))
-
 	sessions, err := ListSessions()
 	if err != nil {
 		return err
@@ -494,6 +492,8 @@ func ShellMain(args []string, ctx context.Context) error {
 	normalMode.ApplyMode()
 
 	state := State{runner: runner, lnr: lnr, defaultMode: normalMode, linerMode: linerMode, sessions: sessions}
+
+	fmt.Printf("\033]0;%s\007", PromptText(PromptPrefix(state), *prompt, false))
 
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
@@ -659,7 +659,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 			log.Printf("Received: %s %#v\n", msg.Type, pl)
 			switch msg.Type {
 			case "execute":
-				exit, err := SimpleExecute(state.runner, msg.Payload, prompt, ctx)
+				exit, err := SimpleExecute(state, msg.Payload, prompt, ctx)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
@@ -1019,8 +1019,10 @@ func SessionName(host string, name string) string {
 	return name
 }
 
-func SimpleExecute(runner *interp.Runner, stmts string, prompt string, ctx context.Context) (bool, error) {
-	defer fmt.Printf("\033]0;%s\007", PromptText("crsh", prompt, false))
+func SimpleExecute(state State, stmts string, prompt string, ctx context.Context) (bool, error) {
+	runner := state.runner
+
+	defer fmt.Printf("\033]0;%s\007", PromptText(PromptPrefix(state), prompt, false))
 	fmt.Printf("\033]0;%16s\007", PromptText(stmts, prompt, false))
 	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
 	if perr != nil {
@@ -1044,14 +1046,7 @@ func SimpleExecute(runner *interp.Runner, stmts string, prompt string, ctx conte
 }
 
 func Prompt(state State, prompt string) (string, error) {
-	cwd := state.runner.Dir
-	home, _ := os.UserHomeDir()
-	relcwd, _ := filepath.Rel(home, cwd)
-	if !strings.HasPrefix(relcwd, "..") {
-		cwd = "~/" + relcwd
-		cwd = filepath.Clean(cwd)
-	}
-	fmt.Printf("%s\n", PromptText(cwd, prompt, true))
+	fmt.Printf("%s\n", PromptText(PromptPrefix(state), prompt, true))
 	err := state.linerMode.ApplyMode()
 	if err != nil {
 		return "", err
@@ -1066,6 +1061,17 @@ func Prompt(state State, prompt string) (string, error) {
 		return "", err
 	}
 	return line, err
+}
+
+func PromptPrefix(state State) string {
+	cwd := state.runner.Dir
+	home, _ := os.UserHomeDir()
+	relcwd, _ := filepath.Rel(home, cwd)
+	if !strings.HasPrefix(relcwd, "..") {
+		cwd = "~/" + relcwd
+		cwd = filepath.Clean(cwd)
+	}
+	return cwd
 }
 
 func PromptText(prefix string, prompt string, pretty bool) string {
