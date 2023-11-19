@@ -455,6 +455,8 @@ func ShellMain(args []string, ctx context.Context) error {
 	}
 	defer listener.Close()
 
+	fmt.Printf("\033]0;%s\007", "crsh")
+
 	sessions, err := ListSessions()
 	if err != nil {
 		return err
@@ -558,7 +560,7 @@ func ShellMain(args []string, ctx context.Context) error {
 				return nil
 			}
 			log.Println("Finish accepting connection")
-			cont, err := HandleManager(state, manager, inputs, doPrompt, ctx)
+			cont, err := HandleManager(state, manager, inputs, doPrompt, *prompt, ctx)
 			if err != nil {
 				return err
 			}
@@ -577,7 +579,7 @@ func GetSocketPath(name string) string {
 	return "/tmp/crsh-shell-" + name
 }
 
-func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt func(), ctx context.Context) (bool, error) {
+func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt func(), prompt string, ctx context.Context) (bool, error) {
 	defer manager.Close()
 
 	managerIn := json.NewEncoder(manager)
@@ -657,7 +659,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 			log.Printf("Received: %s %#v\n", msg.Type, pl)
 			switch msg.Type {
 			case "execute":
-				exit, err := SimpleExecute(state.runner, msg.Payload, ctx)
+				exit, err := SimpleExecute(state.runner, msg.Payload, prompt, ctx)
 				if err != nil {
 					fmt.Fprintln(os.Stderr, err)
 				}
@@ -1017,9 +1019,9 @@ func SessionName(host string, name string) string {
 	return name
 }
 
-func SimpleExecute(runner *interp.Runner, stmts string, ctx context.Context) (bool, error) {
-	defer fmt.Printf("\033]0;%s\007", "crsh")
-	fmt.Printf("\033]0;%16s\007", stmts)
+func SimpleExecute(runner *interp.Runner, stmts string, prompt string, ctx context.Context) (bool, error) {
+	defer fmt.Printf("\033]0;%s\007", PromptText("crsh", prompt))
+	fmt.Printf("\033]0;%16s\007", PromptText(stmts, prompt))
 	source, perr := syntax.NewParser().Parse(strings.NewReader(stmts), "")
 	if perr != nil {
 		return false, perr
@@ -1049,7 +1051,7 @@ func Prompt(state State, prompt string) (string, error) {
 		cwd = "~/" + relcwd
 		cwd = filepath.Clean(cwd)
 	}
-	fmt.Printf("\033[1m%s\033[0m%s\n", cwd, prompt)
+	fmt.Printf("%s\n", PromptText(cwd, prompt))
 	err := state.linerMode.ApplyMode()
 	if err != nil {
 		return "", err
@@ -1064,6 +1066,10 @@ func Prompt(state State, prompt string) (string, error) {
 		return "", err
 	}
 	return line, err
+}
+
+func PromptText(prefix string, prompt string) string {
+	return fmt.Sprintf("\033[1m%s\033[0m%s\n", prefix, prompt)
 }
 
 func LogServerMain(args []string, ctx context.Context) error {
