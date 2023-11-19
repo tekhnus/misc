@@ -2,7 +2,7 @@
 with outstanding built-in remote capabilities.
 
 if you ssh into servers or containers a lot, you
-probably spent your time on:
+probably spend your time and effort on:
   - configuring the shell on each new host;
   - migrating the shell history between the hosts;
   - re-establishing the remote session
@@ -30,4 +30,5 @@ installation:
   - clone this repo;
   - type `./build && ./install`;
   - (optionally) configure your terminal
-    to run `~/.local/bin/crsh`
+    to launch `~/.local/bin/crsh`
+    instead of the default shell.
