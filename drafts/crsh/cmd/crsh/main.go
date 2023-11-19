@@ -318,7 +318,7 @@ func MakeShell(host string, name string) (Shell, error) {
 	shellCmd := MakeShellCommand(host, name)
 	go func() {
 		var stderr bytes.Buffer
-		// shellCmd.Stderr = &stderr
+		shellCmd.Stderr = &stderr
 		log.Println("Start running shell:", shellCmd)
 		err := shellCmd.Run()
 		log.Println("Finish running shell:", err)
