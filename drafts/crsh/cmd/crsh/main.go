@@ -438,6 +438,7 @@ func MakeShellConnection(name string, ctx context.Context) (net.Conn, error) {
 
 func ShellMain(args []string, ctx context.Context) error {
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
+	prompt := fs.String("prompt", "", "prompt suffix")
 	err := fs.Parse(args)
 	if err != nil {
 		return err
@@ -528,7 +529,7 @@ func ShellMain(args []string, ctx context.Context) error {
 			log.Println("Starting waiting permission to prompt")
 			<-doPromptChan
 			log.Println("Finished waiting permission to prompt")
-			line, err := Prompt(state)
+			line, err := Prompt(state, *prompt)
 			if err != nil {
 				log.Println(err)
 				close(inputs)
@@ -804,7 +805,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		sessionName := SessionName(*displayHost, name)
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux",
 			"-f", tmuxConf, "new-session", "-A", "-s", sessionName,
-			"env", "-u", "TMUX", Executable, "shell", name)
+			"env", "-u", "TMUX", Executable, "shell", "-prompt", " "+*displayHost, name)
 		shellCmd.Stdin = os.Stdin
 		// tmux doesn't need stdout and stderr,
 		// it apparently finds tty by stdin.
@@ -1036,7 +1037,7 @@ func SimpleExecute(runner *interp.Runner, stmts string, ctx context.Context) (bo
 	return false, err
 }
 
-func Prompt(state State) (string, error) {
+func Prompt(state State, prompt string) (string, error) {
 	cwd := state.runner.Dir
 	home, _ := os.UserHomeDir()
 	relcwd, _ := filepath.Rel(home, cwd)
@@ -1044,7 +1045,7 @@ func Prompt(state State) (string, error) {
 		cwd = "~/" + relcwd
 		cwd = filepath.Clean(cwd)
 	}
-	fmt.Printf("\033[1m%s\033[0m\n", cwd)
+	fmt.Printf("\033[1m%s\033[0m%s\n", cwd, prompt)
 	err := state.linerMode.ApplyMode()
 	if err != nil {
 		return "", err
