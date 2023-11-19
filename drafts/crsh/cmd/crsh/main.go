@@ -111,7 +111,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	lnr.Close()
 
 	for {
-		fmt.Println("Connecting to", host, ",", "session", name, "...")
+		fmt.Println("Connecting to", host, "...")
 		shell, err := MakeShell(host, name)
 		if err != nil {
 			dur := time.Second * 1
