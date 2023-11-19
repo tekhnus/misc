@@ -792,7 +792,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		} else {
 			log.Println("Acquired available-file")
 		}
-		_, tmuxErr := exec.LookPath("tmoox")
+		_, tmuxErr := exec.LookPath("tmux")
 		if tmuxErr != nil {
 			return tmuxErr
 		}
