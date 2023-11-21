@@ -1012,6 +1012,8 @@ func SSHMain(args []string, ctx context.Context) error {
 	// if connection breaks while the running program was listening to mouse events,
 	// things will get nasty, so we disable the mouse events here.
 	fmt.Print("\033[?1000l")
+	// also switching to primary screen.
+	fmt.Print("\033[?1049l")
 
 	return err
 }
