@@ -498,7 +498,7 @@ func ShellMain(args []string, ctx context.Context) error {
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
 		log.Printf("Complete request: %#v\n", line[:pos])
-		words := Unquote(line[:pos])
+		words := Unquote(state, line[:pos])
 		prevwords := ""
 		for i := 0; i+1 < len(words); i++ {
 			prevwords += Quote(words[i]) + " "
@@ -769,9 +769,12 @@ func QuoteIfNotEmpty(s string) string {
 	return Quote(s)
 }
 
-func Unquote(s string) []string {
+func Unquote(state State, s string) []string {
+	getVar := func(name string) string {
+		return state.runner.Env.Get(name).Str
+	}
 	s += `''` // So that Unquote("x ") returns an empty word at the end.
-	result, err := shell.Fields(s, os.Getenv)
+	result, err := shell.Fields(s, getVar)
 	if err != nil {
 		log.Println(err)
 		return []string{s}
@@ -1067,7 +1070,9 @@ func Prompt(state State, prompt string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	state.lnr.AppendHistory(line)
+	if line != "" {
+		state.lnr.AppendHistory(line)
+	}
 	err = state.defaultMode.ApplyMode()
 	if err != nil {
 		return "", err
