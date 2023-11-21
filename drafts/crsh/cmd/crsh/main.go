@@ -1009,6 +1009,10 @@ func SSHMain(args []string, ctx context.Context) error {
 	log.Println("Status:", err)
 	log.Println("Stderr:", sshErr.String())
 
+	// if connection breaks while the running program was listening to mouse events,
+	// things will get nasty, so we disable the mouse events here.
+	fmt.Print("\033[?1000l")
+
 	return err
 }
 
