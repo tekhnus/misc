@@ -769,7 +769,12 @@ func QuoteIfNotEmpty(s string) string {
 	return Quote(s)
 }
 
-func Unquote(state State, s string) []string {
+func Unquote(state State, st string) []string {
+	s, err := ParseLastCommand(st)
+	if err != nil {
+		log.Println(err)
+		return []string{s}
+	}
 	getVar := func(name string) string {
 		return state.runner.Env.Get(name).Str
 	}
@@ -782,40 +787,33 @@ func Unquote(state State, s string) []string {
 	return result
 }
 
-func ParseLastCommand(script string) []string {
+func ParseLastCommand(script string) (string, error) {
 	// Parse the source
 	f, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
-		panic(err) // or handle the error as needed
+		return "", fmt.Errorf("error parsing script: %w", err)
 	}
 
 	// Find the last command
-	var lastCmd *syntax.CallExpr
+	var lastCmd *syntax.Stmt
 	syntax.Walk(f, func(node syntax.Node) bool {
-		if cmd, ok := node.(*syntax.CallExpr); ok {
-			lastCmd = cmd
+		if stmt, ok := node.(*syntax.Stmt); ok {
+			lastCmd = stmt
 		}
 		return true
 	})
 
-	// If no command is found, return an empty slice
+	// If no command is found, return an empty string
 	if lastCmd == nil {
-		return []string{}
+		return "", nil
 	}
 
-	// Convert to list of words
-	var words []string
-	for _, word := range lastCmd.Args {
-		if word.Parts != nil {
-			for _, part := range word.Parts {
-				if lit, ok := part.(*syntax.Lit); ok {
-					words = append(words, lit.Value)
-				}
-			}
-		}
-	}
+	// Use a Printer to print the command
+	var buf bytes.Buffer
+	pr := syntax.NewPrinter()
+	pr.Print(&buf, lastCmd)
 
-	return words
+	return buf.String(), nil
 }
 
 func SSHMain(args []string, ctx context.Context) error {
