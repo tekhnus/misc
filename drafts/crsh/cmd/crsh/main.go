@@ -679,15 +679,16 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 func Complete(words []string, state State) []string {
 	var result []string
 	log.Printf("After unquoting: %#v\n", words)
-	if len(words) == 1 {
-		result = append(result, CompleteExecutable(words[0])...)
-	} else if len(words) == 2 && words[0] == `r` {
+	if len(words) == 2 && words[0] == `r` {
 		for _, sess := range state.sessions {
 			if strings.HasPrefix(sess, words[1]) {
 				result = append(result, sess)
 			}
 		}
 	} else {
+		if len(words) == 1 {
+			result = append(result, CompleteExecutable(words[0])...)
+		}
 		lastword := words[len(words)-1]
 		filecomps := CompleteFile(lastword)
 		var fullcomps []string
