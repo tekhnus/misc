@@ -796,25 +796,22 @@ func ParseLastCommand(script string) (string, error) {
 	}
 
 	// Find the last command
-	var lastCmd *syntax.Stmt
+	var found bool = false
+	var lastCmdStart uint = 0
 	syntax.Walk(f, func(node syntax.Node) bool {
 		if stmt, ok := node.(*syntax.Stmt); ok {
-			lastCmd = stmt
+			found = true
+			lastCmdStart = stmt.Position.Offset()
 		}
 		return true
 	})
 
 	// If no command is found, return an empty string
-	if lastCmd == nil {
-		return "", nil
+	if !found {
+		return "", fmt.Errorf("Didn't parse a single command")
 	}
 
-	// Use a Printer to print the command
-	var buf bytes.Buffer
-	pr := syntax.NewPrinter()
-	pr.Print(&buf, lastCmd)
-
-	return buf.String(), nil
+	return script[lastCmdStart:], nil
 }
 
 func SSHMain(args []string, ctx context.Context) error {
