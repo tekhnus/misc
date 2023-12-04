@@ -702,9 +702,6 @@ func Complete(words []string, state State) []string {
 }
 
 func CompleteExecutable(prefix string) []string {
-	if strings.Contains(prefix, "/") {
-		return CompleteFile(prefix)
-	}
 	var result []string
 	path := os.Getenv("PATH")
 	for _, dir := range filepath.SplitList(path) {
