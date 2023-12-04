@@ -643,6 +643,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 			log.Println("Unexpected message from manager:", msg)
 			return true, fmt.Errorf("Unexpected message from manager")
 		case <-ctx.Done():
+			log.Println("Cancelled, exiting")
 			return false, nil
 		}
 		log.Println("Finishing input loop")
@@ -672,6 +673,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 				return false, fmt.Errorf("Unknown message type: %s", msg.Type)
 			}
 		case <-ctx.Done():
+			log.Println("Cancelled, exiting")
 			return false, nil
 		}
 	}
