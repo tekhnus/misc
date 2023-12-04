@@ -498,7 +498,7 @@ func ShellMain(args []string, ctx context.Context) error {
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
 		log.Printf("Complete request: %#v\n", line[:pos])
-		words := Unquote(state, line[:pos])
+		prevcmds, words := Unquote(state, line[:pos])
 		prevwords := ""
 		for i := 0; i+1 < len(words); i++ {
 			prevwords += Quote(words[i]) + " "
@@ -514,7 +514,7 @@ func ShellMain(args []string, ctx context.Context) error {
 			rest := strings.TrimPrefix(comp, lastword)
 			quoted = append(quoted, QuoteIfNotEmpty(lastword)+QuoteIfNotEmpty(rest))
 		}
-		return prevwords, quoted, line[pos:]
+		return prevcmds + prevwords, quoted, line[pos:]
 	})
 
 	managers := make(chan net.Conn)
@@ -769,11 +769,11 @@ func QuoteIfNotEmpty(s string) string {
 	return Quote(s)
 }
 
-func Unquote(state State, st string) []string {
-	s, err := ParseLastCommand(st)
+func Unquote(state State, st string) (string, []string) {
+	prefix, s, err := ParseLastCommand(st)
 	if err != nil {
 		log.Println(err)
-		return []string{s}
+		return "", []string{s}
 	}
 	log.Printf("Last command: %#v\n", s)
 	getVar := func(name string) string {
@@ -783,16 +783,16 @@ func Unquote(state State, st string) []string {
 	result, err := shell.Fields(s, getVar)
 	if err != nil {
 		log.Println(err)
-		return []string{s}
+		return prefix, []string{s}
 	}
-	return result
+	return prefix, result
 }
 
-func ParseLastCommand(script string) (string, error) {
+func ParseLastCommand(script string) (string, string, error) {
 	// Parse the source
 	f, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
-		return "", fmt.Errorf("error parsing script: %w", err)
+		return "", "", fmt.Errorf("error parsing script: %w", err)
 	}
 
 	// Find the last command
@@ -808,10 +808,10 @@ func ParseLastCommand(script string) (string, error) {
 
 	// If no command is found, return an empty string
 	if !found {
-		return "", fmt.Errorf("Didn't parse a single command")
+		return "", "", fmt.Errorf("Didn't parse a single command")
 	}
 
-	return script[lastCmdStart:], nil
+	return script[:lastCmdStart], script[lastCmdStart:], nil
 }
 
 func SSHMain(args []string, ctx context.Context) error {
