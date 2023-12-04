@@ -782,6 +782,42 @@ func Unquote(state State, s string) []string {
 	return result
 }
 
+func ParseLastCommand(script string) []string {
+	// Parse the source
+	f, err := syntax.NewParser().Parse(strings.NewReader(script), "")
+	if err != nil {
+		panic(err) // or handle the error as needed
+	}
+
+	// Find the last command
+	var lastCmd *syntax.CallExpr
+	syntax.Walk(f, func(node syntax.Node) bool {
+		if cmd, ok := node.(*syntax.CallExpr); ok {
+			lastCmd = cmd
+		}
+		return true
+	})
+
+	// If no command is found, return an empty slice
+	if lastCmd == nil {
+		return []string{}
+	}
+
+	// Convert to list of words
+	var words []string
+	for _, word := range lastCmd.Args {
+		if word.Parts != nil {
+			for _, part := range word.Parts {
+				if lit, ok := part.(*syntax.Lit); ok {
+					words = append(words, lit.Value)
+				}
+			}
+		}
+	}
+
+	return words
+}
+
 func SSHMain(args []string, ctx context.Context) error {
 	var wg sync.WaitGroup
 	defer func() {
