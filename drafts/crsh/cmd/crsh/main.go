@@ -612,6 +612,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 			return false, fmt.Errorf("Unknown message type: %s", msg.Type)
 		}
 	case <-ctx.Done():
+		log.Println("Cancelled, exiting")
 		return false, nil
 	}
 	log.Println("Finish history wait loop")
