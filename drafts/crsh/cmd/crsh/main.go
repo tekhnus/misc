@@ -439,7 +439,24 @@ func MakeShellConnection(name string, ctx context.Context) (net.Conn, error) {
 
 func ShellMain(args []string, ctx context.Context) error {
 	// FIXME: I suspect that the correct behavior is more complex.
-	signal.Ignore(syscall.SIGINT)
+	signal.Reset()
+	ctx, cancel := context.WithCancel(ctx)
+	signals := make(chan os.Signal, 16)
+	signal.Notify(signals, syscall.SIGTERM, syscall.SIGHUP)
+	go func() {
+		signal := <-signals
+		log.Println("Shell received a signal", signal)
+		cancel()
+	}()
+	interrupts := make(chan os.Signal, 16)
+	signal.Notify(interrupts, syscall.SIGINT)
+	go func() {
+		signal := <-interrupts
+		// FIXME: this is almost the same as ignoring the signal,
+		// but ignoring would propagate to child processes. We don't
+		// want that.
+		log.Println("Shell received an interrupt", signal)
+	}()
 
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
 	prompt := fs.String("prompt", "", "prompt suffix")
