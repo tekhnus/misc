@@ -775,7 +775,7 @@ func Unquote(state State, st string) []string {
 		log.Println(err)
 		return []string{s}
 	}
-	log.Println("Last command": s)
+	log.Println("Last command:", s)
 	getVar := func(name string) string {
 		return state.runner.Env.Get(name).Str
 	}
