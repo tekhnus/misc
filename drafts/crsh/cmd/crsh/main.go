@@ -53,7 +53,7 @@ func Main() error {
 	}
 
 	signals := make(chan os.Signal, 16)
-	signal.Notify(signals, os.Interrupt, syscall.SIGHUP)
+	signal.Notify(signals, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
@@ -438,6 +438,9 @@ func MakeShellConnection(name string, ctx context.Context) (net.Conn, error) {
 }
 
 func ShellMain(args []string, ctx context.Context) error {
+	// FIXME: I suspect that the correct behavior is more complex.
+	signal.Ignore(syscall.SIGINT)
+
 	fs := flag.NewFlagSet("shell", flag.ContinueOnError)
 	prompt := fs.String("prompt", "", "prompt suffix")
 	err := fs.Parse(args)
