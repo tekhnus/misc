@@ -887,7 +887,7 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 	getVar := func(name string) string {
 		return state.runner.Env.Get(name).Str
 	}
-	log.Println("Before expansion:", lw)
+	log.Println("Before expansion:", command, lw)
 	ex, err := shell.Fields(lw, getVar)
 	if err != nil {
 		log.Println(err)
