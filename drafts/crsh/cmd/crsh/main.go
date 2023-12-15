@@ -537,24 +537,33 @@ func ShellMain(args []string, ctx context.Context) error {
 
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
-		log.Printf("Complete request: %#v\n", line[:pos])
+		prefix := line[:pos]
+		suffix := line[pos:]
+		log.Printf("Complete request: %#v\n", suffix)
 
-		initCmds, lastCmd := Unquote(state, line[:pos])
-		log.Printf("lastCmd: %#v\n", lastCmd)
+		initCmds, lastCmd, err := ParseLastCommand(suffix)
+		log.Printf("initCmds: %#v\n", initCmds)
+		if err != nil {
+			log.Println(err)
+			initCmds = ""
+			lastCmd = suffix
+		}
+		lastCmdWords := CommandWords(state, lastCmd)
+		log.Printf("lastCmd: %#v\n", lastCmdWords)
 
 		initWords := ""
-		for i := 0; i+1 < len(lastCmd); i++ {
-			initWords += Quote(lastCmd[i]) + " "
+		for i := 0; i+1 < len(lastCmdWords); i++ {
+			initWords += Quote(lastCmdWords[i]) + " "
 		}
 
-		lastWord := lastCmd[len(lastCmd)-1]
+		lastWord := lastCmdWords[len(lastCmdWords)-1]
 		var headWord string
-		if len(lastCmd) > 1 {
-			headWord = lastCmd[0]
+		if len(lastCmdWords) > 1 {
+			headWord = lastCmdWords[0]
 		}
 		completions := Complete(lastWord, headWord, state)
+		log.Printf("Word complete response: %#v\n", completions)
 
-		log.Printf("Complete response: %#v\n", completions)
 		var quoted []string
 		for _, comp := range completions {
 			rest, ok := strings.CutPrefix(comp, lastWord)
@@ -564,7 +573,7 @@ func ShellMain(args []string, ctx context.Context) error {
 			}
 			quoted = append(quoted, QuoteIfNotEmpty(lastWord)+QuoteIfNotEmpty(rest))
 		}
-		return initCmds + initWords, quoted, line[pos:]
+		return initCmds + initWords, quoted, prefix
 	})
 
 	managers := make(chan net.Conn)
@@ -730,6 +739,8 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 }
 
 func Complete(word string, firstword string, state State) []string {
+	log.Printf("Complete word: %#v %#v\n", word, firstword)
+
 	var result []string
 	if firstword == `r` {
 		return CompleteSession(word, state)
@@ -818,12 +829,7 @@ func QuoteIfNotEmpty(s string) string {
 	return Quote(s)
 }
 
-func Unquote(state State, st string) (string, []string) {
-	prefix, s, err := ParseLastCommand(st)
-	if err != nil {
-		log.Println(err)
-		return "", []string{s}
-	}
+func CommandWords(state State, s string) []string {
 	log.Printf("Last command: %#v\n", s)
 	getVar := func(name string) string {
 		return state.runner.Env.Get(name).Str
@@ -832,9 +838,9 @@ func Unquote(state State, st string) (string, []string) {
 	result, err := shell.Fields(s, getVar)
 	if err != nil {
 		log.Println(err)
-		return prefix, []string{s}
+		return []string{s}
 	}
-	return prefix, result
+	return result
 }
 
 func ParseLastCommand(script string) (string, string, error) {
