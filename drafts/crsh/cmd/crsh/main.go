@@ -730,12 +730,7 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 func Complete(word string, firstword string, state State) []string {
 	var result []string
 	if firstword == `r` {
-		for _, sess := range state.sessions {
-			if strings.HasPrefix(sess, word) {
-				result = append(result, sess)
-			}
-		}
-		return result
+		return CompleteSession(word, state)
 	}
 	if firstword == "" {
 		result = append(result, CompleteExecutable(firstword)...)
@@ -746,6 +741,16 @@ func Complete(word string, firstword string, state State) []string {
 		fullcomps = append(fullcomps, cm)
 	}
 	result = append(result, fullcomps...)
+	return result
+}
+
+func CompleteSession(word string, state State) []string {
+	var result []string
+	for _, sess := range state.sessions {
+		if strings.HasPrefix(sess, word) {
+			result = append(result, sess)
+		}
+	}
 	return result
 }
 
