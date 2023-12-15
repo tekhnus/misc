@@ -274,16 +274,29 @@ func HandleShell(shell Shell, lnr *liner.State, ctx context.Context) (string, st
 }
 
 func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
-	// FIXME: interprocess locking should be done here.
 	histfile := os.ExpandEnv("$HOME/.crsh-history")
-	err := ReadHistory(lnr, histfile)
+	ownfile := os.ExpandEnv("$HOME/.crsh-history.locked")
+
+	err := os.Rename(histfile, ownfile)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := os.Rename(ownfile, histfile)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
+	err = ReadHistory(lnr, ownfile)
 	if err != nil {
 		log.Println(err)
 	}
 	if entry != "" {
 		lnr.AppendHistory(entry)
 	}
-	return WriteHistory(lnr, histfile)
+	time.Sleep(time.Second * 3)
+	return WriteHistory(lnr, ownfile)
 }
 
 func ReadHistory(lnr *liner.State, histfile string) error {
