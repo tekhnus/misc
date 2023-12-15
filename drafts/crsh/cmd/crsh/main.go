@@ -891,7 +891,7 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 	if err != nil {
 		log.Println(err)
 	} else if len(ex) != 1 {
-		log.Println("Unexpected expansion: %#v\n", ex)
+		log.Printf("Unexpected expansion: %#v\n", ex)
 	} else {
 		lw = ex[0]
 	}
