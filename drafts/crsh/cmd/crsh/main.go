@@ -546,7 +546,7 @@ func ShellMain(args []string, ctx context.Context) error {
 		if err != nil {
 			log.Println(err)
 		}
-		initWords, lastWord, headWord, err := ParseLastWord2(lastCmd, state)
+		initWords, lastWord, headWord, err := ParseLastWord(lastCmd, state)
 		if err != nil {
 			log.Println(err)
 		}
@@ -818,19 +818,19 @@ func QuoteIfNotEmpty(s string) string {
 	return Quote(s)
 }
 
-func CommandWords(state State, s string) []string {
-	log.Printf("Last command: %#v\n", s)
-	getVar := func(name string) string {
-		return state.runner.Env.Get(name).Str
-	}
-	s += `''` // So that Unquote("x ") returns an empty word at the end.
-	result, err := shell.Fields(s, getVar)
-	if err != nil {
-		log.Println(err)
-		return []string{s}
-	}
-	return result
-}
+// func CommandWords(state State, s string) []string {
+// 	log.Printf("Last command: %#v\n", s)
+// 	getVar := func(name string) string {
+// 		return state.runner.Env.Get(name).Str
+// 	}
+// 	s += `''` // So that Unquote("x ") returns an empty word at the end.
+// 	result, err := shell.Fields(s, getVar)
+// 	if err != nil {
+// 		log.Println(err)
+// 		return []string{s}
+// 	}
+// 	return result
+// }
 
 func ParseLastCommand(script string) (string, string, error) {
 	f, err := syntax.NewParser().Parse(strings.NewReader(script), "")
@@ -855,7 +855,7 @@ func ParseLastCommand(script string) (string, string, error) {
 	return script[:lastCmdStart], script[lastCmdStart:], nil
 }
 
-func ParseLastWord2(command string, state State) (string, string, string, error) {
+func ParseLastWord(command string, state State) (string, string, string, error) {
 	command += `''`
 	f, err := syntax.NewParser().Parse(strings.NewReader(command), "")
 	if err != nil {
@@ -899,23 +899,23 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 	return command[:lastWord], lw, command[:firstWord], nil
 }
 
-func ParseLastWord(lastCmd string, state State) (string, string, string, error) {
-	lastCmdWords := CommandWords(state, lastCmd)
-	log.Printf("lastCmd: %#v\n", lastCmdWords)
+// func ParseLastWordOld(lastCmd string, state State) (string, string, string, error) {
+// 	lastCmdWords := CommandWords(state, lastCmd)
+// 	log.Printf("lastCmd: %#v\n", lastCmdWords)
 
-	var headWord string
-	if len(lastCmdWords) > 1 {
-		headWord = lastCmdWords[0]
-	}
+// 	var headWord string
+// 	if len(lastCmdWords) > 1 {
+// 		headWord = lastCmdWords[0]
+// 	}
 
-	initWords := ""
-	for i := 0; i+1 < len(lastCmdWords); i++ {
-		initWords += Quote(lastCmdWords[i]) + " "
-	}
+// 	initWords := ""
+// 	for i := 0; i+1 < len(lastCmdWords); i++ {
+// 		initWords += Quote(lastCmdWords[i]) + " "
+// 	}
 
-	lastWord := lastCmdWords[len(lastCmdWords)-1]
-	return initWords, lastWord, headWord, nil
-}
+// 	lastWord := lastCmdWords[len(lastCmdWords)-1]
+// 	return initWords, lastWord, headWord, nil
+// }
 
 func SSHMain(args []string, ctx context.Context) error {
 	var wg sync.WaitGroup
