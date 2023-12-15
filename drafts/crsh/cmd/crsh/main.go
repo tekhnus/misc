@@ -892,9 +892,13 @@ func SSHMain(args []string, ctx context.Context) error {
 		}
 		tmuxConf := os.ExpandEnv("$HOME/.local/share/crsh/" + Version + "/universal/tmux.conf")
 		sessionName := SessionName(*displayHost, name)
+		prompt := ""
+		if *displayHost != "." {
+			prompt = fmt.Sprintf(" (%s)", *displayHost)
+		}
 		shellCmd := exec.Command("tmux", "-L", "crsh-tmux",
 			"-f", tmuxConf, "new-session", "-A", "-s", sessionName,
-			"env", "-u", "TMUX", Executable, "shell", "-prompt", fmt.Sprintf(" (%s)", *displayHost), name)
+			"env", "-u", "TMUX", Executable, "shell", "-prompt", prompt, name)
 		shellCmd.Stdin = os.Stdin
 		// tmux doesn't need stdout and stderr,
 		// it apparently finds tty by stdin.
