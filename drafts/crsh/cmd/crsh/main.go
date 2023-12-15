@@ -545,8 +545,6 @@ func ShellMain(args []string, ctx context.Context) error {
 		log.Printf("initCmds: %#v\n", initCmds)
 		if err != nil {
 			log.Println(err)
-			initCmds = ""
-			lastCmd = prefix
 		}
 		initWords, lastWord, headWord := ParseLastWord(lastCmd, state)
 		completions := Complete(lastWord, headWord, state)
@@ -832,13 +830,11 @@ func CommandWords(state State, s string) []string {
 }
 
 func ParseLastCommand(script string) (string, string, error) {
-	// Parse the source
 	f, err := syntax.NewParser().Parse(strings.NewReader(script), "")
 	if err != nil {
-		return "", "", fmt.Errorf("error parsing script: %w", err)
+		return "", script, fmt.Errorf("error parsing script: %w", err)
 	}
 
-	// Find the last command
 	var found bool = false
 	var lastCmdStart uint = 0
 	syntax.Walk(f, func(node syntax.Node) bool {
@@ -849,9 +845,8 @@ func ParseLastCommand(script string) (string, string, error) {
 		return true
 	})
 
-	// If no command is found, return an empty string
 	if !found {
-		return "", "", fmt.Errorf("Didn't parse a single command")
+		return "", script, fmt.Errorf("Didn't parse a single command")
 	}
 
 	return script[:lastCmdStart], script[lastCmdStart:], nil
