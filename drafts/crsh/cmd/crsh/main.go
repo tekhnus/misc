@@ -876,10 +876,14 @@ func parseShellWords(input string) ([]string, error) {
 
 	// Extract words from the syntax tree
 	var words []string
+	var endPos uint
 	syntax.Walk(parsed, func(node syntax.Node) bool {
 		if word, ok := node.(*syntax.Word); ok {
 			startPos := word.Pos().Offset()
-			endPos := word.End().Offset()
+			if startPos != endPos {
+				words = append(words, input[endPos:startPos])
+			}
+			endPos = word.End().Offset()
 			words = append(words, input[startPos:endPos])
 		}
 		return true
