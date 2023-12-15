@@ -548,19 +548,24 @@ func ShellMain(args []string, ctx context.Context) error {
 			initCmds = ""
 			lastCmd = prefix
 		}
-		lastCmdWords := CommandWords(state, lastCmd)
-		log.Printf("lastCmd: %#v\n", lastCmdWords)
+		ParseLastWord := func(lastCmd string) (string, string, string) {
+			lastCmdWords := CommandWords(state, lastCmd)
+			log.Printf("lastCmd: %#v\n", lastCmdWords)
 
-		initWords := ""
-		for i := 0; i+1 < len(lastCmdWords); i++ {
-			initWords += Quote(lastCmdWords[i]) + " "
-		}
+			var headWord string
+			if len(lastCmdWords) > 1 {
+				headWord = lastCmdWords[0]
+			}
 
-		lastWord := lastCmdWords[len(lastCmdWords)-1]
-		var headWord string
-		if len(lastCmdWords) > 1 {
-			headWord = lastCmdWords[0]
+			initWords := ""
+			for i := 0; i+1 < len(lastCmdWords); i++ {
+				initWords += Quote(lastCmdWords[i]) + " "
+			}
+
+			lastWord := lastCmdWords[len(lastCmdWords)-1]
+			return headWord, initWords, lastWord
 		}
+		headWord, initWords, lastWord := ParseLastWord(lastCmd)
 		completions := Complete(lastWord, headWord, state)
 		log.Printf("Word complete response: %#v\n", completions)
 
