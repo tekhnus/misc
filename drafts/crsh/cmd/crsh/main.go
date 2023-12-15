@@ -552,6 +552,7 @@ func ShellMain(args []string, ctx context.Context) error {
 		}
 		word := words[len(words)-1]
 		completions := Complete(word, firstword, state)
+		log.Printf("Complete response: %#v\n", completions)
 		var quoted []string
 		for _, comp := range completions {
 			if !strings.HasPrefix(comp, lastword) {
@@ -734,18 +735,17 @@ func Complete(word string, firstword string, state State) []string {
 				result = append(result, sess)
 			}
 		}
-	} else {
-		if firstword == "" {
-			result = append(result, CompleteExecutable(firstword)...)
-		}
-		filecomps := CompleteFile(word)
-		var fullcomps []string
-		for _, cm := range filecomps {
-			fullcomps = append(fullcomps, cm)
-		}
-		result = append(result, fullcomps...)
+		return result
 	}
-	log.Printf("Complete response: %#v\n", result)
+	if firstword == "" {
+		result = append(result, CompleteExecutable(firstword)...)
+	}
+	filecomps := CompleteFile(word)
+	var fullcomps []string
+	for _, cm := range filecomps {
+		fullcomps = append(fullcomps, cm)
+	}
+	result = append(result, fullcomps...)
 	return result
 }
 
