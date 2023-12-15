@@ -545,7 +545,13 @@ func ShellMain(args []string, ctx context.Context) error {
 			prevwords += Quote(words[i]) + " "
 		}
 		lastword := words[len(words)-1]
-		completions := Complete(words, state)
+		log.Printf("After unquoting: %#v\n", words)
+		var firstword string
+		if len(words) > 1 {
+			firstword = words[0]
+		}
+		word := words[len(words)-1]
+		completions := Complete(word, firstword, state)
 		var quoted []string
 		for _, comp := range completions {
 			if !strings.HasPrefix(comp, lastword) {
@@ -720,21 +726,19 @@ func HandleManager(state State, manager net.Conn, inputs chan string, doPrompt f
 	}
 }
 
-func Complete(words []string, state State) []string {
+func Complete(word string, firstword string, state State) []string {
 	var result []string
-	log.Printf("After unquoting: %#v\n", words)
-	if len(words) == 2 && words[0] == `r` {
+	if firstword == `r` {
 		for _, sess := range state.sessions {
-			if strings.HasPrefix(sess, words[1]) {
+			if strings.HasPrefix(sess, word) {
 				result = append(result, sess)
 			}
 		}
 	} else {
-		if len(words) == 1 {
-			result = append(result, CompleteExecutable(words[0])...)
+		if firstword == "" {
+			result = append(result, CompleteExecutable(firstword)...)
 		}
-		lastword := words[len(words)-1]
-		filecomps := CompleteFile(lastword)
+		filecomps := CompleteFile(word)
 		var fullcomps []string
 		for _, cm := range filecomps {
 			fullcomps = append(fullcomps, cm)
