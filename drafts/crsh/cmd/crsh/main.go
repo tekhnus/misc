@@ -278,7 +278,7 @@ func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
 	histfile := os.ExpandEnv("$HOME/.crsh-history")
 	err := ReadHistory(lnr, histfile)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 	if entry != "" {
 		lnr.AppendHistory(entry)
