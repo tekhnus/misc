@@ -856,6 +856,7 @@ func ParseLastCommand(script string) (string, string, error) {
 }
 
 func ParseLastWord2(command string, state State) (string, string, string, error) {
+	command += `''`
 	f, err := syntax.NewParser().Parse(strings.NewReader(command), "")
 	if err != nil {
 		return "", command, "", fmt.Errorf("error parsing command: %w", err)
