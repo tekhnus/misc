@@ -828,11 +828,13 @@ func Unquote(state State, st string) (string, []string) {
 		return prefix, []string{s}
 	}
 	if len(result) > 0 {
-		expanded, err := shell.Expand(result[len(result)-1], getVar)
+		expanded, err := shell.Fields(result[len(result)-1], getVar)
 		if err != nil {
 			log.Println(err)
+		} else if len(expanded) != 1 {
+			log.Printf("Unexpected expansion: %#v -> %#v\n", result[len(result)-1], expanded)
 		} else {
-			result[len(result)-1] = expanded
+			result[len(result)-1] = expanded[0]
 		}
 	}
 	return prefix, result
