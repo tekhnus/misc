@@ -101,7 +101,7 @@ func ManagerMain(args []string, ctx context.Context) error {
 	host, aerr := GetActiveShell()
 	if aerr != nil {
 		log.Println(aerr)
-		host = "^"
+		host = "."
 	}
 	name := RandomName()
 
@@ -431,7 +431,7 @@ func MakeShellCommand(host string, name string) *exec.Cmd {
 
 func MakeDetachCommand(host string, name string) *exec.Cmd {
 	args := []string{}
-	if host != "^" {
+	if host != "." {
 		args = append(args, "ssh", host)
 	}
 	args = append(args, "tmux", "-L", "crsh-tmux", "detach-client", "-s", "="+SessionName(host, name))
@@ -878,7 +878,7 @@ func SSHMain(args []string, ctx context.Context) error {
 		*displayHost = host
 	}
 
-	if host == "^" {
+	if host == "." {
 		sessionFile := "/tmp/crsh-available-" + name
 		rmerr := os.Remove(sessionFile)
 		if rmerr != nil {
@@ -1068,7 +1068,7 @@ func SSHMain(args []string, ctx context.Context) error {
 	executable := dstDir + "/linux/crsh"
 	shellCmd := exec.CommandContext(sshCtxt, "ssh",
 		"-S", masterSocket, "-t", host,
-		executable, "ssh", "-display-host", host, "^", name)
+		executable, "ssh", "-display-host", host, ".", name)
 	shellCmd.Stdin = os.Stdin
 	shellCmd.Stdout = os.Stdout
 	var sshErr bytes.Buffer
