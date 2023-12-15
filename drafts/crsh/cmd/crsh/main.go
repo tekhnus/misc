@@ -278,7 +278,7 @@ func SyncHistoryAndAppend(lnr *liner.State, entry string) error {
 	ownfile := os.ExpandEnv("$HOME/.crsh-history.locked")
 
 	err := os.Rename(histfile, ownfile)
-	// time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 3)
 	if err != nil {
 		return err
 	}
