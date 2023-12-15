@@ -538,31 +538,33 @@ func ShellMain(args []string, ctx context.Context) error {
 	lnr.SetTabCompletionStyle(liner.TabPrints)
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
 		log.Printf("Complete request: %#v\n", line[:pos])
-		prevcmds, words := Unquote(state, line[:pos])
-		log.Printf("Words: %#v\n", words)
-		prevwords := ""
-		for i := 0; i+1 < len(words); i++ {
-			prevwords += Quote(words[i]) + " "
+
+		initCmds, lastCmd := Unquote(state, line[:pos])
+		log.Printf("lastCmd: %#v\n", lastCmd)
+
+		initWords := ""
+		for i := 0; i+1 < len(lastCmd); i++ {
+			initWords += Quote(lastCmd[i]) + " "
 		}
-		lastword := words[len(words)-1]
-		log.Printf("After unquoting: %#v\n", words)
-		var firstword string
-		if len(words) > 1 {
-			firstword = words[0]
+
+		lastWord := lastCmd[len(lastCmd)-1]
+		var headWord string
+		if len(lastCmd) > 1 {
+			headWord = lastCmd[0]
 		}
-		word := words[len(words)-1]
-		completions := Complete(word, firstword, state)
+		completions := Complete(lastWord, headWord, state)
+
 		log.Printf("Complete response: %#v\n", completions)
 		var quoted []string
 		for _, comp := range completions {
-			if !strings.HasPrefix(comp, lastword) {
+			rest, ok := strings.CutPrefix(comp, lastWord)
+			if !ok {
 				log.Println("Completion problem:")
 				continue
 			}
-			rest := strings.TrimPrefix(comp, lastword)
-			quoted = append(quoted, QuoteIfNotEmpty(lastword)+QuoteIfNotEmpty(rest))
+			quoted = append(quoted, QuoteIfNotEmpty(lastWord)+QuoteIfNotEmpty(rest))
 		}
-		return prevcmds + prevwords, quoted, line[pos:]
+		return initCmds + initWords, quoted, line[pos:]
 	})
 
 	managers := make(chan net.Conn)
