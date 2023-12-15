@@ -539,14 +539,14 @@ func ShellMain(args []string, ctx context.Context) error {
 	lnr.SetWordCompleter(func(line string, pos int) (string, []string, string) {
 		prefix := line[:pos]
 		suffix := line[pos:]
-		log.Printf("Complete request: %#v\n", suffix)
+		log.Printf("Complete request: %#v\n", prefix)
 
-		initCmds, lastCmd, err := ParseLastCommand(suffix)
+		initCmds, lastCmd, err := ParseLastCommand(prefix)
 		log.Printf("initCmds: %#v\n", initCmds)
 		if err != nil {
 			log.Println(err)
 			initCmds = ""
-			lastCmd = suffix
+			lastCmd = prefix
 		}
 		lastCmdWords := CommandWords(state, lastCmd)
 		log.Printf("lastCmd: %#v\n", lastCmdWords)
@@ -573,7 +573,7 @@ func ShellMain(args []string, ctx context.Context) error {
 			}
 			quoted = append(quoted, QuoteIfNotEmpty(lastWord)+QuoteIfNotEmpty(rest))
 		}
-		return initCmds + initWords, quoted, prefix
+		return initCmds + initWords, quoted, suffix
 	})
 
 	managers := make(chan net.Conn)
