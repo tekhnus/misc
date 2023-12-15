@@ -736,11 +736,7 @@ func Complete(word string, firstword string, state State) []string {
 		result = append(result, CompleteExecutable(firstword)...)
 	}
 	filecomps := CompleteFile(word)
-	var fullcomps []string
-	for _, cm := range filecomps {
-		fullcomps = append(fullcomps, cm)
-	}
-	result = append(result, fullcomps...)
+	result = append(result, filecomps...)
 	return result
 }
 
