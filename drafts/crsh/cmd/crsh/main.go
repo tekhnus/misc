@@ -861,22 +861,25 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 		return "", command, "", fmt.Errorf("error parsing command: %w", err)
 	}
 
-	var found bool = false
-	var firstWord uint = 0
+	var count int
 	var lastWord uint = 0
+	var firstWord uint = 0
 	syntax.Walk(f, func(node syntax.Node) bool {
 		if word, ok := node.(*syntax.Word); ok {
-			if !found {
+			if count == 0 {
 				firstWord = word.End().Offset()
 			}
-			found = true
 			lastWord = word.Pos().Offset()
+			count++
 		}
 		return true
 	})
 
-	if !found {
+	if count == 0 {
 		return "", command, "", fmt.Errorf("Didn't parse a single word")
+	}
+	if count == 1 {
+		firstWord = 0
 	}
 
 	return command[:lastWord], command[lastWord:], command[:firstWord], nil
