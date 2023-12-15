@@ -548,24 +548,7 @@ func ShellMain(args []string, ctx context.Context) error {
 			initCmds = ""
 			lastCmd = prefix
 		}
-		ParseLastWord := func(lastCmd string) (string, string, string) {
-			lastCmdWords := CommandWords(state, lastCmd)
-			log.Printf("lastCmd: %#v\n", lastCmdWords)
-
-			var headWord string
-			if len(lastCmdWords) > 1 {
-				headWord = lastCmdWords[0]
-			}
-
-			initWords := ""
-			for i := 0; i+1 < len(lastCmdWords); i++ {
-				initWords += Quote(lastCmdWords[i]) + " "
-			}
-
-			lastWord := lastCmdWords[len(lastCmdWords)-1]
-			return headWord, initWords, lastWord
-		}
-		headWord, initWords, lastWord := ParseLastWord(lastCmd)
+		headWord, initWords, lastWord := ParseLastWord(lastCmd, state)
 		completions := Complete(lastWord, headWord, state)
 		log.Printf("Word complete response: %#v\n", completions)
 
@@ -874,6 +857,23 @@ func ParseLastCommand(script string) (string, string, error) {
 	return script[:lastCmdStart], script[lastCmdStart:], nil
 }
 
+func ParseLastWord(lastCmd string, state State) (string, string, string) {
+	lastCmdWords := CommandWords(state, lastCmd)
+	log.Printf("lastCmd: %#v\n", lastCmdWords)
+
+	var headWord string
+	if len(lastCmdWords) > 1 {
+		headWord = lastCmdWords[0]
+	}
+
+	initWords := ""
+	for i := 0; i+1 < len(lastCmdWords); i++ {
+		initWords += Quote(lastCmdWords[i]) + " "
+	}
+
+	lastWord := lastCmdWords[len(lastCmdWords)-1]
+	return headWord, initWords, lastWord
+}
 func SSHMain(args []string, ctx context.Context) error {
 	var wg sync.WaitGroup
 	defer func() {
