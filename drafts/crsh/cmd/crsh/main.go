@@ -883,7 +883,19 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 		firstWord = 0
 	}
 
-	return command[:lastWord], command[lastWord:], command[:firstWord], nil
+	lw := command[:lastWord]
+	getVar := func(name string) string {
+		return state.runner.Env.Get(name).Str
+	}
+	ex, err := shell.Fields(lw, getVar)
+	if err != nil {
+		log.Println(err)
+	} else if len(ex) != 1 {
+		log.Println("Unexpected expansion: %#v\n", ex)
+	} else {
+		lw = ex[0]
+	}
+	return lw, command[lastWord:], command[:firstWord], nil
 }
 
 func ParseLastWord(lastCmd string, state State) (string, string, string, error) {
