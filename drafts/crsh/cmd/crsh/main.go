@@ -735,7 +735,7 @@ func Complete(word string, firstword string, state State) []string {
 		return CompleteSession(word, state)
 	}
 	if firstword == "" {
-		result = append(result, CompleteExecutable(firstword)...)
+		result = append(result, CompleteExecutable(word)...)
 	}
 	filecomps := CompleteFile(word)
 	result = append(result, filecomps...)
