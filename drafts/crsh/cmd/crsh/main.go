@@ -883,7 +883,7 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 		firstWord = 0
 	}
 
-	lw := command[:lastWord]
+	lw := command[lastWord:]
 	getVar := func(name string) string {
 		return state.runner.Env.Get(name).Str
 	}
@@ -896,7 +896,7 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 	} else {
 		lw = ex[0]
 	}
-	return lw, command[lastWord:], command[:firstWord], nil
+	return command[lastWord:], lw, command[:firstWord], nil
 }
 
 func ParseLastWord(lastCmd string, state State) (string, string, string, error) {
