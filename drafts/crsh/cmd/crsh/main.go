@@ -822,10 +822,18 @@ func Unquote(state State, st string) (string, []string) {
 		return state.runner.Env.Get(name).Str
 	}
 	s += `''` // So that Unquote("x ") returns an empty word at the end.
-	result, err := shell.Fields(s, getVar)
+	result, err := parseShellWords(s)
 	if err != nil {
 		log.Println(err)
 		return prefix, []string{s}
+	}
+	if len(result) > 0 {
+		expanded, err := shell.Expand(result[len(result)-1], getVar)
+		if err != nil {
+			log.Println(err)
+		} else {
+			result[len(result)-1] = expanded
+		}
 	}
 	return prefix, result
 }
@@ -854,6 +862,28 @@ func ParseLastCommand(script string) (string, string, error) {
 	}
 
 	return script[:lastCmdStart], script[lastCmdStart:], nil
+}
+
+func parseShellWords(input string) ([]string, error) {
+	// Parse the input string
+	parser := syntax.NewParser()
+	parsed, err := parser.Parse(strings.NewReader(input), "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract words from the syntax tree
+	var words []string
+	syntax.Walk(parsed, func(node syntax.Node) bool {
+		if word, ok := node.(*syntax.Word); ok {
+			startPos := word.Pos().Offset()
+			endPos := word.End().Offset()
+			words = append(words, input[startPos:endPos])
+		}
+		return true
+	})
+
+	return words, nil
 }
 
 func SSHMain(args []string, ctx context.Context) error {
