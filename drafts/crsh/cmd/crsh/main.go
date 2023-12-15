@@ -546,7 +546,10 @@ func ShellMain(args []string, ctx context.Context) error {
 		if err != nil {
 			log.Println(err)
 		}
-		initWords, lastWord, headWord := ParseLastWord(lastCmd, state)
+		initWords, lastWord, headWord, err := ParseLastWord2(lastCmd, state)
+		if err != nil {
+			log.Println(err)
+		}
 		completions := Complete(lastWord, headWord, state)
 		log.Printf("Word complete response: %#v\n", completions)
 
@@ -852,7 +855,34 @@ func ParseLastCommand(script string) (string, string, error) {
 	return script[:lastCmdStart], script[lastCmdStart:], nil
 }
 
-func ParseLastWord(lastCmd string, state State) (string, string, string) {
+func ParseLastWord2(command string, state State) (string, string, string, error) {
+	f, err := syntax.NewParser().Parse(strings.NewReader(command), "")
+	if err != nil {
+		return "", command, "", fmt.Errorf("error parsing command: %w", err)
+	}
+
+	var found bool = false
+	var firstWord uint = 0
+	var lastWord uint = 0
+	syntax.Walk(f, func(node syntax.Node) bool {
+		if word, ok := node.(*syntax.Word); ok {
+			if !found {
+				firstWord = word.End().Offset()
+			}
+			found = true
+			lastWord = word.Pos().Offset()
+		}
+		return true
+	})
+
+	if !found {
+		return "", command, "", fmt.Errorf("Didn't parse a single word")
+	}
+
+	return command[:lastWord], command[lastWord:], command[:firstWord], nil
+}
+
+func ParseLastWord(lastCmd string, state State) (string, string, string, error) {
 	lastCmdWords := CommandWords(state, lastCmd)
 	log.Printf("lastCmd: %#v\n", lastCmdWords)
 
@@ -867,8 +897,9 @@ func ParseLastWord(lastCmd string, state State) (string, string, string) {
 	}
 
 	lastWord := lastCmdWords[len(lastCmdWords)-1]
-	return initWords, lastWord, headWord
+	return initWords, lastWord, headWord, nil
 }
+
 func SSHMain(args []string, ctx context.Context) error {
 	var wg sync.WaitGroup
 	defer func() {
