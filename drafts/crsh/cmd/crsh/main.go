@@ -548,7 +548,7 @@ func ShellMain(args []string, ctx context.Context) error {
 			initCmds = ""
 			lastCmd = prefix
 		}
-		headWord, initWords, lastWord := ParseLastWord(lastCmd, state)
+		initWords, lastWord, headWord := ParseLastWord(lastCmd, state)
 		completions := Complete(lastWord, headWord, state)
 		log.Printf("Word complete response: %#v\n", completions)
 
@@ -872,7 +872,7 @@ func ParseLastWord(lastCmd string, state State) (string, string, string) {
 	}
 
 	lastWord := lastCmdWords[len(lastCmdWords)-1]
-	return headWord, initWords, lastWord
+	return initWords, lastWord, headWord
 }
 func SSHMain(args []string, ctx context.Context) error {
 	var wg sync.WaitGroup
