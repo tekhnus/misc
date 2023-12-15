@@ -896,7 +896,7 @@ func ParseLastWord2(command string, state State) (string, string, string, error)
 	} else {
 		lw = ex[0]
 	}
-	return command[lastWord:], lw, command[:firstWord], nil
+	return command[:lastWord], lw, command[:firstWord], nil
 }
 
 func ParseLastWord(lastCmd string, state State) (string, string, string, error) {
