@@ -48,5 +48,5 @@ six==1.10.0
 SQLAlchemy==1.4.18
 traitlets==4.0.0
 -e git+git@github.com:tekhnus/misc.git@966eed77db7c0ef929cc41e084796986272c1f1d#egg=twitterology&subdirectory=boring/twitterology
-urllib3==1.26.5
+urllib3==1.26.18
 zstandard==0.14.0
