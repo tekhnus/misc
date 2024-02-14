@@ -1,10 +1,16 @@
 #!/usr/bin/env sh
 
-showinfo() {
-	otool -L $1
-}
-
-SUFFIX=dylib
+if [[ "$(uname)" == "Linux" ]]; then
+	showinfo() {
+		ldd $1
+	}
+	SUFFIX=so
+elif [[ "$(uname)" == "Darwin" ]]; then
+	showinfo() {
+		otool -L $1
+	}
+	SUFFIX=dylib
+fi
 
 rm -rf dev
 
@@ -17,12 +23,12 @@ ln -s ../libmylib.$SUFFIX dev/subdir/libmylib-symlink.$SUFFIX
 
 docheck() {
 	echo "========= $1 ============="
+	showinfo $1
 	$1
 	(
 		cd dev/tmp
-		../hello1
+		../../$1
 	)
-	showinfo $1
 }
 
 clang++ -o dev/hello1 -L./dev -lmylib hello.cpp && docheck dev/hello1
