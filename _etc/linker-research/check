@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+
+showinfo() {
+	otool -L $1
+}
+
+SUFFIX=dylib
+
+rm -rf dev
+
+mkdir -p dev
+mkdir -p dev/subdir
+mkdir -p dev/tmp
+
+clang++ -o dev/libmylib.$SUFFIX -shared mylib.cpp
+ln -s ../libmylib.$SUFFIX dev/subdir/libmylib-symlink.$SUFFIX
+
+docheck() {
+	echo "========= $1 ============="
+	$1
+	(
+		cd dev/tmp
+		../hello1
+	)
+	showinfo $1
+}
+
+clang++ -o dev/hello1 -L./dev -lmylib hello.cpp && docheck dev/hello1
+clang++ -o dev/hello2 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello2
+
