@@ -50,3 +50,7 @@ echo "========= 5 ============="
 clang++ -v -o dev/hello5 -L$PWD/dev -rpath ./dev -lmylib hello.cpp && docheck dev/hello5
 echo "========= 6 ============="
 clang++ -v -o dev/hello6 -L$PWD/dev -rpath '$ORIGIN' -lmylib hello.cpp && docheck dev/hello6
+echo "========= 7 ============="
+clang++ -v -o dev/hello7 -L$PWD/dev -rpath '@loader_path' -lmylib hello.cpp && \
+	install_name_tool -change dev/libmylib.dylib @rpath/libmylib.dylib dev/hello7 && \
+	docheck dev/hello7
