@@ -1,7 +1,8 @@
 on Linux:
 - rpath to out/ directory is added by nix wrapper by default
 - linker doesn't follow symlinks
-- relative -L paths will not propagate into the binary info
+- regardless of how -L is specified, the binary info contains
+  only library name, not the path to it
 - ld doesn't search in the current directory
 
 on Mac:
