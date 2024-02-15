@@ -1,12 +1,14 @@
 on Linux:
 - rpath to out/ directory is added by nix wrapper by default
 - linker doesn't follow symlinks
-- regardless of how -L is specified, the binary info contains
-  only library name, not the path to it
+- the binary info contains only library basename without path,
+  regardless of how -L is specified
 - ld doesn't search in the current directory
 
 on Mac:
 - apparantly no rpath is added by nix wrapper by default
 - linker follows symlinks
-- relative -L paths will be encoded into the binary info
-- dyld searches in the current directory first of all by default and uses the relative -L path in this case
+- the binary info contains the relative/absolute path to library,
+  depending of how -L is specified
+- dyld first searches the path as it is given;
+  if it's relative, it's interpreted relative to the current directory
