@@ -4,6 +4,9 @@ if [[ "$(uname)" == "Linux" ]]; then
 	showinfo() {
 		ldd $1
 	}
+	withdebug() {
+		LD_DEBUG=libs "$@"
+	}
 	SUFFIX=so
 elif [[ "$(uname)" == "Darwin" ]]; then
 	showinfo() {
@@ -27,7 +30,6 @@ clang++ -o dev/libmylib.$SUFFIX -shared mylib.cpp
 ln -s ../libmylib.$SUFFIX dev/subdir/libmylib-symlink.$SUFFIX
 
 docheck() {
-	echo "========= $1 ============="
 	showinfo $1
 	withdebug $1
 	(
@@ -36,7 +38,10 @@ docheck() {
 	)
 }
 
-clang++ -o dev/hello1 -L./dev -lmylib hello.cpp && docheck dev/hello1
-clang++ -o dev/bindir/hello2 -L./dev -lmylib hello.cpp && docheck dev/bindir/hello2
-clang++ -o dev/hello3 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello3
+echo "========= 1 ============="
+clang++ -v -o dev/hello1 -L./dev -lmylib hello.cpp && docheck dev/hello1
+echo "========= 2 ============="
+clang++ -v -o dev/bindir/hello2 -L./dev -lmylib hello.cpp && docheck dev/bindir/hello2
+echo "========= 3 ============="
+clang++ -v -o dev/hello3 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello3
 
