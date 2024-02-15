@@ -4,6 +4,9 @@ on Linux:
 - the binary info contains only library basename without path,
   regardless of how -L is specified
 - ld doesn't search in the current directory
+- relative -rpath will be relative to the current directory
+- magic '$ORIGIN/...' -rpath will be relative to the directory
+  of the binary
 
 on Mac:
 - apparantly no rpath is added by nix wrapper by default

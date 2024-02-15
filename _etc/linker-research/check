@@ -46,3 +46,7 @@ echo "========= 3 ============="
 clang++ -v -o dev/hello3 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello3
 echo "========= 4 ============="
 clang++ -v -o dev/hello4 -L$PWD/dev -lmylib hello.cpp && docheck dev/hello4
+echo "========= 5 ============="
+clang++ -v -o dev/hello5 -L$PWD/dev -rpath ./dev -lmylib hello.cpp && docheck dev/hello5
+echo "========= 6 ============="
+clang++ -v -o dev/hello6 -L$PWD/dev -rpath '$ORIGIN' -lmylib hello.cpp && docheck dev/hello6
