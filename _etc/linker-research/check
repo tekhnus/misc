@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-export CXX=${CXX:-clang++}
+export CXX=${CXX:-c++}
 
 if [[ "$(uname)" == "Linux" ]]; then
 	showinfo() {
@@ -41,18 +41,18 @@ docheck() {
 }
 
 echo "========= 1 ============="
-$CXX -v -o dev/hello1 -L./dev -lmylib hello.cpp && docheck dev/hello1
+$CXX -v -o dev/hello1 -L./dev hello.cpp -lmylib && docheck dev/hello1
 echo "========= 2 ============="
-$CXX -v -o dev/bindir/hello2 -L./dev -lmylib hello.cpp && docheck dev/bindir/hello2
+$CXX -v -o dev/bindir/hello2 -L./dev hello.cpp -lmylib && docheck dev/bindir/hello2
 echo "========= 3 ============="
-$CXX -v -o dev/hello3 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello3
+$CXX -v -o dev/hello3 -L./dev/subdir hello.cpp -lmylib-symlink && docheck dev/hello3
 echo "========= 4 ============="
-$CXX -v -o dev/hello4 -L$PWD/dev -lmylib hello.cpp && docheck dev/hello4
+$CXX -v -o dev/hello4 -L$PWD/dev hello.cpp -lmylib && docheck dev/hello4
 echo "========= 5 ============="
-$CXX -v -o dev/hello5 -L$PWD/dev -rpath ./dev -lmylib hello.cpp && docheck dev/hello5
+$CXX -v -o dev/hello5 -L$PWD/dev -Wl,-rpath,./dev hello.cpp -lmylib && docheck dev/hello5
 echo "========= 6 ============="
-$CXX -v -o dev/hello6 -L$PWD/dev -rpath '$ORIGIN' -lmylib hello.cpp && docheck dev/hello6
+$CXX -v -o dev/hello6 -L$PWD/dev -Wl,-rpath,'$ORIGIN' hello.cpp -lmylib && docheck dev/hello6
 echo "========= 7 ============="
-$CXX -v -o dev/hello7 -L$PWD/dev -rpath '@loader_path' -lmylib hello.cpp && \
+$CXX -v -o dev/hello7 -L$PWD/dev -Wl,-rpath,'@loader_path' hello.cpp -lmylib && \
 	install_name_tool -change dev/libmylib.dylib @rpath/libmylib.dylib dev/hello7 && \
 	docheck dev/hello7
