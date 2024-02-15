@@ -8,6 +8,10 @@ if [[ "$(uname)" == "Linux" ]]; then
 elif [[ "$(uname)" == "Darwin" ]]; then
 	showinfo() {
 		otool -L $1
+		otool -l $1 | grep RC_RPATH
+	}
+	withdebug() {
+		DYLD_PRINT_SEARCHING=1 "$@"
 	}
 	SUFFIX=dylib
 fi
@@ -16,6 +20,7 @@ rm -rf dev
 
 mkdir -p dev
 mkdir -p dev/subdir
+mkdir -p dev/bindir
 mkdir -p dev/tmp
 
 clang++ -o dev/libmylib.$SUFFIX -shared mylib.cpp
@@ -24,13 +29,14 @@ ln -s ../libmylib.$SUFFIX dev/subdir/libmylib-symlink.$SUFFIX
 docheck() {
 	echo "========= $1 ============="
 	showinfo $1
-	$1
+	withdebug $1
 	(
 		cd dev/tmp
-		../../$1
+		withdebug ../../$1
 	)
 }
 
 clang++ -o dev/hello1 -L./dev -lmylib hello.cpp && docheck dev/hello1
-clang++ -o dev/hello2 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello2
+clang++ -o dev/bindir/hello2 -L./dev -lmylib hello.cpp && docheck dev/bindir/hello2
+clang++ -o dev/hello3 -L./dev/subdir -lmylib-symlink hello.cpp && docheck dev/hello3
 
