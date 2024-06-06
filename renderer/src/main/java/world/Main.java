@@ -30,7 +30,7 @@ public class Main{
 		}
 		
 	}
-	public Main(){
+	public Main(String[] args){
 		JFrame mf=new JFrame("render");
 		mf.setSize(900,700);
 		mf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -39,7 +39,7 @@ public class Main{
 		mf.setVisible(true);
 		//
 		try{
-			fromFile("cube.txt");
+			fromFile(args[0]);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -53,6 +53,6 @@ public class Main{
 		}
 	}
 	public static void main(String[] args){
-		new Main();
+		new Main(args);
 	}
 }
