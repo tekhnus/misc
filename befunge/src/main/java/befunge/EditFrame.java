@@ -21,11 +21,14 @@ public class EditFrame extends JFrame implements ActionListener{
         root=new JPanel();
         root.setLayout(new BorderLayout());
         field=new InputField(this.model);
+        field.setText(">v\n^<");
         root.add(field,BorderLayout.CENTER);
         runMode=new JButton("Run Mode");
         runMode.addActionListener(this);
         root.add(runMode,BorderLayout.SOUTH);
         add(root);
+        revalidate();
+        repaint();
     }
     public void actionPerformed(ActionEvent e){
         if(e.getActionCommand().equals("Run Mode")){

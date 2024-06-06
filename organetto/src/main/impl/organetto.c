@@ -101,7 +101,7 @@ static void jack_shutdown(void *arg)
 	exit(1);
 }
 
-int auto_connect_input()
+int auto_connect_input(void)
 {
 	int status = 0;
 	const char **ports = jack_get_ports(client, NULL,
@@ -122,7 +122,7 @@ int auto_connect_input()
 	return status;
 }
 
-int auto_connect_output()
+int auto_connect_output(void)
 {
 	int status = 0;
 	const char **ports = jack_get_ports(client, NULL, NULL,
@@ -149,7 +149,7 @@ int auto_connect_output()
 	return status;
 }
 
-int setup_organetto()
+int setup_organetto(void)
 {
 	jack_set_error_function(error);
 	if ((client = jack_client_open("organetto", JackNoStartServer, NULL)) == NULL) {
@@ -170,7 +170,7 @@ int setup_organetto()
 	return 0;
 }
 
-int activate_organetto()
+int activate_organetto(void)
 {
 	if (jack_activate(client)) {
 		fprintf(stderr, "Cannot activate client");
