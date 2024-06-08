@@ -5,15 +5,24 @@
 
 packages:
 - completed:
-    hackage: hindent-5.2.7@sha256:a0a90f7cc160eeba3816e53f310e16942e68d9a09fe092d9835ea6bbbcd2cd91,3412
+    hackage: cond-0.5.1@sha256:e3f31bdac10c7f3c632a684e4c29978d0c9251ec682c52ceee811e83dcd5a00f,1412
     pantry-tree:
-      size: 962
-      sha256: 95eb3407186dbe6ca032a8e3fac9e98a177f444f016f3b25cbe7ee4a45d6f385
+      sha256: b725c5143dc788eab2fa4a0f222f78fd128f7edda0f9a49c8452eec39f60ce39
+      size: 383
   original:
-    hackage: hindent-5.2.7
-snapshots:
+    hackage: cond-0.5.1@sha256:e3f31bdac10c7f3c632a684e4c29978d0c9251ec682c52ceee811e83dcd5a00f,1412
 - completed:
-    size: 497089
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/13/15.yaml
-    sha256: 62c27bdce4a1b7cae3d2f6c29d1d0ae49d75bbbeb7ac6d7e6783d964562c3675
-  original: lts-13.15
+    hackage: monad-loops-0.4.3@sha256:ada4f1295ece07f9a7398bc5b40c4532f95a733a8604d2a2f57f05f878766df2,1751
+    pantry-tree:
+      sha256: c8d919cbf7cda1c8551534cb17844c56cbfcbf1b18667b1a0700b97c87ff5059
+      size: 243
+  original:
+    hackage: monad-loops-0.4.3@sha256:ada4f1295ece07f9a7398bc5b40c4532f95a733a8604d2a2f57f05f878766df2,1751
+- completed:
+    hackage: split-0.2.5@sha256:5bc1ae848bfded3087ea3e568908f1b75f56ecde6f02df3fad1a138dd5c783d5,2625
+    pantry-tree:
+      sha256: 5d28c851a2c98e3d8ac0f01adc58303d775afe39dce23ec953be64ae65d11166
+      size: 443
+  original:
+    hackage: split-0.2.5@sha256:5bc1ae848bfded3087ea3e568908f1b75f56ecde6f02df3fad1a138dd5c783d5,2625
+snapshots: []

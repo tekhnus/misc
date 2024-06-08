@@ -18,7 +18,7 @@
 #
 # resolver: ./custom-snapshot.yaml
 # resolver: https://example.com/snapshots/2018-01-01.yaml
-resolver: lts-13.15
+resolver: ghc-9.6.5
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -39,8 +39,9 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- hindent-5.2.7
-
+- cond-0.5.1@sha256:e3f31bdac10c7f3c632a684e4c29978d0c9251ec682c52ceee811e83dcd5a00f,1412
+- monad-loops-0.4.3@sha256:ada4f1295ece07f9a7398bc5b40c4532f95a733a8604d2a2f57f05f878766df2,1751
+- split-0.2.5@sha256:5bc1ae848bfded3087ea3e568908f1b75f56ecde6f02df3fad1a138dd5c783d5,2625
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

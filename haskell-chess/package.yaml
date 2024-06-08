@@ -10,10 +10,10 @@ version:             0.1.0.0
 # common to point users to the README.md file.
 
 dependencies:
-- base >= 4.7 && < 5
-- cond == 0.4.1.1
-- split == 0.2.3.3
-- monad-loops == 0.4.3
+- base
+- cond
+- split
+- monad-loops
 
 library:
   source-dirs: src
