@@ -1,5 +1,0 @@
-common/extern.h
-common/zlisp/*
-host-ffi/*.h
-host-ffi/zlisp/*
-tools/

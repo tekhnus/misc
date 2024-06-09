@@ -1,5 +1,0 @@
-list_sources() {
-  fd '.*[.][ch]pp'
-}
-
-clang-format-12 -i $(list_sources)

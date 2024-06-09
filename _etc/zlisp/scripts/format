@@ -1,6 +1,0 @@
-list_sources() {
-  fd -E 'tools/*' '.*[.]c'
-  echo core/types.h
-}
-
-clang-format -i $(list_sources)
