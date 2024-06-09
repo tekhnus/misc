@@ -1,0 +1,2 @@
+./scripts/build
+java -jar ./target/befunge-0.1.jar

@@ -1,0 +1,2 @@
+./scripts/build
+java -jar ./target/snowflakes-0.1.jar

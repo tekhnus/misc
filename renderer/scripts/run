@@ -1,0 +1,2 @@
+./scripts/build
+java -jar ./target/renderer-0.1.jar ./example/monkey.txt
